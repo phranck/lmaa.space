@@ -1,0 +1,28 @@
+{
+  "name": "@dein-shop/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "start": "bun run dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "bun run src/db/migrate.ts",
+    "db:seed": "bun run src/db/seed.ts",
+    "import": "bun run src/services/import.ts"
+  },
+  "dependencies": {
+    "@dein-shop/shared": "*",
+    "@hono/zod-validator": "^0.4.3",
+    "drizzle-orm": "^0.38.4",
+    "hono": "^4.7.4",
+    "resend": "^4.2.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.4",
+    "drizzle-kit": "^0.30.4",
+    "typescript": "^5.7.3"
+  }
+}
