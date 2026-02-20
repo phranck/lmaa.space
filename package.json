@@ -1,0 +1,29 @@
+{
+  "name": "dein-shop",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:frontend": "bun run dev --filter=@dein-shop/frontend",
+    "dev:backend": "bun run dev --filter=@dein-shop/backend",
+    "dev:dashboard": "bun run dev --filter=@dein-shop/dashboard",
+    "build": "bun run build --filter=@dein-shop/shared && bun run build --filter='*'",
+    "build:frontend": "bun run build --filter=@dein-shop/frontend",
+    "build:backend": "bun run build --filter=@dein-shop/backend",
+    "build:dashboard": "bun run build --filter=@dein-shop/dashboard",
+    "typecheck": "bun run typecheck --filter='*'",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun run --filter=@dein-shop/backend db:migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "drizzle-kit": "^0.30.4",
+    "typescript": "^5.7.3"
+  }
+}
