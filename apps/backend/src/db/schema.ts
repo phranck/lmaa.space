@@ -5,6 +5,8 @@ export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
+  icon: text("icon").notNull().default(""),
+  description: text("description").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at")
     .notNull()
@@ -99,6 +101,21 @@ export const sessions = sqliteTable(
   (table) => [index("idx_sessions_expires").on(table.expiresAt)],
 );
 
+export const deadLinkReports = sqliteTable(
+  "dead_link_reports",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    shopId: integer("shop_id")
+      .notNull()
+      .references(() => shops.id),
+    ipHash: text("ip_hash").notNull(),
+    reportedAt: text("reported_at")
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (table) => [index("idx_dlr_shop").on(table.shopId)],
+);
+
 export type Category = typeof categories.$inferSelect;
 export type CategoryInsert = typeof categories.$inferInsert;
 export type Shop = typeof shops.$inferSelect;
@@ -108,3 +125,4 @@ export type SubmissionInsert = typeof submissions.$inferInsert;
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type AdminUserInsert = typeof adminUsers.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
+export type DeadLinkReport = typeof deadLinkReports.$inferSelect;

@@ -1,10 +1,15 @@
+import { useState } from "react";
 import type { Shop } from "@dein-shop/shared";
+import { api } from "../../../lib/api.ts";
 
 interface ShopCardProps {
   shop: Shop;
 }
 
 export function ShopCard({ shop }: ShopCardProps) {
+  const [reported, setReported] = useState(false);
+  const [reporting, setReporting] = useState(false);
+
   const domain = (() => {
     try {
       return new URL(shop.url).hostname.replace("www.", "");
@@ -12,6 +17,19 @@ export function ShopCard({ shop }: ShopCardProps) {
       return shop.url;
     }
   })();
+
+  async function handleReport() {
+    setReporting(true);
+    try {
+      await api.post(`/shops/${shop.id}/report`, {});
+      setReported(true);
+    } catch {
+      // silently ignore (rate limit etc.)
+      setReported(true);
+    } finally {
+      setReporting(false);
+    }
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
@@ -57,6 +75,22 @@ export function ShopCard({ shop }: ShopCardProps) {
           )}
         </div>
       )}
+
+      {/* Dead link report */}
+      <div className="flex justify-end pt-1 border-t border-gray-50">
+        {reported ? (
+          <span className="text-xs text-gray-400">Danke für deinen Hinweis!</span>
+        ) : (
+          <button
+            type="button"
+            onClick={handleReport}
+            disabled={reporting}
+            className="text-xs text-gray-300 hover:text-red-400 transition-colors disabled:opacity-50"
+          >
+            Link defekt?
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -4,10 +4,12 @@ import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useShops } from "../../shops/hooks/useShops.ts";
 import { useCategories } from "../../categories/hooks/useCategories.ts";
 import { useSearch } from "../hooks/useSearch.ts";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
+  useDocumentTitle(query ? `Suche: ${query}` : "Suche");
 
   const { data: shops = [] } = useShops();
   const { data: categories = [] } = useCategories();
