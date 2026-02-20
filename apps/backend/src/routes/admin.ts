@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { adminUsers, categories, sessions, shops, submissions } from "../db/schema.js";
+import { adminUsers, categories, deadLinkReports, sessions, shops, submissions } from "../db/schema.js";
 import { requireAuth, requireOwner, type AuthVariables } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import {
@@ -126,12 +126,14 @@ adminRoutes.get("/stats", requireAuth, async (c) => {
     .select({ count: count() })
     .from(submissions)
     .where(eq(submissions.status, "pending"));
+  const [totalCount] = await db.select({ count: count() }).from(submissions);
 
   return c.json({
     data: {
       shops: shopCount.count,
       categories: categoryCount.count,
       pendingSubmissions: pendingCount.count,
+      totalSubmissions: totalCount.count,
     },
   });
 });
@@ -199,69 +201,68 @@ adminRoutes.patch(
 
 // CRUD Shops
 adminRoutes.get("/shops", requireAuth, async (c) => {
-  const rows = await db
-    .select()
-    .from(shops)
-    .innerJoin(categories, eq(shops.categoryId, categories.id))
-    .orderBy(shops.name);
+  const rows = await db.select().from(shops).orderBy(shops.name);
   return c.json({ data: rows });
 });
 
-adminRoutes.post(
-  "/shops",
-  requireAuth,
-  zValidator(
-    "json",
-    z.object({
-      name: z.string().min(1).max(200),
-      url: z.string().url(),
-      categoryId: z.number().int().positive(),
-      region: z.string().optional(),
-      pickup: z.string().optional(),
-      shipping: z.string().optional(),
-      description: z.string().max(500).optional(),
-    }),
-  ),
-  async (c) => {
-    const body = c.req.valid("json");
-    const [shop] = await db.insert(shops).values(body).returning();
-    return c.json({ data: shop }, 201);
-  },
-);
+const shopBodySchema = z.object({
+  name: z.string().min(1).max(200),
+  url: z.string().url(),
+  categoryId: z.number().int().positive(),
+  region: z.string().optional(),
+  pickup: z.string().optional(),
+  shipping: z.string().optional(),
+  description: z.string().max(500).optional(),
+});
 
-adminRoutes.put(
-  "/shops/:id",
-  requireAuth,
-  zValidator(
-    "json",
-    z.object({
-      name: z.string().min(1).max(200).optional(),
-      url: z.string().url().optional(),
-      categoryId: z.number().int().positive().optional(),
-      region: z.string().optional(),
-      pickup: z.string().optional(),
-      shipping: z.string().optional(),
-      description: z.string().max(500).optional(),
-      isActive: z.boolean().optional(),
-    }),
-  ),
-  async (c) => {
-    const id = Number(c.req.param("id"));
-    const body = c.req.valid("json");
-    const [shop] = await db
-      .update(shops)
-      .set({ ...body, updatedAt: new Date().toISOString() })
-      .where(eq(shops.id, id))
-      .returning();
-    if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
-    return c.json({ data: shop });
-  },
-);
+adminRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), async (c) => {
+  const body = c.req.valid("json");
+  const [shop] = await db.insert(shops).values(body).returning();
+  return c.json({ data: shop }, 201);
+});
+
+const shopUpdateSchema = shopBodySchema.partial().extend({ isActive: z.boolean().optional() });
+
+for (const method of ["put", "patch"] as const) {
+  adminRoutes[method](
+    "/shops/:id",
+    requireAuth,
+    zValidator("json", shopUpdateSchema),
+    async (c) => {
+      const id = Number(c.req.param("id"));
+      const body = c.req.valid("json");
+      const [shop] = await db
+        .update(shops)
+        .set({ ...body, updatedAt: new Date().toISOString() })
+        .where(eq(shops.id, id))
+        .returning();
+      if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+      return c.json({ data: shop });
+    },
+  );
+}
 
 adminRoutes.delete("/shops/:id", requireAuth, async (c) => {
   const id = Number(c.req.param("id"));
-  await db.update(shops).set({ isActive: false }).where(eq(shops.id, id));
-  return c.json({ data: { message: "Shop deactivated" } });
+  await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+  await db.delete(shops).where(eq(shops.id, id));
+  return c.json({ data: { message: "Shop deleted" } });
+});
+
+// GET /api/admin/dead-link-reports
+adminRoutes.get("/dead-link-reports", requireAuth, async (c) => {
+  const rows = await db
+    .select({
+      shopId: deadLinkReports.shopId,
+      shopName: shops.name,
+      shopUrl: shops.url,
+      reportCount: count(deadLinkReports.id),
+    })
+    .from(deadLinkReports)
+    .innerJoin(shops, eq(deadLinkReports.shopId, shops.id))
+    .groupBy(deadLinkReports.shopId)
+    .orderBy(desc(count(deadLinkReports.id)));
+  return c.json({ data: rows });
 });
 
 // CRUD Categories
@@ -270,47 +271,46 @@ adminRoutes.get("/categories", requireAuth, async (c) => {
   return c.json({ data: rows });
 });
 
-adminRoutes.post(
-  "/categories",
-  requireAuth,
-  zValidator(
-    "json",
-    z.object({
-      name: z.string().min(1).max(100),
-      slug: z.string().min(1).max(100),
-      sortOrder: z.number().int().optional(),
-    }),
-  ),
-  async (c) => {
-    const body = c.req.valid("json");
-    const [category] = await db.insert(categories).values(body).returning();
-    return c.json({ data: category }, 201);
-  },
-);
+const categoryBodySchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().min(1).max(100),
+  icon: z.string().max(10).optional(),
+  description: z.string().max(200).optional(),
+  sortOrder: z.number().int().optional(),
+});
 
-adminRoutes.put(
-  "/categories/:id",
-  requireAuth,
-  zValidator(
-    "json",
-    z.object({
-      name: z.string().min(1).max(100).optional(),
-      slug: z.string().min(1).max(100).optional(),
-      sortOrder: z.number().int().optional(),
-    }),
-  ),
-  async (c) => {
-    const id = Number(c.req.param("id"));
-    const body = c.req.valid("json");
-    const [category] = await db
-      .update(categories)
-      .set({ ...body, updatedAt: new Date().toISOString() })
-      .where(eq(categories.id, id))
-      .returning();
-    if (!category) return c.json({ error: { message: "Category not found" } }, 404);
-    return c.json({ data: category });
-  },
-);
+adminRoutes.post("/categories", requireAuth, zValidator("json", categoryBodySchema), async (c) => {
+  const body = c.req.valid("json");
+  const [category] = await db.insert(categories).values(body).returning();
+  return c.json({ data: category }, 201);
+});
+
+const categoryUpdateSchema = categoryBodySchema.partial();
+
+for (const method of ["put", "patch"] as const) {
+  adminRoutes[method](
+    "/categories/:id",
+    requireAuth,
+    zValidator("json", categoryUpdateSchema),
+    async (c) => {
+      const id = Number(c.req.param("id"));
+      const body = c.req.valid("json");
+      const [category] = await db
+        .update(categories)
+        .set({ ...body, updatedAt: new Date().toISOString() })
+        .where(eq(categories.id, id))
+        .returning();
+      if (!category) return c.json({ error: { message: "Category not found" } }, 404);
+      return c.json({ data: category });
+    },
+  );
+}
+
+adminRoutes.delete("/categories/:id", requireAuth, async (c) => {
+  const id = Number(c.req.param("id"));
+  await db.delete(categories).where(eq(categories.id, id));
+  return c.json({ data: { message: "Category deleted" } });
+});
 
 // Admin user management (owner only)
 adminRoutes.get("/users", requireAuth, requireOwner, async (c) => {

@@ -9,8 +9,7 @@
     "start": "bun run dist/index.js",
     "typecheck": "tsc --noEmit",
     "db:migrate": "bun run src/db/migrate.ts",
-    "db:seed": "bun run src/db/seed.ts",
-    "import": "bun run src/services/import.ts"
+    "db:seed": "bun run src/scripts/seed.ts"
   },
   "dependencies": {
     "@dein-shop/shared": "*",

@@ -2,8 +2,10 @@ import { useNavigate } from "react-router";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
 import { CategoryGrid } from "../components/CategoryGrid.tsx";
 import { useCategories } from "../hooks/useCategories.ts";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
 
 export function HomePage() {
+  useDocumentTitle();
   const { data: categories, isLoading } = useCategories();
   const navigate = useNavigate();
 

@@ -3,8 +3,9 @@ import { count, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { categories, shops, submissions } from "../db/schema.js";
+import { categories, deadLinkReports, shops, submissions } from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
+import { createHash } from "crypto";
 
 const submissionSchema = z.object({
   shopName: z.string().min(2).max(100),
@@ -142,5 +143,27 @@ publicRoutes.post(
     });
 
     return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
+  },
+);
+
+// POST /api/shops/:id/report – dead link report (rate limited per IP)
+publicRoutes.post(
+  "/shops/:id/report",
+  rateLimit({ max: 3, windowMs: 60 * 60 * 1000 }),
+  async (c) => {
+    const id = Number(c.req.param("id"));
+    if (!Number.isInteger(id) || id <= 0) {
+      return c.json({ error: { message: "Invalid shop id" } }, 400);
+    }
+
+    const [shop] = await db.select({ id: shops.id }).from(shops).where(eq(shops.id, id)).limit(1);
+    if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+
+    const ip = c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip") ?? "unknown";
+    const ipHash = createHash("sha256").update(ip).digest("hex");
+
+    await db.insert(deadLinkReports).values({ shopId: id, ipHash });
+
+    return c.json({ data: { message: "Danke für deinen Hinweis!" } });
   },
 );

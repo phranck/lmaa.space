@@ -3,10 +3,12 @@ import type { Shop } from "@dein-shop/shared";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
 import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useCategory } from "../hooks/useCategories.ts";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
 
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data, isLoading, isError } = useCategory(slug ?? "");
+  useDocumentTitle(data?.name);
 
   return (
     <PageLayout>

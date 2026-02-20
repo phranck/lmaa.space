@@ -2,6 +2,8 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
+  icon: string;
+  description: string;
   sortOrder: number;
   shopCount?: number;
   createdAt: string;
