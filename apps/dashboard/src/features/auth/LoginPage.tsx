@@ -1,0 +1,78 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "./AuthContext.tsx";
+
+export function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    const fd = new FormData(e.currentTarget);
+    try {
+      await login(fd.get("username") as string, fd.get("password") as string);
+      navigate("/");
+    } catch {
+      setError("Ungültige Zugangsdaten.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-[var(--color-primary)]">dein.shop</h1>
+          <p className="text-sm text-gray-500 mt-1">Admin-Bereich</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">Anmelden</h2>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Benutzername
+              </label>
+              <input
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Passwort
+              </label>
+              <input
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+              />
+            </div>
+
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 bg-[var(--color-primary)] text-white rounded-xl font-semibold hover:bg-[var(--color-primary-light)] transition-colors disabled:opacity-60 mt-2"
+            >
+              {loading ? "Anmelden..." : "Anmelden"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

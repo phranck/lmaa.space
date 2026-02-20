@@ -1,21 +1,50 @@
 import { Routes, Route, Navigate } from "react-router";
+import { AuthProvider, useAuth } from "./features/auth/AuthContext.tsx";
+import { LoginPage } from "./features/auth/LoginPage.tsx";
+import { SetupPage } from "./features/auth/SetupPage.tsx";
+import { AdminLayout } from "./components/layout/AdminLayout.tsx";
+import { DashboardPage } from "./features/dashboard/DashboardPage.tsx";
+import { SubmissionsPage } from "./features/submissions/SubmissionsPage.tsx";
+import { ShopsPage } from "./features/shops/ShopsPage.tsx";
+import { CategoriesPage } from "./features/categories/CategoriesPage.tsx";
+import { UsersPage } from "./features/users/UsersPage.tsx";
 
-function LoginPage() {
-  return (
-    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
-      <div className="bg-[var(--color-surface)] p-8 rounded-lg shadow-sm max-w-sm w-full">
-        <h1 className="text-2xl font-bold text-[var(--color-primary)] mb-6">dein.shop Admin</h1>
-        <p className="text-[var(--color-text-muted)] text-sm">Login folgt in Phase 3.</p>
+function AppRoutes() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/setup" element={<SetupPage />} />
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+
+      {user ? (
+        <Route element={<AdminLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="vorschlaege" element={<SubmissionsPage />} />
+          <Route path="shops" element={<ShopsPage />} />
+          <Route path="kategorien" element={<CategoriesPage />} />
+          {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      ) : (
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      )}
+    </Routes>
   );
 }
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
