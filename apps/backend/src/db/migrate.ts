@@ -89,6 +89,14 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_dlr_shop ON dead_link_reports(shop_id);
 `);
 
+// Additive migrations (safe to run multiple times)
+try {
+  sqlite.exec(`ALTER TABLE shops ADD COLUMN og_image TEXT`);
+  console.log("Added og_image column to shops.");
+} catch {
+  // Column already exists
+}
+
 // FTS5 full-text search for shops
 sqlite.exec(`
   CREATE VIRTUAL TABLE IF NOT EXISTS shops_fts USING fts5(

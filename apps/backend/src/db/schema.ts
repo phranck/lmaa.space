@@ -29,6 +29,7 @@ export const shops = sqliteTable(
     pickup: text("pickup").notNull().default(""),
     shipping: text("shipping").notNull().default(""),
     description: text("description").notNull().default(""),
+    ogImage: text("og_image"),
     isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
     createdAt: text("created_at")
       .notNull()
