@@ -1,0 +1,70 @@
+name: Deploy to Zerops
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      dashboard: ${{ steps.filter.outputs.dashboard }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'apps/backend/**'
+              - 'packages/shared/**'
+              - 'package.json'
+              - 'bun.lock'
+              - 'zerops.yml'
+            frontend:
+              - 'apps/frontend/**'
+              - 'packages/shared/**'
+              - 'package.json'
+              - 'bun.lock'
+              - 'zerops.yml'
+            dashboard:
+              - 'apps/dashboard/**'
+              - 'packages/shared/**'
+              - 'package.json'
+              - 'bun.lock'
+              - 'zerops.yml'
+
+  deploy-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: zeropsio/actions@main
+        with:
+          access-token: ${{ secrets.ZEROPS_TOKEN }}
+          service-id: ZEROPS_BACKEND_SERVICE_ID
+
+  deploy-frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: zeropsio/actions@main
+        with:
+          access-token: ${{ secrets.ZEROPS_TOKEN }}
+          service-id: ZEROPS_FRONTEND_SERVICE_ID
+
+  deploy-dashboard:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.dashboard == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: zeropsio/actions@main
+        with:
+          access-token: ${{ secrets.ZEROPS_TOKEN }}
+          service-id: ZEROPS_DASHBOARD_SERVICE_ID

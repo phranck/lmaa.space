@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  ci:
+    name: Typecheck & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Typecheck (shared)
+        run: bun run --filter=@dein-shop/shared typecheck
+
+      - name: Typecheck (backend)
+        run: bun run --filter=@dein-shop/backend typecheck
+
+      - name: Typecheck (frontend)
+        run: bun run --filter=@dein-shop/frontend typecheck
+
+      - name: Typecheck (dashboard)
+        run: bun run --filter=@dein-shop/dashboard typecheck
+
+      - name: Build shared
+        run: bun run build --filter=@dein-shop/shared
+
+      - name: Build backend
+        run: bun run build --filter=@dein-shop/backend
+
+      - name: Build frontend
+        run: bun run build --filter=@dein-shop/frontend
+
+      - name: Build dashboard
+        run: bun run build --filter=@dein-shop/dashboard
