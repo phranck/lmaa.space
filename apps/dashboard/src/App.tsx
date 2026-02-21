@@ -1,16 +1,16 @@
 import { Routes, Route, Navigate } from "react-router";
-import { AuthProvider, useAuth } from "./features/auth/AuthContext.tsx";
-import { LoginPage } from "./features/auth/LoginPage.tsx";
-import { SetupPage } from "./features/auth/SetupPage.tsx";
-import { AdminLayout } from "./components/layout/AdminLayout.tsx";
-import { DashboardPage } from "./features/dashboard/DashboardPage.tsx";
-import { SubmissionsPage } from "./features/submissions/SubmissionsPage.tsx";
-import { ShopsPage } from "./features/shops/ShopsPage.tsx";
-import { CategoriesPage } from "./features/categories/CategoriesPage.tsx";
-import { UsersPage } from "./features/users/UsersPage.tsx";
+import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
+import { LoginPage } from "@/features/auth/LoginPage.tsx";
+import { SetupPage } from "@/features/auth/SetupPage.tsx";
+import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
+import { DashboardPage } from "@/features/dashboard/DashboardPage.tsx";
+import { SubmissionsPage } from "@/features/submissions/SubmissionsPage.tsx";
+import { ShopsPage } from "@/features/shops/ShopsPage.tsx";
+import { CategoriesPage } from "@/features/categories/CategoriesPage.tsx";
+import { UsersPage } from "@/features/users/UsersPage.tsx";
 
 function AppRoutes() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, needsSetup } = useAuth();
 
   if (isLoading) {
     return (
@@ -35,7 +35,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       ) : (
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to={needsSetup ? "/setup" : "/login"} replace />} />
       )}
     </Routes>
   );

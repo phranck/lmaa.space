@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Shop, Category } from "@dein-shop/shared";
-import { api } from "../../lib/api.ts";
+import { api } from "@/lib/api.ts";
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { ShopListItem } from "@/features/shops/ShopListItem.tsx";
 
 interface ShopForm {
   name: string;
@@ -91,7 +93,7 @@ export function ShopsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Shops</h1>
+      <PageHeader title="Shops" />
 
       {/* Form */}
       <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
@@ -100,87 +102,93 @@ export function ShopsPage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label htmlFor="shop-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
+              id="shop-name"
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+            <label htmlFor="shop-url" className="block text-sm font-medium text-gray-700 mb-1">URL</label>
             <input
+              id="shop-url"
               type="url"
               value={form.url}
               onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
               placeholder="https://..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+            <label htmlFor="shop-description" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
             <textarea
+              id="shop-description"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
+            <label htmlFor="shop-category" className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
             <select
+              id="shop-category"
               value={form.categoryId}
               onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               <option value="">Keine</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.name}
+                  {cat.name}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+            <label htmlFor="shop-region" className="block text-sm font-medium text-gray-700 mb-1">Region</label>
             <input
+              id="shop-region"
               type="text"
               value={form.region}
               onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
               placeholder="z.B. Deutschland, EU"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Versand</label>
+            <label htmlFor="shop-shipping" className="block text-sm font-medium text-gray-700 mb-1">Versand</label>
             <input
+              id="shop-shipping"
               type="text"
               value={form.shipping}
               onChange={(e) => setForm((f) => ({ ...f, shipping: e.target.value }))}
               placeholder="z.B. Kostenlos ab 50 €"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
         </div>
-        <div className="flex gap-2 mt-4">
-          <button
-            type="button"
-            onClick={() => saveMutation.mutate(form)}
-            disabled={!form.name || !form.url || saveMutation.isPending}
-            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
-          >
-            {saveMutation.isPending ? "..." : editId ? "Speichern" : "Erstellen"}
-          </button>
+        <div className="flex justify-end gap-2 mt-4">
           {editId && (
             <button
               type="button"
               onClick={cancelEdit}
-              className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:border-gray-300 transition-colors"
+              className="px-4 py-2 border border-gray-200 text-gray-600 rounded-control text-sm hover:border-gray-300 transition-colors"
             >
               Abbrechen
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => saveMutation.mutate(form)}
+            disabled={!form.name || !form.url || saveMutation.isPending}
+            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+          >
+            {saveMutation.isPending ? "..." : editId ? "Speichern" : "Erstellen"}
+          </button>
         </div>
       </div>
 
@@ -191,7 +199,7 @@ export function ShopsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Shops filtern..."
-          className="w-full sm:w-72 px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          className="w-full sm:w-72 px-4 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
       </div>
 
@@ -211,50 +219,15 @@ export function ShopsPage() {
       )}
 
       <div className="space-y-2">
-        {filtered.map((shop) => {
-          const cat = categories.find((c) => c.id === shop.categoryId);
-          return (
-            <div
-              key={shop.id}
-              className="bg-white rounded-xl border border-gray-100 px-5 py-3 flex items-center gap-3"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-gray-900">{shop.name}</p>
-                  {cat && (
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-                      {cat.icon} {cat.name}
-                    </span>
-                  )}
-                </div>
-                <a
-                  href={shop.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[var(--color-primary)] hover:underline truncate block"
-                >
-                  {shop.url}
-                </a>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => startEdit(shop)}
-                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:border-gray-300 transition-colors"
-                >
-                  Bearbeiten
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteId(shop.id)}
-                  className="px-3 py-1.5 text-sm border border-red-200 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
-                >
-                  Löschen
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        {filtered.map((shop) => (
+          <ShopListItem
+            key={shop.id}
+            shop={shop}
+            category={categories.find((c) => c.id === shop.categoryId)}
+            onEdit={startEdit}
+            onDelete={setDeleteId}
+          />
+        ))}
       </div>
 
       {/* Delete Confirm Modal */}
@@ -275,7 +248,7 @@ export function ShopsPage() {
               <button
                 type="button"
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
               >
                 Abbrechen
               </button>
@@ -283,7 +256,7 @@ export function ShopsPage() {
                 type="button"
                 disabled={deleteMutation.isPending}
                 onClick={() => deleteMutation.mutate(deleteId)}
-                className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "..." : "Löschen"}
               </button>

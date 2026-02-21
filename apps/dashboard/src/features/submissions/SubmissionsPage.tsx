@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Submission } from "@dein-shop/shared";
-import { api } from "../../lib/api.ts";
+import { api } from "@/lib/api.ts";
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
 
 type Status = "pending" | "approved" | "rejected";
 
@@ -54,25 +55,22 @@ export function SubmissionsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Vorschläge</h1>
-        <div className="flex gap-2">
-          {(["pending", "approved", "rejected"] as Status[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                filter === s
-                  ? "bg-[var(--color-primary)] text-white"
-                  : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
-              }`}
-            >
-              {STATUS_LABELS[s]}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PageHeader title="Vorschläge">
+        {(["pending", "approved", "rejected"] as Status[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setFilter(s)}
+            className={`px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
+              filter === s
+                ? "bg-[var(--color-primary)] text-white"
+                : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+            }`}
+          >
+            {STATUS_LABELS[s]}
+          </button>
+        ))}
+      </PageHeader>
 
       {isLoading && (
         <div className="space-y-3">
@@ -127,7 +125,7 @@ export function SubmissionsPage() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                  className="px-4 py-2 bg-green-600 text-white rounded-control text-sm font-medium hover:bg-green-700 transition-colors"
                 >
                   Annehmen
                 </button>
@@ -138,7 +136,7 @@ export function SubmissionsPage() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+                  className="px-4 py-2 bg-red-500 text-white rounded-control text-sm font-medium hover:bg-red-600 transition-colors"
                 >
                   Ablehnen
                 </button>
@@ -176,7 +174,7 @@ export function SubmissionsPage() {
                   ? "Grund für Ablehnung..."
                   : "Optionaler Kommentar..."
               }
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none mb-3"
+              className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none mb-3"
             />
 
             {reviewing.submitterEmail && (
@@ -196,7 +194,7 @@ export function SubmissionsPage() {
               <button
                 type="button"
                 onClick={() => setReviewId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
               >
                 Abbrechen
               </button>
@@ -209,7 +207,7 @@ export function SubmissionsPage() {
                     status: reviewId > 0 ? "approved" : "rejected",
                   })
                 }
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
+                className={`flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
                   reviewId > 0
                     ? "bg-green-600 hover:bg-green-700"
                     : "bg-red-500 hover:bg-red-600"
