@@ -8,6 +8,9 @@ export const categories = sqliteTable("categories", {
   icon: text("icon").notNull().default(""),
   description: text("description").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
+  imageUrl: text("image_url"),
+  imagePhotographer: text("image_photographer"),
+  imagePhotographerUrl: text("image_photographer_url"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(datetime('now'))`),

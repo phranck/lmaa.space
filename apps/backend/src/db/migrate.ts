@@ -97,6 +97,21 @@ try {
   // Column already exists
 }
 
+try {
+  sqlite.exec(`ALTER TABLE categories ADD COLUMN image_url TEXT DEFAULT NULL`);
+  console.log("Added image_url column to categories.");
+} catch { /* Column already exists */ }
+
+try {
+  sqlite.exec(`ALTER TABLE categories ADD COLUMN image_photographer TEXT DEFAULT NULL`);
+  console.log("Added image_photographer column to categories.");
+} catch { /* Column already exists */ }
+
+try {
+  sqlite.exec(`ALTER TABLE categories ADD COLUMN image_photographer_url TEXT DEFAULT NULL`);
+  console.log("Added image_photographer_url column to categories.");
+} catch { /* Column already exists */ }
+
 // FTS5 full-text search for shops
 sqlite.exec(`
   CREATE VIRTUAL TABLE IF NOT EXISTS shops_fts USING fts5(
