@@ -1,0 +1,132 @@
+/* =============================================================
+   Design Tokens — dein.shop
+   Namespace:   --ds-
+   Color space: OKLCH (perceptually uniform, wide-gamut ready)
+   Convention:  two-tier — primitives → semantics
+
+   Usage:
+     @import "@dein-shop/shared/styles/tokens.css";
+   ============================================================= */
+
+
+/* ── PRIMITIVE TOKENS ─────────────────────────────────────────
+   Raw values. Only reference from semantic tokens below.
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+
+  /* Brand · Amber
+     --ds-color-brand-500 ≈ #fd9a00 (explicit design decision)
+     Adjacent steps derived perceptually in OKLCH              */
+  --ds-color-brand-50:  oklch(0.987 0.022  95.3);
+  --ds-color-brand-100: oklch(0.962 0.059  95.3);
+  --ds-color-brand-200: oklch(0.924 0.120  85.0);
+  --ds-color-brand-300: oklch(0.879 0.169  76.0);
+  --ds-color-brand-400: oklch(0.812 0.186  70.0);
+  --ds-color-brand-500: oklch(0.745 0.183  64.0); /* ≈ #fd9a00 */
+  --ds-color-brand-600: oklch(0.670 0.174  61.0); /* ≈ #e08800 */
+  --ds-color-brand-700: oklch(0.590 0.155  57.0); /* ≈ #c47700 */
+  --ds-color-brand-800: oklch(0.487 0.128  52.0);
+  --ds-color-brand-900: oklch(0.398 0.097  45.0);
+  --ds-color-brand-950: oklch(0.267 0.059  40.0);
+
+  /* Neutral · Stone
+     Matches Tailwind v4 built-in stone scale exactly          */
+  --ds-color-neutral-50:  oklch(0.985 0.001 106.4);
+  --ds-color-neutral-100: oklch(0.961 0.003 106.4);
+  --ds-color-neutral-200: oklch(0.921 0.007 106.4);
+  --ds-color-neutral-300: oklch(0.869 0.012 106.4);
+  --ds-color-neutral-400: oklch(0.706 0.023  48.7);
+  --ds-color-neutral-500: oklch(0.553 0.021  38.2);
+  --ds-color-neutral-600: oklch(0.445 0.017  38.2);
+  --ds-color-neutral-700: oklch(0.374 0.014  38.2);
+  --ds-color-neutral-800: oklch(0.274 0.011  38.2);
+  --ds-color-neutral-900: oklch(0.216 0.009  38.2);
+  --ds-color-neutral-950: oklch(0.147 0.006  38.2);
+
+  /* Status · Semantic color primitives                        */
+  --ds-color-success-50:  oklch(0.982 0.018 155.8);
+  --ds-color-success-600: oklch(0.627 0.194 149.6);
+  --ds-color-success-700: oklch(0.527 0.154 150.1);
+
+  --ds-color-danger-50:   oklch(0.971 0.013  17.4);
+  --ds-color-danger-600:  oklch(0.577 0.245  27.3);
+  --ds-color-danger-700:  oklch(0.505 0.213  27.3);
+
+  --ds-color-warning-50:  oklch(0.987 0.022  95.3);
+  --ds-color-warning-600: oklch(0.666 0.179  58.3);
+  --ds-color-warning-700: oklch(0.555 0.163  58.3);
+}
+
+
+/* ── SEMANTIC TOKENS · Light mode ────────────────────────────
+   Intent-driven. Reference these in component styles.
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+
+  /* Surfaces */
+  --ds-bg:            var(--ds-color-neutral-50);
+  --ds-bg-elevated:   var(--ds-color-neutral-100);
+  --ds-surface:       oklch(1 0 0);
+  --ds-surface-alt:   var(--ds-color-neutral-50);
+
+  /* Borders */
+  --ds-border:        var(--ds-color-neutral-200);
+  --ds-border-strong: var(--ds-color-neutral-300);
+  --ds-border-subtle: var(--ds-color-neutral-100);
+
+  /* Text */
+  --ds-text:          var(--ds-color-neutral-800);
+  --ds-text-muted:    var(--ds-color-neutral-500);
+  --ds-text-subtle:   var(--ds-color-neutral-400);
+  --ds-text-inverse:  oklch(1 0 0);
+
+  /* Accent / CTA — full brand saturation for public UI */
+  --ds-accent:        var(--ds-color-brand-500);
+  --ds-accent-hover:  var(--ds-color-brand-600);
+  --ds-accent-active: var(--ds-color-brand-700);
+  --ds-accent-subtle: var(--ds-color-brand-50);
+  --ds-accent-fg:     oklch(1 0 0);
+
+  /* Status */
+  --ds-success-bg:    var(--ds-color-success-50);
+  --ds-success-text:  var(--ds-color-success-700);
+  --ds-danger-bg:     var(--ds-color-danger-50);
+  --ds-danger-text:   var(--ds-color-danger-700);
+  --ds-warning-bg:    var(--ds-color-warning-50);
+  --ds-warning-text:  var(--ds-color-warning-700);
+
+  /* Typography */
+  --ds-font-sans:  "Inter", system-ui, -apple-system, sans-serif;
+  --ds-font-serif: "Barlow Condensed", system-ui, sans-serif;
+  --ds-font-mono:  ui-monospace, "Cascadia Code", "Fira Code", monospace;
+
+  /* Border radius */
+  --ds-radius-sm:   0.25rem;   /*  4px */
+  --ds-radius-md:   0.375rem;  /*  6px */
+  --ds-radius-lg:   0.5rem;    /*  8px */
+  --ds-radius-xl:   0.75rem;   /* 12px */
+  --ds-radius-2xl:  1rem;      /* 16px */
+  --ds-radius-3xl:  1.25rem;   /* 20px */
+  --ds-radius-pill: 9999px;
+
+  /* Shadows */
+  --ds-shadow-xs: 0 1px 2px oklch(0 0 0 / 0.04);
+  --ds-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.06),
+                  0 1px 2px oklch(0 0 0 / 0.04);
+  --ds-shadow-md: 0 4px 6px  oklch(0 0 0 / 0.05),
+                  0 2px 4px  oklch(0 0 0 / 0.04);
+  --ds-shadow-lg: 0 10px 15px oklch(0 0 0 / 0.06),
+                  0 4px  6px  oklch(0 0 0 / 0.04);
+  --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.08),
+                  0 8px  10px oklch(0 0 0 / 0.04);
+
+  /* Motion */
+  --ds-duration-fast: 120ms;
+  --ds-duration-base: 200ms;
+  --ds-duration-slow: 300ms;
+  --ds-ease:          cubic-bezier(0.4, 0, 0.2, 1);
+  --ds-ease-out:      cubic-bezier(0, 0, 0.2, 1);
+  --ds-ease-in:       cubic-bezier(0.4, 0, 1, 1);
+}
