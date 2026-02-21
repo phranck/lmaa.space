@@ -36,6 +36,12 @@ const reviewSchema = z.object({
 
 export const adminRoutes = new Hono<{ Variables: AuthVariables }>();
 
+// GET /api/admin/setup – check if initial setup is needed
+adminRoutes.get("/setup", async (c) => {
+  const count = await getAdminCount();
+  return c.json({ needsSetup: count === 0 });
+});
+
 // POST /api/admin/setup (only if no admin exists)
 adminRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
   const adminCount = await getAdminCount();
@@ -79,7 +85,7 @@ adminRoutes.post(
     const sessionId = await createSession(admin.id);
     setCookie(c, "session", sessionId, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
       maxAge: 86400,
       path: "/",
@@ -277,6 +283,9 @@ const categoryBodySchema = z.object({
   icon: z.string().max(10).optional(),
   description: z.string().max(200).optional(),
   sortOrder: z.number().int().optional(),
+  imageUrl: z.string().url().nullable().optional(),
+  imagePhotographer: z.string().max(200).nullable().optional(),
+  imagePhotographerUrl: z.string().url().nullable().optional(),
 });
 
 adminRoutes.post("/categories", requireAuth, zValidator("json", categoryBodySchema), async (c) => {
@@ -295,6 +304,17 @@ for (const method of ["put", "patch"] as const) {
     async (c) => {
       const id = Number(c.req.param("id"));
       const body = c.req.valid("json");
+
+      // If imageUrl is changing away from an uploaded file, delete the old file from disk
+      if (body.imageUrl !== undefined) {
+        const current = await db.select().from(categories).where(eq(categories.id, id)).get();
+        if (current?.imageUrl?.startsWith("/uploads/") && body.imageUrl !== current.imageUrl) {
+          const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+          const filename = current.imageUrl.replace("/uploads/", "");
+          try { await Bun.file(`${imagePath}/${filename}`).delete(); } catch { /* File may not exist */ }
+        }
+      }
+
       const [category] = await db
         .update(categories)
         .set({ ...body, updatedAt: new Date().toISOString() })
@@ -310,6 +330,103 @@ adminRoutes.delete("/categories/:id", requireAuth, async (c) => {
   const id = Number(c.req.param("id"));
   await db.delete(categories).where(eq(categories.id, id));
   return c.json({ data: { message: "Category deleted" } });
+});
+
+// Image upload for a category
+adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
+  const id = Number(c.req.param("id"));
+  const cat = await db.select().from(categories).where(eq(categories.id, id)).get();
+  if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
+
+  const formData = await c.req.formData();
+  const file = formData.get("image");
+  if (!(file instanceof File)) return c.json({ error: { message: "No image file provided" } }, 400);
+
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowed.includes(file.type)) return c.json({ error: { message: "Only JPEG, PNG or WebP allowed" } }, 400);
+  if (file.size > 5 * 1024 * 1024) return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
+
+  const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const filename = `${id}-${cat.slug}.${ext}`;
+  const fullPath = `${imagePath}/${filename}`;
+
+  // Delete old uploaded file if filename differs (e.g. extension changed)
+  if (cat.imageUrl?.startsWith("/uploads/")) {
+    const oldFilename = cat.imageUrl.replace("/uploads/", "");
+    if (oldFilename !== filename) {
+      try { await Bun.file(`${imagePath}/${oldFilename}`).delete(); } catch { /* File may not exist */ }
+    }
+  }
+
+  await Bun.write(fullPath, await file.arrayBuffer());
+
+  const imageUrl = `/uploads/${filename}`;
+  const [updated] = await db
+    .update(categories)
+    .set({ imageUrl, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date().toISOString() })
+    .where(eq(categories.id, id))
+    .returning();
+
+  return c.json({ data: updated });
+});
+
+// Delete image of a category
+adminRoutes.delete("/categories/:id/image", requireAuth, async (c) => {
+  const id = Number(c.req.param("id"));
+  const cat = await db.select().from(categories).where(eq(categories.id, id)).get();
+  if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
+
+  if (cat.imageUrl?.startsWith("/uploads/")) {
+    const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+    const filename = cat.imageUrl.replace("/uploads/", "");
+    try { await Bun.file(`${imagePath}/${filename}`).delete(); } catch { /* File may not exist */ }
+  }
+
+  const [updated] = await db
+    .update(categories)
+    .set({ imageUrl: null, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date().toISOString() })
+    .where(eq(categories.id, id))
+    .returning();
+
+  return c.json({ data: updated });
+});
+
+// Unsplash proxy: search
+adminRoutes.get("/unsplash/search", requireAuth, async (c) => {
+  const q = c.req.query("q") ?? "";
+  const page = c.req.query("page") ?? "1";
+  const key = process.env.UNSPLASH_ACCESS_KEY;
+  if (!key) return c.json({ error: { message: "Unsplash not configured" } }, 503);
+  if (!q) return c.json({ data: { results: [], total: 0 } });
+
+  const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=30&page=${page}`;
+  const res = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
+  if (!res.ok) return c.json({ error: { message: "Unsplash request failed" } }, 502);
+
+  const json = await res.json() as { results: unknown[]; total: number };
+  const results = (json.results as Array<Record<string, unknown>>).map((p) => {
+    const urls = p.urls as Record<string, string>;
+    const user = p.user as Record<string, unknown>;
+    const links = p.links as Record<string, string>;
+    const userLinks = (user.links as Record<string, string>);
+    return {
+      id: p.id,
+      urls: { small: urls.small, regular: urls.regular },
+      user: { name: user.name, link: userLinks.html },
+      downloadLocation: links.download_location,
+    };
+  });
+  return c.json({ data: { results, total: json.total } });
+});
+
+// Unsplash ToS: trigger download
+adminRoutes.post("/unsplash/download", requireAuth, async (c) => {
+  const { downloadLocation } = await c.req.json<{ downloadLocation: string }>();
+  const key = process.env.UNSPLASH_ACCESS_KEY;
+  if (!key || !downloadLocation) return c.json({ data: { ok: false } });
+  await fetch(downloadLocation, { headers: { Authorization: `Client-ID ${key}` } }).catch(() => {});
+  return c.json({ data: { ok: true } });
 });
 
 // Admin user management (owner only)

@@ -26,6 +26,7 @@ publicRoutes.get("/categories", async (c) => {
       id: categories.id,
       name: categories.name,
       slug: categories.slug,
+      imageUrl: categories.imageUrl,
       sortOrder: categories.sortOrder,
       createdAt: categories.createdAt,
       updatedAt: categories.updatedAt,

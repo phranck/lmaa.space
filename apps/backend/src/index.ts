@@ -6,6 +6,7 @@ import { adminRoutes } from "./routes/admin.js";
 import { publicRoutes } from "./routes/public.js";
 
 const app = new Hono();
+const imagePath = process.env.IMAGE_PATH ?? "./uploads";
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
@@ -21,6 +22,15 @@ app.use(
 );
 app.use("*", secureHeaders());
 app.use("*", logger());
+
+// Serve uploaded category images
+app.get("/uploads/:filename{[^/]+}", async (c) => {
+  const filename = c.req.param("filename");
+  if (filename.includes("..")) return c.json({ error: { message: "Not found" } }, 404);
+  const file = Bun.file(`${imagePath}/${filename}`);
+  if (!(await file.exists())) return c.json({ error: { message: "Not found" } }, 404);
+  return c.body(await file.arrayBuffer(), 200, { "Content-Type": file.type });
+});
 
 app.route("/api", publicRoutes);
 app.route("/api/admin", adminRoutes);
