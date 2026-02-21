@@ -12,11 +12,14 @@ const schema = z.object({
   shopName: z.string().min(2, "Bitte einen Shop-Namen eingeben"),
   shopUrl: z.string().url("Bitte eine gültige URL eingeben (https://...)"),
   categoryId: z.coerce.number().positive("Bitte eine Kategorie wählen"),
-  description: z.string().max(200, "Maximal 200 Zeichen").optional(),
+  description: z.string().max(500, "Maximal 500 Zeichen").optional(),
   submitterEmail: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
 });
 
 type FormData = z.infer<typeof schema>;
+
+const inputClass =
+  "w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-800 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-500 transition-all";
 
 export function SuggestPage() {
   const { data: categories = [] } = useCategories();
@@ -44,30 +47,41 @@ export function SuggestPage() {
   if (submitted) {
     return (
       <PageLayout>
-        <div className="max-w-lg mx-auto px-4 py-20 text-center">
-          <div className="text-5xl mb-6">🎉</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Danke für deinen Vorschlag!</h1>
-          <p className="text-gray-500 mb-8">
+        <div className="max-w-lg mx-auto px-4 py-24 text-center">
+          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="font-serif text-2xl font-semibold text-stone-900 mb-3">
+            Vielen Dank für deinen Vorschlag!
+          </h1>
+          <p className="text-stone-500 mb-10 leading-relaxed">
             Wir prüfen ihn und nehmen ihn bei Eignung in die Liste auf.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               to="/"
-              className="px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:bg-[var(--color-primary-light)] transition-colors"
+              className="px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
             >
               Zur Startseite
             </Link>
             <button
               type="button"
               onClick={() => setSubmitted(false)}
-              className="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:border-gray-300 transition-colors"
+              className="px-6 py-3 border border-stone-200 text-stone-600 rounded-xl text-sm font-medium hover:border-stone-300 transition-colors"
             >
               Weiteren Shop vorschlagen
             </button>
           </div>
-          <p className="mt-8 text-sm text-gray-400">
+          <p className="mt-10 text-sm text-stone-400">
             Dir gefällt dein.shop?{" "}
-            <a href="https://ko-fi.com/phranck" target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] hover:underline">
+            <a
+              href="https://ko-fi.com/phranck"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-600 hover:underline"
+            >
               Unterstütze das Projekt!
             </a>
           </p>
@@ -78,55 +92,53 @@ export function SuggestPage() {
 
   return (
     <PageLayout>
-      <div className="max-w-lg mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Shop vorschlagen</h1>
-        <p className="text-gray-500 mb-8">
-          Hilf mit, die Liste zu erweitern! Dein Vorschlag wird von uns geprüft.
-        </p>
+      <div className="max-w-lg mx-auto px-4 sm:px-6 py-12">
+        <div className="mb-10">
+          <h1 className="font-serif text-3xl font-semibold text-stone-900 mb-2">
+            Shop vorschlagen
+          </h1>
+          <p className="text-stone-500 text-sm leading-relaxed">
+            Hilf mit, die Liste zu erweitern. Dein Vorschlag wird geprüft und bei Eignung aufgenommen.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="flex flex-col gap-5">
-          {/* Shop name */}
+        <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Shop-Name <span className="text-[var(--color-accent)]">*</span>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              Shop-Name <span className="text-amber-600">*</span>
             </label>
             <input
               {...register("shopName")}
               type="text"
               placeholder="z.B. Buchhandlung Schiller"
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+              className={inputClass}
             />
             {errors.shopName && (
-              <p className="text-red-500 text-xs mt-1">{errors.shopName.message}</p>
+              <p className="text-red-500 text-xs mt-1.5">{errors.shopName.message}</p>
             )}
           </div>
 
-          {/* URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Shop-URL <span className="text-[var(--color-accent)]">*</span>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              Shop-URL <span className="text-amber-600">*</span>
             </label>
             <input
               {...register("shopUrl")}
               type="url"
               placeholder="https://..."
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+              className={inputClass}
             />
             {errors.shopUrl && (
-              <p className="text-red-500 text-xs mt-1">{errors.shopUrl.message}</p>
+              <p className="text-red-500 text-xs mt-1.5">{errors.shopUrl.message}</p>
             )}
           </div>
 
-          {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Kategorie <span className="text-[var(--color-accent)]">*</span>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              Kategorie <span className="text-amber-600">*</span>
             </label>
-            <select
-              {...register("categoryId")}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm bg-white"
-            >
-              <option value="">Bitte wählen...</option>
+            <select {...register("categoryId")} className={inputClass}>
+              <option value="">Bitte wählen…</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -134,43 +146,44 @@ export function SuggestPage() {
               ))}
             </select>
             {errors.categoryId && (
-              <p className="text-red-500 text-xs mt-1">{errors.categoryId.message}</p>
+              <p className="text-red-500 text-xs mt-1.5">{errors.categoryId.message}</p>
             )}
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
               Beschreibung{" "}
-              <span className="text-gray-400 font-normal">(optional)</span>
+              <span className="text-stone-400 font-normal">(optional)</span>
             </label>
             <textarea
               {...register("description")}
-              rows={3}
-              placeholder="Was macht diesen Shop besonders? Max. 200 Zeichen."
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none"
+              rows={4}
+              placeholder="Was macht diesen Shop besonders? Sortiment, Besonderheiten, Zielgruppe…"
+              className={`${inputClass} resize-none`}
             />
-            <p className="text-xs text-gray-400 mt-1 text-right">
-              {description.length}/200
-            </p>
+            <div className="flex justify-between items-start mt-1.5 gap-4">
+              <p className="text-xs text-stone-400 leading-relaxed">
+                Optional – aber eine gute Beschreibung hilft anderen, den Shop schneller einzuschätzen.
+              </p>
+              <span className="text-xs text-stone-400 shrink-0">{description.length}/500</span>
+            </div>
             {errors.description && (
               <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
             )}
           </div>
 
-          {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
               Deine E-Mail{" "}
-              <span className="text-gray-400 font-normal">(optional)</span>
+              <span className="text-stone-400 font-normal">(optional)</span>
             </label>
             <input
               {...register("submitterEmail")}
               type="email"
               placeholder="fuer@rueckfragen.de"
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+              className={inputClass}
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-stone-400 mt-1.5">
               Nur für Rückfragen und Benachrichtigung bei Aufnahme.
             </p>
             {errors.submitterEmail && (
@@ -187,9 +200,9 @@ export function SuggestPage() {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl font-semibold hover:bg-[var(--color-primary-light)] transition-colors disabled:opacity-60"
+            className="w-full py-3 bg-stone-900 text-white rounded-xl font-medium text-sm hover:bg-amber-700 transition-colors disabled:opacity-60"
           >
-            {mutation.isPending ? "Wird gesendet..." : "Vorschlag absenden"}
+            {mutation.isPending ? "Wird gesendet…" : "Vorschlag absenden"}
           </button>
         </form>
       </div>
