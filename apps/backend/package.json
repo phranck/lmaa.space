@@ -9,7 +9,8 @@
     "start": "bun run dist/index.js",
     "typecheck": "tsc --noEmit",
     "db:migrate": "bun run src/db/migrate.ts",
-    "db:seed": "bun run src/scripts/seed.ts"
+    "db:seed": "bun run src/scripts/seed.ts",
+    "db:fetch-og": "bun run src/scripts/fetch-og-images.ts"
   },
   "dependencies": {
     "@dein-shop/shared": "*",

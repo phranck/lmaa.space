@@ -13,6 +13,7 @@
     "@dein-shop/shared": "*",
     "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-query-devtools": "^5.74.4",
+    "flowbite-react": "^0.12.17",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.4",
