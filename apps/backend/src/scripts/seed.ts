@@ -188,7 +188,7 @@ function parseContent(text: string): {
 
 async function main() {
   console.log(`Connecting to database at ${DB_PATH}...`);
-  const sqlite = new Database(DB_PATH, { create: false });
+  const sqlite = new Database(DB_PATH, { readwrite: true, create: false });
   sqlite.exec("PRAGMA foreign_keys = ON;");
 
   let totalCategories = 0;

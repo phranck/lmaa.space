@@ -12,7 +12,7 @@ const submissionSchema = z.object({
   shopUrl: z.string().url(),
   categoryId: z.number().int().positive().optional(),
   categorySuggestion: z.string().max(100).optional(),
-  description: z.string().max(200).optional(),
+  description: z.string().max(500).optional(),
   submitterEmail: z.string().email().optional(),
   submitterNote: z.string().max(500).optional(),
 });
@@ -76,6 +76,7 @@ publicRoutes.get("/shops", async (c) => {
       pickup: shops.pickup,
       shipping: shops.shipping,
       description: shops.description,
+      ogImage: shops.ogImage,
       createdAt: shops.createdAt,
       updatedAt: shops.updatedAt,
     })

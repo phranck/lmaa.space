@@ -9,6 +9,7 @@ export interface Shop {
   pickup: string;
   shipping: string;
   description: string;
+  ogImage?: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
