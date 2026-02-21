@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router";
+import { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router";
 import { HomePage } from "./features/categories/pages/HomePage.tsx";
 import { CategoryPage } from "./features/categories/pages/CategoryPage.tsx";
 import { SearchPage } from "./features/search/pages/SearchPage.tsx";
@@ -7,7 +8,19 @@ import { AboutPage } from "./features/suggest/pages/AboutPage.tsx";
 import { ImpressumPage } from "./features/suggest/pages/ImpressumPage.tsx";
 import { DatenschutzPage } from "./features/suggest/pages/DatenschutzPage.tsx";
 
+declare global {
+  interface Window {
+    HSStaticMethods?: { autoInit: () => void };
+  }
+}
+
 export default function App() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.HSStaticMethods?.autoInit?.();
+  }, [pathname]);
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />

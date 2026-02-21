@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import type { Category } from "@dein-shop/shared";
+import { categoryCardImage } from "../../../lib/categoryImages.ts";
 
 interface CategoryCardProps {
   category: Category;
@@ -9,20 +10,31 @@ export function CategoryCard({ category }: CategoryCardProps) {
   return (
     <Link
       to={`/kategorie/${category.slug}`}
-      className="group flex flex-col items-center gap-3 p-5 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[var(--color-primary-light)] hover:-translate-y-0.5 transition-all duration-200"
+      className="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-lg transition-all duration-300"
     >
-      <span className="text-3xl" role="img" aria-hidden>
-        🛍️
-      </span>
-      <div className="text-center">
-        <p className="font-semibold text-gray-800 group-hover:text-[var(--color-primary)] transition-colors text-sm leading-tight">
-          {category.name}
-        </p>
-        {category.shopCount !== undefined && (
-          <p className="text-xs text-gray-400 mt-0.5">
-            {category.shopCount} {category.shopCount === 1 ? "Shop" : "Shops"}
+      {/* Photo */}
+      <div className="aspect-video overflow-hidden">
+        <img
+          src={categoryCardImage(category.slug)}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
+      </div>
+
+      {/* Text */}
+      <div className="px-4 py-3 flex items-center gap-3">
+<div className="min-w-0">
+          <p className="font-serif font-semibold text-stone-800 text-base leading-snug truncate group-hover:text-amber-700 transition-colors">
+            {category.name}
           </p>
-        )}
+          {category.shopCount !== undefined && (
+            <p className="text-stone-400 text-sm mt-0.5">
+              {category.shopCount} {category.shopCount === 1 ? "Shop" : "Shops"}
+            </p>
+          )}
+        </div>
       </div>
     </Link>
   );
