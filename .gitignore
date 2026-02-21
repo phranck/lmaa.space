@@ -7,3 +7,5 @@ dist/
 *.db-wal
 .DS_Store
 *.tmp
+.serena/
+apps/frontend/image-originals/

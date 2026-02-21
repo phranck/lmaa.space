@@ -1,25 +1,28 @@
 @import "tailwindcss";
 
+/* Preline UI */
+@source "../node_modules/preline/dist/*.js";
+@import "../node_modules/preline/variants.css";
+@import "../node_modules/preline/css/themes/autumn.css";
+
 @theme {
-  --color-primary: #2d6a4f;
-  --color-primary-light: #40916c;
-  --color-primary-dark: #1b4332;
-  --color-accent: #e07a5f;
-  --color-background: #faf3e0;
-  --color-surface: #fefefe;
-  --color-text: #1a1a2e;
-  --color-text-muted: #6b7280;
-
   --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Barlow Condensed", system-ui, sans-serif;
+}
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+:root {
+  --accent-base: #fd9a00;
+  --accent-hover: #e08800;
+  --accent-text: #ffffff;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background-color: var(--color-stone-50);
+  color: var(--color-stone-800);
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-serif);
 }

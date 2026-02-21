@@ -6,6 +6,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./index.css";
 import App from "./App.tsx";
 
+// Preline UI
+import "preline";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
