@@ -77,7 +77,7 @@ export function SuggestPage() {
           <p className="mt-10 text-sm text-stone-400">
             Dir gefällt dein.shop?{" "}
             <a
-              href="https://ko-fi.com/phranck"
+              href="https://ko-fi.com/layeredwork?ref=dein.shop"
               target="_blank"
               rel="noopener noreferrer"
               className="text-amber-600 hover:underline"
@@ -104,11 +104,12 @@ export function SuggestPage() {
 
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1.5">
+            <label htmlFor="shopName" className="block text-sm font-medium text-stone-700 mb-1.5">
               Shop-Name <span className="text-amber-600">*</span>
             </label>
             <input
               {...register("shopName")}
+              id="shopName"
               type="text"
               placeholder="z.B. Buchhandlung Schiller"
               className={inputClass}
@@ -119,11 +120,12 @@ export function SuggestPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1.5">
+            <label htmlFor="shopUrl" className="block text-sm font-medium text-stone-700 mb-1.5">
               Shop-URL <span className="text-amber-600">*</span>
             </label>
             <input
               {...register("shopUrl")}
+              id="shopUrl"
               type="url"
               placeholder="https://..."
               className={inputClass}
@@ -134,10 +136,10 @@ export function SuggestPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1.5">
+            <label htmlFor="categoryId" className="block text-sm font-medium text-stone-700 mb-1.5">
               Kategorie <span className="text-amber-600">*</span>
             </label>
-            <select {...register("categoryId")} className={inputClass}>
+            <select {...register("categoryId")} id="categoryId" className={inputClass}>
               <option value="">Bitte wählen…</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -197,13 +199,15 @@ export function SuggestPage() {
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={mutation.isPending}
-            className="w-full py-3 bg-stone-900 text-white rounded-xl font-medium text-sm hover:bg-amber-700 transition-colors disabled:opacity-60"
-          >
-            {mutation.isPending ? "Wird gesendet…" : "Vorschlag absenden"}
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={mutation.isPending}
+              className="px-6 py-3 bg-stone-900 text-white rounded-xl font-medium text-sm hover:bg-amber-700 transition-colors disabled:opacity-60"
+            >
+              {mutation.isPending ? "Wird gesendet…" : "Vorschlag absenden"}
+            </button>
+          </div>
         </form>
       </div>
     </PageLayout>

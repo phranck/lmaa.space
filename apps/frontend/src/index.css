@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@dein-shop/shared/styles/tokens.css";
 
 /* Preline UI */
 @source "../node_modules/preline/dist/*.js";
@@ -6,23 +7,24 @@
 @import "../node_modules/preline/css/themes/autumn.css";
 
 @theme {
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans:  "Inter", system-ui, -apple-system, sans-serif;
   --font-serif: "Barlow Condensed", system-ui, sans-serif;
 }
 
+/* Aliases: keep existing component references working */
 :root {
-  --accent-base: #fd9a00;
-  --accent-hover: #e08800;
-  --accent-text: #ffffff;
+  --accent-base:  var(--ds-accent);
+  --accent-hover: var(--ds-accent-hover);
+  --accent-text:  var(--ds-accent-fg);
 }
 
 body {
-  font-family: var(--font-sans);
-  background-color: var(--color-stone-50);
-  color: var(--color-stone-800);
+  font-family: var(--ds-font-sans);
+  background-color: var(--ds-bg);
+  color: var(--ds-text);
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3 {
-  font-family: var(--font-serif);
+  font-family: var(--ds-font-serif);
 }
