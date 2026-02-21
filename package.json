@@ -6,9 +6,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:frontend": "bun run dev --filter=@dein-shop/frontend",
-    "dev:backend": "bun run dev --filter=@dein-shop/backend",
-    "dev:dashboard": "bun run dev --filter=@dein-shop/dashboard",
+    "dev:frontend": "bun run --filter=@dein-shop/frontend dev",
+    "dev:backend": "bun run --filter=@dein-shop/backend dev",
+    "dev:dashboard": "bun run --filter=@dein-shop/dashboard dev",
     "build": "bun run build --filter=@dein-shop/shared && bun run build --filter='*'",
     "build:frontend": "bun run build --filter=@dein-shop/frontend",
     "build:backend": "bun run build --filter=@dein-shop/backend",
@@ -25,5 +25,8 @@
     "@biomejs/biome": "^1.9.4",
     "drizzle-kit": "^0.30.4",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "react-icons": "^5.5.0"
   }
 }
