@@ -1,6 +1,5 @@
 import { Link } from "react-router";
 import type { Category } from "@dein-shop/shared";
-import { categoryCardImage } from "../../../lib/categoryImages.ts";
 
 interface CategoryCardProps {
   category: Category;
@@ -15,7 +14,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
       {/* Photo */}
       <div className="aspect-video overflow-hidden">
         <img
-          src={categoryCardImage(category.slug)}
+          src={category.imageUrl ?? `/images/${category.slug}.jpg`}
           alt=""
           aria-hidden="true"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

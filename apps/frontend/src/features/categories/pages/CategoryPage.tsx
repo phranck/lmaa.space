@@ -4,7 +4,6 @@ import { PageLayout } from "../../../components/layout/PageLayout.tsx";
 import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useCategory } from "../hooks/useCategories.ts";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
-import { categoryHeroImage } from "../../../lib/categoryImages.ts";
 
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -17,7 +16,7 @@ export function CategoryPage() {
       {(data || isLoading) && (
         <div className="relative h-52 sm:h-64 overflow-hidden">
           <img
-            src={categoryHeroImage(slug ?? "allgemein")}
+            src={data?.imageUrl ?? `/images/${slug}.jpg`}
             alt=""
             aria-hidden="true"
             className="w-full h-full object-cover"
