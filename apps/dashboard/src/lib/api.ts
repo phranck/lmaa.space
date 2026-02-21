@@ -1,10 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 async function handleResponse<T>(res: Response): Promise<T> {
-  if (res.status === 401) {
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
-  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
@@ -46,6 +42,13 @@ export const api = {
   delete: <T>(path: string): Promise<T> =>
     fetch(`${API_BASE}${path}`, {
       method: "DELETE",
+      credentials: "include",
+    }).then((r) => handleResponse<T>(r)),
+
+  upload: <T>(path: string, formData: FormData): Promise<T> =>
+    fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      body: formData,
       credentials: "include",
     }).then((r) => handleResponse<T>(r)),
 };

@@ -1,25 +1,92 @@
 @import "tailwindcss";
+@import "@dein-shop/shared/styles/tokens.css";
 
 @theme {
-  --color-primary: #2d6a4f;
-  --color-primary-light: #40916c;
-  --color-primary-dark: #1b4332;
-  --color-accent: #e07a5f;
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-  --color-text: #1a1a2e;
-  --color-text-muted: #6b7280;
-
-  --font-sans: "Inter", system-ui, sans-serif;
-
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --radius-control: 0.375rem;
+  --radius-card: calc(var(--radius-control) + 0.75rem);
 }
 
+/* Dashboard-specific overrides
+   Navigation uses muted, pastel-adjacent tones — not full brand saturation */
+:root {
+  /* Nav: active state — subtle warm tint, darker text, amber left border */
+  --ds-nav-active-bg:     var(--ds-color-neutral-100);
+  --ds-nav-active-text:   var(--ds-color-neutral-900);
+  --ds-nav-active-border: var(--color-primary);
+
+  /* Nav: default item */
+  --ds-nav-text:          var(--ds-color-neutral-600);
+  --ds-nav-hover-bg:      var(--ds-color-neutral-50);
+  --ds-nav-hover-text:    var(--ds-color-neutral-800);
+
+  /* Brand name in sidebar: dark, not orange */
+  --ds-brand-text:        var(--ds-color-neutral-800);
+
+  /* Buttons: muted amber — reduced chroma for a softer, less vivid look */
+  --ds-btn-primary-bg:    oklch(0.67 0.10 61.0);
+  --ds-btn-primary-hover: oklch(0.62 0.10 61.0);
+  --ds-btn-primary-fg:    oklch(1 0 0);
+}
+
+/* Backward-compatible aliases for existing component classes */
+:root {
+  --color-primary:      oklch(0.67 0.10 61.0);
+  --color-primary-light: oklch(0.62 0.10 61.0);
+  --color-background:   var(--ds-bg);
+  --color-surface:      var(--ds-surface);
+  --color-text:         var(--ds-text);
+  --color-text-muted:   var(--ds-text-muted);
+}
+
+/* Button hover states for list/grid item components */
+.btn-edit:hover {
+  border-color: rgb(209 213 219); /* gray-300 */
+}
+.btn-delete:hover {
+  background-color: rgb(254 242 242); /* red-50 */
+}
+
+/* Hover lift for list/grid cards */
+.card-hover {
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+.card-hover:hover {
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.10);
+  transform: translateY(-2px);
+  z-index: 10;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Overlay fade animations */
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes card-in {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+@keyframes card-out {
+  from { opacity: 1; transform: scale(1)    translateY(0);   }
+  to   { opacity: 0; transform: scale(0.96) translateY(8px); }
+}
+
+.overlay-backdrop-enter { animation: overlay-in  360ms ease forwards; }
+.overlay-backdrop-exit  { animation: overlay-out 280ms ease forwards; }
+.overlay-card-enter     { animation: card-in     380ms ease forwards; }
+.overlay-card-exit      { animation: card-out    280ms ease forwards; }
+
 body {
-  font-family: var(--font-sans);
-  background-color: var(--color-background);
-  color: var(--color-text);
+  font-family: var(--ds-font-sans);
+  background-color: var(--ds-bg);
+  color: var(--ds-text);
   -webkit-font-smoothing: antialiased;
 }
