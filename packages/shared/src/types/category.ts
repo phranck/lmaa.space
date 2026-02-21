@@ -5,6 +5,9 @@ export interface Category {
   icon: string;
   description: string;
   sortOrder: number;
+  imageUrl?: string | null;
+  imagePhotographer?: string | null;
+  imagePhotographerUrl?: string | null;
   shopCount?: number;
   createdAt: string;
   updatedAt: string;
