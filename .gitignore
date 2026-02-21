@@ -9,3 +9,5 @@ dist/
 *.tmp
 .serena/
 apps/frontend/image-originals/
+apps/backend/uploads/*
+!apps/backend/uploads/.gitkeep
