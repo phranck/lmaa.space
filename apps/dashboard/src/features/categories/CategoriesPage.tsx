@@ -1,49 +1,31 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { LuList, LuLayoutGrid } from "react-icons/lu";
 import type { Category } from "@dein-shop/shared";
-import { api } from "../../lib/api.ts";
+import { api } from "@/lib/api.ts";
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { CategoryListItem } from "@/features/categories/CategoryListItem.tsx";
+import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
+import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
 
-interface CategoryForm {
-  name: string;
-  slug: string;
-  icon: string;
-  description: string;
-}
-
-const EMPTY_FORM: CategoryForm = { name: "", slug: "", icon: "", description: "" };
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
-    .replace(/ß/g, "ss")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+type ViewMode = "list" | "grid";
 
 export function CategoriesPage() {
   const qc = useQueryClient();
-  const [form, setForm] = useState<CategoryForm>(EMPTY_FORM);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    () => (localStorage.getItem("categories-view") as ViewMode) ?? "list"
+  );
+  const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
+
+  function changeViewMode(mode: ViewMode) {
+    setViewMode(mode);
+    localStorage.setItem("categories-view", mode);
+  }
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ["categories-admin"],
     queryFn: () => api.get<Category[]>("/admin/categories"),
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: (data: CategoryForm) =>
-      editId
-        ? api.patch(`/admin/categories/${editId}`, data)
-        : api.post("/admin/categories", data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["categories-admin"] });
-      setForm(EMPTY_FORM);
-      setEditId(null);
-    },
   });
 
   const deleteMutation = useMutation({
@@ -54,107 +36,58 @@ export function CategoriesPage() {
     },
   });
 
-  function handleNameChange(name: string) {
-    setForm((f) => ({
-      ...f,
-      name,
-      slug: editId ? f.slug : slugify(name),
-    }));
-  }
-
-  function startEdit(cat: Category) {
-    setEditId(cat.id);
-    setForm({
-      name: cat.name,
-      slug: cat.slug,
-      icon: cat.icon ?? "",
-      description: cat.description ?? "",
-    });
-  }
-
-  function cancelEdit() {
-    setEditId(null);
-    setForm(EMPTY_FORM);
-  }
-
   const deleteTarget = categories.find((c) => c.id === deleteId);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Kategorien</h1>
-
-      {/* Form */}
-      <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
-        <h2 className="font-semibold text-gray-900 mb-4">
-          {editId ? "Kategorie bearbeiten" : "Neue Kategorie"}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-            <input
-              type="text"
-              value={form.slug}
-              onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Icon (Emoji)</label>
-            <input
-              type="text"
-              value={form.icon}
-              onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-              placeholder="z.B. 🛒"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
-            <input
-              type="text"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-        </div>
-        <div className="flex gap-2 mt-4">
+      <PageHeader title="Kategorien">
+        {/* View toggle */}
+        <div className="flex h-9 rounded-control border border-gray-200 overflow-hidden">
           <button
             type="button"
-            onClick={() =>
-              saveMutation.mutate(form)
-            }
-            disabled={!form.name || !form.slug || saveMutation.isPending}
-            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+            onClick={() => changeViewMode("list")}
+            className={`flex items-center px-3 transition-colors ${
+              viewMode === "list"
+                ? "bg-[var(--color-primary)] text-white"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+            aria-label="Listenansicht"
           >
-            {saveMutation.isPending ? "..." : editId ? "Speichern" : "Erstellen"}
+            <LuList size={16} />
           </button>
-          {editId && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:border-gray-300 transition-colors"
-            >
-              Abbrechen
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => changeViewMode("grid")}
+            className={`flex items-center px-3 transition-colors ${
+              viewMode === "grid"
+                ? "bg-[var(--color-primary)] text-white"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+            aria-label="Kachelansicht"
+          >
+            <LuLayoutGrid size={16} />
+          </button>
         </div>
-      </div>
 
-      {/* List */}
+        <button
+          type="button"
+          onClick={() => setEditTarget("new")}
+          className="h-9 px-4 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          Neue Kategorie
+        </button>
+      </PageHeader>
+
+      {/* Loading skeletons */}
       {isLoading && (
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-14 bg-white rounded-xl border border-gray-100 animate-pulse" />
+        <div className={viewMode === "grid"
+          ? "grid grid-cols-2 sm:grid-cols-3 gap-4"
+          : "space-y-2"
+        }>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className={`bg-white rounded-card border border-gray-100 animate-pulse ${
+              viewMode === "grid" ? "aspect-[4/3]" : "h-14"
+            }`} />
           ))}
         </div>
       )}
@@ -163,36 +96,45 @@ export function CategoriesPage() {
         <p className="text-center py-12 text-gray-400">Noch keine Kategorien vorhanden.</p>
       )}
 
-      <div className="space-y-2">
-        {categories.map((cat) => (
-          <div
-            key={cat.id}
-            className="bg-white rounded-xl border border-gray-100 px-5 py-3 flex items-center gap-3"
-          >
-            <span className="text-xl w-7 text-center">{cat.icon}</span>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900">{cat.name}</p>
-              <p className="text-xs text-gray-400">{cat.slug}</p>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => startEdit(cat)}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:border-gray-300 transition-colors"
-              >
-                Bearbeiten
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteId(cat.id)}
-                className="px-3 py-1.5 text-sm border border-red-200 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
-              >
-                Löschen
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* List View */}
+      {!isLoading && viewMode === "list" && (
+        <div className="space-y-2">
+          {categories.map((cat) => (
+            <CategoryListItem
+              key={cat.id}
+              category={cat}
+              onEdit={setEditTarget}
+              onDelete={setDeleteId}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Grid View */}
+      {!isLoading && viewMode === "grid" && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {categories.map((cat) => (
+            <CategoryGridItem
+              key={cat.id}
+              category={cat}
+              onEdit={setEditTarget}
+              onDelete={setDeleteId}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Edit / New Category Overlay */}
+      {editTarget !== null && (
+        <CategoryEditCard
+          categoryId={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["categories-admin"] });
+            setEditTarget(null);
+          }}
+        />
+      )}
 
       {/* Delete Confirm Modal */}
       {deleteId !== null && deleteTarget && (
@@ -213,7 +155,7 @@ export function CategoriesPage() {
               <button
                 type="button"
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
               >
                 Abbrechen
               </button>
@@ -221,7 +163,7 @@ export function CategoriesPage() {
                 type="button"
                 disabled={deleteMutation.isPending}
                 onClick={() => deleteMutation.mutate(deleteId)}
-                className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "..." : "Löschen"}
               </button>
