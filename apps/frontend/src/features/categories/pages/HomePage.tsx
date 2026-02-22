@@ -32,12 +32,14 @@ export function HomePage() {
             Community-kuratiert · Unabhängig · Kostenlos
           </p>
           <div className="flex justify-center mb-6">
-            <img src="/logo-amber.png" alt="lmaa.space" style={{ width: 160, height: 160 }} />
+            <img src="/logo-amber.png" alt="lmaa.space" style={{ width: 140, height: 140 }} />
           </div>
-          <p className="text-stone-300 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-            Entdecke unabhängige Online-Shops – kuratiert von der Community für
-            den deutschsprachigen Raum.
-          </p>
+          <h2 className="text-stone-200 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+            LMAA<br />
+            Liste Möglicher{" "}
+            <span style={{ color: "var(--amazon-color)" }}>Amazon</span>{" "}
+            Alternativen
+          </h2>
 
           <form onSubmit={handleSearch} className="max-w-lg mx-auto">
             <div className="flex gap-2 bg-white/10 backdrop-blur-sm rounded-2xl p-2 border border-white/10">
