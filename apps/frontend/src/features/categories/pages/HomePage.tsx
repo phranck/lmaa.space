@@ -32,12 +32,28 @@ export function HomePage() {
             Community-kuratiert · Unabhängig · Kostenlos
           </p>
           <div className="flex justify-center mb-1">
-            <img src="/logo-amber.png" alt="lmaa.space" style={{ width: 140, height: 140 }} />
+            <div
+              role="img"
+              aria-label="lmaa.space"
+              style={{
+                width: 140,
+                height: 140,
+                backgroundColor: "#cea836",
+                maskImage: "url(/logo-white.png)",
+                WebkitMaskImage: "url(/logo-white.png)",
+                maskSize: "contain",
+                WebkitMaskSize: "contain",
+                maskRepeat: "no-repeat",
+                WebkitMaskRepeat: "no-repeat",
+                maskPosition: "center",
+                WebkitMaskPosition: "center",
+              }}
+            />
           </div>
           <h1 className="text-stone-200 text-4xl mb-10 max-w-xl mx-auto leading-relaxed">
-            <span style={{ color: "#f59e0b" }}>LMAA</span><br />
+            <span style={{ color: "#cea836", fontFamily: "DynaPuff", fontWeight: 600 }}>LMAA</span><br />
             Liste Möglicher{" "}
-            <span style={{ color: "var(--amazon-color)" }}>Amazon</span>{" "}
+            <span style={{ color: "var(--amazon-color)", fontWeight: "bold" }}>Amazon</span>{" "}
             Alternativen
           </h1>
 
