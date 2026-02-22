@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project
 
 **dein.shop** – A community-curated directory of Amazon alternatives for the German-speaking market.
-Hosted at https://dein.shop, based on https://codeberg.org/phranck/Amazon-Alternativen.
+Hosted at https://lmaa.space, based on https://codeberg.org/phranck/Amazon-Alternativen.
 
 ## Repository & Hosting
 
