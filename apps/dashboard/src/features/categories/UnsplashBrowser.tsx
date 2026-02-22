@@ -74,7 +74,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
     error: null,
   });
 
-  const { query, photos, total, page, status, error } = state;
+  const { query, photos, total, status, error } = state;
 
   // Ref to avoid stale closures in IntersectionObserver
   const stateRef = useRef(state);
