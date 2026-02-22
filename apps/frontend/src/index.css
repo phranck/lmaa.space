@@ -16,6 +16,7 @@
   --accent-base:  var(--ds-accent);
   --accent-hover: var(--ds-accent-hover);
   --accent-text:  var(--ds-accent-fg);
+  --amazon-color: #ffb900;
 }
 
 body {
