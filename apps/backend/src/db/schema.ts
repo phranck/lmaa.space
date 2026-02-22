@@ -1,8 +1,7 @@
-import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { boolean, index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
-export const categories = sqliteTable("categories", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   slug: text("slug").notNull().unique(),
   icon: text("icon").notNull().default(""),
@@ -11,35 +10,25 @@ export const categories = sqliteTable("categories", {
   imageUrl: text("image_url"),
   imagePhotographer: text("image_photographer"),
   imagePhotographerUrl: text("image_photographer_url"),
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`(datetime('now'))`),
-  updatedAt: text("updated_at")
-    .notNull()
-    .default(sql`(datetime('now'))`),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const shops = sqliteTable(
+export const shops = pgTable(
   "shops",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: serial("id").primaryKey(),
     name: text("name").notNull(),
     url: text("url").notNull(),
-    categoryId: integer("category_id")
-      .notNull()
-      .references(() => categories.id),
+    categoryId: integer("category_id").notNull().references(() => categories.id),
     region: text("region").notNull().default(""),
     pickup: text("pickup").notNull().default(""),
     shipping: text("shipping").notNull().default(""),
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
-    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
-    updatedAt: text("updated_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
     index("idx_shops_category").on(table.categoryId),
@@ -47,10 +36,20 @@ export const shops = sqliteTable(
   ],
 );
 
-export const submissions = sqliteTable(
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  isOwner: boolean("is_owner").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLoginAt: timestamp("last_login_at"),
+});
+
+export const submissions = pgTable(
   "submissions",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
+    id: serial("id").primaryKey(),
     shopName: text("shop_name").notNull(),
     shopUrl: text("shop_url").notNull(),
     categoryId: integer("category_id").references(() => categories.id),
@@ -61,61 +60,38 @@ export const submissions = sqliteTable(
     description: text("description").notNull().default(""),
     submitterEmail: text("submitter_email"),
     submitterNote: text("submitter_note"),
-    status: text("status", { enum: ["pending", "approved", "rejected"] })
+    status: text("status")
+      .$type<"pending" | "approved" | "rejected">()
       .notNull()
       .default("pending"),
     adminNote: text("admin_note"),
-    feedbackSent: integer("feedback_sent", { mode: "boolean" }).notNull().default(false),
+    feedbackSent: boolean("feedback_sent").notNull().default(false),
     reviewedBy: integer("reviewed_by").references(() => adminUsers.id),
-    reviewedAt: text("reviewed_at"),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
-    updatedAt: text("updated_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
+    reviewedAt: timestamp("reviewed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [index("idx_submissions_status").on(table.status)],
 );
 
-export const adminUsers = sqliteTable("admin_users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  username: text("username").notNull().unique(),
-  email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
-  isOwner: integer("is_owner", { mode: "boolean" }).notNull().default(false),
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`(datetime('now'))`),
-  lastLoginAt: text("last_login_at"),
-});
-
-export const sessions = sqliteTable(
+export const sessions = pgTable(
   "sessions",
   {
     id: text("id").primaryKey(),
-    adminUserId: integer("admin_user_id")
-      .notNull()
-      .references(() => adminUsers.id),
-    expiresAt: text("expires_at").notNull(),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
+    adminUserId: integer("admin_user_id").notNull().references(() => adminUsers.id),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("idx_sessions_expires").on(table.expiresAt)],
 );
 
-export const deadLinkReports = sqliteTable(
+export const deadLinkReports = pgTable(
   "dead_link_reports",
   {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    shopId: integer("shop_id")
-      .notNull()
-      .references(() => shops.id),
+    id: serial("id").primaryKey(),
+    shopId: integer("shop_id").notNull().references(() => shops.id),
     ipHash: text("ip_hash").notNull(),
-    reportedAt: text("reported_at")
-      .notNull()
-      .default(sql`(datetime('now'))`),
+    reportedAt: timestamp("reported_at").defaultNow().notNull(),
   },
   (table) => [index("idx_dlr_shop").on(table.shopId)],
 );

@@ -17,7 +17,7 @@ Hosted at https://dein.shop, based on https://codeberg.org/phranck/Amazon-Altern
 
 ```
 apps/
-  backend/    @lmaa/backend   – Hono + Bun + SQLite + Drizzle
+  backend/    @lmaa/backend   – Hono + Node.js + PostgreSQL + Drizzle
   frontend/   @lmaa/frontend  – React + Vite + Tailwind (public site)
   dashboard/  @lmaa/dashboard – React + Vite + Tailwind (admin UI)
 packages/
@@ -47,7 +47,7 @@ bun run lint:fix
 bun run format
 
 # Database
-bun run db:migrate      # Run migrations + create FTS5 triggers
+bun run db:migrate      # Run migrations + create tsvector trigger
 bun run db:generate     # Generate Drizzle migration files
 bun run db:studio       # Drizzle Studio UI
 
@@ -60,10 +60,10 @@ bun run build:dashboard
 ## Architecture
 
 ### Backend (`apps/backend`)
-- **Runtime:** Bun, **Framework:** Hono
-- **DB:** SQLite via `bun:sqlite` + Drizzle ORM
-- **FTS:** SQLite FTS5 (triggers auto-sync from `shops` table)
-- **Auth:** Server-side sessions (`HttpOnly` cookie), Argon2id via `Bun.password`
+- **Runtime:** Node.js 22, **Framework:** Hono
+- **DB:** PostgreSQL via `postgres` (postgres.js) + Drizzle ORM
+- **FTS:** PostgreSQL `tsvector` + GIN index + `BEFORE INSERT OR UPDATE` trigger
+- **Auth:** Server-side sessions (`HttpOnly` cookie), bcryptjs
 - **Email:** Resend (optional, graceful degradation if not configured)
 - **Ports:** 3000 (prod), same local
 - **Entry:** `apps/backend/src/index.ts`
@@ -91,9 +91,8 @@ bun run build:dashboard
 
 - **Linting:** Biome (no ESLint anywhere)
 - **No Docker** – zerops.io handles deployment
-- **SQLite path (prod):** `/mnt/sharedstorage/deinshop.db` (Zerops shared storage)
 - **Environment variables:** Set in Zerops dashboard, not in files
-  - Backend secrets: `RESEND_API_KEY`, `SESSION_SECRET`, `EMAIL_FROM`, `DATABASE_PATH`
+  - Backend: `DATABASE_URL` = `${postgres_connectionString}` (Zerops PG-Service "postgres"), `RESEND_API_KEY`, `SESSION_SECRET`, `EMAIL_FROM`
   - Frontend build: `VITE_API_URL`
 - **Soft-delete shops:** `is_active = false`, never hard-delete
 - **Submission flow:** `pending → approved | rejected` (with optional email to submitter)

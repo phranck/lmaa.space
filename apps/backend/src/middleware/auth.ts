@@ -16,7 +16,7 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(
       return c.json({ error: { message: "Unauthorized" } }, 401);
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
     const [session] = await db
       .select({
         adminId: sessions.adminUserId,

@@ -16,15 +16,14 @@
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.3",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.9.1",
     "drizzle-orm": "^0.38.4",
+    "postgres": "^3.4.5",
     "hono": "^4.7.4",
     "resend": "^4.2.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.0.0",
     "drizzle-kit": "^0.30.4",
     "tsup": "^8.4.0",

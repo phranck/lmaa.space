@@ -15,14 +15,14 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 export async function createSession(adminUserId: number): Promise<string> {
   const sessionId = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
   await db.insert(sessions).values({ id: sessionId, adminUserId, expiresAt });
 
   // Update last login
   await db
     .update(adminUsers)
-    .set({ lastLoginAt: new Date().toISOString() })
+    .set({ lastLoginAt: new Date() })
     .where(eq(adminUsers.id, adminUserId));
 
   return sessionId;

@@ -175,8 +175,8 @@ adminRoutes.patch(
         status,
         adminNote: adminNote ?? null,
         reviewedBy: adminId,
-        reviewedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        reviewedAt: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(submissions.id, id))
       .returning();
@@ -240,7 +240,7 @@ for (const method of ["put", "patch"] as const) {
       const body = c.req.valid("json");
       const [shop] = await db
         .update(shops)
-        .set({ ...body, updatedAt: new Date().toISOString() })
+        .set({ ...body, updatedAt: new Date() })
         .where(eq(shops.id, id))
         .returning();
       if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
@@ -308,7 +308,7 @@ for (const method of ["put", "patch"] as const) {
 
       // If imageUrl is changing away from an uploaded file, delete the old file from disk
       if (body.imageUrl !== undefined) {
-        const current = await db.select().from(categories).where(eq(categories.id, id)).get();
+        const [current] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
         if (current?.imageUrl?.startsWith("/uploads/") && body.imageUrl !== current.imageUrl) {
           const imagePath = process.env.IMAGE_PATH ?? "./uploads";
           const filename = current.imageUrl.replace("/uploads/", "");
@@ -318,7 +318,7 @@ for (const method of ["put", "patch"] as const) {
 
       const [category] = await db
         .update(categories)
-        .set({ ...body, updatedAt: new Date().toISOString() })
+        .set({ ...body, updatedAt: new Date() })
         .where(eq(categories.id, id))
         .returning();
       if (!category) return c.json({ error: { message: "Category not found" } }, 404);
@@ -336,7 +336,7 @@ adminRoutes.delete("/categories/:id", requireAuth, async (c) => {
 // Image upload for a category
 adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   const id = Number(c.req.param("id"));
-  const cat = await db.select().from(categories).where(eq(categories.id, id)).get();
+  const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
   if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
 
   const formData = await c.req.formData();
@@ -366,7 +366,7 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   const imageUrl = `/uploads/${filename}`;
   const [updated] = await db
     .update(categories)
-    .set({ imageUrl, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date().toISOString() })
+    .set({ imageUrl, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date() })
     .where(eq(categories.id, id))
     .returning();
 
@@ -376,7 +376,7 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
 // Delete image of a category
 adminRoutes.delete("/categories/:id/image", requireAuth, async (c) => {
   const id = Number(c.req.param("id"));
-  const cat = await db.select().from(categories).where(eq(categories.id, id)).get();
+  const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
   if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
 
   if (cat.imageUrl?.startsWith("/uploads/")) {
@@ -387,7 +387,7 @@ adminRoutes.delete("/categories/:id/image", requireAuth, async (c) => {
 
   const [updated] = await db
     .update(categories)
-    .set({ imageUrl: null, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date().toISOString() })
+    .set({ imageUrl: null, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date() })
     .where(eq(categories.id, id))
     .returning();
 
