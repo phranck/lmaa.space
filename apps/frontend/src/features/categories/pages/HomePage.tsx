@@ -32,7 +32,7 @@ export function HomePage() {
             Community-kuratiert · Unabhängig · Kostenlos
           </p>
           <div className="flex justify-center mb-6">
-            <img src="/logo-white.png" alt="lmaa.space" style={{ width: 160, height: 160 }} />
+            <img src="/logo-amber.png" alt="lmaa.space" style={{ width: 160, height: 160 }} />
           </div>
           <p className="text-stone-300 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
             Entdecke unabhängige Online-Shops – kuratiert von der Community für
