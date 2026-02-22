@@ -34,8 +34,8 @@ export function HomePage() {
           <div className="flex justify-center mb-6">
             <img src="/logo-amber.png" alt="lmaa.space" style={{ width: 140, height: 140 }} />
           </div>
-          <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-2">LMAA</p>
           <h1 className="text-stone-200 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+            LMAA<br />
             Liste Möglicher{" "}
             <span style={{ color: "var(--amazon-color)" }}>Amazon</span>{" "}
             Alternativen
