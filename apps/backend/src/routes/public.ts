@@ -97,16 +97,14 @@ publicRoutes.get("/search", async (c) => {
     return c.json({ data: { shops: [], categories: [], query: q ?? "", total: 0 } });
   }
 
-  const ftsQuery = `${q}*`;
-
-  const matchingShops = await db.all(sql`
-    SELECT s.*, c.slug as category_slug, c.name as category_name
-    FROM shops_fts fts
-    JOIN shops s ON s.id = fts.rowid
+  const matchingShops = await db.execute(sql`
+    SELECT s.*, c.slug as category_slug, c.name as category_name,
+      ts_rank(s.search_vector, websearch_to_tsquery('german', ${q})) as rank
+    FROM shops s
     JOIN categories c ON c.id = s.category_id
-    WHERE shops_fts MATCH ${ftsQuery}
-    AND s.is_active = 1
-    ORDER BY bm25(shops_fts)
+    WHERE s.search_vector @@ websearch_to_tsquery('german', ${q})
+      AND s.is_active = true
+    ORDER BY rank DESC
     LIMIT 20
   `);
 

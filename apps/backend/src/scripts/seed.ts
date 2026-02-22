@@ -3,9 +3,8 @@
  * Run with: bun run apps/backend/src/scripts/seed.ts
  */
 
-import Database from "better-sqlite3";
+import postgres from "postgres";
 
-const DB_PATH = process.env.DATABASE_PATH ?? "./deinshop.db";
 const BASE_URL =
   "https://codeberg.org/api/v1/repos/phranck/Amazon-Alternativen/raw/categories";
 
@@ -187,9 +186,7 @@ function parseContent(text: string): {
 }
 
 async function main() {
-  console.log(`Connecting to database at ${DB_PATH}...`);
-  const sqlite = new Database(DB_PATH);
-  sqlite.exec("PRAGMA foreign_keys = ON;");
+  const sql = postgres(process.env.DATABASE_URL!);
 
   let totalCategories = 0;
   let totalShops = 0;
@@ -220,43 +217,37 @@ async function main() {
     console.log(`  Category: ${heading.icon} ${heading.name} (${shops.length} shops)`);
 
     // Upsert category
-    const existing = sqlite
-      .prepare("SELECT id FROM categories WHERE slug = ?")
-      .get(slug) as { id: number } | undefined;
+    const [existing] = await sql`SELECT id FROM categories WHERE slug = ${slug}`;
 
     let categoryId: number;
     if (existing) {
-      sqlite
-        .prepare("UPDATE categories SET name = ?, icon = ? WHERE id = ?")
-        .run(heading.name, heading.icon, existing.id);
+      await sql`UPDATE categories SET name = ${heading.name}, icon = ${heading.icon} WHERE id = ${existing.id}`;
       categoryId = existing.id;
     } else {
-      const result = sqlite
-        .prepare("INSERT INTO categories (name, slug, icon) VALUES (?, ?, ?)")
-        .run(heading.name, slug, heading.icon);
-      categoryId = Number(result.lastInsertRowid);
+      const [result] = await sql`
+        INSERT INTO categories (name, slug, icon) VALUES (${heading.name}, ${slug}, ${heading.icon})
+        RETURNING id
+      `;
+      categoryId = result.id;
       totalCategories++;
     }
 
     // Insert shops (skip duplicates by URL)
     for (const shop of shops) {
-      const existingShop = sqlite
-        .prepare("SELECT id FROM shops WHERE url = ?")
-        .get(shop.url) as { id: number } | undefined;
+      const [existingShop] = await sql`SELECT id FROM shops WHERE url = ${shop.url}`;
 
       if (!existingShop) {
-        sqlite
-          .prepare(
-            "INSERT INTO shops (name, url, category_id, description) VALUES (?, ?, ?, ?)",
-          )
-          .run(shop.name, shop.url, categoryId, shop.description);
+        await sql`
+          INSERT INTO shops (name, url, category_id, description)
+          VALUES (${shop.name}, ${shop.url}, ${categoryId}, ${shop.description})
+        `;
         totalShops++;
         console.log(`    + ${shop.name}`);
       }
     }
   }
 
-  sqlite.close();
+  await sql.end();
   console.log(`\n✅ Done: ${totalCategories} categories, ${totalShops} shops imported.`);
 }
 
