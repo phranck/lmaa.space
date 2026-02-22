@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
@@ -5,11 +6,11 @@ import { adminUsers, sessions } from "../db/schema.js";
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24h
 
 export async function hashPassword(password: string): Promise<string> {
-  return Bun.password.hash(password, { algorithm: "argon2id" });
+  return bcrypt.hash(password, 12);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return Bun.password.verify(password, hash);
+  return bcrypt.compare(password, hash);
 }
 
 export async function createSession(adminUserId: number): Promise<string> {

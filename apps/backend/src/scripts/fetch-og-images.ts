@@ -183,7 +183,7 @@ for (const shop of pending) {
     failed++;
   }
 
-  await Bun.sleep(300);
+  await new Promise((resolve) => setTimeout(resolve, 300));
 }
 
 const total = Object.values(counts).reduce((a, b) => a + b, 0);
