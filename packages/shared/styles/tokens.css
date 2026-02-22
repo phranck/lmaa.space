@@ -17,14 +17,14 @@
      --ds-color-brand-500 = #cea836 (explicit design decision)
      Adjacent steps derived perceptually in OKLCH              */
   --ds-color-brand-50: oklch(0.987 0.015 92);
-  --ds-color-brand-100: oklch(0.965 0.040 92);
+  --ds-color-brand-100: oklch(0.965 0.04 92);
   --ds-color-brand-200: oklch(0.929 0.082 92);
   --ds-color-brand-300: oklch(0.876 0.112 92);
-  --ds-color-brand-400: oklch(0.820 0.128 92);
+  --ds-color-brand-400: oklch(0.82 0.128 92);
   --ds-color-brand-500: oklch(0.754 0.136 92); /* = #cea836 */
   --ds-color-brand-600: oklch(0.672 0.122 91);
   --ds-color-brand-700: oklch(0.581 0.102 90);
-  --ds-color-brand-800: oklch(0.475 0.080 89);
+  --ds-color-brand-800: oklch(0.475 0.08 89);
   --ds-color-brand-900: oklch(0.378 0.058 87);
   --ds-color-brand-950: oklch(0.252 0.034 85);
 

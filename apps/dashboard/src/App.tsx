@@ -28,7 +28,7 @@ function AppRoutes() {
       {user ? (
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="vorschlaege" element={<SubmissionsPage />} />
+          <Route path="meldungen" element={<SubmissionsPage />} />
           <Route path="shops" element={<ShopsPage />} />
           <Route path="kategorien" element={<CategoriesPage />} />
           {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
