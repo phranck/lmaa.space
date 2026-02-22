@@ -29,8 +29,8 @@ export function DatenschutzPage() {
               6900 Bregenz, Österreich
               <br />
               E-Mail:{" "}
-              <a href="mailto:hallo@dein.shop" className="text-amber-700 hover:underline">
-                hallo@dein.shop
+              <a href="mailto:hallo@lmaa.space" className="text-amber-700 hover:underline">
+                hallo@lmaa.space
               </a>
             </p>
           </section>
@@ -41,7 +41,7 @@ export function DatenschutzPage() {
             </h2>
             <p className="text-sm leading-relaxed">
               Der Schutz deiner personenbezogenen Daten hat für uns höchste
-              Priorität. dein.shop wurde von Grund auf datenschutzfreundlich
+              Priorität. lmaa.space wurde von Grund auf datenschutzfreundlich
               konzipiert: Es werden keine Tracking-Cookies gesetzt, keine
               Analyse-Dienste von Drittanbietern eingebunden und keine
               personenbezogenen Daten an Dritte weitergegeben oder verkauft.
@@ -178,7 +178,7 @@ export function DatenschutzPage() {
             </h2>
             <p className="text-sm leading-relaxed">
               Diese Website enthält Links zu externen Shops und Websites. Beim
-              Klick auf einen solchen Link verlässt du dein.shop. Für die
+              Klick auf einen solchen Link verlässt du lmaa.space. Für die
               Datenschutzpraktiken der verlinkten Websites sind ausschließlich
               deren Betreiber verantwortlich. Wir empfehlen, die
               Datenschutzerklärungen der jeweiligen Anbieter zu lesen.
@@ -282,8 +282,8 @@ export function DatenschutzPage() {
             </ul>
             <p className="text-sm leading-relaxed mt-3">
               Zur Ausübung deiner Rechte wende dich bitte per E-Mail an{" "}
-              <a href="mailto:hallo@dein.shop" className="text-amber-700 hover:underline">
-                hallo@dein.shop
+              <a href="mailto:hallo@lmaa.space" className="text-amber-700 hover:underline">
+                hallo@lmaa.space
               </a>
               .
             </p>

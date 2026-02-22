@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_NAME = "dein.shop";
+const SITE_NAME = "lmaa.space";
 
 export function useDocumentTitle(title?: string) {
   useEffect(() => {

@@ -27,7 +27,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-primary)]">dein.shop</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-primary)]">lmaa.space</h1>
           <p className="text-sm text-gray-500 mt-1">Admin-Bereich</p>
         </div>
 

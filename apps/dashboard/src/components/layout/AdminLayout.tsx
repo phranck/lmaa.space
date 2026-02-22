@@ -61,7 +61,7 @@ function AdminLayoutInner() {
         </button>
 
         <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
-          {title || "dein.shop"}
+          {title || "lmaa.space"}
         </span>
 
         <div ref={setActionsEl} className="flex items-center gap-2" />

@@ -28,7 +28,7 @@ export function DonateButton() {
       {open && (
         <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-lg border border-stone-100 p-4 z-50">
           <p className="text-xs text-stone-500 mb-3 leading-relaxed">
-            Hilf uns, dein.shop am Laufen zu halten!
+            Hilf uns, lmaa.space am Laufen zu halten!
           </p>
           <div className="flex flex-col gap-2">
             <a
@@ -43,7 +43,7 @@ export function DonateButton() {
               Via PayPal spenden
             </a>
             <a
-              href="https://ko-fi.com/layeredwork?ref=dein.shop"
+              href="https://ko-fi.com/layeredwork?ref=lmaa.space"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#FF5E5B] text-white text-sm font-medium hover:opacity-90 transition-opacity"

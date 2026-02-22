@@ -40,14 +40,14 @@ export function SetupPage() {
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-primary)]">dein.shop</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-primary)]">lmaa.space</h1>
           <p className="text-sm text-gray-500 mt-1">Willkommen!</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Admin einrichten</h2>
           <p className="text-sm text-gray-500 mb-6">
-            Erstelle den ersten Admin-Account für dein.shop.
+            Erstelle den ersten Admin-Account für lmaa.space.
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

@@ -31,10 +31,10 @@ export function ImpressumPage() {
             <p className="text-sm leading-relaxed">
               E-Mail:{" "}
               <a
-                href="mailto:hallo@dein.shop"
+                href="mailto:hallo@lmaa.space"
                 className="text-amber-700 hover:underline"
               >
-                hallo@dein.shop
+                hallo@lmaa.space
               </a>
             </p>
           </section>
@@ -48,7 +48,7 @@ export function ImpressumPage() {
             </p>
             <p className="text-sm leading-relaxed mt-2">
               <strong className="text-stone-700">Grundlegende Richtung:</strong>{" "}
-              dein.shop ist ein privates, nicht-kommerzielles Community-Projekt.
+              lmaa.space ist ein privates, nicht-kommerzielles Community-Projekt.
               Zweck ist die Sammlung und Präsentation von unabhängigen
               Online-Shops als Alternativen zu Amazon für den deutschsprachigen
               Raum. Es besteht kein Erwerbszweck, keine Affiliate-Vergütung und

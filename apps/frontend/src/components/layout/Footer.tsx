@@ -9,7 +9,7 @@ export function Footer() {
           {/* About */}
           <div>
             <p className="font-serif text-lg font-semibold text-white mb-3 tracking-wide">
-              dein.shop
+              lmaa.space
             </p>
             <p className="text-sm text-stone-400 leading-relaxed">
               Eine Community-kuratierte Liste von Online-Shops als Alternativen
@@ -52,7 +52,7 @@ export function Footer() {
               Projekt unterstützen
             </p>
             <p className="text-sm text-stone-400 mb-5 leading-relaxed">
-              dein.shop ist ein privates Community-Projekt. Über eine kleine
+              lmaa.space ist ein privates Community-Projekt. Über eine kleine
               Unterstützung freuen wir uns sehr.
             </p>
             <div className="flex flex-col gap-2.5">
@@ -68,7 +68,7 @@ export function Footer() {
                 Via PayPal spenden
               </a>
               <a
-                href="https://ko-fi.com/layeredwork?ref=dein.shop"
+                href="https://ko-fi.com/layeredwork?ref=lmaa.space"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#FF5E5B] text-white text-sm font-medium hover:opacity-90 transition-opacity"
@@ -83,7 +83,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-stone-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
-          <span>© {new Date().getFullYear()} dein.shop – Community-Projekt ohne kommerzielle Interessen</span>
+          <span>© {new Date().getFullYear()} lmaa.space – Community-Projekt ohne kommerzielle Interessen</span>
           <a
             href="https://codeberg.org/phranck/Amazon-Alternativen"
             target="_blank"
