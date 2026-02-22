@@ -298,7 +298,7 @@ adminRoutes.get("/dead-link-reports", requireAuth, async (c) => {
     })
     .from(deadLinkReports)
     .innerJoin(shops, eq(deadLinkReports.shopId, shops.id))
-    .groupBy(deadLinkReports.shopId)
+    .groupBy(deadLinkReports.shopId, shops.name, shops.url)
     .orderBy(desc(count(deadLinkReports.id)));
   return c.json({ data: rows });
 });
