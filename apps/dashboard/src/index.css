@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@dein-shop/shared/styles/tokens.css";
+@import "@lmaa/shared/styles/tokens.css";
 
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
