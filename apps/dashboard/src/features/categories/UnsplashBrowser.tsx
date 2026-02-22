@@ -1,5 +1,5 @@
 import { api } from "@/lib/api.ts";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { LuLoader, LuSearch, LuX } from "react-icons/lu";
 
 interface UnsplashPhoto {
@@ -15,55 +15,95 @@ interface UnsplashSearchResult {
 }
 
 interface UnsplashBrowserProps {
-  initialQuery?: string;
+  defaultQuery?: string;
   onSelect: (imageUrl: string, photographer: string, photographerUrl: string) => void;
   onClose: () => void;
 }
 
-export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: UnsplashBrowserProps) {
-  const [query, setQuery] = useState(initialQuery);
-  const [photos, setPhotos] = useState<UnsplashPhoto[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface SearchState {
+  query: string;
+  photos: UnsplashPhoto[];
+  total: number;
+  page: number;
+  status: "idle" | "loading" | "loading-more" | "error";
+  error: string | null;
+}
+
+type SearchAction =
+  | { type: "set-query"; query: string }
+  | { type: "search-start" }
+  | { type: "load-more-start" }
+  | { type: "search-success"; photos: UnsplashPhoto[]; total: number; append: boolean }
+  | { type: "search-error"; error: string; append: boolean }
+  | { type: "next-page" };
+
+function reducer(state: SearchState, action: SearchAction): SearchState {
+  switch (action.type) {
+    case "set-query":
+      return { ...state, query: action.query, page: 1 };
+    case "search-start":
+      return { ...state, status: "loading", error: null };
+    case "load-more-start":
+      return { ...state, status: "loading-more", error: null };
+    case "search-success":
+      return {
+        ...state,
+        status: "idle",
+        photos: action.append ? [...state.photos, ...action.photos] : action.photos,
+        total: action.total,
+      };
+    case "search-error":
+      return {
+        ...state,
+        status: "error",
+        error: action.error,
+        photos: action.append ? state.photos : [],
+      };
+    case "next-page":
+      return { ...state, page: state.page + 1 };
+  }
+}
+
+export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: UnsplashBrowserProps) {
+  const [state, dispatch] = useReducer(reducer, {
+    query: defaultQuery,
+    photos: [],
+    total: 0,
+    page: 1,
+    status: "idle",
+    error: null,
+  });
+
+  const { query, photos, total, page, status, error } = state;
+
+  // Ref to avoid stale closures in IntersectionObserver
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRun = useRef(true);
-  const isLoadingMoreRef = useRef(false);
-  const pageRef = useRef(1);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Keep refs in sync so the IntersectionObserver callback doesn't close over stale state
-  useEffect(() => {
-    isLoadingMoreRef.current = isLoadingMore;
-  }, [isLoadingMore]);
-  useEffect(() => {
-    pageRef.current = page;
-  }, [page]);
-
   const search = useCallback(async (q: string, pg: number, append: boolean) => {
     if (!q.trim()) {
-      setPhotos([]);
-      setTotal(0);
+      dispatch({ type: "search-success", photos: [], total: 0, append: false });
       return;
     }
-    if (append) setIsLoadingMore(true);
-    else setIsLoading(true);
-    setError(null);
+    dispatch(append ? { type: "load-more-start" } : { type: "search-start" });
     try {
       const result = await api.get<UnsplashSearchResult>(
         `/admin/unsplash/search?q=${encodeURIComponent(q)}&page=${pg}`,
       );
-      setPhotos((prev) => (append ? [...prev, ...result.results] : result.results));
-      setTotal(result.total);
+      dispatch({ type: "search-success", photos: result.results, total: result.total, append });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Fehler bei der Suche");
-      if (!append) setPhotos([]);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
+      dispatch({
+        type: "search-error",
+        error: e instanceof Error ? e.message : "Fehler bei der Suche",
+        append,
+      });
     }
   }, []);
 
@@ -74,7 +114,7 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
       if (query.trim()) search(query, 1, false);
       return;
     }
-    setPage(1);
+    dispatch({ type: "set-query", query });
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => search(query, 1, false), 400);
     return () => {
@@ -91,10 +131,11 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMoreRef.current) {
-          const nextPage = pageRef.current + 1;
-          setPage(nextPage);
-          search(query, nextPage, true);
+        const { status: s, page: p, query: q } = stateRef.current;
+        if (entries[0].isIntersecting && s !== "loading-more") {
+          const nextPage = p + 1;
+          dispatch({ type: "next-page" });
+          search(q, nextPage, true);
         }
       },
       { root: container, threshold: 0.1 },
@@ -102,7 +143,7 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, query, search]);
+  }, [hasMore, search]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -118,6 +159,9 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
       .catch(() => {});
     onSelect(photo.urls.regular, photo.user.name, photo.user.link);
   }
+
+  const isLoading = status === "loading";
+  const isLoadingMore = status === "loading-more";
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
@@ -137,7 +181,7 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => dispatch({ type: "set-query", query: e.target.value })}
               placeholder="Suchbegriff eingeben…"
               className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />

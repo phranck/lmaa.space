@@ -24,6 +24,7 @@ interface ImageState {
   pendingFile: File | null;
   pendingUnsplashUrl: string | null;
   deleted: boolean;
+  loadError: boolean;
 }
 
 function slugify(s: string) {
@@ -60,8 +61,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     pendingFile: null,
     pendingUnsplashUrl: null,
     deleted: false,
+    loadError: false,
   });
-  const [imageLoadError, setImageLoadError] = useState(false);
 
   // Populate form when editing existing category
   // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used – sync only when category changes, not on every property update
@@ -79,8 +80,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         pendingFile: null,
         pendingUnsplashUrl: null,
         deleted: false,
+        loadError: false,
       });
-      setImageLoadError(false);
     }
   }, [category?.id]);
 
@@ -144,8 +145,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
       pendingFile: file,
       pendingUnsplashUrl: null,
       deleted: false,
+      loadError: false,
     });
-    setImageLoadError(false);
   }
 
   function handleUnsplashSelect(imageUrl: string, photographer: string, photographerUrl: string) {
@@ -156,8 +157,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
       pendingFile: null,
       pendingUnsplashUrl: imageUrl,
       deleted: false,
+      loadError: false,
     });
-    setImageLoadError(false);
     setShowUnsplash(false);
   }
 
@@ -169,16 +170,17 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
       pendingFile: null,
       pendingUnsplashUrl: null,
       deleted: true,
+      loadError: false,
     });
-    setImageLoadError(false);
   }
 
   // The image URL to show (preview takes priority, then existing, then slug fallback)
-  const displayImageUrl =
-    image.previewUrl ??
-    (image.deleted
-      ? null
-      : (category?.imageUrl ?? (category ? `/images/${category.slug}.jpg` : null)));
+  const displayImageUrl = image.loadError
+    ? null
+    : (image.previewUrl ??
+      (image.deleted
+        ? null
+        : (category?.imageUrl ?? (category ? `/images/${category.slug}.jpg` : null))));
 
   const canSave = form.name.trim() && form.slug.trim() && !saveMutation.isPending;
 
@@ -196,12 +198,12 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         >
           {/* Image Panel – 50 % */}
           <div className="relative bg-gray-100 flex flex-col min-h-[420px]">
-            {displayImageUrl && !imageLoadError ? (
+            {displayImageUrl && !image.loadError ? (
               <img
                 src={displayImageUrl}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover"
-                onError={() => setImageLoadError(true)}
+                onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-gray-300">
@@ -211,7 +213,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
             {/* Image action buttons */}
             <div className="absolute bottom-0 inset-x-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/50 to-transparent">
-              {displayImageUrl && !imageLoadError && (
+              {displayImageUrl && !image.loadError && (
                 <button
                   type="button"
                   onClick={handleDeleteImage}
@@ -330,7 +332,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
       {showUnsplash && (
         <UnsplashBrowser
-          initialQuery={form.name}
+          defaultQuery={form.name}
           onSelect={handleUnsplashSelect}
           onClose={() => setShowUnsplash(false)}
         />

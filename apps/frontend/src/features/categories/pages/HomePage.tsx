@@ -28,11 +28,13 @@ export function HomePage() {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-stone-950/70" />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">
             Community-kuratiert · Unabhängig · Kostenlos
           </p>
-          <HeroLogo />
+          <div className="my-8">
+            <HeroLogo />
+          </div>
           <h1 className="text-stone-200 text-4xl mb-10 max-w-xl mx-auto leading-relaxed">
             Liste Möglicher{" "}
             <span style={{ color: "var(--amazon-color)", fontWeight: "bold" }}>Amazon</span>{" "}
