@@ -13,7 +13,7 @@ const imagePath = process.env.IMAGE_PATH ?? "./uploads";
 
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["https://dein.shop", "https://dashboard.dein.shop"]
+    ? ["https://lmaa.space", "https://dashboard.lmaa.space"]
     : ["http://localhost:5173", "http://localhost:5174"];
 
 app.use(
