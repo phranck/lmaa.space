@@ -17,6 +17,7 @@ import {
   verifyPassword,
 } from "../services/auth.js";
 import { sendSubmissionApproved, sendSubmissionRejected } from "../services/email.js";
+import { fetchPreviewImage } from "../lib/og.js";
 
 const setupSchema = z.object({
   username: z.string().min(3).max(50),
@@ -185,6 +186,31 @@ adminRoutes.patch(
       return c.json({ error: { message: "Submission not found" } }, 404);
     }
 
+    // On approval: auto-create shop from submission data (if category is set)
+    if (status === "approved" && submission.categoryId) {
+      const [newShop] = await db
+        .insert(shops)
+        .values({
+          name: submission.shopName,
+          url: submission.shopUrl,
+          categoryId: submission.categoryId,
+          region: submission.region,
+          pickup: submission.pickup,
+          shipping: submission.shipping,
+          description: submission.description,
+        })
+        .returning();
+
+      // Fire-and-forget: fetch OG image in background
+      fetchPreviewImage(newShop.url)
+        .then(async (result) => {
+          if (result) {
+            await db.update(shops).set({ ogImage: result.url }).where(eq(shops.id, newShop.id));
+          }
+        })
+        .catch(() => {});
+    }
+
     // Email feedback
     if (sendFeedback && submission.submitterEmail) {
       if (status === "approved") {
@@ -225,6 +251,16 @@ const shopBodySchema = z.object({
 adminRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), async (c) => {
   const body = c.req.valid("json");
   const [shop] = await db.insert(shops).values(body).returning();
+
+  // Fire-and-forget: fetch OG image in background and update the shop
+  fetchPreviewImage(shop.url)
+    .then(async (result) => {
+      if (result) {
+        await db.update(shops).set({ ogImage: result.url }).where(eq(shops.id, shop.id));
+      }
+    })
+    .catch(() => {});
+
   return c.json({ data: shop }, 201);
 });
 
