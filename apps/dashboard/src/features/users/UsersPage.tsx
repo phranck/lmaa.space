@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AdminUser } from "@dein-shop/shared";
+import type { AdminUser } from "@lmaa/shared";
 import { api } from "@/lib/api.ts";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";

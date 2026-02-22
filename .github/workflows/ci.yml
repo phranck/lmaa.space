@@ -19,25 +19,25 @@ jobs:
         run: bun install
 
       - name: Typecheck (shared)
-        run: bun run --filter=@dein-shop/shared typecheck
+        run: bun run --filter=@lmaa/shared typecheck
 
       - name: Typecheck (backend)
-        run: bun run --filter=@dein-shop/backend typecheck
+        run: bun run --filter=@lmaa/backend typecheck
 
       - name: Typecheck (frontend)
-        run: bun run --filter=@dein-shop/frontend typecheck
+        run: bun run --filter=@lmaa/frontend typecheck
 
       - name: Typecheck (dashboard)
-        run: bun run --filter=@dein-shop/dashboard typecheck
+        run: bun run --filter=@lmaa/dashboard typecheck
 
       - name: Build shared
-        run: bun run build --filter=@dein-shop/shared
+        run: bun run build --filter=@lmaa/shared
 
       - name: Build backend
-        run: bun run build --filter=@dein-shop/backend
+        run: bun run build --filter=@lmaa/backend
 
       - name: Build frontend
-        run: bun run build --filter=@dein-shop/frontend
+        run: bun run build --filter=@lmaa/frontend
 
       - name: Build dashboard
-        run: bun run build --filter=@dein-shop/dashboard
+        run: bun run build --filter=@lmaa/dashboard

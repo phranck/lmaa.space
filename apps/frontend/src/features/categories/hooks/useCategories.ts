@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Category } from "@dein-shop/shared";
+import type { Category } from "@lmaa/shared";
 import { api } from "../../../lib/api.ts";
 
 export function useCategories() {

@@ -1,4 +1,4 @@
-import type { Category } from "@dein-shop/shared";
+import type { Category } from "@lmaa/shared";
 
 interface CategoryGridItemProps {
   category: Category;

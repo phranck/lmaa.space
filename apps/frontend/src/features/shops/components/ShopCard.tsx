@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Shop } from "@dein-shop/shared";
+import type { Shop } from "@lmaa/shared";
 import { api } from "../../../lib/api.ts";
 
 interface ShopCardProps {

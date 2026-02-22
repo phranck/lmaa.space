@@ -1,5 +1,5 @@
 {
-  "name": "@dein-shop/dashboard",
+  "name": "@lmaa/dashboard",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@dein-shop/shared": "*",
+    "@lmaa/shared": "*",
     "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-query-devtools": "^5.74.4",
     "flowbite-react": "^0.12.17",

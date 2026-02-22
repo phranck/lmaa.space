@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Shop, Category } from "@dein-shop/shared";
+import type { Shop, Category } from "@lmaa/shared";
 import { api } from "@/lib/api.ts";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopListItem } from "@/features/shops/ShopListItem.tsx";
