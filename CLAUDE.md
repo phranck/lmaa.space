@@ -9,7 +9,7 @@ Hosted at https://dein.shop, based on https://codeberg.org/phranck/Amazon-Altern
 
 ## Repository & Hosting
 
-- **Git Remote:** `git@github.com:phranck/dein.shop.git`
+- **Git Remote:** `git@github.com:phranck/lmaa.space.git`
 - **Hosting:** zerops.io (3 services: backend, frontend, dashboard)
 - **Deployment config:** `zerops.yml` (root)
 
