@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { count, desc, eq } from "drizzle-orm";
+import fs from "node:fs";
 import { Hono } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { z } from "zod";
@@ -311,7 +312,7 @@ for (const method of ["put", "patch"] as const) {
         if (current?.imageUrl?.startsWith("/uploads/") && body.imageUrl !== current.imageUrl) {
           const imagePath = process.env.IMAGE_PATH ?? "./uploads";
           const filename = current.imageUrl.replace("/uploads/", "");
-          try { await Bun.file(`${imagePath}/${filename}`).delete(); } catch { /* File may not exist */ }
+          try { await fs.promises.unlink(`${imagePath}/${filename}`); } catch { /* File may not exist */ }
         }
       }
 
@@ -355,11 +356,12 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   if (cat.imageUrl?.startsWith("/uploads/")) {
     const oldFilename = cat.imageUrl.replace("/uploads/", "");
     if (oldFilename !== filename) {
-      try { await Bun.file(`${imagePath}/${oldFilename}`).delete(); } catch { /* File may not exist */ }
+      try { await fs.promises.unlink(`${imagePath}/${oldFilename}`); } catch { /* File may not exist */ }
     }
   }
 
-  await Bun.write(fullPath, await file.arrayBuffer());
+  await fs.promises.mkdir(imagePath, { recursive: true });
+  await fs.promises.writeFile(fullPath, Buffer.from(await file.arrayBuffer()));
 
   const imageUrl = `/uploads/${filename}`;
   const [updated] = await db
@@ -380,7 +382,7 @@ adminRoutes.delete("/categories/:id/image", requireAuth, async (c) => {
   if (cat.imageUrl?.startsWith("/uploads/")) {
     const imagePath = process.env.IMAGE_PATH ?? "./uploads";
     const filename = cat.imageUrl.replace("/uploads/", "");
-    try { await Bun.file(`${imagePath}/${filename}`).delete(); } catch { /* File may not exist */ }
+    try { await fs.promises.unlink(`${imagePath}/${filename}`); } catch { /* File may not exist */ }
   }
 
   const [updated] = await db
