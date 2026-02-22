@@ -2,9 +2,9 @@
 @import "@dein-shop/shared/styles/tokens.css";
 
 /* Preline UI */
-@source "../node_modules/preline/dist/*.js";
-@import "../node_modules/preline/variants.css";
-@import "../node_modules/preline/css/themes/autumn.css";
+@source "../../../node_modules/preline/dist/*.js";
+@import "../../../node_modules/preline/variants.css";
+@import "../../../node_modules/preline/css/themes/autumn.css";
 
 @theme {
   --font-sans:  "Inter", system-ui, -apple-system, sans-serif;
