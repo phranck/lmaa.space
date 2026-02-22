@@ -11,7 +11,8 @@
  */
 
 import { eq, isNull, or } from "drizzle-orm";
-import { db } from "../db/index.js";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { shops } from "../db/schema.js";
 
 const HEADERS = {
@@ -158,36 +159,48 @@ async function fetchPreviewImage(shopUrl: string): Promise<{ url: string; via: s
   return null;
 }
 
-const pending = await db
-  .select({ id: shops.id, name: shops.name, url: shops.url })
-  .from(shops)
-  .where(or(isNull(shops.ogImage), eq(shops.ogImage, "")));
+async function main() {
+  const client = postgres(process.env.DATABASE_URL!);
+  const db = drizzle(client);
 
-console.log(`Fetching preview image for ${pending.length} shops…\n`);
+  const pending = await db
+    .select({ id: shops.id, name: shops.name, url: shops.url })
+    .from(shops)
+    .where(or(isNull(shops.ogImage), eq(shops.ogImage, "")));
 
-const counts: Record<string, number> = {};
-let failed = 0;
+  console.log(`Fetching preview image for ${pending.length} shops…\n`);
 
-for (const shop of pending) {
-  const result = await fetchPreviewImage(shop.url);
-  await db
-    .update(shops)
-    .set({ ogImage: result?.url ?? "" })
-    .where(eq(shops.id, shop.id));
+  const counts: Record<string, number> = {};
+  let failed = 0;
 
-  if (result) {
-    counts[result.via] = (counts[result.via] ?? 0) + 1;
-    console.log(`  ✓ ${shop.name} (${result.via})`);
-  } else {
-    console.log(`  ✗ ${shop.name}`);
-    failed++;
+  for (const shop of pending) {
+    const result = await fetchPreviewImage(shop.url);
+    await db
+      .update(shops)
+      .set({ ogImage: result?.url ?? "" })
+      .where(eq(shops.id, shop.id));
+
+    if (result) {
+      counts[result.via] = (counts[result.via] ?? 0) + 1;
+      console.log(`  ✓ ${shop.name} (${result.via})`);
+    } else {
+      console.log(`  ✗ ${shop.name}`);
+      failed++;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  console.log(`\nDone. ${total} found, ${failed} not found.`);
+  for (const [via, count] of Object.entries(counts).sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${via}: ${count}`);
+  }
+
+  await client.end();
 }
 
-const total = Object.values(counts).reduce((a, b) => a + b, 0);
-console.log(`\nDone. ${total} found, ${failed} not found.`);
-for (const [via, count] of Object.entries(counts).sort((a, b) => b[1] - a[1])) {
-  console.log(`  ${via}: ${count}`);
-}
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
