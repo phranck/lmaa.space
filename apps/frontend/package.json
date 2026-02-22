@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lmaa/shared": "*",
+    "@lmaa/shared": "0.1.0",
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-query-devtools": "^5.74.4",
