@@ -45,7 +45,7 @@ jobs:
       - uses: zeropsio/actions@main
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
-          service-id: 00XGjBA0SauCQK9nXMevNQ
+          service-id: dEAzG6DYSza46piLkmrMOw
 
   deploy-frontend:
     needs: detect-changes
