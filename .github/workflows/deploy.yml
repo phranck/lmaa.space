@@ -45,7 +45,7 @@ jobs:
       - uses: zeropsio/actions@main
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
-          service-id: ZEROPS_BACKEND_SERVICE_ID
+          service-id: m1hTN5sSSKSwPj5fBKoOHQ
 
   deploy-frontend:
     needs: detect-changes
@@ -56,7 +56,7 @@ jobs:
       - uses: zeropsio/actions@main
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
-          service-id: ZEROPS_FRONTEND_SERVICE_ID
+          service-id: waNMTqI1TMq3ipESabM9gw
 
   deploy-dashboard:
     needs: detect-changes
@@ -67,4 +67,4 @@ jobs:
       - uses: zeropsio/actions@main
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
-          service-id: ZEROPS_DASHBOARD_SERVICE_ID
+          service-id: aHxnoU5ORauiAiDpbQvsEg
