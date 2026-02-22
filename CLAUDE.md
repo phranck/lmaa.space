@@ -28,33 +28,33 @@ packages/
 
 ```bash
 # Install all workspaces
-bun install
+npm install
 
 # Dev servers
-bun run dev:frontend    # port 5173 (proxies /api → localhost:3000)
-bun run dev:backend     # port 3000
-bun run dev:dashboard   # port 5174 (proxies /api → localhost:3000)
+npm run dev:frontend    # port 5173 (proxies /api → localhost:3000)
+npm run dev:backend     # port 3000
+npm run dev:dashboard   # port 5174 (proxies /api → localhost:3000)
 
 # Type checking
-bun run --filter=@lmaa/shared typecheck
-bun run --filter=@lmaa/backend typecheck
-bun run --filter=@lmaa/frontend typecheck
-bun run --filter=@lmaa/dashboard typecheck
+npm run typecheck -w @lmaa/shared
+npm run typecheck -w @lmaa/backend
+npm run typecheck -w @lmaa/frontend
+npm run typecheck -w @lmaa/dashboard
 
 # Linting & formatting (Biome, not ESLint)
-bun run lint
-bun run lint:fix
-bun run format
+npm run lint
+npm run lint:fix
+npm run format
 
 # Database
-bun run db:migrate      # Run migrations + create tsvector trigger
-bun run db:generate     # Generate Drizzle migration files
-bun run db:studio       # Drizzle Studio UI
+npm run db:migrate      # Run migrations + create tsvector trigger
+npm run db:generate     # Generate Drizzle migration files
+npm run db:studio       # Drizzle Studio UI
 
 # Build
-bun run build:frontend
-bun run build:backend
-bun run build:dashboard
+npm run build:frontend
+npm run build:backend
+npm run build:dashboard
 ```
 
 ## Architecture
@@ -85,7 +85,7 @@ bun run build:dashboard
 
 ### Shared (`packages/shared`)
 - TypeScript types only: `Shop`, `Category`, `Submission`, `AdminUser`, `ApiResponse`
-- Build required before frontend/dashboard: `bun run build --filter=@lmaa/shared`
+- Build required before frontend/dashboard: `npm run build -w @lmaa/shared`
 
 ## Key Conventions
 

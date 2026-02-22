@@ -6,6 +6,7 @@ export default defineConfig({
   target: "node22",
   platform: "node",
   bundle: true,
+  noExternal: [/^(?!node:).*/],
   outDir: "dist",
   clean: true,
 });
