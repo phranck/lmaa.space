@@ -9,7 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["bun"],
+    "types": ["node"],
     "rootDir": "./src",
     "outDir": "./dist"
   },
