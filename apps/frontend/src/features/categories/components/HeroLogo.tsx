@@ -7,7 +7,7 @@ export function HeroLogo() {
         style={{
           width: 140,
           height: 140,
-          backgroundColor: "#cea836",
+          backgroundColor: "var(--accent-base)",
           maskImage: "url(/logo-white.png)",
           WebkitMaskImage: "url(/logo-white.png)",
           maskSize: "contain",
@@ -20,7 +20,7 @@ export function HeroLogo() {
       />
       <span
         className="text-4xl"
-        style={{ color: "#cea836", fontFamily: "DynaPuff", fontWeight: 600 }}
+        style={{ color: "var(--accent-base)", fontFamily: "DynaPuff", fontWeight: 500 }}
       >
         LMAA
       </span>
