@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import Fuse from "fuse.js";
+import Fuse, { type IFuseOptions } from "fuse.js";
 import type { Shop } from "@dein-shop/shared";
 
-const FUSE_OPTIONS: Fuse.IFuseOptions<Shop> = {
+const FUSE_OPTIONS: IFuseOptions<Shop> = {
   keys: [
     { name: "name", weight: 0.4 },
     { name: "description", weight: 0.3 },
