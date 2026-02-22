@@ -3,7 +3,7 @@
  * Run with: bun run apps/backend/src/scripts/seed.ts
  */
 
-import { Database } from "bun:sqlite";
+import Database from "better-sqlite3";
 
 const DB_PATH = process.env.DATABASE_PATH ?? "./deinshop.db";
 const BASE_URL =
@@ -188,7 +188,7 @@ function parseContent(text: string): {
 
 async function main() {
   console.log(`Connecting to database at ${DB_PATH}...`);
-  const sqlite = new Database(DB_PATH, { readwrite: true, create: false });
+  const sqlite = new Database(DB_PATH);
   sqlite.exec("PRAGMA foreign_keys = ON;");
 
   let totalCategories = 0;
@@ -234,7 +234,7 @@ async function main() {
       const result = sqlite
         .prepare("INSERT INTO categories (name, slug, icon) VALUES (?, ?, ?)")
         .run(heading.name, slug, heading.icon);
-      categoryId = result.lastInsertRowid as number;
+      categoryId = Number(result.lastInsertRowid);
       totalCategories++;
     }
 
