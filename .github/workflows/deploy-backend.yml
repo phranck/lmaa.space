@@ -1,0 +1,19 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/backend/**"
+      - "packages/shared/**"
+      - "zerops.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: zeropsio/actions@main
+        with:
+          access-token: ${{ secrets.ZEROPS_TOKEN }}
+          service-id: ${{ secrets.ZEROPS_BACKEND_SERVICE_ID }}

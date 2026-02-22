@@ -1,0 +1,29 @@
+export function HeroLogo() {
+  return (
+    <div className="flex flex-col items-center mb-1">
+      <div
+        role="img"
+        aria-label="lmaa.space"
+        style={{
+          width: 140,
+          height: 140,
+          backgroundColor: "#cea836",
+          maskImage: "url(/logo-white.png)",
+          WebkitMaskImage: "url(/logo-white.png)",
+          maskSize: "contain",
+          WebkitMaskSize: "contain",
+          maskRepeat: "no-repeat",
+          WebkitMaskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskPosition: "center",
+        }}
+      />
+      <span
+        className="-mt-4 text-4xl"
+        style={{ color: "#cea836", fontFamily: "DynaPuff", fontWeight: 600 }}
+      >
+        LMAA
+      </span>
+    </div>
+  );
+}
