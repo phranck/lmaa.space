@@ -19,8 +19,8 @@ export function HeroLogo() {
         }}
       />
       <span
-        className="-mt-4 text-4xl"
-        style={{ color: "#cea836", fontFamily: "DynaPuff", fontWeight: 600 }}
+        className="text-4xl"
+        style={{ marginTop: "-16px", color: "#cea836", fontFamily: "DynaPuff", fontWeight: 600 }}
       >
         LMAA
       </span>
