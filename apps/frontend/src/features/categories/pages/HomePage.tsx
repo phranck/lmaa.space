@@ -50,7 +50,7 @@ export function HomePage() {
               }}
             />
           </div>
-          <h1 className="text-stone-200 text-4xl mb-10 max-w-xl mx-auto leading-relaxed">
+          <h1 className="text-stone-200 text-4xl mb-10 max-w-xl mx-auto leading-relaxed -mt-8">
             <span style={{ color: "#cea836", fontFamily: "DynaPuff", fontWeight: 600 }}>LMAA</span><br />
             Liste Möglicher{" "}
             <span style={{ color: "var(--amazon-color)", fontWeight: "bold" }}>Amazon</span>{" "}
