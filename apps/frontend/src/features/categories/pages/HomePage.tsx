@@ -49,7 +49,10 @@ export function HomePage() {
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-amber-500 text-white rounded-xl font-medium text-sm hover:bg-amber-400 transition-colors shrink-0"
+                className="px-5 py-2.5 text-white rounded-xl font-medium text-sm transition-colors shrink-0"
+                style={{ backgroundColor: "var(--accent-base)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--accent-hover)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--accent-base)"; }}
               >
                 Suchen
               </button>
