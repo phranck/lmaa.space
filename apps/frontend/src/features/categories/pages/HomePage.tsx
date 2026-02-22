@@ -31,10 +31,9 @@ export function HomePage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">
             Community-kuratiert · Unabhängig · Kostenlos
           </p>
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-white mb-6 leading-tight">
-            Faire Alternativen<br />
-            <span className="text-amber-400">zu Amazon</span>
-          </h1>
+          <div className="flex justify-center mb-6">
+            <img src="/logo-white.png" alt="lmaa.space" style={{ width: 180, height: 180 }} />
+          </div>
           <p className="text-stone-300 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
             Entdecke unabhängige Online-Shops – kuratiert von der Community für
             den deutschsprachigen Raum.

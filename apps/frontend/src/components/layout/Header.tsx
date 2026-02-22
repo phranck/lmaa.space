@@ -16,11 +16,8 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link
-            to="/"
-            className="font-serif text-xl font-semibold tracking-wide text-stone-900 hover:text-amber-700 transition-colors"
-          >
-            lmaa.space
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src="/logo.png" alt="lmaa.space" className="h-8 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
