@@ -31,3 +31,18 @@ h1, h2, h3 {
 }
 
 /* lmaa.space */
+@font-face {
+  font-family: "DynaPuff";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/dynapuff-500.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "DynaPuff";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/dynapuff-600.woff2") format("woff2");
+}
