@@ -53,3 +53,4 @@ const port = Number(process.env.PORT ?? 3000);
 console.log(`Backend running on port ${port}`);
 
 serve({ fetch: app.fetch, port });
+// lmaa.space
