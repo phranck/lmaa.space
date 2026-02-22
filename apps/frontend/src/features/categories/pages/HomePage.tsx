@@ -31,11 +31,11 @@ export function HomePage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">
             Community-kuratiert · Unabhängig · Kostenlos
           </p>
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-1">
             <img src="/logo-amber.png" alt="lmaa.space" style={{ width: 140, height: 140 }} />
           </div>
           <h1 className="text-stone-200 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-            LMAA<br />
+            <span style={{ color: "#f59e0b" }}>LMAA</span><br />
             Liste Möglicher{" "}
             <span style={{ color: "var(--amazon-color)" }}>Amazon</span>{" "}
             Alternativen
