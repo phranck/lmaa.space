@@ -3,7 +3,6 @@ import Database from "better-sqlite3";
 const dbPath = process.env.DATABASE_PATH ?? "./deinshop.db";
 const sqlite = new Database(dbPath);
 
-sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 
 console.log("Running migrations...");
