@@ -303,6 +303,16 @@ adminRoutes.get("/dead-link-reports", requireAuth, async (c) => {
   return c.json({ data: rows });
 });
 
+// DELETE /api/admin/dead-link-reports/:shopId – clear all reports for a shop
+adminRoutes.delete("/dead-link-reports/:shopId", requireAuth, async (c) => {
+  const shopId = Number(c.req.param("shopId"));
+  if (!Number.isInteger(shopId) || shopId <= 0) {
+    return c.json({ error: { message: "Invalid shop id" } }, 400);
+  }
+  await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, shopId));
+  return c.json({ data: { message: "Reports cleared" } });
+});
+
 // CRUD Categories
 adminRoutes.get("/categories", requireAuth, async (c) => {
   const rows = await db.select().from(categories).orderBy(categories.name);

@@ -12,7 +12,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Übersicht", icon: <LuLayoutDashboard size={16} /> },
-  { to: "/vorschlaege", label: "Vorschläge", icon: <LuInbox size={16} /> },
+  { to: "/meldungen", label: "Meldungen", icon: <LuInbox size={16} /> },
   { to: "/shops", label: "Shops", icon: <LuStore size={16} /> },
   { to: "/kategorien", label: "Kategorien", icon: <LuTag size={16} /> },
   { to: "/benutzer", label: "Benutzer", icon: <LuUsers size={16} />, ownerOnly: true },

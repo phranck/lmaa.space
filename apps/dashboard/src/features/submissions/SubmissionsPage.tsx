@@ -3,24 +3,39 @@ import { api } from "@/lib/api.ts";
 import type { Submission } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { LuExternalLink } from "react-icons/lu";
 
-type Status = "pending" | "approved" | "rejected";
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const STATUS_LABELS: Record<Status, string> = {
+type Tab = "vorschlaege" | "defekte-links";
+type SubmissionStatus = "pending" | "approved" | "rejected";
+
+interface DeadLinkReport {
+  shopId: number;
+  shopName: string;
+  shopUrl: string;
+  reportCount: number;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const STATUS_LABELS: Record<SubmissionStatus, string> = {
   pending: "Offen",
   approved: "Angenommen",
   rejected: "Abgelehnt",
 };
 
-const STATUS_COLORS: Record<Status, string> = {
+const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-amber-50 text-amber-700",
   approved: "bg-green-50 text-green-700",
   rejected: "bg-red-50 text-red-600",
 };
 
-export function SubmissionsPage() {
+// ─── Sub-views ────────────────────────────────────────────────────────────────
+
+function VorschlaegeTab() {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<Status>("pending");
+  const [filter, setFilter] = useState<SubmissionStatus>("pending");
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [sendFeedback, setSendFeedback] = useState(false);
@@ -31,13 +46,7 @@ export function SubmissionsPage() {
   });
 
   const reviewMutation = useMutation({
-    mutationFn: ({
-      id,
-      status,
-    }: {
-      id: number;
-      status: "approved" | "rejected";
-    }) =>
+    mutationFn: ({ id, status }: { id: number; status: "approved" | "rejected" }) =>
       api.patch(`/admin/submissions/${id}`, {
         status,
         adminNote: adminNote || undefined,
@@ -51,12 +60,13 @@ export function SubmissionsPage() {
     },
   });
 
-  const reviewing = submissions.find((s) => s.id === reviewId);
+  const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
 
   return (
-    <div>
-      <PageHeader title="Vorschläge">
-        {(["pending", "approved", "rejected"] as Status[]).map((s) => (
+    <>
+      {/* Status filter */}
+      <div className="flex gap-2 mb-6">
+        {(["pending", "approved", "rejected"] as SubmissionStatus[]).map((s) => (
           <button
             key={s}
             type="button"
@@ -70,7 +80,7 @@ export function SubmissionsPage() {
             {STATUS_LABELS[s]}
           </button>
         ))}
-      </PageHeader>
+      </div>
 
       {isLoading && (
         <div className="space-y-3">
@@ -101,7 +111,7 @@ export function SubmissionsPage() {
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status]}`}
                 >
-                  {STATUS_LABELS[sub.status]}
+                  {STATUS_LABELS[sub.status as SubmissionStatus]}
                 </span>
               </div>
               <a
@@ -216,6 +226,103 @@ export function SubmissionsPage() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+function DefekteLinksTab() {
+  const qc = useQueryClient();
+
+  const { data: reports = [], isLoading } = useQuery({
+    queryKey: ["dead-link-reports"],
+    queryFn: () => api.get<DeadLinkReport[]>("/admin/dead-link-reports"),
+  });
+
+  const dismissMutation = useMutation({
+    mutationFn: (shopId: number) => api.delete(`/admin/dead-link-reports/${shopId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dead-link-reports"] }),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
+          <div
+            key={key}
+            className="h-16 bg-white rounded-xl animate-pulse border border-gray-100"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (reports.length === 0) {
+    return <div className="text-center py-16 text-gray-400">Keine gemeldeten defekten Links.</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {reports.map((r) => (
+        <div
+          key={r.shopId}
+          className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4"
+        >
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900">{r.shopName}</p>
+            <a
+              href={r.shopUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-[var(--color-primary)] hover:underline truncate"
+            >
+              {r.shopUrl}
+              <LuExternalLink size={12} className="shrink-0" />
+            </a>
+          </div>
+
+          <span className="shrink-0 px-2.5 py-1 rounded-full bg-red-50 text-red-600 text-xs font-semibold">
+            {r.reportCount}× gemeldet
+          </span>
+
+          <button
+            type="button"
+            onClick={() => dismissMutation.mutate(r.shopId)}
+            disabled={dismissMutation.isPending}
+            className="shrink-0 px-3 py-1.5 border border-gray-200 text-gray-600 text-sm rounded-control hover:border-gray-300 hover:text-gray-800 transition-colors disabled:opacity-50"
+          >
+            Erledigt
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export function SubmissionsPage() {
+  const [tab, setTab] = useState<Tab>("vorschlaege");
+
+  return (
+    <div>
+      <PageHeader title="Meldungen">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-control">
+          {(["vorschlaege", "defekte-links"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
+                tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {t === "vorschlaege" ? "Vorschläge" : "Defekte Links"}
+            </button>
+          ))}
+        </div>
+      </PageHeader>
+
+      {tab === "vorschlaege" ? <VorschlaegeTab /> : <DefekteLinksTab />}
     </div>
   );
 }
