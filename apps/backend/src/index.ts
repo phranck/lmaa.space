@@ -1,3 +1,6 @@
+import { serve } from "@hono/node-server";
+import fs from "node:fs";
+import path from "node:path";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
@@ -27,9 +30,16 @@ app.use("*", logger());
 app.get("/uploads/:filename{[^/]+}", async (c) => {
   const filename = c.req.param("filename");
   if (filename.includes("..")) return c.json({ error: { message: "Not found" } }, 404);
-  const file = Bun.file(`${imagePath}/${filename}`);
-  if (!(await file.exists())) return c.json({ error: { message: "Not found" } }, 404);
-  return c.body(await file.arrayBuffer(), 200, { "Content-Type": file.type });
+  const filepath = path.join(imagePath, filename);
+  try {
+    const data = await fs.promises.readFile(filepath);
+    const ext = path.extname(filename).toLowerCase().slice(1);
+    const contentType =
+      ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
+    return new Response(data, { headers: { "Content-Type": contentType } });
+  } catch {
+    return c.json({ error: { message: "Not found" } }, 404);
+  }
 });
 
 app.route("/api", publicRoutes);
@@ -42,7 +52,4 @@ app.notFound((c) => c.json({ error: { message: "Not found" } }, 404));
 const port = Number(process.env.PORT ?? 3000);
 console.log(`Backend running on port ${port}`);
 
-export default {
-  port,
-  fetch: app.fetch,
-};
+serve({ fetch: app.fetch, port });
