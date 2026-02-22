@@ -6,16 +6,16 @@ export function AboutPage() {
     <PageLayout>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
         <h1 className="font-serif text-3xl font-semibold text-stone-900 mb-10">
-          Über dein.shop
+          Über lmaa.space
         </h1>
 
         <div className="space-y-10 text-stone-600 leading-relaxed">
           <section>
             <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
-              Was ist dein.shop?
+              Was ist lmaa.space?
             </h2>
             <p className="text-sm leading-relaxed">
-              dein.shop ist eine Community-kuratierte Sammlung von Online-Shops als Alternativen
+              lmaa.space ist eine Community-kuratierte Sammlung von Online-Shops als Alternativen
               zu Amazon – für den deutschsprachigen Raum. Alle Shops werden manuell geprüft,
               bevor sie aufgenommen werden.
             </p>
@@ -40,7 +40,7 @@ export function AboutPage() {
               Wer steckt dahinter?
             </h2>
             <p className="text-sm leading-relaxed">
-              dein.shop ist ein privates Community-Projekt ohne kommerzielle Interessen.
+              lmaa.space ist ein privates Community-Projekt ohne kommerzielle Interessen.
               Alle Kosten (Hosting, Domain) werden selbst getragen. Es gibt keine
               Affiliate-Links und kein Tracking.
             </p>

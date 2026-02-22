@@ -20,7 +20,7 @@ export function Header() {
             to="/"
             className="font-serif text-xl font-semibold tracking-wide text-stone-900 hover:text-amber-700 transition-colors"
           >
-            dein.shop
+            lmaa.space
           </Link>
 
           {/* Desktop Navigation */}

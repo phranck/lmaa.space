@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM = process.env.EMAIL_FROM ?? "noreply@dein.shop";
+const FROM = process.env.EMAIL_FROM ?? "noreply@lmaa.space";
 
 export function isEmailConfigured(): boolean {
   return resend !== null;
@@ -20,10 +20,10 @@ export async function sendSubmissionApproved(
     html: `
       <p>Hallo,</p>
       <p>wir freuen uns, dir mitteilen zu können, dass dein Vorschlag
-      <strong>${shopName}</strong> in die Liste auf <a href="https://dein.shop">dein.shop</a>
+      <strong>${shopName}</strong> in die Liste auf <a href="https://lmaa.space">lmaa.space</a>
       aufgenommen wurde!</p>
       <p>Vielen Dank für deinen Beitrag zur Community.</p>
-      <p>Das dein.shop-Team</p>
+      <p>Das lmaa.space-Team</p>
     `,
   });
 }
@@ -45,8 +45,8 @@ export async function sendSubmissionRejected(
       aktuell nicht in unsere Liste aufnehmen.</p>
       ${reason ? `<p>Grund: ${reason}</p>` : ""}
       <p>Du kannst jederzeit einen neuen Vorschlag auf
-      <a href="https://dein.shop/vorschlagen">dein.shop/vorschlagen</a> einreichen.</p>
-      <p>Das dein.shop-Team</p>
+      <a href="https://lmaa.space/vorschlagen">lmaa.space/vorschlagen</a> einreichen.</p>
+      <p>Das lmaa.space-Team</p>
     `,
   });
 }

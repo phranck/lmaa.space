@@ -75,9 +75,9 @@ export function SuggestPage() {
             </button>
           </div>
           <p className="mt-10 text-sm text-stone-400">
-            Dir gefällt dein.shop?{" "}
+            Dir gefällt lmaa.space?{" "}
             <a
-              href="https://ko-fi.com/layeredwork?ref=dein.shop"
+              href="https://ko-fi.com/layeredwork?ref=lmaa.space"
               target="_blank"
               rel="noopener noreferrer"
               className="text-amber-600 hover:underline"
