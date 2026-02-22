@@ -9,7 +9,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["bun"]
+    "types": ["bun"],
+    "rootDir": "./src",
+    "outDir": "./dist"
   },
   "include": ["src"]
 }
