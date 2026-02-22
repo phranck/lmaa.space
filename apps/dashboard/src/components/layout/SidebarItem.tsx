@@ -18,12 +18,7 @@ function linkClass(isActive: boolean) {
 
 export function SidebarItem({ to, label, icon, end, onClick }: SidebarItemProps) {
   return (
-    <NavLink
-      to={to}
-      end={end}
-      onClick={onClick}
-      className={({ isActive }) => linkClass(isActive)}
-    >
+    <NavLink to={to} end={end} onClick={onClick} className={({ isActive }) => linkClass(isActive)}>
       <span className="shrink-0 opacity-70">{icon}</span>
       {label}
     </NavLink>

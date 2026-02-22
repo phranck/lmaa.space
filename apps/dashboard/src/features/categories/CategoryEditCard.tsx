@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LuTrash2, LuUpload, LuSearch } from "react-icons/lu";
-import type { Category } from "@lmaa/shared";
-import { api } from "@/lib/api.ts";
 import { UnsplashBrowser } from "@/features/categories/UnsplashBrowser.tsx";
+import { api } from "@/lib/api.ts";
+import type { Category } from "@lmaa/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { LuSearch, LuTrash2, LuUpload } from "react-icons/lu";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";
@@ -64,9 +64,14 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   const [imageLoadError, setImageLoadError] = useState(false);
 
   // Populate form when editing existing category
+  // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used – sync only when category changes, not on every property update
   useEffect(() => {
     if (category) {
-      setForm({ name: category.name, slug: category.slug, description: category.description ?? "" });
+      setForm({
+        name: category.name,
+        slug: category.slug,
+        description: category.description ?? "",
+      });
       setImage({
         previewUrl: category.imageUrl ?? null,
         photographer: category.imagePhotographer ?? null,
@@ -169,8 +174,11 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   }
 
   // The image URL to show (preview takes priority, then existing, then slug fallback)
-  const displayImageUrl = image.previewUrl
-    ?? (image.deleted ? null : (category?.imageUrl ?? (category ? `/images/${category.slug}.jpg` : null)));
+  const displayImageUrl =
+    image.previewUrl ??
+    (image.deleted
+      ? null
+      : (category?.imageUrl ?? (category ? `/images/${category.slug}.jpg` : null)));
 
   const canSave = form.name.trim() && form.slug.trim() && !saveMutation.isPending;
 
@@ -179,10 +187,13 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
       {/* Backdrop – fade in on mount, fade out on close */}
       <div
         className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
-        onAnimationEnd={(e) => { if (closing && e.target === e.currentTarget) onClose(); }}
+        onAnimationEnd={(e) => {
+          if (closing && e.target === e.currentTarget) onClose();
+        }}
       >
-        <div className={`relative bg-white rounded-[var(--radius-card)] shadow-2xl w-full max-w-3xl grid grid-cols-2 overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}>
-
+        <div
+          className={`relative bg-white rounded-[var(--radius-card)] shadow-2xl w-full max-w-3xl grid grid-cols-2 overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
+        >
           {/* Image Panel – 50 % */}
           <div className="relative bg-gray-100 flex flex-col min-h-[420px]">
             {displayImageUrl && !imageLoadError ? (
@@ -245,7 +256,9 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
             <div className="flex flex-col gap-3 flex-1">
               <div>
-                <label htmlFor="cat-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label htmlFor="cat-name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Name
+                </label>
                 <input
                   id="cat-name"
                   type="text"
@@ -256,7 +269,9 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               </div>
 
               <div>
-                <label htmlFor="cat-slug" className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                <label htmlFor="cat-slug" className="block text-sm font-medium text-gray-700 mb-1">
+                  Slug
+                </label>
                 <input
                   id="cat-slug"
                   type="text"
@@ -267,7 +282,12 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               </div>
 
               <div>
-                <label htmlFor="cat-description" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+                <label
+                  htmlFor="cat-description"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Beschreibung
+                </label>
                 <textarea
                   id="cat-description"
                   rows={4}
@@ -280,7 +300,9 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
             {saveMutation.isError && (
               <p className="text-red-500 text-sm mt-3">
-                {saveMutation.error instanceof Error ? saveMutation.error.message : "Fehler beim Speichern."}
+                {saveMutation.error instanceof Error
+                  ? saveMutation.error.message
+                  : "Fehler beim Speichern."}
               </p>
             )}
 

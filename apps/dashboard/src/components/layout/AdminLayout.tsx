@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Outlet, useNavigate } from "react-router";
-import { LuMenu } from "react-icons/lu";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
+import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useState } from "react";
+import { LuMenu } from "react-icons/lu";
+import { Outlet, useNavigate } from "react-router";
 
 function AdminLayoutInner() {
   const { user, logout } = useAuth();

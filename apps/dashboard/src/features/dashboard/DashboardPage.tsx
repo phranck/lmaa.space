@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api.ts";
 import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
+import { api } from "@/lib/api.ts";
+import { useQuery } from "@tanstack/react-query";
 
 interface Stats {
   shops: number;
@@ -20,8 +20,11 @@ export function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Übersicht</h1>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 bg-white rounded-xl border border-gray-100 animate-pulse" />
+          {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
+            <div
+              key={key}
+              className="h-28 bg-white rounded-xl border border-gray-100 animate-pulse"
+            />
           ))}
         </div>
       </div>

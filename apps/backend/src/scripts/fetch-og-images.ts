@@ -6,11 +6,12 @@
 import { eq, isNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { fetchPreviewImage } from "../lib/og.js";
 import { shops } from "../db/schema.js";
+import { fetchPreviewImage } from "../lib/og.js";
 
 async function main() {
-  const client = postgres(process.env.DATABASE_URL!);
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
+  const client = postgres(process.env.DATABASE_URL);
   const db = drizzle(client);
 
   const pending = await db

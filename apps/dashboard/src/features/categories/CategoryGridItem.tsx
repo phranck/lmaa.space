@@ -14,7 +14,9 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
           src={category.imageUrl ?? `/images/${category.slug}.jpg`}
           alt=""
           className="w-full h-full object-cover bg-gray-100"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg"; }}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
+          }}
         />
       </div>
       <div className="p-3 flex flex-col gap-2">

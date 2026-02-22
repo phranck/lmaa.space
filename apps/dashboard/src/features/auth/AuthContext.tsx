@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import type { AdminUser } from "@lmaa/shared";
 import { api } from "@/lib/api.ts";
+import type { AdminUser } from "@lmaa/shared";
+import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
 
 interface AuthState {
   user: AdminUser | null;
@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch
   useEffect(() => {
     refresh();
   }, []);

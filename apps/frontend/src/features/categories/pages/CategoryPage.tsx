@@ -1,9 +1,9 @@
-import { Link, useParams } from "react-router";
 import type { Shop } from "@lmaa/shared";
+import { Link, useParams } from "react-router";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
 import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useCategory } from "../hooks/useCategories.ts";
-import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
 
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -27,7 +27,7 @@ export function CategoryPage() {
               <div className="h-8 w-48 bg-white/20 rounded animate-pulse" />
             ) : data ? (
               <>
-<h1 className="font-serif text-2xl sm:text-3xl font-semibold text-white">
+                <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-white">
                   {data.name}
                 </h1>
                 <p className="text-stone-300 text-sm mt-1">
@@ -53,6 +53,7 @@ export function CategoryPage() {
         {isLoading && (
           <div className="grid sm:grid-cols-2 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
               <div key={i} className="h-36 bg-stone-100 rounded-2xl animate-pulse" />
             ))}
           </div>
@@ -67,27 +68,24 @@ export function CategoryPage() {
           </div>
         )}
 
-        {data && (
-          <>
-            {(data.shops as Shop[]).length === 0 ? (
-              <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-                <p className="text-stone-500 mb-5">Noch keine Shops in dieser Kategorie.</p>
-                <Link
-                  to="/vorschlagen"
-                  className="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
-                >
-                  Ersten Shop vorschlagen
-                </Link>
-              </div>
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-4">
-                {(data.shops as Shop[]).map((shop) => (
-                  <ShopCard key={shop.id} shop={shop} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        {data &&
+          ((data.shops as Shop[]).length === 0 ? (
+            <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
+              <p className="text-stone-500 mb-5">Noch keine Shops in dieser Kategorie.</p>
+              <Link
+                to="/vorschlagen"
+                className="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
+              >
+                Ersten Shop vorschlagen
+              </Link>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {(data.shops as Shop[]).map((shop) => (
+                <ShopCard key={shop.id} shop={shop} />
+              ))}
+            </div>
+          ))}
       </div>
     </PageLayout>
   );

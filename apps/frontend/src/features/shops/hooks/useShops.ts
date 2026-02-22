@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import type { Shop } from "@lmaa/shared";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../../lib/api.ts";
 
 export function useShops() {

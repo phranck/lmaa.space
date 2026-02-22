@@ -7,10 +7,7 @@ export function isEmailConfigured(): boolean {
   return resend !== null;
 }
 
-export async function sendSubmissionApproved(
-  to: string,
-  shopName: string,
-): Promise<void> {
+export async function sendSubmissionApproved(to: string, shopName: string): Promise<void> {
   if (!resend) return;
 
   await resend.emails.send({

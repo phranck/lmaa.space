@@ -13,14 +13,11 @@ export function DatenschutzPage() {
         </p>
 
         <div className="space-y-10 text-stone-600 leading-relaxed">
-
           <section>
             <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
               1. Verantwortlicher
             </h2>
-            <p className="text-sm leading-relaxed">
-              Verantwortlicher im Sinne der DSGVO ist:
-            </p>
+            <p className="text-sm leading-relaxed">Verantwortlicher im Sinne der DSGVO ist:</p>
             <p className="text-sm leading-relaxed mt-2">
               Frank Gregor
               <br />
@@ -36,26 +33,21 @@ export function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
-              2. Grundsätze
-            </h2>
+            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">2. Grundsätze</h2>
             <p className="text-sm leading-relaxed">
-              Der Schutz deiner personenbezogenen Daten hat für uns höchste
-              Priorität. lmaa.space wurde von Grund auf datenschutzfreundlich
-              konzipiert: Es werden keine Tracking-Cookies gesetzt, keine
-              Analyse-Dienste von Drittanbietern eingebunden und keine
+              Der Schutz deiner personenbezogenen Daten hat für uns höchste Priorität. lmaa.space
+              wurde von Grund auf datenschutzfreundlich konzipiert: Es werden keine Tracking-Cookies
+              gesetzt, keine Analyse-Dienste von Drittanbietern eingebunden und keine
               personenbezogenen Daten an Dritte weitergegeben oder verkauft.
             </p>
             <p className="text-sm leading-relaxed mt-2">
-              Es gibt keine Nutzerkonten, keine Registrierung und keine
-              Profilbildung. Werbung wird nicht ausgespielt.
+              Es gibt keine Nutzerkonten, keine Registrierung und keine Profilbildung. Werbung wird
+              nicht ausgespielt.
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
-              3. Hosting
-            </h2>
+            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">3. Hosting</h2>
             <p className="text-sm leading-relaxed">
               Diese Website wird ausschließlich auf Infrastruktur von{" "}
               <a
@@ -66,12 +58,10 @@ export function DatenschutzPage() {
               >
                 Zerops
               </a>{" "}
-              betrieben. Die Server befinden sich in Tschechien, einem
-              Mitgliedsstaat der Europäischen Union. Eine Übermittlung von
-              Daten in Drittstaaten außerhalb der EU findet nicht statt.
-              Zerops stellt die technische Infrastruktur bereit und ist als
-              Anbieter mit Sitz in der EU an die Anforderungen der DSGVO
-              gebunden.
+              betrieben. Die Server befinden sich in Tschechien, einem Mitgliedsstaat der
+              Europäischen Union. Eine Übermittlung von Daten in Drittstaaten außerhalb der EU
+              findet nicht statt. Zerops stellt die technische Infrastruktur bereit und ist als
+              Anbieter mit Sitz in der EU an die Anforderungen der DSGVO gebunden.
             </p>
           </section>
 
@@ -80,9 +70,8 @@ export function DatenschutzPage() {
               4. Serverprotokolle
             </h2>
             <p className="text-sm leading-relaxed">
-              Beim Aufruf dieser Website speichert der Webserver automatisch
-              technische Zugriffsdaten in sogenannten Serverprotokollen. Dazu
-              gehören:
+              Beim Aufruf dieser Website speichert der Webserver automatisch technische
+              Zugriffsdaten in sogenannten Serverprotokollen. Dazu gehören:
             </p>
             <ul className="text-sm leading-relaxed mt-2 ml-4 list-disc space-y-1">
               <li>IP-Adresse des anfragenden Geräts</li>
@@ -92,13 +81,11 @@ export function DatenschutzPage() {
               <li>Übertragene Datenmenge</li>
             </ul>
             <p className="text-sm leading-relaxed mt-2">
-              Diese Daten werden ausschließlich zur Sicherstellung des
-              technischen Betriebs sowie zur Erkennung und Abwehr von
-              Angriffen benötigt. Sie werden nicht mit anderen Datenquellen
-              zusammengeführt. Die Speicherdauer richtet sich nach den
-              Standardeinstellungen der Hosting-Infrastruktur von Zerops.
-              Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes
-              Interesse am sicheren Betrieb der Website).
+              Diese Daten werden ausschließlich zur Sicherstellung des technischen Betriebs sowie
+              zur Erkennung und Abwehr von Angriffen benötigt. Sie werden nicht mit anderen
+              Datenquellen zusammengeführt. Die Speicherdauer richtet sich nach den
+              Standardeinstellungen der Hosting-Infrastruktur von Zerops. Rechtsgrundlage ist Art. 6
+              Abs. 1 lit. f DSGVO (berechtigtes Interesse am sicheren Betrieb der Website).
             </p>
           </section>
 
@@ -117,16 +104,12 @@ export function DatenschutzPage() {
               <li>Name und URL des vorgeschlagenen Shops</li>
               <li>Gewählte oder vorgeschlagene Kategorie</li>
               <li>Optionale Beschreibung</li>
-              <li>
-                Optionale E-Mail-Adresse (ausschließlich für Rückmeldungen
-                zum Vorschlag)
-              </li>
+              <li>Optionale E-Mail-Adresse (ausschließlich für Rückmeldungen zum Vorschlag)</li>
             </ul>
             <p className="text-sm leading-relaxed mt-2">
-              Diese Daten werden nur zur Prüfung und gegebenenfalls Aufnahme
-              des Shops verwendet. Eine freiwillig angegebene E-Mail-Adresse
-              wird nach Abschluss des Prüfprozesses gelöscht und nicht für
-              Werbung oder andere Zwecke genutzt. Rechtsgrundlage ist Art. 6
+              Diese Daten werden nur zur Prüfung und gegebenenfalls Aufnahme des Shops verwendet.
+              Eine freiwillig angegebene E-Mail-Adresse wird nach Abschluss des Prüfprozesses
+              gelöscht und nicht für Werbung oder andere Zwecke genutzt. Rechtsgrundlage ist Art. 6
               Abs. 1 lit. a DSGVO (Einwilligung durch Absenden des Formulars).
             </p>
           </section>
@@ -136,14 +119,12 @@ export function DatenschutzPage() {
               6. Keine Cookies, datenschutzfreundliche Statistiken
             </h2>
             <p className="text-sm leading-relaxed">
-              Diese Website setzt keinerlei Cookies und verwendet keine
-              Tracking-Dienste wie Google Analytics, Meta Pixel oder
-              vergleichbare Anbieter. Es werden keine Nutzerprofile erstellt
-              und kein geräteübergreifendes Tracking durchgeführt.
+              Diese Website setzt keinerlei Cookies und verwendet keine Tracking-Dienste wie Google
+              Analytics, Meta Pixel oder vergleichbare Anbieter. Es werden keine Nutzerprofile
+              erstellt und kein geräteübergreifendes Tracking durchgeführt.
             </p>
             <p className="text-sm leading-relaxed mt-2">
-              Zur Erfassung anonymer Nutzungsstatistiken wird eine
-              selbstgehostete Instanz von{" "}
+              Zur Erfassung anonymer Nutzungsstatistiken wird eine selbstgehostete Instanz von{" "}
               <a
                 href="https://umami.is"
                 target="_blank"
@@ -152,23 +133,20 @@ export function DatenschutzPage() {
               >
                 Umami
               </a>{" "}
-              eingesetzt. Umami ist eine quelloffene, datenschutzfreundliche
-              Analysesoftware, die ohne Cookies auskommt und keine
-              personenbezogenen Daten speichert. IP-Adressen werden nicht
-              gespeichert. Die erfassten Daten beschränken sich auf aggregierte
-              Kennzahlen wie Seitenaufrufe und ungefähre Herkunftsregionen.
-              Rückschlüsse auf einzelne Personen sind nicht möglich.
+              eingesetzt. Umami ist eine quelloffene, datenschutzfreundliche Analysesoftware, die
+              ohne Cookies auskommt und keine personenbezogenen Daten speichert. IP-Adressen werden
+              nicht gespeichert. Die erfassten Daten beschränken sich auf aggregierte Kennzahlen wie
+              Seitenaufrufe und ungefähre Herkunftsregionen. Rückschlüsse auf einzelne Personen sind
+              nicht möglich.
             </p>
             <p className="text-sm leading-relaxed mt-2">
-              Die Statistikinstanz wird ausschließlich auf unserer eigenen
-              Infrastruktur bei Zerops in Tschechien betrieben. Es findet
-              keine Übermittlung von Daten an Dritte statt. Da keinerlei
-              personenbezogene Daten verarbeitet werden, ist eine Einwilligung
-              nicht erforderlich. Soweit die Verarbeitung aggregierter
-              technischer Nutzungsdaten dennoch als Datenverarbeitung im Sinne
-              der DSGVO eingestuft wird, stützt sich diese auf Art. 6 Abs. 1
-              lit. f DSGVO (berechtigtes Interesse an der Verbesserung und
-              dem sicheren Betrieb der Website).
+              Die Statistikinstanz wird ausschließlich auf unserer eigenen Infrastruktur bei Zerops
+              in Tschechien betrieben. Es findet keine Übermittlung von Daten an Dritte statt. Da
+              keinerlei personenbezogene Daten verarbeitet werden, ist eine Einwilligung nicht
+              erforderlich. Soweit die Verarbeitung aggregierter technischer Nutzungsdaten dennoch
+              als Datenverarbeitung im Sinne der DSGVO eingestuft wird, stützt sich diese auf Art. 6
+              Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Verbesserung und dem sicheren
+              Betrieb der Website).
             </p>
           </section>
 
@@ -177,10 +155,9 @@ export function DatenschutzPage() {
               7. Externe Links
             </h2>
             <p className="text-sm leading-relaxed">
-              Diese Website enthält Links zu externen Shops und Websites. Beim
-              Klick auf einen solchen Link verlässt du lmaa.space. Für die
-              Datenschutzpraktiken der verlinkten Websites sind ausschließlich
-              deren Betreiber verantwortlich. Wir empfehlen, die
+              Diese Website enthält Links zu externen Shops und Websites. Beim Klick auf einen
+              solchen Link verlässt du lmaa.space. Für die Datenschutzpraktiken der verlinkten
+              Websites sind ausschließlich deren Betreiber verantwortlich. Wir empfehlen, die
               Datenschutzerklärungen der jeweiligen Anbieter zu lesen.
             </p>
           </section>
@@ -189,13 +166,10 @@ export function DatenschutzPage() {
             <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
               8. Deine Rechte
             </h2>
-            <p className="text-sm leading-relaxed">
-              Gemäß DSGVO stehen dir folgende Rechte zu:
-            </p>
+            <p className="text-sm leading-relaxed">Gemäß DSGVO stehen dir folgende Rechte zu:</p>
             <ul className="text-sm leading-relaxed mt-2 ml-4 list-disc space-y-1">
               <li>
-                <strong className="text-stone-700">Auskunft</strong>{" "}
-                (
+                <strong className="text-stone-700">Auskunft</strong> (
                 <a
                   href="https://dsgvo-gesetz.de/art-15-dsgvo/"
                   target="_blank"
@@ -204,12 +178,10 @@ export function DatenschutzPage() {
                 >
                   Art. 15 DSGVO
                 </a>
-                ): Du hast das Recht zu erfahren, welche Daten wir über
-                dich verarbeiten.
+                ): Du hast das Recht zu erfahren, welche Daten wir über dich verarbeiten.
               </li>
               <li>
-                <strong className="text-stone-700">Berichtigung</strong>{" "}
-                (
+                <strong className="text-stone-700">Berichtigung</strong> (
                 <a
                   href="https://dsgvo-gesetz.de/art-16-dsgvo/"
                   target="_blank"
@@ -221,8 +193,7 @@ export function DatenschutzPage() {
                 ): Du kannst die Korrektur unrichtiger Daten verlangen.
               </li>
               <li>
-                <strong className="text-stone-700">Löschung</strong>{" "}
-                (
+                <strong className="text-stone-700">Löschung</strong> (
                 <a
                   href="https://dsgvo-gesetz.de/art-17-dsgvo/"
                   target="_blank"
@@ -231,14 +202,11 @@ export function DatenschutzPage() {
                 >
                   Art. 17 DSGVO
                 </a>
-                ): Du kannst die Löschung deiner Daten verlangen, sofern
-                keine gesetzliche Aufbewahrungspflicht besteht.
+                ): Du kannst die Löschung deiner Daten verlangen, sofern keine gesetzliche
+                Aufbewahrungspflicht besteht.
               </li>
               <li>
-                <strong className="text-stone-700">
-                  Einschränkung der Verarbeitung
-                </strong>{" "}
-                (
+                <strong className="text-stone-700">Einschränkung der Verarbeitung</strong> (
                 <a
                   href="https://dsgvo-gesetz.de/art-18-dsgvo/"
                   target="_blank"
@@ -250,10 +218,7 @@ export function DatenschutzPage() {
                 )
               </li>
               <li>
-                <strong className="text-stone-700">
-                  Widerspruch gegen die Verarbeitung
-                </strong>{" "}
-                (
+                <strong className="text-stone-700">Widerspruch gegen die Verarbeitung</strong> (
                 <a
                   href="https://dsgvo-gesetz.de/art-21-dsgvo/"
                   target="_blank"
@@ -265,10 +230,7 @@ export function DatenschutzPage() {
                 )
               </li>
               <li>
-                <strong className="text-stone-700">
-                  Datenübertragbarkeit
-                </strong>{" "}
-                (
+                <strong className="text-stone-700">Datenübertragbarkeit</strong> (
                 <a
                   href="https://dsgvo-gesetz.de/art-20-dsgvo/"
                   target="_blank"
@@ -294,10 +256,8 @@ export function DatenschutzPage() {
               9. Beschwerderecht
             </h2>
             <p className="text-sm leading-relaxed">
-              Du hast das Recht, bei der österreichischen
-              Datenschutzbehörde Beschwerde einzulegen, wenn du der Ansicht
-              bist, dass die Verarbeitung deiner Daten gegen die DSGVO
-              verstößt:
+              Du hast das Recht, bei der österreichischen Datenschutzbehörde Beschwerde einzulegen,
+              wenn du der Ansicht bist, dass die Verarbeitung deiner Daten gegen die DSGVO verstößt:
             </p>
             <p className="text-sm leading-relaxed mt-2">
               Österreichische Datenschutzbehörde
@@ -322,12 +282,11 @@ export function DatenschutzPage() {
               10. Aktualität dieser Erklärung
             </h2>
             <p className="text-sm leading-relaxed">
-              Diese Datenschutzerklärung ist aktuell gültig und hat den Stand
-              Februar 2026. Sie kann bei Änderungen des Angebots oder bei
-              geänderten rechtlichen Anforderungen angepasst werden.
+              Diese Datenschutzerklärung ist aktuell gültig und hat den Stand Februar 2026. Sie kann
+              bei Änderungen des Angebots oder bei geänderten rechtlichen Anforderungen angepasst
+              werden.
             </p>
           </section>
-
         </div>
       </div>
     </PageLayout>

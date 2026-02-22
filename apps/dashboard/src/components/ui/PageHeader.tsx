@@ -1,6 +1,6 @@
-import { createPortal } from "react-dom";
-import { useEffect, type ReactNode } from "react";
 import { usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
+import { type ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface PageHeaderProps {
   title: string;
@@ -17,7 +17,7 @@ export function PageHeader({ title, children }: PageHeaderProps) {
   useEffect(() => {
     setTitle(title);
     return () => setTitle("");
-  }, [title]);
+  }, [title, setTitle]);
 
   if (!actionsEl || !children) return null;
   return createPortal(children, actionsEl);

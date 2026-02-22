@@ -1,21 +1,21 @@
 @import "tailwindcss";
 @import "@lmaa/shared/styles/tokens.css";
-
-/* Preline UI */
-@source "../../../node_modules/preline/dist/*.js";
 @import "../../../node_modules/preline/variants.css";
 @import "../../../node_modules/preline/css/themes/autumn.css";
 
+/* Preline UI */
+@source "../../../node_modules/preline/dist/*.js";
+
 @theme {
-  --font-sans:  "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-serif: "Barlow Condensed", system-ui, sans-serif;
 }
 
 /* Aliases: keep existing component references working */
 :root {
-  --accent-base:  var(--ds-accent);
+  --accent-base: var(--ds-accent);
   --accent-hover: var(--ds-accent-hover);
-  --accent-text:  var(--ds-accent-fg);
+  --accent-text: var(--ds-accent-fg);
   --amazon-color: #ffb900;
 }
 
@@ -26,7 +26,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: var(--ds-font-serif);
 }
 

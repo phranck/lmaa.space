@@ -1,13 +1,7 @@
-import {
-  LuLayoutDashboard,
-  LuInbox,
-  LuStore,
-  LuTag,
-  LuUsers,
-} from "react-icons/lu";
+import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
-import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
+import { LuInbox, LuLayoutDashboard, LuStore, LuTag, LuUsers } from "react-icons/lu";
 
 interface NavItem {
   to: string;
@@ -17,11 +11,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/",            label: "Übersicht",  icon: <LuLayoutDashboard size={16} /> },
-  { to: "/vorschlaege", label: "Vorschläge", icon: <LuInbox           size={16} /> },
-  { to: "/shops",       label: "Shops",      icon: <LuStore           size={16} /> },
-  { to: "/kategorien",  label: "Kategorien", icon: <LuTag             size={16} /> },
-  { to: "/benutzer",    label: "Benutzer",   icon: <LuUsers           size={16} />, ownerOnly: true },
+  { to: "/", label: "Übersicht", icon: <LuLayoutDashboard size={16} /> },
+  { to: "/vorschlaege", label: "Vorschläge", icon: <LuInbox size={16} /> },
+  { to: "/shops", label: "Shops", icon: <LuStore size={16} /> },
+  { to: "/kategorien", label: "Kategorien", icon: <LuTag size={16} /> },
+  { to: "/benutzer", label: "Benutzer", icon: <LuUsers size={16} />, ownerOnly: true },
 ];
 
 interface SidebarProps {

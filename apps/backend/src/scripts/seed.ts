@@ -5,8 +5,7 @@
 
 import postgres from "postgres";
 
-const BASE_URL =
-  "https://codeberg.org/api/v1/repos/phranck/Amazon-Alternativen/raw/categories";
+const BASE_URL = "https://codeberg.org/api/v1/repos/phranck/Amazon-Alternativen/raw/categories";
 
 interface CategoryDef {
   file: string;
@@ -50,6 +49,7 @@ interface ShopEntry {
 
 function parseHeading(text: string): { icon: string; name: string } | null {
   // Match "## 📚 Bücher" or "# 🏀 Sport" or "👶 Babys / Kinder"
+  // biome-ignore lint/suspicious/noMisleadingCharacterClass: intentional emoji character class for parsing
   const m = text.match(/^#{1,3}\s*([\p{Emoji}\p{So}️\u200d]+\s*)(.+)/u);
   if (m) {
     return { icon: m[1].trim(), name: m[2].trim() };
@@ -143,9 +143,7 @@ function parseTableShops(text: string): ShopEntry[] {
     const name = linkMatch[1].trim();
     const url = linkMatch[2].trim();
     // Description comes from the last cell (Produktpalette)
-    const description = cells[cells.length - 1]
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-      .trim();
+    const description = cells[cells.length - 1].replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").trim();
 
     if (name && url.startsWith("http")) {
       shops.push({ name, url, description: description === name ? "" : description });
@@ -170,6 +168,7 @@ function parseContent(text: string): {
     }
     // Heading without # (e.g. "👶 Babys / Kinder")
     if (!heading && line.match(/^[\p{Emoji}]/u)) {
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass: intentional emoji character class for parsing
       const emoji = line.match(/^([\p{Emoji}\p{So}️\u200d]+\s*)(.+)/u);
       if (emoji) {
         heading = { icon: emoji[1].trim(), name: emoji[2].trim() };
@@ -186,7 +185,8 @@ function parseContent(text: string): {
 }
 
 async function main() {
-  const sql = postgres(process.env.DATABASE_URL!);
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
+  const sql = postgres(process.env.DATABASE_URL);
 
   let totalCategories = 0;
   let totalShops = 0;
@@ -210,7 +210,7 @@ async function main() {
 
     const { heading, shops } = parseContent(text);
     if (!heading) {
-      console.warn(`  ⚠ Could not parse heading – skipping`);
+      console.warn("  ⚠ Could not parse heading – skipping");
       continue;
     }
 

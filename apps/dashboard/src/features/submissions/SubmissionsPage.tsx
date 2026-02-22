@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Submission } from "@lmaa/shared";
-import { api } from "@/lib/api.ts";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { api } from "@/lib/api.ts";
+import type { Submission } from "@lmaa/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 type Status = "pending" | "approved" | "rejected";
 
@@ -74,8 +74,11 @@ export function SubmissionsPage() {
 
       {isLoading && (
         <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-white rounded-xl animate-pulse border border-gray-100" />
+          {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
+            <div
+              key={key}
+              className="h-24 bg-white rounded-xl animate-pulse border border-gray-100"
+            />
           ))}
         </div>
       )}
@@ -95,7 +98,9 @@ export function SubmissionsPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-gray-900">{sub.shopName}</p>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status]}`}>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status]}`}
+                >
                   {STATUS_LABELS[sub.status]}
                 </span>
               </div>
@@ -107,9 +112,7 @@ export function SubmissionsPage() {
               >
                 {sub.shopUrl}
               </a>
-              {sub.description && (
-                <p className="text-sm text-gray-500 mt-1">{sub.description}</p>
-              )}
+              {sub.description && <p className="text-sm text-gray-500 mt-1">{sub.description}</p>}
               <div className="flex gap-3 mt-1.5 text-xs text-gray-400">
                 <span>{new Date(sub.createdAt).toLocaleDateString("de-DE")}</span>
                 {sub.submitterEmail && <span>✉ {sub.submitterEmail}</span>}
@@ -132,7 +135,7 @@ export function SubmissionsPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setReviewId(-(sub.id));
+                    setReviewId(-sub.id);
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
@@ -161,19 +164,15 @@ export function SubmissionsPage() {
             </h3>
             <p className="text-sm text-gray-500 mb-4">{reviewing.shopName}</p>
 
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Kommentar{" "}
-              <span className="text-gray-400 font-normal">(optional)</span>
+            <label htmlFor="admin-note" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Kommentar <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <textarea
+              id="admin-note"
               value={adminNote}
               onChange={(e) => setAdminNote(e.target.value)}
               rows={3}
-              placeholder={
-                reviewId < 0
-                  ? "Grund für Ablehnung..."
-                  : "Optionaler Kommentar..."
-              }
+              placeholder={reviewId < 0 ? "Grund für Ablehnung..." : "Optionaler Kommentar..."}
               className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none mb-3"
             />
 
@@ -208,16 +207,10 @@ export function SubmissionsPage() {
                   })
                 }
                 className={`flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
-                  reviewId > 0
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-500 hover:bg-red-600"
+                  reviewId > 0 ? "bg-green-600 hover:bg-green-700" : "bg-red-500 hover:bg-red-600"
                 }`}
               >
-                {reviewMutation.isPending
-                  ? "..."
-                  : reviewId > 0
-                    ? "Annehmen"
-                    : "Ablehnen"}
+                {reviewMutation.isPending ? "..." : reviewId > 0 ? "Annehmen" : "Ablehnen"}
               </button>
             </div>
           </div>

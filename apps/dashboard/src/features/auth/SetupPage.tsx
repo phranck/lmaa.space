@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { api } from "@/lib/api.ts";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 
 export function SetupPage() {
   const { refresh } = useAuth();
@@ -40,7 +40,12 @@ export function SetupPage() {
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="lmaa.space" style={{ width: 120, height: 120 }} className="mx-auto" />
+          <img
+            src="/logo.png"
+            alt="lmaa.space"
+            style={{ width: 120, height: 120 }}
+            className="mx-auto"
+          />
           <p className="text-sm text-gray-500 mt-1">Willkommen!</p>
         </div>
 
@@ -93,7 +98,10 @@ export function SetupPage() {
             </div>
 
             <div>
-              <label htmlFor="passwordConfirm" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="passwordConfirm"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
                 Passwort bestätigen
               </label>
               <input

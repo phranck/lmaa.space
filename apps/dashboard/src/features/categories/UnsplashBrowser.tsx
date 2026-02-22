@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { LuX, LuSearch, LuLoader } from "react-icons/lu";
 import { api } from "@/lib/api.ts";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LuLoader, LuSearch, LuX } from "react-icons/lu";
 
 interface UnsplashPhoto {
   id: string;
@@ -36,8 +36,12 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Keep refs in sync so the IntersectionObserver callback doesn't close over stale state
-  useEffect(() => { isLoadingMoreRef.current = isLoadingMore; }, [isLoadingMore]);
-  useEffect(() => { pageRef.current = page; }, [page]);
+  useEffect(() => {
+    isLoadingMoreRef.current = isLoadingMore;
+  }, [isLoadingMore]);
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   const search = useCallback(async (q: string, pg: number, append: boolean) => {
     if (!q.trim()) {
@@ -50,9 +54,9 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
     setError(null);
     try {
       const result = await api.get<UnsplashSearchResult>(
-        `/admin/unsplash/search?q=${encodeURIComponent(q)}&page=${pg}`
+        `/admin/unsplash/search?q=${encodeURIComponent(q)}&page=${pg}`,
       );
-      setPhotos((prev) => append ? [...prev, ...result.results] : result.results);
+      setPhotos((prev) => (append ? [...prev, ...result.results] : result.results));
       setTotal(result.total);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Fehler bei der Suche");
@@ -109,7 +113,9 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
   }, [onClose]);
 
   async function handleSelect(photo: UnsplashPhoto) {
-    api.post("/admin/unsplash/download", { downloadLocation: photo.downloadLocation }).catch(() => {});
+    api
+      .post("/admin/unsplash/download", { downloadLocation: photo.downloadLocation })
+      .catch(() => {});
     onSelect(photo.urls.regular, photo.user.name, photo.user.link);
   }
 
@@ -117,18 +123,22 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
-      <div className="relative bg-white rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden"
-           style={{ width: "85vw", height: "85vh" }}>
+      <div
+        className="relative bg-white rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden"
+        style={{ width: "85vw", height: "85vh" }}
+      >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 shrink-0">
           <div className="relative flex-1">
-            <LuSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <LuSearch
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Suchbegriff eingeben…"
-              autoFocus
               className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
@@ -156,9 +166,7 @@ export function UnsplashBrowser({ initialQuery = "", onSelect, onClose }: Unspla
             </div>
           )}
 
-          {error && (
-            <p className="text-center text-sm text-red-500 py-12">{error}</p>
-          )}
+          {error && <p className="text-center text-sm text-red-500 py-12">{error}</p>}
 
           {!isLoading && !error && photos.length === 0 && query.trim() && (
             <p className="text-center text-sm text-gray-400 py-12">

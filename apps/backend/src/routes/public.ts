@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { zValidator } from "@hono/zod-validator";
 import { count, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
@@ -5,7 +6,6 @@ import { z } from "zod";
 import { db } from "../db/index.js";
 import { categories, deadLinkReports, shops, submissions } from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
-import { createHash } from "crypto";
 
 const submissionSchema = z.object({
   shopName: z.string().min(2).max(100),
@@ -44,11 +44,7 @@ publicRoutes.get("/categories", async (c) => {
 publicRoutes.get("/categories/:slug", async (c) => {
   const slug = c.req.param("slug");
 
-  const [category] = await db
-    .select()
-    .from(categories)
-    .where(eq(categories.slug, slug))
-    .limit(1);
+  const [category] = await db.select().from(categories).where(eq(categories.slug, slug)).limit(1);
 
   if (!category) {
     return c.json({ error: { message: "Category not found" } }, 404);
@@ -111,7 +107,7 @@ publicRoutes.get("/search", async (c) => {
   const matchingCategories = await db
     .select()
     .from(categories)
-    .where(sql`lower(${categories.name}) LIKE ${"%" + q.toLowerCase() + "%"}`)
+    .where(sql`lower(${categories.name}) LIKE ${`%${q.toLowerCase()}%`}`)
     .limit(5);
 
   return c.json({

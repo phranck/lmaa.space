@@ -1,10 +1,10 @@
 import { Link, useSearchParams } from "react-router";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
+import { useCategories } from "../../categories/hooks/useCategories.ts";
 import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useShops } from "../../shops/hooks/useShops.ts";
-import { useCategories } from "../../categories/hooks/useCategories.ts";
 import { useSearch } from "../hooks/useSearch.ts";
-import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();

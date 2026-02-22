@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { Shop } from "@lmaa/shared";
+import { useState } from "react";
 import { api } from "../../../lib/api.ts";
 
 interface ShopCardProps {
@@ -69,8 +69,12 @@ export function ShopCard({ shop }: ShopCardProps) {
               backgroundColor: "var(--accent-base)",
               color: "var(--accent-text)",
             }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--accent-hover)")}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = "var(--accent-base)")}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--accent-hover)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--accent-base)";
+            }}
           >
             Besuchen ↗
           </a>
@@ -83,19 +87,18 @@ export function ShopCard({ shop }: ShopCardProps) {
 
       {(shop.region || shop.shipping) && (
         <div className="flex flex-wrap gap-1.5">
-          {shop.region &&
-            shop.region
-              .split(",")
-              .map((r) => r.trim())
-              .filter(Boolean)
-              .map((r) => (
-                <span
-                  key={r}
-                  className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"
-                >
-                  {r}
-                </span>
-              ))}
+          {shop.region
+            ?.split(",")
+            .map((r) => r.trim())
+            .filter(Boolean)
+            .map((r) => (
+              <span
+                key={r}
+                className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"
+              >
+                {r}
+              </span>
+            ))}
           {shop.shipping && (
             <span className="px-2.5 py-0.5 rounded-full bg-stone-50 text-stone-600 text-xs font-medium border border-stone-100">
               Versand: {shop.shipping}

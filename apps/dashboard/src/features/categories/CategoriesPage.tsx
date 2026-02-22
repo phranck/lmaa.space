@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LuList, LuLayoutGrid } from "react-icons/lu";
-import type { Category } from "@lmaa/shared";
-import { api } from "@/lib/api.ts";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { CategoryListItem } from "@/features/categories/CategoryListItem.tsx";
-import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
 import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
+import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
+import { CategoryListItem } from "@/features/categories/CategoryListItem.tsx";
+import { api } from "@/lib/api.ts";
+import type { Category } from "@lmaa/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { LuLayoutGrid, LuList } from "react-icons/lu";
 
 type ViewMode = "list" | "grid";
 
 export function CategoriesPage() {
   const qc = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>(
-    () => (localStorage.getItem("categories-view") as ViewMode) ?? "list"
+    () => (localStorage.getItem("categories-view") as ViewMode) ?? "list",
   );
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
 
@@ -80,14 +80,14 @@ export function CategoriesPage() {
 
       {/* Loading skeletons */}
       {isLoading && (
-        <div className={viewMode === "grid"
-          ? "grid grid-cols-2 sm:grid-cols-3 gap-4"
-          : "space-y-2"
-        }>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className={`bg-white rounded-card border border-gray-100 animate-pulse ${
-              viewMode === "grid" ? "aspect-[4/3]" : "h-14"
-            }`} />
+        <div
+          className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 gap-4" : "space-y-2"}
+        >
+          {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
+            <div
+              key={key}
+              className={`bg-white rounded-card border border-gray-100 animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-14"}`}
+            />
           ))}
         </div>
       )}
@@ -148,8 +148,8 @@ export function CategoriesPage() {
           <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
             <h3 className="font-bold text-gray-900 mb-2">Kategorie löschen?</h3>
             <p className="text-sm text-gray-500 mb-5">
-              <span className="font-medium">{deleteTarget.name}</span> wird dauerhaft gelöscht.
-              Alle zugeordneten Shops verlieren ihre Kategorie.
+              <span className="font-medium">{deleteTarget.name}</span> wird dauerhaft gelöscht. Alle
+              zugeordneten Shops verlieren ihre Kategorie.
             </p>
             <div className="flex gap-3">
               <button
