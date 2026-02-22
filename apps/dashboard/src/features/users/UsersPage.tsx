@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AdminUser } from "@lmaa/shared";
-import { api } from "@/lib/api.ts";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { api } from "@/lib/api.ts";
+import type { AdminUser } from "@lmaa/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 interface CreateUserForm {
   username: string;
@@ -62,7 +62,12 @@ export function UsersPage() {
           <h2 className="font-semibold text-gray-900 mb-4">Neuen Admin-Benutzer anlegen</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label htmlFor="new-username" className="block text-sm font-medium text-gray-700 mb-1">Benutzername</label>
+              <label
+                htmlFor="new-username"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Benutzername
+              </label>
               <input
                 id="new-username"
                 type="text"
@@ -73,7 +78,9 @@ export function UsersPage() {
               />
             </div>
             <div>
-              <label htmlFor="new-email" className="block text-sm font-medium text-gray-700 mb-1">E-Mail</label>
+              <label htmlFor="new-email" className="block text-sm font-medium text-gray-700 mb-1">
+                E-Mail
+              </label>
               <input
                 id="new-email"
                 type="email"
@@ -83,7 +90,10 @@ export function UsersPage() {
               />
             </div>
             <div>
-              <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="new-password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Temporäres Passwort
               </label>
               <input
@@ -119,8 +129,11 @@ export function UsersPage() {
       {/* List */}
       {isLoading && (
         <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 bg-white rounded-xl border border-gray-100 animate-pulse" />
+          {Array.from({ length: 3 }, (_, i) => `sk-${i}`).map((key) => (
+            <div
+              key={key}
+              className="h-16 bg-white rounded-xl border border-gray-100 animate-pulse"
+            />
           ))}
         </div>
       )}

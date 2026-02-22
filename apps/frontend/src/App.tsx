@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router";
-import { HomePage } from "./features/categories/pages/HomePage.tsx";
+import { Route, Routes, useLocation } from "react-router";
 import { CategoryPage } from "./features/categories/pages/CategoryPage.tsx";
+import { HomePage } from "./features/categories/pages/HomePage.tsx";
 import { SearchPage } from "./features/search/pages/SearchPage.tsx";
-import { SuggestPage } from "./features/suggest/pages/SuggestPage.tsx";
 import { AboutPage } from "./features/suggest/pages/AboutPage.tsx";
-import { ImpressumPage } from "./features/suggest/pages/ImpressumPage.tsx";
 import { DatenschutzPage } from "./features/suggest/pages/DatenschutzPage.tsx";
+import { ImpressumPage } from "./features/suggest/pages/ImpressumPage.tsx";
+import { SuggestPage } from "./features/suggest/pages/SuggestPage.tsx";
 
 declare global {
   interface Window {
@@ -17,6 +17,7 @@ declare global {
 export default function App() {
   const { pathname } = useLocation();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: HSStaticMethods is a global, not a React dependency
   useEffect(() => {
     window.HSStaticMethods?.autoInit?.();
   }, [pathname]);

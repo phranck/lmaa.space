@@ -11,9 +11,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 export const api = {
   get: <T>(path: string): Promise<T> =>
-    fetch(`${API_BASE}${path}`, { credentials: "include" }).then((r) =>
-      handleResponse<T>(r),
-    ),
+    fetch(`${API_BASE}${path}`, { credentials: "include" }).then((r) => handleResponse<T>(r)),
 
   post: <T>(path: string, body?: unknown): Promise<T> =>
     fetch(`${API_BASE}${path}`, {

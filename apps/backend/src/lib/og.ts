@@ -1,8 +1,7 @@
 const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-  Accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
   "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
   "Cache-Control": "no-cache",
 };
@@ -52,8 +51,12 @@ function extractOgImage(html: string, base: string): string | null {
 
 function extractAppleTouchIcon(html: string, base: string): string | null {
   const match =
-    html.match(/<link[^>]+rel=["']apple-touch-icon(?:-precomposed)?["'][^>]+href=["']([^"']+)["']/i) ??
-    html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon(?:-precomposed)?["']/i);
+    html.match(
+      /<link[^>]+rel=["']apple-touch-icon(?:-precomposed)?["'][^>]+href=["']([^"']+)["']/i,
+    ) ??
+    html.match(
+      /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon(?:-precomposed)?["']/i,
+    );
   if (match?.[1]) return resolveUrl(match[1].trim(), base);
   return null;
 }
@@ -107,10 +110,12 @@ function googleFaviconUrl(shopUrl: string): string {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 }
 
-export async function fetchPreviewImage(shopUrl: string): Promise<{ url: string; via: string } | null> {
+export async function fetchPreviewImage(
+  shopUrl: string,
+): Promise<{ url: string; via: string } | null> {
   const homepage = extractHomepage(shopUrl);
   const urlsToTry =
-    shopUrl !== homepage + "/" && shopUrl !== homepage ? [shopUrl, homepage + "/"] : [shopUrl];
+    shopUrl !== `${homepage}/` && shopUrl !== homepage ? [shopUrl, `${homepage}/`] : [shopUrl];
 
   for (const url of urlsToTry) {
     const html = await fetchHtml(url);

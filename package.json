@@ -1,10 +1,7 @@
 {
   "name": "lmaa-space",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev:frontend": "npm run dev -w @lmaa/frontend",
     "dev:backend": "npm run dev -w @lmaa/backend",

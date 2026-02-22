@@ -20,7 +20,9 @@ export const shops = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     url: text("url").notNull(),
-    categoryId: integer("category_id").notNull().references(() => categories.id),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => categories.id),
     region: text("region").notNull().default(""),
     pickup: text("pickup").notNull().default(""),
     shipping: text("shipping").notNull().default(""),
@@ -78,7 +80,9 @@ export const sessions = pgTable(
   "sessions",
   {
     id: text("id").primaryKey(),
-    adminUserId: integer("admin_user_id").notNull().references(() => adminUsers.id),
+    adminUserId: integer("admin_user_id")
+      .notNull()
+      .references(() => adminUsers.id),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -89,7 +93,9 @@ export const deadLinkReports = pgTable(
   "dead_link_reports",
   {
     id: serial("id").primaryKey(),
-    shopId: integer("shop_id").notNull().references(() => shops.id),
+    shopId: integer("shop_id")
+      .notNull()
+      .references(() => shops.id),
     ipHash: text("ip_hash").notNull(),
     reportedAt: timestamp("reported_at").defaultNow().notNull(),
   },

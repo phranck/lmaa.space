@@ -3,7 +3,7 @@
 <!-- BADGES:START -->
 ![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=flat&logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178C6?style=flat&logo=typescript&logoColor=white)
-![Bun](https://img.shields.io/badge/Bun-1.x-FBF0DF?style=flat&logo=bun&logoColor=black)
+![npm](https://img.shields.io/badge/npm-11.x-CB3837?style=flat&logo=npm&logoColor=white)
 ![Hono](https://img.shields.io/badge/Hono-4.7.4-E36002?style=flat&logo=hono&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?style=flat&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat&logo=tailwindcss&logoColor=white)
@@ -21,7 +21,7 @@ Eine Community-kuratierte Liste von Online-Shops als Alternativen zu Amazon – 
 
 ```
 apps/
-  backend/    @lmaa/backend   – Hono + Bun + SQLite + Drizzle
+  backend/    @lmaa/backend   – Hono + Node.js + PostgreSQL + Drizzle
   frontend/   @lmaa/frontend  – React + Vite + Tailwind (öffentliche Seite)
   dashboard/  @lmaa/dashboard – React + Vite + Tailwind (Admin)
 packages/
@@ -32,12 +32,12 @@ packages/
 
 ```bash
 # Abhängigkeiten installieren
-bun install
+npm install
 
 # Dev-Server starten
-bun run dev:backend    # Port 3000
-bun run dev:frontend   # Port 5173
-bun run dev:dashboard  # Port 5174
+npm run dev:backend    # Port 3000
+npm run dev:frontend   # Port 5173
+npm run dev:dashboard  # Port 5174
 ```
 
 ## Mitmachen

@@ -7,7 +7,9 @@ function CategoryImage({ category }: { category: Category }) {
       src={src}
       alt=""
       className="w-24 h-full object-cover shrink-0 bg-gray-100 rounded-l-[var(--radius-card)]"
-      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg"; }}
+      onError={(e) => {
+        (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
+      }}
     />
   );
 }

@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Shop, Category } from "@lmaa/shared";
-import { api } from "@/lib/api.ts";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopListItem } from "@/features/shops/ShopListItem.tsx";
+import { api } from "@/lib/api.ts";
+import type { Category, Shop } from "@lmaa/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 interface ShopForm {
   name: string;
@@ -46,9 +46,7 @@ export function ShopsPage() {
         ...data,
         categoryId: data.categoryId ? Number(data.categoryId) : undefined,
       };
-      return editId
-        ? api.patch(`/admin/shops/${editId}`, body)
-        : api.post("/admin/shops", body);
+      return editId ? api.patch(`/admin/shops/${editId}`, body) : api.post("/admin/shops", body);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
@@ -102,7 +100,9 @@ export function ShopsPage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="shop-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label htmlFor="shop-name" className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
             <input
               id="shop-name"
               type="text"
@@ -112,7 +112,9 @@ export function ShopsPage() {
             />
           </div>
           <div>
-            <label htmlFor="shop-url" className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+            <label htmlFor="shop-url" className="block text-sm font-medium text-gray-700 mb-1">
+              URL
+            </label>
             <input
               id="shop-url"
               type="url"
@@ -123,7 +125,12 @@ export function ShopsPage() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="shop-description" className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+            <label
+              htmlFor="shop-description"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Beschreibung
+            </label>
             <textarea
               id="shop-description"
               value={form.description}
@@ -133,7 +140,9 @@ export function ShopsPage() {
             />
           </div>
           <div>
-            <label htmlFor="shop-category" className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
+            <label htmlFor="shop-category" className="block text-sm font-medium text-gray-700 mb-1">
+              Kategorie
+            </label>
             <select
               id="shop-category"
               value={form.categoryId}
@@ -149,7 +158,9 @@ export function ShopsPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="shop-region" className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+            <label htmlFor="shop-region" className="block text-sm font-medium text-gray-700 mb-1">
+              Region
+            </label>
             <input
               id="shop-region"
               type="text"
@@ -160,7 +171,9 @@ export function ShopsPage() {
             />
           </div>
           <div>
-            <label htmlFor="shop-shipping" className="block text-sm font-medium text-gray-700 mb-1">Versand</label>
+            <label htmlFor="shop-shipping" className="block text-sm font-medium text-gray-700 mb-1">
+              Versand
+            </label>
             <input
               id="shop-shipping"
               type="text"
@@ -206,8 +219,11 @@ export function ShopsPage() {
       {/* List */}
       {isLoading && (
         <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-16 bg-white rounded-xl border border-gray-100 animate-pulse" />
+          {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
+            <div
+              key={key}
+              className="h-16 bg-white rounded-xl border border-gray-100 animate-pulse"
+            />
           ))}
         </div>
       )}

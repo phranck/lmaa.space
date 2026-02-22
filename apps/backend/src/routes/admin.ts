@@ -1,12 +1,20 @@
+import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
 import { count, desc, eq } from "drizzle-orm";
-import fs from "node:fs";
 import { Hono } from "hono";
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { adminUsers, categories, deadLinkReports, sessions, shops, submissions } from "../db/schema.js";
-import { requireAuth, requireOwner, type AuthVariables } from "../middleware/auth.js";
+import {
+  adminUsers,
+  categories,
+  deadLinkReports,
+  sessions,
+  shops,
+  submissions,
+} from "../db/schema.js";
+import { fetchPreviewImage } from "../lib/og.js";
+import { type AuthVariables, requireAuth, requireOwner } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import {
   createSession,
@@ -17,7 +25,6 @@ import {
   verifyPassword,
 } from "../services/auth.js";
 import { sendSubmissionApproved, sendSubmissionRejected } from "../services/email.js";
-import { fetchPreviewImage } from "../lib/og.js";
 
 const setupSchema = z.object({
   username: z.string().min(3).max(50),
@@ -161,76 +168,64 @@ adminRoutes.get("/submissions", requireAuth, async (c) => {
 });
 
 // PATCH /api/admin/submissions/:id
-adminRoutes.patch(
-  "/submissions/:id",
-  requireAuth,
-  zValidator("json", reviewSchema),
-  async (c) => {
-    const id = Number(c.req.param("id"));
-    const { status, adminNote, sendFeedback } = c.req.valid("json");
-    const adminId = c.get("adminId");
+adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSchema), async (c) => {
+  const id = Number(c.req.param("id"));
+  const { status, adminNote, sendFeedback } = c.req.valid("json");
+  const adminId = c.get("adminId");
 
-    const [submission] = await db
-      .update(submissions)
-      .set({
-        status,
-        adminNote: adminNote ?? null,
-        reviewedBy: adminId,
-        reviewedAt: new Date(),
-        updatedAt: new Date(),
+  const [submission] = await db
+    .update(submissions)
+    .set({
+      status,
+      adminNote: adminNote ?? null,
+      reviewedBy: adminId,
+      reviewedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(submissions.id, id))
+    .returning();
+
+  if (!submission) {
+    return c.json({ error: { message: "Submission not found" } }, 404);
+  }
+
+  // On approval: auto-create shop from submission data (if category is set)
+  if (status === "approved" && submission.categoryId) {
+    const [newShop] = await db
+      .insert(shops)
+      .values({
+        name: submission.shopName,
+        url: submission.shopUrl,
+        categoryId: submission.categoryId,
+        region: submission.region,
+        pickup: submission.pickup,
+        shipping: submission.shipping,
+        description: submission.description,
       })
-      .where(eq(submissions.id, id))
       .returning();
 
-    if (!submission) {
-      return c.json({ error: { message: "Submission not found" } }, 404);
+    // Fire-and-forget: fetch OG image in background
+    fetchPreviewImage(newShop.url)
+      .then(async (result) => {
+        if (result) {
+          await db.update(shops).set({ ogImage: result.url }).where(eq(shops.id, newShop.id));
+        }
+      })
+      .catch(() => {});
+  }
+
+  // Email feedback
+  if (sendFeedback && submission.submitterEmail) {
+    if (status === "approved") {
+      await sendSubmissionApproved(submission.submitterEmail, submission.shopName);
+    } else {
+      await sendSubmissionRejected(submission.submitterEmail, submission.shopName, adminNote);
     }
+    await db.update(submissions).set({ feedbackSent: true }).where(eq(submissions.id, id));
+  }
 
-    // On approval: auto-create shop from submission data (if category is set)
-    if (status === "approved" && submission.categoryId) {
-      const [newShop] = await db
-        .insert(shops)
-        .values({
-          name: submission.shopName,
-          url: submission.shopUrl,
-          categoryId: submission.categoryId,
-          region: submission.region,
-          pickup: submission.pickup,
-          shipping: submission.shipping,
-          description: submission.description,
-        })
-        .returning();
-
-      // Fire-and-forget: fetch OG image in background
-      fetchPreviewImage(newShop.url)
-        .then(async (result) => {
-          if (result) {
-            await db.update(shops).set({ ogImage: result.url }).where(eq(shops.id, newShop.id));
-          }
-        })
-        .catch(() => {});
-    }
-
-    // Email feedback
-    if (sendFeedback && submission.submitterEmail) {
-      if (status === "approved") {
-        await sendSubmissionApproved(submission.submitterEmail, submission.shopName);
-      } else {
-        await sendSubmissionRejected(
-          submission.submitterEmail,
-          submission.shopName,
-          adminNote,
-        );
-      }
-      await db
-        .update(submissions)
-        .set({ feedbackSent: true })
-        .where(eq(submissions.id, id));
-    }
-
-    return c.json({ data: submission });
-  },
-);
+  return c.json({ data: submission });
+});
 
 // CRUD Shops
 adminRoutes.get("/shops", requireAuth, async (c) => {
@@ -348,7 +343,11 @@ for (const method of ["put", "patch"] as const) {
         if (current?.imageUrl?.startsWith("/uploads/") && body.imageUrl !== current.imageUrl) {
           const imagePath = process.env.IMAGE_PATH ?? "./uploads";
           const filename = current.imageUrl.replace("/uploads/", "");
-          try { await fs.promises.unlink(`${imagePath}/${filename}`); } catch { /* File may not exist */ }
+          try {
+            await fs.promises.unlink(`${imagePath}/${filename}`);
+          } catch {
+            /* File may not exist */
+          }
         }
       }
 
@@ -380,8 +379,10 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   if (!(file instanceof File)) return c.json({ error: { message: "No image file provided" } }, 400);
 
   const allowed = ["image/jpeg", "image/png", "image/webp"];
-  if (!allowed.includes(file.type)) return c.json({ error: { message: "Only JPEG, PNG or WebP allowed" } }, 400);
-  if (file.size > 5 * 1024 * 1024) return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
+  if (!allowed.includes(file.type))
+    return c.json({ error: { message: "Only JPEG, PNG or WebP allowed" } }, 400);
+  if (file.size > 5 * 1024 * 1024)
+    return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
 
   const imagePath = process.env.IMAGE_PATH ?? "./uploads";
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
@@ -392,7 +393,11 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   if (cat.imageUrl?.startsWith("/uploads/")) {
     const oldFilename = cat.imageUrl.replace("/uploads/", "");
     if (oldFilename !== filename) {
-      try { await fs.promises.unlink(`${imagePath}/${oldFilename}`); } catch { /* File may not exist */ }
+      try {
+        await fs.promises.unlink(`${imagePath}/${oldFilename}`);
+      } catch {
+        /* File may not exist */
+      }
     }
   }
 
@@ -418,12 +423,21 @@ adminRoutes.delete("/categories/:id/image", requireAuth, async (c) => {
   if (cat.imageUrl?.startsWith("/uploads/")) {
     const imagePath = process.env.IMAGE_PATH ?? "./uploads";
     const filename = cat.imageUrl.replace("/uploads/", "");
-    try { await fs.promises.unlink(`${imagePath}/${filename}`); } catch { /* File may not exist */ }
+    try {
+      await fs.promises.unlink(`${imagePath}/${filename}`);
+    } catch {
+      /* File may not exist */
+    }
   }
 
   const [updated] = await db
     .update(categories)
-    .set({ imageUrl: null, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date() })
+    .set({
+      imageUrl: null,
+      imagePhotographer: null,
+      imagePhotographerUrl: null,
+      updatedAt: new Date(),
+    })
     .where(eq(categories.id, id))
     .returning();
 
@@ -442,12 +456,12 @@ adminRoutes.get("/unsplash/search", requireAuth, async (c) => {
   const res = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
   if (!res.ok) return c.json({ error: { message: "Unsplash request failed" } }, 502);
 
-  const json = await res.json() as { results: unknown[]; total: number };
+  const json = (await res.json()) as { results: unknown[]; total: number };
   const results = (json.results as Array<Record<string, unknown>>).map((p) => {
     const urls = p.urls as Record<string, string>;
     const user = p.user as Record<string, unknown>;
     const links = p.links as Record<string, string>;
-    const userLinks = (user.links as Record<string, string>);
+    const userLinks = user.links as Record<string, string>;
     return {
       id: p.id,
       urls: { small: urls.small, regular: urls.regular },
@@ -494,10 +508,7 @@ adminRoutes.post(
       .insert(adminUsers)
       .values({ username, email, passwordHash })
       .returning();
-    return c.json(
-      { data: { id: admin.id, username: admin.username, email: admin.email } },
-      201,
-    );
+    return c.json({ data: { id: admin.id, username: admin.username, email: admin.email } }, 201);
   },
 );
 

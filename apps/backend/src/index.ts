@@ -1,10 +1,10 @@
-import { serve } from "@hono/node-server";
 import fs from "node:fs";
 import path from "node:path";
+import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { secureHeaders } from "hono/secure-headers";
 import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
 import { adminRoutes } from "./routes/admin.js";
 import { publicRoutes } from "./routes/public.js";
 
@@ -34,8 +34,7 @@ app.get("/uploads/:filename{[^/]+}", async (c) => {
   try {
     const data = await fs.promises.readFile(filepath);
     const ext = path.extname(filename).toLowerCase().slice(1);
-    const contentType =
-      ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
+    const contentType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
     return new Response(data, { headers: { "Content-Type": contentType } });
   } catch {
     return c.json({ error: { message: "Not found" } }, 404);

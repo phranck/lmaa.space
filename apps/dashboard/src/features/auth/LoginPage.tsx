@@ -1,6 +1,6 @@
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -27,7 +27,12 @@ export function LoginPage() {
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="lmaa.space" style={{ width: 120, height: 120 }} className="mx-auto" />
+          <img
+            src="/logo.png"
+            alt="lmaa.space"
+            style={{ width: 120, height: 120 }}
+            className="mx-auto"
+          />
           <p className="text-sm text-gray-500 mt-1">Admin-Bereich</p>
         </div>
 

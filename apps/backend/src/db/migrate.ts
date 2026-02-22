@@ -1,7 +1,8 @@
 import postgres from "postgres";
 
 async function main() {
-  const sql = postgres(process.env.DATABASE_URL!);
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
+  const sql = postgres(process.env.DATABASE_URL);
 
   console.log("Running migrations...");
 

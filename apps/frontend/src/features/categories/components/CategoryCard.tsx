@@ -1,5 +1,5 @@
-import { Link } from "react-router";
 import type { Category } from "@lmaa/shared";
+import { Link } from "react-router";
 
 interface CategoryCardProps {
   category: Category;
@@ -24,7 +24,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
 
       {/* Text */}
       <div className="px-4 py-3 flex items-center gap-3">
-<div className="min-w-0">
+        <div className="min-w-0">
           <p className="font-serif font-semibold text-stone-800 text-base leading-snug truncate group-hover:text-amber-700 transition-colors">
             {category.name}
           </p>

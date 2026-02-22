@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
-import { CategoryGrid } from "../components/CategoryGrid.tsx";
-import { useCategories } from "../hooks/useCategories.ts";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
 import { heroImage } from "../../../lib/categoryImages.ts";
+import { CategoryGrid } from "../components/CategoryGrid.tsx";
 import { HeroLogo } from "../components/HeroLogo.tsx";
+import { useCategories } from "../hooks/useCategories.ts";
 
 export function HomePage() {
   useDocumentTitle();
@@ -64,9 +64,7 @@ export function HomePage() {
       {/* Categories */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-baseline justify-between mb-8">
-          <h2 className="font-serif text-2xl font-semibold text-stone-800">
-            Kategorien entdecken
-          </h2>
+          <h2 className="font-serif text-2xl font-semibold text-stone-800">Kategorien entdecken</h2>
           {categories && (
             <span className="text-sm text-stone-400">
               {categories.reduce((sum, c) => sum + (c.shopCount ?? 0), 0)} Shops in{" "}
@@ -78,10 +76,8 @@ export function HomePage() {
         {isLoading && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-28 bg-stone-100 rounded-2xl animate-pulse"
-              />
+              // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
+              <div key={i} className="h-28 bg-stone-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         )}
@@ -96,8 +92,7 @@ export function HomePage() {
             Vermisst du einen Shop?
           </h2>
           <p className="text-stone-500 mb-6 text-sm leading-relaxed">
-            Hilf der Community und schlage deinen Shop vor – schnell
-            und ohne Anmeldung.
+            Hilf der Community und schlage deinen Shop vor – schnell und ohne Anmeldung.
           </p>
           <a
             href="/vorschlagen"

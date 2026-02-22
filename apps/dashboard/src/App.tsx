@@ -1,13 +1,13 @@
-import { Routes, Route, Navigate } from "react-router";
+import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
 import { SetupPage } from "@/features/auth/SetupPage.tsx";
-import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
-import { DashboardPage } from "@/features/dashboard/DashboardPage.tsx";
-import { SubmissionsPage } from "@/features/submissions/SubmissionsPage.tsx";
-import { ShopsPage } from "@/features/shops/ShopsPage.tsx";
 import { CategoriesPage } from "@/features/categories/CategoriesPage.tsx";
+import { DashboardPage } from "@/features/dashboard/DashboardPage.tsx";
+import { ShopsPage } from "@/features/shops/ShopsPage.tsx";
+import { SubmissionsPage } from "@/features/submissions/SubmissionsPage.tsx";
 import { UsersPage } from "@/features/users/UsersPage.tsx";
+import { Navigate, Route, Routes } from "react-router";
 
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
