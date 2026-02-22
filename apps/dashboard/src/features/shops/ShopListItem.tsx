@@ -1,4 +1,4 @@
-import type { Shop, Category } from "@dein-shop/shared";
+import type { Shop, Category } from "@lmaa/shared";
 
 interface ShopListItemProps {
   shop: Shop;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LuList, LuLayoutGrid } from "react-icons/lu";
-import type { Category } from "@dein-shop/shared";
+import type { Category } from "@lmaa/shared";
 import { api } from "@/lib/api.ts";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { CategoryListItem } from "@/features/categories/CategoryListItem.tsx";

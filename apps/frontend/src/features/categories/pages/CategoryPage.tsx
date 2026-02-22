@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router";
-import type { Shop } from "@dein-shop/shared";
+import type { Shop } from "@lmaa/shared";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
 import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useCategory } from "../hooks/useCategories.ts";

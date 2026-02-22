@@ -17,11 +17,11 @@ Hosted at https://dein.shop, based on https://codeberg.org/phranck/Amazon-Altern
 
 ```
 apps/
-  backend/    @dein-shop/backend   – Hono + Bun + SQLite + Drizzle
-  frontend/   @dein-shop/frontend  – React + Vite + Tailwind (public site)
-  dashboard/  @dein-shop/dashboard – React + Vite + Tailwind (admin UI)
+  backend/    @lmaa/backend   – Hono + Bun + SQLite + Drizzle
+  frontend/   @lmaa/frontend  – React + Vite + Tailwind (public site)
+  dashboard/  @lmaa/dashboard – React + Vite + Tailwind (admin UI)
 packages/
-  shared/     @dein-shop/shared    – Shared TypeScript types (no runtime deps)
+  shared/     @lmaa/shared    – Shared TypeScript types (no runtime deps)
 ```
 
 ## Commands
@@ -36,10 +36,10 @@ bun run dev:backend     # port 3000
 bun run dev:dashboard   # port 5174 (proxies /api → localhost:3000)
 
 # Type checking
-bun run --filter=@dein-shop/shared typecheck
-bun run --filter=@dein-shop/backend typecheck
-bun run --filter=@dein-shop/frontend typecheck
-bun run --filter=@dein-shop/dashboard typecheck
+bun run --filter=@lmaa/shared typecheck
+bun run --filter=@lmaa/backend typecheck
+bun run --filter=@lmaa/frontend typecheck
+bun run --filter=@lmaa/dashboard typecheck
 
 # Linting & formatting (Biome, not ESLint)
 bun run lint
@@ -85,7 +85,7 @@ bun run build:dashboard
 
 ### Shared (`packages/shared`)
 - TypeScript types only: `Shop`, `Category`, `Submission`, `AdminUser`, `ApiResponse`
-- Build required before frontend/dashboard: `bun run build --filter=@dein-shop/shared`
+- Build required before frontend/dashboard: `bun run build --filter=@lmaa/shared`
 
 ## Key Conventions
 

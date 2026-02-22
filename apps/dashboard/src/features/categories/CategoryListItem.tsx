@@ -1,4 +1,4 @@
-import type { Category } from "@dein-shop/shared";
+import type { Category } from "@lmaa/shared";
 
 function CategoryImage({ category }: { category: Category }) {
   const src = category.imageUrl ?? `/images/${category.slug}.jpg`;

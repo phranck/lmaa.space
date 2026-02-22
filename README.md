@@ -21,11 +21,11 @@ Eine Community-kuratierte Liste von Online-Shops als Alternativen zu Amazon – 
 
 ```
 apps/
-  backend/    @dein-shop/backend   – Hono + Bun + SQLite + Drizzle
-  frontend/   @dein-shop/frontend  – React + Vite + Tailwind (öffentliche Seite)
-  dashboard/  @dein-shop/dashboard – React + Vite + Tailwind (Admin)
+  backend/    @lmaa/backend   – Hono + Bun + SQLite + Drizzle
+  frontend/   @lmaa/frontend  – React + Vite + Tailwind (öffentliche Seite)
+  dashboard/  @lmaa/dashboard – React + Vite + Tailwind (Admin)
 packages/
-  shared/     @dein-shop/shared    – Geteilte TypeScript-Types
+  shared/     @lmaa/shared    – Geteilte TypeScript-Types
 ```
 
 ## Entwicklung

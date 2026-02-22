@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import type { AdminUser } from "@dein-shop/shared";
+import type { AdminUser } from "@lmaa/shared";
 import { api } from "@/lib/api.ts";
 
 interface AuthState {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LuTrash2, LuUpload, LuSearch } from "react-icons/lu";
-import type { Category } from "@dein-shop/shared";
+import type { Category } from "@lmaa/shared";
 import { api } from "@/lib/api.ts";
 import { UnsplashBrowser } from "@/features/categories/UnsplashBrowser.tsx";
 

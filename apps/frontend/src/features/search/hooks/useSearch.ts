@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import Fuse, { type IFuseOptions } from "fuse.js";
-import type { Shop } from "@dein-shop/shared";
+import type { Shop } from "@lmaa/shared";
 
 const FUSE_OPTIONS: IFuseOptions<Shop> = {
   keys: [

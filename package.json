@@ -1,24 +1,24 @@
 {
-  "name": "dein-shop",
+  "name": "lmaa-space",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev:frontend": "bun run --filter=@dein-shop/frontend dev",
-    "dev:backend": "bun run --filter=@dein-shop/backend dev",
-    "dev:dashboard": "bun run --filter=@dein-shop/dashboard dev",
-    "build": "bun run build --filter=@dein-shop/shared && bun run build --filter='*'",
-    "build:frontend": "bun run build --filter=@dein-shop/frontend",
-    "build:backend": "bun run build --filter=@dein-shop/backend",
-    "build:dashboard": "bun run build --filter=@dein-shop/dashboard",
+    "dev:frontend": "bun run --filter=@lmaa/frontend dev",
+    "dev:backend": "bun run --filter=@lmaa/backend dev",
+    "dev:dashboard": "bun run --filter=@lmaa/dashboard dev",
+    "build": "bun run build --filter=@lmaa/shared && bun run build --filter='*'",
+    "build:frontend": "bun run build --filter=@lmaa/frontend",
+    "build:backend": "bun run build --filter=@lmaa/backend",
+    "build:dashboard": "bun run build --filter=@lmaa/dashboard",
     "typecheck": "bun run typecheck --filter='*'",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "bun run --filter=@dein-shop/backend db:migrate",
+    "db:migrate": "bun run --filter=@lmaa/backend db:migrate",
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
