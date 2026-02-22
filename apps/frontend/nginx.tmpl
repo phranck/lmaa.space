@@ -1,0 +1,13 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    root {{.DocumentRoot}};
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    access_log syslog:server=unix:/dev/log,facility=local1,tag=nginx,severity=info default_short;
+    error_log syslog:server=unix:/dev/log,facility=local1,tag=nginx,severity=error;
+}
