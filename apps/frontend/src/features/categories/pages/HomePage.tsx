@@ -34,12 +34,12 @@ export function HomePage() {
           <div className="flex justify-center mb-6">
             <img src="/logo-amber.png" alt="lmaa.space" style={{ width: 140, height: 140 }} />
           </div>
-          <h2 className="text-stone-200 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+          <h1 className="text-stone-200 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
             LMAA<br />
             Liste Möglicher{" "}
             <span style={{ color: "var(--amazon-color)" }}>Amazon</span>{" "}
             Alternativen
-          </h2>
+          </h1>
 
           <form onSubmit={handleSearch} className="max-w-lg mx-auto">
             <div className="flex gap-2 bg-white/10 backdrop-blur-sm rounded-2xl p-2 border border-white/10">
@@ -68,7 +68,7 @@ export function HomePage() {
         <div className="flex items-baseline justify-between mb-8">
           <h2 className="font-serif text-2xl font-semibold text-stone-800">
             Kategorien entdecken
-          </h2>
+          </h1>
           {categories && (
             <span className="text-sm text-stone-400">
               {categories.reduce((sum, c) => sum + (c.shopCount ?? 0), 0)} Shops in{" "}
@@ -96,7 +96,7 @@ export function HomePage() {
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
           <h2 className="font-serif text-2xl font-semibold text-stone-800 mb-3">
             Vermisst du einen Shop?
-          </h2>
+          </h1>
           <p className="text-stone-500 mb-6 text-sm leading-relaxed">
             Hilf der Community und schlage deinen Shop vor – schnell
             und ohne Anmeldung.
