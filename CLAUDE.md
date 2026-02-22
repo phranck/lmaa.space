@@ -87,6 +87,23 @@ npm run build:dashboard
 - TypeScript types only: `Shop`, `Category`, `Submission`, `AdminUser`, `ApiResponse`
 - Build required before frontend/dashboard: `npm run build -w @lmaa/shared`
 
+## Pre-Commit Checklist
+
+Before every commit, run linter, typecheck, and build in this order:
+
+```bash
+npm run lint
+npm run typecheck -w @lmaa/shared
+npm run typecheck -w @lmaa/backend
+npm run typecheck -w @lmaa/frontend
+npm run typecheck -w @lmaa/dashboard
+npm run build:frontend
+npm run build:backend
+npm run build:dashboard
+```
+
+All errors and warnings must be resolved before committing. Do not commit with a clean-up intention — fix issues first, then commit.
+
 ## Key Conventions
 
 - **Linting:** Biome (no ESLint anywhere)
