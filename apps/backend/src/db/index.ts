@@ -5,6 +5,7 @@ import * as schema from "./schema.js";
 const dbPath = process.env.DATABASE_PATH ?? "./deinshop.db";
 
 const sqlite = new Database(dbPath);
+sqlite.pragma("synchronous = OFF");
 sqlite.pragma("foreign_keys = ON");
 
 export const db = drizzle(sqlite, { schema });
