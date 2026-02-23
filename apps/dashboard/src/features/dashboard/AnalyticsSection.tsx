@@ -128,14 +128,14 @@ export function AnalyticsSection() {
       Besucher: pageviews.sessions.find((s) => s.x === pv.x)?.y ?? 0,
     })) ?? [];
 
-  const bounceRate =
-    stats && stats.visits.value > 0
-      ? Math.round((stats.bounces.value / stats.visits.value) * 100)
-      : 0;
+  const visitsVal = stats?.visits?.value ?? 0;
+  const bouncesVal = stats?.bounces?.value ?? 0;
+  const bounceRate = visitsVal > 0 ? Math.round((bouncesVal / visitsVal) * 100) : 0;
 
-  const avgDuration = stats
-    ? formatDuration(Math.round(stats.totaltime.value / Math.max(stats.visits.value, 1)))
-    : "–";
+  const totalTime = stats?.totaltime?.value ?? 0;
+  const avgDuration = stats ? formatDuration(Math.round(totalTime / Math.max(visitsVal, 1))) : "–";
+
+  const hasStats = stats && stats.visitors != null && stats.pageviews != null;
 
   return (
     <div className="mt-8">
@@ -166,10 +166,13 @@ export function AnalyticsSection() {
           Array.from({ length: 4 }, (_, i) => `kpi-${i}`).map((k) => (
             <div key={k} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
           ))
-        ) : stats ? (
+        ) : hasStats ? (
           <>
-            <KpiCard label="Besucher" value={stats.visitors.value.toLocaleString("de")} />
-            <KpiCard label="Seitenaufrufe" value={stats.pageviews.value.toLocaleString("de")} />
+            <KpiCard label="Besucher" value={(stats.visitors?.value ?? 0).toLocaleString("de")} />
+            <KpiCard
+              label="Seitenaufrufe"
+              value={(stats.pageviews?.value ?? 0).toLocaleString("de")}
+            />
             <KpiCard label="Absprungrate" value={`${bounceRate} %`} />
             <KpiCard label="Ø Verweildauer" value={avgDuration} />
           </>
