@@ -115,7 +115,10 @@ export function ContentEditorPage() {
         postInit(realm) {
           let skip = true;
           realm.sub(viewMode$, (mode) => {
-            if (skip) { skip = false; return; }
+            if (skip) {
+              skip = false;
+              return;
+            }
             localStorage.setItem(VIEW_MODE_KEY, mode);
           });
         },
