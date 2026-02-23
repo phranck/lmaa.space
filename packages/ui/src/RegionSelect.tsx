@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { LuInfo, LuX } from "react-icons/lu";
+import { createPortal } from "react-dom";
+import { LuCheck, LuChevronDown, LuInfo, LuX } from "react-icons/lu";
 
 export const REGION_OPTIONS = [
   { code: "DE", flag: "🇩🇪", name: "Deutschland" },
@@ -17,10 +18,39 @@ export interface RegionSelectProps {
 }
 
 export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const portalRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      const insideButton = buttonRef.current?.contains(target) ?? false;
+      const insidePortal = portalRef.current?.contains(target) ?? false;
+      if (!insideButton && !insidePortal) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [open]);
+
+  // ESC closes dropdown before ShopEditCard ESC handler
+  useEffect(() => {
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setOpen(false);
+      }
+    }
+    if (open) window.addEventListener("keydown", onEsc, true);
+    return () => window.removeEventListener("keydown", onEsc, true);
+  }, [open]);
+
+  // Close info on click outside
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       const target = e.target as Node;
@@ -32,6 +62,13 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [infoOpen]);
 
+  function handleToggle() {
+    if (!open && buttonRef.current) {
+      setDropdownRect(buttonRef.current.getBoundingClientRect());
+    }
+    setOpen((o) => !o);
+  }
+
   function toggle(code: string) {
     if (value.includes(code)) {
       onChange(value.filter((v) => v !== code));
@@ -40,9 +77,67 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
     }
   }
 
+  const label =
+    value.length === 0
+      ? null
+      : value.length === 1
+        ? (() => {
+            const opt = REGION_OPTIONS.find((o) => o.code === value[0]);
+            return opt ? `${opt.flag} ${opt.name}` : value[0];
+          })()
+        : `${value.length} Regionen ausgewählt`;
+
+  const dropdown =
+    open && dropdownRect
+      ? createPortal(
+          <div
+            ref={portalRef}
+            style={{
+              position: "fixed",
+              top: dropdownRect.bottom + 4,
+              left: dropdownRect.left,
+              width: dropdownRect.width,
+              zIndex: 9999,
+            }}
+            className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+          >
+            <div className="max-h-[360px] overflow-y-auto">
+              {REGION_OPTIONS.map(({ code, flag, name }) => {
+                const checked = value.includes(code);
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => toggle(code)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
+                      checked
+                        ? "bg-[var(--color-primary)]/5 text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span
+                      className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors ${
+                        checked
+                          ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      {checked && <LuCheck size={10} className="text-white" strokeWidth={3} />}
+                    </span>
+                    <span>{flag}</span>
+                    <span>{name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div>
-      <div className="flex items-center gap-1.5 mb-2">
+      <div className="flex items-center gap-1.5 mb-1">
         <span className="text-xs font-medium text-gray-600">Region</span>
         <div className="relative">
           <button
@@ -78,25 +173,29 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {REGION_OPTIONS.map(({ code, flag, name }) => {
-          const selected = value.includes(code);
-          return (
-            <button
-              key={code}
-              type="button"
-              onClick={() => toggle(code)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition-colors ${
-                selected
-                  ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] text-[var(--color-primary)]"
-                  : "border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              <span>{flag}</span>
-              <span>{name}</span>
-            </button>
-          );
-        })}
+      <div className="relative">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleToggle}
+          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-white transition-colors ${
+            open
+              ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
+              : error
+                ? "border-red-400"
+                : "border-gray-200 hover:border-gray-300"
+          }`}
+        >
+          <span className={`truncate ${label ? "text-gray-900" : "text-gray-400"}`}>
+            {label ?? "Region wählen…"}
+          </span>
+          <LuChevronDown
+            size={14}
+            className={`shrink-0 ml-2 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {dropdown}
       </div>
 
       {error && <p className="text-red-500 text-xs mt-1.5">{error}</p>}
