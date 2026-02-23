@@ -1,4 +1,6 @@
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
+import { useState } from "react";
+import { LuChevronDown, LuChevronUp, LuChevronsUpDown } from "react-icons/lu";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -25,7 +27,7 @@ export function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTable
 
 export function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowElement>) {
   return (
-    <tr className={`hover:bg-[var(--ds-bg-elevated)] transition-colors ${className}`} {...props} />
+    <tr className={`hover:bg-[var(--ds-row-hover)] transition-colors ${className}`} {...props} />
   );
 }
 
@@ -51,6 +53,14 @@ export interface ColumnDef<T> {
   className?: string;
   headerClassName?: string;
   cellClassName?: string;
+  /** Provide a value extractor to make the column sortable. */
+  sortKey?: (row: T) => string | number;
+}
+
+type SortDir = "asc" | "desc";
+interface SortState {
+  id: string;
+  dir: SortDir;
 }
 
 interface DataTableProps<T> {
@@ -69,6 +79,31 @@ export function DataTable<T>({
   getRowClassName,
   stickyHeader = false,
 }: DataTableProps<T>) {
+  const [sort, setSort] = useState<SortState | null>(null);
+
+  function handleSort(col: ColumnDef<T>) {
+    if (!col.sortKey) return;
+    setSort((prev) => {
+      if (!prev || prev.id !== col.id) return { id: col.id, dir: "asc" };
+      if (prev.dir === "asc") return { id: col.id, dir: "desc" };
+      return null; // reset
+    });
+  }
+
+  const sorted = sort
+    ? [...data].sort((a, b) => {
+        const col = columns.find((c) => c.id === sort.id);
+        if (!col?.sortKey) return 0;
+        const av = col.sortKey(a);
+        const bv = col.sortKey(b);
+        const cmp =
+          typeof av === "number" && typeof bv === "number"
+            ? av - bv
+            : String(av).localeCompare(String(bv), "de");
+        return sort.dir === "asc" ? cmp : -cmp;
+      })
+    : data;
+
   return (
     <Table>
       <TableHead
@@ -76,14 +111,36 @@ export function DataTable<T>({
       >
         <TableRow className="hover:bg-transparent">
           {columns.map((col) => (
-            <Th key={col.id} className={col.headerClassName ?? col.className ?? ""}>
-              {col.header}
+            <Th
+              key={col.id}
+              className={`${col.headerClassName ?? col.className ?? ""} ${col.sortKey ? "select-none" : ""}`}
+            >
+              {col.sortKey ? (
+                <button
+                  type="button"
+                  onClick={() => handleSort(col)}
+                  className="inline-flex items-center gap-1.5 hover:text-[var(--ds-text)] transition-colors"
+                >
+                  {col.header}
+                  {sort?.id === col.id ? (
+                    sort.dir === "asc" ? (
+                      <LuChevronUp className="w-3 h-3 shrink-0" />
+                    ) : (
+                      <LuChevronDown className="w-3 h-3 shrink-0" />
+                    )
+                  ) : (
+                    <LuChevronsUpDown className="w-3 h-3 shrink-0 opacity-40" />
+                  )}
+                </button>
+              ) : (
+                col.header
+              )}
             </Th>
           ))}
         </TableRow>
       </TableHead>
       <TableBody>
-        {data.map((row) => (
+        {sorted.map((row) => (
           <TableRow key={getRowKey(row)} className={getRowClassName?.(row)}>
             {columns.map((col) => (
               <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>

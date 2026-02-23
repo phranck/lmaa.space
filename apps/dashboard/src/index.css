@@ -38,6 +38,9 @@
   /* Form inputs — elevated above card surface */
   --ds-input-bg: oklch(1 0 0); /* white in light mode */
 
+  /* Table row hover */
+  --ds-row-hover: var(--ds-color-neutral-100);
+
   /* Neutral outline buttons (Bearbeiten) */
   --ds-btn-neutral-border: var(--ds-border);
   --ds-btn-neutral-text: var(--ds-text-muted);
@@ -79,6 +82,9 @@
 
   /* Form inputs: clearly elevated above card bg in dark mode */
   --ds-input-bg: oklch(0.26 0.007 38.2);
+
+  /* Table row hover: noticeably lighter than surface (0.19) */
+  --ds-row-hover: oklch(0.28 0.008 38.2);
 
   /* Neutral outline buttons: slightly brighter in dark mode */
   --ds-btn-neutral-border: oklch(0.42 0.009 38.2);

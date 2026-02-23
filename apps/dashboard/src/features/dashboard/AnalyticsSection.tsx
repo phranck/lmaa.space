@@ -117,8 +117,9 @@ function RealtimeCard() {
     if (realtime?.series) {
       // Umami v2 uses "pageviews", older versions use "views" — support both
       const viewSeries = realtime.series.pageviews ?? realtime.series.views ?? [];
-      // Umami may return x in seconds or milliseconds — normalise to ms
-      const toMs = (x: number) => (x > 1e12 ? x : x * 1000);
+      // Umami may return x as seconds, milliseconds, or ISO string — normalise to ms
+      const toMs = (x: number | string) =>
+        typeof x === "string" ? new Date(x).getTime() : x > 1e12 ? x : x * 1000;
       for (const v of realtime.series.visitors ?? []) {
         const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
         const slot = slots.find((s) => s.ts === rounded);
