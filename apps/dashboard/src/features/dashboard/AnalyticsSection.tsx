@@ -111,40 +111,40 @@ function RealtimeCard() {
   const maxViews = topUrls[0]?.[1] ?? 1;
 
   return (
-    <div className="bg-gray-950 rounded-xl border border-gray-800 shadow-sm p-4 mb-4">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
         </span>
-        <p className="text-sm font-medium text-gray-200">Live</p>
+        <p className="text-sm font-medium text-gray-700">Live</p>
 
         {/* KPIs */}
         {realtime && (
           <div className="flex items-center gap-5 ml-4">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-white">
+              <span className="text-lg font-bold text-gray-900">
                 {active?.visitors ?? realtime.totals.visitors}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-400">
                 {active?.visitors != null ? "aktiv (5 min)" : "Besucher"}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-white">{realtime.totals.views}</span>
-              <span className="text-xs text-gray-500">Aufrufe (30 min)</span>
+              <span className="text-lg font-bold text-gray-900">{realtime.totals.views}</span>
+              <span className="text-xs text-gray-400">Aufrufe (30 min)</span>
             </div>
           </div>
         )}
 
-        <span className="ml-auto text-xs text-gray-600">aktualisiert alle 30 s</span>
+        <span className="ml-auto text-xs text-gray-400">aktualisiert alle 30 s</span>
       </div>
 
       {rtLoading ? (
-        <div className="h-24 bg-gray-900 rounded-lg animate-pulse" />
+        <div className="h-24 bg-gray-100 rounded-lg animate-pulse" />
       ) : !realtime ? (
-        <p className="text-xs text-gray-600">Keine Realtime-Daten</p>
+        <p className="text-xs text-gray-400">Keine Realtime-Daten</p>
       ) : (
         <>
           {/* Bar Chart */}
@@ -154,16 +154,16 @@ function RealtimeCard() {
               margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
               barSize={6}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={false} />
               <XAxis
                 dataKey="time"
-                tick={{ fontSize: 10, fill: "#4b5563" }}
+                tick={{ fontSize: 10, fill: "#9ca3af" }}
                 axisLine={false}
                 tickLine={false}
                 interval="preserveStartEnd"
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#4b5563" }}
+                tick={{ fontSize: 10, fill: "#9ca3af" }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
@@ -171,20 +171,19 @@ function RealtimeCard() {
               <Tooltip
                 contentStyle={{
                   fontSize: 12,
-                  backgroundColor: "#111827",
-                  border: "1px solid #1f2937",
                   borderRadius: 8,
-                  color: "#f9fafb",
+                  border: "1px solid #e7e5e4",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                 }}
-                cursor={{ fill: "rgba(255,255,255,0.04)" }}
+                cursor={{ fill: "rgba(0,0,0,0.03)" }}
               />
               <Legend
                 wrapperStyle={{ fontSize: 11, color: "#6b7280", paddingTop: 6 }}
                 iconType="circle"
                 iconSize={8}
               />
-              <Bar dataKey="Besucher" fill="#3b82f6" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="Aufrufe" fill="#1d4ed8" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="Besucher" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="Aufrufe" fill="#a8a29e" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
 
@@ -196,13 +195,13 @@ function RealtimeCard() {
                   <span className="flex-1 truncate text-gray-500" title={url}>
                     {url === "/" ? "Startseite" : url}
                   </span>
-                  <div className="w-16 h-1 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-600 rounded-full"
+                      className="h-full bg-amber-400 rounded-full"
                       style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
                     />
                   </div>
-                  <span className="shrink-0 w-5 text-right text-gray-600">{count}</span>
+                  <span className="shrink-0 w-5 text-right text-gray-400">{count}</span>
                 </div>
               ))}
             </div>
