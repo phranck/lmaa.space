@@ -2,7 +2,6 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
 import { useAdminShops, useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
-import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
 
 export function ShopsPage() {
@@ -20,7 +19,7 @@ export function ShopsPage() {
   );
 
   const deleteTarget = shops.find((s) => s.id === deleteId);
-  const editShop: Shop | undefined =
+  const editShop =
     typeof editTarget === "number" ? shops.find((s) => s.id === editTarget) : undefined;
 
   return (

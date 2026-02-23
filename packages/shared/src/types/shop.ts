@@ -9,7 +9,7 @@ export interface Shop {
   name: string;
   url: string;
   categories: ShopCategory[];
-  region: string;
+  region: string[];
   pickup: string;
   shipping: string;
   description: string;
@@ -23,7 +23,7 @@ export interface ShopCreate {
   name: string;
   url: string;
   categoryIds: number[];
-  region?: string;
+  region?: string[];
   pickup?: string;
   shipping?: string;
   description?: string;

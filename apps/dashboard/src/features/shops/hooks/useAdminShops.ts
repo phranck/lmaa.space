@@ -1,24 +1,9 @@
 import { api } from "@/lib/api.ts";
 import type { Shop } from "@lmaa/shared";
+import type { ShopEditFormValue } from "@lmaa/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export interface ShopFormData {
-  name: string;
-  url: string;
-  description: string;
-  categoryIds: number[];
-  region: string;
-  shipping: string;
-}
-
-export const EMPTY_SHOP_FORM: ShopFormData = {
-  name: "",
-  url: "",
-  description: "",
-  categoryIds: [],
-  region: "",
-  shipping: "",
-};
+export type { ShopEditFormValue };
 
 export function useAdminShops() {
   return useQuery({
@@ -30,7 +15,7 @@ export function useAdminShops() {
 export function useSaveShop(editId: number | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: ShopFormData) =>
+    mutationFn: (data: ShopEditFormValue) =>
       editId ? api.patch(`/admin/shops/${editId}`, data) : api.post("/admin/shops", data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });

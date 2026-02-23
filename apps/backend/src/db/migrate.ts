@@ -120,8 +120,7 @@ async function main() {
       NEW.search_vector :=
         setweight(to_tsvector('german', coalesce(NEW.name, '')), 'A') ||
         setweight(to_tsvector('german', coalesce(NEW.description, '')), 'B') ||
-        setweight(to_tsvector('german', coalesce(NEW.region, '')), 'C') ||
-        setweight(to_tsvector('german', coalesce(NEW.shipping, '')), 'D');
+        setweight(to_tsvector('german', coalesce(NEW.shipping, '')), 'C');
       RETURN NEW;
     END $$ LANGUAGE plpgsql
   `;
@@ -223,8 +222,7 @@ async function main() {
     UPDATE shops SET search_vector =
       setweight(to_tsvector('german', coalesce(name, '')), 'A') ||
       setweight(to_tsvector('german', coalesce(description, '')), 'B') ||
-      setweight(to_tsvector('german', coalesce(region, '')), 'C') ||
-      setweight(to_tsvector('german', coalesce(shipping, '')), 'D')
+      setweight(to_tsvector('german', coalesce(shipping, '')), 'C')
     WHERE search_vector IS NULL
   `;
 
@@ -269,6 +267,40 @@ async function main() {
   // Drop the now-redundant denormalized columns
   await sql`ALTER TABLE submissions DROP COLUMN IF EXISTS category_ids`;
   await sql`ALTER TABLE submissions DROP COLUMN IF EXISTS category_id`;
+
+  // Migrate shops.region TEXT → JSONB (comma-separated → string array)
+  await sql`
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'shops' AND column_name = 'region'
+                   AND data_type = 'text') THEN
+        ALTER TABLE shops
+          ALTER COLUMN region TYPE JSONB
+          USING CASE
+            WHEN region = '' THEN '[]'::jsonb
+            ELSE to_jsonb(array_remove(string_to_array(region, ','), ''))
+          END;
+        ALTER TABLE shops ALTER COLUMN region SET DEFAULT '[]'::jsonb;
+      END IF;
+    END $do$
+  `;
+
+  // Migrate submissions.region TEXT → JSONB
+  await sql`
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'submissions' AND column_name = 'region'
+                   AND data_type = 'text') THEN
+        ALTER TABLE submissions
+          ALTER COLUMN region TYPE JSONB
+          USING CASE
+            WHEN region = '' THEN '[]'::jsonb
+            ELSE to_jsonb(array_remove(string_to_array(region, ','), ''))
+          END;
+        ALTER TABLE submissions ALTER COLUMN region SET DEFAULT '[]'::jsonb;
+      END IF;
+    END $do$
+  `;
 
   console.log("Migrations complete.");
   await sql.end();

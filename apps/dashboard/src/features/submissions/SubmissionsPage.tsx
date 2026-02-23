@@ -171,7 +171,7 @@ function VorschlaegeTab() {
             url: editSubmission.shopUrl,
             description: editSubmission.description ?? "",
             categoryIds: editSubmission.categoryIds ?? [],
-            region: editSubmission.region ?? "",
+            region: Array.isArray(editSubmission.region) ? editSubmission.region : [],
             shipping: editSubmission.shipping ?? "",
           }}
           onClose={() => setEditSubmission(null)}

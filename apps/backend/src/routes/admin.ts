@@ -265,7 +265,10 @@ const submissionEditSchema = z.object({
   shopName: z.string().min(1).max(200),
   shopUrl: z.string().url(),
   description: z.string().max(500).optional(),
-  region: z.string().max(100).optional(),
+  region: z
+    .array(z.enum(["DE", "AT", "CH", "EU"]))
+    .optional()
+    .default([]),
   shipping: z.string().max(200).optional(),
   categoryIds: z.array(z.number().int().positive()),
 });
@@ -284,7 +287,7 @@ adminRoutes.patch(
         shopName: body.shopName,
         shopUrl: body.shopUrl,
         description: body.description ?? "",
-        region: body.region ?? "",
+        region: body.region ?? [],
         shipping: body.shipping ?? "",
         updatedAt: new Date(),
       })
@@ -333,7 +336,10 @@ const shopBodySchema = z.object({
   name: z.string().min(1).max(200),
   url: z.string().url(),
   categoryIds: z.array(z.number().int().positive()).min(1),
-  region: z.string().optional(),
+  region: z
+    .array(z.enum(["DE", "AT", "CH", "EU"]))
+    .optional()
+    .default([]),
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(500).optional(),
@@ -362,7 +368,7 @@ const shopUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   url: z.string().url().optional(),
   categoryIds: z.array(z.number().int().positive()).optional(),
-  region: z.string().optional(),
+  region: z.array(z.enum(["DE", "AT", "CH", "EU"])).optional(),
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(500).optional(),
