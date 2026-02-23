@@ -1,15 +1,22 @@
+import { lazy, Suspense } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
+import { ContentEditorLoadingFallback } from "@/components/ContentEditorLoadingFallback.tsx";
 import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
 import { SetupPage } from "@/features/auth/SetupPage.tsx";
 import { CategoriesPage } from "@/features/categories/CategoriesPage.tsx";
-import { ContentEditorPage } from "@/features/content/ContentEditorPage.tsx";
 import { DashboardPage } from "@/features/dashboard/DashboardPage.tsx";
 import { ShopsPage } from "@/features/shops/ShopsPage.tsx";
 import { SubmissionsPage } from "@/features/submissions/SubmissionsPage.tsx";
 import { UsersPage } from "@/features/users/UsersPage.tsx";
 import { Navigate, Route, Routes } from "react-router";
+
+const ContentEditorPage = lazy(() =>
+  import("@/features/content/ContentEditorPage.tsx").then((m) => ({
+    default: m.ContentEditorPage,
+  })),
+);
 
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
@@ -34,7 +41,14 @@ function AppRoutes() {
           <Route path="shops" element={<ShopsPage />} />
           <Route path="kategorien" element={<CategoriesPage />} />
           {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
-          <Route path="content/:slug" element={<ContentEditorPage />} />
+          <Route
+            path="content/:slug"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <ContentEditorPage />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       ) : (

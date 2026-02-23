@@ -1,7 +1,14 @@
+import { lazy, Suspense } from "react";
 import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
+import { AnalyticsLoadingFallback } from "@/components/AnalyticsLoadingFallback.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { AnalyticsSection } from "@/features/dashboard/AnalyticsSection.tsx";
 import { useAdminStats } from "@/features/dashboard/hooks/useAdminStats.ts";
+
+const AnalyticsSection = lazy(() =>
+  import("@/features/dashboard/AnalyticsSection.tsx").then((m) => ({
+    default: m.AnalyticsSection,
+  })),
+);
 
 export function DashboardPage() {
   const { data: stats, isLoading } = useAdminStats();
@@ -50,7 +57,9 @@ export function DashboardPage() {
         />
       </div>
 
-      <AnalyticsSection />
+      <Suspense fallback={<AnalyticsLoadingFallback />}>
+        <AnalyticsSection />
+      </Suspense>
     </div>
   );
 }

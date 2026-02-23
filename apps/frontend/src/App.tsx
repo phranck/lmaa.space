@@ -1,10 +1,16 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router";
 import { CategoryPage } from "./features/categories/pages/CategoryPage.tsx";
 import { HomePage } from "./features/categories/pages/HomePage.tsx";
-import { MarkdownContentPage } from "./features/content/MarkdownContentPage.tsx";
 import { SearchPage } from "./features/search/pages/SearchPage.tsx";
 import { SuggestPage } from "./features/suggest/pages/SuggestPage.tsx";
+import { MarkdownLoadingFallback } from "./components/MarkdownLoadingFallback.tsx";
+
+const MarkdownContentPage = lazy(() =>
+  import("./features/content/MarkdownContentPage.tsx").then((m) => ({
+    default: m.MarkdownContentPage,
+  })),
+);
 
 declare global {
   interface Window {
@@ -29,49 +35,59 @@ export default function App() {
       <Route
         path="/ueber-uns"
         element={
-          <MarkdownContentPage
-            slug="about"
-            title="Über lmaa.space"
-            canonicalPath="/ueber-uns"
-            description="lmaa.space ist ein Community-Verzeichnis fairer und nachhaltiger Amazon-Alternativen für den DACH-Raum."
-          />
+          <Suspense fallback={<MarkdownLoadingFallback />}>
+            <MarkdownContentPage
+              slug="about"
+              title="Über lmaa.space"
+              canonicalPath="/ueber-uns"
+              description="lmaa.space ist ein Community-Verzeichnis fairer und nachhaltiger Amazon-Alternativen für den DACH-Raum."
+            />
+          </Suspense>
         }
       />
       <Route
         path="/impressum"
         element={
-          <MarkdownContentPage slug="impressum" title="Impressum" canonicalPath="/impressum" />
+          <Suspense fallback={<MarkdownLoadingFallback />}>
+            <MarkdownContentPage slug="impressum" title="Impressum" canonicalPath="/impressum" />
+          </Suspense>
         }
       />
       <Route
         path="/datenschutz"
         element={
-          <MarkdownContentPage
-            slug="datenschutz"
-            title="Datenschutzerklärung"
-            canonicalPath="/datenschutz"
-            subtitle="Gem. Art. 13 und 14 DSGVO sowie § 1 DSG (Österreich)"
-          />
+          <Suspense fallback={<MarkdownLoadingFallback />}>
+            <MarkdownContentPage
+              slug="datenschutz"
+              title="Datenschutzerklärung"
+              canonicalPath="/datenschutz"
+              subtitle="Gem. Art. 13 und 14 DSGVO sowie § 1 DSG (Österreich)"
+            />
+          </Suspense>
         }
       />
       <Route
         path="/aufnahmekriterien"
         element={
-          <MarkdownContentPage
-            slug="aufnahmekriterien"
-            title="Aufnahmekriterien"
-            canonicalPath="/aufnahmekriterien"
-          />
+          <Suspense fallback={<MarkdownLoadingFallback />}>
+            <MarkdownContentPage
+              slug="aufnahmekriterien"
+              title="Aufnahmekriterien"
+              canonicalPath="/aufnahmekriterien"
+            />
+          </Suspense>
         }
       />
       <Route
         path="/kriterien"
         element={
-          <MarkdownContentPage
-            slug="aufnahmekriterien"
-            title="Aufnahmekriterien"
-            canonicalPath="/aufnahmekriterien"
-          />
+          <Suspense fallback={<MarkdownLoadingFallback />}>
+            <MarkdownContentPage
+              slug="aufnahmekriterien"
+              title="Aufnahmekriterien"
+              canonicalPath="/aufnahmekriterien"
+            />
+          </Suspense>
         }
       />
     </Routes>

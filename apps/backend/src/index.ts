@@ -9,6 +9,7 @@ import { db } from "./db/index.js";
 import { categories } from "./db/schema.js";
 import { adminRoutes } from "./routes/admin/index.js";
 import { publicRoutes } from "./routes/public.js";
+import { startSessionCleanupJob } from "./services/sessions.js";
 
 const app = new Hono();
 const imagePath = process.env.IMAGE_PATH ?? "./uploads";
@@ -92,6 +93,9 @@ app.route("/api/admin", adminRoutes);
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 app.notFound((c) => c.json({ error: { message: "Not found" } }, 404));
+
+// Start background jobs
+startSessionCleanupJob();
 
 const port = Number(process.env.PORT ?? 3000);
 console.log(`Backend running on port ${port}`);
