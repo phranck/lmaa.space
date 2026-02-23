@@ -1,5 +1,6 @@
-import { resolveImageUrl } from "@/lib/api.ts";
+import { api, resolveImageUrl } from "@/lib/api.ts";
 import type { Category } from "@lmaa/shared";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
 
@@ -9,12 +10,22 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category }: CategoryCardProps) {
   const [imgError, setImgError] = useState(false);
+  const qc = useQueryClient();
   const resolvedUrl = resolveImageUrl(category.imageUrl) ?? `/images/${category.slug}.jpg`;
+
+  function handleMouseEnter() {
+    qc.prefetchQuery({
+      queryKey: ["categories", category.slug],
+      queryFn: () => api.get(`/categories/${category.slug}`),
+      staleTime: 5 * 60 * 1000,
+    });
+  }
   const hasImage = !imgError;
 
   return (
     <Link
       to={`/kategorie/${category.slug}`}
+      onMouseEnter={handleMouseEnter}
       className="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-lg transition-all duration-300"
     >
       {/* Photo or placeholder */}
