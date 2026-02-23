@@ -1,3 +1,4 @@
+import { CategoryMultiSelect } from "@/components/ui/CategoryMultiSelect.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { ShopListItem } from "@/features/shops/ShopListItem.tsx";
@@ -28,7 +29,7 @@ export function ShopsPage() {
       name: shop.name,
       url: shop.url,
       description: shop.description ?? "",
-      categoryId: shop.categoryId ? String(shop.categoryId) : "",
+      categoryIds: shop.categories.map((c) => c.id),
       region: shop.region ?? "",
       shipping: shop.shipping ?? "",
     });
@@ -98,23 +99,13 @@ export function ShopsPage() {
               className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
             />
           </div>
-          <div>
-            <label htmlFor="shop-category" className="block text-sm font-medium text-gray-700 mb-1">
-              Kategorie
-            </label>
-            <select
-              id="shop-category"
-              value={form.categoryId}
-              onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            >
-              <option value="">Keine</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+          <div className="sm:col-span-2">
+            <span className="block text-sm font-medium text-gray-700 mb-2">Kategorien</span>
+            <CategoryMultiSelect
+              categories={categories}
+              value={form.categoryIds}
+              onChange={(ids) => setForm((f) => ({ ...f, categoryIds: ids }))}
+            />
           </div>
           <div>
             <label htmlFor="shop-region" className="block text-sm font-medium text-gray-700 mb-1">
@@ -202,13 +193,7 @@ export function ShopsPage() {
 
       <div className="space-y-2">
         {filtered.map((shop) => (
-          <ShopListItem
-            key={shop.id}
-            shop={shop}
-            category={categories.find((c) => c.id === shop.categoryId)}
-            onEdit={startEdit}
-            onDelete={setDeleteId}
-          />
+          <ShopListItem key={shop.id} shop={shop} onEdit={startEdit} onDelete={setDeleteId} />
         ))}
       </div>
 

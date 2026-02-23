@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import {
   useAdminSubmissions,
   useDeadLinkReports,
@@ -33,6 +34,7 @@ function VorschlaegeTab() {
   const [sendFeedback, setSendFeedback] = useState(false);
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
+  const { data: categories = [] } = useAdminCategories();
   const reviewMutation = useReviewSubmission();
 
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
@@ -98,6 +100,21 @@ function VorschlaegeTab() {
                 {sub.shopUrl}
               </a>
               {sub.description && <p className="text-sm text-gray-500 mt-1">{sub.description}</p>}
+              {sub.categoryIds && sub.categoryIds.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {sub.categoryIds.map((id) => {
+                    const cat = categories.find((c) => c.id === id);
+                    return cat ? (
+                      <span
+                        key={id}
+                        className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs"
+                      >
+                        {cat.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              )}
               <div className="flex gap-3 mt-1.5 text-xs text-gray-400">
                 <span>{new Date(sub.createdAt).toLocaleDateString("de-DE")}</span>
                 {sub.submitterEmail && <span>✉ {sub.submitterEmail}</span>}

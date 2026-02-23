@@ -1,10 +1,14 @@
+export interface ShopCategory {
+  id: number;
+  slug: string;
+  name: string;
+}
+
 export interface Shop {
   id: number;
   name: string;
   url: string;
-  categoryId: number;
-  categorySlug?: string;
-  categoryName?: string;
+  categories: ShopCategory[];
   region: string;
   pickup: string;
   shipping: string;
@@ -18,7 +22,7 @@ export interface Shop {
 export interface ShopCreate {
   name: string;
   url: string;
-  categoryId: number;
+  categoryIds: number[];
   region?: string;
   pickup?: string;
   shipping?: string;
