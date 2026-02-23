@@ -40,8 +40,8 @@ export function RejectedEmail({ shopName, reason }: RejectedEmailProps) {
 
             <Text style={paragraph}>Hallo,</Text>
             <Text style={paragraph}>
-              leider können wir deinen Vorschlag <strong>{shopName}</strong>{" "}
-              aktuell nicht in unsere Liste aufnehmen.
+              leider können wir deinen Vorschlag <strong>{shopName}</strong> aktuell nicht in unsere
+              Liste aufnehmen.
             </Text>
 
             {reason && (

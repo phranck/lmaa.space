@@ -47,8 +47,8 @@ export function ApprovedEmail({ shopName }: ApprovedEmailProps) {
               zu finden ist!
             </Text>
             <Text style={paragraph}>
-              Vielen Dank für deinen Beitrag zur Community. Gemeinsam machen wir
-              es einfacher, Amazon-Alternativen zu entdecken.
+              Vielen Dank für deinen Beitrag zur Community. Gemeinsam machen wir es einfacher,
+              Amazon-Alternativen zu entdecken.
             </Text>
 
             <Hr style={hr} />
