@@ -232,6 +232,7 @@ function VorschlaegeTab() {
 
 function DefekteLinksTab() {
   const qc = useQueryClient();
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["dead-link-reports"],
@@ -241,6 +242,15 @@ function DefekteLinksTab() {
   const dismissMutation = useMutation({
     mutationFn: (shopId: number) => api.delete(`/admin/dead-link-reports/${shopId}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dead-link-reports"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (shopId: number) => api.delete(`/admin/shops/${shopId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dead-link-reports"] });
+      qc.invalidateQueries({ queryKey: ["shops-admin"] });
+      setConfirmDeleteId(null);
+    },
   });
 
   if (isLoading) {
@@ -284,16 +294,61 @@ function DefekteLinksTab() {
             {r.reportCount}× gemeldet
           </span>
 
-          <button
-            type="button"
-            onClick={() => dismissMutation.mutate(r.shopId)}
-            disabled={dismissMutation.isPending}
-            className="shrink-0 px-3 py-1.5 border border-gray-200 text-gray-600 text-sm rounded-control hover:border-gray-300 hover:text-gray-800 transition-colors disabled:opacity-50"
-          >
-            Erledigt
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => dismissMutation.mutate(r.shopId)}
+              disabled={dismissMutation.isPending || deleteMutation.isPending}
+              className="px-3 py-1.5 border border-gray-200 text-gray-600 text-sm rounded-control hover:border-gray-300 hover:text-gray-800 transition-colors disabled:opacity-50"
+            >
+              Belassen
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDeleteId(r.shopId)}
+              disabled={dismissMutation.isPending || deleteMutation.isPending}
+              className="px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 text-sm rounded-control hover:bg-red-100 transition-colors disabled:opacity-50"
+            >
+              Löschen
+            </button>
+          </div>
         </div>
       ))}
+
+      {/* Delete confirmation modal */}
+      {confirmDeleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/30"
+            onClick={() => setConfirmDeleteId(null)}
+            aria-label="Abbrechen"
+          />
+          <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="font-bold text-gray-900 mb-2">Shop wirklich löschen?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Der Shop wird dauerhaft entfernt und ist nicht mehr im Frontend sichtbar.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate(confirmDeleteId)}
+                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60"
+              >
+                {deleteMutation.isPending ? "…" : "Löschen"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
