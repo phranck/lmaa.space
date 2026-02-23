@@ -48,7 +48,7 @@ publicRoutes.get("/categories", async (c) => {
     .groupBy(categories.id)
     .orderBy(categories.name);
 
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", "private, max-age=30");
   return c.json({ data: rows });
 });
 
@@ -80,7 +80,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
     ORDER BY s.name
   `);
 
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", "private, max-age=30");
   return c.json({ data: { ...category, shops: categoryShops } });
 });
 
@@ -102,7 +102,7 @@ publicRoutes.get("/shops", async (c) => {
     ORDER BY s.name
   `);
 
-  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  c.header("Cache-Control", "private, max-age=60");
   return c.json({ data: allShops });
 });
 
