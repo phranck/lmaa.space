@@ -15,7 +15,7 @@ export function DashboardInfoCard({
 }) {
   const className = `rounded-xl border p-5 text-center h-28 flex flex-col items-center justify-center transition-all shadow-sm ${
     accent
-      ? "border-[var(--ds-accent-subtle)] bg-[var(--ds-accent-subtle)]"
+      ? "border-[var(--ds-accent)] bg-[var(--ds-accent-subtle)]"
       : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]"
   } ${href ? "hover:shadow-md hover:border-[var(--ds-border)] cursor-pointer" : ""}`;
 

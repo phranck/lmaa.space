@@ -148,7 +148,7 @@ function VorschlaegeTab() {
                     return cat ? (
                       <span
                         key={id}
-                        className="px-2 py-0.5 rounded-full bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-xs"
+                        className="px-2 py-0.5 rounded-full bg-[var(--ds-border)] text-[var(--ds-text-muted)] text-xs"
                       >
                         {cat.name}
                       </span>

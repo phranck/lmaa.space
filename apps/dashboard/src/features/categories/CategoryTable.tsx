@@ -35,17 +35,20 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
       {
         id: "name",
         header: "Name",
+        sortKey: (cat) => cat.name.toLowerCase(),
         cell: (cat) => <span className="font-medium text-[var(--ds-text)]">{cat.name}</span>,
       },
       {
         id: "slug",
         header: "Slug",
+        sortKey: (cat) => cat.slug,
         cell: (cat) => <span className="font-mono text-[var(--ds-text-subtle)]">{cat.slug}</span>,
       },
       {
         id: "shopCount",
         header: "Shops",
         className: "w-20",
+        sortKey: (cat) => cat.shopCount ?? 0,
         cell: (cat) => <span className="text-[var(--ds-text-muted)]">{cat.shopCount ?? "–"}</span>,
       },
       {

@@ -47,9 +47,10 @@ export interface UmamiRealtime {
   events: UmamiRealtimeEvent[];
   series: {
     // Umami v2 uses "pageviews", older versions use "views" — support both
-    pageviews?: { x: number; y: number }[];
-    views?: { x: number; y: number }[];
-    visitors: { x: number; y: number }[];
+    // x may be a Unix timestamp (seconds/ms) or an ISO string depending on version
+    pageviews?: { x: number | string; y: number }[];
+    views?: { x: number | string; y: number }[];
+    visitors: { x: number | string; y: number }[];
   };
   totals: {
     // same dual-name issue in totals

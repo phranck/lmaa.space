@@ -14,6 +14,7 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
       {
         id: "name",
         header: "Shop",
+        sortKey: (shop) => shop.name.toLowerCase(),
         cell: (shop) => (
           <div className="min-w-0">
             <p className="font-medium text-[var(--ds-text)] truncate">{shop.name}</p>
@@ -52,6 +53,7 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         id: "region",
         header: "Region",
         className: "w-36",
+        sortKey: (shop) => shop.region ?? "",
         cell: (shop) => (
           <span className="text-sm text-[var(--ds-text-muted)]">{shop.region || "–"}</span>
         ),
