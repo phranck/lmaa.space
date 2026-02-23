@@ -3,7 +3,10 @@ import {
   useAdminCategories,
   useSaveCategory,
 } from "@/features/categories/hooks/useAdminCategories.ts";
-import type { CategoryFormData, CategoryImageState } from "@/features/categories/hooks/useAdminCategories.ts";
+import type {
+  CategoryFormData,
+  CategoryImageState,
+} from "@/features/categories/hooks/useAdminCategories.ts";
 import { useEffect, useRef, useState } from "react";
 import { LuSearch, LuTrash2, LuUpload } from "react-icons/lu";
 

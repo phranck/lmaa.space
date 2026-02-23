@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { ShopListItem } from "@/features/shops/ShopListItem.tsx";
 import {
   EMPTY_SHOP_FORM,
@@ -7,7 +8,6 @@ import {
   useSaveShop,
 } from "@/features/shops/hooks/useAdminShops.ts";
 import type { ShopFormData } from "@/features/shops/hooks/useAdminShops.ts";
-import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
 
@@ -237,7 +237,9 @@ export function ShopsPage() {
               <button
                 type="button"
                 disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })}
+                onClick={() =>
+                  deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })
+                }
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "..." : "Löschen"}

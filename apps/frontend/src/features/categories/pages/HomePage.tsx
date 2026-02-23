@@ -1,11 +1,11 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router";
 import { PageLayout } from "@/components/layout/PageLayout.tsx";
-import { usePageMeta } from "@/hooks/usePageMeta.ts";
-import { heroImage } from "@/lib/categoryImages.ts";
 import { CategoryGrid } from "@/features/categories/components/CategoryGrid.tsx";
 import { HeroLogo } from "@/features/categories/components/HeroLogo.tsx";
 import { useCategories } from "@/features/categories/hooks/useCategories.ts";
+import { usePageMeta } from "@/hooks/usePageMeta.ts";
+import { heroImage } from "@/lib/categoryImages.ts";
+import { useMemo } from "react";
+import { useNavigate } from "react-router";
 
 export function HomePage() {
   const jsonLd = useMemo(

@@ -64,11 +64,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   return (
     <Table>
-      <TableHead
-        className={
-          stickyHeader ? "sticky top-14 z-10 shadow-[0_1px_0_#e5e7eb]" : ""
-        }
-      >
+      <TableHead className={stickyHeader ? "sticky top-14 z-10 shadow-[0_1px_0_#e5e7eb]" : ""}>
         <TableRow className="hover:bg-transparent">
           {columns.map((col) => (
             <Th key={col.id} className={col.headerClassName ?? col.className ?? ""}>

@@ -193,7 +193,13 @@ function VorschlaegeTab() {
                       adminNote,
                       sendFeedback,
                     },
-                    { onSuccess: () => { setReviewId(null); setAdminNote(""); setSendFeedback(false); } },
+                    {
+                      onSuccess: () => {
+                        setReviewId(null);
+                        setAdminNote("");
+                        setSendFeedback(false);
+                      },
+                    },
                   )
                 }
                 className={`flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
