@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
-import { count, countDistinct, desc, eq, getTableColumns, sql } from "drizzle-orm";
+import { count, countDistinct, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
@@ -13,6 +13,7 @@ import {
   sessions,
   shopCategories,
   shops,
+  submissionCategories,
   submissions,
 } from "../db/schema.js";
 import { fetchPreviewImage } from "../lib/og.js";
@@ -166,11 +167,23 @@ adminRoutes.get("/submissions", requireAuth, async (c) => {
   const query = db.select().from(submissions).orderBy(desc(submissions.createdAt));
   const rows = status ? await query.where(eq(submissions.status, status)) : await query;
 
-  const mapped = rows.map((row) => ({
-    ...row,
-    categoryIds: JSON.parse(row.categoryIds || "[]") as number[],
-  }));
+  const subIds = rows.map((s) => s.id);
+  const catRows =
+    subIds.length > 0
+      ? await db
+          .select()
+          .from(submissionCategories)
+          .where(inArray(submissionCategories.submissionId, subIds))
+      : [];
 
+  const catMap = new Map<number, number[]>();
+  for (const r of catRows) {
+    const arr = catMap.get(r.submissionId) ?? [];
+    arr.push(r.categoryId);
+    catMap.set(r.submissionId, arr);
+  }
+
+  const mapped = rows.map((row) => ({ ...row, categoryIds: catMap.get(row.id) ?? [] }));
   return c.json({ data: mapped });
 });
 
@@ -198,9 +211,10 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
 
   // On approval: auto-create shop from submission data
   if (status === "approved") {
-    const categoryIds = JSON.parse(submission.categoryIds || "[]") as number[];
-    const effectiveIds =
-      categoryIds.length > 0 ? categoryIds : submission.categoryId ? [submission.categoryId] : [];
+    const catRows = await db
+      .select({ categoryId: submissionCategories.categoryId })
+      .from(submissionCategories)
+      .where(eq(submissionCategories.submissionId, id));
 
     const [newShop] = await db
       .insert(shops)
@@ -214,10 +228,10 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
       })
       .returning();
 
-    if (effectiveIds.length > 0) {
+    if (catRows.length > 0) {
       await db
         .insert(shopCategories)
-        .values(effectiveIds.map((cid) => ({ shopId: newShop.id, categoryId: cid })));
+        .values(catRows.map((r) => ({ shopId: newShop.id, categoryId: r.categoryId })));
     }
 
     fetchPreviewImage(newShop.url)
@@ -243,9 +257,7 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
     }
   }
 
-  return c.json({
-    data: { ...submission, categoryIds: JSON.parse(submission.categoryIds || "[]") as number[] },
-  });
+  return c.json({ data: submission });
 });
 
 // ── Shops ──────────────────────────────────────────────────────────────────────

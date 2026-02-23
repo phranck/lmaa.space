@@ -5,7 +5,6 @@ export interface Submission {
   shopName: string;
   shopUrl: string;
   categoryIds: number[];
-  categoryId: number | null;
   categorySuggestion: string | null;
   region: string;
   pickup: string;

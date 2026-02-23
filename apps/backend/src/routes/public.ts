@@ -10,6 +10,7 @@ import {
   deadLinkReports,
   shopCategories,
   shops,
+  submissionCategories,
   submissions,
 } from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
@@ -200,16 +201,23 @@ publicRoutes.post(
   async (c) => {
     const body = c.req.valid("json");
 
-    await db.insert(submissions).values({
-      shopName: body.shopName,
-      shopUrl: body.shopUrl,
-      categoryId: body.categoryIds[0] ?? null,
-      categoryIds: JSON.stringify(body.categoryIds),
-      categorySuggestion: body.categorySuggestion ?? null,
-      description: body.description ?? "",
-      submitterEmail: body.submitterEmail ?? null,
-      submitterNote: body.submitterNote ?? null,
-    });
+    const [submission] = await db
+      .insert(submissions)
+      .values({
+        shopName: body.shopName,
+        shopUrl: body.shopUrl,
+        categorySuggestion: body.categorySuggestion ?? null,
+        description: body.description ?? "",
+        submitterEmail: body.submitterEmail ?? null,
+        submitterNote: body.submitterNote ?? null,
+      })
+      .returning();
+
+    if (body.categoryIds.length > 0) {
+      await db
+        .insert(submissionCategories)
+        .values(body.categoryIds.map((cid) => ({ submissionId: submission.id, categoryId: cid })));
+    }
 
     return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
   },
