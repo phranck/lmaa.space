@@ -43,7 +43,7 @@ export function ShopCard({ shop }: ShopCardProps) {
               alt=""
               aria-hidden="true"
               loading="lazy"
-              className="w-full h-full object-contain p-1"
+              className="w-full h-full object-cover"
               onError={() => setImgError(true)}
             />
           ) : (
