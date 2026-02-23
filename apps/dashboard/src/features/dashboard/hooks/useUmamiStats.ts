@@ -61,7 +61,8 @@ export function useUmamiStats(period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-stats", period],
     queryFn: () => api.get<UmamiStats | null>(`/admin/umami/stats?period=${period}`),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
   });
 }
 
@@ -69,7 +70,8 @@ export function useUmamiPageviews(period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-pageviews", period],
     queryFn: () => api.get<UmamiPageviews | null>(`/admin/umami/pageviews?period=${period}`),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
   });
 }
 
@@ -96,6 +98,7 @@ export function useUmamiMetrics(type: UmamiMetricType, period: UmamiPeriod) {
     queryKey: ["umami-metrics", type, period],
     queryFn: () =>
       api.get<UmamiMetricRow[] | null>(`/admin/umami/metrics?type=${type}&period=${period}`),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
   });
 }
