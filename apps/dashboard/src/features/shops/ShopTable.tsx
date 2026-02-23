@@ -53,7 +53,7 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         id: "region",
         header: "Region",
         className: "w-36",
-        sortKey: (shop) => shop.region ?? "",
+        sortKey: (shop) => (shop.region ?? []).join(", "),
         cell: (shop) => (
           <span className="text-sm text-[var(--ds-text-muted)]">{shop.region || "–"}</span>
         ),
