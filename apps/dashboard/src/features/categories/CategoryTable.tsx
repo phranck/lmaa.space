@@ -11,11 +11,11 @@ interface CategoryTableProps {
 function CategoryThumb({ category }: { category: Category }) {
   const src = category.imageUrl ?? `/images/${category.slug}.jpg`;
   return (
-    <div className="w-28 aspect-video rounded-lg overflow-hidden bg-gray-100 shrink-0">
+    <div className="w-28 h-[63px] rounded-lg overflow-hidden bg-gray-100 shrink-0">
       <img
         src={src}
         alt=""
-        className="w-full h-full object-contain"
+        className="block w-full h-full object-contain"
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
         }}
