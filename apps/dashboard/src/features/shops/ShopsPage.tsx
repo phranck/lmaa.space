@@ -3,6 +3,7 @@ import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
 import { useAdminShops, useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
 import { useState } from "react";
+import { LuX } from "react-icons/lu";
 
 export function ShopsPage() {
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
@@ -23,13 +24,24 @@ export function ShopsPage() {
   return (
     <div>
       <PageHeader title="Shops">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Suchen…"
-          className="h-9 w-52 px-3 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Suchen…"
+            className="h-9 w-52 px-3 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <LuX size={14} />
+            </button>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setEditTarget("new")}

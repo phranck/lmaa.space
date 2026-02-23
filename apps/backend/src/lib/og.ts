@@ -17,7 +17,7 @@ function extractDomain(url: string): string {
   }
 }
 
-function extractHomepage(url: string): string {
+export function extractHomepage(url: string): string {
   try {
     const u = new URL(url);
     return `${u.protocol}//${u.host}`;

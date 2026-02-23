@@ -16,7 +16,7 @@ import {
   submissionCategories,
   submissions,
 } from "../db/schema.js";
-import { fetchPreviewImage } from "../lib/og.js";
+import { extractHomepage, fetchPreviewImage } from "../lib/og.js";
 import { type AuthVariables, requireAuth, requireOwner } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import {
@@ -441,12 +441,25 @@ adminRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {
   const [shop] = await db.select({ url: shops.url }).from(shops).where(eq(shops.id, id));
   if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
 
-  const result = await fetchPreviewImage(shop.url);
+  const result = await fetchPreviewImage(extractHomepage(shop.url));
   const ogImage = result?.url ?? null;
   await db.update(shops).set({ ogImage }).where(eq(shops.id, id));
 
   return c.json({ data: { ogImage } });
 });
+
+const previewImageSchema = z.object({ url: z.string().url() });
+
+adminRoutes.post(
+  "/preview-image",
+  requireAuth,
+  zValidator("json", previewImageSchema),
+  async (c) => {
+    const { url } = c.req.valid("json");
+    const result = await fetchPreviewImage(extractHomepage(url));
+    return c.json({ data: { ogImage: result?.url ?? null } });
+  },
+);
 
 // GET /api/admin/dead-link-reports
 adminRoutes.get("/dead-link-reports", requireAuth, async (c) => {

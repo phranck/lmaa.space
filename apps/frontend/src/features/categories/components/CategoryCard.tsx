@@ -26,7 +26,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
     <Link
       to={`/kategorie/${category.slug}`}
       onMouseEnter={handleMouseEnter}
-      className="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-lg transition-all duration-300"
+      className="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
       {/* Photo or placeholder */}
       <div className="aspect-video overflow-hidden relative">

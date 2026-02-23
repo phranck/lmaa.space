@@ -96,10 +96,16 @@ export function ShopEditForm({
             rel="noopener noreferrer"
             aria-label="URL öffnen"
             tabIndex={value.url ? 0 : -1}
-            className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
+            className={`shrink-0 flex items-center justify-center w-9 border transition-colors ${
+              isDashboard ? "rounded-control" : "rounded-xl bg-white"
+            } ${
               value.url
-                ? "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                : "border-gray-100 text-gray-300 pointer-events-none"
+                ? isDashboard
+                  ? "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  : "border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700"
+                : isDashboard
+                  ? "border-gray-100 text-gray-300 pointer-events-none"
+                  : "border-stone-100 text-stone-300 pointer-events-none"
             }`}
           >
             <LuExternalLink size={14} />
