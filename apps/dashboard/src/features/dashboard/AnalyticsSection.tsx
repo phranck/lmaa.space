@@ -55,7 +55,7 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, sub }: KpiCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
       <p className="text-xs text-gray-400 mb-1">{label}</p>
       <p className="text-xl font-semibold text-gray-900">{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
@@ -76,7 +76,7 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
   const max = rows[0]?.y ?? 1;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col gap-3">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
       <p className="text-sm font-medium text-gray-700">{title}</p>
       {isLoading && (
         <div className="space-y-2">
@@ -185,8 +185,20 @@ export function AnalyticsSection() {
 
       {/* Traffic Chart */}
       {(pvLoading || chartData.length > 0) && (
-        <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-3">Traffic</p>
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium text-gray-700">Traffic</p>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                <span className="w-3 h-0.5 rounded-full bg-amber-400 inline-block" />
+                Besucher
+              </span>
+              <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                <span className="w-3 h-0.5 rounded-full bg-stone-400 inline-block" />
+                Seitenaufrufe
+              </span>
+            </div>
+          </div>
           {pvLoading ? (
             <div className="h-40 bg-gray-100 rounded-lg animate-pulse" />
           ) : (

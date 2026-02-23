@@ -13,9 +13,9 @@ export function DashboardInfoCard({
   accent?: boolean;
   href?: string;
 }) {
-  const className = `bg-white rounded-xl border p-5 text-center h-28 flex flex-col items-center justify-center transition-all ${
+  const className = `bg-white rounded-xl border p-5 text-center h-28 flex flex-col items-center justify-center transition-all shadow-sm ${
     accent ? "border-amber-200 bg-amber-50" : "border-gray-100"
-  } ${href ? "hover:shadow-sm hover:border-gray-300 cursor-pointer" : ""}`;
+  } ${href ? "hover:shadow-md hover:border-gray-200 cursor-pointer" : ""}`;
 
   const content = (
     <>
