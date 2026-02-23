@@ -112,11 +112,13 @@ export function ContentEditorPage() {
       diffSourcePlugin({ viewMode: loadViewMode() }),
       realmPlugin({
         postInit(realm) {
+          let skip = true;
           realm.sub(viewMode$, (mode) => {
+            if (skip) { skip = false; return; }
             localStorage.setItem(VIEW_MODE_KEY, mode);
           });
         },
-      }),
+      })(),
       toolbarPlugin({
         toolbarContents: () => (
           <DiffSourceToggleWrapper>
