@@ -9,7 +9,7 @@ export function DashboardPage() {
     return (
       <div>
         <PageHeader title="Übersicht" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
             <div
               key={key}
@@ -25,7 +25,7 @@ export function DashboardPage() {
     <div>
       <PageHeader title="Übersicht" />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <DashboardInfoCard label="Shops" value={stats?.shops ?? 0} />
         <DashboardInfoCard label="Kategorien" value={stats?.categories ?? 0} />
         <DashboardInfoCard
@@ -33,6 +33,7 @@ export function DashboardPage() {
           value={stats?.pendingSubmissions ?? 0}
           accent={(stats?.pendingSubmissions ?? 0) > 0}
           sub={(stats?.pendingSubmissions ?? 0) > 0 ? "Warten auf Review" : undefined}
+          href={(stats?.pendingSubmissions ?? 0) > 0 ? "/meldungen" : undefined}
         />
         <DashboardInfoCard
           label="Vorschläge gesamt"
@@ -44,6 +45,7 @@ export function DashboardPage() {
           value={stats?.deadLinkReports ?? 0}
           accent={(stats?.deadLinkReports ?? 0) > 0}
           sub={(stats?.deadLinkReports ?? 0) > 0 ? "Shops gemeldet" : undefined}
+          href={(stats?.deadLinkReports ?? 0) > 0 ? "/meldungen" : undefined}
         />
       </div>
     </div>
