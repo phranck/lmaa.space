@@ -237,12 +237,25 @@ async function main() {
       const [existingShop] = await sql`SELECT id FROM shops WHERE url = ${shop.url}`;
 
       if (!existingShop) {
+        const [newShop] = await sql`
+          INSERT INTO shops (name, url, description)
+          VALUES (${shop.name}, ${shop.url}, ${shop.description})
+          RETURNING id
+        `;
         await sql`
-          INSERT INTO shops (name, url, category_id, description)
-          VALUES (${shop.name}, ${shop.url}, ${categoryId}, ${shop.description})
+          INSERT INTO shop_categories (shop_id, category_id)
+          VALUES (${newShop.id}, ${categoryId})
+          ON CONFLICT DO NOTHING
         `;
         totalShops++;
         console.log(`    + ${shop.name}`);
+      } else {
+        // Ensure category association exists (idempotent re-run)
+        await sql`
+          INSERT INTO shop_categories (shop_id, category_id)
+          VALUES (${existingShop.id}, ${categoryId})
+          ON CONFLICT DO NOTHING
+        `;
       }
     }
   }
