@@ -82,24 +82,42 @@ function formatMinute(ts: number): string {
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
+function intTicks(max: number): number[] {
+  if (max <= 0) return [0];
+  if (max <= 10) return Array.from({ length: max + 1 }, (_, i) => i);
+  const step = max <= 50 ? 5 : max <= 200 ? 20 : Math.ceil(max / 10) * 2;
+  const ticks: number[] = [];
+  for (let i = 0; i <= max; i += step) ticks.push(i);
+  if (ticks[ticks.length - 1] < max) ticks.push(max);
+  return ticks;
+}
+
 function RealtimeCard() {
   const { data: realtime, isLoading: rtLoading } = useUmamiRealtime();
   const { data: active } = useUmamiActive();
 
   const chartData = (() => {
-    if (!realtime?.series) return [];
-    const byTime = new Map<number, { Besucher: number; Aufrufe: number }>();
-    for (const v of realtime.series.visitors) {
-      byTime.set(v.x, { Besucher: v.y, Aufrufe: 0 });
+    const now = Date.now();
+    // Build full 30-minute grid (one slot per minute, oldest first)
+    const slots = Array.from({ length: 30 }, (_, i) => {
+      const ts = Math.floor((now - (29 - i) * 60_000) / 60_000) * 60_000;
+      return { ts, time: formatMinute(ts), Besucher: 0, Aufrufe: 0 };
+    });
+
+    if (realtime?.series) {
+      for (const v of realtime.series.visitors) {
+        const rounded = Math.floor(v.x / 60_000) * 60_000;
+        const slot = slots.find((s) => s.ts === rounded);
+        if (slot) slot.Besucher = v.y;
+      }
+      for (const v of realtime.series.views) {
+        const rounded = Math.floor(v.x / 60_000) * 60_000;
+        const slot = slots.find((s) => s.ts === rounded);
+        if (slot) slot.Aufrufe = v.y;
+      }
     }
-    for (const v of realtime.series.views) {
-      const entry = byTime.get(v.x);
-      if (entry) entry.Aufrufe = v.y;
-      else byTime.set(v.x, { Besucher: 0, Aufrufe: v.y });
-    }
-    return Array.from(byTime.entries())
-      .sort((a, b) => a[0] - b[0])
-      .map(([ts, vals]) => ({ time: formatMinute(ts), ...vals }));
+
+    return slots.map(({ time, Besucher, Aufrufe }) => ({ time, Besucher, Aufrufe }));
   })();
 
   const topUrls = realtime?.urls
@@ -108,6 +126,8 @@ function RealtimeCard() {
         .slice(0, 5)
     : [];
   const maxViews = topUrls[0]?.[1] ?? 1;
+
+  const rtMaxVal = Math.max(...chartData.map((d) => Math.max(d.Besucher, d.Aufrufe)), 1);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
@@ -147,76 +167,73 @@ function RealtimeCard() {
       ) : (
         <>
           {/* Legende */}
-          <div className="flex items-center gap-4 mb-2">
-            <span className="flex items-center gap-1.5 text-xs text-gray-500">
-              <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
-              Besucher
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-gray-500">
-              <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
-              Seitenaufrufe
-            </span>
-          </div>
-
-          {/* Bar Chart */}
-          <ResponsiveContainer width="100%" height={120}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
-              barSize={5}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={false} />
-              <XAxis
-                dataKey="time"
-                tick={{ fontSize: 10, fill: "#9ca3af" }}
-                axisLine={false}
-                tickLine={false}
-                interval={0}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: "#9ca3af" }}
-                axisLine={false}
-                tickLine={false}
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: 8,
-                  border: "1px solid #e7e5e4",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                }}
-                cursor={{ fill: "rgba(0,0,0,0.03)" }}
-              />
-              <Bar dataKey="Besucher" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="Aufrufe" fill="#a8a29e" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-
-          {/* Top URLs (Realtime – letzte 30 min) */}
-          {topUrls.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs font-medium text-gray-500 mb-2">
-                Meistaufgerufene Seiten (letzte 30 min)
-              </p>
-              <div className="space-y-1.5">
-                {topUrls.map(([url, count]) => (
-                  <div key={url} className="flex items-center gap-2 text-xs">
-                    <span className="flex-1 truncate text-gray-500" title={url}>
-                      {url === "/" ? "Startseite" : url}
-                    </span>
-                    <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-amber-400 rounded-full"
-                        style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
-                      />
-                    </div>
-                    <span className="shrink-0 w-5 text-right text-gray-400">{count}</span>
-                  </div>
-                ))}
+          <div className="flex gap-4 items-start">
+            {/* Legende + Bar Chart (3/4) */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-4 mb-2">
+                <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
+                  Besucher
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
+                  Seitenaufrufe
+                </span>
               </div>
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
+                  barSize={5}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={false} />
+                  <XAxis
+                    dataKey="time"
+                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={4}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
+                    domain={[0, rtMaxVal]}
+                    ticks={intTicks(rtMaxVal)}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      fontSize: 12,
+                      borderRadius: 8,
+                      border: "1px solid #e7e5e4",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    }}
+                    cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                  />
+                  <Bar dataKey="Besucher" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Aufrufe" fill="#a8a29e" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-          )}
+
+            {/* Top URLs (1/4) */}
+            {topUrls.length > 0 && (
+              <div className="w-1/4 shrink-0 pl-4 border-l border-gray-100">
+                <p className="text-xs font-medium text-gray-500 mb-2">Top Seiten</p>
+                <div className="space-y-1.5">
+                  {topUrls.map(([url, count]) => (
+                    <div key={url} className="flex items-center gap-2 text-xs">
+                      <span className="flex-1 truncate text-gray-500" title={url}>
+                        {url === "/" ? "Startseite" : url}
+                      </span>
+                      <span className="shrink-0 text-right text-gray-400">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
@@ -292,6 +309,8 @@ export function AnalyticsSection() {
       Seitenaufrufe: pv.y,
       Besucher: pageviews.sessions.find((s) => s.x === pv.x)?.y ?? 0,
     })) ?? [];
+
+  const pvMaxVal = Math.max(...chartData.map((d) => Math.max(d.Besucher, d.Seitenaufrufe)), 1);
 
   const visitsVal = stats?.visits?.value ?? 0;
   const bouncesVal = stats?.bounces?.value ?? 0;
@@ -393,6 +412,8 @@ export function AnalyticsSection() {
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
+                  domain={[0, pvMaxVal]}
+                  ticks={intTicks(pvMaxVal)}
                 />
                 <Tooltip
                   contentStyle={{
