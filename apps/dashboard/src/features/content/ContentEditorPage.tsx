@@ -91,7 +91,7 @@ export function ContentEditorPage() {
             key={slug}
             markdown={page.content}
             onChange={handleChange}
-            contentEditableClassName="prose prose-sm max-w-none min-h-[60vh] focus:outline-none px-6 py-4"
+            contentEditableClassName="prose prose-stone prose-sm max-w-none prose-a:text-amber-700 min-h-[60vh] focus:outline-none px-6 py-4"
             plugins={[
               headingsPlugin(),
               listsPlugin(),

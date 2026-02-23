@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@lmaa/shared/styles/tokens.css";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -119,4 +120,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* lmaa.space */
+/* MDXEditor: let Tailwind Typography (prose) take precedence over editor defaults */
+.mdxeditor .prose {
+  max-width: none;
+}
+.mdxeditor .prose h1,
+.mdxeditor .prose h2,
+.mdxeditor .prose h3,
+.mdxeditor .prose h4 {
+  font-family: var(--font-sans);
+}
+.mdxeditor-popup-container {
+  z-index: 50;
+}
