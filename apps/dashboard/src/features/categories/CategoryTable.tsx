@@ -115,7 +115,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
       sx: { width: "100%" },
     },
     muiTableProps: {
-      sx: { width: "100%", tableLayout: "fixed" },
+      sx: { width: "100%" },
     },
     muiTableHeadCellProps: {
       sx: {
@@ -141,5 +141,11 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
     },
   });
 
-  return <MaterialReactTable table={table} />;
+  // Wrap in a display:grid container to force MRT's outer MuiBox to stretch full width.
+  // MRT wraps everything in a Box that defaults to fit-content; grid children stretch by default.
+  return (
+    <div style={{ display: "grid", width: "100%" }}>
+      <MaterialReactTable table={table} />
+    </div>
+  );
 }
