@@ -146,6 +146,9 @@
   --ds-text-subtle: oklch(0.553 0.021 38.2);
   --ds-text-inverse: oklch(0.145 0.005 38.2);
 
+  /* Accent — dark amber-tinted surface, keeps text readable */
+  --ds-accent-subtle: oklch(0.22 0.025 92); /* dark amber tint instead of near-white */
+
   /* Status — darker backgrounds, lighter text */
   --ds-success-bg: oklch(0.18 0.025 155.8);
   --ds-success-text: oklch(0.72 0.15 149.6);
