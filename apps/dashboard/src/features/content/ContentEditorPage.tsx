@@ -46,6 +46,7 @@ const PAGE_LABELS: Record<string, string> = {
   about: "Über uns",
   impressum: "Impressum",
   datenschutz: "Datenschutzerklärung",
+  aufnahmekriterien: "Aufnahmekriterien",
 };
 
 const VIEW_MODE_KEY = "content-editor-view-mode";

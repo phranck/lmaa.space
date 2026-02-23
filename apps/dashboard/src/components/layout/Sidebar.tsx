@@ -40,6 +40,7 @@ const CONTENT_GROUP: NavGroup = {
     { label: "Über uns", to: "/content/about" },
     { label: "Impressum", to: "/content/impressum" },
     { label: "Datenschutz", to: "/content/datenschutz" },
+    { label: "Aufnahmekriterien", to: "/content/aufnahmekriterien" },
   ],
 };
 
