@@ -154,7 +154,7 @@ export function UsersPage() {
               <button
                 type="button"
                 onClick={() => setDeleteId(user.id)}
-                className="px-3 py-1.5 text-sm border border-red-200 rounded-control text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                className="px-3 py-1.5 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors shrink-0"
               >
                 Entfernen
               </button>

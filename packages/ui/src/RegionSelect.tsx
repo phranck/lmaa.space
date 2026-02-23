@@ -99,7 +99,7 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
               width: dropdownRect.width,
               zIndex: 9999,
             }}
-            className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
               {REGION_OPTIONS.map(({ code, flag, name }) => {
@@ -111,15 +111,15 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
                     onClick={() => toggle(code)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
                       checked
-                        ? "bg-[var(--color-primary)]/5 text-gray-900"
-                        : "text-gray-700 hover:bg-gray-50"
+                        ? "bg-[var(--color-primary)]/5 text-[var(--ds-text)]"
+                        : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)]"
                     }`}
                   >
                     <span
                       className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors ${
                         checked
                           ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                          : "border-gray-300"
+                          : "border-[var(--ds-border-strong)]"
                       }`}
                     >
                       {checked && <LuCheck size={10} className="text-white" strokeWidth={3} />}
@@ -138,13 +138,13 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
   return (
     <div>
       <div className="flex items-center gap-1.5 mb-1">
-        <span className="text-xs font-medium text-gray-600">Region</span>
+        <span className="text-xs font-medium text-[var(--ds-text-muted)]">Region</span>
         <div className="relative">
           <button
             ref={infoButtonRef}
             type="button"
             onClick={() => setInfoOpen((o) => !o)}
-            className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+            className="w-4 h-4 flex items-center justify-center text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
             aria-label="Info zur Regionauswahl"
           >
             <LuInfo size={13} />
@@ -152,14 +152,14 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
           {infoOpen && (
             <div
               ref={infoRef}
-              className="absolute left-0 top-6 z-50 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-xs text-gray-600 leading-relaxed"
+              className="absolute left-0 top-6 z-50 w-72 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg shadow-lg p-3 text-xs text-[var(--ds-text-muted)] leading-relaxed"
             >
               <div className="flex items-start justify-between gap-2 mb-1">
-                <span className="font-medium text-gray-800">Was bedeutet Region?</span>
+                <span className="font-medium text-[var(--ds-text)]">Was bedeutet Region?</span>
                 <button
                   type="button"
                   onClick={() => setInfoOpen(false)}
-                  className="shrink-0 text-gray-400 hover:text-gray-600"
+                  className="shrink-0 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
                 >
                   <LuX size={12} />
                 </button>
@@ -178,20 +178,22 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
           ref={buttonRef}
           type="button"
           onClick={handleToggle}
-          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-white transition-colors ${
+          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-surface)] transition-colors ${
             open
               ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
               : error
                 ? "border-red-400"
-                : "border-gray-200 hover:border-gray-300"
+                : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
           }`}
         >
-          <span className={`truncate ${label ? "text-gray-900" : "text-gray-400"}`}>
+          <span
+            className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
+          >
             {label ?? "Region wählen…"}
           </span>
           <LuChevronDown
             size={14}
-            className={`shrink-0 ml-2 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`shrink-0 ml-2 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>
 

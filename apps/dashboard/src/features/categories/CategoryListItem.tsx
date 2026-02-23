@@ -36,14 +36,14 @@ export function CategoryListItem({ category, onEdit, onDelete }: CategoryListIte
           <button
             type="button"
             onClick={() => onEdit(category.id)}
-            className="btn-edit h-9 px-3 text-sm border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] transition-colors"
+            className="btn-edit h-9 px-3 text-sm border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
           >
             Bearbeiten
           </button>
           <button
             type="button"
             onClick={() => onDelete(category.id)}
-            className="btn-delete h-9 px-3 text-sm border border-red-200 rounded-control text-red-500 transition-colors"
+            className="btn-delete h-9 px-3 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
           >
             Löschen
           </button>
