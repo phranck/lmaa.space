@@ -203,6 +203,38 @@ async function main() {
     WHERE search_vector IS NULL
   `;
 
+  // Normalize submissions: replace category_id + category_ids with junction table
+  await sql`
+    CREATE TABLE IF NOT EXISTS submission_categories (
+      submission_id INTEGER NOT NULL REFERENCES submissions(id) ON DELETE CASCADE,
+      category_id   INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+      PRIMARY KEY (submission_id, category_id)
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_scat_submission ON submission_categories(submission_id)`;
+
+  // Migrate from legacy single-FK column
+  await sql`
+    INSERT INTO submission_categories (submission_id, category_id)
+    SELECT id, category_id FROM submissions WHERE category_id IS NOT NULL
+    ON CONFLICT DO NOTHING
+  `;
+
+  // Migrate from JSON-array column (may overlap with above – ON CONFLICT handles it)
+  await sql`
+    INSERT INTO submission_categories (submission_id, category_id)
+    SELECT s.id, elem::integer
+    FROM submissions s,
+         jsonb_array_elements_text(s.category_ids::jsonb) AS elem
+    WHERE s.category_ids IS NOT NULL
+      AND s.category_ids <> '[]'
+    ON CONFLICT DO NOTHING
+  `;
+
+  // Drop the now-redundant denormalized columns
+  await sql`ALTER TABLE submissions DROP COLUMN IF EXISTS category_ids`;
+  await sql`ALTER TABLE submissions DROP COLUMN IF EXISTS category_id`;
+
   console.log("Migrations complete.");
   await sql.end();
 }

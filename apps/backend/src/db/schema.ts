@@ -73,8 +73,6 @@ export const submissions = pgTable(
     id: serial("id").primaryKey(),
     shopName: text("shop_name").notNull(),
     shopUrl: text("shop_url").notNull(),
-    categoryId: integer("category_id").references(() => categories.id),
-    categoryIds: text("category_ids").notNull().default("[]"),
     categorySuggestion: text("category_suggestion"),
     region: text("region").notNull().default(""),
     pickup: text("pickup").notNull().default(""),
@@ -94,6 +92,22 @@ export const submissions = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [index("idx_submissions_status").on(table.status)],
+);
+
+export const submissionCategories = pgTable(
+  "submission_categories",
+  {
+    submissionId: integer("submission_id")
+      .notNull()
+      .references(() => submissions.id, { onDelete: "cascade" }),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.submissionId, table.categoryId] }),
+    index("idx_scat_submission").on(table.submissionId),
+  ],
 );
 
 export const sessions = pgTable(
@@ -137,6 +151,7 @@ export type ShopInsert = typeof shops.$inferInsert;
 export type ShopCategory = typeof shopCategories.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type SubmissionInsert = typeof submissions.$inferInsert;
+export type SubmissionCategory = typeof submissionCategories.$inferSelect;
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type AdminUserInsert = typeof adminUsers.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
