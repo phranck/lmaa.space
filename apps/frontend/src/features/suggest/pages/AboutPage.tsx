@@ -1,6 +1,6 @@
 import { Link } from "react-router";
-import { PageLayout } from "../../../components/layout/PageLayout.tsx";
-import { usePageMeta } from "../../../hooks/usePageMeta.ts";
+import { PageLayout } from "@/components/layout/PageLayout.tsx";
+import { usePageMeta } from "@/hooks/usePageMeta.ts";
 
 export function AboutPage() {
   usePageMeta({

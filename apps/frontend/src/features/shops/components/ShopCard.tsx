@@ -1,6 +1,6 @@
 import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
-import { api } from "../../../lib/api.ts";
+import { api } from "@/lib/api.ts";
 
 interface ShopCardProps {
   shop: Shop;

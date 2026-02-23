@@ -1,10 +1,10 @@
 import type { Shop } from "@lmaa/shared";
 import { useMemo } from "react";
 import { Link, useParams } from "react-router";
-import { PageLayout } from "../../../components/layout/PageLayout.tsx";
-import { usePageMeta } from "../../../hooks/usePageMeta.ts";
-import { ShopCard } from "../../shops/components/ShopCard.tsx";
-import { useCategory } from "../hooks/useCategories.ts";
+import { PageLayout } from "@/components/layout/PageLayout.tsx";
+import { usePageMeta } from "@/hooks/usePageMeta.ts";
+import { ShopCard } from "@/features/shops/components/ShopCard.tsx";
+import { useCategory } from "@/features/categories/hooks/useCategories.ts";
 
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();

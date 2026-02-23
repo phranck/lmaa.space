@@ -1,10 +1,10 @@
 import { Link, useSearchParams } from "react-router";
-import { PageLayout } from "../../../components/layout/PageLayout.tsx";
-import { usePageMeta } from "../../../hooks/usePageMeta.ts";
-import { useCategories } from "../../categories/hooks/useCategories.ts";
-import { ShopCard } from "../../shops/components/ShopCard.tsx";
-import { useShops } from "../../shops/hooks/useShops.ts";
-import { useSearch } from "../hooks/useSearch.ts";
+import { PageLayout } from "@/components/layout/PageLayout.tsx";
+import { usePageMeta } from "@/hooks/usePageMeta.ts";
+import { useCategories } from "@/features/categories/hooks/useCategories.ts";
+import { ShopCard } from "@/features/shops/components/ShopCard.tsx";
+import { useShops } from "@/features/shops/hooks/useShops.ts";
+import { useSearch } from "@/features/search/hooks/useSearch.ts";
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();
