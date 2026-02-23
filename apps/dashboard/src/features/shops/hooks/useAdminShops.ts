@@ -36,3 +36,14 @@ export function useDeleteShop() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }
+
+export function useRefetchShopImage(shopId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post<{ ogImage: string | null }>(`/admin/shops/${shopId}/refetch-image`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["shop", shopId] });
+      qc.invalidateQueries({ queryKey: ["shops-admin"] });
+    },
+  });
+}

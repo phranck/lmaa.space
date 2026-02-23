@@ -1,10 +1,14 @@
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
-import { useAdminShop, useSaveShop } from "@/features/shops/hooks/useAdminShops.ts";
+import {
+  useAdminShop,
+  useRefetchShopImage,
+  useSaveShop,
+} from "@/features/shops/hooks/useAdminShops.ts";
 import { useEditSubmission } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useEffect, useState } from "react";
-import { LuX } from "react-icons/lu";
+import { LuRefreshCw, LuX } from "react-icons/lu";
 
 type ShopEditCardProps = {
   initialData?: Partial<ShopEditFormValue>;
@@ -30,6 +34,7 @@ export function ShopEditCard({
   );
   const shopMutation = useSaveShop(isSubmissionMode ? null : isNew ? null : (shopId as number));
   const submissionMutation = useEditSubmission();
+  const refetchImageMutation = useRefetchShopImage(typeof shopId === "number" ? shopId : 0);
 
   const isPending = shopMutation.isPending || submissionMutation.isPending;
   const isError = shopMutation.isError || submissionMutation.isError;
@@ -114,6 +119,38 @@ export function ShopEditCard({
               categories={categories}
               variant="dashboard"
             />
+          )}
+
+          {!isNew && !isSubmissionMode && (
+            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
+              <div className="shrink-0 w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
+                {shopData?.ogImage ? (
+                  <img src={shopData.ogImage} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-bold text-gray-300 select-none">
+                    {form.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-600 mb-0.5">Vorschaubild</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {shopData?.ogImage ?? "Kein Bild gesetzt"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => refetchImageMutation.mutate()}
+                disabled={refetchImageMutation.isPending || isLoadingShop}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-control text-xs text-gray-600 hover:border-gray-300 transition-colors disabled:opacity-40"
+              >
+                <LuRefreshCw
+                  size={12}
+                  className={refetchImageMutation.isPending ? "animate-spin" : ""}
+                />
+                Neu laden
+              </button>
+            </div>
           )}
 
           {isError && (
