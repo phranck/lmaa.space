@@ -214,6 +214,28 @@ adminRoutes.get("/umami/metrics", requireAuth, async (c) => {
   }
 });
 
+// GET /api/admin/umami/active – visitors in the last 5 minutes
+adminRoutes.get("/umami/active", requireAuth, async (c) => {
+  if (!umamiConfigured) return c.json({ data: null });
+  try {
+    const data = await umamiGet(`/websites/${UMAMI_WEBSITE_ID}/active`);
+    return c.json({ data });
+  } catch {
+    return c.json({ data: null });
+  }
+});
+
+// GET /api/admin/umami/realtime – last 30 minutes
+adminRoutes.get("/umami/realtime", requireAuth, async (c) => {
+  if (!umamiConfigured) return c.json({ data: null });
+  try {
+    const data = await umamiGet(`/realtime/${UMAMI_WEBSITE_ID}`);
+    return c.json({ data });
+  } catch {
+    return c.json({ data: null });
+  }
+});
+
 // GET /api/admin/submissions
 adminRoutes.get("/submissions", requireAuth, async (c) => {
   const status = c.req.query("status") as "pending" | "approved" | "rejected" | undefined;
