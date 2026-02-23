@@ -1,5 +1,6 @@
-import { Table, TableBody, TableHead, TableRow, Td, Th } from "@/components/ui/Table.tsx";
+import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import type { Category } from "@lmaa/shared";
+import { useMemo } from "react";
 
 interface CategoryTableProps {
   categories: Category[];
@@ -22,47 +23,54 @@ function CategoryThumb({ category }: { category: Category }) {
 }
 
 export function CategoryTable({ categories, onEdit, onDelete }: CategoryTableProps) {
-  return (
-    <Table>
-      <TableHead>
-        <TableRow className="hover:bg-transparent">
-          <Th className="w-14" />
-          <Th>Name</Th>
-          <Th>Slug</Th>
-          <Th className="w-20">Shops</Th>
-          <Th className="w-48" />
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {categories.map((cat) => (
-          <TableRow key={cat.id}>
-            <Td>
-              <CategoryThumb category={cat} />
-            </Td>
-            <Td className="font-medium text-gray-900">{cat.name}</Td>
-            <Td className="font-mono text-gray-400">{cat.slug}</Td>
-            <Td className="text-gray-500">{cat.shopCount ?? "–"}</Td>
-            <Td>
-              <div className="flex gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={() => onEdit(cat.id)}
-                  className="h-8 px-3 border border-gray-200 rounded-control text-gray-600 hover:border-gray-300 transition-colors"
-                >
-                  Bearbeiten
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(cat.id)}
-                  className="h-8 px-3 border border-red-200 rounded-control text-red-500 hover:border-red-300 transition-colors"
-                >
-                  Löschen
-                </button>
-              </div>
-            </Td>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+  const columns = useMemo<ColumnDef<Category>[]>(
+    () => [
+      {
+        id: "image",
+        className: "w-14",
+        cell: (cat) => <CategoryThumb category={cat} />,
+      },
+      {
+        id: "name",
+        header: "Name",
+        cell: (cat) => <span className="font-medium text-gray-900">{cat.name}</span>,
+      },
+      {
+        id: "slug",
+        header: "Slug",
+        cell: (cat) => <span className="font-mono text-gray-400">{cat.slug}</span>,
+      },
+      {
+        id: "shopCount",
+        header: "Shops",
+        className: "w-20",
+        cell: (cat) => <span className="text-gray-500">{cat.shopCount ?? "–"}</span>,
+      },
+      {
+        id: "actions",
+        className: "w-48",
+        cell: (cat) => (
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => onEdit(cat.id)}
+              className="h-8 px-3 border border-gray-200 rounded-control text-gray-600 hover:border-gray-300 transition-colors"
+            >
+              Bearbeiten
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(cat.id)}
+              className="h-8 px-3 border border-red-200 rounded-control text-red-500 hover:border-red-300 transition-colors"
+            >
+              Löschen
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [onEdit, onDelete],
   );
+
+  return <DataTable columns={columns} data={categories} getRowKey={(c) => c.id} />;
 }
