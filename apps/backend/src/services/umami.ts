@@ -34,11 +34,18 @@ export async function umamiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export type UmamiPeriod = "today" | "7d" | "30d";
+export type UmamiPeriod = "today" | "7d" | "30d" | "60d" | "90d";
+
+const PERIOD_DAYS: Record<UmamiPeriod, number | null> = {
+  today: null,
+  "7d": 7,
+  "30d": 30,
+  "60d": 60,
+  "90d": 90,
+};
 
 export function periodToRange(period: UmamiPeriod): { startAt: number; endAt: number } {
-  const now = Date.now();
-  const endAt = now;
+  const endAt = Date.now();
 
   if (period === "today") {
     const midnight = new Date();
@@ -46,7 +53,7 @@ export function periodToRange(period: UmamiPeriod): { startAt: number; endAt: nu
     return { startAt: midnight.getTime(), endAt };
   }
 
-  const days = period === "7d" ? 7 : 30;
+  const days = PERIOD_DAYS[period] ?? 7;
   const startAt = new Date();
   startAt.setDate(startAt.getDate() - days);
   startAt.setHours(0, 0, 0, 0);
