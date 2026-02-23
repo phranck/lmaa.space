@@ -21,6 +21,7 @@ import {
   Separator,
   StrikeThroughSupSubToggles,
   UndoRedo,
+  type ViewMode,
   codeBlockPlugin,
   diffSourcePlugin,
   directivesPlugin,
@@ -31,9 +32,11 @@ import {
   listsPlugin,
   markdownShortcutPlugin,
   quotePlugin,
+  realmPlugin,
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
+  viewMode$,
 } from "@mdxeditor/editor";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { LuMinus, LuPlus, LuSave } from "react-icons/lu";
@@ -45,10 +48,16 @@ const PAGE_LABELS: Record<string, string> = {
   datenschutz: "Datenschutzerklärung",
 };
 
+const VIEW_MODE_KEY = "content-editor-view-mode";
 const FONT_SIZE_KEY = "content-editor-source-font-size";
 const FONT_SIZE_MIN = 10;
 const FONT_SIZE_MAX = 24;
 const FONT_SIZE_DEFAULT = 13;
+
+function loadViewMode(): ViewMode {
+  const stored = localStorage.getItem(VIEW_MODE_KEY);
+  return stored === "source" || stored === "diff" ? stored : "rich-text";
+}
 
 function loadFontSize(): number {
   const stored = localStorage.getItem(FONT_SIZE_KEY);
@@ -100,7 +109,14 @@ export function ContentEditorPage() {
       codeBlockPlugin({ defaultCodeBlockLanguage: "" }),
       directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
       markdownShortcutPlugin(),
-      diffSourcePlugin({ viewMode: "rich-text" }),
+      diffSourcePlugin({ viewMode: loadViewMode() }),
+      realmPlugin({
+        postInit(realm) {
+          realm.sub(viewMode$, (mode) => {
+            localStorage.setItem(VIEW_MODE_KEY, mode);
+          });
+        },
+      }),
       toolbarPlugin({
         toolbarContents: () => (
           <DiffSourceToggleWrapper>
