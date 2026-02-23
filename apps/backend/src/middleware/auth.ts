@@ -1,4 +1,5 @@
 import { eq, gt } from "drizzle-orm";
+import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
@@ -9,7 +10,7 @@ export type AuthVariables = {
 };
 
 export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
-  const sessionId = c.req.header("Cookie")?.match(/session=([^;]+)/)?.[1];
+  const sessionId = getCookie(c, "session");
 
   if (!sessionId) {
     return c.json({ error: { message: "Unauthorized" } }, 401);

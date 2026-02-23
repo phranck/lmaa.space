@@ -5,6 +5,14 @@ import { adminUsers, sessions } from "../db/schema.js";
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24h
 
+export const SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "Strict" as const,
+  maxAge: 86400,
+  path: "/",
+};
+
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
 }

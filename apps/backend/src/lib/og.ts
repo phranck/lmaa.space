@@ -1,3 +1,5 @@
+import { isExternalUrl } from "./validate.js";
+
 const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -115,6 +117,7 @@ function firstLargeImage(html: string, base: string): string | null {
 }
 
 async function fetchHtml(url: string): Promise<string | null> {
+  if (!isExternalUrl(url)) return null;
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(10000),
@@ -129,6 +132,7 @@ async function fetchHtml(url: string): Promise<string | null> {
 }
 
 async function tryImageUrl(url: string): Promise<string | null> {
+  if (!isExternalUrl(url)) return null;
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(5000),
