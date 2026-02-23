@@ -115,7 +115,7 @@ function VorschlaegeTab() {
         {submissions.map((sub) => (
           <div
             key={sub.id}
-            className="bg-white rounded-2xl border border-gray-100 p-4 flex items-start gap-4"
+            className="bg-white rounded-2xl border border-gray-100 p-4 flex items-stretch gap-4"
           >
             {/* Logo */}
             <ShopImage url={sub.shopUrl} name={sub.shopName} />
@@ -162,7 +162,7 @@ function VorschlaegeTab() {
 
             {/* Actions (pending only) */}
             {filter === "pending" && (
-              <div className="flex flex-col gap-1.5 shrink-0">
+              <div className="flex flex-col justify-end gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -170,7 +170,7 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-8 px-3 border border-red-200 rounded-control text-red-500 text-sm hover:border-red-300 hover:bg-red-50 transition-colors"
+                  className="h-8 px-3 border border-red-200 rounded-control text-red-500 text-sm hover:border-red-300 hover:bg-red-50 transition-colors mb-2"
                 >
                   Ablehnen
                 </button>
