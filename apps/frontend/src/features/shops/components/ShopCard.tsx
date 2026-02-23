@@ -86,20 +86,16 @@ export function ShopCard({ shop }: ShopCardProps) {
         <p className="text-sm text-stone-600 leading-relaxed">{shop.description}</p>
       )}
 
-      {(shop.region || shop.shipping) && (
+      {(shop.region.length > 0 || shop.shipping) && (
         <div className="flex flex-wrap gap-1.5">
-          {shop.region
-            ?.split(",")
-            .map((r) => r.trim())
-            .filter(Boolean)
-            .map((r) => (
-              <span
-                key={r}
-                className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"
-              >
-                {r}
-              </span>
-            ))}
+          {shop.region.map((r) => (
+            <span
+              key={r}
+              className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"
+            >
+              {r}
+            </span>
+          ))}
           {shop.shipping && (
             <span className="px-2.5 py-0.5 rounded-full bg-stone-50 text-stone-600 text-xs font-medium border border-stone-100">
               Versand: {shop.shipping}

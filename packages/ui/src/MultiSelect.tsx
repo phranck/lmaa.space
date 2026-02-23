@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LuCheck, LuChevronDown } from "react-icons/lu";
 
-interface MultiSelectOption {
+export interface MultiSelectOption {
   id: number;
   name: string;
 }
 
-interface MultiSelectProps {
+export interface MultiSelectProps {
   options: MultiSelectOption[];
   value: number[];
   onChange: (ids: number[]) => void;
@@ -27,6 +27,7 @@ export function MultiSelect({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
 
+  // Close on click outside
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       const target = e.target as Node;
@@ -36,6 +37,18 @@ export function MultiSelect({
     }
     if (open) document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [open]);
+
+  // ESC closes dropdown only (capture phase, before ShopEditCard ESC handler)
+  useEffect(() => {
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setOpen(false);
+      }
+    }
+    if (open) window.addEventListener("keydown", onEsc, true);
+    return () => window.removeEventListener("keydown", onEsc, true);
   }, [open]);
 
   function handleToggle() {
@@ -72,7 +85,7 @@ export function MultiSelect({
               width: dropdownRect.width,
               zIndex: 9999,
             }}
-            className="bg-white border border-gray-200 rounded-control shadow-lg overflow-hidden"
+            className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
               {options.length === 0 && (
@@ -116,7 +129,7 @@ export function MultiSelect({
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between px-3 py-2 border rounded-control text-sm text-left bg-white transition-colors ${
+        className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-white transition-colors ${
           open
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error

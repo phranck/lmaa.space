@@ -1,13 +1,13 @@
-import { MultiSelect } from "@/components/ui/MultiSelect.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
-import { EMPTY_SHOP_FORM, useSaveShop } from "@/features/shops/hooks/useAdminShops.ts";
-import type { ShopFormData } from "@/features/shops/hooks/useAdminShops.ts";
+import { useSaveShop } from "@/features/shops/hooks/useAdminShops.ts";
 import { useEditSubmission } from "@/features/submissions/hooks/useAdminSubmissions.ts";
+import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui";
 import { useEffect, useState } from "react";
 import { LuX } from "react-icons/lu";
 
 type ShopEditCardProps = {
-  initialData?: Partial<ShopFormData>;
+  initialData?: Partial<ShopEditFormValue>;
   onClose: () => void;
   onSaved: () => void;
 } & ({ shopId: number | "new"; submissionId?: never } | { submissionId: number; shopId?: never });
@@ -22,7 +22,7 @@ export function ShopEditCard({
   const isSubmissionMode = submissionId !== undefined;
   const isNew = shopId === "new";
   const [closing, setClosing] = useState(false);
-  const [form, setForm] = useState<ShopFormData>({ ...EMPTY_SHOP_FORM, ...initialData });
+  const [form, setForm] = useState<ShopEditFormValue>({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
 
   const { data: categories = [] } = useAdminCategories();
   const shopMutation = useSaveShop(isSubmissionMode ? null : isNew ? null : (shopId as number));
@@ -32,12 +32,10 @@ export function ShopEditCard({
   const isError = shopMutation.isError || submissionMutation.isError;
   const error = shopMutation.error ?? submissionMutation.error;
 
-  // Re-initialise form when initialData changes (e.g. opening different item)
   useEffect(() => {
-    setForm({ ...EMPTY_SHOP_FORM, ...initialData });
+    setForm({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
   }, [initialData]);
 
-  // ESC key
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setClosing(true);
@@ -85,95 +83,16 @@ export function ShopEditCard({
         </div>
 
         {/* Form */}
-        <div className="p-5 flex flex-col gap-4 max-h-[calc(100vh-14rem)] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label htmlFor="shop-name" className="block text-xs font-medium text-gray-600 mb-1">
-                Name
-              </label>
-              <input
-                id="shop-name"
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label htmlFor="shop-url" className="block text-xs font-medium text-gray-600 mb-1">
-                URL
-              </label>
-              <input
-                id="shop-url"
-                type="url"
-                value={form.url}
-                onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-                placeholder="https://…"
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label
-                htmlFor="shop-description"
-                className="block text-xs font-medium text-gray-600 mb-1"
-              >
-                Beschreibung
-              </label>
-              <textarea
-                id="shop-description"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <p className="block text-xs font-medium text-gray-600 mb-1">Kategorien</p>
-              <MultiSelect
-                options={categories}
-                value={form.categoryIds}
-                onChange={(ids) => setForm((f) => ({ ...f, categoryIds: ids }))}
-                placeholder="Kategorie wählen…"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="shop-region" className="block text-xs font-medium text-gray-600 mb-1">
-                Region
-              </label>
-              <input
-                id="shop-region"
-                type="text"
-                value={form.region}
-                onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
-                placeholder="z.B. Deutschland, EU"
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="shop-shipping"
-                className="block text-xs font-medium text-gray-600 mb-1"
-              >
-                Versand
-              </label>
-              <input
-                id="shop-shipping"
-                type="text"
-                value={form.shipping}
-                onChange={(e) => setForm((f) => ({ ...f, shipping: e.target.value }))}
-                placeholder="z.B. Kostenlos ab 50 €"
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              />
-            </div>
-          </div>
+        <div className="p-5 max-h-[calc(100vh-14rem)] overflow-y-auto">
+          <ShopEditForm
+            value={form}
+            onChange={setForm}
+            categories={categories}
+            variant="dashboard"
+          />
 
           {isError && (
-            <p className="text-red-500 text-sm">
+            <p className="text-red-500 text-sm mt-4">
               {error instanceof Error ? error.message : "Fehler beim Speichern."}
             </p>
           )}

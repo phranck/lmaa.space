@@ -1,25 +1,13 @@
 import { PageLayout } from "@/components/layout/PageLayout.tsx";
-import { CategoryMultiSelect } from "@/components/ui/CategoryMultiSelect.tsx";
 import { useCategories } from "@/features/categories/hooks/useCategories.ts";
 import { usePageMeta } from "@/hooks/usePageMeta.ts";
 import { api } from "@/lib/api.ts";
-import { zodResolver } from "@hookform/resolvers/zod";
 import type { ShopCategory } from "@lmaa/shared";
+import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { type FormEvent, useState } from "react";
 import { Link } from "react-router";
-import { z } from "zod";
-
-const schema = z.object({
-  shopName: z.string().min(2, "Bitte einen Shop-Namen eingeben"),
-  shopUrl: z.string().url("Bitte eine gültige URL eingeben (https://...)"),
-  categoryIds: z.array(z.number()).min(1, "Bitte mindestens eine Kategorie wählen"),
-  description: z.string().max(500, "Maximal 500 Zeichen").optional(),
-  submitterEmail: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
-});
-
-type FormData = z.infer<typeof schema>;
 
 type UrlCheckResult =
   | { exists: false }
@@ -35,33 +23,31 @@ export function SuggestPage() {
       "Kennst du einen fairen Online-Shop? Schlage ihn für lmaa.space vor und hilf der Community.",
     canonicalPath: "/vorschlagen",
   });
+
   const { data: categories = [] } = useCategories();
   const [submitted, setSubmitted] = useState(false);
+  const [shopForm, setShopForm] = useState<ShopEditFormValue>(EMPTY_SHOP_FORM_VALUE);
+  const [shopErrors, setShopErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>(
+    {},
+  );
+  const [submitterEmail, setSubmitterEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [urlCheck, setUrlCheck] = useState<UrlCheckResult | null>(null);
   const [urlChecking, setUrlChecking] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    control,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { categoryIds: [] },
-  });
-
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
+    mutationFn: (data: ShopEditFormValue & { submitterEmail?: string }) =>
       api.post("/submissions", {
-        ...data,
-        submitterEmail: data.submitterEmail || undefined,
+        shopName: data.name,
+        shopUrl: data.url,
+        categoryIds: data.categoryIds,
         description: data.description || undefined,
+        region: data.region,
+        shipping: data.shipping || undefined,
+        submitterEmail: data.submitterEmail || undefined,
       }),
     onSuccess: () => setSubmitted(true),
   });
-
-  const description = watch("description") ?? "";
 
   async function checkUrl(url: string) {
     if (!url || !url.startsWith("http")) return;
@@ -75,6 +61,66 @@ export function SuggestPage() {
       setUrlChecking(false);
     }
   }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    const errors: typeof shopErrors = {};
+    if (!shopForm.name.trim()) errors.name = "Bitte einen Shop-Namen eingeben";
+    if (!shopForm.url.trim() || !shopForm.url.startsWith("http"))
+      errors.url = "Bitte eine gültige URL eingeben (https://...)";
+    if (shopForm.categoryIds.length === 0)
+      errors.categoryIds = "Bitte mindestens eine Kategorie wählen";
+
+    if (Object.keys(errors).length > 0) {
+      setShopErrors(errors);
+      return;
+    }
+    setShopErrors({});
+
+    if (submitterEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submitterEmail)) {
+      setEmailError("Ungültige E-Mail-Adresse");
+      return;
+    }
+    setEmailError("");
+
+    mutation.mutate({ ...shopForm, submitterEmail });
+  }
+
+  const urlWarning = (
+    <>
+      {urlChecking && (
+        <p className="text-stone-400 text-xs mt-1.5">Prüfe ob Shop bereits bekannt…</p>
+      )}
+      {!urlChecking && urlCheck?.exists && (
+        <div className="mt-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+          <span className="font-medium">{urlCheck.shop.name}</span> ist bereits in unserer Liste
+          {urlCheck.shop.categories.length > 0 && (
+            <span>
+              {" "}
+              in{" "}
+              {urlCheck.shop.categories.map((c, i) => (
+                <span key={c.id}>
+                  {i > 0 && ", "}
+                  <span className="font-medium">{c.name}</span>
+                </span>
+              ))}
+            </span>
+          )}
+          .
+        </div>
+      )}
+    </>
+  );
+
+  const descriptionHint = (
+    <div className="flex justify-between items-start mt-1.5 gap-4">
+      <p className="text-xs text-stone-400 leading-relaxed">
+        Optional – aber eine gute Beschreibung hilft anderen, den Shop schneller einzuschätzen.
+      </p>
+      <span className="text-xs text-stone-400 shrink-0">{shopForm.description.length}/500</span>
+    </div>
+  );
 
   if (submitted) {
     return (
@@ -111,7 +157,11 @@ export function SuggestPage() {
             </Link>
             <button
               type="button"
-              onClick={() => setSubmitted(false)}
+              onClick={() => {
+                setSubmitted(false);
+                setShopForm(EMPTY_SHOP_FORM_VALUE);
+                setSubmitterEmail("");
+              }}
               className="px-6 py-3 border border-stone-200 text-stone-600 rounded-xl text-sm font-medium hover:border-stone-300 transition-colors"
             >
               Weiteren Shop vorschlagen
@@ -146,105 +196,17 @@ export function SuggestPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-6">
-          <div>
-            <label htmlFor="shopName" className="block text-sm font-medium text-stone-700 mb-1.5">
-              Shop-Name <span className="text-amber-600">*</span>
-            </label>
-            <input
-              {...register("shopName")}
-              id="shopName"
-              type="text"
-              placeholder="z.B. Buchhandlung Schiller"
-              className={inputClass}
-            />
-            {errors.shopName && (
-              <p className="text-red-500 text-xs mt-1.5">{errors.shopName.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="shopUrl" className="block text-sm font-medium text-stone-700 mb-1.5">
-              Shop-URL <span className="text-amber-600">*</span>
-            </label>
-            <input
-              {...register("shopUrl")}
-              id="shopUrl"
-              type="url"
-              placeholder="https://..."
-              className={inputClass}
-              onBlur={(e) => checkUrl(e.target.value)}
-            />
-            {errors.shopUrl && (
-              <p className="text-red-500 text-xs mt-1.5">{errors.shopUrl.message}</p>
-            )}
-            {urlChecking && (
-              <p className="text-stone-400 text-xs mt-1.5">Prüfe ob Shop bereits bekannt…</p>
-            )}
-            {!urlChecking && urlCheck?.exists && (
-              <div className="mt-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-                <span className="font-medium">{urlCheck.shop.name}</span> ist bereits in unserer
-                Liste
-                {urlCheck.shop.categories.length > 0 && (
-                  <span>
-                    {" "}
-                    in{" "}
-                    {urlCheck.shop.categories.map((c, i) => (
-                      <span key={c.id}>
-                        {i > 0 && ", "}
-                        <span className="font-medium">{c.name}</span>
-                      </span>
-                    ))}
-                  </span>
-                )}
-                .
-              </div>
-            )}
-          </div>
-
-          <div>
-            <span className="block text-sm font-medium text-stone-700 mb-2">
-              Kategorie(n) <span className="text-amber-600">*</span>
-            </span>
-            <Controller
-              name="categoryIds"
-              control={control}
-              render={({ field }) => (
-                <CategoryMultiSelect
-                  categories={categories}
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={errors.categoryIds?.message}
-                />
-              )}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-stone-700 mb-1.5"
-            >
-              Beschreibung <span className="text-stone-400 font-normal">(optional)</span>
-            </label>
-            <textarea
-              id="description"
-              {...register("description")}
-              rows={4}
-              placeholder="Was macht diesen Shop besonders? Sortiment, Besonderheiten, Zielgruppe…"
-              className={`${inputClass} resize-none`}
-            />
-            <div className="flex justify-between items-start mt-1.5 gap-4">
-              <p className="text-xs text-stone-400 leading-relaxed">
-                Optional – aber eine gute Beschreibung hilft anderen, den Shop schneller
-                einzuschätzen.
-              </p>
-              <span className="text-xs text-stone-400 shrink-0">{description.length}/500</span>
-            </div>
-            {errors.description && (
-              <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>
-            )}
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <ShopEditForm
+            value={shopForm}
+            onChange={setShopForm}
+            categories={categories}
+            errors={shopErrors}
+            variant="frontend"
+            onUrlBlur={checkUrl}
+            urlWarning={urlWarning}
+            descriptionHint={descriptionHint}
+          />
 
           <div>
             <label
@@ -255,17 +217,16 @@ export function SuggestPage() {
             </label>
             <input
               id="submitterEmail"
-              {...register("submitterEmail")}
               type="email"
+              value={submitterEmail}
+              onChange={(e) => setSubmitterEmail(e.target.value)}
               placeholder="fuer@rueckfragen.de"
               className={inputClass}
             />
             <p className="text-xs text-stone-400 mt-1.5">
               Nur für Rückfragen und Benachrichtigung bei Aufnahme.
             </p>
-            {errors.submitterEmail && (
-              <p className="text-red-500 text-xs mt-1">{errors.submitterEmail.message}</p>
-            )}
+            {emailError && <p className="text-red-500 text-xs mt-1">{emailError}</p>}
           </div>
 
           {mutation.isError && (

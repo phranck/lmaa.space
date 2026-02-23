@@ -6,7 +6,7 @@ export interface Submission {
   shopUrl: string;
   categoryIds: number[];
   categorySuggestion: string | null;
-  region: string;
+  region: string[];
   pickup: string;
   shipping: string;
   description: string;

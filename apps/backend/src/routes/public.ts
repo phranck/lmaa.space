@@ -20,6 +20,11 @@ const submissionSchema = z.object({
   shopUrl: z.string().url(),
   categoryIds: z.array(z.number().int().positive()).optional().default([]),
   categorySuggestion: z.string().max(100).optional(),
+  region: z
+    .array(z.enum(["DE", "AT", "CH", "EU"]))
+    .optional()
+    .default([]),
+  shipping: z.string().max(200).optional(),
   description: z.string().max(500).optional(),
   submitterEmail: z.string().email().optional(),
   submitterNote: z.string().max(500).optional(),
@@ -207,6 +212,8 @@ publicRoutes.post(
         shopName: body.shopName,
         shopUrl: body.shopUrl,
         categorySuggestion: body.categorySuggestion ?? null,
+        region: body.region,
+        shipping: body.shipping ?? "",
         description: body.description ?? "",
         submitterEmail: body.submitterEmail ?? null,
         submitterNote: body.submitterNote ?? null,
