@@ -1,6 +1,6 @@
 import { api } from "@/lib/api.ts";
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { LuLoader, LuSearch, LuX } from "react-icons/lu";
+import { SFArrowClockwise, SFMagnifyingglass, SFXmark } from "sf-symbols-lib/monochrome";
 
 interface UnsplashPhoto {
   id: string;
@@ -174,10 +174,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 shrink-0">
           <div className="relative flex-1">
-            <LuSearch
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
+            <SFMagnifyingglass className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
             <input
               type="text"
               value={query}
@@ -192,7 +189,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
             className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-control hover:bg-gray-100"
             aria-label="Schließen"
           >
-            <LuX size={18} />
+            <SFXmark className="w-4 h-4" />
           </button>
         </div>
 
@@ -206,7 +203,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <LuLoader size={24} className="text-gray-400 animate-spin" />
+              <SFArrowClockwise className="w-6 h-6 text-gray-400 animate-spin" />
             </div>
           )}
 
@@ -244,7 +241,9 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
               {/* Sentinel for infinite scroll – spinner visible while loading more */}
               <div ref={sentinelRef} className="flex justify-center py-4">
-                {isLoadingMore && <LuLoader size={20} className="text-gray-400 animate-spin" />}
+                {isLoadingMore && (
+                  <SFArrowClockwise className="w-5 h-5 text-gray-400 animate-spin" />
+                )}
               </div>
             </>
           )}

@@ -39,8 +39,8 @@ import {
   viewMode$,
 } from "@mdxeditor/editor";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { LuMinus, LuPlus, LuSave } from "react-icons/lu";
 import { useParams } from "react-router";
+import { SFMinus, SFPlus, SFSquareAndArrowDown } from "sf-symbols-lib/monochrome";
 
 const PAGE_LABELS: Record<string, string> = {
   about: "Über uns",
@@ -164,7 +164,7 @@ export function ContentEditorPage() {
               className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
               title="Schriftgröße verkleinern"
             >
-              <LuMinus size={11} />
+              <SFMinus className="w-2.5 h-2.5" />
             </button>
             <span className="w-8 text-center text-xs tabular-nums select-none">
               {sourceFontSize}px
@@ -176,7 +176,7 @@ export function ContentEditorPage() {
               className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
               title="Schriftgröße vergrößern"
             >
-              <LuPlus size={11} />
+              <SFPlus className="w-2.5 h-2.5" />
             </button>
           </div>
 
@@ -187,7 +187,7 @@ export function ContentEditorPage() {
             disabled={save.isPending}
             className="flex items-center gap-2 px-4 py-2 bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-accent-hover)] disabled:opacity-60 transition-colors"
           >
-            <LuSave size={14} />
+            <SFSquareAndArrowDown className="w-3.5 h-3.5" />
             {save.isPending ? "Wird gespeichert…" : saved ? "Gespeichert" : "Speichern"}
           </button>
         </div>

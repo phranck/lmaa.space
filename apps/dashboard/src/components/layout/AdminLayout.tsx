@@ -3,13 +3,13 @@ import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderCo
 import { type Theme, useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useState } from "react";
-import { LuMenu, LuMonitor, LuMoon, LuSun } from "react-icons/lu";
 import { Outlet, useNavigate } from "react-router";
+import { SFDesktopcomputer, SFLine3Horizontal, SFMoon, SFSunMax } from "sf-symbols-lib/monochrome";
 
 const THEME_OPTIONS: { value: Theme; icon: React.ReactNode; label: string }[] = [
-  { value: "light", icon: <LuSun size={13} />, label: "Light" },
-  { value: "dark", icon: <LuMoon size={13} />, label: "Dark" },
-  { value: "system", icon: <LuMonitor size={13} />, label: "System" },
+  { value: "light", icon: <SFSunMax className="w-3.5 h-3.5" />, label: "Light" },
+  { value: "dark", icon: <SFMoon className="w-3.5 h-3.5" />, label: "Dark" },
+  { value: "system", icon: <SFDesktopcomputer className="w-3.5 h-3.5" />, label: "System" },
 ];
 
 function ThemeToggle() {
@@ -88,7 +88,7 @@ function AdminLayoutInner() {
           className="md:hidden p-2 -ml-2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
           aria-label="Menü öffnen"
         >
-          <LuMenu size={20} />
+          <SFLine3Horizontal className="w-5 h-5" />
         </button>
 
         <span className="font-semibold text-sm text-[var(--ds-text)] truncate">

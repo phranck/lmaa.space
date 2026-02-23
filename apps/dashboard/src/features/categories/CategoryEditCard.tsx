@@ -8,7 +8,7 @@ import type {
   CategoryImageState,
 } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useEffect, useRef, useState } from "react";
-import { LuSearch, LuTrash2, LuUpload } from "react-icons/lu";
+import { SFMagnifyingglass, SFSquareAndArrowUp, SFTrash } from "sf-symbols-lib/monochrome";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";
@@ -155,7 +155,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-gray-300">
-                <LuSearch size={40} />
+                <SFMagnifyingglass className="w-10 h-10" />
               </div>
             )}
 
@@ -167,7 +167,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   onClick={handleDeleteImage}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-red-600 text-xs font-medium transition-colors w-full"
                 >
-                  <LuTrash2 size={12} />
+                  <SFTrash className="w-3 h-3" />
                   Löschen
                 </button>
               )}
@@ -176,7 +176,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-gray-700 text-xs font-medium transition-colors w-full"
               >
-                <LuUpload size={12} />
+                <SFSquareAndArrowUp className="w-3 h-3" />
                 Hochladen
               </button>
               <button
