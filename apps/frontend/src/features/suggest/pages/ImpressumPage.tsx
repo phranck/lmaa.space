@@ -1,6 +1,8 @@
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
+import { usePageMeta } from "../../../hooks/usePageMeta.ts";
 
 export function ImpressumPage() {
+  usePageMeta({ title: "Impressum", canonicalPath: "/impressum" });
   return (
     <PageLayout>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">

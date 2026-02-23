@@ -1,14 +1,45 @@
 import type { Shop } from "@lmaa/shared";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
-import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
+import { usePageMeta } from "../../../hooks/usePageMeta.ts";
 import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useCategory } from "../hooks/useCategories.ts";
 
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data, isLoading, isError } = useCategory(slug ?? "");
-  useDocumentTitle(data?.name);
+
+  const shopCount = data ? (data.shops as Shop[]).length : 0;
+  const jsonLd = useMemo(
+    () =>
+      data
+        ? {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Start", item: "https://lmaa.space/" },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: data.name,
+                item: `https://lmaa.space/kategorie/${slug}`,
+              },
+            ],
+          }
+        : undefined,
+    [data, slug],
+  );
+
+  usePageMeta({
+    title: data?.name,
+    description: data
+      ? `${shopCount} ${shopCount === 1 ? "Shop" : "Shops"} in der Kategorie ${data.name} – faire Amazon-Alternativen auf lmaa.space.`
+      : undefined,
+    canonicalPath: `/kategorie/${slug}`,
+    ogImage: data?.imageUrl || undefined,
+    jsonLd,
+  });
 
   return (
     <PageLayout>

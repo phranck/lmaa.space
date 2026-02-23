@@ -5,6 +5,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
+import { db } from "./db/index.js";
+import { categories } from "./db/schema.js";
 import { adminRoutes } from "./routes/admin.js";
 import { publicRoutes } from "./routes/public.js";
 
@@ -38,6 +40,49 @@ app.get("/uploads/:filename{[^/]+}", async (c) => {
     return new Response(data, { headers: { "Content-Type": contentType } });
   } catch {
     return c.json({ error: { message: "Not found" } }, 404);
+  }
+});
+
+// Sitemap (proxied via nginx: location = /sitemap.xml { proxy_pass http://backend:3000; })
+app.get("/sitemap.xml", async (c) => {
+  try {
+    const cats = await db
+      .select({ slug: categories.slug, updatedAt: categories.updatedAt })
+      .from(categories)
+      .orderBy(categories.sortOrder);
+
+    const BASE = "https://lmaa.space";
+    const today = new Date().toISOString().split("T")[0];
+
+    const staticUrls = [
+      { loc: `${BASE}/`, changefreq: "daily", priority: "1.0", lastmod: today },
+      { loc: `${BASE}/suche`, changefreq: "weekly", priority: "0.5", lastmod: today },
+      { loc: `${BASE}/vorschlagen`, changefreq: "monthly", priority: "0.4", lastmod: today },
+      { loc: `${BASE}/ueber-uns`, changefreq: "monthly", priority: "0.3", lastmod: today },
+      { loc: `${BASE}/impressum`, changefreq: "yearly", priority: "0.1", lastmod: today },
+      { loc: `${BASE}/datenschutz`, changefreq: "yearly", priority: "0.1", lastmod: today },
+    ];
+
+    const categoryUrls = cats.map((cat) => ({
+      loc: `${BASE}/kategorie/${cat.slug}`,
+      changefreq: "weekly",
+      priority: "0.8",
+      lastmod: new Date(cat.updatedAt).toISOString().split("T")[0],
+    }));
+
+    const entries = [...staticUrls, ...categoryUrls]
+      .map(
+        (u) =>
+          `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`,
+      )
+      .join("\n");
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>`;
+
+    return c.body(xml, 200, { "Content-Type": "application/xml; charset=utf-8" });
+  } catch (err) {
+    console.error("Sitemap generation failed:", err);
+    return c.body("", 500);
   }
 });
 
