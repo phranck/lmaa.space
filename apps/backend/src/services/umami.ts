@@ -1,0 +1,54 @@
+const UMAMI_URL = process.env.UMAMI_URL ?? "";
+const UMAMI_USERNAME = process.env.UMAMI_USERNAME ?? "";
+const UMAMI_PASSWORD = process.env.UMAMI_PASSWORD ?? "";
+export const UMAMI_WEBSITE_ID = process.env.UMAMI_WEBSITE_ID ?? "";
+
+export const umamiConfigured =
+  UMAMI_URL !== "" && UMAMI_USERNAME !== "" && UMAMI_PASSWORD !== "" && UMAMI_WEBSITE_ID !== "";
+
+let cachedToken: { token: string; expiresAt: number } | null = null;
+
+async function getToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.token;
+
+  const res = await fetch(`${UMAMI_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: UMAMI_USERNAME, password: UMAMI_PASSWORD }),
+  });
+
+  if (!res.ok) throw new Error(`Umami auth failed: ${res.status}`);
+
+  const { token } = (await res.json()) as { token: string };
+  // Cache for 23h (tokens are valid for 24h by default)
+  cachedToken = { token, expiresAt: Date.now() + 23 * 60 * 60 * 1000 };
+  return token;
+}
+
+export async function umamiGet<T>(path: string): Promise<T> {
+  const token = await getToken();
+  const res = await fetch(`${UMAMI_URL}/api${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Umami request failed: ${res.status} ${path}`);
+  return res.json() as Promise<T>;
+}
+
+export type UmamiPeriod = "today" | "7d" | "30d";
+
+export function periodToRange(period: UmamiPeriod): { startAt: number; endAt: number } {
+  const now = Date.now();
+  const endAt = now;
+
+  if (period === "today") {
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    return { startAt: midnight.getTime(), endAt };
+  }
+
+  const days = period === "7d" ? 7 : 30;
+  const startAt = new Date();
+  startAt.setDate(startAt.getDate() - days);
+  startAt.setHours(0, 0, 0, 0);
+  return { startAt: startAt.getTime(), endAt };
+}

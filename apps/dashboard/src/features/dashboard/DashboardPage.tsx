@@ -1,5 +1,6 @@
 import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { AnalyticsSection } from "@/features/dashboard/AnalyticsSection.tsx";
 import { useAdminStats } from "@/features/dashboard/hooks/useAdminStats.ts";
 
 export function DashboardPage() {
@@ -48,6 +49,8 @@ export function DashboardPage() {
           href={(stats?.deadLinkReports ?? 0) > 0 ? "/meldungen" : undefined}
         />
       </div>
+
+      <AnalyticsSection />
     </div>
   );
 }
