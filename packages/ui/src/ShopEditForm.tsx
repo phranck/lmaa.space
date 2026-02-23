@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { LuExternalLink } from "react-icons/lu";
 import { MultiSelect } from "./MultiSelect.tsx";
 import { RegionSelect } from "./RegionSelect.tsx";
 
@@ -79,15 +80,31 @@ export function ShopEditForm({
         <label htmlFor="sef-url" className={labelClass}>
           URL
         </label>
-        <input
-          id="sef-url"
-          type="url"
-          value={value.url}
-          onChange={(e) => set("url", e.target.value)}
-          onBlur={() => onUrlBlur?.(value.url)}
-          placeholder="https://…"
-          className={`${inputClass}${errors?.url ? " border-red-400" : ""}`}
-        />
+        <div className="flex gap-2">
+          <input
+            id="sef-url"
+            type="url"
+            value={value.url}
+            onChange={(e) => set("url", e.target.value)}
+            onBlur={() => onUrlBlur?.(value.url)}
+            placeholder="https://…"
+            className={`flex-1 ${inputClass}${errors?.url ? " border-red-400" : ""}`}
+          />
+          <a
+            href={value.url || undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="URL öffnen"
+            tabIndex={value.url ? 0 : -1}
+            className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
+              value.url
+                ? "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                : "border-gray-100 text-gray-300 pointer-events-none"
+            }`}
+          >
+            <LuExternalLink size={14} />
+          </a>
+        </div>
         {errors?.url && <p className="text-red-500 text-xs mt-1">{errors.url}</p>}
         {urlWarning}
       </div>
