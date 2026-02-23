@@ -60,7 +60,7 @@ export function ShopsPage() {
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <div className="-mx-6">
+        <div className="-mx-6 -mt-6">
           <ShopTable shops={filtered} onEdit={setEditTarget} onDelete={setDeleteId} />
         </div>
       )}
