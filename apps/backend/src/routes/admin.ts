@@ -219,14 +219,18 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
       .catch(() => {});
   }
 
-  // Email feedback
+  // Email feedback (non-fatal: email errors must not break the review flow)
   if (sendFeedback && submission.submitterEmail) {
-    if (status === "approved") {
-      await sendSubmissionApproved(submission.submitterEmail, submission.shopName);
-    } else {
-      await sendSubmissionRejected(submission.submitterEmail, submission.shopName, adminNote);
+    try {
+      if (status === "approved") {
+        await sendSubmissionApproved(submission.submitterEmail, submission.shopName);
+      } else {
+        await sendSubmissionRejected(submission.submitterEmail, submission.shopName, adminNote);
+      }
+      await db.update(submissions).set({ feedbackSent: true }).where(eq(submissions.id, id));
+    } catch (err) {
+      console.error("[email] Failed to send feedback:", err);
     }
-    await db.update(submissions).set({ feedbackSent: true }).where(eq(submissions.id, id));
   }
 
   return c.json({ data: submission });
