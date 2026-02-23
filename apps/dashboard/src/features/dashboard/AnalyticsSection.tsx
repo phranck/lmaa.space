@@ -20,7 +20,17 @@ const PERIODS: { label: string; value: UmamiPeriod }[] = [
   { label: "Heute", value: "today" },
   { label: "7 Tage", value: "7d" },
   { label: "30 Tage", value: "30d" },
+  { label: "60 Tage", value: "60d" },
+  { label: "90 Tage", value: "90d" },
 ];
+
+const STORAGE_KEY = "analytics-period";
+
+function loadPeriod(): UmamiPeriod {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved && PERIODS.some((p) => p.value === saved)) return saved as UmamiPeriod;
+  return "7d";
+}
 
 function countryFlag(countryCode: string): string {
   if (!countryCode || countryCode.length !== 2) return "🌐";
@@ -117,7 +127,12 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
 }
 
 export function AnalyticsSection() {
-  const [period, setPeriod] = useState<UmamiPeriod>("7d");
+  const [period, setPeriod] = useState<UmamiPeriod>(loadPeriod);
+
+  function handlePeriodChange(p: UmamiPeriod) {
+    setPeriod(p);
+    localStorage.setItem(STORAGE_KEY, p);
+  }
   const { data: stats, isLoading: statsLoading } = useUmamiStats(period);
   const { data: pageviews, isLoading: pvLoading } = useUmamiPageviews(period);
 
@@ -147,7 +162,7 @@ export function AnalyticsSection() {
             <button
               key={p.value}
               type="button"
-              onClick={() => setPeriod(p.value)}
+              onClick={() => handlePeriodChange(p.value)}
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                 period === p.value
                   ? "bg-white text-gray-900 shadow-sm"
