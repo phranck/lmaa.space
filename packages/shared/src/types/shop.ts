@@ -4,6 +4,14 @@ export interface ShopCategory {
   name: string;
 }
 
+export interface ShopSummary {
+  id: number;
+  name: string;
+  url: string;
+  categories: ShopCategory[];
+  region: string[];
+}
+
 export interface Shop {
   id: number;
   name: string;

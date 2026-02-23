@@ -315,9 +315,7 @@ adminRoutes.patch(
 
 adminRoutes.get("/shops", requireAuth, async (c) => {
   const rows = await db.execute(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.is_active as "isActive",
-           s.created_at as "createdAt", s.updated_at as "updatedAt",
+    SELECT s.id, s.name, s.url, s.region,
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -330,6 +328,28 @@ adminRoutes.get("/shops", requireAuth, async (c) => {
     ORDER BY s.name
   `);
   return c.json({ data: rows });
+});
+
+adminRoutes.get("/shops/:id", requireAuth, async (c) => {
+  const id = Number(c.req.param("id"));
+  if (Number.isNaN(id)) return c.json({ error: { message: "Invalid id" } }, 400);
+  const [row] = await db.execute(sql`
+    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+           s.og_image as "ogImage", s.is_active as "isActive",
+           s.created_at as "createdAt", s.updated_at as "updatedAt",
+           COALESCE(
+             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
+             FILTER (WHERE c.id IS NOT NULL),
+             '[]'::json
+           ) as categories
+    FROM shops s
+    LEFT JOIN shop_categories sc ON sc.shop_id = s.id
+    LEFT JOIN categories c ON c.id = sc.category_id
+    WHERE s.id = ${id}
+    GROUP BY s.id
+  `);
+  if (!row) return c.json({ error: { message: "Shop not found" } }, 404);
+  return c.json({ data: row });
 });
 
 const shopBodySchema = z.object({

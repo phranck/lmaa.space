@@ -1,5 +1,5 @@
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
-import { useSaveShop } from "@/features/shops/hooks/useAdminShops.ts";
+import { useAdminShop, useSaveShop } from "@/features/shops/hooks/useAdminShops.ts";
 import { useEditSubmission } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
@@ -25,6 +25,9 @@ export function ShopEditCard({
   const [form, setForm] = useState<ShopEditFormValue>({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
 
   const { data: categories = [] } = useAdminCategories();
+  const { data: shopData, isLoading: isLoadingShop } = useAdminShop(
+    typeof shopId === "number" ? shopId : null,
+  );
   const shopMutation = useSaveShop(isSubmissionMode ? null : isNew ? null : (shopId as number));
   const submissionMutation = useEditSubmission();
 
@@ -33,8 +36,22 @@ export function ShopEditCard({
   const error = shopMutation.error ?? submissionMutation.error;
 
   useEffect(() => {
-    setForm({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
-  }, [initialData]);
+    if (shopData) {
+      setForm({
+        ...EMPTY_SHOP_FORM_VALUE,
+        name: shopData.name,
+        url: shopData.url,
+        description: shopData.description ?? "",
+        categoryIds: shopData.categories.map((c) => c.id),
+        region: shopData.region ?? [],
+        shipping: shopData.shipping ?? "",
+      });
+    }
+  }, [shopData]);
+
+  useEffect(() => {
+    if (!shopData) setForm({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
+  }, [initialData, shopData]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -84,12 +101,20 @@ export function ShopEditCard({
 
         {/* Form */}
         <div className="p-5 max-h-[calc(100vh-14rem)] overflow-y-auto">
-          <ShopEditForm
-            value={form}
-            onChange={setForm}
-            categories={categories}
-            variant="dashboard"
-          />
+          {isLoadingShop ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((k) => (
+                <div key={k} className="h-10 bg-gray-100 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <ShopEditForm
+              value={form}
+              onChange={setForm}
+              categories={categories}
+              variant="dashboard"
+            />
+          )}
 
           {isError && (
             <p className="text-red-500 text-sm mt-4">

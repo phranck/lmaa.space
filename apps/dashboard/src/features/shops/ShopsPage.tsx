@@ -19,8 +19,6 @@ export function ShopsPage() {
   );
 
   const deleteTarget = shops.find((s) => s.id === deleteId);
-  const editShop =
-    typeof editTarget === "number" ? shops.find((s) => s.id === editTarget) : undefined;
 
   return (
     <div>
@@ -68,18 +66,6 @@ export function ShopsPage() {
       {editTarget !== null && (
         <ShopEditCard
           shopId={editTarget}
-          initialData={
-            editShop
-              ? {
-                  name: editShop.name,
-                  url: editShop.url,
-                  description: editShop.description ?? "",
-                  categoryIds: editShop.categories.map((c) => c.id),
-                  region: editShop.region ?? [],
-                  shipping: editShop.shipping ?? "",
-                }
-              : undefined
-          }
           onClose={() => setEditTarget(null)}
           onSaved={() => setEditTarget(null)}
         />
