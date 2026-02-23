@@ -1,4 +1,5 @@
 import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { api } from "@/lib/api.ts";
 import { useQuery } from "@tanstack/react-query";
 
@@ -7,6 +8,7 @@ interface Stats {
   categories: number;
   pendingSubmissions: number;
   totalSubmissions: number;
+  deadLinkReports: number;
 }
 
 export function DashboardPage() {
@@ -18,9 +20,9 @@ export function DashboardPage() {
   if (isLoading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Übersicht</h1>
+        <PageHeader title="Übersicht" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
+          {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
             <div
               key={key}
               className="h-28 bg-white rounded-xl border border-gray-100 animate-pulse"
@@ -33,7 +35,7 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Übersicht</h1>
+      <PageHeader title="Übersicht" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardInfoCard label="Shops" value={stats?.shops ?? 0} />
@@ -48,6 +50,12 @@ export function DashboardPage() {
           label="Vorschläge gesamt"
           value={stats?.totalSubmissions ?? 0}
           sub="aller Zeiten"
+        />
+        <DashboardInfoCard
+          label="Defekte Links"
+          value={stats?.deadLinkReports ?? 0}
+          accent={(stats?.deadLinkReports ?? 0) > 0}
+          sub={(stats?.deadLinkReports ?? 0) > 0 ? "Shops gemeldet" : undefined}
         />
       </div>
     </div>

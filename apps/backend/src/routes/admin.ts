@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
-import { count, desc, eq } from "drizzle-orm";
+import { count, countDistinct, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
@@ -142,6 +142,9 @@ adminRoutes.get("/stats", requireAuth, async (c) => {
     .from(submissions)
     .where(eq(submissions.status, "pending"));
   const [totalCount] = await db.select({ count: count() }).from(submissions);
+  const [deadLinkCount] = await db
+    .select({ count: countDistinct(deadLinkReports.shopId) })
+    .from(deadLinkReports);
 
   return c.json({
     data: {
@@ -149,6 +152,7 @@ adminRoutes.get("/stats", requireAuth, async (c) => {
       categories: categoryCount.count,
       pendingSubmissions: pendingCount.count,
       totalSubmissions: totalCount.count,
+      deadLinkReports: deadLinkCount.count,
     },
   });
 });
