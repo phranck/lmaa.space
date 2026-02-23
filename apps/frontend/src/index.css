@@ -4,7 +4,8 @@
 @import "../../../node_modules/preline/css/themes/autumn.css";
 @plugin "@tailwindcss/typography";
 
-/* Preline UI */
+/* Scan packages/ui and Preline for Tailwind class generation */
+@source "../../packages/ui/src";
 @source "../../../node_modules/preline/dist/*.js";
 
 @theme {

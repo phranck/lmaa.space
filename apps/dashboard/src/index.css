@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@lmaa/shared/styles/tokens.css";
 @plugin "@tailwindcss/typography";
+@source "../../packages/ui/src";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -34,9 +35,6 @@
   /* Segment controls (ThemeToggle, view toggle, tab switcher) */
   --ds-segment-bg: var(--ds-bg-elevated); /* container background */
   --ds-segment-active-bg: var(--ds-surface); /* active button background */
-
-  /* Form inputs — elevated above card surface */
-  --ds-input-bg: oklch(1 0 0); /* white in light mode */
 
   /* Table row hover */
   --ds-row-hover: var(--ds-color-neutral-100);
@@ -79,9 +77,6 @@
   /* Segment controls: LIGHTER than header surface for visible pill effect */
   --ds-segment-bg: oklch(0.25 0.007 38.2); /* lighter than --ds-surface 0.19 */
   --ds-segment-active-bg: oklch(0.33 0.008 38.2); /* even lighter — active clearly visible */
-
-  /* Form inputs: clearly elevated above card bg in dark mode */
-  --ds-input-bg: oklch(0.26 0.007 38.2);
 
   /* Table row hover: noticeably lighter than surface (0.19) */
   --ds-row-hover: oklch(0.28 0.008 38.2);

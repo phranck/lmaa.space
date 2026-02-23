@@ -18,6 +18,12 @@ export function detectImageType(buffer: Buffer): "jpeg" | "png" | "webp" | null 
   return null;
 }
 
+/** Parse and validate a route parameter as a positive integer ID. */
+export function parseId(raw: string): number | null {
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 /** Check that a URL points to an external (non-private) host. */
 export function isExternalUrl(url: string): boolean {
   try {

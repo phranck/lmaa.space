@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
-import { count, countDistinct, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+import { count, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
@@ -17,7 +17,7 @@ import {
   submissions,
 } from "../db/schema.js";
 import { extractHomepage, fetchPreviewImage } from "../lib/og.js";
-import { detectImageType } from "../lib/validate.js";
+import { detectImageType, parseId } from "../lib/validate.js";
 import { type AuthVariables, requireAuth, requireOwner } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import {
@@ -135,26 +135,21 @@ adminRoutes.get("/me", requireAuth, async (c) => {
 
 // GET /api/admin/stats
 adminRoutes.get("/stats", requireAuth, async (c) => {
-  const [shopCount] = await db.select({ count: count() }).from(shops);
-  const [categoryCount] = await db.select({ count: count() }).from(categories);
-  const [pendingCount] = await db
-    .select({ count: count() })
-    .from(submissions)
-    .where(eq(submissions.status, "pending"));
-  const [totalCount] = await db.select({ count: count() }).from(submissions);
-  const [deadLinkCount] = await db
-    .select({ count: countDistinct(deadLinkReports.shopId) })
-    .from(deadLinkReports);
-
-  return c.json({
-    data: {
-      shops: shopCount.count,
-      categories: categoryCount.count,
-      pendingSubmissions: pendingCount.count,
-      totalSubmissions: totalCount.count,
-      deadLinkReports: deadLinkCount.count,
-    },
-  });
+  const [stats] = await db.execute<{
+    shops: number;
+    categories: number;
+    pendingSubmissions: number;
+    totalSubmissions: number;
+    deadLinkReports: number;
+  }>(sql`
+    SELECT
+      (SELECT count(*)::int FROM shops) AS shops,
+      (SELECT count(*)::int FROM categories) AS categories,
+      (SELECT count(*)::int FROM submissions WHERE status = 'pending') AS "pendingSubmissions",
+      (SELECT count(*)::int FROM submissions) AS "totalSubmissions",
+      (SELECT count(DISTINCT shop_id)::int FROM dead_link_reports) AS "deadLinkReports"
+  `);
+  return c.json({ data: stats });
 });
 
 // GET /api/admin/umami/stats?period=today|7d|30d
@@ -255,51 +250,62 @@ adminRoutes.get("/submissions", requireAuth, async (c) => {
 
 // PATCH /api/admin/submissions/:id
 adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSchema), async (c) => {
-  const id = Number(c.req.param("id"));
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   const { status, adminNote, sendFeedback } = c.req.valid("json");
   const adminId = c.get("adminId");
 
-  const [submission] = await db
-    .update(submissions)
-    .set({
-      status,
-      adminNote: adminNote ?? null,
-      reviewedBy: adminId,
-      reviewedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(submissions.id, id))
-    .returning();
+  const { submission, newShop } = await db.transaction(async (tx) => {
+    const [sub] = await tx
+      .update(submissions)
+      .set({
+        status,
+        adminNote: adminNote ?? null,
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(submissions.id, id))
+      .returning();
+
+    if (!sub) return { submission: null, newShop: null };
+
+    let created = null;
+    if (status === "approved") {
+      const catRows = await tx
+        .select({ categoryId: submissionCategories.categoryId })
+        .from(submissionCategories)
+        .where(eq(submissionCategories.submissionId, id));
+
+      const [shop] = await tx
+        .insert(shops)
+        .values({
+          name: sub.shopName,
+          url: sub.shopUrl,
+          region: sub.region,
+          pickup: sub.pickup,
+          shipping: sub.shipping,
+          description: sub.description,
+        })
+        .returning();
+
+      if (catRows.length > 0) {
+        await tx
+          .insert(shopCategories)
+          .values(catRows.map((r) => ({ shopId: shop.id, categoryId: r.categoryId })));
+      }
+      created = shop;
+    }
+
+    return { submission: sub, newShop: created };
+  });
 
   if (!submission) {
     return c.json({ error: { message: "Submission not found" } }, 404);
   }
 
-  // On approval: auto-create shop from submission data
-  if (status === "approved") {
-    const catRows = await db
-      .select({ categoryId: submissionCategories.categoryId })
-      .from(submissionCategories)
-      .where(eq(submissionCategories.submissionId, id));
-
-    const [newShop] = await db
-      .insert(shops)
-      .values({
-        name: submission.shopName,
-        url: submission.shopUrl,
-        region: submission.region,
-        pickup: submission.pickup,
-        shipping: submission.shipping,
-        description: submission.description,
-      })
-      .returning();
-
-    if (catRows.length > 0) {
-      await db
-        .insert(shopCategories)
-        .values(catRows.map((r) => ({ shopId: newShop.id, categoryId: r.categoryId })));
-    }
-
+  // Side effects outside transaction
+  if (newShop) {
     fetchPreviewImage(newShop.url)
       .then(async (result) => {
         if (result) {
@@ -309,7 +315,6 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
       .catch(() => {});
   }
 
-  // Email feedback (non-fatal: email errors must not break the review flow)
   if (sendFeedback && submission.submitterEmail) {
     try {
       if (status === "approved") {
@@ -344,33 +349,39 @@ adminRoutes.patch(
   requireAuth,
   zValidator("json", submissionEditSchema),
   async (c) => {
-    const id = Number(c.req.param("id"));
+    const id = parseId(c.req.param("id"));
+    if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
     const body = c.req.valid("json");
 
-    const [submission] = await db
-      .update(submissions)
-      .set({
-        shopName: body.shopName,
-        shopUrl: body.shopUrl,
-        description: body.description ?? "",
-        region: body.region ?? [],
-        shipping: body.shipping ?? "",
-        updatedAt: new Date(),
-      })
-      .where(eq(submissions.id, id))
-      .returning();
+    const submission = await db.transaction(async (tx) => {
+      const [sub] = await tx
+        .update(submissions)
+        .set({
+          shopName: body.shopName,
+          shopUrl: body.shopUrl,
+          description: body.description ?? "",
+          region: body.region ?? [],
+          shipping: body.shipping ?? "",
+          updatedAt: new Date(),
+        })
+        .where(eq(submissions.id, id))
+        .returning();
+
+      if (!sub) return null;
+
+      await tx.delete(submissionCategories).where(eq(submissionCategories.submissionId, id));
+
+      if (body.categoryIds.length > 0) {
+        await tx
+          .insert(submissionCategories)
+          .values(body.categoryIds.map((cid) => ({ submissionId: id, categoryId: cid })));
+      }
+
+      return sub;
+    });
 
     if (!submission) {
       return c.json({ error: { message: "Submission not found" } }, 404);
-    }
-
-    // Replace categories
-    await db.delete(submissionCategories).where(eq(submissionCategories.submissionId, id));
-
-    if (body.categoryIds.length > 0) {
-      await db
-        .insert(submissionCategories)
-        .values(body.categoryIds.map((cid) => ({ submissionId: id, categoryId: cid })));
     }
 
     return c.json({ data: submission });
@@ -397,8 +408,8 @@ adminRoutes.get("/shops", requireAuth, async (c) => {
 });
 
 adminRoutes.get("/shops/:id", requireAuth, async (c) => {
-  const id = Number(c.req.param("id"));
-  if (Number.isNaN(id)) return c.json({ error: { message: "Invalid id" } }, 400);
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   const [row] = await db.execute(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.is_active as "isActive",
@@ -433,13 +444,16 @@ const shopBodySchema = z.object({
 
 adminRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), async (c) => {
   const { categoryIds, ...shopData } = c.req.valid("json");
-  const [shop] = await db.insert(shops).values(shopData).returning();
 
-  if (categoryIds.length > 0) {
-    await db
-      .insert(shopCategories)
-      .values(categoryIds.map((cid) => ({ shopId: shop.id, categoryId: cid })));
-  }
+  const shop = await db.transaction(async (tx) => {
+    const [s] = await tx.insert(shops).values(shopData).returning();
+    if (categoryIds.length > 0) {
+      await tx
+        .insert(shopCategories)
+        .values(categoryIds.map((cid) => ({ shopId: s.id, categoryId: cid })));
+    }
+    return s;
+  });
 
   fetchPreviewImage(shop.url)
     .then(async (result) => {
@@ -469,40 +483,49 @@ for (const method of ["put", "patch"] as const) {
     requireAuth,
     zValidator("json", shopUpdateSchema),
     async (c) => {
-      const id = Number(c.req.param("id"));
+      const id = parseId(c.req.param("id"));
+      if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
       const { categoryIds, ...shopData } = c.req.valid("json");
 
-      const [shop] = await db
-        .update(shops)
-        .set({ ...shopData, updatedAt: new Date() })
-        .where(eq(shops.id, id))
-        .returning();
-      if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+      const shop = await db.transaction(async (tx) => {
+        const [s] = await tx
+          .update(shops)
+          .set({ ...shopData, updatedAt: new Date() })
+          .where(eq(shops.id, id))
+          .returning();
+        if (!s) return null;
 
-      if (categoryIds !== undefined) {
-        await db.delete(shopCategories).where(eq(shopCategories.shopId, id));
-        if (categoryIds.length > 0) {
-          await db
-            .insert(shopCategories)
-            .values(categoryIds.map((cid) => ({ shopId: id, categoryId: cid })));
+        if (categoryIds !== undefined) {
+          await tx.delete(shopCategories).where(eq(shopCategories.shopId, id));
+          if (categoryIds.length > 0) {
+            await tx
+              .insert(shopCategories)
+              .values(categoryIds.map((cid) => ({ shopId: id, categoryId: cid })));
+          }
         }
-      }
 
+        return s;
+      });
+
+      if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
       return c.json({ data: { ...shop, categories: [] } });
     },
   );
 }
 
 adminRoutes.delete("/shops/:id", requireAuth, async (c) => {
-  const id = Number(c.req.param("id"));
-  await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
-  await db.delete(shops).where(eq(shops.id, id));
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  await db.transaction(async (tx) => {
+    await tx.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+    await tx.delete(shops).where(eq(shops.id, id));
+  });
   return c.json({ data: { message: "Shop deleted" } });
 });
 
 adminRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {
-  const id = Number(c.req.param("id"));
-  if (Number.isNaN(id)) return c.json({ error: { message: "Invalid id" } }, 400);
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
 
   const [shop] = await db.select({ url: shops.url }).from(shops).where(eq(shops.id, id));
   if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
@@ -545,10 +568,8 @@ adminRoutes.get("/dead-link-reports", requireAuth, async (c) => {
 
 // DELETE /api/admin/dead-link-reports/:shopId – clear all reports for a shop
 adminRoutes.delete("/dead-link-reports/:shopId", requireAuth, async (c) => {
-  const shopId = Number(c.req.param("shopId"));
-  if (!Number.isInteger(shopId) || shopId <= 0) {
-    return c.json({ error: { message: "Invalid shop id" } }, 400);
-  }
+  const shopId = parseId(c.req.param("shopId"));
+  if (!shopId) return c.json({ error: { message: "Invalid shop id" } }, 400);
   await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, shopId));
   return c.json({ data: { message: "Reports cleared" } });
 });
@@ -591,7 +612,8 @@ for (const method of ["put", "patch"] as const) {
     requireAuth,
     zValidator("json", categoryUpdateSchema),
     async (c) => {
-      const id = Number(c.req.param("id"));
+      const id = parseId(c.req.param("id"));
+      if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
       const body = c.req.valid("json");
 
       // If imageUrl is changing away from an uploaded file, delete the old file from disk
@@ -620,14 +642,16 @@ for (const method of ["put", "patch"] as const) {
 }
 
 adminRoutes.delete("/categories/:id", requireAuth, async (c) => {
-  const id = Number(c.req.param("id"));
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   await db.delete(categories).where(eq(categories.id, id));
   return c.json({ data: { message: "Category deleted" } });
 });
 
 // Image upload for a category
 adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
-  const id = Number(c.req.param("id"));
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
   if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
 
@@ -675,7 +699,8 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
 
 // Delete image of a category
 adminRoutes.delete("/categories/:id/image", requireAuth, async (c) => {
-  const id = Number(c.req.param("id"));
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
   if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
 
@@ -818,14 +843,17 @@ adminRoutes.post(
 );
 
 adminRoutes.delete("/users/:id", requireAuth, requireOwner, async (c) => {
-  const id = Number(c.req.param("id"));
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   const adminId = c.get("adminId");
 
   if (id === adminId) {
     return c.json({ error: { message: "Cannot delete yourself" } }, 400);
   }
 
-  await db.delete(sessions).where(eq(sessions.adminUserId, id));
-  await db.delete(adminUsers).where(eq(adminUsers.id, id));
+  await db.transaction(async (tx) => {
+    await tx.delete(sessions).where(eq(sessions.adminUserId, id));
+    await tx.delete(adminUsers).where(eq(adminUsers.id, id));
+  });
   return c.json({ data: { message: "User deleted" } });
 });

@@ -66,6 +66,7 @@
   --ds-bg-elevated: var(--ds-color-neutral-100);
   --ds-surface: oklch(1 0 0);
   --ds-surface-alt: var(--ds-color-neutral-50);
+  --ds-input-bg: oklch(1 0 0);
 
   /* Borders */
   --ds-border: var(--ds-color-neutral-200);
@@ -134,6 +135,7 @@
   --ds-bg-elevated: oklch(0.21 0.006 38.2);
   --ds-surface: oklch(0.19 0.006 38.2);
   --ds-surface-alt: oklch(0.16 0.005 38.2);
+  --ds-input-bg: oklch(0.26 0.007 38.2);
 
   /* Borders */
   --ds-border: oklch(0.3 0.008 38.2);

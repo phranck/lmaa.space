@@ -244,7 +244,7 @@ function VorschlaegeTab() {
               onChange={(e) => setAdminNote(e.target.value)}
               rows={3}
               placeholder={reviewId < 0 ? "Grund für Ablehnung…" : "Optionaler Kommentar…"}
-              className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none mb-3"
+              className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm text-[var(--ds-text)] resize-none mb-3"
             />
 
             {reviewing.submitterEmail && (
@@ -270,7 +270,7 @@ function VorschlaegeTab() {
               <button
                 type="button"
                 onClick={() => setReviewId(null)}
-                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+                className="flex-1 py-2.5 border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>
@@ -295,7 +295,9 @@ function VorschlaegeTab() {
                   )
                 }
                 className={`flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
-                  reviewId > 0 ? "bg-green-600 hover:bg-green-700" : "bg-red-500 hover:bg-red-600"
+                  reviewId > 0
+                    ? "bg-[var(--ds-accent)] hover:bg-[var(--ds-accent-hover)]"
+                    : "bg-red-500 hover:bg-red-600"
                 }`}
               >
                 {reviewMutation.isPending ? "…" : reviewId > 0 ? "Annehmen" : "Ablehnen"}
@@ -399,7 +401,7 @@ function DefekteLinksTab() {
               <button
                 type="button"
                 onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+                className="flex-1 py-2.5 border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>
