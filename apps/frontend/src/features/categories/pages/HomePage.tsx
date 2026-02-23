@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { PageLayout } from "../../../components/layout/PageLayout.tsx";
-import { usePageMeta } from "../../../hooks/usePageMeta.ts";
-import { heroImage } from "../../../lib/categoryImages.ts";
-import { CategoryGrid } from "../components/CategoryGrid.tsx";
-import { HeroLogo } from "../components/HeroLogo.tsx";
-import { useCategories } from "../hooks/useCategories.ts";
+import { PageLayout } from "@/components/layout/PageLayout.tsx";
+import { usePageMeta } from "@/hooks/usePageMeta.ts";
+import { heroImage } from "@/lib/categoryImages.ts";
+import { CategoryGrid } from "@/features/categories/components/CategoryGrid.tsx";
+import { HeroLogo } from "@/features/categories/components/HeroLogo.tsx";
+import { useCategories } from "@/features/categories/hooks/useCategories.ts";
 
 export function HomePage() {
   const jsonLd = useMemo(

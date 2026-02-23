@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router";
-import { DonateButton } from "../common/DonateButton.tsx";
+import { DonateButton } from "@/components/common/DonateButton.tsx";
 
 export function Header() {
   const navigate = useNavigate();
