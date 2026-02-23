@@ -65,17 +65,7 @@ export function ShopCard({ shop }: ShopCardProps) {
             href={shop.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors"
-            style={{
-              backgroundColor: "var(--accent-hover)",
-              color: "var(--accent-text)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "var(--accent-active)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "var(--accent-hover)";
-            }}
+            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
           >
             Besuchen ↗
           </a>
