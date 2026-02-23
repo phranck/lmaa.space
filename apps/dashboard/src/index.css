@@ -133,3 +133,10 @@ body {
 .mdxeditor-popup-container {
   z-index: 50;
 }
+
+/* Source mode: apply configurable font size via CSS variable */
+.mdxeditor .cm-editor .cm-content,
+.mdxeditor .cm-editor .cm-line {
+  font-size: var(--source-font-size, 13px);
+  line-height: 1.7;
+}
