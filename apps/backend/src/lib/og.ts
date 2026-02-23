@@ -61,6 +61,23 @@ function extractAppleTouchIcon(html: string, base: string): string | null {
   return null;
 }
 
+function extractFaviconIcon(html: string, base: string): string | null {
+  const patterns = [
+    /<link[^>]+rel=["'](?:shortcut )?icon["'][^>]+href=["']([^"']+)["']/i,
+    /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut )?icon["']/i,
+  ];
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[1]) {
+      const src = match[1].trim();
+      if (SKIP_EXT.test(src)) continue; // skip .svg, .ico, .gif
+      const resolved = resolveUrl(src, base);
+      if (resolved) return resolved;
+    }
+  }
+  return null;
+}
+
 function firstLargeImage(html: string, base: string): string | null {
   for (const [, attrs] of html.matchAll(/<img\b([^>]+)>/gi)) {
     const srcMatch = attrs.match(/\bsrc=["']([^"']+)["']/i);
@@ -148,7 +165,16 @@ export async function fetchPreviewImage(
     if (large) return { url: large, via: "img" };
   }
 
-  // 5. Google Favicon (last resort)
+  // 5. <link rel="icon"> from HTML (PNG only – usually small but better than Google Favicon)
+  for (const [url, html] of htmlMap) {
+    const icon = extractFaviconIcon(html, url);
+    if (icon) {
+      const result = await tryImageUrl(icon);
+      if (result) return { url: icon, via: "favicon-icon" };
+    }
+  }
+
+  // 6. Google Favicon (last resort)
   const favicon = googleFaviconUrl(shopUrl);
   const faviconResult = await tryImageUrl(favicon);
   if (faviconResult) return { url: favicon, via: "favicon" };
