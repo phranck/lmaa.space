@@ -105,13 +105,15 @@ function RealtimeCard() {
     });
 
     if (realtime?.series) {
+      // Umami may return x in seconds or milliseconds — normalise to ms
+      const toMs = (x: number) => (x > 1e12 ? x : x * 1000);
       for (const v of realtime.series.visitors) {
-        const rounded = Math.floor(v.x / 60_000) * 60_000;
+        const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
         const slot = slots.find((s) => s.ts === rounded);
         if (slot) slot.Besucher = v.y;
       }
       for (const v of realtime.series.views) {
-        const rounded = Math.floor(v.x / 60_000) * 60_000;
+        const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
         const slot = slots.find((s) => s.ts === rounded);
         if (slot) slot.Aufrufe = v.y;
       }
@@ -184,13 +186,13 @@ function RealtimeCard() {
                   margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
                   barSize={5}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={true} />
                   <XAxis
                     dataKey="time"
                     tick={{ fontSize: 10, fill: "#9ca3af" }}
                     axisLine={false}
                     tickLine={false}
-                    interval={4}
+                    interval={1}
                   />
                   <YAxis
                     tick={{ fontSize: 10, fill: "#9ca3af" }}
