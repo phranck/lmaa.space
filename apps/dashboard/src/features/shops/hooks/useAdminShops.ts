@@ -37,6 +37,13 @@ export function useDeleteShop() {
   });
 }
 
+export function useFetchPreviewImage() {
+  return useMutation({
+    mutationFn: (url: string) =>
+      api.post<{ ogImage: string | null }>("/admin/preview-image", { url }),
+  });
+}
+
 export function useRefetchShopImage(shopId: number) {
   const qc = useQueryClient();
   return useMutation({

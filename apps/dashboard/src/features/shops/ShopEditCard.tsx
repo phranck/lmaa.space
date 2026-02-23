@@ -1,6 +1,7 @@
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import {
   useAdminShop,
+  useFetchPreviewImage,
   useRefetchShopImage,
   useSaveShop,
 } from "@/features/shops/hooks/useAdminShops.ts";
@@ -27,6 +28,7 @@ export function ShopEditCard({
   const isNew = shopId === "new";
   const [closing, setClosing] = useState(false);
   const [form, setForm] = useState<ShopEditFormValue>({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const { data: categories = [] } = useAdminCategories();
   const { data: shopData, isLoading: isLoadingShop } = useAdminShop(
@@ -35,6 +37,7 @@ export function ShopEditCard({
   const shopMutation = useSaveShop(isSubmissionMode ? null : isNew ? null : (shopId as number));
   const submissionMutation = useEditSubmission();
   const refetchImageMutation = useRefetchShopImage(typeof shopId === "number" ? shopId : 0);
+  const fetchPreviewMutation = useFetchPreviewImage();
 
   const isPending = shopMutation.isPending || submissionMutation.isPending;
   const isError = shopMutation.isError || submissionMutation.isError;
@@ -121,37 +124,52 @@ export function ShopEditCard({
             />
           )}
 
-          {!isNew && !isSubmissionMode && (
-            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
-              <div className="shrink-0 w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
-                {shopData?.ogImage ? (
-                  <img src={shopData.ogImage} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xl font-bold text-gray-300 select-none">
-                    {form.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-600 mb-0.5">Vorschaubild</p>
-                <p className="text-xs text-gray-400 truncate">
-                  {shopData?.ogImage ?? "Kein Bild gesetzt"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => refetchImageMutation.mutate()}
-                disabled={refetchImageMutation.isPending || isLoadingShop}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-control text-xs text-gray-600 hover:border-gray-300 transition-colors disabled:opacity-40"
-              >
-                <LuRefreshCw
-                  size={12}
-                  className={refetchImageMutation.isPending ? "animate-spin" : ""}
-                />
-                Neu laden
-              </button>
-            </div>
-          )}
+          {!isNew &&
+            (() => {
+              const displayImage = isSubmissionMode ? previewImage : (shopData?.ogImage ?? null);
+              const isPending = isSubmissionMode
+                ? fetchPreviewMutation.isPending
+                : refetchImageMutation.isPending;
+
+              function handleRefreshImage() {
+                if (isSubmissionMode) {
+                  fetchPreviewMutation.mutate(form.url, {
+                    onSuccess: (data) => setPreviewImage(data.ogImage),
+                  });
+                } else {
+                  refetchImageMutation.mutate();
+                }
+              }
+
+              return (
+                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
+                  <div className="shrink-0 w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
+                    {displayImage ? (
+                      <img src={displayImage} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xl font-bold text-gray-300 select-none">
+                        {form.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-600 mb-0.5">Vorschaubild</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {displayImage ?? "Kein Bild gesetzt"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRefreshImage}
+                    disabled={isPending || isLoadingShop}
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-control text-xs text-gray-600 hover:border-gray-300 transition-colors disabled:opacity-40"
+                  >
+                    <LuRefreshCw size={12} className={isPending ? "animate-spin" : ""} />
+                    Neu laden
+                  </button>
+                </div>
+              );
+            })()}
 
           {isError && (
             <p className="text-red-500 text-sm mt-4">
