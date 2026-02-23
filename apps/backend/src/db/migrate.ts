@@ -54,7 +54,14 @@ async function main() {
     )
   `;
 
-  await sql`CREATE INDEX IF NOT EXISTS idx_shops_category ON shops(category_id)`;
+  await sql`
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'shops' AND column_name = 'category_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_shops_category ON shops(category_id);
+      END IF;
+    END $do$
+  `;
   await sql`CREATE INDEX IF NOT EXISTS idx_shops_active   ON shops(is_active)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_shops_fts      ON shops USING GIN(search_vector)`;
 
@@ -155,7 +162,14 @@ async function main() {
   // Replace single-column shop indexes with a compound index for faster filtered queries
   await sql`DROP INDEX IF EXISTS idx_shops_category`;
   await sql`DROP INDEX IF EXISTS idx_shops_active`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_shops_category_active ON shops (category_id, is_active)`;
+  await sql`
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'shops' AND column_name = 'category_id') THEN
+        CREATE INDEX IF NOT EXISTS idx_shops_category_active ON shops (category_id, is_active);
+      END IF;
+    END $do$
+  `;
 
   // Multi-category: junction table shop_categories
   await sql`
@@ -169,19 +183,30 @@ async function main() {
 
   // Migrate existing shop→category assignments into junction table
   await sql`
-    INSERT INTO shop_categories (shop_id, category_id)
-    SELECT id, category_id FROM shops WHERE category_id IS NOT NULL
-    ON CONFLICT DO NOTHING
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'shops' AND column_name = 'category_id') THEN
+        INSERT INTO shop_categories (shop_id, category_id)
+        SELECT id, category_id FROM shops WHERE category_id IS NOT NULL
+        ON CONFLICT DO NOTHING;
+      END IF;
+    END $do$
   `;
 
-  // Multi-category for submissions: add category_ids column (JSON array as text)
-  await sql`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS category_ids TEXT NOT NULL DEFAULT '[]'`;
-
-  // Backfill category_ids from legacy category_id where not yet set
+  // Multi-category for submissions: add category_ids + backfill (only when legacy category_id still exists)
   await sql`
-    UPDATE submissions
-    SET category_ids = json_build_array(category_id)::text
-    WHERE category_id IS NOT NULL AND category_ids = '[]'
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'submissions' AND column_name = 'category_id') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'submissions' AND column_name = 'category_ids') THEN
+          ALTER TABLE submissions ADD COLUMN category_ids TEXT NOT NULL DEFAULT '[]';
+        END IF;
+        UPDATE submissions
+        SET category_ids = json_build_array(category_id)::text
+        WHERE category_id IS NOT NULL AND category_ids = '[]';
+      END IF;
+    END $do$
   `;
 
   // Drop the old compound index (references category_id which will be removed)
@@ -215,20 +240,30 @@ async function main() {
 
   // Migrate from legacy single-FK column
   await sql`
-    INSERT INTO submission_categories (submission_id, category_id)
-    SELECT id, category_id FROM submissions WHERE category_id IS NOT NULL
-    ON CONFLICT DO NOTHING
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'submissions' AND column_name = 'category_id') THEN
+        INSERT INTO submission_categories (submission_id, category_id)
+        SELECT id, category_id FROM submissions WHERE category_id IS NOT NULL
+        ON CONFLICT DO NOTHING;
+      END IF;
+    END $do$
   `;
 
   // Migrate from JSON-array column (may overlap with above – ON CONFLICT handles it)
   await sql`
-    INSERT INTO submission_categories (submission_id, category_id)
-    SELECT s.id, elem::integer
-    FROM submissions s,
-         jsonb_array_elements_text(s.category_ids::jsonb) AS elem
-    WHERE s.category_ids IS NOT NULL
-      AND s.category_ids <> '[]'
-    ON CONFLICT DO NOTHING
+    DO $do$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'submissions' AND column_name = 'category_ids') THEN
+        INSERT INTO submission_categories (submission_id, category_id)
+        SELECT s.id, elem::integer
+        FROM submissions s,
+             jsonb_array_elements_text(s.category_ids::jsonb) AS elem
+        WHERE s.category_ids IS NOT NULL
+          AND s.category_ids <> '[]'
+        ON CONFLICT DO NOTHING;
+      END IF;
+    END $do$
   `;
 
   // Drop the now-redundant denormalized columns
