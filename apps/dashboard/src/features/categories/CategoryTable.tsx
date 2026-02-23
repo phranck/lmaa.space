@@ -27,7 +27,6 @@ function CategoryThumb({ category }: { category: Category }) {
 }
 
 export function CategoryTable({ categories, onEdit, onDelete }: CategoryTableProps) {
-  // Enrich each category with a derived "letter" field for grouping
   const data = useMemo(
     () => categories.map((c) => ({ ...c, letter: c.name.charAt(0).toUpperCase() })),
     [categories],
@@ -41,10 +40,9 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
         id: "letter",
         accessorKey: "letter",
         header: "Buchstabe",
-        size: 60,
         enableHiding: false,
         GroupedCell: ({ cell }) => (
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          <span className="text-xs font-bold tracking-widest uppercase text-gray-400">
             {cell.getValue<string>()}
           </span>
         ),
@@ -60,7 +58,6 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
       {
         accessorKey: "name",
         header: "Name",
-        size: 200,
         Cell: ({ cell }) => (
           <span className="font-medium text-gray-900">{cell.getValue<string>()}</span>
         ),
@@ -68,7 +65,6 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
       {
         accessorKey: "slug",
         header: "Slug",
-        size: 200,
         Cell: ({ cell }) => (
           <span className="text-sm font-mono text-gray-500">{cell.getValue<string>()}</span>
         ),
@@ -84,7 +80,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
       {
         id: "actions",
         header: "",
-        size: 160,
+        size: 180,
         enableSorting: false,
         enableColumnFilter: false,
         Cell: ({ row }) => (
@@ -113,18 +109,24 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
   const table = useMaterialReactTable({
     columns,
     data,
-    // Grouping by first letter
     enableGrouping: true,
     enableColumnDragging: false,
     enableColumnOrdering: false,
-    // Hide the grouped "letter" column from normal display
-    initialState: {
-      grouping: ["letter"],
+    // Keep groups always expanded; ignore collapse attempts
+    state: {
       expanded: true,
+      grouping: ["letter"],
       columnVisibility: { letter: false },
-      density: "compact",
     },
-    // Disable features we don't need
+    onExpandedChange: () => {},
+    // Hide the built-in expand/collapse toggle column
+    displayColumnDefOptions: {
+      "mrt-row-expand": {
+        size: 0,
+        muiTableHeadCellProps: { sx: { width: 0, minWidth: 0, padding: 0, border: 0 } },
+        muiTableBodyCellProps: { sx: { width: 0, minWidth: 0, padding: 0, border: 0 } },
+      },
+    },
     enableTopToolbar: false,
     enableBottomToolbar: false,
     enableFullScreenToggle: false,
@@ -136,26 +138,39 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
     enableSorting: false,
     enableStickyHeader: false,
     enableColumnActions: false,
-    // MUI theming overrides via sx
+    initialState: {
+      density: "comfortable",
+    },
     muiTablePaperProps: {
       elevation: 0,
       sx: {
+        width: "100%",
         borderRadius: "var(--radius-card)",
         border: "1px solid #f3f4f6",
         overflow: "hidden",
       },
     },
     muiTableProps: {
-      sx: { tableLayout: "auto" },
+      sx: { tableLayout: "fixed", width: "100%" },
     },
-    muiTableHeadProps: {
-      sx: { display: "none" },
+    muiTableHeadCellProps: {
+      sx: {
+        backgroundColor: "#f9fafb",
+        color: "#6b7280",
+        fontSize: "0.75rem",
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+        borderBottom: "1px solid #e5e7eb",
+        padding: "10px 16px",
+      },
     },
     muiTableBodyRowProps: ({ row }) => ({
       sx: row.getIsGrouped()
         ? {
-            backgroundColor: "transparent",
-            "&:hover": { backgroundColor: "transparent" },
+            backgroundColor: "#f9fafb",
+            borderTop: "2px solid #e5e7eb",
+            "&:hover": { backgroundColor: "#f9fafb" },
           }
         : {
             "&:hover": { backgroundColor: "#f9fafb" },
@@ -164,7 +179,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
     }),
     muiTableBodyCellProps: ({ row }) => ({
       sx: {
-        padding: row.getIsGrouped() ? "4px 12px 2px" : "8px 12px",
+        padding: row.getIsGrouped() ? "8px 16px" : "10px 16px",
         borderBottom: "1px solid #f3f4f6",
         fontSize: "0.875rem",
       },
