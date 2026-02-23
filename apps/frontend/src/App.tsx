@@ -6,6 +6,7 @@ import { SearchPage } from "./features/search/pages/SearchPage.tsx";
 import { AboutPage } from "./features/suggest/pages/AboutPage.tsx";
 import { DatenschutzPage } from "./features/suggest/pages/DatenschutzPage.tsx";
 import { ImpressumPage } from "./features/suggest/pages/ImpressumPage.tsx";
+import { AufnahmekriterienPage } from "./features/suggest/pages/AufnahmekriterienPage.tsx";
 import { SuggestPage } from "./features/suggest/pages/SuggestPage.tsx";
 
 declare global {
@@ -31,6 +32,8 @@ export default function App() {
       <Route path="/ueber-uns" element={<AboutPage />} />
       <Route path="/impressum" element={<ImpressumPage />} />
       <Route path="/datenschutz" element={<DatenschutzPage />} />
+      <Route path="/aufnahmekriterien" element={<AufnahmekriterienPage />} />
+      <Route path="/kriterien" element={<AufnahmekriterienPage />} />
     </Routes>
   );
 }
