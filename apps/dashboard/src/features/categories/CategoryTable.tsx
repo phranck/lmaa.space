@@ -14,7 +14,7 @@ function CategoryThumb({ category }: { category: Category }) {
     <img
       src={src}
       alt=""
-      className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0"
+      className="block w-10 h-10 aspect-square rounded-lg object-cover bg-gray-100"
       onError={(e) => {
         (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
       }}
@@ -72,5 +72,5 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
     [onEdit, onDelete],
   );
 
-  return <DataTable columns={columns} data={categories} getRowKey={(c) => c.id} />;
+  return <DataTable columns={columns} data={categories} getRowKey={(c) => c.id} stickyHeader />;
 }
