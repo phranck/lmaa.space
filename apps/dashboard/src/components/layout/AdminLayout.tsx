@@ -69,7 +69,7 @@ function AdminLayoutInner() {
 
       {/* Main */}
       <div className="md:ml-56 pt-14 flex flex-col min-h-screen">
-        <main className="flex-1 p-6 max-w-5xl w-full mx-auto">
+        <main className="flex-1 p-6">
           <Outlet />
         </main>
       </div>
