@@ -152,6 +152,11 @@ async function main() {
     ON CONFLICT (slug) DO NOTHING
   `;
 
+  // Replace single-column shop indexes with a compound index for faster filtered queries
+  await sql`DROP INDEX IF EXISTS idx_shops_category`;
+  await sql`DROP INDEX IF EXISTS idx_shops_active`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_shops_category_active ON shops (category_id, is_active)`;
+
   // Backfill search_vector for any existing rows (no-op on fresh install)
   await sql`
     UPDATE shops SET search_vector =
