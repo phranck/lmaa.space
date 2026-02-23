@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
 import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
-import { CategoryListItem } from "@/features/categories/CategoryListItem.tsx";
+import { CategoryTable } from "@/features/categories/CategoryTable.tsx";
 import { api } from "@/lib/api.ts";
 import type { Category } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -118,23 +118,11 @@ export function CategoriesPage() {
 
       {/* List View */}
       {!isLoading && viewMode === "list" && (
-        <div className="space-y-6">
-          {Object.entries(groupByLetter(categories)).map(([letter, items]) => (
-            <div key={letter}>
-              <SectionLabel letter={letter} />
-              <div className="space-y-2">
-                {items.map((cat) => (
-                  <CategoryListItem
-                    key={cat.id}
-                    category={cat}
-                    onEdit={setEditTarget}
-                    onDelete={setDeleteId}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <CategoryTable
+          categories={categories}
+          onEdit={setEditTarget}
+          onDelete={setDeleteId}
+        />
       )}
 
       {/* Grid View */}
