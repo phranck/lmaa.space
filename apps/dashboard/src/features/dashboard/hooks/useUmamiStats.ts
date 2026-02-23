@@ -46,10 +46,19 @@ export interface UmamiRealtime {
   referrers: Record<string, number>;
   events: UmamiRealtimeEvent[];
   series: {
-    views: { x: number; y: number }[];
+    // Umami v2 uses "pageviews", older versions use "views" — support both
+    pageviews?: { x: number; y: number }[];
+    views?: { x: number; y: number }[];
     visitors: { x: number; y: number }[];
   };
-  totals: { views: number; visitors: number; events: number; countries: number };
+  totals: {
+    // same dual-name issue in totals
+    pageviews?: number;
+    views?: number;
+    visitors: number;
+    events: number;
+    countries?: number;
+  };
   timestamp: number;
 }
 
