@@ -146,7 +146,7 @@ export function ContentEditorPage() {
         ),
       }),
     ],
-    [],
+    [slug],
   );
 
   return (
