@@ -1,16 +1,16 @@
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
-import {
-  LuChevronDown,
-  LuFileText,
-  LuInbox,
-  LuLayoutDashboard,
-  LuStore,
-  LuTag,
-  LuUsers,
-} from "react-icons/lu";
 import { NavLink, useMatch } from "react-router";
+import {
+  SFChevronDown,
+  SFDocument,
+  SFPerson3,
+  SFSquareGrid2x2,
+  SFStorefront,
+  SFTag,
+  SFTray,
+} from "sf-symbols-lib/monochrome";
 
 interface NavItem {
   to: string;
@@ -26,16 +26,16 @@ interface NavGroup {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/", label: "Übersicht", icon: <LuLayoutDashboard size={16} /> },
-  { to: "/meldungen", label: "Meldungen", icon: <LuInbox size={16} /> },
-  { to: "/shops", label: "Shops", icon: <LuStore size={16} /> },
-  { to: "/kategorien", label: "Kategorien", icon: <LuTag size={16} /> },
-  { to: "/benutzer", label: "Benutzer", icon: <LuUsers size={16} />, ownerOnly: true },
+  { to: "/", label: "Übersicht", icon: <SFSquareGrid2x2 className="w-4 h-4" /> },
+  { to: "/meldungen", label: "Meldungen", icon: <SFTray className="w-4 h-4" /> },
+  { to: "/shops", label: "Shops", icon: <SFStorefront className="w-4 h-4" /> },
+  { to: "/kategorien", label: "Kategorien", icon: <SFTag className="w-4 h-4" /> },
+  { to: "/benutzer", label: "Benutzer", icon: <SFPerson3 className="w-4 h-4" />, ownerOnly: true },
 ];
 
 const CONTENT_GROUP: NavGroup = {
   label: "Content",
-  icon: <LuFileText size={16} />,
+  icon: <SFDocument className="w-4 h-4" />,
   children: [
     { label: "Über uns", to: "/content/about" },
     { label: "Impressum", to: "/content/impressum" },
@@ -60,10 +60,7 @@ function ContentGroup({ group, onItemClick }: { group: NavGroup; onItemClick?: (
       <summary className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors border-l-2 cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent">
         <span className="shrink-0 opacity-70">{group.icon}</span>
         <span className="flex-1">{group.label}</span>
-        <LuChevronDown
-          size={14}
-          className="opacity-50 transition-transform group-open/details:rotate-180"
-        />
+        <SFChevronDown className="w-3.5 h-3.5 opacity-50 transition-transform group-open/details:rotate-180" />
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
         {group.children.map((child) => (

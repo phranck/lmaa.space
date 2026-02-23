@@ -3,7 +3,7 @@ import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
 import { useAdminShops, useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
 import { useState } from "react";
-import { LuX } from "react-icons/lu";
+import { SFXmark } from "sf-symbols-lib/monochrome";
 
 export function ShopsPage() {
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
@@ -38,7 +38,7 @@ export function ShopsPage() {
               onClick={() => setSearch("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              <LuX size={14} />
+              <SFXmark className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

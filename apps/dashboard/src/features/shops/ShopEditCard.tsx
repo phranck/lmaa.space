@@ -9,7 +9,7 @@ import { useEditSubmission } from "@/features/submissions/hooks/useAdminSubmissi
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useEffect, useState } from "react";
-import { LuRefreshCw, LuX } from "react-icons/lu";
+import { SFArrowClockwise, SFXmark } from "sf-symbols-lib/monochrome";
 
 type ShopEditCardProps = {
   initialData?: Partial<ShopEditFormValue>;
@@ -103,7 +103,7 @@ export function ShopEditCard({
             onClick={() => setClosing(true)}
             className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
-            <LuX size={15} />
+            <SFXmark className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -164,7 +164,7 @@ export function ShopEditCard({
                     disabled={isPending || isLoadingShop}
                     className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-control text-xs text-gray-600 hover:border-gray-300 transition-colors disabled:opacity-40"
                   >
-                    <LuRefreshCw size={12} className={isPending ? "animate-spin" : ""} />
+                    <SFArrowClockwise className={`w-3 h-3 ${isPending ? "animate-spin" : ""}`} />
                     Neu laden
                   </button>
                 </div>

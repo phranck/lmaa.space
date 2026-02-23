@@ -7,7 +7,7 @@ import {
   useDeleteCategory,
 } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useState } from "react";
-import { LuLayoutGrid, LuList } from "react-icons/lu";
+import { SFListBullet, SFSquareGrid2x2 } from "sf-symbols-lib/monochrome";
 
 type ViewMode = "list" | "grid";
 
@@ -43,7 +43,7 @@ export function CategoriesPage() {
             }`}
             aria-label="Listenansicht"
           >
-            <LuList size={16} />
+            <SFListBullet className="w-4 h-4" />
           </button>
           <button
             type="button"
@@ -55,7 +55,7 @@ export function CategoriesPage() {
             }`}
             aria-label="Kachelansicht"
           >
-            <LuLayoutGrid size={16} />
+            <SFSquareGrid2x2 className="w-4 h-4" />
           </button>
         </div>
 

@@ -11,7 +11,7 @@ import {
 import type { SubmissionStatus } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import type { Submission } from "@lmaa/shared";
 import { useState } from "react";
-import { LuExternalLink } from "react-icons/lu";
+import { SFArrowUpRightSquare } from "sf-symbols-lib/monochrome";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -343,7 +343,7 @@ function DefekteLinksTab() {
               className="inline-flex items-center gap-1 text-sm text-[var(--color-primary)] hover:underline truncate"
             >
               {r.shopUrl}
-              <LuExternalLink size={12} className="shrink-0" />
+              <SFArrowUpRightSquare className="w-3 h-3 shrink-0" />
             </a>
           </div>
 
