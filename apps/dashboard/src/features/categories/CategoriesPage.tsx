@@ -92,11 +92,13 @@ export function CategoriesPage() {
 
       {/* List View */}
       {!isLoading && viewMode === "list" && (
-        <CategoryTable
-          categories={categories}
-          onEdit={setEditTarget}
-          onDelete={setDeleteId}
-        />
+        <div className="-mx-6">
+          <CategoryTable
+            categories={categories}
+            onEdit={setEditTarget}
+            onDelete={setDeleteId}
+          />
+        </div>
       )}
 
       {/* Grid View */}
