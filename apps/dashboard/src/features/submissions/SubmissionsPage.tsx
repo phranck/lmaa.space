@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
+import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import {
   useAdminSubmissions,
   useDeadLinkReports,
@@ -8,6 +9,7 @@ import {
   useReviewSubmission,
 } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import type { SubmissionStatus } from "@/features/submissions/hooks/useAdminSubmissions.ts";
+import type { Submission } from "@lmaa/shared";
 import { useState } from "react";
 import { LuExternalLink } from "react-icons/lu";
 
@@ -32,11 +34,13 @@ function VorschlaegeTab() {
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [sendFeedback, setSendFeedback] = useState(false);
+  const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
   const { data: categories = [] } = useAdminCategories();
   const reviewMutation = useReviewSubmission();
 
+  // reviewId > 0 = approve, reviewId < 0 = reject
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
 
   return (
@@ -122,7 +126,14 @@ function VorschlaegeTab() {
             </div>
 
             {filter === "pending" && (
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setEditSubmission(sub)}
+                  className="px-3 py-2 border border-gray-200 text-gray-600 rounded-control text-sm hover:border-gray-300 transition-colors"
+                >
+                  Bearbeiten
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -130,7 +141,7 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="px-4 py-2 bg-green-600 text-white rounded-control text-sm font-medium hover:bg-green-700 transition-colors"
+                  className="px-3 py-2 bg-green-600 text-white rounded-control text-sm font-medium hover:bg-green-700 transition-colors"
                 >
                   Annehmen
                 </button>
@@ -141,7 +152,7 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-control text-sm font-medium hover:bg-red-600 transition-colors"
+                  className="px-3 py-2 bg-red-500 text-white rounded-control text-sm font-medium hover:bg-red-600 transition-colors"
                 >
                   Ablehnen
                 </button>
@@ -150,6 +161,23 @@ function VorschlaegeTab() {
           </div>
         ))}
       </div>
+
+      {/* Edit submission overlay */}
+      {editSubmission !== null && (
+        <ShopEditCard
+          submissionId={editSubmission.id}
+          initialData={{
+            name: editSubmission.shopName,
+            url: editSubmission.shopUrl,
+            description: editSubmission.description ?? "",
+            categoryIds: editSubmission.categoryIds ?? [],
+            region: editSubmission.region ?? "",
+            shipping: editSubmission.shipping ?? "",
+          }}
+          onClose={() => setEditSubmission(null)}
+          onSaved={() => setEditSubmission(null)}
+        />
+      )}
 
       {/* Review Modal */}
       {reviewId !== null && reviewing && (
@@ -174,7 +202,7 @@ function VorschlaegeTab() {
               value={adminNote}
               onChange={(e) => setAdminNote(e.target.value)}
               rows={3}
-              placeholder={reviewId < 0 ? "Grund für Ablehnung..." : "Optionaler Kommentar..."}
+              placeholder={reviewId < 0 ? "Grund für Ablehnung…" : "Optionaler Kommentar…"}
               className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none mb-3"
             />
 
@@ -229,7 +257,7 @@ function VorschlaegeTab() {
                   reviewId > 0 ? "bg-green-600 hover:bg-green-700" : "bg-red-500 hover:bg-red-600"
                 }`}
               >
-                {reviewMutation.isPending ? "..." : reviewId > 0 ? "Annehmen" : "Ablehnen"}
+                {reviewMutation.isPending ? "…" : reviewId > 0 ? "Annehmen" : "Ablehnen"}
               </button>
             </div>
           </div>

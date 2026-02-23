@@ -260,6 +260,54 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
   return c.json({ data: submission });
 });
 
+// PATCH /api/admin/submissions/:id/edit – update pending submission's shop data
+const submissionEditSchema = z.object({
+  shopName: z.string().min(1).max(200),
+  shopUrl: z.string().url(),
+  description: z.string().max(500).optional(),
+  region: z.string().max(100).optional(),
+  shipping: z.string().max(200).optional(),
+  categoryIds: z.array(z.number().int().positive()),
+});
+
+adminRoutes.patch(
+  "/submissions/:id/edit",
+  requireAuth,
+  zValidator("json", submissionEditSchema),
+  async (c) => {
+    const id = Number(c.req.param("id"));
+    const body = c.req.valid("json");
+
+    const [submission] = await db
+      .update(submissions)
+      .set({
+        shopName: body.shopName,
+        shopUrl: body.shopUrl,
+        description: body.description ?? "",
+        region: body.region ?? "",
+        shipping: body.shipping ?? "",
+        updatedAt: new Date(),
+      })
+      .where(eq(submissions.id, id))
+      .returning();
+
+    if (!submission) {
+      return c.json({ error: { message: "Submission not found" } }, 404);
+    }
+
+    // Replace categories
+    await db.delete(submissionCategories).where(eq(submissionCategories.submissionId, id));
+
+    if (body.categoryIds.length > 0) {
+      await db
+        .insert(submissionCategories)
+        .values(body.categoryIds.map((cid) => ({ submissionId: id, categoryId: cid })));
+    }
+
+    return c.json({ data: submission });
+  },
+);
+
 // ── Shops ──────────────────────────────────────────────────────────────────────
 
 adminRoutes.get("/shops", requireAuth, async (c) => {

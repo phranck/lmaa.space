@@ -1,3 +1,4 @@
+import type { ShopFormData } from "@/features/shops/hooks/useAdminShops.ts";
 import { api } from "@/lib/api.ts";
 import type { Submission } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,6 +41,22 @@ export function useReviewSubmission() {
         status,
         adminNote: adminNote || undefined,
         sendFeedback,
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),
+  });
+}
+
+export function useEditSubmission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ShopFormData }) =>
+      api.patch(`/admin/submissions/${id}/edit`, {
+        shopName: data.name,
+        shopUrl: data.url,
+        description: data.description,
+        region: data.region,
+        shipping: data.shipping,
+        categoryIds: data.categoryIds,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),
   });
