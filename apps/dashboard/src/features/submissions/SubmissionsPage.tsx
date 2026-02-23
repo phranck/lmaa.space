@@ -27,6 +27,37 @@ const STATUS_COLORS: Record<SubmissionStatus, string> = {
   rejected: "bg-red-50 text-red-600",
 };
 
+// ─── Shop image (favicon + lettermark fallback) ───────────────────────────────
+
+function ShopImage({ url, name }: { url: string; name: string }) {
+  const [imgError, setImgError] = useState(false);
+  const domain = (() => {
+    try {
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      return "";
+    }
+  })();
+
+  return (
+    <div className="w-12 h-12 shrink-0 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden">
+      {domain && !imgError ? (
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+          alt=""
+          aria-hidden="true"
+          className="w-8 h-8 object-contain"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <span className="text-lg font-bold text-gray-300 select-none">
+          {name.charAt(0).toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+}
+
 // ─── Sub-views ────────────────────────────────────────────────────────────────
 
 function VorschlaegeTab() {
@@ -84,8 +115,12 @@ function VorschlaegeTab() {
         {submissions.map((sub) => (
           <div
             key={sub.id}
-            className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+            className="bg-white rounded-2xl border border-gray-100 p-4 flex items-start gap-4"
           >
+            {/* Logo */}
+            <ShopImage url={sub.shopUrl} name={sub.shopName} />
+
+            {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-gray-900">{sub.shopName}</p>
@@ -125,12 +160,24 @@ function VorschlaegeTab() {
               </div>
             </div>
 
+            {/* Actions (pending only) */}
             {filter === "pending" && (
-              <div className="flex gap-2 shrink-0 flex-wrap">
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReviewId(-sub.id);
+                    setAdminNote("");
+                    setSendFeedback(!!sub.submitterEmail);
+                  }}
+                  className="h-8 px-3 border border-red-200 rounded-control text-red-500 text-sm hover:border-red-300 hover:bg-red-50 transition-colors"
+                >
+                  Ablehnen
+                </button>
                 <button
                   type="button"
                   onClick={() => setEditSubmission(sub)}
-                  className="px-3 py-2 border border-gray-200 text-gray-600 rounded-control text-sm hover:border-gray-300 transition-colors"
+                  className="h-8 px-3 border border-gray-200 rounded-control text-gray-600 text-sm hover:border-gray-300 transition-colors"
                 >
                   Bearbeiten
                 </button>
@@ -141,20 +188,9 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="px-3 py-2 bg-green-600 text-white rounded-control text-sm font-medium hover:bg-green-700 transition-colors"
+                  className="h-8 px-3 border border-green-200 rounded-control text-green-700 text-sm hover:border-green-300 hover:bg-green-50 transition-colors"
                 >
                   Annehmen
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReviewId(-sub.id);
-                    setAdminNote("");
-                    setSendFeedback(!!sub.submitterEmail);
-                  }}
-                  className="px-3 py-2 bg-red-500 text-white rounded-control text-sm font-medium hover:bg-red-600 transition-colors"
-                >
-                  Ablehnen
                 </button>
               </div>
             )}
