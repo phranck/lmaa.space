@@ -1,8 +1,10 @@
 import {
   type UmamiMetricType,
   type UmamiPeriod,
+  useUmamiActive,
   useUmamiMetrics,
   useUmamiPageviews,
+  useUmamiRealtime,
   useUmamiStats,
 } from "@/features/dashboard/hooks/useUmamiStats.ts";
 import { useState } from "react";
@@ -69,6 +71,75 @@ function KpiCard({ label, value, sub }: KpiCardProps) {
       <p className="text-xs text-gray-400 mb-1">{label}</p>
       <p className="text-xl font-semibold text-gray-900">{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+function RealtimeCard() {
+  const { data: realtime, isLoading: rtLoading } = useUmamiRealtime();
+  const { data: active } = useUmamiActive();
+
+  const topUrls = realtime?.urls
+    ? Object.entries(realtime.urls)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+    : [];
+  const maxViews = topUrls[0]?.[1] ?? 1;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+        </span>
+        <p className="text-sm font-medium text-gray-700">Live</p>
+        <span className="ml-auto text-xs text-gray-400">aktualisiert alle 30 s</span>
+      </div>
+
+      {rtLoading ? (
+        <div className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+      ) : !realtime ? (
+        <p className="text-xs text-gray-400">Keine Realtime-Daten</p>
+      ) : (
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Kennzahlen */}
+          <div className="flex gap-6 shrink-0">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">
+                {active?.visitors ?? realtime.totals.visitors}
+              </p>
+              <p className="text-xs text-gray-400">
+                {active?.visitors != null ? "aktiv (5 min)" : "Besucher (30 min)"}
+              </p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{realtime.totals.views}</p>
+              <p className="text-xs text-gray-400">Aufrufe (30 min)</p>
+            </div>
+          </div>
+
+          {/* Top URLs */}
+          {topUrls.length > 0 && (
+            <div className="flex-1 min-w-0 space-y-1.5">
+              {topUrls.map(([url, count]) => (
+                <div key={url} className="flex items-center gap-2 text-xs">
+                  <span className="flex-1 truncate text-gray-500" title={url}>
+                    {url === "/" ? "Startseite" : url}
+                  </span>
+                  <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-400 rounded-full"
+                      style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="shrink-0 w-5 text-right text-gray-400">{count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -154,6 +225,8 @@ export function AnalyticsSection() {
 
   return (
     <div className="mt-8">
+      <RealtimeCard />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-gray-700">Analytics</h2>

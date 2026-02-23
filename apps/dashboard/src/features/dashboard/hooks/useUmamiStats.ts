@@ -27,6 +27,36 @@ export interface UmamiMetricRow {
   y: number;
 }
 
+export interface UmamiRealtimeEvent {
+  __type: string;
+  sessionId: string;
+  eventName: string;
+  createdAt: string;
+  browser: string;
+  os: string;
+  device: string;
+  country: string;
+  urlPath: string;
+  referrerDomain: string;
+}
+
+export interface UmamiRealtime {
+  countries: Record<string, number>;
+  urls: Record<string, number>;
+  referrers: Record<string, number>;
+  events: UmamiRealtimeEvent[];
+  series: {
+    views: { x: number; y: number }[];
+    visitors: { x: number; y: number }[];
+  };
+  totals: { views: number; visitors: number; events: number; countries: number };
+  timestamp: number;
+}
+
+export interface UmamiActive {
+  visitors: number;
+}
+
 export function useUmamiStats(period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-stats", period],
@@ -40,6 +70,24 @@ export function useUmamiPageviews(period: UmamiPeriod) {
     queryKey: ["umami-pageviews", period],
     queryFn: () => api.get<UmamiPageviews | null>(`/admin/umami/pageviews?period=${period}`),
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useUmamiRealtime() {
+  return useQuery({
+    queryKey: ["umami-realtime"],
+    queryFn: () => api.get<UmamiRealtime | null>("/admin/umami/realtime"),
+    refetchInterval: 30_000,
+    staleTime: 0,
+  });
+}
+
+export function useUmamiActive() {
+  return useQuery({
+    queryKey: ["umami-active"],
+    queryFn: () => api.get<UmamiActive | null>("/admin/umami/active"),
+    refetchInterval: 30_000,
+    staleTime: 0,
   });
 }
 
