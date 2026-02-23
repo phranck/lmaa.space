@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
 import { useState } from "react";
-import { LuChevronDown, LuChevronUp, LuChevronsUpDown } from "react-icons/lu";
+import { SFChevronDown, SFChevronUp, SFChevronUpChevronDown } from "sf-symbols-lib/monochrome";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -124,12 +124,12 @@ export function DataTable<T>({
                   {col.header}
                   {sort?.id === col.id ? (
                     sort.dir === "asc" ? (
-                      <LuChevronUp className="w-3 h-3 shrink-0" />
+                      <SFChevronUp className="w-3 h-3 shrink-0" />
                     ) : (
-                      <LuChevronDown className="w-3 h-3 shrink-0" />
+                      <SFChevronDown className="w-3 h-3 shrink-0" />
                     )
                   ) : (
-                    <LuChevronsUpDown className="w-3 h-3 shrink-0 opacity-40" />
+                    <SFChevronUpChevronDown className="w-3 h-3 shrink-0 opacity-40" />
                   )}
                 </button>
               ) : (

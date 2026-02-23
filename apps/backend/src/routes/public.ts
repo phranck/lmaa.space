@@ -164,10 +164,11 @@ publicRoutes.get("/search", async (c) => {
     LIMIT 20
   `);
 
+  const escapedQ = q.toLowerCase().replace(/[%_\\]/g, "\\$&");
   const matchingCategories = await db
     .select()
     .from(categories)
-    .where(sql`lower(${categories.name}) LIKE ${`%${q.toLowerCase()}%`}`)
+    .where(sql`lower(${categories.name}) LIKE ${"%" + escapedQ + "%"} ESCAPE '\\'`)
     .limit(5);
 
   return c.json({
