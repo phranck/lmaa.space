@@ -97,6 +97,7 @@ export function ContentEditorPage() {
 
   const title = PAGE_LABELS[slug] ?? slug;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: slug from useParams() is reactive; plugins must reinit on route change
   const plugins = useMemo(
     () => [
       headingsPlugin(),

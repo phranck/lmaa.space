@@ -1,45 +1,17 @@
-import { CategoryMultiSelect } from "@/components/ui/CategoryMultiSelect.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
-import { ShopListItem } from "@/features/shops/ShopListItem.tsx";
-import {
-  EMPTY_SHOP_FORM,
-  useAdminShops,
-  useDeleteShop,
-  useSaveShop,
-} from "@/features/shops/hooks/useAdminShops.ts";
-import type { ShopFormData } from "@/features/shops/hooks/useAdminShops.ts";
+import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
+import { ShopTable } from "@/features/shops/ShopTable.tsx";
+import { useAdminShops, useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
 import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
 
 export function ShopsPage() {
-  const [form, setForm] = useState<ShopFormData>(EMPTY_SHOP_FORM);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
   const { data: shops = [], isLoading } = useAdminShops();
-  const { data: categories = [] } = useAdminCategories();
-  const saveMutation = useSaveShop(editId);
   const deleteMutation = useDeleteShop();
-
-  function startEdit(shop: Shop) {
-    setEditId(shop.id);
-    setForm({
-      name: shop.name,
-      url: shop.url,
-      description: shop.description ?? "",
-      categoryIds: shop.categories.map((c) => c.id),
-      region: shop.region ?? "",
-      shipping: shop.shipping ?? "",
-    });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function cancelEdit() {
-    setEditId(null);
-    setForm(EMPTY_SHOP_FORM);
-  }
 
   const filtered = shops.filter(
     (s) =>
@@ -48,154 +20,71 @@ export function ShopsPage() {
   );
 
   const deleteTarget = shops.find((s) => s.id === deleteId);
+  const editShop: Shop | undefined =
+    typeof editTarget === "number" ? shops.find((s) => s.id === editTarget) : undefined;
 
   return (
     <div>
-      <PageHeader title="Shops" />
-
-      {/* Form */}
-      <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
-        <h2 className="font-semibold text-gray-900 mb-4">
-          {editId ? "Shop bearbeiten" : "Neuer Shop"}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="shop-name" className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              id="shop-name"
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-          <div>
-            <label htmlFor="shop-url" className="block text-sm font-medium text-gray-700 mb-1">
-              URL
-            </label>
-            <input
-              id="shop-url"
-              type="url"
-              value={form.url}
-              onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-              placeholder="https://..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label
-              htmlFor="shop-description"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Beschreibung
-            </label>
-            <textarea
-              id="shop-description"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <span className="block text-sm font-medium text-gray-700 mb-2">Kategorien</span>
-            <CategoryMultiSelect
-              categories={categories}
-              value={form.categoryIds}
-              onChange={(ids) => setForm((f) => ({ ...f, categoryIds: ids }))}
-            />
-          </div>
-          <div>
-            <label htmlFor="shop-region" className="block text-sm font-medium text-gray-700 mb-1">
-              Region
-            </label>
-            <input
-              id="shop-region"
-              type="text"
-              value={form.region}
-              onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
-              placeholder="z.B. Deutschland, EU"
-              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-          <div>
-            <label htmlFor="shop-shipping" className="block text-sm font-medium text-gray-700 mb-1">
-              Versand
-            </label>
-            <input
-              id="shop-shipping"
-              type="text"
-              value={form.shipping}
-              onChange={(e) => setForm((f) => ({ ...f, shipping: e.target.value }))}
-              placeholder="z.B. Kostenlos ab 50 €"
-              className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
-          {editId && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="px-4 py-2 border border-gray-200 text-gray-600 rounded-control text-sm hover:border-gray-300 transition-colors"
-            >
-              Abbrechen
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() =>
-              saveMutation.mutate(form, {
-                onSuccess: () => {
-                  setForm(EMPTY_SHOP_FORM);
-                  setEditId(null);
-                },
-              })
-            }
-            disabled={!form.name || !form.url || saveMutation.isPending}
-            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
-          >
-            {saveMutation.isPending ? "..." : editId ? "Speichern" : "Erstellen"}
-          </button>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="mb-4">
+      <PageHeader title="Shops">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Shops filtern..."
-          className="w-full sm:w-72 px-4 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          placeholder="Suchen…"
+          className="h-9 w-52 px-3 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
-      </div>
+        <button
+          type="button"
+          onClick={() => setEditTarget("new")}
+          className="h-9 px-4 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          Neuer Shop
+        </button>
+      </PageHeader>
 
-      {/* List */}
+      {/* Loading skeletons */}
       {isLoading && (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
-            <div
-              key={key}
-              className="h-16 bg-white rounded-xl border border-gray-100 animate-pulse"
-            />
+        <div className="space-y-px">
+          {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
+            <div key={key} className="h-14 bg-white animate-pulse border-b border-gray-100" />
           ))}
         </div>
       )}
 
-      {!isLoading && filtered.length === 0 && (
-        <p className="text-center py-12 text-gray-400">
-          {shops.length === 0 ? "Noch keine Shops vorhanden." : "Keine Treffer."}
-        </p>
+      {!isLoading && shops.length === 0 && (
+        <p className="text-center py-16 text-gray-400">Noch keine Shops vorhanden.</p>
       )}
 
-      <div className="space-y-2">
-        {filtered.map((shop) => (
-          <ShopListItem key={shop.id} shop={shop} onEdit={startEdit} onDelete={setDeleteId} />
-        ))}
-      </div>
+      {!isLoading && shops.length > 0 && filtered.length === 0 && (
+        <p className="text-center py-16 text-gray-400">Keine Treffer für „{search}".</p>
+      )}
+
+      {!isLoading && filtered.length > 0 && (
+        <div className="-mx-6">
+          <ShopTable shops={filtered} onEdit={setEditTarget} onDelete={setDeleteId} />
+        </div>
+      )}
+
+      {/* Edit / New Overlay */}
+      {editTarget !== null && (
+        <ShopEditCard
+          shopId={editTarget}
+          initialData={
+            editShop
+              ? {
+                  name: editShop.name,
+                  url: editShop.url,
+                  description: editShop.description ?? "",
+                  categoryIds: editShop.categories.map((c) => c.id),
+                  region: editShop.region ?? "",
+                  shipping: editShop.shipping ?? "",
+                }
+              : undefined
+          }
+          onClose={() => setEditTarget(null)}
+          onSaved={() => setEditTarget(null)}
+        />
+      )}
 
       {/* Delete Confirm Modal */}
       {deleteId !== null && deleteTarget && (
@@ -227,7 +116,7 @@ export function ShopsPage() {
                 }
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
-                {deleteMutation.isPending ? "..." : "Löschen"}
+                {deleteMutation.isPending ? "…" : "Löschen"}
               </button>
             </div>
           </div>
