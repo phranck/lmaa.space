@@ -119,6 +119,7 @@ export function ShopEditForm({
           value={value.description}
           onChange={(e) => set("description", e.target.value)}
           rows={3}
+          maxLength={2000}
           className={`${inputClass} resize-none${errors?.description ? " border-red-400" : ""}`}
         />
         {errors?.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}

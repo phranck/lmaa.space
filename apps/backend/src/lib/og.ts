@@ -117,25 +117,38 @@ export async function fetchPreviewImage(
   const urlsToTry =
     shopUrl !== `${homepage}/` && shopUrl !== homepage ? [shopUrl, `${homepage}/`] : [shopUrl];
 
+  // Fetch HTML once per URL, reuse across checks
+  const htmlMap = new Map<string, string>();
   for (const url of urlsToTry) {
     const html = await fetchHtml(url);
-    if (!html) continue;
+    if (html) htmlMap.set(url, html);
+  }
 
-    const og = extractOgImage(html, url);
-    if (og) return { url: og, via: "og:image" };
-
-    const large = firstLargeImage(html, url);
-    if (large) return { url: large, via: "img" };
-
+  // 1. Apple Touch Icon from HTML (square logo, ideal for 80×80 card)
+  for (const [url, html] of htmlMap) {
     const apple = extractAppleTouchIcon(html, url);
     if (apple) return { url: apple, via: "apple-icon" };
   }
 
+  // 2. Apple Touch Icon at well-known paths
   for (const suffix of ["/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"]) {
     const result = await tryImageUrl(homepage + suffix);
     if (result) return { url: result, via: "apple-icon-path" };
   }
 
+  // 3. og:image (intentionally set by the site, usually a good hero/banner)
+  for (const [url, html] of htmlMap) {
+    const og = extractOgImage(html, url);
+    if (og) return { url: og, via: "og:image" };
+  }
+
+  // 4. First large image on the page (hero/banner fallback)
+  for (const [url, html] of htmlMap) {
+    const large = firstLargeImage(html, url);
+    if (large) return { url: large, via: "img" };
+  }
+
+  // 5. Google Favicon (last resort)
   const favicon = googleFaviconUrl(shopUrl);
   const faviconResult = await tryImageUrl(favicon);
   if (faviconResult) return { url: favicon, via: "favicon" };

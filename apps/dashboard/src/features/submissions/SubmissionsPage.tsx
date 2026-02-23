@@ -170,7 +170,7 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-8 px-3 border border-red-200 rounded-control text-red-500 text-sm hover:border-red-300 hover:bg-red-50 transition-colors mr-2"
+                  className="h-8 px-3 border border-red-200 rounded-control text-red-500 text-sm hover:border-red-300 hover:bg-red-50 transition-colors mr-6"
                 >
                   Ablehnen
                 </button>

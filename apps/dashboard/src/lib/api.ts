@@ -3,7 +3,8 @@ const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
+    const msg = body?.error?.message ?? body?.error?.issues?.[0]?.message ?? `HTTP ${res.status}`;
+    throw new Error(msg);
   }
   const body = await res.json();
   return body.data as T;

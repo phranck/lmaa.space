@@ -264,7 +264,7 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
 const submissionEditSchema = z.object({
   shopName: z.string().min(1).max(200),
   shopUrl: z.string().url(),
-  description: z.string().max(500).optional(),
+  description: z.string().max(2000).optional(),
   region: z
     .array(z.enum(["DE", "AT", "CH", "EU"]))
     .optional()
@@ -362,7 +362,7 @@ const shopBodySchema = z.object({
     .default([]),
   pickup: z.string().optional(),
   shipping: z.string().optional(),
-  description: z.string().max(500).optional(),
+  description: z.string().max(2000).optional(),
 });
 
 adminRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), async (c) => {
@@ -393,7 +393,7 @@ const shopUpdateSchema = z.object({
   region: z.array(z.enum(["DE", "AT", "CH", "EU"])).optional(),
   pickup: z.string().optional(),
   shipping: z.string().optional(),
-  description: z.string().max(500).optional(),
+  description: z.string().max(2000).optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -432,6 +432,20 @@ adminRoutes.delete("/shops/:id", requireAuth, async (c) => {
   await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
   await db.delete(shops).where(eq(shops.id, id));
   return c.json({ data: { message: "Shop deleted" } });
+});
+
+adminRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {
+  const id = Number(c.req.param("id"));
+  if (Number.isNaN(id)) return c.json({ error: { message: "Invalid id" } }, 400);
+
+  const [shop] = await db.select({ url: shops.url }).from(shops).where(eq(shops.id, id));
+  if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+
+  const result = await fetchPreviewImage(shop.url);
+  const ogImage = result?.url ?? null;
+  await db.update(shops).set({ ogImage }).where(eq(shops.id, id));
+
+  return c.json({ data: { ogImage } });
 });
 
 // GET /api/admin/dead-link-reports
