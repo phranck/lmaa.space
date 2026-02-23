@@ -355,7 +355,7 @@ adminRoutes.get("/shops/:id", requireAuth, async (c) => {
 const shopBodySchema = z.object({
   name: z.string().min(1).max(200),
   url: z.string().url(),
-  categoryIds: z.array(z.number().int().positive()).min(1),
+  categoryIds: z.array(z.number().int().positive()).optional().default([]),
   region: z
     .array(z.enum(["DE", "AT", "CH", "EU"]))
     .optional()
@@ -369,9 +369,11 @@ adminRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), asyn
   const { categoryIds, ...shopData } = c.req.valid("json");
   const [shop] = await db.insert(shops).values(shopData).returning();
 
-  await db
-    .insert(shopCategories)
-    .values(categoryIds.map((cid) => ({ shopId: shop.id, categoryId: cid })));
+  if (categoryIds.length > 0) {
+    await db
+      .insert(shopCategories)
+      .values(categoryIds.map((cid) => ({ shopId: shop.id, categoryId: cid })));
+  }
 
   fetchPreviewImage(shop.url)
     .then(async (result) => {
