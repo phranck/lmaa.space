@@ -49,7 +49,7 @@ export function ShopEditForm({
     : "block text-sm font-medium text-stone-700 mb-1.5";
 
   const inputClass = isDashboard
-    ? "w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+    ? "w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
     : "w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
   const gapClass = isDashboard ? "flex flex-col gap-4" : "flex flex-col gap-5";
