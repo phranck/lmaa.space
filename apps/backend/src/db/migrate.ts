@@ -274,6 +274,7 @@ async function main() {
       IF EXISTS (SELECT 1 FROM information_schema.columns
                  WHERE table_name = 'shops' AND column_name = 'region'
                    AND data_type = 'text') THEN
+        ALTER TABLE shops ALTER COLUMN region DROP DEFAULT;
         ALTER TABLE shops
           ALTER COLUMN region TYPE JSONB
           USING CASE
@@ -291,6 +292,7 @@ async function main() {
       IF EXISTS (SELECT 1 FROM information_schema.columns
                  WHERE table_name = 'submissions' AND column_name = 'region'
                    AND data_type = 'text') THEN
+        ALTER TABLE submissions ALTER COLUMN region DROP DEFAULT;
         ALTER TABLE submissions
           ALTER COLUMN region TYPE JSONB
           USING CASE
