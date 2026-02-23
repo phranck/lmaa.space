@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
-import { type Theme, useTheme } from "@/context/ThemeContext.tsx";
+import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router";
@@ -11,33 +12,19 @@ import {
   SFSunMaxFill,
 } from "sf-symbols-lib/monochrome";
 
-const THEME_OPTIONS: { value: Theme; icon: React.ReactNode; label: string }[] = [
-  { value: "light", icon: <SFSunMaxFill className="w-3.5 h-3.5" />, label: "Light" },
-  { value: "dark", icon: <SFMoonFill className="w-3.5 h-3.5" />, label: "Dark" },
-  { value: "system", icon: <SFDesktopcomputer className="w-3.5 h-3.5" />, label: "System" },
+const THEME_OPTIONS = [
+  { value: "light" as const, icon: <SFSunMaxFill className="w-3.5 h-3.5" />, label: "Light" },
+  { value: "dark" as const, icon: <SFMoonFill className="w-3.5 h-3.5" />, label: "Dark" },
+  {
+    value: "system" as const,
+    icon: <SFDesktopcomputer className="w-3.5 h-3.5" />,
+    label: "System",
+  },
 ];
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  return (
-    <div className="flex items-center gap-0.5 rounded-lg bg-[var(--ds-segment-bg)] p-0.5">
-      {THEME_OPTIONS.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          onClick={() => setTheme(opt.value)}
-          title={opt.label}
-          className={`flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
-            theme === opt.value
-              ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
-              : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-          }`}
-        >
-          {opt.icon}
-        </button>
-      ))}
-    </div>
-  );
+  return <SegmentedControl value={theme} onChange={setTheme} size="sm" options={THEME_OPTIONS} />;
 }
 
 function AdminLayoutInner() {

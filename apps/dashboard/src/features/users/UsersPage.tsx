@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
@@ -163,43 +164,23 @@ export function UsersPage() {
         ))}
       </div>
 
-      {/* Delete Confirm Modal */}
-      {deleteId !== null && deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setDeleteId(null)}
-            aria-label="Abbrechen"
-          />
-          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-[var(--ds-text)] mb-2">Benutzer entfernen?</h3>
-            <p className="text-sm text-[var(--ds-text-muted)] mb-5">
-              <span className="font-medium">{deleteTarget.username}</span> verliert den
-              Admin-Zugang. Diese Aktion kann nicht rückgängig gemacht werden.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-              >
-                Abbrechen
-              </button>
-              <button
-                type="button"
-                disabled={deleteMutation.isPending}
-                onClick={() =>
-                  deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })
-                }
-                className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
-              >
-                {deleteMutation.isPending ? "..." : "Entfernen"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={deleteId !== null && !!deleteTarget}
+        title="Benutzer entfernen?"
+        description={
+          <>
+            <span className="font-medium">{deleteTarget?.username}</span> verliert den Admin-Zugang.
+            Diese Aktion kann nicht rückgängig gemacht werden.
+          </>
+        }
+        confirmLabel="Entfernen"
+        isPending={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteId !== null)
+            deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
+        }}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

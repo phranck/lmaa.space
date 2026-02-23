@@ -1,4 +1,6 @@
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import {
@@ -382,44 +384,17 @@ function DefekteLinksTab() {
         </div>
       ))}
 
-      {/* Delete confirmation modal */}
-      {confirmDeleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setConfirmDeleteId(null)}
-            aria-label="Abbrechen"
-          />
-          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-[var(--ds-text)] mb-2">Shop wirklich löschen?</h3>
-            <p className="text-sm text-[var(--ds-text-muted)] mb-6">
-              Der Shop wird dauerhaft entfernt und ist nicht mehr im Frontend sichtbar.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 py-2.5 border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-              >
-                Abbrechen
-              </button>
-              <button
-                type="button"
-                disabled={deleteMutation.isPending}
-                onClick={() =>
-                  deleteMutation.mutate(confirmDeleteId, {
-                    onSuccess: () => setConfirmDeleteId(null),
-                  })
-                }
-                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60"
-              >
-                {deleteMutation.isPending ? "…" : "Löschen"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        title="Shop wirklich löschen?"
+        description="Der Shop wird dauerhaft entfernt und ist nicht mehr im Frontend sichtbar."
+        isPending={deleteMutation.isPending}
+        onConfirm={() => {
+          if (confirmDeleteId !== null)
+            deleteMutation.mutate(confirmDeleteId, { onSuccess: () => setConfirmDeleteId(null) });
+        }}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 }
@@ -440,40 +415,32 @@ export function SubmissionsPage() {
   return (
     <div>
       <PageHeader title="Meldungen">
-        <div className="flex gap-0.5 bg-[var(--ds-segment-bg)] p-0.5 rounded-lg">
-          <button
-            type="button"
-            onClick={() => setTab("vorschlaege")}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              tab === "vorschlaege"
-                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
-                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            }`}
-          >
-            Vorschläge
-            {pendingCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]">
-                {pendingCount}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("defekte-links")}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              tab === "defekte-links"
-                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
-                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            }`}
-          >
-            Defekte Links
-            {deadLinkCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
-                {deadLinkCount}
-              </span>
-            )}
-          </button>
-        </div>
+        <SegmentedControl
+          value={tab}
+          onChange={setTab}
+          options={[
+            {
+              value: "vorschlaege" as const,
+              label: "Vorschläge",
+              badge:
+                pendingCount > 0 ? (
+                  <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]">
+                    {pendingCount}
+                  </span>
+                ) : undefined,
+            },
+            {
+              value: "defekte-links" as const,
+              label: "Defekte Links",
+              badge:
+                deadLinkCount > 0 ? (
+                  <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
+                    {deadLinkCount}
+                  </span>
+                ) : undefined,
+            },
+          ]}
+        />
       </PageHeader>
 
       {tab === "vorschlaege" ? <VorschlaegeTab /> : <DefekteLinksTab />}

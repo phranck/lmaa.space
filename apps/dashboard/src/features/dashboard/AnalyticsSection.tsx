@@ -1,3 +1,4 @@
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import {
   type UmamiMetricType,
@@ -355,22 +356,12 @@ export function AnalyticsSection() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-[var(--ds-text)]">Analytics</h2>
-        <div className="flex gap-0.5 bg-[var(--ds-segment-bg)] rounded-lg p-0.5">
-          {PERIODS.map((p) => (
-            <button
-              key={p.value}
-              type="button"
-              onClick={() => handlePeriodChange(p.value)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                period === p.value
-                  ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
-                  : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          value={period}
+          onChange={handlePeriodChange}
+          size="sm"
+          options={PERIODS}
+        />
       </div>
 
       {/* KPI-Leiste */}
