@@ -234,28 +234,32 @@ async function main() {
 
     // Insert shops (skip duplicates by URL)
     for (const shop of shops) {
-      const [existingShop] = await sql`SELECT id FROM shops WHERE url = ${shop.url}`;
+      try {
+        const [existingShop] = await sql`SELECT id FROM shops WHERE url = ${shop.url}`;
 
-      if (!existingShop) {
-        const [newShop] = await sql`
-          INSERT INTO shops (name, url, description)
-          VALUES (${shop.name}, ${shop.url}, ${shop.description})
-          RETURNING id
-        `;
-        await sql`
-          INSERT INTO shop_categories (shop_id, category_id)
-          VALUES (${newShop.id}, ${categoryId})
-          ON CONFLICT DO NOTHING
-        `;
-        totalShops++;
-        console.log(`    + ${shop.name}`);
-      } else {
-        // Ensure category association exists (idempotent re-run)
-        await sql`
-          INSERT INTO shop_categories (shop_id, category_id)
-          VALUES (${existingShop.id}, ${categoryId})
-          ON CONFLICT DO NOTHING
-        `;
+        if (!existingShop) {
+          const [newShop] = await sql`
+            INSERT INTO shops (name, url, description)
+            VALUES (${shop.name}, ${shop.url}, ${shop.description})
+            RETURNING id
+          `;
+          await sql`
+            INSERT INTO shop_categories (shop_id, category_id)
+            VALUES (${newShop.id}, ${categoryId})
+            ON CONFLICT DO NOTHING
+          `;
+          totalShops++;
+          console.log(`    + ${shop.name}`);
+        } else {
+          // Ensure category association exists (idempotent re-run)
+          await sql`
+            INSERT INTO shop_categories (shop_id, category_id)
+            VALUES (${existingShop.id}, ${categoryId})
+            ON CONFLICT DO NOTHING
+          `;
+        }
+      } catch (err) {
+        console.warn(`  ⚠ Failed to process shop "${shop.name}": ${err}`);
       }
     }
   }
@@ -265,6 +269,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
-  process.exit(1);
+  console.error("Seed error (non-fatal, service will still start):", err);
+  process.exit(0);
 });
