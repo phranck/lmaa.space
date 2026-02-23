@@ -1,67 +1,26 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopListItem } from "@/features/shops/ShopListItem.tsx";
-import { api } from "@/lib/api.ts";
-import type { Category, Shop } from "@lmaa/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  EMPTY_SHOP_FORM,
+  useAdminShops,
+  useDeleteShop,
+  useSaveShop,
+} from "@/features/shops/hooks/useAdminShops.ts";
+import type { ShopFormData } from "@/features/shops/hooks/useAdminShops.ts";
+import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
+import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
 
-interface ShopForm {
-  name: string;
-  url: string;
-  description: string;
-  categoryId: string;
-  region: string;
-  shipping: string;
-}
-
-const EMPTY_FORM: ShopForm = {
-  name: "",
-  url: "",
-  description: "",
-  categoryId: "",
-  region: "",
-  shipping: "",
-};
-
 export function ShopsPage() {
-  const qc = useQueryClient();
-  const [form, setForm] = useState<ShopForm>(EMPTY_FORM);
+  const [form, setForm] = useState<ShopFormData>(EMPTY_SHOP_FORM);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
-  const { data: shops = [], isLoading } = useQuery({
-    queryKey: ["shops-admin"],
-    queryFn: () => api.get<Shop[]>("/admin/shops"),
-  });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories-admin"],
-    queryFn: () => api.get<Category[]>("/admin/categories"),
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: (data: ShopForm) => {
-      const body = {
-        ...data,
-        categoryId: data.categoryId ? Number(data.categoryId) : undefined,
-      };
-      return editId ? api.patch(`/admin/shops/${editId}`, body) : api.post("/admin/shops", body);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["shops-admin"] });
-      setForm(EMPTY_FORM);
-      setEditId(null);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/admin/shops/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["shops-admin"] });
-      setDeleteId(null);
-    },
-  });
+  const { data: shops = [], isLoading } = useAdminShops();
+  const { data: categories = [] } = useAdminCategories();
+  const saveMutation = useSaveShop(editId);
+  const deleteMutation = useDeleteShop();
 
   function startEdit(shop: Shop) {
     setEditId(shop.id);
@@ -78,7 +37,7 @@ export function ShopsPage() {
 
   function cancelEdit() {
     setEditId(null);
-    setForm(EMPTY_FORM);
+    setForm(EMPTY_SHOP_FORM);
   }
 
   const filtered = shops.filter(
@@ -196,7 +155,14 @@ export function ShopsPage() {
           )}
           <button
             type="button"
-            onClick={() => saveMutation.mutate(form)}
+            onClick={() =>
+              saveMutation.mutate(form, {
+                onSuccess: () => {
+                  setForm(EMPTY_SHOP_FORM);
+                  setEditId(null);
+                },
+              })
+            }
             disabled={!form.name || !form.url || saveMutation.isPending}
             className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
           >
@@ -271,7 +237,7 @@ export function ShopsPage() {
               <button
                 type="button"
                 disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(deleteId)}
+                onClick={() => deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })}
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "..." : "Löschen"}

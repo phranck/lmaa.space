@@ -1,21 +1,9 @@
 import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { api } from "@/lib/api.ts";
-import { useQuery } from "@tanstack/react-query";
-
-interface Stats {
-  shops: number;
-  categories: number;
-  pendingSubmissions: number;
-  totalSubmissions: number;
-  deadLinkReports: number;
-}
+import { useAdminStats } from "@/features/dashboard/hooks/useAdminStats.ts";
 
 export function DashboardPage() {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ["stats"],
-    queryFn: () => api.get<Stats>("/admin/stats"),
-  });
+  const { data: stats, isLoading } = useAdminStats();
 
   if (isLoading) {
     return (

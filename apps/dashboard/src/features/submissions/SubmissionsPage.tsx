@@ -1,21 +1,14 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { api } from "@/lib/api.ts";
-import type { Submission } from "@lmaa/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useAdminSubmissions,
+  useDeadLinkReports,
+  useDeleteShopFromDeadLinks,
+  useDismissDeadLink,
+  useReviewSubmission,
+} from "@/features/submissions/hooks/useAdminSubmissions.ts";
+import type { SubmissionStatus } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import { useState } from "react";
 import { LuExternalLink } from "react-icons/lu";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type Tab = "vorschlaege" | "defekte-links";
-type SubmissionStatus = "pending" | "approved" | "rejected";
-
-interface DeadLinkReport {
-  shopId: number;
-  shopName: string;
-  shopUrl: string;
-  reportCount: number;
-}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -34,31 +27,13 @@ const STATUS_COLORS: Record<SubmissionStatus, string> = {
 // ─── Sub-views ────────────────────────────────────────────────────────────────
 
 function VorschlaegeTab() {
-  const qc = useQueryClient();
   const [filter, setFilter] = useState<SubmissionStatus>("pending");
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [sendFeedback, setSendFeedback] = useState(false);
 
-  const { data: submissions = [], isLoading } = useQuery({
-    queryKey: ["submissions", filter],
-    queryFn: () => api.get<Submission[]>(`/admin/submissions?status=${filter}`),
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: "approved" | "rejected" }) =>
-      api.patch(`/admin/submissions/${id}`, {
-        status,
-        adminNote: adminNote || undefined,
-        sendFeedback,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["submissions"] });
-      setReviewId(null);
-      setAdminNote("");
-      setSendFeedback(false);
-    },
-  });
+  const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
+  const reviewMutation = useReviewSubmission();
 
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
 
@@ -109,7 +84,7 @@ function VorschlaegeTab() {
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-semibold text-gray-900">{sub.shopName}</p>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status]}`}
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status as SubmissionStatus]}`}
                 >
                   {STATUS_LABELS[sub.status as SubmissionStatus]}
                 </span>
@@ -211,10 +186,15 @@ function VorschlaegeTab() {
                 type="button"
                 disabled={reviewMutation.isPending}
                 onClick={() =>
-                  reviewMutation.mutate({
-                    id: Math.abs(reviewId),
-                    status: reviewId > 0 ? "approved" : "rejected",
-                  })
+                  reviewMutation.mutate(
+                    {
+                      id: Math.abs(reviewId),
+                      status: reviewId > 0 ? "approved" : "rejected",
+                      adminNote,
+                      sendFeedback,
+                    },
+                    { onSuccess: () => { setReviewId(null); setAdminNote(""); setSendFeedback(false); } },
+                  )
                 }
                 className={`flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
                   reviewId > 0 ? "bg-green-600 hover:bg-green-700" : "bg-red-500 hover:bg-red-600"
@@ -231,27 +211,11 @@ function VorschlaegeTab() {
 }
 
 function DefekteLinksTab() {
-  const qc = useQueryClient();
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const { data: reports = [], isLoading } = useQuery({
-    queryKey: ["dead-link-reports"],
-    queryFn: () => api.get<DeadLinkReport[]>("/admin/dead-link-reports"),
-  });
-
-  const dismissMutation = useMutation({
-    mutationFn: (shopId: number) => api.delete(`/admin/dead-link-reports/${shopId}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["dead-link-reports"] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (shopId: number) => api.delete(`/admin/shops/${shopId}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dead-link-reports"] });
-      qc.invalidateQueries({ queryKey: ["shops-admin"] });
-      setConfirmDeleteId(null);
-    },
-  });
+  const { data: reports = [], isLoading } = useDeadLinkReports();
+  const dismissMutation = useDismissDeadLink();
+  const deleteMutation = useDeleteShopFromDeadLinks();
 
   if (isLoading) {
     return (
@@ -340,7 +304,11 @@ function DefekteLinksTab() {
               <button
                 type="button"
                 disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(confirmDeleteId)}
+                onClick={() =>
+                  deleteMutation.mutate(confirmDeleteId, {
+                    onSuccess: () => setConfirmDeleteId(null),
+                  })
+                }
                 className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "…" : "Löschen"}
@@ -354,6 +322,8 @@ function DefekteLinksTab() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+type Tab = "vorschlaege" | "defekte-links";
 
 export function SubmissionsPage() {
   const [tab, setTab] = useState<Tab>("vorschlaege");

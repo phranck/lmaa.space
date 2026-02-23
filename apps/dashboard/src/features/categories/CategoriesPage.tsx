@@ -2,39 +2,29 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
 import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
 import { CategoryTable } from "@/features/categories/CategoryTable.tsx";
-import { api } from "@/lib/api.ts";
-import type { Category } from "@lmaa/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useAdminCategories,
+  useDeleteCategory,
+} from "@/features/categories/hooks/useAdminCategories.ts";
 import { useState } from "react";
 import { LuLayoutGrid, LuList } from "react-icons/lu";
 
 type ViewMode = "list" | "grid";
 
 export function CategoriesPage() {
-  const qc = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>(
     () => (localStorage.getItem("categories-view") as ViewMode) ?? "list",
   );
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   function changeViewMode(mode: ViewMode) {
     setViewMode(mode);
     localStorage.setItem("categories-view", mode);
   }
-  const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const { data: categories = [], isLoading } = useQuery({
-    queryKey: ["categories-admin"],
-    queryFn: () => api.get<Category[]>("/admin/categories"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/admin/categories/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["categories-admin"] });
-      setDeleteId(null);
-    },
-  });
+  const { data: categories = [], isLoading } = useAdminCategories();
+  const deleteMutation = useDeleteCategory();
 
   const deleteTarget = categories.find((c) => c.id === deleteId);
 
@@ -128,10 +118,7 @@ export function CategoriesPage() {
         <CategoryEditCard
           categoryId={editTarget}
           onClose={() => setEditTarget(null)}
-          onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["categories-admin"] });
-            setEditTarget(null);
-          }}
+          onSaved={() => setEditTarget(null)}
         />
       )}
 
@@ -161,7 +148,7 @@ export function CategoriesPage() {
               <button
                 type="button"
                 disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(deleteId)}
+                onClick={() => deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })}
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "..." : "Löschen"}
