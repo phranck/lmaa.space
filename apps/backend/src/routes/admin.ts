@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
-import { count, countDistinct, desc, eq } from "drizzle-orm";
+import { count, countDistinct, desc, eq, getTableColumns } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
@@ -319,7 +319,12 @@ adminRoutes.delete("/dead-link-reports/:shopId", requireAuth, async (c) => {
 
 // CRUD Categories
 adminRoutes.get("/categories", requireAuth, async (c) => {
-  const rows = await db.select().from(categories).orderBy(categories.name);
+  const rows = await db
+    .select({ ...getTableColumns(categories), shopCount: count(shops.id) })
+    .from(categories)
+    .leftJoin(shops, eq(shops.categoryId, categories.id))
+    .groupBy(categories.id)
+    .orderBy(categories.name);
   return c.json({ data: rows });
 });
 
