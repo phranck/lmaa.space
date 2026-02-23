@@ -21,7 +21,6 @@ import {
   Separator,
   StrikeThroughSupSubToggles,
   UndoRedo,
-  admonitionsPlugin,
   codeBlockPlugin,
   diffSourcePlugin,
   directivesPlugin,
@@ -104,7 +103,6 @@ export function ContentEditorPage() {
               tablePlugin(),
               codeBlockPlugin({ defaultCodeBlockLanguage: "" }),
               directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
-              admonitionsPlugin(),
               markdownShortcutPlugin(),
               diffSourcePlugin({ viewMode: "rich-text" }),
               toolbarPlugin({
