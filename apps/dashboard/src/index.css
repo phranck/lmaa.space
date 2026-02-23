@@ -42,6 +42,62 @@
   --ds-brand-text: var(--ds-color-neutral-100);
 }
 
+/* Dark mode: fix hardcoded hover colors */
+.dark .btn-edit:hover {
+  border-color: var(--ds-border-strong);
+}
+.dark .btn-delete:hover {
+  background-color: oklch(0.18 0.02 17.4);
+}
+
+/* Dark mode: MDXEditor toolbar and popups */
+.dark .mdxeditor {
+  --baseBg: oklch(0.21 0.006 38.2);
+  --basePageBg: oklch(0.19 0.006 38.2);
+  --baseBgSubtle: oklch(0.19 0.006 38.2);
+  --baseBgHover: oklch(0.25 0.006 38.2);
+  --baseBgActive: oklch(0.28 0.006 38.2);
+  --baseBorder: oklch(0.3 0.008 38.2);
+  --baseBorderHover: oklch(0.37 0.01 38.2);
+  --baseBase: oklch(0.24 0.007 38.2);
+  --baseLine: oklch(0.3 0.008 38.2);
+  --baseSolid: oklch(0.553 0.021 38.2);
+  --baseSolidHover: oklch(0.6 0.021 38.2);
+  --baseText: oklch(0.706 0.023 48.7);
+  --baseTextContrast: oklch(0.965 0.003 106.4);
+  color-scheme: dark;
+}
+
+.dark .mdxeditor-popup-container [role="dialog"],
+.dark .mdxeditor-popup-container [role="tooltip"],
+.dark .mdxeditor-popup-container [data-radix-popper-content-wrapper] > * {
+  background-color: oklch(0.21 0.006 38.2) !important;
+  border-color: oklch(0.3 0.008 38.2) !important;
+  color: oklch(0.965 0.003 106.4) !important;
+}
+
+.dark .mdxeditor input,
+.dark .mdxeditor select {
+  background-color: oklch(0.19 0.006 38.2);
+  border-color: oklch(0.3 0.008 38.2);
+  color: oklch(0.965 0.003 106.4);
+}
+
+/* Source (CodeMirror) dark mode */
+.dark .mdxeditor .cm-editor {
+  background-color: oklch(0.19 0.006 38.2);
+  color: oklch(0.965 0.003 106.4);
+}
+.dark .mdxeditor .cm-gutters {
+  background-color: oklch(0.19 0.006 38.2);
+  border-color: oklch(0.3 0.008 38.2);
+  color: oklch(0.553 0.021 38.2);
+}
+.dark .mdxeditor .cm-activeLineGutter,
+.dark .mdxeditor .cm-activeLine {
+  background-color: oklch(0.22 0.006 38.2);
+}
+
 /* Backward-compatible aliases for existing component classes */
 :root {
   --color-primary: oklch(0.67 0.1 61.0);
@@ -54,10 +110,10 @@
 
 /* Button hover states for list/grid item components */
 .btn-edit:hover {
-  border-color: rgb(209 213 219); /* gray-300 */
+  border-color: var(--ds-border-strong);
 }
 .btn-delete:hover {
-  background-color: rgb(254 242 242); /* red-50 */
+  background-color: rgb(254 242 242); /* red-50, overridden in dark */
 }
 
 /* Hover lift for list/grid cards */

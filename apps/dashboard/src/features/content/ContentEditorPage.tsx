@@ -40,7 +40,7 @@ import {
 } from "@mdxeditor/editor";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { SFMinus, SFPlus, SFSquareAndArrowDown } from "sf-symbols-lib/monochrome";
+import { SFMinus, SFPlus, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
 
 const PAGE_LABELS: Record<string, string> = {
   about: "Über uns",
@@ -187,7 +187,7 @@ export function ContentEditorPage() {
             disabled={save.isPending}
             className="flex items-center gap-2 px-4 py-2 bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-accent-hover)] disabled:opacity-60 transition-colors"
           >
-            <SFSquareAndArrowDown className="w-3.5 h-3.5" />
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
             {save.isPending ? "Wird gespeichert…" : saved ? "Gespeichert" : "Speichern"}
           </button>
         </div>
@@ -208,7 +208,7 @@ export function ContentEditorPage() {
             key={slug}
             markdown={page.content}
             onChange={handleChange}
-            contentEditableClassName="prose prose-stone prose-sm max-w-none prose-a:text-amber-700 min-h-[60vh] focus:outline-none px-6 py-4"
+            contentEditableClassName="prose prose-stone prose-sm dark:prose-invert max-w-none prose-a:text-amber-700 dark:prose-a:text-amber-500 min-h-[60vh] focus:outline-none px-6 py-4"
             plugins={plugins}
           />
         )}

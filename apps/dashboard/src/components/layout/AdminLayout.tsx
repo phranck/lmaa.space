@@ -4,11 +4,16 @@ import { type Theme, useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import { SFDesktopcomputer, SFLine3Horizontal, SFMoon, SFSunMax } from "sf-symbols-lib/monochrome";
+import {
+  SFDesktopcomputer,
+  SFLine3Horizontal,
+  SFMoonFill,
+  SFSunMaxFill,
+} from "sf-symbols-lib/monochrome";
 
 const THEME_OPTIONS: { value: Theme; icon: React.ReactNode; label: string }[] = [
-  { value: "light", icon: <SFSunMax className="w-3.5 h-3.5" />, label: "Light" },
-  { value: "dark", icon: <SFMoon className="w-3.5 h-3.5" />, label: "Dark" },
+  { value: "light", icon: <SFSunMaxFill className="w-3.5 h-3.5" />, label: "Light" },
+  { value: "dark", icon: <SFMoonFill className="w-3.5 h-3.5" />, label: "Dark" },
   { value: "system", icon: <SFDesktopcomputer className="w-3.5 h-3.5" />, label: "System" },
 ];
 
@@ -22,14 +27,13 @@ function ThemeToggle() {
           type="button"
           onClick={() => setTheme(opt.value)}
           title={opt.label}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+          className={`flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
             theme === opt.value
               ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
               : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
           }`}
         >
           {opt.icon}
-          <span>{opt.label}</span>
         </button>
       ))}
     </div>
@@ -96,8 +100,8 @@ function AdminLayoutInner() {
         </span>
 
         <div className="flex items-center gap-3 ml-auto">
-          <ThemeToggle />
           <div ref={setActionsEl} className="flex items-center gap-2" />
+          <ThemeToggle />
         </div>
       </header>
 

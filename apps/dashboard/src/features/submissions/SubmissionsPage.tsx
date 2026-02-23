@@ -11,7 +11,7 @@ import {
 import type { SubmissionStatus } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import type { Submission } from "@lmaa/shared";
 import { useState } from "react";
-import { SFArrowUpRightSquare } from "sf-symbols-lib/monochrome";
+import { SFArrowUpRightSquareFill } from "sf-symbols-lib/monochrome";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ function ShopImage({ url, name }: { url: string; name: string }) {
   })();
 
   return (
-    <div className="w-12 h-12 shrink-0 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden">
+    <div className="w-12 h-12 shrink-0 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-alt)] flex items-center justify-center overflow-hidden">
       {domain && !imgError ? (
         <img
           src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
@@ -50,7 +50,7 @@ function ShopImage({ url, name }: { url: string; name: string }) {
           onError={() => setImgError(true)}
         />
       ) : (
-        <span className="text-lg font-bold text-gray-300 select-none">
+        <span className="text-lg font-bold text-[var(--ds-text-subtle)] select-none">
           {name.charAt(0).toUpperCase()}
         </span>
       )}
@@ -86,7 +86,7 @@ function VorschlaegeTab() {
             className={`px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
               filter === s
                 ? "bg-[var(--color-primary)] text-white"
-                : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                : "bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
             }`}
           >
             {STATUS_LABELS[s]}
@@ -99,14 +99,14 @@ function VorschlaegeTab() {
           {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
             <div
               key={key}
-              className="h-24 bg-white rounded-xl animate-pulse border border-gray-100"
+              className="h-24 bg-[var(--ds-surface)] rounded-xl animate-pulse border border-[var(--ds-border-subtle)]"
             />
           ))}
         </div>
       )}
 
       {!isLoading && submissions.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-[var(--ds-text-subtle)]">
           Keine {STATUS_LABELS[filter].toLowerCase()} Vorschläge.
         </div>
       )}
@@ -115,7 +115,7 @@ function VorschlaegeTab() {
         {submissions.map((sub) => (
           <div
             key={sub.id}
-            className="bg-white rounded-2xl border border-gray-100 p-4 flex items-stretch gap-4"
+            className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-4 flex items-stretch gap-4"
           >
             {/* Logo */}
             <ShopImage url={sub.shopUrl} name={sub.shopName} />
@@ -123,7 +123,7 @@ function VorschlaegeTab() {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-semibold text-gray-900">{sub.shopName}</p>
+                <p className="font-semibold text-[var(--ds-text)]">{sub.shopName}</p>
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status as SubmissionStatus]}`}
                 >
@@ -138,7 +138,9 @@ function VorschlaegeTab() {
               >
                 {sub.shopUrl}
               </a>
-              {sub.description && <p className="text-sm text-gray-500 mt-1">{sub.description}</p>}
+              {sub.description && (
+                <p className="text-sm text-[var(--ds-text-muted)] mt-1">{sub.description}</p>
+              )}
               {sub.categoryIds && sub.categoryIds.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {sub.categoryIds.map((id) => {
@@ -146,7 +148,7 @@ function VorschlaegeTab() {
                     return cat ? (
                       <span
                         key={id}
-                        className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs"
+                        className="px-2 py-0.5 rounded-full bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-xs"
                       >
                         {cat.name}
                       </span>
@@ -154,7 +156,7 @@ function VorschlaegeTab() {
                   })}
                 </div>
               )}
-              <div className="flex gap-3 mt-1.5 text-xs text-gray-400">
+              <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
                 <span>{new Date(sub.createdAt).toLocaleDateString("de-DE")}</span>
                 {sub.submitterEmail && <span>✉ {sub.submitterEmail}</span>}
               </div>
@@ -177,7 +179,7 @@ function VorschlaegeTab() {
                 <button
                   type="button"
                   onClick={() => setEditSubmission(sub)}
-                  className="h-8 px-3 border border-gray-200 rounded-control text-gray-600 text-sm hover:border-gray-300 transition-colors"
+                  className="h-8 px-3 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] transition-colors"
                 >
                   Bearbeiten
                 </button>
@@ -224,14 +226,17 @@ function VorschlaegeTab() {
             onClick={() => setReviewId(null)}
             aria-label="Abbrechen"
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
-            <h3 className="font-bold text-gray-900 mb-1">
+          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <h3 className="font-bold text-[var(--ds-text)] mb-1">
               {reviewId > 0 ? "Vorschlag annehmen" : "Vorschlag ablehnen"}
             </h3>
-            <p className="text-sm text-gray-500 mb-4">{reviewing.shopName}</p>
+            <p className="text-sm text-[var(--ds-text-muted)] mb-4">{reviewing.shopName}</p>
 
-            <label htmlFor="admin-note" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Kommentar <span className="text-gray-400 font-normal">(optional)</span>
+            <label
+              htmlFor="admin-note"
+              className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+            >
+              Kommentar <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
             </label>
             <textarea
               id="admin-note"
@@ -239,11 +244,11 @@ function VorschlaegeTab() {
               onChange={(e) => setAdminNote(e.target.value)}
               rows={3}
               placeholder={reviewId < 0 ? "Grund für Ablehnung…" : "Optionaler Kommentar…"}
-              className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none mb-3"
+              className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm resize-none mb-3"
             />
 
             {reviewing.submitterEmail && (
-              <label className="flex items-center gap-2 text-sm text-gray-600 mb-4 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-[var(--ds-text-muted)] mb-4 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={sendFeedback}
@@ -265,7 +270,7 @@ function VorschlaegeTab() {
               <button
                 type="button"
                 onClick={() => setReviewId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>
@@ -316,7 +321,7 @@ function DefekteLinksTab() {
         {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
           <div
             key={key}
-            className="h-16 bg-white rounded-xl animate-pulse border border-gray-100"
+            className="h-16 bg-[var(--ds-surface)] rounded-xl animate-pulse border border-[var(--ds-border-subtle)]"
           />
         ))}
       </div>
@@ -324,7 +329,11 @@ function DefekteLinksTab() {
   }
 
   if (reports.length === 0) {
-    return <div className="text-center py-16 text-gray-400">Keine gemeldeten defekten Links.</div>;
+    return (
+      <div className="text-center py-16 text-[var(--ds-text-subtle)]">
+        Keine gemeldeten defekten Links.
+      </div>
+    );
   }
 
   return (
@@ -332,10 +341,10 @@ function DefekteLinksTab() {
       {reports.map((r) => (
         <div
           key={r.shopId}
-          className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4"
+          className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] p-4 flex items-center gap-4"
         >
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900">{r.shopName}</p>
+            <p className="font-semibold text-[var(--ds-text)]">{r.shopName}</p>
             <a
               href={r.shopUrl}
               target="_blank"
@@ -343,7 +352,7 @@ function DefekteLinksTab() {
               className="inline-flex items-center gap-1 text-sm text-[var(--color-primary)] hover:underline truncate"
             >
               {r.shopUrl}
-              <SFArrowUpRightSquare className="w-3 h-3 shrink-0" />
+              <SFArrowUpRightSquareFill className="w-3 h-3 shrink-0" />
             </a>
           </div>
 
@@ -356,7 +365,7 @@ function DefekteLinksTab() {
               type="button"
               onClick={() => dismissMutation.mutate(r.shopId)}
               disabled={dismissMutation.isPending || deleteMutation.isPending}
-              className="px-3 py-1.5 border border-gray-200 text-gray-600 text-sm rounded-control hover:border-gray-300 hover:text-gray-800 transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm rounded-control hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
             >
               Belassen
             </button>
@@ -381,16 +390,16 @@ function DefekteLinksTab() {
             onClick={() => setConfirmDeleteId(null)}
             aria-label="Abbrechen"
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-gray-900 mb-2">Shop wirklich löschen?</h3>
-            <p className="text-sm text-gray-500 mb-6">
+          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="font-bold text-[var(--ds-text)] mb-2">Shop wirklich löschen?</h3>
+            <p className="text-sm text-[var(--ds-text-muted)] mb-6">
               Der Shop wird dauerhaft entfernt und ist nicht mehr im Frontend sichtbar.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>
@@ -430,14 +439,14 @@ export function SubmissionsPage() {
   return (
     <div>
       <PageHeader title="Meldungen">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-control">
+        <div className="flex gap-1 bg-[var(--ds-bg-elevated)] p-1 rounded-control">
           <button
             type="button"
             onClick={() => setTab("vorschlaege")}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
               tab === "vorschlaege"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
             }`}
           >
             Vorschläge
@@ -452,8 +461,8 @@ export function SubmissionsPage() {
             onClick={() => setTab("defekte-links")}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
               tab === "defekte-links"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
             }`}
           >
             Defekte Links

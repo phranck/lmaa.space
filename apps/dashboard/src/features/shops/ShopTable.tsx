@@ -16,7 +16,7 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         header: "Shop",
         cell: (shop) => (
           <div className="min-w-0">
-            <p className="font-medium text-gray-900 truncate">{shop.name}</p>
+            <p className="font-medium text-[var(--ds-text)] truncate">{shop.name}</p>
             <a
               href={shop.url}
               target="_blank"
@@ -34,13 +34,13 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         header: "Kategorien",
         cell: (shop) =>
           shop.categories.length === 0 ? (
-            <span className="text-gray-300">–</span>
+            <span className="text-[var(--ds-text-subtle)]">–</span>
           ) : (
             <div className="flex flex-wrap gap-1">
               {shop.categories.map((cat) => (
                 <span
                   key={cat.id}
-                  className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs"
+                  className="px-2 py-0.5 rounded-full bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-xs"
                 >
                   {cat.name}
                 </span>
@@ -52,7 +52,9 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         id: "region",
         header: "Region",
         className: "w-36",
-        cell: (shop) => <span className="text-sm text-gray-500">{shop.region || "–"}</span>,
+        cell: (shop) => (
+          <span className="text-sm text-[var(--ds-text-muted)]">{shop.region || "–"}</span>
+        ),
       },
       {
         id: "actions",
@@ -62,7 +64,7 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
             <button
               type="button"
               onClick={() => onEdit(shop.id)}
-              className="h-8 px-3 border border-gray-200 rounded-control text-gray-600 text-sm hover:border-gray-300 transition-colors"
+              className="h-8 px-3 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] transition-colors"
             >
               Bearbeiten
             </button>

@@ -4,12 +4,12 @@ import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { NavLink, useMatch } from "react-router";
 import {
   SFChevronDown,
-  SFDocument,
-  SFPerson3,
-  SFSquareGrid2x2,
-  SFStorefront,
-  SFTag,
-  SFTray,
+  SFDocumentFill,
+  SFPerson3Fill,
+  SFSquareGrid2x2Fill,
+  SFStorefrontFill,
+  SFTagFill,
+  SFTrayFill,
 } from "sf-symbols-lib/monochrome";
 
 interface NavItem {
@@ -26,16 +26,21 @@ interface NavGroup {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/", label: "Übersicht", icon: <SFSquareGrid2x2 className="w-4 h-4" /> },
-  { to: "/meldungen", label: "Meldungen", icon: <SFTray className="w-4 h-4" /> },
-  { to: "/shops", label: "Shops", icon: <SFStorefront className="w-4 h-4" /> },
-  { to: "/kategorien", label: "Kategorien", icon: <SFTag className="w-4 h-4" /> },
-  { to: "/benutzer", label: "Benutzer", icon: <SFPerson3 className="w-4 h-4" />, ownerOnly: true },
+  { to: "/", label: "Übersicht", icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },
+  { to: "/meldungen", label: "Meldungen", icon: <SFTrayFill className="w-4 h-4" /> },
+  { to: "/shops", label: "Shops", icon: <SFStorefrontFill className="w-4 h-4" /> },
+  { to: "/kategorien", label: "Kategorien", icon: <SFTagFill className="w-4 h-4" /> },
+  {
+    to: "/benutzer",
+    label: "Benutzer",
+    icon: <SFPerson3Fill className="w-4 h-4" />,
+    ownerOnly: true,
+  },
 ];
 
 const CONTENT_GROUP: NavGroup = {
   label: "Content",
-  icon: <SFDocument className="w-4 h-4" />,
+  icon: <SFDocumentFill className="w-4 h-4" />,
   children: [
     { label: "Über uns", to: "/content/about" },
     { label: "Impressum", to: "/content/impressum" },
