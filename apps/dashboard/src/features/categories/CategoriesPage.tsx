@@ -10,6 +10,22 @@ import { LuLayoutGrid, LuList } from "react-icons/lu";
 
 type ViewMode = "list" | "grid";
 
+function groupByLetter(cats: Category[]): Record<string, Category[]> {
+  const result: Record<string, Category[]> = {};
+  for (const cat of cats) {
+    const letter = cat.name.charAt(0).toUpperCase();
+    if (!result[letter]) result[letter] = [];
+    result[letter].push(cat);
+  }
+  return result;
+}
+
+function SectionLabel({ letter }: { letter: string }) {
+  return (
+    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 pl-1">{letter}</p>
+  );
+}
+
 export function CategoriesPage() {
   const qc = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>(
@@ -81,7 +97,11 @@ export function CategoriesPage() {
       {/* Loading skeletons */}
       {isLoading && (
         <div
-          className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 gap-4" : "space-y-2"}
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
+              : "space-y-2"
+          }
         >
           {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
             <div
@@ -98,28 +118,42 @@ export function CategoriesPage() {
 
       {/* List View */}
       {!isLoading && viewMode === "list" && (
-        <div className="space-y-2">
-          {categories.map((cat) => (
-            <CategoryListItem
-              key={cat.id}
-              category={cat}
-              onEdit={setEditTarget}
-              onDelete={setDeleteId}
-            />
+        <div className="space-y-6">
+          {Object.entries(groupByLetter(categories)).map(([letter, items]) => (
+            <div key={letter}>
+              <SectionLabel letter={letter} />
+              <div className="space-y-2">
+                {items.map((cat) => (
+                  <CategoryListItem
+                    key={cat.id}
+                    category={cat}
+                    onEdit={setEditTarget}
+                    onDelete={setDeleteId}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {/* Grid View */}
       {!isLoading && viewMode === "grid" && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {categories.map((cat) => (
-            <CategoryGridItem
-              key={cat.id}
-              category={cat}
-              onEdit={setEditTarget}
-              onDelete={setDeleteId}
-            />
+        <div className="space-y-6">
+          {Object.entries(groupByLetter(categories)).map(([letter, items]) => (
+            <div key={letter}>
+              <SectionLabel letter={letter} />
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {items.map((cat) => (
+                  <CategoryGridItem
+                    key={cat.id}
+                    category={cat}
+                    onEdit={setEditTarget}
+                    onDelete={setDeleteId}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
