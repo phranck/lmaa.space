@@ -165,7 +165,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 <button
                   type="button"
                   onClick={handleDeleteImage}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-red-600 text-xs font-medium transition-colors w-full"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium transition-colors w-full"
                 >
                   <SFTrashFill className="w-3 h-3" />
                   Löschen
@@ -174,7 +174,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
               >
                 <SFSquareAndArrowUpFill className="w-3 h-3" />
                 Hochladen
@@ -182,7 +182,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               <button
                 type="button"
                 onClick={() => setShowUnsplash(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
               >
                 <span className="text-[10px] font-bold leading-none">U</span>
                 Unsplash

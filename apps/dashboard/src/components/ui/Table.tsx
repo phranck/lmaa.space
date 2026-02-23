@@ -25,7 +25,7 @@ export function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTable
 
 export function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowElement>) {
   return (
-    <tr className={`hover:bg-[var(--ds-surface-alt)] transition-colors ${className}`} {...props} />
+    <tr className={`hover:bg-[var(--ds-bg-elevated)] transition-colors ${className}`} {...props} />
   );
 }
 
@@ -71,7 +71,9 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   return (
     <Table>
-      <TableHead className={stickyHeader ? "sticky top-14 z-10 shadow-[0_1px_0_#e5e7eb]" : ""}>
+      <TableHead
+        className={stickyHeader ? "sticky top-14 z-10 shadow-[0_1px_0_var(--ds-border)]" : ""}
+      >
         <TableRow className="hover:bg-transparent">
           {columns.map((col) => (
             <Th key={col.id} className={col.headerClassName ?? col.className ?? ""}>

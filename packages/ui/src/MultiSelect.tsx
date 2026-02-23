@@ -85,7 +85,7 @@ export function MultiSelect({
               width: dropdownRect.width,
               zIndex: 9999,
             }}
-            className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
+            className="bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
               {options.length === 0 && (
@@ -131,7 +131,7 @@ export function MultiSelect({
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-surface)] transition-colors ${
+        className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${
           open
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error

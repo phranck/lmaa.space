@@ -35,6 +35,9 @@
   --ds-segment-bg: var(--ds-bg-elevated); /* container background */
   --ds-segment-active-bg: var(--ds-surface); /* active button background */
 
+  /* Form inputs — elevated above card surface */
+  --ds-input-bg: oklch(1 0 0); /* white in light mode */
+
   /* Neutral outline buttons (Bearbeiten) */
   --ds-btn-neutral-border: var(--ds-border);
   --ds-btn-neutral-text: var(--ds-text-muted);
@@ -73,6 +76,9 @@
   /* Segment controls: LIGHTER than header surface for visible pill effect */
   --ds-segment-bg: oklch(0.25 0.007 38.2); /* lighter than --ds-surface 0.19 */
   --ds-segment-active-bg: oklch(0.33 0.008 38.2); /* even lighter — active clearly visible */
+
+  /* Form inputs: clearly elevated above card bg in dark mode */
+  --ds-input-bg: oklch(0.26 0.007 38.2);
 
   /* Neutral outline buttons: slightly brighter in dark mode */
   --ds-btn-neutral-border: oklch(0.42 0.009 38.2);

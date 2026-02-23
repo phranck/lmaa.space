@@ -99,7 +99,7 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
               width: dropdownRect.width,
               zIndex: 9999,
             }}
-            className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
+            className="bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
               {REGION_OPTIONS.map(({ code, flag, name }) => {
@@ -152,7 +152,7 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
           {infoOpen && (
             <div
               ref={infoRef}
-              className="absolute left-0 top-6 z-50 w-72 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg shadow-lg p-3 text-xs text-[var(--ds-text-muted)] leading-relaxed"
+              className="absolute left-0 top-6 z-50 w-72 bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-lg shadow-lg p-3 text-xs text-[var(--ds-text-muted)] leading-relaxed"
             >
               <div className="flex items-start justify-between gap-2 mb-1">
                 <span className="font-medium text-[var(--ds-text)]">Was bedeutet Region?</span>
@@ -178,7 +178,7 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
           ref={buttonRef}
           type="button"
           onClick={handleToggle}
-          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-surface)] transition-colors ${
+          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${
             open
               ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
               : error
