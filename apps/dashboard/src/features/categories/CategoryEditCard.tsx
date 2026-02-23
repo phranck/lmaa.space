@@ -1,7 +1,9 @@
 import { UnsplashBrowser } from "@/features/categories/UnsplashBrowser.tsx";
-import { api } from "@/lib/api.ts";
-import type { Category } from "@lmaa/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useAdminCategories,
+  useSaveCategory,
+} from "@/features/categories/hooks/useAdminCategories.ts";
+import type { CategoryFormData, CategoryImageState } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useEffect, useRef, useState } from "react";
 import { LuSearch, LuTrash2, LuUpload } from "react-icons/lu";
 
@@ -9,22 +11,6 @@ interface CategoryEditCardProps {
   categoryId: number | "new";
   onClose: () => void;
   onSaved: () => void;
-}
-
-interface CategoryForm {
-  name: string;
-  slug: string;
-  description: string;
-}
-
-interface ImageState {
-  previewUrl: string | null;
-  photographer: string | null;
-  photographerUrl: string | null;
-  pendingFile: File | null;
-  pendingUnsplashUrl: string | null;
-  deleted: boolean;
-  loadError: boolean;
 }
 
 function slugify(s: string) {
@@ -39,22 +25,16 @@ function slugify(s: string) {
 }
 
 export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditCardProps) {
-  const qc = useQueryClient();
   const isNew = categoryId === "new";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUnsplash, setShowUnsplash] = useState(false);
   const [closing, setClosing] = useState(false);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories-admin"],
-    queryFn: () => api.get<Category[]>("/admin/categories"),
-    enabled: !isNew,
-  });
-
+  const { data: categories = [] } = useAdminCategories(!isNew);
   const category = isNew ? undefined : categories.find((c) => c.id === categoryId);
 
-  const [form, setForm] = useState<CategoryForm>({ name: "", slug: "", description: "" });
-  const [image, setImage] = useState<ImageState>({
+  const [form, setForm] = useState<CategoryFormData>({ name: "", slug: "", description: "" });
+  const [image, setImage] = useState<CategoryImageState>({
     previewUrl: null,
     photographer: null,
     photographerUrl: null,
@@ -94,41 +74,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     return () => window.removeEventListener("keydown", onKey);
   }, [showUnsplash]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (data: CategoryForm) => {
-      let saved: Category;
-
-      // 1. Create or update base data
-      if (isNew) {
-        saved = await api.post<Category>("/admin/categories", data);
-      } else {
-        saved = await api.patch<Category>(`/admin/categories/${categoryId}`, data);
-      }
-
-      const id = saved.id;
-
-      // 2. Handle image changes
-      if (image.deleted && !image.pendingFile && !image.pendingUnsplashUrl) {
-        await api.delete(`/admin/categories/${id}/image`);
-      } else if (image.pendingFile) {
-        const fd = new FormData();
-        fd.append("image", image.pendingFile);
-        await api.upload(`/admin/categories/${id}/image`, fd);
-      } else if (image.pendingUnsplashUrl) {
-        await api.patch(`/admin/categories/${id}`, {
-          imageUrl: image.pendingUnsplashUrl,
-          imagePhotographer: image.photographer,
-          imagePhotographerUrl: image.photographerUrl,
-        });
-      }
-
-      return saved;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["categories-admin"] });
-      onSaved();
-    },
-  });
+  const saveMutation = useSaveCategory(categoryId);
 
   function handleNameChange(name: string) {
     setForm((f) => ({ ...f, name, slug: isNew ? slugify(name) : f.slug }));
@@ -174,7 +120,6 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     });
   }
 
-  // The image URL to show (preview takes priority, then existing, then slug fallback)
   const displayImageUrl = image.loadError
     ? null
     : (image.previewUrl ??
@@ -319,7 +264,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               </button>
               <button
                 type="button"
-                onClick={() => saveMutation.mutate(form)}
+                onClick={() => saveMutation.mutate({ form, image }, { onSuccess: onSaved })}
                 disabled={!canSave}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
               >

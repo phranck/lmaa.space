@@ -1,46 +1,23 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { api } from "@/lib/api.ts";
-import type { AdminUser } from "@lmaa/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  EMPTY_CREATE_USER_FORM,
+  useAdminUsers,
+  useCreateUser,
+  useDeleteUser,
+} from "@/features/users/hooks/useAdminUsers.ts";
+import type { CreateUserFormData } from "@/features/users/hooks/useAdminUsers.ts";
 import { useState } from "react";
 
-interface CreateUserForm {
-  username: string;
-  email: string;
-  password: string;
-}
-
-const EMPTY_FORM: CreateUserForm = { username: "", email: "", password: "" };
-
 export function UsersPage() {
-  const qc = useQueryClient();
   const { user: me } = useAuth();
-  const [form, setForm] = useState<CreateUserForm>(EMPTY_FORM);
+  const [form, setForm] = useState<CreateUserFormData>(EMPTY_CREATE_USER_FORM);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ["users-admin"],
-    queryFn: () => api.get<AdminUser[]>("/admin/users"),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: CreateUserForm) => api.post("/admin/users", data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users-admin"] });
-      setForm(EMPTY_FORM);
-      setShowForm(false);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.delete(`/admin/users/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users-admin"] });
-      setDeleteId(null);
-    },
-  });
+  const { data: users = [], isLoading } = useAdminUsers();
+  const createMutation = useCreateUser();
+  const deleteMutation = useDeleteUser();
 
   const deleteTarget = users.find((u) => u.id === deleteId);
 
@@ -109,7 +86,14 @@ export function UsersPage() {
           <div className="flex justify-end mt-4">
             <button
               type="button"
-              onClick={() => createMutation.mutate(form)}
+              onClick={() =>
+                createMutation.mutate(form, {
+                  onSuccess: () => {
+                    setForm(EMPTY_CREATE_USER_FORM);
+                    setShowForm(false);
+                  },
+                })
+              }
               disabled={!form.username || !form.email || !form.password || createMutation.isPending}
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
             >
@@ -202,7 +186,7 @@ export function UsersPage() {
               <button
                 type="button"
                 disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(deleteId)}
+                onClick={() => deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })}
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "..." : "Entfernen"}
