@@ -174,6 +174,12 @@ function VorschlaegeTab() {
               </label>
             )}
 
+            {reviewMutation.isError && (
+              <p className="text-sm text-red-600 mb-3">
+                Fehler: {reviewMutation.error?.message ?? "Unbekannter Fehler"}
+              </p>
+            )}
+
             <div className="flex gap-3">
               <button
                 type="button"
