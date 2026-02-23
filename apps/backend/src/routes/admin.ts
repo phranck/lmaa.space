@@ -28,6 +28,13 @@ import {
   verifyPassword,
 } from "../services/auth.js";
 import { sendSubmissionApproved, sendSubmissionRejected } from "../services/email.js";
+import {
+  UMAMI_WEBSITE_ID,
+  type UmamiPeriod,
+  periodToRange,
+  umamiConfigured,
+  umamiGet,
+} from "../services/umami.js";
 
 const setupSchema = z.object({
   username: z.string().min(3).max(50),
@@ -158,6 +165,53 @@ adminRoutes.get("/stats", requireAuth, async (c) => {
       deadLinkReports: deadLinkCount.count,
     },
   });
+});
+
+// GET /api/admin/umami/stats?period=today|7d|30d
+adminRoutes.get("/umami/stats", requireAuth, async (c) => {
+  if (!umamiConfigured) return c.json({ data: null });
+  const period = (c.req.query("period") ?? "7d") as UmamiPeriod;
+  const { startAt, endAt } = periodToRange(period);
+  try {
+    const data = await umamiGet(
+      `/websites/${UMAMI_WEBSITE_ID}/stats?startAt=${startAt}&endAt=${endAt}`,
+    );
+    return c.json({ data });
+  } catch {
+    return c.json({ data: null });
+  }
+});
+
+// GET /api/admin/umami/pageviews?period=today|7d|30d
+adminRoutes.get("/umami/pageviews", requireAuth, async (c) => {
+  if (!umamiConfigured) return c.json({ data: null });
+  const period = (c.req.query("period") ?? "7d") as UmamiPeriod;
+  const { startAt, endAt } = periodToRange(period);
+  const unit = period === "today" ? "hour" : "day";
+  try {
+    const data = await umamiGet(
+      `/websites/${UMAMI_WEBSITE_ID}/pageviews?startAt=${startAt}&endAt=${endAt}&unit=${unit}`,
+    );
+    return c.json({ data });
+  } catch {
+    return c.json({ data: null });
+  }
+});
+
+// GET /api/admin/umami/metrics?type=url|country|referrer&period=today|7d|30d
+adminRoutes.get("/umami/metrics", requireAuth, async (c) => {
+  if (!umamiConfigured) return c.json({ data: null });
+  const period = (c.req.query("period") ?? "7d") as UmamiPeriod;
+  const type = c.req.query("type") ?? "url";
+  const { startAt, endAt } = periodToRange(period);
+  try {
+    const data = await umamiGet(
+      `/websites/${UMAMI_WEBSITE_ID}/metrics?type=${type}&startAt=${startAt}&endAt=${endAt}&limit=10`,
+    );
+    return c.json({ data });
+  } catch {
+    return c.json({ data: null });
+  }
 });
 
 // GET /api/admin/submissions
