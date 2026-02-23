@@ -35,13 +35,13 @@ export function UsersPage() {
 
       {/* Create Form */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Neuen Admin-Benutzer anlegen</h2>
+        <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] p-5 mb-6">
+          <h2 className="font-semibold text-[var(--ds-text)] mb-4">Neuen Admin-Benutzer anlegen</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label
                 htmlFor="new-username"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1"
               >
                 Benutzername
               </label>
@@ -51,11 +51,14 @@ export function UsersPage() {
                 value={form.username}
                 onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                 minLength={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             <div>
-              <label htmlFor="new-email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="new-email"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1"
+              >
                 E-Mail
               </label>
               <input
@@ -63,13 +66,13 @@ export function UsersPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             <div>
               <label
                 htmlFor="new-password"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1"
               >
                 Temporäres Passwort
               </label>
@@ -79,7 +82,7 @@ export function UsersPage() {
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 minLength={8}
-                className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
           </div>
@@ -116,7 +119,7 @@ export function UsersPage() {
           {Array.from({ length: 3 }, (_, i) => `sk-${i}`).map((key) => (
             <div
               key={key}
-              className="h-16 bg-white rounded-xl border border-gray-100 animate-pulse"
+              className="h-16 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse"
             />
           ))}
         </div>
@@ -126,26 +129,26 @@ export function UsersPage() {
         {users.map((user) => (
           <div
             key={user.id}
-            className="bg-white rounded-xl border border-gray-100 px-5 py-4 flex items-center gap-3"
+            className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] px-5 py-4 flex items-center gap-3"
           >
             <div className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center text-sm font-bold shrink-0">
               {user.username[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-medium text-gray-900">{user.username}</p>
+                <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
                 {user.isOwner && (
                   <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
                     Owner
                   </span>
                 )}
                 {user.id === me?.id && (
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] px-2 py-0.5 rounded-full">
                     Du
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-400">{user.email}</p>
+              <p className="text-sm text-[var(--ds-text-subtle)]">{user.email}</p>
             </div>
             {!user.isOwner && user.id !== me?.id && (
               <button
@@ -169,9 +172,9 @@ export function UsersPage() {
             onClick={() => setDeleteId(null)}
             aria-label="Abbrechen"
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-gray-900 mb-2">Benutzer entfernen?</h3>
-            <p className="text-sm text-gray-500 mb-5">
+          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="font-bold text-[var(--ds-text)] mb-2">Benutzer entfernen?</h3>
+            <p className="text-sm text-[var(--ds-text-muted)] mb-5">
               <span className="font-medium">{deleteTarget.username}</span> verliert den
               Admin-Zugang. Diese Aktion kann nicht rückgängig gemacht werden.
             </p>
@@ -179,7 +182,7 @@ export function UsersPage() {
               <button
                 type="button"
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>

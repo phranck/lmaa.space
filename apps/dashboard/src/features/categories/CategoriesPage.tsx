@@ -7,7 +7,7 @@ import {
   useDeleteCategory,
 } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useState } from "react";
-import { SFListBullet, SFSquareGrid2x2 } from "sf-symbols-lib/monochrome";
+import { SFListBullet, SFSquareGrid2x2Fill } from "sf-symbols-lib/monochrome";
 
 type ViewMode = "list" | "grid";
 
@@ -32,14 +32,14 @@ export function CategoriesPage() {
     <div>
       <PageHeader title="Kategorien">
         {/* View toggle */}
-        <div className="flex h-9 rounded-control border border-gray-200 overflow-hidden">
+        <div className="flex h-9 rounded-control border border-[var(--ds-border)] overflow-hidden">
           <button
             type="button"
             onClick={() => changeViewMode("list")}
             className={`flex items-center px-3 transition-colors ${
               viewMode === "list"
                 ? "bg-[var(--color-primary)] text-white"
-                : "text-gray-500 hover:bg-gray-50"
+                : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-alt)]"
             }`}
             aria-label="Listenansicht"
           >
@@ -51,11 +51,11 @@ export function CategoriesPage() {
             className={`flex items-center px-3 transition-colors ${
               viewMode === "grid"
                 ? "bg-[var(--color-primary)] text-white"
-                : "text-gray-500 hover:bg-gray-50"
+                : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-alt)]"
             }`}
             aria-label="Kachelansicht"
           >
-            <SFSquareGrid2x2 className="w-4 h-4" />
+            <SFSquareGrid2x2Fill className="w-4 h-4" />
           </button>
         </div>
 
@@ -80,14 +80,16 @@ export function CategoriesPage() {
           {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
             <div
               key={key}
-              className={`bg-white rounded-card border border-gray-100 animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-14"}`}
+              className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-14"}`}
             />
           ))}
         </div>
       )}
 
       {!isLoading && categories.length === 0 && (
-        <p className="text-center py-12 text-gray-400">Noch keine Kategorien vorhanden.</p>
+        <p className="text-center py-12 text-[var(--ds-text-subtle)]">
+          Noch keine Kategorien vorhanden.
+        </p>
       )}
 
       {/* List View */}
@@ -129,9 +131,9 @@ export function CategoriesPage() {
             onClick={() => setDeleteId(null)}
             aria-label="Abbrechen"
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-gray-900 mb-2">Kategorie löschen?</h3>
-            <p className="text-sm text-gray-500 mb-5">
+          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="font-bold text-[var(--ds-text)] mb-2">Kategorie löschen?</h3>
+            <p className="text-sm text-[var(--ds-text-muted)] mb-5">
               <span className="font-medium">{deleteTarget.name}</span> wird dauerhaft gelöscht. Alle
               zugeordneten Shops verlieren ihre Kategorie.
             </p>
@@ -139,7 +141,7 @@ export function CategoriesPage() {
               <button
                 type="button"
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>

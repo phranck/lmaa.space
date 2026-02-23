@@ -46,18 +46,21 @@ export function SetupPage() {
             style={{ width: 120, height: 120 }}
             className="mx-auto"
           />
-          <p className="text-sm text-gray-500 mt-1">Willkommen!</p>
+          <p className="text-sm text-[var(--ds-text-muted)] mt-1">Willkommen!</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Admin einrichten</h2>
-          <p className="text-sm text-gray-500 mb-6">
+        <div className="bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] p-8">
+          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-2">Admin einrichten</h2>
+          <p className="text-sm text-[var(--ds-text-muted)] mb-6">
             Erstelle den ersten Admin-Account für lmaa.space.
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
                 Benutzername
               </label>
               <input
@@ -66,12 +69,15 @@ export function SetupPage() {
                 type="text"
                 required
                 minLength={3}
-                className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
                 E-Mail
               </label>
               <input
@@ -79,12 +85,15 @@ export function SetupPage() {
                 name="email"
                 type="email"
                 required
-                className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
                 Passwort
               </label>
               <input
@@ -93,14 +102,14 @@ export function SetupPage() {
                 type="password"
                 required
                 minLength={8}
-                className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
               />
             </div>
 
             <div>
               <label
                 htmlFor="passwordConfirm"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
               >
                 Passwort bestätigen
               </label>
@@ -109,7 +118,7 @@ export function SetupPage() {
                 name="passwordConfirm"
                 type="password"
                 required
-                className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
               />
             </div>
 

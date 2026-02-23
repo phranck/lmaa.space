@@ -4,28 +4,35 @@ import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } fr
 
 export function Table({ className = "", ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full border border-gray-200">
+    <div className="w-full border border-[var(--ds-border)]">
       <table className={`w-full border-collapse text-sm ${className}`} {...props} />
     </div>
   );
 }
 
 export function TableHead({ className = "", ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={`bg-gray-200 text-left ${className}`} {...props} />;
+  return <thead className={`bg-[var(--ds-border)] text-left ${className}`} {...props} />;
 }
 
 export function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <tbody className={`divide-y divide-gray-100 bg-white ${className}`} {...props} />;
+  return (
+    <tbody
+      className={`divide-y divide-[var(--ds-border-subtle)] bg-[var(--ds-surface)] ${className}`}
+      {...props}
+    />
+  );
 }
 
 export function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={`hover:bg-gray-50 transition-colors ${className}`} {...props} />;
+  return (
+    <tr className={`hover:bg-[var(--ds-surface-alt)] transition-colors ${className}`} {...props} />
+  );
 }
 
 export function Th({ className = "", ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-gray-600 ${className}`}
+      className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-text-muted)] ${className}`}
       {...props}
     />
   );

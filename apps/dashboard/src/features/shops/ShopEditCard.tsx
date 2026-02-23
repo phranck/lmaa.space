@@ -93,15 +93,15 @@ export function ShopEditCard({
       }}
     >
       <div
-        className={`relative bg-white rounded-[var(--radius-card)] shadow-2xl w-full max-w-lg overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
+        className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-lg overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--ds-border-subtle)]">
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
           <button
             type="button"
             onClick={() => setClosing(true)}
-            className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
           >
             <SFXmark className="w-3.5 h-3.5" />
           </button>
@@ -112,7 +112,7 @@ export function ShopEditCard({
           {isLoadingShop ? (
             <div className="space-y-3">
               {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((k) => (
-                <div key={k} className="h-10 bg-gray-100 rounded-lg animate-pulse" />
+                <div key={k} className="h-10 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
               ))}
             </div>
           ) : (
@@ -142,19 +142,21 @@ export function ShopEditCard({
               }
 
               return (
-                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
-                  <div className="shrink-0 w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
+                <div className="mt-4 pt-4 border-t border-[var(--ds-border-subtle)] flex items-center gap-3">
+                  <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
                     {displayImage ? (
                       <img src={displayImage} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-xl font-bold text-gray-300 select-none">
+                      <span className="text-xl font-bold text-[var(--ds-text-subtle)] select-none">
                         {form.name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-600 mb-0.5">Vorschaubild</p>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-xs font-medium text-[var(--ds-text-muted)] mb-0.5">
+                      Vorschaubild
+                    </p>
+                    <p className="text-xs text-[var(--ds-text-subtle)] truncate">
                       {displayImage ?? "Kein Bild gesetzt"}
                     </p>
                   </div>
@@ -162,7 +164,7 @@ export function ShopEditCard({
                     type="button"
                     onClick={handleRefreshImage}
                     disabled={isPending || isLoadingShop}
-                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-control text-xs text-gray-600 hover:border-gray-300 transition-colors disabled:opacity-40"
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-40"
                   >
                     <SFArrowClockwise className={`w-3 h-3 ${isPending ? "animate-spin" : ""}`} />
                     Neu laden
@@ -179,11 +181,11 @@ export function ShopEditCard({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100">
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-[var(--ds-border-subtle)]">
           <button
             type="button"
             onClick={() => setClosing(true)}
-            className="px-4 py-2 border border-gray-200 text-gray-600 rounded-control text-sm hover:border-gray-300 transition-colors"
+            className="px-4 py-2 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
           >
             Abbrechen
           </button>

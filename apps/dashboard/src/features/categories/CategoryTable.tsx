@@ -11,7 +11,7 @@ interface CategoryTableProps {
 function CategoryThumb({ category }: { category: Category }) {
   const src = category.imageUrl ?? `/images/${category.slug}.jpg`;
   return (
-    <div className="w-28 h-[63px] rounded-lg overflow-hidden bg-gray-100 shrink-0">
+    <div className="w-28 h-[63px] rounded-lg overflow-hidden bg-[var(--ds-bg-elevated)] shrink-0">
       <img
         src={src}
         alt=""
@@ -35,18 +35,18 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
       {
         id: "name",
         header: "Name",
-        cell: (cat) => <span className="font-medium text-gray-900">{cat.name}</span>,
+        cell: (cat) => <span className="font-medium text-[var(--ds-text)]">{cat.name}</span>,
       },
       {
         id: "slug",
         header: "Slug",
-        cell: (cat) => <span className="font-mono text-gray-400">{cat.slug}</span>,
+        cell: (cat) => <span className="font-mono text-[var(--ds-text-subtle)]">{cat.slug}</span>,
       },
       {
         id: "shopCount",
         header: "Shops",
         className: "w-20",
-        cell: (cat) => <span className="text-gray-500">{cat.shopCount ?? "–"}</span>,
+        cell: (cat) => <span className="text-[var(--ds-text-muted)]">{cat.shopCount ?? "–"}</span>,
       },
       {
         id: "actions",
@@ -56,7 +56,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
             <button
               type="button"
               onClick={() => onEdit(cat.id)}
-              className="h-8 px-3 border border-gray-200 rounded-control text-gray-600 hover:border-gray-300 transition-colors"
+              className="h-8 px-3 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
             >
               Bearbeiten
             </button>

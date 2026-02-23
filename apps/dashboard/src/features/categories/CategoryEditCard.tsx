@@ -8,7 +8,7 @@ import type {
   CategoryImageState,
 } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useEffect, useRef, useState } from "react";
-import { SFMagnifyingglass, SFSquareAndArrowUp, SFTrash } from "sf-symbols-lib/monochrome";
+import { SFMagnifyingglass, SFSquareAndArrowUpFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";
@@ -142,10 +142,10 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         }}
       >
         <div
-          className={`relative bg-white rounded-[var(--radius-card)] shadow-2xl w-full max-w-3xl grid grid-cols-2 overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
+          className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-3xl grid grid-cols-2 overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
         >
           {/* Image Panel – 50 % */}
-          <div className="relative bg-gray-100 flex flex-col min-h-[420px]">
+          <div className="relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]">
             {displayImageUrl && !image.loadError ? (
               <img
                 src={displayImageUrl}
@@ -154,7 +154,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-gray-300">
+              <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
                 <SFMagnifyingglass className="w-10 h-10" />
               </div>
             )}
@@ -167,22 +167,22 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   onClick={handleDeleteImage}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-red-600 text-xs font-medium transition-colors w-full"
                 >
-                  <SFTrash className="w-3 h-3" />
+                  <SFTrashFill className="w-3 h-3" />
                   Löschen
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-gray-700 text-xs font-medium transition-colors w-full"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
               >
-                <SFSquareAndArrowUp className="w-3 h-3" />
+                <SFSquareAndArrowUpFill className="w-3 h-3" />
                 Hochladen
               </button>
               <button
                 type="button"
                 onClick={() => setShowUnsplash(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-gray-700 text-xs font-medium transition-colors w-full"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-white/90 hover:bg-white text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
               >
                 <span className="text-[10px] font-bold leading-none">U</span>
                 Unsplash
@@ -200,13 +200,16 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
           {/* Form Panel – 50 % */}
           <div className="flex flex-col p-3 min-w-0">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-4">
               {isNew ? "Neue Kategorie" : "Kategorie bearbeiten"}
             </h2>
 
             <div className="flex flex-col gap-3 flex-1">
               <div>
-                <label htmlFor="cat-name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="cat-name"
+                  className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   Name
                 </label>
                 <input
@@ -214,12 +217,15 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   type="text"
                   value={form.name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 />
               </div>
 
               <div>
-                <label htmlFor="cat-slug" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="cat-slug"
+                  className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   Slug
                 </label>
                 <input
@@ -227,14 +233,14 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   type="text"
                   value={form.slug}
                   onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="cat-description"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
                 >
                   Beschreibung
                 </label>
@@ -243,7 +249,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   rows={4}
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
                 />
               </div>
             </div>
@@ -257,11 +263,11 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             )}
 
             {/* Footer buttons */}
-            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
               <button
                 type="button"
                 onClick={() => setClosing(true)}
-                className="px-4 py-2 border border-gray-200 text-gray-600 rounded-control text-sm hover:border-gray-300 transition-colors"
+                className="px-4 py-2 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>

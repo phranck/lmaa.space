@@ -33,15 +33,18 @@ export function LoginPage() {
             style={{ width: 120, height: 120 }}
             className="mx-auto"
           />
-          <p className="text-sm text-gray-500 mt-1">Admin-Bereich</p>
+          <p className="text-sm text-[var(--ds-text-muted)] mt-1">Admin-Bereich</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Anmelden</h2>
+        <div className="bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] p-8">
+          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-6">Anmelden</h2>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
                 Benutzername
               </label>
               <input
@@ -50,12 +53,15 @@ export function LoginPage() {
                 type="text"
                 autoComplete="username"
                 required
-                className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
                 Passwort
               </label>
               <input
@@ -64,7 +70,7 @@ export function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="w-full px-4 py-2.5 rounded-control border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
+                className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm"
               />
             </div>
 

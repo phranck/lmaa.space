@@ -1,3 +1,4 @@
+import { useTheme } from "@/context/ThemeContext.tsx";
 import {
   type UmamiMetricType,
   type UmamiPeriod,
@@ -69,10 +70,10 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, sub }: KpiCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className="text-xl font-semibold text-gray-900">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm px-4 py-3">
+      <p className="text-xs text-[var(--ds-text-subtle)] mb-1">{label}</p>
+      <p className="text-xl font-semibold text-[var(--ds-text)]">{value}</p>
+      {sub && <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -93,6 +94,15 @@ function intTicks(max: number): number[] {
 }
 
 function RealtimeCard() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === "dark";
+  const gridColor = isDark ? "oklch(0.30 0.008 38.2)" : "#f1f0ef";
+  const tickColor = isDark ? "#a8a29e" : "#9ca3af";
+  const tooltipBg = isDark ? "oklch(0.19 0.006 38.2)" : "#ffffff";
+  const tooltipBorder = isDark ? "oklch(0.30 0.008 38.2)" : "#e7e5e4";
+  const tooltipColor = isDark ? "#fafaf9" : "#111827";
+  const cursorColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)";
+
   const { data: realtime, isLoading: rtLoading } = useUmamiRealtime();
   const { data: active } = useUmamiActive();
 
@@ -130,40 +140,42 @@ function RealtimeCard() {
   const rtMaxVal = Math.max(...chartData.map((d) => Math.max(d.Besucher, d.Aufrufe)), 1);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 mb-4">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
         </span>
-        <p className="text-sm font-medium text-gray-700">Live</p>
+        <p className="text-sm font-medium text-[var(--ds-text)]">Live</p>
 
         {/* KPIs */}
         {realtime && (
           <div className="flex items-center gap-5 ml-4">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-gray-900">
+              <span className="text-lg font-bold text-[var(--ds-text)]">
                 {active?.visitors ?? realtime.totals.visitors}
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-[var(--ds-text-subtle)]">
                 {active?.visitors != null ? "aktiv (5 min)" : "Besucher"}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-gray-900">{realtime.totals.views}</span>
-              <span className="text-xs text-gray-400">Aufrufe (30 min)</span>
+              <span className="text-lg font-bold text-[var(--ds-text)]">
+                {realtime.totals.views}
+              </span>
+              <span className="text-xs text-[var(--ds-text-subtle)]">Aufrufe (30 min)</span>
             </div>
           </div>
         )}
 
-        <span className="ml-auto text-xs text-gray-400">aktualisiert alle 30 s</span>
+        <span className="ml-auto text-xs text-[var(--ds-text-subtle)]">aktualisiert alle 30 s</span>
       </div>
 
       {rtLoading ? (
-        <div className="h-24 bg-gray-100 rounded-lg animate-pulse" />
+        <div className="h-24 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
       ) : !realtime ? (
-        <p className="text-xs text-gray-400">Keine Realtime-Daten</p>
+        <p className="text-xs text-[var(--ds-text-subtle)]">Keine Realtime-Daten</p>
       ) : (
         <>
           {/* Legende */}
@@ -171,11 +183,11 @@ function RealtimeCard() {
             {/* Legende + Bar Chart (3/4) */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-4 mb-2">
-                <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
                   <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
                   Besucher
                 </span>
-                <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
                   <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
                   Seitenaufrufe
                 </span>
@@ -186,16 +198,16 @@ function RealtimeCard() {
                   margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
                   barSize={5}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={true} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={true} />
                   <XAxis
                     dataKey="time"
-                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    tick={{ fontSize: 10, fill: tickColor }}
                     axisLine={false}
                     tickLine={false}
                     interval={1}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: "#9ca3af" }}
+                    tick={{ fontSize: 10, fill: tickColor }}
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
@@ -206,10 +218,12 @@ function RealtimeCard() {
                     contentStyle={{
                       fontSize: 12,
                       borderRadius: 8,
-                      border: "1px solid #e7e5e4",
+                      border: `1px solid ${tooltipBorder}`,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                      background: tooltipBg,
+                      color: tooltipColor,
                     }}
-                    cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                    cursor={{ fill: cursorColor }}
                   />
                   <Bar dataKey="Besucher" fill="#f59e0b" radius={[2, 2, 0, 0]} />
                   <Bar dataKey="Aufrufe" fill="#a8a29e" radius={[2, 2, 0, 0]} />
@@ -219,15 +233,17 @@ function RealtimeCard() {
 
             {/* Top URLs (1/4) */}
             {topUrls.length > 0 && (
-              <div className="w-1/4 shrink-0 pl-4 border-l border-gray-100">
-                <p className="text-xs font-medium text-gray-500 mb-2">Top Seiten</p>
+              <div className="w-1/4 shrink-0 pl-4 border-l border-[var(--ds-border-subtle)]">
+                <p className="text-xs font-medium text-[var(--ds-text-muted)] mb-2">Top Seiten</p>
                 <div className="space-y-1.5">
                   {topUrls.map(([url, count]) => (
                     <div key={url} className="flex items-center gap-2 text-xs">
-                      <span className="flex-1 truncate text-gray-500" title={url}>
+                      <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={url}>
                         {url === "/" ? "Startseite" : url}
                       </span>
-                      <span className="shrink-0 text-right text-gray-400">{count}</span>
+                      <span className="shrink-0 text-right text-[var(--ds-text-subtle)]">
+                        {count}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -253,17 +269,17 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
   const max = rows[0]?.y ?? 1;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
-      <p className="text-sm font-medium text-gray-700">{title}</p>
+    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
+      <p className="text-sm font-medium text-[var(--ds-text)]">{title}</p>
       {isLoading && (
         <div className="space-y-2">
           {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((k) => (
-            <div key={k} className="h-7 bg-gray-100 rounded animate-pulse" />
+            <div key={k} className="h-7 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
           ))}
         </div>
       )}
       {!isLoading && rows.length === 0 && (
-        <p className="text-xs text-gray-400 py-4 text-center">Keine Daten</p>
+        <p className="text-xs text-[var(--ds-text-subtle)] py-4 text-center">Keine Daten</p>
       )}
       {!isLoading && rows.length > 0 && (
         <ul className="space-y-2">
@@ -273,18 +289,18 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
                 {type === "country" ? countryFlag(row.x) : null}
               </span>
               <span
-                className="flex-1 truncate text-gray-600"
+                className="flex-1 truncate text-[var(--ds-text-muted)]"
                 title={renderLabel ? renderLabel(row.x) : row.x}
               >
                 {renderLabel ? renderLabel(row.x) : row.x}
               </span>
-              <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-amber-400 rounded-full"
                   style={{ width: `${Math.round((row.y / max) * 100)}%` }}
                 />
               </div>
-              <span className="shrink-0 w-8 text-right text-gray-500">{row.y}</span>
+              <span className="shrink-0 w-8 text-right text-[var(--ds-text-muted)]">{row.y}</span>
             </li>
           ))}
         </ul>
@@ -294,6 +310,14 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
 }
 
 export function AnalyticsSection() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === "dark";
+  const gridColor = isDark ? "oklch(0.30 0.008 38.2)" : "#f1f0ef";
+  const tickColor = isDark ? "#a8a29e" : "#9ca3af";
+  const tooltipBg = isDark ? "oklch(0.19 0.006 38.2)" : "#ffffff";
+  const tooltipBorder = isDark ? "oklch(0.30 0.008 38.2)" : "#e7e5e4";
+  const tooltipColor = isDark ? "#fafaf9" : "#111827";
+
   const [period, setPeriod] = useState<UmamiPeriod>(loadPeriod);
 
   function handlePeriodChange(p: UmamiPeriod) {
@@ -327,8 +351,8 @@ export function AnalyticsSection() {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-gray-700">Analytics</h2>
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+        <h2 className="text-sm font-semibold text-[var(--ds-text)]">Analytics</h2>
+        <div className="flex gap-1 bg-[var(--ds-bg-elevated)] rounded-lg p-0.5">
           {PERIODS.map((p) => (
             <button
               key={p.value}
@@ -336,8 +360,8 @@ export function AnalyticsSection() {
               onClick={() => handlePeriodChange(p.value)}
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                 period === p.value
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                  : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
               }`}
             >
               {p.label}
@@ -350,7 +374,7 @@ export function AnalyticsSection() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         {statsLoading ? (
           Array.from({ length: 4 }, (_, i) => `kpi-${i}`).map((k) => (
-            <div key={k} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+            <div key={k} className="h-16 bg-[var(--ds-bg-elevated)] rounded-xl animate-pulse" />
           ))
         ) : hasStats ? (
           <>
@@ -363,7 +387,7 @@ export function AnalyticsSection() {
             <KpiCard label="Ø Verweildauer" value={avgDuration} />
           </>
         ) : (
-          <div className="col-span-4 text-xs text-gray-400 py-2">
+          <div className="col-span-4 text-xs text-[var(--ds-text-subtle)] py-2">
             Umami nicht konfiguriert (UMAMI_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID).
           </div>
         )}
@@ -371,22 +395,22 @@ export function AnalyticsSection() {
 
       {/* Traffic Chart */}
       {(pvLoading || chartData.length > 0) && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
+        <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium text-gray-700">Traffic</p>
+            <p className="text-sm font-medium text-[var(--ds-text)]">Traffic</p>
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
                 <span className="w-3 h-0.5 rounded-full bg-amber-400 inline-block" />
                 Besucher
               </span>
-              <span className="flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
                 <span className="w-3 h-0.5 rounded-full bg-stone-400 inline-block" />
                 Seitenaufrufe
               </span>
             </div>
           </div>
           {pvLoading ? (
-            <div className="h-40 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
           ) : (
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
@@ -400,15 +424,15 @@ export function AnalyticsSection() {
                     <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 11, fill: "#9ca3af" }}
+                  tick={{ fontSize: 11, fill: tickColor }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: "#9ca3af" }}
+                  tick={{ fontSize: 11, fill: tickColor }}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
@@ -419,8 +443,10 @@ export function AnalyticsSection() {
                   contentStyle={{
                     fontSize: 12,
                     borderRadius: 8,
-                    border: "1px solid #e7e5e4",
+                    border: `1px solid ${tooltipBorder}`,
                     boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    background: tooltipBg,
+                    color: tooltipColor,
                   }}
                 />
                 <Area

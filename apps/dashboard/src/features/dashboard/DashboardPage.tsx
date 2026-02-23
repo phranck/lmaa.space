@@ -14,7 +14,7 @@ export function DashboardPage() {
           {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
             <div
               key={key}
-              className="h-28 bg-white rounded-xl border border-gray-100 animate-pulse"
+              className="h-28 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse"
             />
           ))}
         </div>

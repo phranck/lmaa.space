@@ -30,13 +30,13 @@ export function ShopsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Suchen…"
-            className="h-9 w-52 px-3 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
+            className="h-9 w-52 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
             >
               <SFXmark className="w-3.5 h-3.5" />
             </button>
@@ -55,17 +55,24 @@ export function ShopsPage() {
       {isLoading && (
         <div className="space-y-px">
           {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
-            <div key={key} className="h-14 bg-white animate-pulse border-b border-gray-100" />
+            <div
+              key={key}
+              className="h-14 bg-[var(--ds-surface)] animate-pulse border-b border-[var(--ds-border-subtle)]"
+            />
           ))}
         </div>
       )}
 
       {!isLoading && shops.length === 0 && (
-        <p className="text-center py-16 text-gray-400">Noch keine Shops vorhanden.</p>
+        <p className="text-center py-16 text-[var(--ds-text-subtle)]">
+          Noch keine Shops vorhanden.
+        </p>
       )}
 
       {!isLoading && shops.length > 0 && filtered.length === 0 && (
-        <p className="text-center py-16 text-gray-400">Keine Treffer für „{search}".</p>
+        <p className="text-center py-16 text-[var(--ds-text-subtle)]">
+          Keine Treffer für „{search}".
+        </p>
       )}
 
       {!isLoading && filtered.length > 0 && (
@@ -92,16 +99,16 @@ export function ShopsPage() {
             onClick={() => setDeleteId(null)}
             aria-label="Abbrechen"
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-gray-900 mb-2">Shop löschen?</h3>
-            <p className="text-sm text-gray-500 mb-5">
+          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
+            <h3 className="font-bold text-[var(--ds-text)] mb-2">Shop löschen?</h3>
+            <p className="text-sm text-[var(--ds-text-muted)] mb-5">
               <span className="font-medium">{deleteTarget.name}</span> wird dauerhaft entfernt.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-control text-sm text-gray-600 hover:border-gray-300 transition-colors"
+                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 Abbrechen
               </button>

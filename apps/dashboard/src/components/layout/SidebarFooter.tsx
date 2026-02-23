@@ -1,4 +1,4 @@
-import { SFRectanglePortraitAndArrowRight } from "sf-symbols-lib/monochrome";
+import { SFRectanglePortraitAndArrowRightFill } from "sf-symbols-lib/monochrome";
 
 interface SidebarFooterProps {
   username?: string;
@@ -18,7 +18,7 @@ export function SidebarFooter({ username, email, onLogout }: SidebarFooterProps)
         onClick={onLogout}
         className="w-full flex items-center gap-3 px-3 py-2 rounded-control text-sm text-[var(--ds-text-muted)] hover:bg-[var(--ds-danger-bg)] hover:text-[var(--ds-danger-text)] transition-colors"
       >
-        <SFRectanglePortraitAndArrowRight className="w-4 h-4 shrink-0" />
+        <SFRectanglePortraitAndArrowRightFill className="w-4 h-4 shrink-0" />
         Abmelden
       </button>
     </div>

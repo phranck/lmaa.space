@@ -8,12 +8,12 @@ interface CategoryGridItemProps {
 
 export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridItemProps) {
   return (
-    <div className="relative bg-white rounded-card border border-gray-200 flex flex-col card-hover">
+    <div className="relative bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border)] flex flex-col card-hover">
       <div className="aspect-[4/3] overflow-hidden rounded-t-[var(--radius-card)]">
         <img
           src={category.imageUrl ?? `/images/${category.slug}.jpg`}
           alt=""
-          className="w-full h-full object-cover bg-gray-100"
+          className="w-full h-full object-cover bg-[var(--ds-bg-elevated)]"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
           }}
@@ -21,9 +21,9 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
       </div>
       <div className="p-3 flex flex-col gap-2">
         <div>
-          <p className="font-medium text-gray-900 text-sm truncate">{category.name}</p>
+          <p className="font-medium text-[var(--ds-text)] text-sm truncate">{category.name}</p>
           {category.shopCount !== undefined && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[var(--ds-text-subtle)]">
               {category.shopCount} {category.shopCount === 1 ? "Shop" : "Shops"}
             </p>
           )}
@@ -32,7 +32,7 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
           <button
             type="button"
             onClick={() => onEdit(category.id)}
-            className="btn-edit flex-1 py-1.5 text-xs border border-gray-200 rounded-control text-gray-600 transition-colors"
+            className="btn-edit flex-1 py-1.5 text-xs border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] transition-colors"
           >
             Bearbeiten
           </button>
