@@ -8,10 +8,12 @@ import {
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
   CreateLink,
+  DiffSourceToggleWrapper,
   ListsToggle,
   MDXEditor,
   Separator,
   UndoRedo,
+  diffSourcePlugin,
   headingsPlugin,
   linkDialogPlugin,
   linkPlugin,
@@ -86,9 +88,10 @@ export function ContentEditorPage() {
               linkPlugin(),
               linkDialogPlugin(),
               markdownShortcutPlugin(),
+              diffSourcePlugin({ viewMode: "rich-text" }),
               toolbarPlugin({
                 toolbarContents: () => (
-                  <>
+                  <DiffSourceToggleWrapper>
                     <UndoRedo />
                     <Separator />
                     <BlockTypeSelect />
@@ -98,7 +101,7 @@ export function ContentEditorPage() {
                     <ListsToggle />
                     <Separator />
                     <CreateLink />
-                  </>
+                  </DiffSourceToggleWrapper>
                 ),
               }),
             ]}
