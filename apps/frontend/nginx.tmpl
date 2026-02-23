@@ -4,6 +4,10 @@ server {
     server_name _;
     root {{.DocumentRoot}};
 
+    location /uploads/ {
+        proxy_pass http://backend:3000;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
     }
