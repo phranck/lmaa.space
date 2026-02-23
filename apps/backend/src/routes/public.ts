@@ -40,9 +40,6 @@ publicRoutes.get("/categories", async (c) => {
       name: categories.name,
       slug: categories.slug,
       imageUrl: categories.imageUrl,
-      sortOrder: categories.sortOrder,
-      createdAt: categories.createdAt,
-      updatedAt: categories.updatedAt,
       shopCount: count(shops.id),
     })
     .from(categories)
@@ -51,6 +48,7 @@ publicRoutes.get("/categories", async (c) => {
     .groupBy(categories.id)
     .orderBy(categories.name);
 
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return c.json({ data: rows });
 });
 
@@ -58,7 +56,16 @@ publicRoutes.get("/categories", async (c) => {
 publicRoutes.get("/categories/:slug", async (c) => {
   const slug = c.req.param("slug");
 
-  const [category] = await db.select().from(categories).where(eq(categories.slug, slug)).limit(1);
+  const [category] = await db
+    .select({
+      id: categories.id,
+      name: categories.name,
+      slug: categories.slug,
+      imageUrl: categories.imageUrl,
+    })
+    .from(categories)
+    .where(eq(categories.slug, slug))
+    .limit(1);
 
   if (!category) {
     return c.json({ error: { message: "Category not found" } }, 404);
@@ -66,23 +73,14 @@ publicRoutes.get("/categories/:slug", async (c) => {
 
   const categoryShops = await db.execute(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.is_active as "isActive",
-           s.created_at as "createdAt", s.updated_at as "updatedAt",
-           COALESCE(
-             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
-             FILTER (WHERE c.id IS NOT NULL),
-             '[]'::json
-           ) as categories
+           s.og_image as "ogImage"
     FROM shops s
-    INNER JOIN shop_categories sc_filter
-      ON sc_filter.shop_id = s.id AND sc_filter.category_id = ${category.id}
-    LEFT JOIN shop_categories sc_all ON sc_all.shop_id = s.id
-    LEFT JOIN categories c ON c.id = sc_all.category_id
+    INNER JOIN shop_categories sc ON sc.shop_id = s.id AND sc.category_id = ${category.id}
     WHERE s.is_active = true
-    GROUP BY s.id
     ORDER BY s.name
   `);
 
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return c.json({ data: { ...category, shops: categoryShops } });
 });
 
@@ -90,8 +88,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
 publicRoutes.get("/shops", async (c) => {
   const allShops = await db.execute(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.is_active as "isActive",
-           s.created_at as "createdAt", s.updated_at as "updatedAt",
+           s.og_image as "ogImage",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -105,6 +102,7 @@ publicRoutes.get("/shops", async (c) => {
     ORDER BY s.name
   `);
 
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return c.json({ data: allShops });
 });
 
