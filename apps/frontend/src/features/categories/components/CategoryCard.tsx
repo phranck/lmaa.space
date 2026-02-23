@@ -1,6 +1,7 @@
 import type { Category } from "@lmaa/shared";
 import { useState } from "react";
 import { Link } from "react-router";
+import { resolveImageUrl } from "../../../lib/api.ts";
 
 interface CategoryCardProps {
   category: Category;
@@ -8,7 +9,8 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category }: CategoryCardProps) {
   const [imgError, setImgError] = useState(false);
-  const hasImage = !!category.imageUrl && !imgError;
+  const resolvedUrl = resolveImageUrl(category.imageUrl);
+  const hasImage = !!resolvedUrl && !imgError;
 
   return (
     <Link
@@ -19,7 +21,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
       <div className="aspect-video overflow-hidden relative">
         {hasImage ? (
           <img
-            src={category.imageUrl ?? ""}
+            src={resolvedUrl ?? ""}
             alt=""
             aria-hidden="true"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

@@ -1,5 +1,17 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
+// Derives the backend origin (without /api) for resolving /uploads/ paths.
+// e.g. "https://api.lmaa.space/api" → "https://api.lmaa.space"
+//      "/api" (dev)                 → "" (relative, handled by Vite proxy)
+const BACKEND_ORIGIN = API_BASE.endsWith("/api") ? API_BASE.slice(0, -4) : "";
+
+/** Resolves a stored imageUrl (which may be a relative /uploads/ path) to a full URL. */
+export function resolveImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith("/uploads/")) return `${BACKEND_ORIGIN}${url}`;
+  return url;
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
