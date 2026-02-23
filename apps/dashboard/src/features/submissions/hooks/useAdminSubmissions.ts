@@ -1,4 +1,4 @@
-import type { ShopFormData } from "@/features/shops/hooks/useAdminShops.ts";
+import type { ShopEditFormValue } from "@/features/shops/hooks/useAdminShops.ts";
 import { api } from "@/lib/api.ts";
 import type { Submission } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -49,7 +49,7 @@ export function useReviewSubmission() {
 export function useEditSubmission() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ShopFormData }) =>
+    mutationFn: ({ id, data }: { id: number; data: ShopEditFormValue }) =>
       api.patch(`/admin/submissions/${id}/edit`, {
         shopName: data.name,
         shopUrl: data.url,

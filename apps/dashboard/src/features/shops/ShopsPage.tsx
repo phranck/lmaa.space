@@ -75,7 +75,7 @@ export function ShopsPage() {
                   url: editShop.url,
                   description: editShop.description ?? "",
                   categoryIds: editShop.categories.map((c) => c.id),
-                  region: editShop.region ?? "",
+                  region: editShop.region ?? [],
                   shipping: editShop.shipping ?? "",
                 }
               : undefined
