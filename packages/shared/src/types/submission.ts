@@ -26,12 +26,19 @@ export interface SubmissionCreate {
   shopUrl: string;
   categoryIds?: number[];
   categorySuggestion?: string;
-  region?: string;
+  region?: string[];
   pickup?: string;
   shipping?: string;
   description?: string;
   submitterEmail?: string;
   submitterNote?: string;
+}
+
+export interface DeadLinkReportSummary {
+  shopId: number;
+  shopName: string;
+  shopUrl: string;
+  reportCount: number;
 }
 
 export interface SubmissionReview {

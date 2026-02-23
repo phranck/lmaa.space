@@ -1,18 +1,7 @@
 import type { ShopEditFormValue } from "@/features/shops/hooks/useAdminShops.ts";
 import { api } from "@/lib/api.ts";
-import type { Submission } from "@lmaa/shared";
+import type { DeadLinkReportSummary, Submission, SubmissionStatus } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type SubmissionStatus = "pending" | "approved" | "rejected";
-
-export interface DeadLinkReport {
-  shopId: number;
-  shopName: string;
-  shopUrl: string;
-  reportCount: number;
-}
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
@@ -65,7 +54,7 @@ export function useEditSubmission() {
 export function useDeadLinkReports() {
   return useQuery({
     queryKey: ["dead-link-reports"],
-    queryFn: () => api.get<DeadLinkReport[]>("/admin/dead-link-reports"),
+    queryFn: () => api.get<DeadLinkReportSummary[]>("/admin/dead-link-reports"),
   });
 }
 

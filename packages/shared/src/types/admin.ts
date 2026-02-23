@@ -7,6 +7,14 @@ export interface AdminUser {
   lastLoginAt: string | null;
 }
 
+export interface AdminStats {
+  shops: number;
+  categories: number;
+  pendingSubmissions: number;
+  totalSubmissions: number;
+  deadLinkReports: number;
+}
+
 export interface AdminSetup {
   username: string;
   email: string;

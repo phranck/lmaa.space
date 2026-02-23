@@ -1,9 +1,22 @@
 import { createHash } from "node:crypto";
 import { zValidator } from "@hono/zod-validator";
+import type { Shop, ShopCategory } from "@lmaa/shared";
 import { and, count, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../db/index.js";
+
+type CategoryShopRow = Pick<
+  Shop,
+  "id" | "name" | "url" | "region" | "pickup" | "shipping" | "description" | "ogImage"
+>;
+type PublicShopRow = CategoryShopRow & { categories: ShopCategory[] };
+type SearchShopRow = Shop & { categories: ShopCategory[]; rank: number };
+interface CheckUrlRow {
+  id: number;
+  name: string;
+  categories: ShopCategory[];
+}
 import {
   categories,
   contentPages,
@@ -71,7 +84,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
     return c.json({ error: { message: "Category not found" } }, 404);
   }
 
-  const categoryShops = await db.execute(sql`
+  const categoryShops = await db.execute<CategoryShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage"
     FROM shops s
@@ -86,7 +99,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
 
 // GET /api/shops
 publicRoutes.get("/shops", async (c) => {
-  const allShops = await db.execute(sql`
+  const allShops = await db.execute<PublicShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            COALESCE(
@@ -114,7 +127,7 @@ publicRoutes.get("/search", async (c) => {
     return c.json({ data: { shops: [], categories: [], query: q ?? "", total: 0 } });
   }
 
-  const matchingShops = await db.execute(sql`
+  const matchingShops = await db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.is_active as "isActive",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
@@ -145,7 +158,7 @@ publicRoutes.get("/search", async (c) => {
       shops: matchingShops,
       categories: matchingCategories,
       query: q,
-      total: (matchingShops as unknown[]).length + matchingCategories.length,
+      total: matchingShops.length + matchingCategories.length,
     },
   });
 });
@@ -162,7 +175,7 @@ publicRoutes.get("/check-url", async (c) => {
     return c.json({ data: { exists: false } });
   }
 
-  const [match] = await db.execute(sql`
+  const [match] = await db.execute<CheckUrlRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name,
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))

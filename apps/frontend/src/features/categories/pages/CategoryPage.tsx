@@ -2,7 +2,6 @@ import { PageLayout } from "@/components/layout/PageLayout.tsx";
 import { useCategory } from "@/features/categories/hooks/useCategories.ts";
 import { ShopCard } from "@/features/shops/components/ShopCard.tsx";
 import { usePageMeta } from "@/hooks/usePageMeta.ts";
-import type { Shop } from "@lmaa/shared";
 import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 
@@ -10,7 +9,7 @@ export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data, isLoading, isError } = useCategory(slug ?? "");
 
-  const shopCount = data ? (data.shops as Shop[]).length : 0;
+  const shopCount = data ? data.shops.length : 0;
   const jsonLd = useMemo(
     () =>
       data
@@ -62,8 +61,8 @@ export function CategoryPage() {
                   {data.name}
                 </h1>
                 <p className="text-stone-300 text-sm mt-1">
-                  {(data.shops as Shop[]).length}{" "}
-                  {(data.shops as Shop[]).length === 1 ? "Shop" : "Shops"} in dieser Kategorie
+                  {data.shops.length} {data.shops.length === 1 ? "Shop" : "Shops"} in dieser
+                  Kategorie
                 </p>
               </>
             ) : null}
@@ -100,7 +99,7 @@ export function CategoryPage() {
         )}
 
         {data &&
-          ((data.shops as Shop[]).length === 0 ? (
+          (data.shops.length === 0 ? (
             <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
               <p className="text-stone-500 mb-5">Noch keine Shops in dieser Kategorie.</p>
               <Link
@@ -112,7 +111,7 @@ export function CategoryPage() {
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 gap-4">
-              {(data.shops as Shop[]).map((shop) => (
+              {data.shops.map((shop) => (
                 <ShopCard key={shop.id} shop={shop} />
               ))}
             </div>

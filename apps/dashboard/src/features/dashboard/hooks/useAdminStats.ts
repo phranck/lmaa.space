@@ -1,13 +1,6 @@
 import { api } from "@/lib/api.ts";
+import type { AdminStats } from "@lmaa/shared";
 import { useQuery } from "@tanstack/react-query";
-
-export interface AdminStats {
-  shops: number;
-  categories: number;
-  pendingSubmissions: number;
-  totalSubmissions: number;
-  deadLinkReports: number;
-}
 
 export function useAdminStats() {
   return useQuery({
