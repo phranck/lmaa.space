@@ -125,8 +125,6 @@ function RealtimeCard() {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
     : [];
-  const maxViews = topUrls[0]?.[1] ?? 1;
-
   const rtMaxVal = Math.max(...chartData.map((d) => Math.max(d.Besucher, d.Aufrufe)), 1);
 
   return (
