@@ -5,21 +5,34 @@ import {
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
 import {
+  AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
+  CodeToggle,
   CreateLink,
   DiffSourceToggleWrapper,
+  InsertAdmonition,
+  InsertCodeBlock,
+  InsertImage,
+  InsertTable,
+  InsertThematicBreak,
   ListsToggle,
   MDXEditor,
   Separator,
+  StrikeThroughSupSubToggles,
   UndoRedo,
+  admonitionsPlugin,
+  codeBlockPlugin,
   diffSourcePlugin,
+  directivesPlugin,
   headingsPlugin,
+  imagePlugin,
   linkDialogPlugin,
   linkPlugin,
   listsPlugin,
   markdownShortcutPlugin,
   quotePlugin,
+  tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
 } from "@mdxeditor/editor";
@@ -87,6 +100,11 @@ export function ContentEditorPage() {
               thematicBreakPlugin(),
               linkPlugin(),
               linkDialogPlugin(),
+              imagePlugin(),
+              tablePlugin(),
+              codeBlockPlugin({ defaultCodeBlockLanguage: "" }),
+              directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
+              admonitionsPlugin(),
               markdownShortcutPlugin(),
               diffSourcePlugin({ viewMode: "rich-text" }),
               toolbarPlugin({
@@ -94,13 +112,20 @@ export function ContentEditorPage() {
                   <DiffSourceToggleWrapper>
                     <UndoRedo />
                     <Separator />
-                    <BlockTypeSelect />
-                    <Separator />
                     <BoldItalicUnderlineToggles />
+                    <CodeToggle />
+                    <StrikeThroughSupSubToggles />
                     <Separator />
                     <ListsToggle />
                     <Separator />
+                    <BlockTypeSelect />
+                    <Separator />
                     <CreateLink />
+                    <InsertImage />
+                    <InsertTable />
+                    <InsertThematicBreak />
+                    <InsertCodeBlock />
+                    <InsertAdmonition />
                   </DiffSourceToggleWrapper>
                 ),
               }),
