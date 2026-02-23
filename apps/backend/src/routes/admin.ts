@@ -17,9 +17,11 @@ import {
   submissions,
 } from "../db/schema.js";
 import { extractHomepage, fetchPreviewImage } from "../lib/og.js";
+import { detectImageType } from "../lib/validate.js";
 import { type AuthVariables, requireAuth, requireOwner } from "../middleware/auth.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import {
+  SESSION_COOKIE_OPTIONS,
   createSession,
   deleteSession,
   findAdminByUsername,
@@ -77,13 +79,7 @@ adminRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
     .returning();
 
   const sessionId = await createSession(admin.id);
-  setCookie(c, "session", sessionId, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Strict",
-    maxAge: 86400,
-    path: "/",
-  });
+  setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
   return c.json({ data: { id: admin.id, username: admin.username, isOwner: true } }, 201);
 });
@@ -102,13 +98,7 @@ adminRoutes.post(
     }
 
     const sessionId = await createSession(admin.id);
-    setCookie(c, "session", sessionId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 86400,
-      path: "/",
-    });
+    setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
     return c.json({
       data: { id: admin.id, username: admin.username, isOwner: admin.isOwner },
@@ -645,14 +635,16 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   const file = formData.get("image");
   if (!(file instanceof File)) return c.json({ error: { message: "No image file provided" } }, 400);
 
-  const allowed = ["image/jpeg", "image/png", "image/webp"];
-  if (!allowed.includes(file.type))
-    return c.json({ error: { message: "Only JPEG, PNG or WebP allowed" } }, 400);
   if (file.size > 5 * 1024 * 1024)
     return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
 
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const detectedType = detectImageType(buffer);
+  if (!detectedType)
+    return c.json({ error: { message: "Invalid image content (only JPEG, PNG or WebP)" } }, 400);
+
   const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const ext = detectedType === "png" ? "png" : detectedType === "webp" ? "webp" : "jpg";
   const filename = `${id}-${cat.slug}.${ext}`;
   const fullPath = `${imagePath}/${filename}`;
 
@@ -669,7 +661,7 @@ adminRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   }
 
   await fs.promises.mkdir(imagePath, { recursive: true });
-  await fs.promises.writeFile(fullPath, Buffer.from(await file.arrayBuffer()));
+  await fs.promises.writeFile(fullPath, buffer);
 
   const imageUrl = `/uploads/${filename}`;
   const [updated] = await db
@@ -740,13 +732,30 @@ adminRoutes.get("/unsplash/search", requireAuth, async (c) => {
 });
 
 // Unsplash ToS: trigger download
-adminRoutes.post("/unsplash/download", requireAuth, async (c) => {
-  const { downloadLocation } = await c.req.json<{ downloadLocation: string }>();
-  const key = process.env.UNSPLASH_ACCESS_KEY;
-  if (!key || !downloadLocation) return c.json({ data: { ok: false } });
-  await fetch(downloadLocation, { headers: { Authorization: `Client-ID ${key}` } }).catch(() => {});
-  return c.json({ data: { ok: true } });
+const unsplashDownloadSchema = z.object({
+  downloadLocation: z
+    .string()
+    .url()
+    .refine(
+      (u) => u.startsWith("https://api.unsplash.com/"),
+      "Download URL must be an Unsplash API URL",
+    ),
 });
+
+adminRoutes.post(
+  "/unsplash/download",
+  requireAuth,
+  zValidator("json", unsplashDownloadSchema),
+  async (c) => {
+    const { downloadLocation } = c.req.valid("json");
+    const key = process.env.UNSPLASH_ACCESS_KEY;
+    if (!key) return c.json({ data: { ok: false } });
+    await fetch(downloadLocation, { headers: { Authorization: `Client-ID ${key}` } }).catch(
+      () => {},
+    );
+    return c.json({ data: { ok: true } });
+  },
+);
 
 // Content pages management
 adminRoutes.get("/content/:slug", requireAuth, async (c) => {
