@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
-import { count, countDistinct, desc, eq, getTableColumns } from "drizzle-orm";
+import { count, countDistinct, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
@@ -11,6 +11,7 @@ import {
   contentPages,
   deadLinkReports,
   sessions,
+  shopCategories,
   shops,
   submissions,
 } from "../db/schema.js";
@@ -163,13 +164,14 @@ adminRoutes.get("/submissions", requireAuth, async (c) => {
   const status = c.req.query("status") as "pending" | "approved" | "rejected" | undefined;
 
   const query = db.select().from(submissions).orderBy(desc(submissions.createdAt));
-  if (status) {
-    const rows = await query.where(eq(submissions.status, status));
-    return c.json({ data: rows });
-  }
+  const rows = status ? await query.where(eq(submissions.status, status)) : await query;
 
-  const rows = await query;
-  return c.json({ data: rows });
+  const mapped = rows.map((row) => ({
+    ...row,
+    categoryIds: JSON.parse(row.categoryIds || "[]") as number[],
+  }));
+
+  return c.json({ data: mapped });
 });
 
 // PATCH /api/admin/submissions/:id
@@ -194,14 +196,17 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
     return c.json({ error: { message: "Submission not found" } }, 404);
   }
 
-  // On approval: auto-create shop from submission data (if category is set)
-  if (status === "approved" && submission.categoryId) {
+  // On approval: auto-create shop from submission data
+  if (status === "approved") {
+    const categoryIds = JSON.parse(submission.categoryIds || "[]") as number[];
+    const effectiveIds =
+      categoryIds.length > 0 ? categoryIds : submission.categoryId ? [submission.categoryId] : [];
+
     const [newShop] = await db
       .insert(shops)
       .values({
         name: submission.shopName,
         url: submission.shopUrl,
-        categoryId: submission.categoryId,
         region: submission.region,
         pickup: submission.pickup,
         shipping: submission.shipping,
@@ -209,7 +214,12 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
       })
       .returning();
 
-    // Fire-and-forget: fetch OG image in background
+    if (effectiveIds.length > 0) {
+      await db
+        .insert(shopCategories)
+        .values(effectiveIds.map((cid) => ({ shopId: newShop.id, categoryId: cid })));
+    }
+
     fetchPreviewImage(newShop.url)
       .then(async (result) => {
         if (result) {
@@ -233,19 +243,36 @@ adminRoutes.patch("/submissions/:id", requireAuth, zValidator("json", reviewSche
     }
   }
 
-  return c.json({ data: submission });
+  return c.json({
+    data: { ...submission, categoryIds: JSON.parse(submission.categoryIds || "[]") as number[] },
+  });
 });
 
-// CRUD Shops
+// ── Shops ──────────────────────────────────────────────────────────────────────
+
 adminRoutes.get("/shops", requireAuth, async (c) => {
-  const rows = await db.select().from(shops).orderBy(shops.name);
+  const rows = await db.execute(sql`
+    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+           s.og_image as "ogImage", s.is_active as "isActive",
+           s.created_at as "createdAt", s.updated_at as "updatedAt",
+           COALESCE(
+             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
+             FILTER (WHERE c.id IS NOT NULL),
+             '[]'::json
+           ) as categories
+    FROM shops s
+    LEFT JOIN shop_categories sc ON sc.shop_id = s.id
+    LEFT JOIN categories c ON c.id = sc.category_id
+    GROUP BY s.id
+    ORDER BY s.name
+  `);
   return c.json({ data: rows });
 });
 
 const shopBodySchema = z.object({
   name: z.string().min(1).max(200),
   url: z.string().url(),
-  categoryId: z.number().int().positive(),
+  categoryIds: z.array(z.number().int().positive()).min(1),
   region: z.string().optional(),
   pickup: z.string().optional(),
   shipping: z.string().optional(),
@@ -253,10 +280,13 @@ const shopBodySchema = z.object({
 });
 
 adminRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), async (c) => {
-  const body = c.req.valid("json");
-  const [shop] = await db.insert(shops).values(body).returning();
+  const { categoryIds, ...shopData } = c.req.valid("json");
+  const [shop] = await db.insert(shops).values(shopData).returning();
 
-  // Fire-and-forget: fetch OG image in background and update the shop
+  await db
+    .insert(shopCategories)
+    .values(categoryIds.map((cid) => ({ shopId: shop.id, categoryId: cid })));
+
   fetchPreviewImage(shop.url)
     .then(async (result) => {
       if (result) {
@@ -265,10 +295,19 @@ adminRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), asyn
     })
     .catch(() => {});
 
-  return c.json({ data: shop }, 201);
+  return c.json({ data: { ...shop, categories: [] } }, 201);
 });
 
-const shopUpdateSchema = shopBodySchema.partial().extend({ isActive: z.boolean().optional() });
+const shopUpdateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  url: z.string().url().optional(),
+  categoryIds: z.array(z.number().int().positive()).optional(),
+  region: z.string().optional(),
+  pickup: z.string().optional(),
+  shipping: z.string().optional(),
+  description: z.string().max(500).optional(),
+  isActive: z.boolean().optional(),
+});
 
 for (const method of ["put", "patch"] as const) {
   adminRoutes[method](
@@ -277,14 +316,25 @@ for (const method of ["put", "patch"] as const) {
     zValidator("json", shopUpdateSchema),
     async (c) => {
       const id = Number(c.req.param("id"));
-      const body = c.req.valid("json");
+      const { categoryIds, ...shopData } = c.req.valid("json");
+
       const [shop] = await db
         .update(shops)
-        .set({ ...body, updatedAt: new Date() })
+        .set({ ...shopData, updatedAt: new Date() })
         .where(eq(shops.id, id))
         .returning();
       if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
-      return c.json({ data: shop });
+
+      if (categoryIds !== undefined) {
+        await db.delete(shopCategories).where(eq(shopCategories.shopId, id));
+        if (categoryIds.length > 0) {
+          await db
+            .insert(shopCategories)
+            .values(categoryIds.map((cid) => ({ shopId: id, categoryId: cid })));
+        }
+      }
+
+      return c.json({ data: { ...shop, categories: [] } });
     },
   );
 }
@@ -322,12 +372,14 @@ adminRoutes.delete("/dead-link-reports/:shopId", requireAuth, async (c) => {
   return c.json({ data: { message: "Reports cleared" } });
 });
 
-// CRUD Categories
+// ── Categories ─────────────────────────────────────────────────────────────────
+
 adminRoutes.get("/categories", requireAuth, async (c) => {
   const rows = await db
     .select({ ...getTableColumns(categories), shopCount: count(shops.id) })
     .from(categories)
-    .leftJoin(shops, eq(shops.categoryId, categories.id))
+    .leftJoin(shopCategories, eq(shopCategories.categoryId, categories.id))
+    .leftJoin(shops, eq(shops.id, shopCategories.shopId))
     .groupBy(categories.id)
     .orderBy(categories.name);
   return c.json({ data: rows });

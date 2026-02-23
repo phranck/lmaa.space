@@ -4,13 +4,20 @@ import { and, count, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { categories, contentPages, deadLinkReports, shops, submissions } from "../db/schema.js";
+import {
+  categories,
+  contentPages,
+  deadLinkReports,
+  shopCategories,
+  shops,
+  submissions,
+} from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 
 const submissionSchema = z.object({
   shopName: z.string().min(2).max(100),
   shopUrl: z.string().url(),
-  categoryId: z.number().int().positive().optional(),
+  categoryIds: z.array(z.number().int().positive()).optional().default([]),
   categorySuggestion: z.string().max(100).optional(),
   description: z.string().max(500).optional(),
   submitterEmail: z.string().email().optional(),
@@ -33,7 +40,8 @@ publicRoutes.get("/categories", async (c) => {
       shopCount: count(shops.id),
     })
     .from(categories)
-    .leftJoin(shops, and(eq(shops.categoryId, categories.id), eq(shops.isActive, true)))
+    .leftJoin(shopCategories, eq(shopCategories.categoryId, categories.id))
+    .leftJoin(shops, and(eq(shops.id, shopCategories.shopId), eq(shops.isActive, true)))
     .groupBy(categories.id)
     .orderBy(categories.name);
 
@@ -50,37 +58,46 @@ publicRoutes.get("/categories/:slug", async (c) => {
     return c.json({ error: { message: "Category not found" } }, 404);
   }
 
-  const categoryShops = await db
-    .select()
-    .from(shops)
-    .where(and(eq(shops.categoryId, category.id), eq(shops.isActive, true)))
-    .orderBy(shops.name);
+  const categoryShops = await db.execute(sql`
+    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+           s.og_image as "ogImage", s.is_active as "isActive",
+           s.created_at as "createdAt", s.updated_at as "updatedAt",
+           COALESCE(
+             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
+             FILTER (WHERE c.id IS NOT NULL),
+             '[]'::json
+           ) as categories
+    FROM shops s
+    INNER JOIN shop_categories sc_filter
+      ON sc_filter.shop_id = s.id AND sc_filter.category_id = ${category.id}
+    LEFT JOIN shop_categories sc_all ON sc_all.shop_id = s.id
+    LEFT JOIN categories c ON c.id = sc_all.category_id
+    WHERE s.is_active = true
+    GROUP BY s.id
+    ORDER BY s.name
+  `);
 
   return c.json({ data: { ...category, shops: categoryShops } });
 });
 
 // GET /api/shops
 publicRoutes.get("/shops", async (c) => {
-  const allShops = await db
-    .select({
-      id: shops.id,
-      name: shops.name,
-      url: shops.url,
-      categoryId: shops.categoryId,
-      categorySlug: categories.slug,
-      categoryName: categories.name,
-      region: shops.region,
-      pickup: shops.pickup,
-      shipping: shops.shipping,
-      description: shops.description,
-      ogImage: shops.ogImage,
-      createdAt: shops.createdAt,
-      updatedAt: shops.updatedAt,
-    })
-    .from(shops)
-    .innerJoin(categories, eq(shops.categoryId, categories.id))
-    .where(eq(shops.isActive, true))
-    .orderBy(shops.name);
+  const allShops = await db.execute(sql`
+    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+           s.og_image as "ogImage", s.is_active as "isActive",
+           s.created_at as "createdAt", s.updated_at as "updatedAt",
+           COALESCE(
+             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
+             FILTER (WHERE c.id IS NOT NULL),
+             '[]'::json
+           ) as categories
+    FROM shops s
+    LEFT JOIN shop_categories sc ON sc.shop_id = s.id
+    LEFT JOIN categories c ON c.id = sc.category_id
+    WHERE s.is_active = true
+    GROUP BY s.id
+    ORDER BY s.name
+  `);
 
   return c.json({ data: allShops });
 });
@@ -94,12 +111,21 @@ publicRoutes.get("/search", async (c) => {
   }
 
   const matchingShops = await db.execute(sql`
-    SELECT s.*, c.slug as category_slug, c.name as category_name,
-      ts_rank(s.search_vector, websearch_to_tsquery('german', ${q})) as rank
+    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+           s.og_image as "ogImage", s.is_active as "isActive",
+           s.created_at as "createdAt", s.updated_at as "updatedAt",
+           COALESCE(
+             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
+             FILTER (WHERE c.id IS NOT NULL),
+             '[]'::json
+           ) as categories,
+           ts_rank(s.search_vector, websearch_to_tsquery('german', ${q})) as rank
     FROM shops s
-    JOIN categories c ON c.id = s.category_id
+    LEFT JOIN shop_categories sc ON sc.shop_id = s.id
+    LEFT JOIN categories c ON c.id = sc.category_id
     WHERE s.search_vector @@ websearch_to_tsquery('german', ${q})
       AND s.is_active = true
+    GROUP BY s.id
     ORDER BY rank DESC
     LIMIT 20
   `);
@@ -120,6 +146,52 @@ publicRoutes.get("/search", async (c) => {
   });
 });
 
+// GET /api/check-url?url= – check if a shop with the same domain already exists
+publicRoutes.get("/check-url", async (c) => {
+  const url = c.req.query("url")?.trim();
+  if (!url) return c.json({ data: { exists: false } });
+
+  let hostname: string;
+  try {
+    hostname = new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return c.json({ data: { exists: false } });
+  }
+
+  const allShops = await db.execute(sql`
+    SELECT s.id, s.name, s.url,
+           COALESCE(
+             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
+             FILTER (WHERE c.id IS NOT NULL),
+             '[]'::json
+           ) as categories
+    FROM shops s
+    LEFT JOIN shop_categories sc ON sc.shop_id = s.id
+    LEFT JOIN categories c ON c.id = sc.category_id
+    WHERE s.is_active = true
+    GROUP BY s.id
+  `);
+
+  const match = (
+    allShops as unknown as Array<{ id: number; name: string; url: string; categories: unknown }>
+  ).find((shop) => {
+    try {
+      return new URL(shop.url).hostname.replace(/^www\./, "") === hostname;
+    } catch {
+      return false;
+    }
+  });
+
+  if (!match) return c.json({ data: { exists: false } });
+
+  return c.json({
+    data: {
+      exists: true,
+      shop: { id: match.id, name: match.name, categories: match.categories },
+    },
+  });
+});
+
 // POST /api/submissions
 publicRoutes.post(
   "/submissions",
@@ -131,7 +203,8 @@ publicRoutes.post(
     await db.insert(submissions).values({
       shopName: body.shopName,
       shopUrl: body.shopUrl,
-      categoryId: body.categoryId ?? null,
+      categoryId: body.categoryIds[0] ?? null,
+      categoryIds: JSON.stringify(body.categoryIds),
       categorySuggestion: body.categorySuggestion ?? null,
       description: body.description ?? "",
       submitterEmail: body.submitterEmail ?? null,

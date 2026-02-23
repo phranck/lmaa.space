@@ -6,7 +6,7 @@ const FUSE_OPTIONS: IFuseOptions<Shop> = {
   keys: [
     { name: "name", weight: 0.4 },
     { name: "description", weight: 0.3 },
-    { name: "categoryName", weight: 0.2 },
+    { name: "categories.name", weight: 0.2 },
     { name: "region", weight: 0.05 },
     { name: "shipping", weight: 0.05 },
   ],

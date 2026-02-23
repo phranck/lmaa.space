@@ -1,23 +1,29 @@
 import { PageLayout } from "@/components/layout/PageLayout.tsx";
+import { CategoryMultiSelect } from "@/components/ui/CategoryMultiSelect.tsx";
 import { useCategories } from "@/features/categories/hooks/useCategories.ts";
 import { usePageMeta } from "@/hooks/usePageMeta.ts";
 import { api } from "@/lib/api.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { ShopCategory } from "@lmaa/shared";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { z } from "zod";
 
 const schema = z.object({
   shopName: z.string().min(2, "Bitte einen Shop-Namen eingeben"),
   shopUrl: z.string().url("Bitte eine gültige URL eingeben (https://...)"),
-  categoryId: z.coerce.number().positive("Bitte eine Kategorie wählen"),
+  categoryIds: z.array(z.number()).min(1, "Bitte mindestens eine Kategorie wählen"),
   description: z.string().max(500, "Maximal 500 Zeichen").optional(),
   submitterEmail: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
 });
 
 type FormData = z.infer<typeof schema>;
+
+type UrlCheckResult =
+  | { exists: false }
+  | { exists: true; shop: { id: number; name: string; categories: ShopCategory[] } };
 
 const inputClass =
   "w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-800 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-500 transition-all";
@@ -31,13 +37,19 @@ export function SuggestPage() {
   });
   const { data: categories = [] } = useCategories();
   const [submitted, setSubmitted] = useState(false);
+  const [urlCheck, setUrlCheck] = useState<UrlCheckResult | null>(null);
+  const [urlChecking, setUrlChecking] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { categoryIds: [] },
+  });
 
   const mutation = useMutation({
     mutationFn: (data: FormData) =>
@@ -50,6 +62,19 @@ export function SuggestPage() {
   });
 
   const description = watch("description") ?? "";
+
+  async function checkUrl(url: string) {
+    if (!url || !url.startsWith("http")) return;
+    setUrlChecking(true);
+    try {
+      const result = await api.get<UrlCheckResult>(`/check-url?url=${encodeURIComponent(url)}`);
+      setUrlCheck(result);
+    } catch {
+      setUrlCheck(null);
+    } finally {
+      setUrlChecking(false);
+    }
+  }
 
   if (submitted) {
     return (
@@ -148,27 +173,51 @@ export function SuggestPage() {
               type="url"
               placeholder="https://..."
               className={inputClass}
+              onBlur={(e) => checkUrl(e.target.value)}
             />
             {errors.shopUrl && (
               <p className="text-red-500 text-xs mt-1.5">{errors.shopUrl.message}</p>
             )}
+            {urlChecking && (
+              <p className="text-stone-400 text-xs mt-1.5">Prüfe ob Shop bereits bekannt…</p>
+            )}
+            {!urlChecking && urlCheck?.exists && (
+              <div className="mt-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+                <span className="font-medium">{urlCheck.shop.name}</span> ist bereits in unserer
+                Liste
+                {urlCheck.shop.categories.length > 0 && (
+                  <span>
+                    {" "}
+                    in{" "}
+                    {urlCheck.shop.categories.map((c, i) => (
+                      <span key={c.id}>
+                        {i > 0 && ", "}
+                        <span className="font-medium">{c.name}</span>
+                      </span>
+                    ))}
+                  </span>
+                )}
+                .
+              </div>
+            )}
           </div>
 
           <div>
-            <label htmlFor="categoryId" className="block text-sm font-medium text-stone-700 mb-1.5">
-              Kategorie <span className="text-amber-600">*</span>
-            </label>
-            <select {...register("categoryId")} id="categoryId" className={inputClass}>
-              <option value="">Bitte wählen…</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {errors.categoryId && (
-              <p className="text-red-500 text-xs mt-1.5">{errors.categoryId.message}</p>
-            )}
+            <span className="block text-sm font-medium text-stone-700 mb-2">
+              Kategorie(n) <span className="text-amber-600">*</span>
+            </span>
+            <Controller
+              name="categoryIds"
+              control={control}
+              render={({ field }) => (
+                <CategoryMultiSelect
+                  categories={categories}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.categoryIds?.message}
+                />
+              )}
+            />
           </div>
 
           <div>

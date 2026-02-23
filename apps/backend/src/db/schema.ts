@@ -1,4 +1,13 @@
-import { boolean, index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  primaryKey,
+  serial,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
@@ -20,9 +29,6 @@ export const shops = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     url: text("url").notNull(),
-    categoryId: integer("category_id")
-      .notNull()
-      .references(() => categories.id),
     region: text("region").notNull().default(""),
     pickup: text("pickup").notNull().default(""),
     shipping: text("shipping").notNull().default(""),
@@ -32,8 +38,22 @@ export const shops = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
+  (table) => [index("idx_shops_active").on(table.isActive)],
+);
+
+export const shopCategories = pgTable(
+  "shop_categories",
+  {
+    shopId: integer("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+  },
   (table) => [
-    index("idx_shops_category_active").on(table.categoryId, table.isActive),
+    primaryKey({ columns: [table.shopId, table.categoryId] }),
+    index("idx_sc_category").on(table.categoryId),
   ],
 );
 
@@ -54,6 +74,7 @@ export const submissions = pgTable(
     shopName: text("shop_name").notNull(),
     shopUrl: text("shop_url").notNull(),
     categoryId: integer("category_id").references(() => categories.id),
+    categoryIds: text("category_ids").notNull().default("[]"),
     categorySuggestion: text("category_suggestion"),
     region: text("region").notNull().default(""),
     pickup: text("pickup").notNull().default(""),
@@ -113,6 +134,7 @@ export type Category = typeof categories.$inferSelect;
 export type CategoryInsert = typeof categories.$inferInsert;
 export type Shop = typeof shops.$inferSelect;
 export type ShopInsert = typeof shops.$inferInsert;
+export type ShopCategory = typeof shopCategories.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type SubmissionInsert = typeof submissions.$inferInsert;
 export type AdminUser = typeof adminUsers.$inferSelect;

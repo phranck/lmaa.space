@@ -157,6 +157,42 @@ async function main() {
   await sql`DROP INDEX IF EXISTS idx_shops_active`;
   await sql`CREATE INDEX IF NOT EXISTS idx_shops_category_active ON shops (category_id, is_active)`;
 
+  // Multi-category: junction table shop_categories
+  await sql`
+    CREATE TABLE IF NOT EXISTS shop_categories (
+      shop_id     INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+      category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+      PRIMARY KEY (shop_id, category_id)
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_sc_category ON shop_categories(category_id)`;
+
+  // Migrate existing shop→category assignments into junction table
+  await sql`
+    INSERT INTO shop_categories (shop_id, category_id)
+    SELECT id, category_id FROM shops WHERE category_id IS NOT NULL
+    ON CONFLICT DO NOTHING
+  `;
+
+  // Multi-category for submissions: add category_ids column (JSON array as text)
+  await sql`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS category_ids TEXT NOT NULL DEFAULT '[]'`;
+
+  // Backfill category_ids from legacy category_id where not yet set
+  await sql`
+    UPDATE submissions
+    SET category_ids = json_build_array(category_id)::text
+    WHERE category_id IS NOT NULL AND category_ids = '[]'
+  `;
+
+  // Drop the old compound index (references category_id which will be removed)
+  await sql`DROP INDEX IF EXISTS idx_shops_category_active`;
+
+  // Remove category_id column from shops (junction table is the source of truth now)
+  await sql`ALTER TABLE shops DROP COLUMN IF EXISTS category_id`;
+
+  // Simple active-only index replaces the old compound index
+  await sql`CREATE INDEX IF NOT EXISTS idx_shops_active ON shops(is_active)`;
+
   // Backfill search_vector for any existing rows (no-op on fresh install)
   await sql`
     UPDATE shops SET search_vector =
