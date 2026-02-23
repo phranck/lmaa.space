@@ -27,6 +27,10 @@ import {
   submissions,
 } from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
+import { getCacheEntry, setCacheEntry, invalidateCache, getCacheStats } from "../middleware/cache.js";
+
+const SHOPS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+const SHOPS_CACHE_KEY = "shops:all";
 
 const submissionSchema = z.object({
   shopName: z.string().min(2).max(100),
@@ -99,6 +103,15 @@ publicRoutes.get("/categories/:slug", async (c) => {
 
 // GET /api/shops
 publicRoutes.get("/shops", async (c) => {
+  // Check cache first
+  const cached = getCacheEntry<PublicShopRow[]>(SHOPS_CACHE_KEY);
+  if (cached) {
+    c.header("X-Cache", "HIT");
+    c.header("Cache-Control", "public, max-age=60");
+    return c.json({ data: cached });
+  }
+
+  // Cache miss - fetch from database
   const allShops = await db.execute<PublicShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
@@ -115,7 +128,11 @@ publicRoutes.get("/shops", async (c) => {
     ORDER BY s.name
   `);
 
-  c.header("Cache-Control", "private, max-age=60");
+  // Cache the result
+  setCacheEntry(SHOPS_CACHE_KEY, allShops, SHOPS_CACHE_TTL_MS);
+
+  c.header("X-Cache", "MISS");
+  c.header("Cache-Control", "public, max-age=60");
   return c.json({ data: allShops });
 });
 
@@ -263,3 +280,11 @@ publicRoutes.post(
     return c.json({ data: { message: "Danke für deinen Hinweis!" } });
   },
 );
+
+// Debug endpoint: cache stats (dev only)
+publicRoutes.get("/cache/stats", (c) => {
+  if (process.env.NODE_ENV !== "development") {
+    return c.json({ error: { message: "Not available" } }, 404);
+  }
+  return c.json({ data: getCacheStats() });
+});

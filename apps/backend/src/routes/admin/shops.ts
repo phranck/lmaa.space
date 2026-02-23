@@ -8,6 +8,9 @@ import { deadLinkReports, shopCategories, shops } from "../../db/schema.js";
 import { extractHomepage, fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import { invalidateCache } from "../../middleware/cache.js";
+
+const SHOPS_CACHE_KEY = "shops:all";
 
 type AdminShopDetail = Shop & { categories: ShopCategory[] };
 
@@ -91,6 +94,9 @@ shopsRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), asyn
     return s;
   });
 
+  // Invalidate cache
+  invalidateCache(SHOPS_CACHE_KEY);
+
   fetchPreviewImage(shop.url)
     .then(async (result) => {
       if (result) {
@@ -133,6 +139,10 @@ for (const method of ["put", "patch"] as const) {
       });
 
       if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+
+      // Invalidate cache
+      invalidateCache(SHOPS_CACHE_KEY);
+
       return c.json({ data: { ...shop, categories: [] } });
     },
   );
@@ -145,6 +155,10 @@ shopsRoutes.delete("/shops/:id", requireAuth, async (c) => {
     await tx.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
     await tx.delete(shops).where(eq(shops.id, id));
   });
+
+  // Invalidate cache
+  invalidateCache(SHOPS_CACHE_KEY);
+
   return c.json({ data: { message: "Shop deleted" } });
 });
 
