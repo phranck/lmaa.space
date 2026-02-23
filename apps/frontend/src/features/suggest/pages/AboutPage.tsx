@@ -1,7 +1,14 @@
 import { Link } from "react-router";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
+import { usePageMeta } from "../../../hooks/usePageMeta.ts";
 
 export function AboutPage() {
+  usePageMeta({
+    title: "Über uns",
+    description:
+      "lmaa.space ist ein Community-Verzeichnis fairer und nachhaltiger Amazon-Alternativen für den DACH-Raum.",
+    canonicalPath: "/ueber-uns",
+  });
   return (
     <PageLayout>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">

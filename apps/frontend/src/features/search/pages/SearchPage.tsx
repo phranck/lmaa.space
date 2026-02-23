@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
-import { useDocumentTitle } from "../../../hooks/useDocumentTitle.ts";
+import { usePageMeta } from "../../../hooks/usePageMeta.ts";
 import { useCategories } from "../../categories/hooks/useCategories.ts";
 import { ShopCard } from "../../shops/components/ShopCard.tsx";
 import { useShops } from "../../shops/hooks/useShops.ts";
@@ -9,7 +9,13 @@ import { useSearch } from "../hooks/useSearch.ts";
 export function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
-  useDocumentTitle(query ? `Suche: ${query}` : "Suche");
+  usePageMeta({
+    title: query ? `Suche: ${query}` : "Suche",
+    description: query
+      ? `Suchergebnisse für „${query}" – Amazon-Alternativen auf lmaa.space.`
+      : "Shops und Kategorien durchsuchen – faire Amazon-Alternativen auf lmaa.space.",
+    canonicalPath: "/suche",
+  });
 
   const { data: shops = [] } = useShops();
   const { data: categories = [] } = useCategories();

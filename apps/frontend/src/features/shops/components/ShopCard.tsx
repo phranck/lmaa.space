@@ -42,6 +42,7 @@ export function ShopCard({ shop }: ShopCardProps) {
               src={shop.ogImage}
               alt=""
               aria-hidden="true"
+              loading="lazy"
               className="w-full h-full object-contain p-1"
               onError={() => setImgError(true)}
             />

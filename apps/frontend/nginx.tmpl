@@ -8,6 +8,10 @@ server {
         proxy_pass http://backend:3000;
     }
 
+    location = /sitemap.xml {
+        proxy_pass http://backend:3000;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
     }

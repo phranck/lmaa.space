@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { z } from "zod";
 import { PageLayout } from "../../../components/layout/PageLayout.tsx";
+import { usePageMeta } from "../../../hooks/usePageMeta.ts";
 import { api } from "../../../lib/api.ts";
 import { useCategories } from "../../categories/hooks/useCategories.ts";
 
@@ -22,6 +23,12 @@ const inputClass =
   "w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-800 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-500 transition-all";
 
 export function SuggestPage() {
+  usePageMeta({
+    title: "Shop vorschlagen",
+    description:
+      "Kennst du einen fairen Online-Shop? Schlage ihn für lmaa.space vor und hilf der Community.",
+    canonicalPath: "/vorschlagen",
+  });
   const { data: categories = [] } = useCategories();
   const [submitted, setSubmitted] = useState(false);
 
