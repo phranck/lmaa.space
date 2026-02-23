@@ -1,5 +1,5 @@
-import { Link, NavLink, useNavigate } from "react-router";
 import { DonateButton } from "@/components/common/DonateButton.tsx";
+import { Link, NavLink, useNavigate } from "react-router";
 
 export function Header() {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ export function Header() {
               to="/"
               end
               className={({ isActive }) =>
-                `text-sm tracking-wide transition-colors ${isActive ? "text-amber-700 font-medium" : "text-stone-500 hover:text-stone-900"}`
+                `font-serif text-base tracking-wide transition-colors ${isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"}`
               }
             >
               Kategorien
@@ -33,7 +33,7 @@ export function Header() {
             <NavLink
               to="/vorschlagen"
               className={({ isActive }) =>
-                `text-sm tracking-wide transition-colors ${isActive ? "text-amber-700 font-medium" : "text-stone-500 hover:text-stone-900"}`
+                `font-serif text-base tracking-wide transition-colors ${isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"}`
               }
             >
               Shop vorschlagen
@@ -41,7 +41,7 @@ export function Header() {
             <NavLink
               to="/ueber-uns"
               className={({ isActive }) =>
-                `text-sm tracking-wide transition-colors ${isActive ? "text-amber-700 font-medium" : "text-stone-500 hover:text-stone-900"}`
+                `font-serif text-base tracking-wide transition-colors ${isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"}`
               }
             >
               Über uns
@@ -143,7 +143,7 @@ export function Header() {
               to="/"
               end
               className={({ isActive }) =>
-                `block px-3 py-2 rounded-md text-sm transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-medium" : "text-stone-600 hover:bg-stone-100"}`
+                `block px-3 py-2 rounded-md font-serif text-base transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"}`
               }
             >
               Kategorien
@@ -151,7 +151,7 @@ export function Header() {
             <NavLink
               to="/vorschlagen"
               className={({ isActive }) =>
-                `block px-3 py-2 rounded-md text-sm transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-medium" : "text-stone-600 hover:bg-stone-100"}`
+                `block px-3 py-2 rounded-md font-serif text-base transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"}`
               }
             >
               Shop vorschlagen
@@ -159,7 +159,7 @@ export function Header() {
             <NavLink
               to="/ueber-uns"
               className={({ isActive }) =>
-                `block px-3 py-2 rounded-md text-sm transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-medium" : "text-stone-600 hover:bg-stone-100"}`
+                `block px-3 py-2 rounded-md font-serif text-base transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"}`
               }
             >
               Über uns
