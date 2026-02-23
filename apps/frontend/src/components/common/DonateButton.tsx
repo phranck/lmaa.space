@@ -32,22 +32,6 @@ export function DonateButton() {
           </p>
           <div className="flex flex-col gap-2">
             <a
-              href="https://paypal.me/phranck"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#0070BA] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <svg
-                className="w-4 h-4 shrink-0"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 4.643-5.813 4.643h-1.747a.74.74 0 0 0-.731.627l-.988 6.263-.28 1.79a.39.39 0 0 0 .386.45h2.71c.459 0 .851-.333.923-.787l.038-.2.733-4.647.047-.257a.93.93 0 0 1 .923-.788h.581c3.765 0 6.712-1.53 7.573-5.953.36-1.845.174-3.384-.71-4.467a2.84 2.84 0 0 0-.981-.637z" />
-              </svg>
-              Via PayPal spenden
-            </a>
-            <a
               href="https://ko-fi.com/layeredwork?ref=lmaa.space"
               target="_blank"
               rel="noopener noreferrer"
