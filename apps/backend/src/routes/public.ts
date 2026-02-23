@@ -162,29 +162,21 @@ publicRoutes.get("/check-url", async (c) => {
     return c.json({ data: { exists: false } });
   }
 
-  const allShops = await db.execute(sql`
-    SELECT s.id, s.name, s.url,
+  const [match] = await db.execute(sql`
+    SELECT s.id, s.name,
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
              '[]'::json
-           ) as categories
+           ) AS categories
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
     WHERE s.is_active = true
+      AND replace(split_part(split_part(s.url, '://', 2), '/', 1), 'www.', '') = ${hostname}
     GROUP BY s.id
+    LIMIT 1
   `);
-
-  const match = (
-    allShops as unknown as Array<{ id: number; name: string; url: string; categories: unknown }>
-  ).find((shop) => {
-    try {
-      return new URL(shop.url).hostname.replace(/^www\./, "") === hostname;
-    } catch {
-      return false;
-    }
-  });
 
   if (!match) return c.json({ data: { exists: false } });
 

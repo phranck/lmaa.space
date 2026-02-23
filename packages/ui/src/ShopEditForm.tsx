@@ -97,15 +97,15 @@ export function ShopEditForm({
             aria-label="URL öffnen"
             tabIndex={value.url ? 0 : -1}
             className={`shrink-0 flex items-center justify-center w-9 border transition-colors ${
-              isDashboard ? "rounded-control" : "rounded-xl bg-white"
+              isDashboard ? "rounded-control" : "rounded-xl"
             } ${
               value.url
                 ? isDashboard
                   ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-                  : "border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700"
+                  : "border-stone-300 bg-stone-50 text-stone-500 hover:border-stone-400 hover:text-stone-700 hover:bg-stone-100"
                 : isDashboard
                   ? "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
-                  : "border-stone-100 text-stone-300 pointer-events-none"
+                  : "border-stone-200 bg-stone-50 text-stone-300 pointer-events-none"
             }`}
           >
             <LuExternalLink size={14} />
