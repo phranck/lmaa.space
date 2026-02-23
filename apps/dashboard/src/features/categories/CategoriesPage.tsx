@@ -1,4 +1,6 @@
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
 import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
 import { CategoryTable } from "@/features/categories/CategoryTable.tsx";
@@ -31,33 +33,22 @@ export function CategoriesPage() {
   return (
     <div>
       <PageHeader title="Kategorien">
-        {/* View toggle */}
-        <div className="flex items-center gap-0.5 rounded-lg bg-[var(--ds-segment-bg)] p-0.5">
-          <button
-            type="button"
-            onClick={() => changeViewMode("list")}
-            className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-              viewMode === "list"
-                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
-                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            }`}
-            aria-label="Listenansicht"
-          >
-            <SFListBullet className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => changeViewMode("grid")}
-            className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-              viewMode === "grid"
-                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
-                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            }`}
-            aria-label="Kachelansicht"
-          >
-            <SFSquareGrid2x2Fill className="w-4 h-4" />
-          </button>
-        </div>
+        <SegmentedControl
+          value={viewMode}
+          onChange={changeViewMode}
+          options={[
+            {
+              value: "list" as const,
+              label: "Listenansicht",
+              icon: <SFListBullet className="w-4 h-4" />,
+            },
+            {
+              value: "grid" as const,
+              label: "Kachelansicht",
+              icon: <SFSquareGrid2x2Fill className="w-4 h-4" />,
+            },
+          ]}
+        />
 
         <button
           type="button"
@@ -122,43 +113,22 @@ export function CategoriesPage() {
         />
       )}
 
-      {/* Delete Confirm Modal */}
-      {deleteId !== null && deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setDeleteId(null)}
-            aria-label="Abbrechen"
-          />
-          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-[var(--ds-text)] mb-2">Kategorie löschen?</h3>
-            <p className="text-sm text-[var(--ds-text-muted)] mb-5">
-              <span className="font-medium">{deleteTarget.name}</span> wird dauerhaft gelöscht. Alle
-              zugeordneten Shops verlieren ihre Kategorie.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-              >
-                Abbrechen
-              </button>
-              <button
-                type="button"
-                disabled={deleteMutation.isPending}
-                onClick={() =>
-                  deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })
-                }
-                className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
-              >
-                {deleteMutation.isPending ? "..." : "Löschen"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={deleteId !== null && !!deleteTarget}
+        title="Kategorie löschen?"
+        description={
+          <>
+            <span className="font-medium">{deleteTarget?.name}</span> wird dauerhaft gelöscht. Alle
+            zugeordneten Shops verlieren ihre Kategorie.
+          </>
+        }
+        isPending={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteId !== null)
+            deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
+        }}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

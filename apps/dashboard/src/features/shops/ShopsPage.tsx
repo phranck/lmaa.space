@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
@@ -90,42 +91,21 @@ export function ShopsPage() {
         />
       )}
 
-      {/* Delete Confirm Modal */}
-      {deleteId !== null && deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setDeleteId(null)}
-            aria-label="Abbrechen"
-          />
-          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-[var(--ds-text)] mb-2">Shop löschen?</h3>
-            <p className="text-sm text-[var(--ds-text-muted)] mb-5">
-              <span className="font-medium">{deleteTarget.name}</span> wird dauerhaft entfernt.
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-              >
-                Abbrechen
-              </button>
-              <button
-                type="button"
-                disabled={deleteMutation.isPending}
-                onClick={() =>
-                  deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })
-                }
-                className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
-              >
-                {deleteMutation.isPending ? "…" : "Löschen"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={deleteId !== null && !!deleteTarget}
+        title="Shop löschen?"
+        description={
+          <>
+            <span className="font-medium">{deleteTarget?.name}</span> wird dauerhaft entfernt.
+          </>
+        }
+        isPending={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteId !== null)
+            deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
+        }}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }
