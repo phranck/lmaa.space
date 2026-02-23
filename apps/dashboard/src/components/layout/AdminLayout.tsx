@@ -1,9 +1,40 @@
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
+import { type Theme, useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useState } from "react";
-import { LuMenu } from "react-icons/lu";
+import { LuMenu, LuMonitor, LuMoon, LuSun } from "react-icons/lu";
 import { Outlet, useNavigate } from "react-router";
+
+const THEME_OPTIONS: { value: Theme; icon: React.ReactNode; label: string }[] = [
+  { value: "light", icon: <LuSun size={13} />, label: "Light" },
+  { value: "dark", icon: <LuMoon size={13} />, label: "Dark" },
+  { value: "system", icon: <LuMonitor size={13} />, label: "System" },
+];
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <div className="flex items-center gap-0.5 rounded-lg bg-[var(--ds-bg-elevated)] p-0.5">
+      {THEME_OPTIONS.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => setTheme(opt.value)}
+          title={opt.label}
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+            theme === opt.value
+              ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+              : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+          }`}
+        >
+          {opt.icon}
+          <span>{opt.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function AdminLayoutInner() {
   const { user, logout } = useAuth();
@@ -64,7 +95,10 @@ function AdminLayoutInner() {
           {title || "lmaa.space"}
         </span>
 
-        <div ref={setActionsEl} className="flex items-center gap-2" />
+        <div className="flex items-center gap-3 ml-auto">
+          <ThemeToggle />
+          <div ref={setActionsEl} className="flex items-center gap-2" />
+        </div>
       </header>
 
       {/* Main */}
