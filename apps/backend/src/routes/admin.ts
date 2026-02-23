@@ -8,6 +8,7 @@ import { db } from "../db/index.js";
 import {
   adminUsers,
   categories,
+  contentPages,
   deadLinkReports,
   sessions,
   shops,
@@ -499,6 +500,35 @@ adminRoutes.post("/unsplash/download", requireAuth, async (c) => {
   await fetch(downloadLocation, { headers: { Authorization: `Client-ID ${key}` } }).catch(() => {});
   return c.json({ data: { ok: true } });
 });
+
+// Content pages management
+adminRoutes.get("/content/:slug", requireAuth, async (c) => {
+  const slug = c.req.param("slug");
+  const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug)).limit(1);
+  if (!page) return c.json({ error: { message: "Not found" } }, 404);
+  return c.json({ data: page });
+});
+
+const contentUpdateSchema = z.object({
+  content: z.string().max(100_000),
+});
+
+adminRoutes.put(
+  "/content/:slug",
+  requireAuth,
+  zValidator("json", contentUpdateSchema),
+  async (c) => {
+    const slug = c.req.param("slug");
+    const { content } = c.req.valid("json");
+    const [updated] = await db
+      .update(contentPages)
+      .set({ content, updatedAt: new Date() })
+      .where(eq(contentPages.slug, slug))
+      .returning();
+    if (!updated) return c.json({ error: { message: "Not found" } }, 404);
+    return c.json({ data: updated });
+  },
+);
 
 // Admin user management (owner only)
 adminRoutes.get("/users", requireAuth, requireOwner, async (c) => {

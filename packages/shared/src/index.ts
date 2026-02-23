@@ -3,3 +3,4 @@ export * from "./types/category.js";
 export * from "./types/submission.js";
 export * from "./types/admin.js";
 export * from "./types/api.js";
+export * from "./types/content.js";

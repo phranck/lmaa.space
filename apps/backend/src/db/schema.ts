@@ -102,6 +102,14 @@ export const deadLinkReports = pgTable(
   (table) => [index("idx_dlr_shop").on(table.shopId)],
 );
 
+export const contentPages = pgTable("content_pages", {
+  slug: text("slug").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull().default(""),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type ContentPage = typeof contentPages.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type CategoryInsert = typeof categories.$inferInsert;
 export type Shop = typeof shops.$inferSelect;

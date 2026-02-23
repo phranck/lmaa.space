@@ -4,7 +4,7 @@ import { count, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { categories, deadLinkReports, shops, submissions } from "../db/schema.js";
+import { categories, contentPages, deadLinkReports, shops, submissions } from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 
 const submissionSchema = z.object({
@@ -141,6 +141,14 @@ publicRoutes.post(
     return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
   },
 );
+
+// GET /api/content/:slug
+publicRoutes.get("/content/:slug", async (c) => {
+  const slug = c.req.param("slug");
+  const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug)).limit(1);
+  if (!page) return c.json({ error: { message: "Not found" } }, 404);
+  return c.json({ data: page });
+});
 
 // POST /api/shops/:id/report – dead link report (rate limited per IP)
 publicRoutes.post(

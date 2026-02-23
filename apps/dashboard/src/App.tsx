@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
 import { SetupPage } from "@/features/auth/SetupPage.tsx";
 import { CategoriesPage } from "@/features/categories/CategoriesPage.tsx";
+import { ContentEditorPage } from "@/features/content/ContentEditorPage.tsx";
 import { DashboardPage } from "@/features/dashboard/DashboardPage.tsx";
 import { ShopsPage } from "@/features/shops/ShopsPage.tsx";
 import { SubmissionsPage } from "@/features/submissions/SubmissionsPage.tsx";
@@ -32,6 +33,7 @@ function AppRoutes() {
           <Route path="shops" element={<ShopsPage />} />
           <Route path="kategorien" element={<CategoriesPage />} />
           {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
+          <Route path="content/:slug" element={<ContentEditorPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       ) : (

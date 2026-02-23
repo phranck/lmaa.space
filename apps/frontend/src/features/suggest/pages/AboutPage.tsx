@@ -1,6 +1,7 @@
-import { Link } from "react-router";
 import { PageLayout } from "@/components/layout/PageLayout.tsx";
+import { useContentPage } from "@/features/content/hooks/useContentPage.ts";
 import { usePageMeta } from "@/hooks/usePageMeta.ts";
+import ReactMarkdown from "react-markdown";
 
 export function AboutPage() {
   usePageMeta({
@@ -9,71 +10,18 @@ export function AboutPage() {
       "lmaa.space ist ein Community-Verzeichnis fairer und nachhaltiger Amazon-Alternativen für den DACH-Raum.",
     canonicalPath: "/ueber-uns",
   });
+
+  const { data: page } = useContentPage("about");
+
   return (
     <PageLayout>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
         <h1 className="font-serif text-3xl font-semibold text-stone-900 mb-10">Über lmaa.space</h1>
-
-        <div className="space-y-10 text-stone-600 leading-relaxed">
-          <section>
-            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
-              Was ist lmaa.space?
-            </h2>
-            <p className="text-sm leading-relaxed">
-              lmaa.space ist eine Community-kuratierte Sammlung von Online-Shops als Alternativen zu
-              Amazon – für den deutschsprachigen Raum. Alle Shops werden manuell geprüft, bevor sie
-              aufgenommen werden.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
-              Wie kann ich mitmachen?
-            </h2>
-            <p className="text-sm leading-relaxed">
-              Ganz einfach:{" "}
-              <Link to="/vorschlagen" className="text-amber-700 hover:underline">
-                Schlage einen Shop vor
-              </Link>
-              . Kein Account, keine Registrierung. Wir prüfen deinen Vorschlag und nehmen ihn bei
-              Eignung auf.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">
-              Wer steckt dahinter?
-            </h2>
-            <p className="text-sm leading-relaxed">
-              lmaa.space ist ein privates Community-Projekt ohne kommerzielle Interessen. Alle
-              Kosten (Hosting, Domain) werden selbst getragen. Es gibt keine Affiliate-Links und
-              kein Tracking.
-            </p>
-            <p className="text-sm leading-relaxed mt-3">
-              Das Ursprungsprojekt begann als{" "}
-              <a
-                href="https://codeberg.org/phranck/Amazon-Alternativen"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-amber-700 hover:underline"
-              >
-                Markdown-Liste auf Codeberg
-              </a>
-              . Diese Web-App macht das Projekt für alle zugänglicher.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-serif text-xl font-semibold text-stone-800 mb-3">Datenschutz</h2>
-            <p className="text-sm leading-relaxed">
-              Kein Google Analytics. Kein Facebook-Pixel. Keine Tracking-Cookies. Sieh dir unsere{" "}
-              <Link to="/datenschutz" className="text-amber-700 hover:underline">
-                Datenschutzerklärung
-              </Link>{" "}
-              an.
-            </p>
-          </section>
-        </div>
+        {page && (
+          <ReactMarkdown className="prose prose-stone prose-sm max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
+            {page.content}
+          </ReactMarkdown>
+        )}
       </div>
     </PageLayout>
   );

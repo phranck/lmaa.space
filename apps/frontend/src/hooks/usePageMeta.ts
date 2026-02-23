@@ -4,7 +4,7 @@ const BASE_URL = "https://lmaa.space";
 const SITE_NAME = "lmaa.space";
 const DEFAULT_DESCRIPTION =
   "Entdecke faire, nachhaltige und unabhängige Online-Shops als Alternativen zu Amazon – kuratiert von der Community.";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/logo.png`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
 
 export interface PageMetaOptions {
   title?: string;
@@ -55,7 +55,6 @@ export function usePageMeta({
   const canonicalUrl = `${BASE_URL}${canonicalPath}`;
   const jsonLdString = jsonLd !== undefined ? JSON.stringify(jsonLd) : undefined;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: jsonLd serialized for stable comparison
   useEffect(() => {
     document.title = fullTitle;
     setMeta('meta[name="description"]', description);
@@ -67,7 +66,11 @@ export function usePageMeta({
     setMeta('meta[name="twitter:title"]', fullTitle);
     setMeta('meta[name="twitter:description"]', description);
     setMeta('meta[name="twitter:image"]', ogImage);
-    setJsonLd(jsonLdString !== undefined ? (JSON.parse(jsonLdString) as Record<string, unknown>) : undefined);
+    setJsonLd(
+      jsonLdString !== undefined
+        ? (JSON.parse(jsonLdString) as Record<string, unknown>)
+        : undefined,
+    );
 
     return () => {
       document.title = SITE_NAME;
