@@ -20,7 +20,7 @@ const THEME_OPTIONS: { value: Theme; icon: React.ReactNode; label: string }[] = 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   return (
-    <div className="flex items-center gap-0.5 rounded-lg bg-[var(--ds-bg-elevated)] p-0.5">
+    <div className="flex items-center gap-0.5 rounded-lg bg-[var(--ds-segment-bg)] p-0.5">
       {THEME_OPTIONS.map((opt) => (
         <button
           key={opt.value}
@@ -29,7 +29,7 @@ function ThemeToggle() {
           title={opt.label}
           className={`flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
             theme === opt.value
-              ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+              ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
               : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
           }`}
         >

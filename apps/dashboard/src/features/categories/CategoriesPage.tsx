@@ -32,14 +32,14 @@ export function CategoriesPage() {
     <div>
       <PageHeader title="Kategorien">
         {/* View toggle */}
-        <div className="flex h-9 rounded-control border border-[var(--ds-border)] overflow-hidden">
+        <div className="flex items-center gap-0.5 rounded-lg bg-[var(--ds-segment-bg)] p-0.5">
           <button
             type="button"
             onClick={() => changeViewMode("list")}
-            className={`flex items-center px-3 transition-colors ${
+            className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
               viewMode === "list"
-                ? "bg-[var(--color-primary)] text-white"
-                : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-alt)]"
+                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
+                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
             }`}
             aria-label="Listenansicht"
           >
@@ -48,10 +48,10 @@ export function CategoriesPage() {
           <button
             type="button"
             onClick={() => changeViewMode("grid")}
-            className={`flex items-center px-3 transition-colors ${
+            className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
               viewMode === "grid"
-                ? "bg-[var(--color-primary)] text-white"
-                : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-alt)]"
+                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
+                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
             }`}
             aria-label="Kachelansicht"
           >
@@ -62,7 +62,7 @@ export function CategoriesPage() {
         <button
           type="button"
           onClick={() => setEditTarget("new")}
-          className="h-9 px-4 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity"
+          className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
         >
           Neue Kategorie
         </button>

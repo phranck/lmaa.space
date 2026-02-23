@@ -352,7 +352,7 @@ export function AnalyticsSection() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-[var(--ds-text)]">Analytics</h2>
-        <div className="flex gap-1 bg-[var(--ds-bg-elevated)] rounded-lg p-0.5">
+        <div className="flex gap-0.5 bg-[var(--ds-segment-bg)] rounded-lg p-0.5">
           {PERIODS.map((p) => (
             <button
               key={p.value}
@@ -360,7 +360,7 @@ export function AnalyticsSection() {
               onClick={() => handlePeriodChange(p.value)}
               className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                 period === p.value
-                  ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                  ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
                   : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
               }`}
             >

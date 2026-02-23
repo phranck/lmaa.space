@@ -45,7 +45,7 @@ export function ShopsPage() {
         <button
           type="button"
           onClick={() => setEditTarget("new")}
-          className="h-9 px-4 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity"
+          className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
         >
           Neuer Shop
         </button>
