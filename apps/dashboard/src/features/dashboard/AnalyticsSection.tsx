@@ -147,12 +147,24 @@ function RealtimeCard() {
         <p className="text-xs text-gray-400">Keine Realtime-Daten</p>
       ) : (
         <>
+          {/* Legende */}
+          <div className="flex items-center gap-4 mb-2">
+            <span className="flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
+              Besucher
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
+              Seitenaufrufe
+            </span>
+          </div>
+
           {/* Bar Chart */}
           <ResponsiveContainer width="100%" height={120}>
             <BarChart
               data={chartData}
               margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
-              barSize={6}
+              barSize={5}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f0ef" vertical={false} />
               <XAxis
@@ -160,7 +172,7 @@ function RealtimeCard() {
                 tick={{ fontSize: 10, fill: "#9ca3af" }}
                 axisLine={false}
                 tickLine={false}
-                interval="preserveStartEnd"
+                interval={0}
               />
               <YAxis
                 tick={{ fontSize: 10, fill: "#9ca3af" }}
@@ -177,33 +189,33 @@ function RealtimeCard() {
                 }}
                 cursor={{ fill: "rgba(0,0,0,0.03)" }}
               />
-              <Legend
-                wrapperStyle={{ fontSize: 11, color: "#6b7280", paddingTop: 6 }}
-                iconType="circle"
-                iconSize={8}
-              />
               <Bar dataKey="Besucher" fill="#f59e0b" radius={[2, 2, 0, 0]} />
               <Bar dataKey="Aufrufe" fill="#a8a29e" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
 
-          {/* Top URLs */}
+          {/* Top URLs (Realtime – letzte 30 min) */}
           {topUrls.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              {topUrls.map(([url, count]) => (
-                <div key={url} className="flex items-center gap-2 text-xs">
-                  <span className="flex-1 truncate text-gray-500" title={url}>
-                    {url === "/" ? "Startseite" : url}
-                  </span>
-                  <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-400 rounded-full"
-                      style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
-                    />
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs font-medium text-gray-500 mb-2">
+                Meistaufgerufene Seiten (letzte 30 min)
+              </p>
+              <div className="space-y-1.5">
+                {topUrls.map(([url, count]) => (
+                  <div key={url} className="flex items-center gap-2 text-xs">
+                    <span className="flex-1 truncate text-gray-500" title={url}>
+                      {url === "/" ? "Startseite" : url}
+                    </span>
+                    <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber-400 rounded-full"
+                        style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="shrink-0 w-5 text-right text-gray-400">{count}</span>
                   </div>
-                  <span className="shrink-0 w-5 text-right text-gray-400">{count}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </>
