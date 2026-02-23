@@ -33,8 +33,7 @@ export const shops = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
-    index("idx_shops_category").on(table.categoryId),
-    index("idx_shops_active").on(table.isActive),
+    index("idx_shops_category_active").on(table.categoryId, table.isActive),
   ],
 );
 

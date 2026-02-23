@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { zValidator } from "@hono/zod-validator";
-import { count, eq, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../db/index.js";
@@ -33,7 +33,7 @@ publicRoutes.get("/categories", async (c) => {
       shopCount: count(shops.id),
     })
     .from(categories)
-    .leftJoin(shops, eq(shops.categoryId, categories.id))
+    .leftJoin(shops, and(eq(shops.categoryId, categories.id), eq(shops.isActive, true)))
     .groupBy(categories.id)
     .orderBy(categories.name);
 
@@ -53,7 +53,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
   const categoryShops = await db
     .select()
     .from(shops)
-    .where(eq(shops.categoryId, category.id))
+    .where(and(eq(shops.categoryId, category.id), eq(shops.isActive, true)))
     .orderBy(shops.name);
 
   return c.json({ data: { ...category, shops: categoryShops } });
