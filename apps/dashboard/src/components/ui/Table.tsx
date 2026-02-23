@@ -4,7 +4,7 @@ import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } fr
 
 export function Table({ className = "", ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full border border-gray-200 overflow-hidden">
+    <div className="w-full border border-gray-200">
       <table className={`w-full border-collapse text-sm ${className}`} {...props} />
     </div>
   );
