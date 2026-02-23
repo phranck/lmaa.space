@@ -115,14 +115,16 @@ function RealtimeCard() {
     });
 
     if (realtime?.series) {
+      // Umami v2 uses "pageviews", older versions use "views" — support both
+      const viewSeries = realtime.series.pageviews ?? realtime.series.views ?? [];
       // Umami may return x in seconds or milliseconds — normalise to ms
       const toMs = (x: number) => (x > 1e12 ? x : x * 1000);
-      for (const v of realtime.series.visitors) {
+      for (const v of realtime.series.visitors ?? []) {
         const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
         const slot = slots.find((s) => s.ts === rounded);
         if (slot) slot.Besucher = v.y;
       }
-      for (const v of realtime.series.views) {
+      for (const v of viewSeries) {
         const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
         const slot = slots.find((s) => s.ts === rounded);
         if (slot) slot.Aufrufe = v.y;
@@ -162,7 +164,7 @@ function RealtimeCard() {
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-lg font-bold text-[var(--ds-text)]">
-                {realtime.totals.views}
+                {realtime.totals.pageviews ?? realtime.totals.views ?? 0}
               </span>
               <span className="text-xs text-[var(--ds-text-subtle)]">Aufrufe (30 min)</span>
             </div>
