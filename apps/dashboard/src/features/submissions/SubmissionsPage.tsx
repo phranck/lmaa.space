@@ -385,22 +385,48 @@ type Tab = "vorschlaege" | "defekte-links";
 export function SubmissionsPage() {
   const [tab, setTab] = useState<Tab>("vorschlaege");
 
+  const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
+  const { data: deadLinkReports = [] } = useDeadLinkReports();
+
+  const pendingCount = pendingSubmissions.length;
+  const deadLinkCount = deadLinkReports.length;
+
   return (
     <div>
       <PageHeader title="Meldungen">
         <div className="flex gap-1 bg-gray-100 p-1 rounded-control">
-          {(["vorschlaege", "defekte-links"] as Tab[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={`px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
-                tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {t === "vorschlaege" ? "Vorschläge" : "Defekte Links"}
-            </button>
-          ))}
+          <button
+            type="button"
+            onClick={() => setTab("vorschlaege")}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
+              tab === "vorschlaege"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Vorschläge
+            {pendingCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("defekte-links")}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
+              tab === "defekte-links"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Defekte Links
+            {deadLinkCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-600">
+                {deadLinkCount}
+              </span>
+            )}
+          </button>
         </div>
       </PageHeader>
 
