@@ -3,6 +3,13 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 
+interface UnsplashPhoto {
+  id: string;
+  urls: { small: string; regular: string };
+  user: { name: string; links: { html: string } };
+  links: { download_location: string };
+}
+
 const unsplashDownloadSchema = z.object({
   downloadLocation: z
     .string()
@@ -27,19 +34,13 @@ unsplashRoutes.get("/unsplash/search", requireAuth, async (c) => {
   const res = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
   if (!res.ok) return c.json({ error: { message: "Unsplash request failed" } }, 502);
 
-  const json = (await res.json()) as { results: unknown[]; total: number };
-  const results = (json.results as Array<Record<string, unknown>>).map((p) => {
-    const urls = p.urls as Record<string, string>;
-    const user = p.user as Record<string, unknown>;
-    const links = p.links as Record<string, string>;
-    const userLinks = user.links as Record<string, string>;
-    return {
-      id: p.id,
-      urls: { small: urls.small, regular: urls.regular },
-      user: { name: user.name, link: userLinks.html },
-      downloadLocation: links.download_location,
-    };
-  });
+  const json = (await res.json()) as { results: UnsplashPhoto[]; total: number };
+  const results = json.results.map((p) => ({
+    id: p.id,
+    urls: { small: p.urls.small, regular: p.urls.regular },
+    user: { name: p.user.name, link: p.user.links.html },
+    downloadLocation: p.links.download_location,
+  }));
   return c.json({ data: { results, total: json.total } });
 });
 
