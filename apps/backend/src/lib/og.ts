@@ -7,6 +7,7 @@ const HEADERS = {
 };
 
 const SKIP_PATTERNS = /icon|logo|sprite|pixel|tracking|badge|flag|avatar|1x1|blank/i;
+const MIN_APPLE_SIZE = 120; // px — smaller icons look blurry on retina displays
 const SKIP_EXT = /\.(svg|gif|ico)(\?|$)/i;
 
 function extractDomain(url: string): string {
@@ -50,15 +51,34 @@ function extractOgImage(html: string, base: string): string | null {
 }
 
 function extractAppleTouchIcon(html: string, base: string): string | null {
-  const match =
-    html.match(
-      /<link[^>]+rel=["']apple-touch-icon(?:-precomposed)?["'][^>]+href=["']([^"']+)["']/i,
-    ) ??
-    html.match(
-      /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon(?:-precomposed)?["']/i,
-    );
-  if (match?.[1]) return resolveUrl(match[1].trim(), base);
-  return null;
+  const candidates: { url: string; size: number }[] = [];
+
+  for (const [, attrs] of html.matchAll(/<link\b([^>]+)>/gi)) {
+    if (!/\brel=["']apple-touch-icon(?:-precomposed)?["']/i.test(attrs)) continue;
+
+    const hrefMatch = attrs.match(/\bhref=["']([^"']+)["']/i);
+    if (!hrefMatch) continue;
+    const resolved = resolveUrl(hrefMatch[1].trim(), base);
+    if (!resolved) continue;
+
+    const sizesAttr = attrs.match(/\bsizes=["']([^"']+)["']/i)?.[1]?.toLowerCase();
+    let size: number;
+    if (!sizesAttr) {
+      size = 0; // unknown — accept, but sorted last
+    } else if (sizesAttr === "any") {
+      size = Number.POSITIVE_INFINITY; // scalable — always prefer
+    } else {
+      const dim = sizesAttr.match(/^(\d+)x\d+/);
+      size = dim ? Number(dim[1]) : 0;
+      if (size > 0 && size < MIN_APPLE_SIZE) continue; // declared too small — skip
+    }
+
+    candidates.push({ url: resolved, size });
+  }
+
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => b.size - a.size);
+  return candidates[0].url;
 }
 
 function extractFaviconIcon(html: string, base: string): string | null {
