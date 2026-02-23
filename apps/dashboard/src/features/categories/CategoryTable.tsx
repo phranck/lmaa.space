@@ -11,14 +11,16 @@ interface CategoryTableProps {
 function CategoryThumb({ category }: { category: Category }) {
   const src = category.imageUrl ?? `/images/${category.slug}.jpg`;
   return (
-    <img
-      src={src}
-      alt=""
-      className="block w-10 h-10 aspect-square rounded-lg object-cover bg-gray-100"
-      onError={(e) => {
-        (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
-      }}
-    />
+    <div className="w-28 aspect-video rounded-lg overflow-hidden bg-gray-100 shrink-0">
+      <img
+        src={src}
+        alt=""
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
+        }}
+      />
+    </div>
   );
 }
 
@@ -27,7 +29,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
     () => [
       {
         id: "image",
-        className: "w-14",
+        className: "w-32",
         cell: (cat) => <CategoryThumb category={cat} />,
       },
       {
