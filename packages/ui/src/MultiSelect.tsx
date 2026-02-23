@@ -85,11 +85,13 @@ export function MultiSelect({
               width: dropdownRect.width,
               zIndex: 9999,
             }}
-            className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+            className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
               {options.length === 0 && (
-                <p className="px-3 py-2 text-sm text-gray-400">Keine Kategorien vorhanden.</p>
+                <p className="px-3 py-2 text-sm text-[var(--ds-text-subtle)]">
+                  Keine Kategorien vorhanden.
+                </p>
               )}
               {options.map((opt) => {
                 const checked = value.includes(opt.id);
@@ -100,15 +102,15 @@ export function MultiSelect({
                     onClick={() => toggle(opt.id)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
                       checked
-                        ? "bg-[var(--color-primary)]/5 text-gray-900"
-                        : "text-gray-700 hover:bg-gray-50"
+                        ? "bg-[var(--color-primary)]/5 text-[var(--ds-text)]"
+                        : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)]"
                     }`}
                   >
                     <span
                       className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors ${
                         checked
                           ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                          : "border-gray-300"
+                          : "border-[var(--ds-border-strong)]"
                       }`}
                     >
                       {checked && <LuCheck size={10} className="text-white" strokeWidth={3} />}
@@ -129,20 +131,22 @@ export function MultiSelect({
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-white transition-colors ${
+        className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-surface)] transition-colors ${
           open
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error
               ? "border-red-400"
-              : "border-gray-200 hover:border-gray-300"
+              : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
         }`}
       >
-        <span className={`truncate ${label ? "text-gray-900" : "text-gray-400"}`}>
+        <span
+          className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
+        >
           {label ?? placeholder}
         </span>
         <LuChevronDown
           size={14}
-          className={`shrink-0 ml-2 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`shrink-0 ml-2 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 

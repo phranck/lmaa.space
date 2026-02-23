@@ -32,14 +32,14 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
           <button
             type="button"
             onClick={() => onEdit(category.id)}
-            className="btn-edit flex-1 py-1.5 text-xs border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] transition-colors"
+            className="btn-edit flex-1 py-1.5 text-xs border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
           >
             Bearbeiten
           </button>
           <button
             type="button"
             onClick={() => onDelete(category.id)}
-            className="btn-delete flex-1 py-1.5 text-xs border border-red-200 rounded-control text-red-500 transition-colors"
+            className="btn-delete flex-1 py-1.5 text-xs border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
           >
             Löschen
           </button>

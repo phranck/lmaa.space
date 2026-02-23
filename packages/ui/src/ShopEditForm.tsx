@@ -45,11 +45,11 @@ export function ShopEditForm({
   const isDashboard = variant === "dashboard";
 
   const labelClass = isDashboard
-    ? "block text-xs font-medium text-gray-600 mb-1"
+    ? "block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
     : "block text-sm font-medium text-stone-700 mb-1.5";
 
   const inputClass = isDashboard
-    ? "w-full px-3 py-2 border border-gray-200 rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+    ? "w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
     : "w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
   const gapClass = isDashboard ? "flex flex-col gap-4" : "flex flex-col gap-5";
@@ -101,10 +101,10 @@ export function ShopEditForm({
             } ${
               value.url
                 ? isDashboard
-                  ? "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
                   : "border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700"
                 : isDashboard
-                  ? "border-gray-100 text-gray-300 pointer-events-none"
+                  ? "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
                   : "border-stone-100 text-stone-300 pointer-events-none"
             }`}
           >

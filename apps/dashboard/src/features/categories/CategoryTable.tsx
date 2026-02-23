@@ -56,14 +56,14 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
             <button
               type="button"
               onClick={() => onEdit(cat.id)}
-              className="h-8 px-3 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+              className="h-8 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
             >
               Bearbeiten
             </button>
             <button
               type="button"
               onClick={() => onDelete(cat.id)}
-              className="h-8 px-3 border border-red-200 rounded-control text-red-500 hover:border-red-300 transition-colors"
+              className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
             >
               Löschen
             </button>

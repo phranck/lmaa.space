@@ -179,7 +179,7 @@ function VorschlaegeTab() {
                 <button
                   type="button"
                   onClick={() => setEditSubmission(sub)}
-                  className="h-8 px-3 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+                  className="h-8 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
                   Bearbeiten
                 </button>
@@ -356,7 +356,7 @@ function DefekteLinksTab() {
             </a>
           </div>
 
-          <span className="shrink-0 px-2.5 py-1 rounded-full bg-red-50 text-red-600 text-xs font-semibold">
+          <span className="shrink-0 px-2.5 py-1 rounded-full bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)] text-xs font-semibold">
             {r.reportCount}× gemeldet
           </span>
 
@@ -365,7 +365,7 @@ function DefekteLinksTab() {
               type="button"
               onClick={() => dismissMutation.mutate(r.shopId)}
               disabled={dismissMutation.isPending || deleteMutation.isPending}
-              className="px-3 py-1.5 border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm rounded-control hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] text-sm rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
             >
               Belassen
             </button>
@@ -373,7 +373,7 @@ function DefekteLinksTab() {
               type="button"
               onClick={() => setConfirmDeleteId(r.shopId)}
               disabled={dismissMutation.isPending || deleteMutation.isPending}
-              className="px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 text-sm rounded-control hover:bg-red-100 transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 bg-[var(--ds-badge-danger-bg)] border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm rounded-control hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors disabled:opacity-50"
             >
               Löschen
             </button>
