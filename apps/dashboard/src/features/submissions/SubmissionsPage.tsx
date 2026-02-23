@@ -22,9 +22,9 @@ const STATUS_LABELS: Record<SubmissionStatus, string> = {
 };
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
-  pending: "bg-amber-50 text-amber-700",
-  approved: "bg-green-50 text-green-700",
-  rejected: "bg-red-50 text-red-600",
+  pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
+  approved: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
+  rejected: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
 };
 
 // ─── Shop image (favicon + lettermark fallback) ───────────────────────────────
@@ -172,7 +172,7 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-8 px-3 border border-red-200 rounded-control text-red-500 text-sm hover:border-red-300 hover:bg-red-50 transition-colors mr-6"
+                  className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
                 >
                   Ablehnen
                 </button>
@@ -190,7 +190,7 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-8 px-3 border border-green-200 rounded-control text-green-700 text-sm hover:border-green-300 hover:bg-green-50 transition-colors"
+                  className="h-8 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                 >
                   Annehmen
                 </button>
@@ -439,19 +439,19 @@ export function SubmissionsPage() {
   return (
     <div>
       <PageHeader title="Meldungen">
-        <div className="flex gap-1 bg-[var(--ds-bg-elevated)] p-1 rounded-control">
+        <div className="flex gap-0.5 bg-[var(--ds-segment-bg)] p-0.5 rounded-lg">
           <button
             type="button"
             onClick={() => setTab("vorschlaege")}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
               tab === "vorschlaege"
-                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
                 : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
             }`}
           >
             Vorschläge
             {pendingCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]">
                 {pendingCount}
               </span>
             )}
@@ -459,15 +459,15 @@ export function SubmissionsPage() {
           <button
             type="button"
             onClick={() => setTab("defekte-links")}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
               tab === "defekte-links"
-                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                ? "bg-[var(--ds-segment-active-bg)] text-[var(--ds-text)] shadow-sm"
                 : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
             }`}
           >
             Defekte Links
             {deadLinkCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-600">
+              <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
                 {deadLinkCount}
               </span>
             )}

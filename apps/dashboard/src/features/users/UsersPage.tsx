@@ -27,7 +27,7 @@ export function UsersPage() {
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
-          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity"
+          className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
         >
           {showForm ? "Abbrechen" : "+ Benutzer einladen"}
         </button>
@@ -98,7 +98,7 @@ export function UsersPage() {
                 })
               }
               disabled={!form.username || !form.email || !form.password || createMutation.isPending}
-              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+              className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
             >
               {createMutation.isPending ? "Wird erstellt..." : "Benutzer erstellen"}
             </button>

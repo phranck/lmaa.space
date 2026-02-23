@@ -193,7 +193,7 @@ export function ShopEditCard({
             type="button"
             onClick={handleSave}
             disabled={!canSave}
-            className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+            className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
           >
             {isPending ? "Wird gespeichert…" : "Speichern"}
           </button>

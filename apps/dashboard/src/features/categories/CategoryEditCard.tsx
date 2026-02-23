@@ -275,7 +275,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 type="button"
                 onClick={() => saveMutation.mutate({ form, image }, { onSuccess: onSaved })}
                 disabled={!canSave}
-                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+                className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
               >
                 {saveMutation.isPending ? "Wird gespeichert…" : "Speichern"}
               </button>
