@@ -1,5 +1,5 @@
 import { api } from "@/lib/api.ts";
-import type { Shop } from "@lmaa/shared";
+import type { Shop, ShopSummary } from "@lmaa/shared";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -8,7 +8,15 @@ export type { ShopEditFormValue };
 export function useAdminShops() {
   return useQuery({
     queryKey: ["shops-admin"],
-    queryFn: () => api.get<Shop[]>("/admin/shops"),
+    queryFn: () => api.get<ShopSummary[]>("/admin/shops"),
+  });
+}
+
+export function useAdminShop(id: number | null) {
+  return useQuery({
+    queryKey: ["shop", id],
+    queryFn: () => api.get<Shop>(`/admin/shops/${id}`),
+    enabled: id !== null,
   });
 }
 

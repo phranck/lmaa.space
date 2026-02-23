@@ -1,15 +1,15 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
-import type { Shop } from "@lmaa/shared";
+import type { ShopSummary } from "@lmaa/shared";
 import { useMemo } from "react";
 
 interface ShopTableProps {
-  shops: Shop[];
+  shops: ShopSummary[];
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 }
 
 export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
-  const columns = useMemo<ColumnDef<Shop>[]>(
+  const columns = useMemo<ColumnDef<ShopSummary>[]>(
     () => [
       {
         id: "name",
@@ -80,5 +80,7 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
     [onEdit, onDelete],
   );
 
-  return <DataTable columns={columns} data={shops} getRowKey={(s) => s.id} stickyHeader />;
+  return (
+    <DataTable columns={columns} data={shops} getRowKey={(s: ShopSummary) => s.id} stickyHeader />
+  );
 }
