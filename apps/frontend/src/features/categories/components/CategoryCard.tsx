@@ -9,8 +9,8 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category }: CategoryCardProps) {
   const [imgError, setImgError] = useState(false);
-  const resolvedUrl = resolveImageUrl(category.imageUrl);
-  const hasImage = !!resolvedUrl && !imgError;
+  const resolvedUrl = resolveImageUrl(category.imageUrl) ?? `/images/${category.slug}.jpg`;
+  const hasImage = !imgError;
 
   return (
     <Link
@@ -21,7 +21,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
       <div className="aspect-video overflow-hidden relative">
         {hasImage ? (
           <img
-            src={resolvedUrl ?? ""}
+            src={resolvedUrl}
             alt=""
             aria-hidden="true"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
