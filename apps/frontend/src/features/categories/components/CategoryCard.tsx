@@ -1,7 +1,7 @@
+import { resolveImageUrl } from "@/lib/api.ts";
 import type { Category } from "@lmaa/shared";
 import { useState } from "react";
 import { Link } from "react-router";
-import { resolveImageUrl } from "@/lib/api.ts";
 
 interface CategoryCardProps {
   category: Category;

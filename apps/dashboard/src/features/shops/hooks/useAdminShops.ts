@@ -35,9 +35,7 @@ export function useSaveShop(editId: number | null) {
         ...data,
         categoryId: data.categoryId ? Number(data.categoryId) : undefined,
       };
-      return editId
-        ? api.patch(`/admin/shops/${editId}`, body)
-        : api.post("/admin/shops", body);
+      return editId ? api.patch(`/admin/shops/${editId}`, body) : api.post("/admin/shops", body);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });

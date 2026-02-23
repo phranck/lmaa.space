@@ -1,6 +1,6 @@
+import { api } from "@/lib/api.ts";
 import type { Category } from "@lmaa/shared";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api.ts";
 
 export function useCategories() {
   return useQuery({

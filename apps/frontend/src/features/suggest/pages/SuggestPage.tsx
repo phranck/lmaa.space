@@ -1,13 +1,13 @@
+import { PageLayout } from "@/components/layout/PageLayout.tsx";
+import { useCategories } from "@/features/categories/hooks/useCategories.ts";
+import { usePageMeta } from "@/hooks/usePageMeta.ts";
+import { api } from "@/lib/api.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { z } from "zod";
-import { PageLayout } from "@/components/layout/PageLayout.tsx";
-import { usePageMeta } from "@/hooks/usePageMeta.ts";
-import { api } from "@/lib/api.ts";
-import { useCategories } from "@/features/categories/hooks/useCategories.ts";
 
 const schema = z.object({
   shopName: z.string().min(2, "Bitte einen Shop-Namen eingeben"),

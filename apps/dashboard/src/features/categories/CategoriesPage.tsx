@@ -93,11 +93,7 @@ export function CategoriesPage() {
       {/* List View */}
       {!isLoading && viewMode === "list" && (
         <div className="-mx-6">
-          <CategoryTable
-            categories={categories}
-            onEdit={setEditTarget}
-            onDelete={setDeleteId}
-          />
+          <CategoryTable categories={categories} onEdit={setEditTarget} onDelete={setDeleteId} />
         </div>
       )}
 
@@ -150,7 +146,9 @@ export function CategoriesPage() {
               <button
                 type="button"
                 disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })}
+                onClick={() =>
+                  deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) })
+                }
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
               >
                 {deleteMutation.isPending ? "..." : "Löschen"}
