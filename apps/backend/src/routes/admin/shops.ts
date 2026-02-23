@@ -1,4 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
+import type { Shop, ShopCategory, ShopSummary } from "@lmaa/shared";
 import { eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -7,6 +8,8 @@ import { deadLinkReports, shopCategories, shops } from "../../db/schema.js";
 import { extractHomepage, fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+
+type AdminShopDetail = Shop & { categories: ShopCategory[] };
 
 const shopBodySchema = z.object({
   name: z.string().min(1).max(200),
@@ -37,7 +40,7 @@ const previewImageSchema = z.object({ url: z.string().url() });
 export const shopsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 shopsRoutes.get("/shops", requireAuth, async (c) => {
-  const rows = await db.execute(sql`
+  const rows = await db.execute<ShopSummary & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region,
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
@@ -56,7 +59,7 @@ shopsRoutes.get("/shops", requireAuth, async (c) => {
 shopsRoutes.get("/shops/:id", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
-  const [row] = await db.execute(sql`
+  const [row] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.is_active as "isActive",
            s.created_at as "createdAt", s.updated_at as "updatedAt",

@@ -8,8 +8,7 @@ import {
   useDismissDeadLink,
   useReviewSubmission,
 } from "@/features/submissions/hooks/useAdminSubmissions.ts";
-import type { SubmissionStatus } from "@/features/submissions/hooks/useAdminSubmissions.ts";
-import type { Submission } from "@lmaa/shared";
+import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { useState } from "react";
 import { SFArrowUpRightSquareFill } from "sf-symbols-lib/monochrome";
 

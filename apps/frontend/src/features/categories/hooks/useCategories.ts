@@ -1,5 +1,5 @@
 import { api } from "@/lib/api.ts";
-import type { Category } from "@lmaa/shared";
+import type { Category, CategoryWithShops } from "@lmaa/shared";
 import { useQuery } from "@tanstack/react-query";
 
 export function useCategories() {
@@ -13,7 +13,7 @@ export function useCategories() {
 export function useCategory(slug: string) {
   return useQuery({
     queryKey: ["categories", slug],
-    queryFn: () => api.get<Category & { shops: unknown[] }>(`/categories/${slug}`),
+    queryFn: () => api.get<CategoryWithShops>(`/categories/${slug}`),
     staleTime: 5 * 60 * 1000,
     enabled: !!slug,
   });

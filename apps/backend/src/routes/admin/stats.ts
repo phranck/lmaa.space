@@ -1,3 +1,4 @@
+import type { AdminStats } from "@lmaa/shared";
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db/index.js";
@@ -7,13 +8,7 @@ export const statsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/stats
 statsRoutes.get("/stats", requireAuth, async (c) => {
-  const [stats] = await db.execute<{
-    shops: number;
-    categories: number;
-    pendingSubmissions: number;
-    totalSubmissions: number;
-    deadLinkReports: number;
-  }>(sql`
+  const [stats] = await db.execute<AdminStats & Record<string, unknown>>(sql`
     SELECT
       (SELECT count(*)::int FROM shops) AS shops,
       (SELECT count(*)::int FROM categories) AS categories,
