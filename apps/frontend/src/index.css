@@ -2,6 +2,7 @@
 @import "@lmaa/shared/styles/tokens.css";
 @import "../../../node_modules/preline/variants.css";
 @import "../../../node_modules/preline/css/themes/autumn.css";
+@plugin "@tailwindcss/typography";
 
 /* Preline UI */
 @source "../../../node_modules/preline/dist/*.js";
@@ -32,4 +33,3 @@ h2,
 h3 {
   font-family: var(--ds-font-serif);
 }
-
