@@ -7,7 +7,7 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { db } from "./db/index.js";
 import { categories } from "./db/schema.js";
-import { adminRoutes } from "./routes/admin.js";
+import { adminRoutes } from "./routes/admin/index.js";
 import { publicRoutes } from "./routes/public.js";
 
 const app = new Hono();

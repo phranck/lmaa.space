@@ -1,7 +1,14 @@
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
+
+export const setupSchema = z.object({
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24h
 
