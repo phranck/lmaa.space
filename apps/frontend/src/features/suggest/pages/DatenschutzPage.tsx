@@ -18,9 +18,9 @@ export function DatenschutzPage() {
           Gem. Art. 13 und 14 DSGVO sowie § 1 DSG (Österreich)
         </p>
         {page && (
-          <ReactMarkdown className="prose prose-stone prose-sm max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
-            {page.content}
-          </ReactMarkdown>
+          <div className="prose prose-stone prose-sm max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
+            <ReactMarkdown>{page.content}</ReactMarkdown>
+          </div>
         )}
       </div>
     </PageLayout>
