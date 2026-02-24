@@ -194,12 +194,6 @@ export function ContentEditorPage() {
 
   const title = page?.title ?? slug;
 
-  const statusLabel: Record<string, string> = {
-    draft: "Entwurf",
-    published: "Veröffentlicht",
-    hidden: "Versteckt",
-  };
-
   return (
     <>
       <PageHeader title={title}>
