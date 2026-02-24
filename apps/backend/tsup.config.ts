@@ -13,6 +13,8 @@ export default defineConfig({
   platform: "node",
   bundle: true,
   noExternal: [/^(?!node:).*/],
+  // sharp is a native module — must not be bundled, deploy node_modules/sharp separately
+  external: ["sharp"],
   outDir: "dist",
   clean: true,
   esbuildOptions(options) {
