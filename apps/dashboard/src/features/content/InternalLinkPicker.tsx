@@ -12,7 +12,7 @@ interface LinkEntry {
 
 const STATIC_ROUTES: LinkEntry[] = [
   { label: "Startseite / Kategorien", path: "/", group: "Statisch" },
-  { label: "Shop vorschlagen", path: "/vorschlagen", group: "Statisch" },
+  { label: "Shop vorschlagen", path: "/suggestion", group: "Statisch" },
   { label: "Suche", path: "/suche", group: "Statisch" },
 ];
 

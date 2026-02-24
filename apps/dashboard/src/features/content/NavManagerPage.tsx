@@ -30,7 +30,7 @@ import {
 
 const STATIC_ROUTES = [
   { label: "Startseite", url: "/" },
-  { label: "Shop vorschlagen", url: "/vorschlagen" },
+  { label: "Shop vorschlagen", url: "/suggestion" },
   { label: "Suche", url: "/suche" },
 ];
 
