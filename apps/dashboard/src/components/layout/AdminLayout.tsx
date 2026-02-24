@@ -13,13 +13,9 @@ import {
 } from "sf-symbols-lib/monochrome";
 
 const THEME_OPTIONS = [
-  { value: "light" as const, icon: <SFSunMaxFill className="w-3.5 h-3.5" />, label: "Light" },
-  { value: "dark" as const, icon: <SFMoonFill className="w-3.5 h-3.5" />, label: "Dark" },
-  {
-    value: "system" as const,
-    icon: <SFDesktopcomputer className="w-3.5 h-3.5" />,
-    label: "System",
-  },
+  { value: "light" as const, icon: <SFSunMaxFill className="w-3.5 h-3.5" /> },
+  { value: "dark" as const, icon: <SFMoonFill className="w-3.5 h-3.5" /> },
+  { value: "system" as const, icon: <SFDesktopcomputer className="w-3.5 h-3.5" /> },
 ];
 
 function ThemeToggle() {
