@@ -73,6 +73,20 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
         <SFChevronDown className="w-3.5 h-3.5 opacity-50 transition-transform group-open/details:rotate-180" />
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
+        <NavLink
+          to="/seiten"
+          end
+          onClick={onItemClick}
+          className={({ isActive }) =>
+            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors border-l-2 ${
+              isActive
+                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
+                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
+            }`
+          }
+        >
+          Übersicht
+        </NavLink>
         {(pages ?? []).map((page) => (
           <NavLink
             key={page.slug}
@@ -93,34 +107,6 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
             </span>
           </NavLink>
         ))}
-        <NavLink
-          to="/seiten"
-          end
-          onClick={onItemClick}
-          className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-1.5 rounded-control text-xs font-medium transition-colors border-l-2 ${
-              isActive
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
-            }`
-          }
-        >
-          + Neue Seite
-        </NavLink>
-        <NavLink
-          to="/seiten/navigationen"
-          onClick={onItemClick}
-          className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-1.5 rounded-control text-xs font-medium transition-colors border-l-2 ${
-              isActive
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
-            }`
-          }
-        >
-          <SFLink className="w-3 h-3 shrink-0 opacity-60" />
-          Navigationen
-        </NavLink>
       </div>
     </details>
   );
@@ -148,6 +134,14 @@ export function Sidebar({ username, email, avatarUrl, role, onLogout, onItemClic
           />
         ))}
         {showPages && <PagesGroup onItemClick={onItemClick} />}
+        {showPages && (
+          <SidebarItem
+            to="/seiten/navigationen"
+            label="Navigationen"
+            icon={<SFLink className="w-4 h-4" />}
+            onClick={onItemClick}
+          />
+        )}
       </nav>
 
       <SidebarFooter username={username} email={email} avatarUrl={avatarUrl} onLogout={onLogout} />
