@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { zValidator } from "@hono/zod-validator";
 import type { Shop, ShopCategory } from "@lmaa/shared";
-import { and, asc, count, eq, sql } from "drizzle-orm";
+import { and, asc, count, eq, isNull, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../db/index.js";
@@ -265,12 +265,23 @@ publicRoutes.get("/nav/:navId", async (c) => {
       navId: navItems.navId,
       pageSlug: navItems.pageSlug,
       pageTitle: contentPages.title,
+      url: navItems.url,
+      target: navItems.target,
       label: navItems.label,
       position: navItems.position,
     })
     .from(navItems)
-    .innerJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
-    .where(and(eq(navItems.navId, navId), eq(contentPages.status, "published")))
+    .leftJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
+    .where(
+      and(
+        eq(navItems.navId, navId),
+        // only include page-based items if the page is published (URL-items always shown)
+        or(
+          eq(contentPages.status, "published"),
+          isNull(navItems.pageSlug),
+        ),
+      ),
+    )
     .orderBy(asc(navItems.position));
 
   c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");

@@ -6,8 +6,10 @@ export function Footer() {
   const { data: navItems } = useNav("footer");
 
   const footerLinks = (navItems ?? []).map((item) => ({
-    label: item.label ?? item.pageTitle,
-    to: `/${item.pageSlug}`,
+    label: item.label ?? item.pageTitle ?? item.url ?? "",
+    to: item.url ?? `/${item.pageSlug}`,
+    target: item.target ?? "_self",
+    external: item.target === "_blank" || (item.url?.startsWith("http") ?? false),
   }));
 
   return (
@@ -32,9 +34,20 @@ export function Footer() {
             <ul className="space-y-2.5 text-sm">
               {footerLinks.map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-stone-400 hover:text-amber-400 transition-colors">
-                    {link.label}
-                  </Link>
+                  {link.external ? (
+                    <a
+                      href={link.to}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-stone-400 hover:text-amber-400 transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link to={link.to} className="text-stone-400 hover:text-amber-400 transition-colors">
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

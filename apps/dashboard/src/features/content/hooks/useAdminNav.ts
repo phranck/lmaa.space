@@ -12,8 +12,9 @@ export function useAdminNav(navId: NavId) {
 export function useSaveNav(navId: NavId) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (items: { pageSlug: string; label?: string | null }[]) =>
-      api.put<NavItem[]>(`/admin/nav/${navId}`, { items }),
+    mutationFn: (
+      items: { pageSlug?: string | null; url?: string | null; label?: string | null; target?: string }[],
+    ) => api.put<NavItem[]>(`/admin/nav/${navId}`, { items }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-nav", navId] });
       qc.invalidateQueries({ queryKey: ["nav", navId] });

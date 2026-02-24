@@ -15,8 +15,10 @@ export function Header() {
   const { data: navItems } = useNav("header");
 
   const dynamicLinks = (navItems ?? []).map((item) => ({
-    label: item.label ?? item.pageTitle,
-    to: `/${item.pageSlug}`,
+    label: item.label ?? item.pageTitle ?? item.url ?? "",
+    to: item.url ?? `/${item.pageSlug}`,
+    target: item.target ?? "_self",
+    external: item.target === "_blank" || (item.url?.startsWith("http") ?? false),
   }));
 
   function handleSearch(e: React.FormEvent<HTMLFormElement>) {
@@ -46,15 +48,27 @@ export function Header() {
               <NavLink to="/vorschlagen" className={({ isActive }) => navLinkClass(isActive)}>
                 Shop vorschlagen
               </NavLink>
-              {dynamicLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) => navLinkClass(isActive)}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
+              {dynamicLinks.map((link) =>
+                link.external ? (
+                  <a
+                    key={link.to}
+                    href={link.to}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={navLinkClass(false)}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    className={({ isActive }) => navLinkClass(isActive)}
+                  >
+                    {link.label}
+                  </NavLink>
+                ),
+              )}
             </div>
           </div>
 
@@ -162,16 +176,29 @@ export function Header() {
               >
                 Shop vorschlagen
               </NavLink>
-              {dynamicLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setMenuOpen(false)}
-                  className={({ isActive }) => mobileNavLinkClass(isActive)}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
+              {dynamicLinks.map((link) =>
+                link.external ? (
+                  <a
+                    key={link.to}
+                    href={link.to}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                    className={mobileNavLinkClass(false)}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMenuOpen(false)}
+                    className={({ isActive }) => mobileNavLinkClass(isActive)}
+                  >
+                    {link.label}
+                  </NavLink>
+                ),
+              )}
               <div className="pt-1 px-1">
                 <DonateButton />
               </div>

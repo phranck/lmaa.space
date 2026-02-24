@@ -319,6 +319,12 @@ async function main() {
   // Rename legacy slug 'about' → 'ueber-uns' to match the canonical URL
   await sql`UPDATE content_pages SET slug = 'ueber-uns' WHERE slug = 'about'`;
 
+  // nav_items: make page_slug nullable, add url + target columns
+  await sql`ALTER TABLE nav_items ALTER COLUMN page_slug DROP NOT NULL`;
+  await sql`ALTER TABLE nav_items ADD COLUMN IF NOT EXISTS url TEXT`;
+  await sql`ALTER TABLE nav_items ADD COLUMN IF NOT EXISTS target TEXT NOT NULL DEFAULT '_self'`;
+  await sql`ALTER TABLE nav_items DROP CONSTRAINT IF EXISTS uniq_nav_page`;
+
   // Migrate submissions.region TEXT → JSONB
   await sql`
     DO $do$ BEGIN
