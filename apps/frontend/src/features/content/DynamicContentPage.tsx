@@ -16,12 +16,9 @@ export function DynamicContentPage() {
   if (isLoading) {
     return (
       <PageLayout>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-stone-200 rounded w-1/2" />
-            <div className="h-4 bg-stone-100 rounded w-full" />
-            <div className="h-4 bg-stone-100 rounded w-5/6" />
-          </div>
+        <div className="flex flex-col items-center justify-center py-32 gap-3 text-stone-400">
+          <div className="w-7 h-7 border-2 border-stone-200 border-t-amber-500 rounded-full animate-spin" />
+          <span className="text-sm">Lade Inhalt…</span>
         </div>
       </PageLayout>
     );
@@ -40,7 +37,7 @@ export function DynamicContentPage() {
 
   return (
     <PageLayout>
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+      <div key={slug} className="content-fade-in max-w-2xl mx-auto px-4 sm:px-6 py-14">
         <h1 className="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
         <div className="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
           <ReactMarkdown>{page.content}</ReactMarkdown>
