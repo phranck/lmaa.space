@@ -139,7 +139,7 @@ export function UsersPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
                 {user.isOwner && (
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
                     Owner
                   </span>
                 )}
