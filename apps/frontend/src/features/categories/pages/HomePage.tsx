@@ -81,7 +81,7 @@ export function HomePage() {
 
       {/* Categories */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-baseline justify-between mb-8">
+        <div className="flex items-baseline justify-between mb-8 px-[15px]">
           <h2 className="font-serif text-2xl font-semibold text-stone-800">Kategorien entdecken</h2>
           {categories && (
             <span className="text-sm text-stone-400">
