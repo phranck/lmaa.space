@@ -16,9 +16,10 @@ export interface RegionSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
   error?: string;
+  buttonClassName?: string;
 }
 
-export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
+export function RegionSelect({ value, onChange, error, buttonClassName }: RegionSelectProps) {
   const [open, setOpen] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -184,7 +185,7 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
           ref={buttonRef}
           type="button"
           onClick={handleToggle}
-          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${
+          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
             open
               ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
               : error

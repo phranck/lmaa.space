@@ -50,7 +50,7 @@ export function ShopEditForm({
 
   const inputClass = isDashboard
     ? "w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-    : "w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
+    : "w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-xl bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
   const gapClass = isDashboard ? "flex flex-col gap-4" : "flex flex-col gap-5";
 
@@ -96,12 +96,12 @@ export function ShopEditForm({
             rel="noopener noreferrer"
             aria-label="URL öffnen"
             tabIndex={value.url ? 0 : -1}
-            className={`shrink-0 flex items-center justify-center w-9 border transition-colors ${
+            className={`shrink-0 flex items-center justify-center w-9 border transition-colors bg-[var(--ds-bg-elevated)] ${
               isDashboard ? "rounded-control" : "rounded-xl"
             } ${
               value.url
-                ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
-                : "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
+                ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
+                : "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] opacity-40 pointer-events-none"
             }`}
           >
             <LuExternalLink size={14} />
@@ -137,6 +137,7 @@ export function ShopEditForm({
           onValueChange={(vals) => set("categoryIds", vals.map(Number))}
           placeholder="Kategorie wählen…"
           error={errors?.categoryIds}
+          className={isDashboard ? undefined : "rounded-xl"}
         />
       </div>
 
@@ -145,6 +146,7 @@ export function ShopEditForm({
         value={value.region}
         onChange={(v) => set("region", v)}
         error={errors?.region}
+        buttonClassName={isDashboard ? undefined : "rounded-xl py-2.5"}
       />
 
       {/* Shipping */}

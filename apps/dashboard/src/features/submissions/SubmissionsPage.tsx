@@ -297,7 +297,7 @@ function VorschlaegeTab() {
                 }
                 className={`flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
                   reviewId > 0
-                    ? "bg-[var(--ds-accent)] hover:bg-[var(--ds-accent-hover)]"
+                    ? "bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
                     : "bg-red-500 hover:bg-red-600"
                 }`}
               >
