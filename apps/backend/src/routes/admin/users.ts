@@ -9,6 +9,7 @@ import { adminUsers, sessions } from "../../db/schema.js";
 import { detectImageType, parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireAuth, requireOwner } from "../../middleware/auth.js";
 import { hashPassword, setupSchema } from "../../services/auth.js";
+import { sendWelcomeEmail } from "../../services/email.js";
 
 export const usersRoutes = new Hono<{ Variables: AuthVariables }>();
 
@@ -56,6 +57,10 @@ usersRoutes.post(
       .insert(adminUsers)
       .values({ username, email, passwordHash, role: role ?? "admin" })
       .returning(USER_FIELDS);
+
+    // Send welcome email (fire-and-forget, don't block the response)
+    sendWelcomeEmail(email, username, password).catch(() => {});
+
     return c.json({ data: { ...admin, isOwner: admin.role === "owner" } }, 201);
   },
 );
