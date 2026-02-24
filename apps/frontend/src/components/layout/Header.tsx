@@ -9,17 +9,15 @@ const navLinkClass = (isActive: boolean) =>
 const mobileNavLinkClass = (isActive: boolean) =>
   `block px-3 py-2 rounded-md font-serif text-base transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"}`;
 
-const FALLBACK_NAV = [{ label: "Über uns", to: "/ueber-uns" }];
-
 export function Header() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: navItems } = useNav("header");
 
-  const dynamicLinks =
-    navItems && navItems.length > 0
-      ? navItems.map((item) => ({ label: item.label ?? item.pageTitle, to: `/${item.pageSlug}` }))
-      : FALLBACK_NAV;
+  const dynamicLinks = (navItems ?? []).map((item) => ({
+    label: item.label ?? item.pageTitle,
+    to: `/${item.pageSlug}`,
+  }));
 
   function handleSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
