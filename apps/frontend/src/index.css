@@ -28,6 +28,10 @@
   animation: content-fade-in 350ms ease forwards;
 }
 
+a {
+  text-decoration: none;
+}
+
 body {
   font-family: var(--ds-font-sans);
   background-color: var(--ds-bg);
