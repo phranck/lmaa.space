@@ -42,12 +42,6 @@ export function Header() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              <NavLink to="/" end className={({ isActive }) => navLinkClass(isActive)}>
-                Kategorien
-              </NavLink>
-              <NavLink to="/vorschlagen" className={({ isActive }) => navLinkClass(isActive)}>
-                Shop vorschlagen
-              </NavLink>
               {dynamicLinks.map((link) =>
                 link.external ? (
                   <a
@@ -161,21 +155,6 @@ export function Header() {
                 </div>
               </form>
 
-              <NavLink
-                to="/"
-                end
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) => mobileNavLinkClass(isActive)}
-              >
-                Kategorien
-              </NavLink>
-              <NavLink
-                to="/vorschlagen"
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) => mobileNavLinkClass(isActive)}
-              >
-                Shop vorschlagen
-              </NavLink>
               {dynamicLinks.map((link) =>
                 link.external ? (
                   <a
