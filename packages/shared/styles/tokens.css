@@ -115,6 +115,9 @@
   --ds-shadow-lg: 0 10px 15px oklch(0 0 0 / 0.06), 0 4px 6px oklch(0 0 0 / 0.04);
   --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.08), 0 8px 10px oklch(0 0 0 / 0.04);
 
+  /* Alias — packages/ui components reference this; apps can override */
+  --color-primary: var(--ds-accent);
+
   /* Motion */
   --ds-duration-fast: 120ms;
   --ds-duration-base: 200ms;

@@ -98,8 +98,9 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
               left: dropdownRect.left,
               width: dropdownRect.width,
               zIndex: 9999,
+              backgroundColor: "var(--ds-input-bg, #ffffff)",
             }}
-            className="bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
+            className="border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
               {REGION_OPTIONS.map(({ code, flag, name }) => {
