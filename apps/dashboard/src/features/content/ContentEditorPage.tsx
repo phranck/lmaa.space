@@ -89,6 +89,13 @@ export function ContentEditorPage() {
   const contentRef = useRef<string>("");
   const [sourceFontSize, setSourceFontSize] = useState(loadFontSize);
 
+  // Reset stale content when navigating between pages — prevents Cmd+S saving
+  // the previous page's content into the newly loaded page's slug.
+  useEffect(() => {
+    contentRef.current = "";
+    setSaved(false);
+  }, [slug]);
+
   // Metadata editing state
   const [editingSlug, setEditingSlug] = useState(false);
   const [editSlugValue, setEditSlugValue] = useState("");
