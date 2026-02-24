@@ -22,7 +22,7 @@ export function SuggestPage() {
     title: "Shop vorschlagen",
     description:
       "Kennst du einen fairen Online-Shop? Schlage ihn für lmaa.space vor und hilf der Community.",
-    canonicalPath: "/vorschlagen",
+    canonicalPath: "/suggestion",
   });
 
   const { data: categories = [] } = useCategories();

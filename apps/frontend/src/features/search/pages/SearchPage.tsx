@@ -46,7 +46,7 @@ export function SearchPage() {
               Vielleicht ist dieser Shop noch nicht in der Liste?
             </p>
             <Link
-              to="/vorschlagen"
+              to="/suggestion"
               className="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
             >
               Shop vorschlagen

@@ -103,7 +103,7 @@ export function CategoryPage() {
             <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
               <p className="text-stone-500 mb-5">Noch keine Shops in dieser Kategorie.</p>
               <Link
-                to="/vorschlagen"
+                to="/suggestion"
                 className="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
               >
                 Ersten Shop vorschlagen

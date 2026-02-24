@@ -113,7 +113,7 @@ export function HomePage() {
             Hilf der Community und schlage deinen Shop vor. Schnell und ohne Anmeldung.
           </p>
           <a
-            href="/vorschlagen"
+            href="/suggestion"
             className="inline-block px-7 py-3 bg-stone-900 text-white rounded-xl font-medium text-sm hover:bg-stone-800 transition-colors"
           >
             Shop vorschlagen
