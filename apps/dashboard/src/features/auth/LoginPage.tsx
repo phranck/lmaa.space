@@ -30,7 +30,12 @@ export function LoginPage() {
           <img
             src="/logo.png"
             alt="lmaa.space"
-            style={{ width: 120, height: 120 }}
+            style={{
+              width: 120,
+              height: 120,
+              filter:
+                "brightness(0) saturate(100%) invert(64%) sepia(50%) saturate(400%) hue-rotate(72deg) brightness(90%)",
+            }}
             className="mx-auto"
           />
           <p className="text-sm text-[var(--ds-text-muted)] mt-1">Admin-Bereich</p>

@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { NavId, NavItem } from "@lmaa/shared";
+import type { NavId } from "@lmaa/shared";
 import { useEffect, useState } from "react";
 import {
   SFLine3Horizontal,
