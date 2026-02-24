@@ -37,16 +37,8 @@ export function CategoriesPage() {
           value={viewMode}
           onChange={changeViewMode}
           options={[
-            {
-              value: "list" as const,
-              label: "Listenansicht",
-              icon: <SFListBullet className="w-4 h-4" />,
-            },
-            {
-              value: "grid" as const,
-              label: "Kachelansicht",
-              icon: <SFSquareGrid2x2Fill className="w-4 h-4" />,
-            },
+            { value: "list" as const, icon: <SFListBullet className="w-4 h-4" /> },
+            { value: "grid" as const, icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },
           ]}
         />
 
