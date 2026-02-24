@@ -174,14 +174,13 @@ export function ContentEditorPage() {
       diffSourcePlugin({ viewMode: loadViewMode(), codeMirrorExtensions: [sourceKeymap] }),
       realmPlugin({
         postInit(realm) {
-          let skip = true;
-          realm.sub(viewMode$, (mode) => {
-            if (skip) {
-              skip = false;
-              return;
-            }
-            localStorage.setItem(VIEW_MODE_KEY, mode);
-          });
+          // Defer subscription past initialization so we only catch
+          // user-triggered view mode changes, not internal init emissions.
+          setTimeout(() => {
+            realm.sub(viewMode$, (mode) => {
+              localStorage.setItem(VIEW_MODE_KEY, mode);
+            });
+          }, 0);
         },
       })(),
       toolbarPlugin({
