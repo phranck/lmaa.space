@@ -316,6 +316,9 @@ async function main() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_nav_items_nav ON nav_items(nav_id)`;
 
+  // Rename legacy slug 'about' → 'ueber-uns' to match the canonical URL
+  await sql`UPDATE content_pages SET slug = 'ueber-uns' WHERE slug = 'about'`;
+
   // Migrate submissions.region TEXT → JSONB
   await sql`
     DO $do$ BEGIN

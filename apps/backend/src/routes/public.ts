@@ -277,10 +277,14 @@ publicRoutes.get("/nav/:navId", async (c) => {
   return c.json({ data: rows });
 });
 
-// GET /api/content/:slug
+// GET /api/content/:slug  (published pages only)
 publicRoutes.get("/content/:slug", async (c) => {
   const slug = c.req.param("slug");
-  const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug)).limit(1);
+  const [page] = await db
+    .select()
+    .from(contentPages)
+    .where(and(eq(contentPages.slug, slug), eq(contentPages.status, "published")))
+    .limit(1);
   if (!page) return c.json({ error: { message: "Not found" } }, 404);
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
   return c.json({ data: page });
