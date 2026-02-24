@@ -1,3 +1,4 @@
+// Multi-select component based on cmdk + Radix Popover
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import {
   Command,
