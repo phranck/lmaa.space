@@ -29,6 +29,10 @@ import {
 } from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import { getCacheEntry, setCacheEntry, invalidateCache, getCacheStats } from "../middleware/cache.js";
+import {
+  sendDeadLinkReportNotification,
+  sendNewSubmissionNotification,
+} from "../services/email.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
 const SHOPS_CACHE_KEY = "shops:all";
@@ -68,6 +72,17 @@ publicRoutes.get("/categories", async (c) => {
 
   c.header("Cache-Control", "private, max-age=30");
   return c.json({ data: rows });
+});
+
+// GET /api/stats – unique active shop count
+publicRoutes.get("/stats", async (c) => {
+  const [{ total }] = await db
+    .select({ total: count(shops.id) })
+    .from(shops)
+    .where(eq(shops.isActive, true));
+
+  c.header("Cache-Control", "public, max-age=60");
+  return c.json({ data: { shopCount: total } });
 });
 
 // GET /api/categories/:slug
@@ -248,6 +263,13 @@ publicRoutes.post(
         .values(body.categoryIds.map((cid) => ({ submissionId: submission.id, categoryId: cid })));
     }
 
+    sendNewSubmissionNotification(
+      body.shopName,
+      body.shopUrl,
+      body.region.length > 0 ? body.region : undefined,
+      body.submitterNote ?? undefined,
+    ).catch(() => {});
+
     return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
   },
 );
@@ -311,13 +333,24 @@ publicRoutes.post(
       return c.json({ error: { message: "Invalid shop id" } }, 400);
     }
 
-    const [shop] = await db.select({ id: shops.id }).from(shops).where(eq(shops.id, id)).limit(1);
+    const [shop] = await db
+      .select({ id: shops.id, name: shops.name, url: shops.url })
+      .from(shops)
+      .where(eq(shops.id, id))
+      .limit(1);
     if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
 
     const ip = c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip") ?? "unknown";
     const ipHash = createHash("sha256").update(ip).digest("hex");
 
     await db.insert(deadLinkReports).values({ shopId: id, ipHash });
+
+    const [{ reportCount }] = await db
+      .select({ reportCount: count(deadLinkReports.id) })
+      .from(deadLinkReports)
+      .where(eq(deadLinkReports.shopId, id));
+
+    sendDeadLinkReportNotification(shop.name, shop.url, reportCount).catch(() => {});
 
     return c.json({ data: { message: "Danke für deinen Hinweis!" } });
   },
