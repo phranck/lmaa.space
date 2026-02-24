@@ -28,8 +28,8 @@
   --ds-brand-text: var(--ds-color-neutral-800);
 
   /* Buttons: muted amber — reduced chroma for a softer, less vivid look */
-  --ds-btn-primary-bg: #7fc76a;
-  --ds-btn-primary-hover: #6db558;
+  --ds-btn-primary-bg: #6db558;
+  --ds-btn-primary-hover: #5ea349;
   --ds-btn-primary-fg: oklch(1 0 0);
 
   /* Segment controls (ThemeToggle, view toggle, tab switcher) */
@@ -159,8 +159,8 @@
 
 /* Backward-compatible aliases for existing component classes */
 :root {
-  --color-primary: #7fc76a;
-  --color-primary-light: #6db558;
+  --color-primary: #6db558;
+  --color-primary-light: #5ea349;
   --color-background: var(--ds-bg);
   --color-surface: var(--ds-surface);
   --color-text: var(--ds-text);
