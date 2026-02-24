@@ -133,7 +133,7 @@
   /* Surfaces — GitHub Primer dark_dimmed (exact @primer/primitives@11.4.0)
      bgColor-default #212830 · bgColor-inset #151b23 · card-bgColor #262c36
      overlay #2a313c · bgColor-emphasis #3d444d                           */
-  --ds-bg:          #212830; /* bgColor-default */
+  --ds-bg:          #1d2125; /* page background */
   --ds-bg-elevated: #2a313c; /* bgColor-overlay / control-bgColor */
   --ds-surface:     #262c36; /* card-bgColor */
   --ds-surface-alt: #151b23; /* bgColor-inset / dashboard-bgColor */
