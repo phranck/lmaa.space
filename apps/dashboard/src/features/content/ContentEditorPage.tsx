@@ -185,7 +185,7 @@ export function ContentEditorPage() {
             type="button"
             onClick={handleSave}
             disabled={save.isPending}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-accent-hover)] disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-60 transition-colors"
           >
             <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
             {save.isPending ? "Wird gespeichert…" : saved ? "Gespeichert" : "Speichern"}

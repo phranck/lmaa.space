@@ -22,7 +22,7 @@ export function SegmentedControl<T extends string>({
     : `flex items-center gap-2 ${size === "sm" ? "px-3 py-1" : "px-4 py-1.5"} rounded-md ${size === "sm" ? "text-xs" : "text-sm"} font-medium transition-colors`;
 
   return (
-    <div className="flex items-center gap-0.5 rounded-lg bg-[var(--ds-segment-bg)] p-0.5">
+    <div className="flex items-center gap-0.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-segment-bg)] p-0.5">
       {options.map((opt) => (
         <button
           key={opt.value}

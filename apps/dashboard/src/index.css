@@ -266,3 +266,17 @@ body {
   font-size: var(--source-font-size, 13px);
   line-height: 1.7;
 }
+
+/* Block cursor — red, blinking (CodeMirror source mode) */
+.mdxeditor .cm-cursor,
+.mdxeditor .cm-dropCursor {
+  border-left: none !important;
+  background-color: #dc2626;
+  width: 0.55em;
+  margin-left: 0;
+}
+
+/* Rich-text mode: red caret */
+.mdxeditor [contenteditable] {
+  caret-color: #dc2626;
+}
