@@ -8,6 +8,7 @@ import {
   serial,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const categories = pgTable("categories", {
@@ -145,10 +146,32 @@ export const contentPages = pgTable("content_pages", {
   slug: text("slug").primaryKey(),
   title: text("title").notNull(),
   content: text("content").notNull().default(""),
+  status: text("status").$type<"draft" | "published" | "hidden">().notNull().default("draft"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at").defaultNow(),
+  updatedBy: integer("updated_by").references(() => adminUsers.id, { onDelete: "set null" }),
 });
 
+export const navItems = pgTable(
+  "nav_items",
+  {
+    id: serial("id").primaryKey(),
+    navId: text("nav_id").$type<"header" | "footer">().notNull(),
+    pageSlug: text("page_slug")
+      .notNull()
+      .references(() => contentPages.slug, { onDelete: "cascade" }),
+    position: integer("position").notNull().default(0),
+    label: text("label"),
+  },
+  (table) => [
+    index("idx_nav_items_nav").on(table.navId),
+    unique("uniq_nav_page").on(table.navId, table.pageSlug),
+  ],
+);
+
 export type ContentPage = typeof contentPages.$inferSelect;
+export type NavItem = typeof navItems.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type CategoryInsert = typeof categories.$inferInsert;
 export type Shop = typeof shops.$inferSelect;

@@ -2,6 +2,7 @@ import "@mdxeditor/editor/style.css";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import {
   useAdminContentPage,
+  usePatchContentPage,
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
 import {
@@ -38,16 +39,10 @@ import {
   toolbarPlugin,
   viewMode$,
 } from "@mdxeditor/editor";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { InternalLinkPicker } from "@/features/content/InternalLinkPicker.tsx";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import { SFMinus, SFPlus, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
-
-const PAGE_LABELS: Record<string, string> = {
-  about: "Über uns",
-  impressum: "Impressum",
-  datenschutz: "Datenschutzerklärung",
-  aufnahmekriterien: "Aufnahmekriterien",
-};
 
 const VIEW_MODE_KEY = "content-editor-view-mode";
 const FONT_SIZE_KEY = "content-editor-source-font-size";
@@ -68,13 +63,34 @@ function loadFontSize(): number {
     : Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, parsed));
 }
 
+function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function ContentEditorPage() {
   const { slug = "" } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { data: page, isLoading } = useAdminContentPage(slug);
   const save = useSaveContentPage(slug);
+  const patch = usePatchContentPage(slug);
+
   const [saved, setSaved] = useState(false);
   const contentRef = useRef<string>("");
   const [sourceFontSize, setSourceFontSize] = useState(loadFontSize);
+
+  // Metadata editing state
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [editSlugValue, setEditSlugValue] = useState("");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editTitleValue, setEditTitleValue] = useState("");
+  const [patchError, setPatchError] = useState<string | null>(null);
 
   const handleChange = useCallback((markdown: string) => {
     contentRef.current = markdown;
@@ -87,6 +103,20 @@ export function ContentEditorPage() {
     });
   };
 
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        handleSaveRef.current();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const changeFontSize = (delta: number) => {
     setSourceFontSize((prev) => {
       const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, prev + delta));
@@ -95,7 +125,17 @@ export function ContentEditorPage() {
     });
   };
 
-  const title = PAGE_LABELS[slug] ?? slug;
+  async function handlePatch(data: { title?: string; slug?: string; status?: string }) {
+    setPatchError(null);
+    try {
+      const updated = await patch.mutateAsync(data);
+      if (data.slug && data.slug !== slug) {
+        navigate(`/seiten/${updated.slug}`, { replace: true });
+      }
+    } catch (err) {
+      setPatchError(err instanceof Error ? err.message : "Fehler beim Speichern");
+    }
+  }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: slug from useParams() is reactive; plugins must reinit on route change
   const plugins = useMemo(
@@ -143,12 +183,22 @@ export function ContentEditorPage() {
             <InsertThematicBreak />
             <InsertCodeBlock />
             <InsertAdmonition />
+            <Separator />
+            <InternalLinkPicker />
           </DiffSourceToggleWrapper>
         ),
       }),
     ],
     [slug],
   );
+
+  const title = page?.title ?? slug;
+
+  const statusLabel: Record<string, string> = {
+    draft: "Entwurf",
+    published: "Veröffentlicht",
+    hidden: "Versteckt",
+  };
 
   return (
     <>
@@ -192,6 +242,130 @@ export function ContentEditorPage() {
           </button>
         </div>
       </PageHeader>
+
+      {/* Metadata bar */}
+      {page && (
+        <div className="border-b border-[var(--ds-border)] px-6 py-3 flex flex-wrap items-center gap-6 text-xs text-[var(--ds-text-muted)] bg-[var(--ds-surface)]">
+          {/* Title */}
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Titel:</span>
+            {editingTitle ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handlePatch({ title: editTitleValue });
+                  setEditingTitle(false);
+                }}
+                className="flex items-center gap-1"
+              >
+                <input
+                  type="text"
+                  value={editTitleValue}
+                  onChange={(e) => setEditTitleValue(e.target.value)}
+                  autoFocus
+                  className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none w-48"
+                />
+                <button type="submit" className="text-[var(--color-primary)] hover:underline">
+                  OK
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingTitle(false)}
+                  className="hover:underline"
+                >
+                  Abbrechen
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditTitleValue(page.title);
+                  setEditingTitle(true);
+                }}
+                className="hover:underline text-[var(--ds-text)]"
+              >
+                {page.title}
+              </button>
+            )}
+          </div>
+
+          {/* Slug */}
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Slug:</span>
+            {editingSlug ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handlePatch({ slug: editSlugValue });
+                  setEditingSlug(false);
+                }}
+                className="flex items-center gap-1"
+              >
+                <span className="text-[var(--ds-text-muted)]">/</span>
+                <input
+                  type="text"
+                  value={editSlugValue}
+                  onChange={(e) => setEditSlugValue(e.target.value)}
+                  onBlur={(e) => setEditSlugValue(slugify(e.target.value))}
+                  autoFocus
+                  pattern="[a-z0-9-]+"
+                  className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none font-mono w-40"
+                />
+                <button type="submit" className="text-[var(--color-primary)] hover:underline">
+                  OK
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingSlug(false)}
+                  className="hover:underline"
+                >
+                  Abbrechen
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditSlugValue(page.slug);
+                  setEditingSlug(true);
+                }}
+                className="hover:underline font-mono text-[var(--ds-text)]"
+              >
+                /{page.slug}
+              </button>
+            )}
+          </div>
+
+          {/* Status */}
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Status:</span>
+            <select
+              value={page.status}
+              onChange={(e) => handlePatch({ status: e.target.value })}
+              className="text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded px-1.5 py-0.5 text-[var(--ds-text)] focus:outline-none cursor-pointer"
+            >
+              <option value="draft">Entwurf</option>
+              <option value="published">Veröffentlicht</option>
+              <option value="hidden">Versteckt</option>
+            </select>
+          </div>
+
+          {/* Audit info */}
+          {page.createdByUsername && (
+            <div className="ml-auto">
+              Erstellt von <span className="text-[var(--ds-text)]">{page.createdByUsername}</span>
+              {page.updatedByUsername && (
+                <> · Geändert von <span className="text-[var(--ds-text)]">{page.updatedByUsername}</span></>
+              )}
+            </div>
+          )}
+
+          {patchError && (
+            <span className="text-red-500">{patchError}</span>
+          )}
+        </div>
+      )}
 
       <div
         className="flex-1 overflow-hidden"

@@ -295,6 +295,27 @@ async function main() {
   await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin'`;
   await sql`UPDATE admin_users SET role = 'owner' WHERE is_owner = true AND role = 'admin'`;
 
+  // Mini CMS: add status + audit columns to content_pages
+  await sql`ALTER TABLE content_pages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published'`;
+  await sql`ALTER TABLE content_pages ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL`;
+  await sql`ALTER TABLE content_pages ADD COLUMN IF NOT EXISTS created_by INTEGER REFERENCES admin_users(id) ON DELETE SET NULL`;
+  await sql`ALTER TABLE content_pages ADD COLUMN IF NOT EXISTS updated_by INTEGER REFERENCES admin_users(id) ON DELETE SET NULL`;
+  // Backfill: mark pre-existing seeded pages as published
+  await sql`UPDATE content_pages SET status = 'published' WHERE status = 'draft'`;
+
+  // Mini CMS: nav_items table (ON UPDATE CASCADE for slug renames)
+  await sql`
+    CREATE TABLE IF NOT EXISTS nav_items (
+      id        SERIAL PRIMARY KEY,
+      nav_id    TEXT NOT NULL,
+      page_slug TEXT NOT NULL REFERENCES content_pages(slug) ON DELETE CASCADE ON UPDATE CASCADE,
+      position  INTEGER NOT NULL DEFAULT 0,
+      label     TEXT,
+      UNIQUE(nav_id, page_slug)
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_nav_items_nav ON nav_items(nav_id)`;
+
   // Migrate submissions.region TEXT → JSONB
   await sql`
     DO $do$ BEGIN

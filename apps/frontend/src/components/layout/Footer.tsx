@@ -1,7 +1,22 @@
+import { useNav } from "@/hooks/useNav.ts";
 import { Link } from "react-router";
 import { KoFiIcon } from "../common/KoFiIcon.tsx";
 
+const FALLBACK_NAV = [
+  { label: "Über uns", to: "/ueber-uns" },
+  { label: "Shop vorschlagen", to: "/vorschlagen" },
+  { label: "Impressum", to: "/impressum" },
+  { label: "Datenschutz", to: "/datenschutz" },
+];
+
 export function Footer() {
+  const { data: navItems } = useNav("footer");
+
+  const footerLinks =
+    navItems && navItems.length > 0
+      ? navItems.map((item) => ({ label: item.label ?? item.pageTitle, to: `/${item.pageSlug}` }))
+      : FALLBACK_NAV;
+
   return (
     <footer className="mt-auto bg-stone-900 text-stone-300">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -22,38 +37,13 @@ export function Footer() {
               Navigation
             </p>
             <ul className="space-y-2.5 text-sm">
-              <li>
-                <Link
-                  to="/ueber-uns"
-                  className="text-stone-400 hover:text-amber-400 transition-colors"
-                >
-                  Über uns
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/vorschlagen"
-                  className="text-stone-400 hover:text-amber-400 transition-colors"
-                >
-                  Shop vorschlagen
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/impressum"
-                  className="text-stone-400 hover:text-amber-400 transition-colors"
-                >
-                  Impressum
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/datenschutz"
-                  className="text-stone-400 hover:text-amber-400 transition-colors"
-                >
-                  Datenschutz
-                </Link>
-              </li>
+              {footerLinks.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to} className="text-stone-400 hover:text-amber-400 transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

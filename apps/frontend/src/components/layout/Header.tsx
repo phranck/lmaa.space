@@ -1,4 +1,5 @@
 import { DonateButton } from "@/components/common/DonateButton.tsx";
+import { useNav } from "@/hooks/useNav.ts";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
 
@@ -8,9 +9,17 @@ const navLinkClass = (isActive: boolean) =>
 const mobileNavLinkClass = (isActive: boolean) =>
   `block px-3 py-2 rounded-md font-serif text-base transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"}`;
 
+const FALLBACK_NAV = [{ label: "Über uns", to: "/ueber-uns" }];
+
 export function Header() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: navItems } = useNav("header");
+
+  const dynamicLinks =
+    navItems && navItems.length > 0
+      ? navItems.map((item) => ({ label: item.label ?? item.pageTitle, to: `/${item.pageSlug}` }))
+      : FALLBACK_NAV;
 
   function handleSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,9 +48,15 @@ export function Header() {
               <NavLink to="/vorschlagen" className={({ isActive }) => navLinkClass(isActive)}>
                 Shop vorschlagen
               </NavLink>
-              <NavLink to="/ueber-uns" className={({ isActive }) => navLinkClass(isActive)}>
-                Über uns
-              </NavLink>
+              {dynamicLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) => navLinkClass(isActive)}
+                >
+                  {link.label}
+                </NavLink>
+              ))}
             </div>
           </div>
 
@@ -149,13 +164,16 @@ export function Header() {
               >
                 Shop vorschlagen
               </NavLink>
-              <NavLink
-                to="/ueber-uns"
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) => mobileNavLinkClass(isActive)}
-              >
-                Über uns
-              </NavLink>
+              {dynamicLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className={({ isActive }) => mobileNavLinkClass(isActive)}
+                >
+                  {link.label}
+                </NavLink>
+              ))}
               <div className="pt-1 px-1">
                 <DonateButton />
               </div>
