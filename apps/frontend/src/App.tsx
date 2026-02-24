@@ -23,6 +23,7 @@ export default function App() {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: HSStaticMethods is a global, not a React dependency
   useEffect(() => {
+    window.scrollTo(0, 0);
     window.HSStaticMethods?.autoInit?.();
   }, [pathname]);
 
