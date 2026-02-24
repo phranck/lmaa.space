@@ -9,6 +9,10 @@ server {
         proxy_request_buffering off;
     }
 
+    location /uploads/ {
+        proxy_pass http://backend:3000;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
     }
