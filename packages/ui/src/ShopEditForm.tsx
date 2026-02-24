@@ -95,19 +95,11 @@ export function ShopEditForm({
             rel="noopener noreferrer"
             aria-label="URL öffnen"
             tabIndex={value.url ? 0 : -1}
-            className={
-              isDashboard
-                ? `shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
-                    value.url
-                      ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
-                      : "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
-                  }`
-                : `shrink-0 flex items-center justify-center w-9 transition-colors ${
-                    value.url
-                      ? "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
-                      : "text-[var(--ds-text-subtle)] opacity-30 pointer-events-none"
-                  }`
-            }
+            className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
+              value.url
+                ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
+                : "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
+            }`}
           >
             <LuExternalLink size={14} />
           </a>
