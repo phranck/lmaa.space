@@ -19,6 +19,16 @@ export function ShopCard({ shop }: ShopCardProps) {
     }
   })();
 
+  const shopUrl = (() => {
+    try {
+      const u = new URL(shop.url);
+      u.searchParams.set("ref", "lmaa.space");
+      return u.toString();
+    } catch {
+      return shop.url;
+    }
+  })();
+
   async function handleReport() {
     setReporting(true);
     try {
@@ -62,7 +72,7 @@ export function ShopCard({ shop }: ShopCardProps) {
             <p className="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
           </div>
           <a
-            href={shop.url}
+            href={shopUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
