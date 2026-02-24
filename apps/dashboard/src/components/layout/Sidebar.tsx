@@ -52,6 +52,7 @@ const CONTENT_GROUP: NavGroup = {
 interface SidebarProps {
   username?: string;
   email?: string;
+  avatarUrl?: string | null;
   isOwner?: boolean;
   onLogout: () => void;
   onItemClick?: () => void;
@@ -89,7 +90,7 @@ function ContentGroup({ group, onItemClick }: { group: NavGroup; onItemClick?: (
   );
 }
 
-export function Sidebar({ username, email, isOwner, onLogout, onItemClick }: SidebarProps) {
+export function Sidebar({ username, email, avatarUrl, isOwner, onLogout, onItemClick }: SidebarProps) {
   const navItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
 
   return (
@@ -110,7 +111,7 @@ export function Sidebar({ username, email, isOwner, onLogout, onItemClick }: Sid
         <ContentGroup group={CONTENT_GROUP} onItemClick={onItemClick} />
       </nav>
 
-      <SidebarFooter username={username} email={email} onLogout={onLogout} />
+      <SidebarFooter username={username} email={email} avatarUrl={avatarUrl} onLogout={onLogout} />
     </>
   );
 }

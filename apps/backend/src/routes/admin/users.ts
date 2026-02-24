@@ -1,28 +1,42 @@
+import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
+import sharp from "sharp";
+import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers, sessions } from "../../db/schema.js";
-import { parseId } from "../../lib/validate.js";
+import { detectImageType, parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAuth, requireOwner } from "../../middleware/auth.js";
 import { hashPassword, setupSchema } from "../../services/auth.js";
 
 export const usersRoutes = new Hono<{ Variables: AuthVariables }>();
 
-// Admin user management (owner only)
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+const USER_FIELDS = {
+  id: adminUsers.id,
+  username: adminUsers.username,
+  email: adminUsers.email,
+  isOwner: adminUsers.isOwner,
+  avatarUrl: adminUsers.avatarUrl,
+  createdAt: adminUsers.createdAt,
+  lastLoginAt: adminUsers.lastLoginAt,
+};
+
+/** Returns true if the requester may modify the target user. */
+function canModify(adminId: number, isOwner: boolean, targetId: number): boolean {
+  return isOwner || adminId === targetId;
+}
+
+// ─── List users (owner only) ──────────────────────────────────────────────────
+
 usersRoutes.get("/users", requireAuth, requireOwner, async (c) => {
-  const users = await db
-    .select({
-      id: adminUsers.id,
-      username: adminUsers.username,
-      email: adminUsers.email,
-      isOwner: adminUsers.isOwner,
-      createdAt: adminUsers.createdAt,
-      lastLoginAt: adminUsers.lastLoginAt,
-    })
-    .from(adminUsers);
+  const users = await db.select(USER_FIELDS).from(adminUsers);
   return c.json({ data: users });
 });
+
+// ─── Create user (owner only) ─────────────────────────────────────────────────
 
 usersRoutes.post(
   "/users",
@@ -40,6 +54,190 @@ usersRoutes.post(
   },
 );
 
+// ─── Update user profile (self or owner) ─────────────────────────────────────
+
+const updateUserSchema = z.object({
+  username: z.string().min(1).max(64).optional(),
+  email: z.string().email().optional(),
+  password: z.string().min(8).optional(),
+});
+
+usersRoutes.patch(
+  "/users/:id",
+  requireAuth,
+  zValidator("json", updateUserSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+
+    const adminId = c.get("adminId");
+    const isOwner = c.get("isOwner");
+    if (!canModify(adminId, isOwner, id)) {
+      return c.json({ error: { message: "Forbidden" } }, 403);
+    }
+
+    const { username, email, password } = c.req.valid("json");
+    const updates: Partial<typeof adminUsers.$inferInsert> = {};
+    if (username !== undefined) updates.username = username;
+    if (email !== undefined) updates.email = email;
+    if (password !== undefined) updates.passwordHash = await hashPassword(password);
+
+    if (Object.keys(updates).length === 0) {
+      return c.json({ error: { message: "Nothing to update" } }, 400);
+    }
+
+    const [updated] = await db
+      .update(adminUsers)
+      .set(updates)
+      .where(eq(adminUsers.id, id))
+      .returning(USER_FIELDS);
+
+    return c.json({ data: updated });
+  },
+);
+
+// ─── Upload avatar (self or owner) ───────────────────────────────────────────
+
+usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+
+  const adminId = c.get("adminId");
+  const isOwner = c.get("isOwner");
+  if (!canModify(adminId, isOwner, id)) {
+    return c.json({ error: { message: "Forbidden" } }, 403);
+  }
+
+  const [user] = await db.select(USER_FIELDS).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
+  if (!user) return c.json({ error: { message: "User not found" } }, 404);
+
+  const formData = await c.req.formData();
+  const file = formData.get("avatar");
+  if (!(file instanceof File)) return c.json({ error: { message: "No avatar file provided" } }, 400);
+
+  if (file.size > 5 * 1024 * 1024) {
+    return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
+  }
+
+  const rawBuffer = Buffer.from(await file.arrayBuffer());
+  const detectedType = detectImageType(rawBuffer);
+  if (!detectedType) {
+    return c.json({ error: { message: "Invalid image content (only JPEG, PNG or WebP)" } }, 400);
+  }
+
+  // Resize to 256x256 cover, convert to WebP
+  const resized = await sharp(rawBuffer).resize(256, 256, { fit: "cover" }).webp().toBuffer();
+
+  const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+  const filename = `avatar-${id}.webp`;
+  const fullPath = `${imagePath}/${filename}`;
+
+  // Delete old local avatar if present
+  if (user.avatarUrl?.startsWith("/uploads/avatar-")) {
+    const oldFilename = user.avatarUrl.replace("/uploads/", "");
+    try {
+      await fs.promises.unlink(`${imagePath}/${oldFilename}`);
+    } catch {
+      /* File may not exist */
+    }
+  }
+
+  await fs.promises.mkdir(imagePath, { recursive: true });
+  await fs.promises.writeFile(fullPath, resized);
+
+  const avatarUrl = `/uploads/${filename}`;
+  const [updated] = await db
+    .update(adminUsers)
+    .set({ avatarUrl })
+    .where(eq(adminUsers.id, id))
+    .returning(USER_FIELDS);
+
+  return c.json({ data: updated });
+});
+
+// ─── Set Gravatar as avatar (self or owner) ───────────────────────────────────
+
+const gravatarSchema = z.object({
+  gravatarUrl: z
+    .string()
+    .url()
+    .refine((u) => u.startsWith("https://www.gravatar.com/avatar/"), "Must be a Gravatar URL"),
+});
+
+usersRoutes.patch(
+  "/users/:id/avatar",
+  requireAuth,
+  zValidator("json", gravatarSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+
+    const adminId = c.get("adminId");
+    const isOwner = c.get("isOwner");
+    if (!canModify(adminId, isOwner, id)) {
+      return c.json({ error: { message: "Forbidden" } }, 403);
+    }
+
+    const { gravatarUrl } = c.req.valid("json");
+
+    // Clean up old local avatar file if present
+    const [user] = await db.select({ avatarUrl: adminUsers.avatarUrl }).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
+    if (user?.avatarUrl?.startsWith("/uploads/avatar-")) {
+      const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+      const oldFilename = user.avatarUrl.replace("/uploads/", "");
+      try {
+        await fs.promises.unlink(`${imagePath}/${oldFilename}`);
+      } catch {
+        /* File may not exist */
+      }
+    }
+
+    const [updated] = await db
+      .update(adminUsers)
+      .set({ avatarUrl: gravatarUrl })
+      .where(eq(adminUsers.id, id))
+      .returning(USER_FIELDS);
+
+    return c.json({ data: updated });
+  },
+);
+
+// ─── Delete avatar (self or owner) ───────────────────────────────────────────
+
+usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+
+  const adminId = c.get("adminId");
+  const isOwner = c.get("isOwner");
+  if (!canModify(adminId, isOwner, id)) {
+    return c.json({ error: { message: "Forbidden" } }, 403);
+  }
+
+  const [user] = await db.select({ avatarUrl: adminUsers.avatarUrl }).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
+  if (!user) return c.json({ error: { message: "User not found" } }, 404);
+
+  if (user.avatarUrl?.startsWith("/uploads/avatar-")) {
+    const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+    const oldFilename = user.avatarUrl.replace("/uploads/", "");
+    try {
+      await fs.promises.unlink(`${imagePath}/${oldFilename}`);
+    } catch {
+      /* File may not exist */
+    }
+  }
+
+  const [updated] = await db
+    .update(adminUsers)
+    .set({ avatarUrl: null })
+    .where(eq(adminUsers.id, id))
+    .returning(USER_FIELDS);
+
+  return c.json({ data: updated });
+});
+
+// ─── Delete user (owner only) ─────────────────────────────────────────────────
+
 usersRoutes.delete("/users/:id", requireAuth, requireOwner, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
@@ -47,6 +245,18 @@ usersRoutes.delete("/users/:id", requireAuth, requireOwner, async (c) => {
 
   if (id === adminId) {
     return c.json({ error: { message: "Cannot delete yourself" } }, 400);
+  }
+
+  // Clean up local avatar file if present
+  const [user] = await db.select({ avatarUrl: adminUsers.avatarUrl }).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
+  if (user?.avatarUrl?.startsWith("/uploads/avatar-")) {
+    const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+    const oldFilename = user.avatarUrl.replace("/uploads/", "");
+    try {
+      await fs.promises.unlink(`${imagePath}/${oldFilename}`);
+    } catch {
+      /* File may not exist */
+    }
   }
 
   await db.transaction(async (tx) => {

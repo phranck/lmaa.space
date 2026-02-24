@@ -24,12 +24,14 @@
     "react": "^19.2.4",
     "react-email": "^5.2.8",
     "resend": "^4.2.0",
+    "sharp": "^0.34.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@react-email/preview-server": "^5.2.8",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.0.0",
+    "@types/sharp": "^0.31.1",
     "drizzle-kit": "^0.30.4",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",

@@ -9,12 +9,16 @@ import {
 } from "@/features/users/hooks/useAdminUsers.ts";
 import type { CreateUserFormData } from "@/features/users/hooks/useAdminUsers.ts";
 import { useState } from "react";
+import { SFSquareAndPencil } from "sf-symbols-lib/monochrome";
+import { UserAvatar } from "./UserAvatar.tsx";
+import { UserEditCard } from "./UserEditCard.tsx";
 
 export function UsersPage() {
   const { user: me } = useAuth();
   const [form, setForm] = useState<CreateUserFormData>(EMPTY_CREATE_USER_FORM);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
 
   const { data: users = [], isLoading } = useAdminUsers();
   const createMutation = useCreateUser();
@@ -132,9 +136,7 @@ export function UsersPage() {
             key={user.id}
             className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] px-5 py-4 flex items-center gap-3"
           >
-            <div className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center text-sm font-bold shrink-0">
-              {user.username[0].toUpperCase()}
-            </div>
+            <UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
@@ -151,15 +153,27 @@ export function UsersPage() {
               </div>
               <p className="text-sm text-[var(--ds-text-subtle)]">{user.email}</p>
             </div>
-            {!user.isOwner && user.id !== me?.id && (
-              <button
-                type="button"
-                onClick={() => setDeleteId(user.id)}
-                className="px-3 py-1.5 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors shrink-0"
-              >
-                Entfernen
-              </button>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {(me?.isOwner || user.id === me?.id) && (
+                <button
+                  type="button"
+                  onClick={() => setEditingUserId(user.id)}
+                  className="w-8 h-8 flex items-center justify-center rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+                  title="Bearbeiten"
+                >
+                  <SFSquareAndPencil className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {!user.isOwner && user.id !== me?.id && (
+                <button
+                  type="button"
+                  onClick={() => setDeleteId(user.id)}
+                  className="px-3 py-1.5 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                >
+                  Entfernen
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -181,6 +195,14 @@ export function UsersPage() {
         }}
         onCancel={() => setDeleteId(null)}
       />
+
+      {editingUserId !== null && (
+        <UserEditCard
+          userId={editingUserId}
+          onClose={() => setEditingUserId(null)}
+          onSaved={() => setEditingUserId(null)}
+        />
+      )}
     </div>
   );
 }
