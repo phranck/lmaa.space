@@ -6,6 +6,7 @@ server {
 
     location /api/ {
         proxy_pass http://backend:3000;
+        proxy_request_buffering off;
     }
 
     location / {
