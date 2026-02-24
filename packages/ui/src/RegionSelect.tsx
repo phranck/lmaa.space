@@ -185,7 +185,7 @@ export function RegionSelect({ value, onChange, error, buttonClassName }: Region
           ref={buttonRef}
           type="button"
           onClick={handleToggle}
-          className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
+          className={`w-full flex items-center justify-between px-3 py-2 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
             open
               ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
               : error

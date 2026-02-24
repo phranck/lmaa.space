@@ -14,7 +14,7 @@ type UrlCheckResult =
   | { exists: true; shop: { id: number; name: string; categories: ShopCategory[] } };
 
 const inputClass =
-  "w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-800 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-500 transition-all";
+  "w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
 export function SuggestPage() {
   usePageMeta({
