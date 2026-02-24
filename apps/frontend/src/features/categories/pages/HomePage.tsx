@@ -51,7 +51,7 @@ export function HomePage() {
           <div className="my-8">
             <HeroLogo />
           </div>
-          <h1 className="text-stone-200 text-4xl mb-10 max-w-xl mx-auto leading-relaxed">
+          <h1 className="font-serif text-stone-200 text-4xl mb-10 max-w-xl mx-auto leading-relaxed">
             Liste Möglicher{" "}
             <span style={{ color: "var(--amazon-color)", fontWeight: "bold" }}>Amazon</span>{" "}
             Alternativen
