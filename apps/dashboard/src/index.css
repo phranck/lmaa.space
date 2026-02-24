@@ -141,6 +141,53 @@
   color: #f0f6fc;
 }
 
+/* Image dialog: inputs render inside the popup container, outside .mdxeditor scope */
+.dark .mdxeditor-popup-container input,
+.dark .mdxeditor-popup-container select,
+.dark .mdxeditor-popup-container textarea {
+  background-color: #2a313c !important;
+  border-color: #3d444d !important;
+  color: #f0f6fc !important;
+}
+
+.dark .mdxeditor-popup-container input::placeholder,
+.dark .mdxeditor-popup-container textarea::placeholder {
+  color: #9198a1 !important;
+}
+
+/* Labels and text inside the image dialog */
+.dark .mdxeditor-popup-container label,
+.dark .mdxeditor-popup-container p,
+.dark .mdxeditor-popup-container span {
+  color: #f0f6fc !important;
+}
+
+/* Generic buttons in popup dialogs — neutral by default */
+.dark .mdxeditor-popup-container [role="dialog"] button {
+  background-color: #2a313c !important;
+  border: 1px solid #3d444d !important;
+  color: #f0f6fc !important;
+}
+
+.dark .mdxeditor-popup-container [role="dialog"] button:hover {
+  background-color: #2f3742 !important;
+  border-color: #656c76 !important;
+}
+
+/* Primary / submit button — brand green */
+.dark .mdxeditor-popup-container [role="dialog"] button[type="submit"],
+.dark .mdxeditor-popup-container [role="dialog"] button:last-child {
+  background-color: #5ea349 !important;
+  border-color: #5ea349 !important;
+  color: #ffffff !important;
+}
+
+.dark .mdxeditor-popup-container [role="dialog"] button[type="submit"]:hover,
+.dark .mdxeditor-popup-container [role="dialog"] button:last-child:hover {
+  background-color: #4e8f3c !important;
+  border-color: #4e8f3c !important;
+}
+
 /* Source (CodeMirror) dark mode */
 .dark .mdxeditor .cm-editor {
   background-color: #151b23;
@@ -279,4 +326,16 @@ body {
 /* Rich-text mode: red caret */
 .mdxeditor [contenteditable] {
   caret-color: #dc2626;
+}
+
+/* Rich-text mode: text selection highlight */
+.dark .mdxeditor [contenteditable] ::selection {
+  background-color: rgba(71, 139, 230, 0.35);
+  color: inherit;
+}
+
+/* Source mode (CodeMirror): text selection highlight */
+.dark .mdxeditor .cm-selectionBackground,
+.dark .mdxeditor .cm-focused .cm-selectionBackground {
+  background-color: rgba(71, 139, 230, 0.35) !important;
 }

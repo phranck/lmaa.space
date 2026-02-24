@@ -62,7 +62,7 @@ export function ShopEditForm({
       {/* Name */}
       <div>
         <label htmlFor="sef-name" className={labelClass}>
-          Name
+          Shop-Name
         </label>
         <input
           id="sef-name"
