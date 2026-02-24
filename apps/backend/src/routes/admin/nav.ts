@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { and, asc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
@@ -9,8 +9,10 @@ import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/
 const navItemsSchema = z.object({
   items: z.array(
     z.object({
-      pageSlug: z.string().min(1),
+      pageSlug: z.string().min(1).nullish(),
+      url: z.string().min(1).nullish(),
       label: z.string().max(100).nullish(),
+      target: z.enum(["_self", "_blank"]).default("_self"),
     }),
   ),
 });
@@ -31,11 +33,13 @@ navAdminRoutes.get("/nav/:navId", requireAuth, requireAdmin, async (c) => {
       navId: navItems.navId,
       pageSlug: navItems.pageSlug,
       pageTitle: contentPages.title,
+      url: navItems.url,
+      target: navItems.target,
       label: navItems.label,
       position: navItems.position,
     })
     .from(navItems)
-    .innerJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
+    .leftJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
     .where(eq(navItems.navId, navId))
     .orderBy(asc(navItems.position));
 
@@ -63,7 +67,9 @@ navAdminRoutes.put(
         await tx.insert(navItems).values(
           items.map((item, i) => ({
             navId: navId as "header" | "footer",
-            pageSlug: item.pageSlug,
+            pageSlug: item.pageSlug ?? null,
+            url: item.url ?? null,
+            target: item.target,
             position: i,
             label: item.label ?? null,
           })),
@@ -77,11 +83,13 @@ navAdminRoutes.put(
         navId: navItems.navId,
         pageSlug: navItems.pageSlug,
         pageTitle: contentPages.title,
+        url: navItems.url,
+        target: navItems.target,
         label: navItems.label,
         position: navItems.position,
       })
       .from(navItems)
-      .innerJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
+      .leftJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
       .where(eq(navItems.navId, navId))
       .orderBy(asc(navItems.position));
 

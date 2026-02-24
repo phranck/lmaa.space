@@ -22,11 +22,15 @@ export interface ContentPageSummary {
   updatedByUsername: string | null;
 }
 
+export type NavTarget = "_self" | "_blank";
+
 export interface NavItem {
   id: number;
   navId: NavId;
-  pageSlug: string;
-  pageTitle: string;
+  pageSlug: string | null;
+  pageTitle: string | null;
+  url: string | null;
+  target: NavTarget;
   label: string | null;
   position: number;
 }

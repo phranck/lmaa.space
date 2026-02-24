@@ -21,16 +21,25 @@ import { CSS } from "@dnd-kit/utilities";
 import type { NavId } from "@lmaa/shared";
 import { useEffect, useState } from "react";
 import {
+  SFArrowUpRightSquare,
   SFLine3Horizontal,
   SFPlusCircle,
   SFSquareAndArrowDownFill,
   SFXmark,
 } from "sf-symbols-lib/monochrome";
 
+const STATIC_ROUTES = [
+  { label: "Startseite", url: "/" },
+  { label: "Shop vorschlagen", url: "/vorschlagen" },
+  { label: "Suche", url: "/suche" },
+];
+
 interface NavItemState {
   id: number;
-  pageSlug: string;
-  pageTitle: string;
+  pageSlug: string | null;
+  pageTitle: string | null;
+  url: string | null;
+  target: "_self" | "_blank";
   label: string;
 }
 
@@ -38,10 +47,12 @@ function SortableNavItem({
   item,
   onRemove,
   onLabelChange,
+  onTargetChange,
 }: {
   item: NavItemState;
   onRemove: (id: number) => void;
   onLabelChange: (id: number, label: string) => void;
+  onTargetChange: (id: number, target: "_self" | "_blank") => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -52,6 +63,8 @@ function SortableNavItem({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  const displayUrl = item.url ?? (item.pageSlug ? `/${item.pageSlug}` : "");
 
   return (
     <div
@@ -68,18 +81,36 @@ function SortableNavItem({
       >
         <SFLine3Horizontal className="w-4 h-4" />
       </button>
+
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-[var(--ds-text)] truncate">{item.pageTitle}</div>
-        <div className="text-xs text-[var(--ds-text-muted)] font-mono">/{item.pageSlug}</div>
+        <div className="text-sm font-medium text-[var(--ds-text)] truncate">
+          {item.pageTitle ?? item.url}
+        </div>
+        <div className="text-xs text-[var(--ds-text-muted)] font-mono">{displayUrl}</div>
       </div>
+
       <input
         type="text"
         value={item.label}
         onChange={(e) => onLabelChange(item.id, e.target.value)}
-        placeholder={item.pageTitle}
-        className="w-36 px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-        title="Label-Override (leer = Seitentitel)"
+        placeholder={item.pageTitle ?? item.url ?? ""}
+        className="w-32 px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+        title="Label-Override (leer = Standard)"
       />
+
+      <button
+        type="button"
+        onClick={() => onTargetChange(item.id, item.target === "_blank" ? "_self" : "_blank")}
+        className={`p-1.5 rounded transition-colors ${
+          item.target === "_blank"
+            ? "text-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
+            : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+        }`}
+        title={item.target === "_blank" ? "Öffnet in neuem Tab" : "Öffnet im selben Tab"}
+      >
+        <SFArrowUpRightSquare className="w-3.5 h-3.5" />
+      </button>
+
       <button
         type="button"
         onClick={() => onRemove(item.id)}
@@ -100,14 +131,20 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
   const [items, setItems] = useState<NavItemState[]>([]);
   const [dirty, setDirty] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [addSlug, setAddSlug] = useState("");
+  const [addType, setAddType] = useState<"page" | "url">("page");
+  const [addPageSlug, setAddPageSlug] = useState("");
+  const [addUrl, setAddUrl] = useState("");
+  const [addLabel, setAddLabel] = useState("");
+  const [addTarget, setAddTarget] = useState<"_self" | "_blank">("_self");
 
   useEffect(() => {
     setItems(
       serverItems.map((si) => ({
         id: si.id,
-        pageSlug: si.pageSlug,
-        pageTitle: si.pageTitle,
+        pageSlug: si.pageSlug ?? null,
+        pageTitle: si.pageTitle ?? null,
+        url: si.url ?? null,
+        target: (si.target as "_self" | "_blank") ?? "_self",
         label: si.label ?? "",
       })),
     );
@@ -140,17 +177,69 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
     setDirty(true);
   }
 
-  function handleAdd() {
-    if (!addSlug) return;
-    const page = allPages.find((p) => p.slug === addSlug);
+  function handleTargetChange(id: number, target: "_self" | "_blank") {
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, target } : i)));
+    setDirty(true);
+  }
+
+  function handleAddPage() {
+    if (!addPageSlug) return;
+    const page = allPages.find((p) => p.slug === addPageSlug);
     if (!page) return;
-    if (items.some((i) => i.pageSlug === addSlug)) return;
-    const tempId = Date.now();
+    if (items.some((i) => i.pageSlug === addPageSlug)) return;
     setItems((prev) => [
       ...prev,
-      { id: tempId, pageSlug: page.slug, pageTitle: page.title, label: "" },
+      {
+        id: Date.now(),
+        pageSlug: page.slug,
+        pageTitle: page.title,
+        url: null,
+        target: "_self",
+        label: "",
+      },
     ]);
-    setAddSlug("");
+    setAddPageSlug("");
+    setDirty(true);
+  }
+
+  function handleAddUrl() {
+    const trimmed = addUrl.trim();
+    if (!trimmed) return;
+
+    // Check for static route shortcut
+    const staticRoute = STATIC_ROUTES.find((r) => r.url === trimmed);
+    const derivedLabel = addLabel.trim() || staticRoute?.label || "";
+
+    setItems((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        pageSlug: null,
+        pageTitle: derivedLabel || trimmed,
+        url: trimmed,
+        target: addTarget,
+        label: derivedLabel,
+      },
+    ]);
+    setAddUrl("");
+    setAddLabel("");
+    setAddTarget("_self");
+    setDirty(true);
+  }
+
+  function handleAddStatic(route: { label: string; url: string }) {
+    if (items.some((i) => i.url === route.url)) return;
+    setItems((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        pageSlug: null,
+        pageTitle: route.label,
+        url: route.url,
+        target: "_self",
+        label: "",
+      },
+    ]);
     setDirty(true);
   }
 
@@ -158,7 +247,12 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
     setSaveError(null);
     try {
       await saveNav.mutateAsync(
-        items.map((i) => ({ pageSlug: i.pageSlug, label: i.label || null })),
+        items.map((i) => ({
+          pageSlug: i.pageSlug ?? undefined,
+          url: i.url ?? undefined,
+          label: i.label || null,
+          target: i.target,
+        })),
       );
       setDirty(false);
     } catch (err) {
@@ -166,8 +260,10 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
     }
   }
 
-  const usedSlugs = new Set(items.map((i) => i.pageSlug));
-  const availablePages = allPages.filter((p) => !usedSlugs.has(p.slug));
+  const usedPageSlugs = new Set(items.filter((i) => i.pageSlug).map((i) => i.pageSlug));
+  const usedUrls = new Set(items.filter((i) => i.url).map((i) => i.url));
+  const availablePages = allPages.filter((p) => !usedPageSlugs.has(p.slug));
+  const availableStatics = STATIC_ROUTES.filter((r) => !usedUrls.has(r.url));
 
   return (
     <div className="flex flex-col gap-4">
@@ -203,6 +299,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                   item={item}
                   onRemove={handleRemove}
                   onLabelChange={handleLabelChange}
+                  onTargetChange={handleTargetChange}
                 />
               ))}
             </div>
@@ -210,29 +307,114 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
         </DndContext>
       )}
 
-      {/* Add page */}
-      <div className="flex items-center gap-2">
-        <select
-          value={addSlug}
-          onChange={(e) => setAddSlug(e.target.value)}
-          className="flex-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-        >
-          <option value="">Seite hinzufügen…</option>
-          {availablePages.map((p) => (
-            <option key={p.slug} value={p.slug}>
-              {p.title} (/{p.slug})
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={!addSlug}
-          className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
-          title="Hinzufügen"
-        >
-          <SFPlusCircle className="w-5 h-5" />
-        </button>
+      {/* Add section */}
+      <div className="border-t border-[var(--ds-border)] pt-3 space-y-3">
+        {/* Type toggle */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setAddType("page")}
+            className={`px-3 py-1 text-xs rounded-control border transition-colors ${
+              addType === "page"
+                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
+                : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
+            }`}
+          >
+            Seite
+          </button>
+          <button
+            type="button"
+            onClick={() => setAddType("url")}
+            className={`px-3 py-1 text-xs rounded-control border transition-colors ${
+              addType === "url"
+                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
+                : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
+            }`}
+          >
+            URL
+          </button>
+        </div>
+
+        {addType === "page" ? (
+          <div className="flex items-center gap-2">
+            <select
+              value={addPageSlug}
+              onChange={(e) => setAddPageSlug(e.target.value)}
+              className="flex-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+            >
+              <option value="">Seite wählen…</option>
+              {availablePages.map((p) => (
+                <option key={p.slug} value={p.slug}>
+                  {p.title} (/{p.slug})
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleAddPage}
+              disabled={!addPageSlug}
+              className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
+              title="Hinzufügen"
+            >
+              <SFPlusCircle className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {/* Static route shortcuts */}
+            {availableStatics.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {availableStatics.map((r) => (
+                  <button
+                    key={r.url}
+                    type="button"
+                    onClick={() => handleAddStatic(r)}
+                    className="px-2 py-1 text-xs bg-[var(--ds-surface-hover)] hover:bg-[var(--ds-nav-hover-bg)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] rounded border border-[var(--ds-border)] transition-colors font-mono"
+                  >
+                    {r.url}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={addUrl}
+                onChange={(e) => setAddUrl(e.target.value)}
+                placeholder="https://… oder /pfad"
+                className="flex-1 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] font-mono"
+              />
+              <input
+                type="text"
+                value={addLabel}
+                onChange={(e) => setAddLabel(e.target.value)}
+                placeholder="Label"
+                className="w-24 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+              />
+              <button
+                type="button"
+                onClick={() => setAddTarget(addTarget === "_blank" ? "_self" : "_blank")}
+                className={`p-1.5 rounded transition-colors ${
+                  addTarget === "_blank"
+                    ? "text-[var(--color-primary)]"
+                    : "text-[var(--ds-text-muted)]"
+                }`}
+                title={addTarget === "_blank" ? "Neuer Tab" : "Selber Tab"}
+              >
+                <SFArrowUpRightSquare className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleAddUrl}
+                disabled={!addUrl.trim()}
+                className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
+                title="Hinzufügen"
+              >
+                <SFPlusCircle className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

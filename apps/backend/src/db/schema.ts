@@ -158,15 +158,14 @@ export const navItems = pgTable(
   {
     id: serial("id").primaryKey(),
     navId: text("nav_id").$type<"header" | "footer">().notNull(),
-    pageSlug: text("page_slug")
-      .notNull()
-      .references(() => contentPages.slug, { onDelete: "cascade" }),
+    pageSlug: text("page_slug").references(() => contentPages.slug, { onDelete: "cascade" }),
+    url: text("url"),
+    target: text("target").$type<"_self" | "_blank">().notNull().default("_self"),
     position: integer("position").notNull().default(0),
     label: text("label"),
   },
   (table) => [
     index("idx_nav_items_nav").on(table.navId),
-    unique("uniq_nav_page").on(table.navId, table.pageSlug),
   ],
 );
 
