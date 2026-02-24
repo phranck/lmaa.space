@@ -98,7 +98,7 @@ export function ShopEditForm({
             className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
               value.url
                 ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
-                : "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
+                : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
             }`}
           >
             <LuExternalLink size={14} />
