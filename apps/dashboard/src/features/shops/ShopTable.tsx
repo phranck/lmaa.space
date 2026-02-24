@@ -1,5 +1,6 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import type { ShopSummary } from "@lmaa/shared";
+import { REGION_OPTIONS } from "@lmaa/ui";
 import { useMemo } from "react";
 
 interface ShopTableProps {
@@ -54,9 +55,21 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         header: "Region",
         className: "w-36",
         sortKey: (shop) => (shop.region ?? []).join(", "),
-        cell: (shop) => (
-          <span className="text-sm text-[var(--ds-text-muted)]">{shop.region || "–"}</span>
-        ),
+        cell: (shop) =>
+          shop.region?.length ? (
+            <div className="flex items-center gap-1.5">
+              {shop.region.map((code) => {
+                const opt = REGION_OPTIONS.find((o) => o.code === code);
+                return (
+                  <span key={code} title={opt?.name ?? code} className="text-base leading-none">
+                    {opt?.flag ?? code}
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <span className="text-sm text-[var(--ds-text-muted)]">–</span>
+          ),
       },
       {
         id: "actions",
