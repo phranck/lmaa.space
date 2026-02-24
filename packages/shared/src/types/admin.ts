@@ -1,8 +1,11 @@
+export type AdminRole = "owner" | "admin" | "moderator";
+
 export interface AdminUser {
   id: number;
   username: string;
   email: string;
-  isOwner: boolean;
+  role: AdminRole;
+  isOwner: boolean; // computed: role === "owner"
   firstName: string | null;
   lastName: string | null;
   avatarUrl: string | null;

@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { contentPages } from "../../db/schema.js";
-import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import { type AuthVariables, requireAuth, requireOwner } from "../../middleware/auth.js";
 
 const contentUpdateSchema = z.object({
   content: z.string().max(100_000),
@@ -24,6 +24,7 @@ contentRoutes.get("/content/:slug", requireAuth, async (c) => {
 contentRoutes.put(
   "/content/:slug",
   requireAuth,
+  requireOwner,
   zValidator("json", contentUpdateSchema),
   async (c) => {
     const slug = c.req.param("slug");

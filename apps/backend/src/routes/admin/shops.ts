@@ -7,7 +7,7 @@ import { db } from "../../db/index.js";
 import { deadLinkReports, shopCategories, shops } from "../../db/schema.js";
 import { extractHomepage, fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
 import { invalidateCache } from "../../middleware/cache.js";
 
 const SHOPS_CACHE_KEY = "shops:all";
@@ -148,7 +148,7 @@ for (const method of ["put", "patch"] as const) {
   );
 }
 
-shopsRoutes.delete("/shops/:id", requireAuth, async (c) => {
+shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   await db.transaction(async (tx) => {

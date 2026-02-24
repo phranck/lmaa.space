@@ -1,3 +1,4 @@
+import type { AdminRole } from "@lmaa/shared";
 import { eq, gt } from "drizzle-orm";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
@@ -6,7 +7,8 @@ import { adminUsers, sessions } from "../db/schema.js";
 
 export type AuthVariables = {
   adminId: number;
-  isOwner: boolean;
+  role: AdminRole;
+  isOwner: boolean; // computed: role === "owner"
 };
 
 export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
@@ -21,7 +23,7 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
     .select({
       adminId: sessions.adminUserId,
       expiresAt: sessions.expiresAt,
-      isOwner: adminUsers.isOwner,
+      role: adminUsers.role,
     })
     .from(sessions)
     .innerJoin(adminUsers, eq(sessions.adminUserId, adminUsers.id))
@@ -33,13 +35,21 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
   }
 
   c.set("adminId", session.adminId);
-  c.set("isOwner", session.isOwner);
+  c.set("role", session.role as AdminRole);
+  c.set("isOwner", session.role === "owner");
 
   await next();
 });
 
 export const requireOwner = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   if (!c.get("isOwner")) {
+    return c.json({ error: { message: "Forbidden" } }, 403);
+  }
+  await next();
+});
+
+export const requireAdmin = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
+  if (c.get("role") === "moderator") {
     return c.json({ error: { message: "Forbidden" } }, 403);
   }
   await next();

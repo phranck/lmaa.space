@@ -291,6 +291,10 @@ async function main() {
   await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS first_name TEXT`;
   await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS last_name TEXT`;
 
+  // Add role column and backfill from is_owner
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'admin'`;
+  await sql`UPDATE admin_users SET role = 'owner' WHERE is_owner = true AND role = 'admin'`;
+
   // Migrate submissions.region TEXT → JSONB
   await sql`
     DO $do$ BEGIN

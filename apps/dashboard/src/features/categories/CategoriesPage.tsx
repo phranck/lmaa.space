@@ -4,6 +4,7 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
 import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
 import { CategoryTable } from "@/features/categories/CategoryTable.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   useAdminCategories,
   useDeleteCategory,
@@ -14,6 +15,7 @@ import { SFListBullet, SFSquareGrid2x2Fill } from "sf-symbols-lib/monochrome";
 type ViewMode = "list" | "grid";
 
 export function CategoriesPage() {
+  const { user: me } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>(
     () => (localStorage.getItem("categories-view") as ViewMode) ?? "list",
   );
@@ -78,7 +80,11 @@ export function CategoriesPage() {
       {/* List View */}
       {!isLoading && viewMode === "list" && (
         <div className="-mx-6 -mt-6">
-          <CategoryTable categories={categories} onEdit={setEditTarget} onDelete={setDeleteId} />
+          <CategoryTable
+            categories={categories}
+            onEdit={setEditTarget}
+            onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
+          />
         </div>
       )}
 
@@ -90,7 +96,7 @@ export function CategoriesPage() {
               key={cat.id}
               category={cat}
               onEdit={setEditTarget}
-              onDelete={setDeleteId}
+              onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
             />
           ))}
         </div>
