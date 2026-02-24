@@ -89,12 +89,21 @@ export function ContentEditorPage() {
   const contentRef = useRef<string>("");
   const [sourceFontSize, setSourceFontSize] = useState(loadFontSize);
 
-  // Reset stale content when navigating between pages — prevents Cmd+S saving
-  // the previous page's content into the newly loaded page's slug.
+  // Reset stale content when slug changes (navigation or rename).
+  // Prevents Cmd+S saving the previous page's content to the new slug.
   useEffect(() => {
     contentRef.current = "";
     setSaved(false);
   }, [slug]);
+
+  // Once the correct page data is loaded, sync contentRef with the actual DB content.
+  // This covers the race window between slug change and MDXEditor first onChange,
+  // e.g. after a slug rename where the user might Cmd+S before the editor re-initializes.
+  useEffect(() => {
+    if (page) {
+      contentRef.current = page.content;
+    }
+  }, [page?.slug]);
 
   // Metadata editing state
   const [editingSlug, setEditingSlug] = useState(false);
