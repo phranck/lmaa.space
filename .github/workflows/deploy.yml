@@ -26,12 +26,14 @@ jobs:
             frontend:
               - 'apps/frontend/**'
               - 'packages/shared/**'
+              - 'packages/ui/**'
               - 'package.json'
               - 'package-lock.json'
               - 'zerops.yml'
             dashboard:
               - 'apps/dashboard/**'
               - 'packages/shared/**'
+              - 'packages/ui/**'
               - 'package.json'
               - 'package-lock.json'
               - 'zerops.yml'
