@@ -97,7 +97,7 @@ function intTicks(max: number): number[] {
 function RealtimeCard() {
   const { effectiveTheme } = useTheme();
   const isDark = effectiveTheme === "dark";
-  const gridColor = isDark ? "oklch(0.30 0.008 38.2)" : "#f1f0ef";
+  const gridColor = isDark ? "#3d444d" : "#f1f0ef";
   const tickColor = isDark ? "#a8a29e" : "#9ca3af";
   const tooltipBg = isDark ? "oklch(0.19 0.006 38.2)" : "#ffffff";
   const tooltipBorder = isDark ? "oklch(0.30 0.008 38.2)" : "#e7e5e4";
@@ -316,7 +316,7 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
 export function AnalyticsSection() {
   const { effectiveTheme } = useTheme();
   const isDark = effectiveTheme === "dark";
-  const gridColor = isDark ? "oklch(0.30 0.008 38.2)" : "#f1f0ef";
+  const gridColor = isDark ? "#3d444d" : "#f1f0ef";
   const tickColor = isDark ? "#a8a29e" : "#9ca3af";
   const tooltipBg = isDark ? "oklch(0.19 0.006 38.2)" : "#ffffff";
   const tooltipBorder = isDark ? "oklch(0.30 0.008 38.2)" : "#e7e5e4";
