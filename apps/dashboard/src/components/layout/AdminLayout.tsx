@@ -3,7 +3,7 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
 import {
   SFDesktopcomputer,
@@ -11,6 +11,67 @@ import {
   SFMoonFill,
   SFSunMaxFill,
 } from "sf-symbols-lib/monochrome";
+
+const SIDEBAR_DEFAULT = 224;
+const SIDEBAR_MIN = 160;
+const SIDEBAR_MAX = 420;
+
+function useSidebarWidth() {
+  const [width, setWidth] = useState(() => {
+    try {
+      const v = localStorage.getItem("sidebar-width");
+      if (v) return Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, Number(v)));
+    } catch {}
+    return SIDEBAR_DEFAULT;
+  });
+
+  const isResizing = useRef(false);
+  const startX = useRef(0);
+  const startW = useRef(0);
+
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      isResizing.current = true;
+      startX.current = e.clientX;
+      startW.current = width;
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    },
+    [width],
+  );
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      if (!isResizing.current) return;
+      const w = Math.max(
+        SIDEBAR_MIN,
+        Math.min(SIDEBAR_MAX, startW.current + e.clientX - startX.current),
+      );
+      setWidth(w);
+    }
+    function onUp() {
+      if (!isResizing.current) return;
+      isResizing.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      setWidth((w) => {
+        try {
+          localStorage.setItem("sidebar-width", String(w));
+        } catch {}
+        return w;
+      });
+    }
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+  }, []);
+
+  return { width, onMouseDown };
+}
 
 const THEME_OPTIONS = [
   { value: "light" as const, icon: <SFSunMaxFill className="w-3.5 h-3.5" /> },
@@ -28,6 +89,7 @@ function AdminLayoutInner() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { title, setActionsEl } = usePageHeaderContext();
+  const { width: sidebarWidth, onMouseDown: onResizeStart } = useSidebarWidth();
 
   async function handleLogout() {
     await logout();
@@ -35,15 +97,26 @@ function AdminLayoutInner() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--ds-bg)]">
-      {/* Desktop Sidebar – fixed */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-56 flex-col bg-[var(--ds-surface)] border-r border-[var(--ds-border)] z-40">
+    <div
+      className="min-h-screen bg-[var(--ds-bg)]"
+      style={{ "--sidebar-w": `${sidebarWidth}px` } as React.CSSProperties}
+    >
+      {/* Desktop Sidebar – fixed, resizable */}
+      <aside
+        className="hidden md:flex fixed inset-y-0 left-0 flex-col bg-[var(--ds-surface)] border-r border-[var(--ds-border)] z-40"
+        style={{ width: sidebarWidth }}
+      >
         <Sidebar
           username={user?.username}
           email={user?.email}
           avatarUrl={user?.avatarUrl}
           role={user?.role}
           onLogout={handleLogout}
+        />
+        {/* Resize handle */}
+        <div
+          onMouseDown={onResizeStart}
+          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[var(--color-primary)]/40 active:bg-[var(--color-primary)]/60 transition-colors"
         />
       </aside>
 
@@ -56,7 +129,10 @@ function AdminLayoutInner() {
             onClick={() => setSidebarOpen(false)}
             aria-label="Menü schließen"
           />
-          <aside className="relative flex flex-col w-56 h-full bg-[var(--ds-surface)] border-r border-[var(--ds-border)]">
+          <aside
+            className="relative flex flex-col h-full bg-[var(--ds-surface)] border-r border-[var(--ds-border)]"
+            style={{ width: SIDEBAR_DEFAULT }}
+          >
             <Sidebar
               username={user?.username}
               email={user?.email}
@@ -69,8 +145,8 @@ function AdminLayoutInner() {
         </div>
       )}
 
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 md:left-56 h-14 z-30 flex items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]">
+      {/* Fixed Header — full width on mobile, offset by sidebar on desktop */}
+      <header className="sidebar-aware-header h-14 z-30 flex items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]">
         <button
           type="button"
           onClick={() => setSidebarOpen(true)}
@@ -90,8 +166,8 @@ function AdminLayoutInner() {
         </div>
       </header>
 
-      {/* Main */}
-      <div className="md:ml-56 pt-14 flex flex-col min-h-screen">
+      {/* Main — full width on mobile, offset by sidebar on desktop */}
+      <div className="sidebar-aware-main flex flex-col min-h-screen">
         <main className="flex-1 p-6">
           <Outlet />
         </main>
