@@ -130,41 +130,41 @@
    ──────────────────────────────────────────────────────────── */
 
 .dark {
-  /* Surfaces — GitHub Soft Dark palette (blue-gray/navy)
-     #0d1117 → page bg    #161b22 → surface    #21262d → elevated/input
-     Hue ≈ 256 (cool blue-gray, perceptually uniform in OKLCH)         */
-  --ds-bg:          oklch(0.132 0.016 256); /* #0d1117 – page background */
-  --ds-bg-elevated: oklch(0.215 0.015 256); /* #21262d – elevated */
-  --ds-surface:     oklch(0.174 0.016 256); /* #161b22 – card / sidebar */
-  --ds-surface-alt: oklch(0.132 0.016 256); /* #0d1117 – inset / alt */
-  --ds-input-bg:    oklch(0.215 0.015 256); /* #21262d – canvas subtle */
+  /* Surfaces — GitHub Primer dark_dimmed (exact @primer/primitives@11.4.0)
+     bgColor-default #212830 · bgColor-inset #151b23 · card-bgColor #262c36
+     overlay #2a313c · bgColor-emphasis #3d444d                           */
+  --ds-bg:          #212830; /* bgColor-default */
+  --ds-bg-elevated: #2a313c; /* bgColor-overlay / control-bgColor */
+  --ds-surface:     #262c36; /* card-bgColor */
+  --ds-surface-alt: #151b23; /* bgColor-inset / dashboard-bgColor */
+  --ds-input-bg:    #2a313c; /* control-bgColor-rest */
 
-  /* Borders — #30363d default · #21262d subtle · #444c56 strong */
-  --ds-border:        oklch(0.28  0.012 255); /* #30363d */
-  --ds-border-strong: oklch(0.35  0.012 255); /* #444c56 */
-  --ds-border-subtle: oklch(0.215 0.013 256); /* #21262d */
+  /* Borders — borderColor-default #3d444d · muted rgba · emphasis #656c76 */
+  --ds-border:        #3d444d;             /* borderColor-default */
+  --ds-border-strong: #656c76;             /* borderColor-emphasis */
+  --ds-border-subtle: rgba(61,68,77,0.70); /* borderColor-muted (alpha) */
 
-  /* Text — #e6edf3 primary · #8b949e secondary · #6e7681 subtle */
-  --ds-text:         oklch(0.938 0.009 255); /* #e6edf3 */
-  --ds-text-muted:   oklch(0.625 0.012 240); /* #8b949e */
-  --ds-text-subtle:  oklch(0.54  0.009 245); /* #6e7681 */
-  --ds-text-inverse: oklch(0.132 0.016 256);
+  /* Text — fgColor-default #f0f6fc · muted #9198a1 · disabled #656c76 */
+  --ds-text:         #f0f6fc; /* fgColor-default */
+  --ds-text-muted:   #9198a1; /* fgColor-muted */
+  --ds-text-subtle:  #656c76; /* fgColor-disabled */
+  --ds-text-inverse: #151b23;
 
-  /* Accent — blue tint for dark surfaces */
-  --ds-accent-subtle: oklch(0.22 0.04 256);
+  /* Accent — bgColor-accent-muted (4184e41a) */
+  --ds-accent-subtle: rgba(65,132,228,0.10); /* bgColor-accent-muted */
 
-  /* Status — GitHub Soft Dark status colors */
-  --ds-success-bg:   oklch(0.185 0.03  142);
-  --ds-success-text: oklch(0.72  0.19  142); /* #3fb950 */
-  --ds-danger-bg:    oklch(0.185 0.03   25);
-  --ds-danger-text:  oklch(0.65  0.24   25); /* #f85149 */
-  --ds-warning-bg:   oklch(0.185 0.03   75);
-  --ds-warning-text: oklch(0.72  0.14   75); /* #d29922 */
+  /* Status — exact Primer dark_dimmed values */
+  --ds-success-bg:   rgba(70,149,74,0.15);  /* bgColor-success-muted */
+  --ds-success-text: #57ab5a;               /* fgColor-success */
+  --ds-danger-bg:    rgba(229,83,75,0.10);  /* bgColor-danger-muted */
+  --ds-danger-text:  #e5534b;               /* fgColor-danger */
+  --ds-warning-bg:   rgba(174,124,20,0.15); /* bgColor-attention-muted */
+  --ds-warning-text: #c69026;               /* fgColor-attention */
 
   /* Shadows — stronger for very dark surfaces */
-  --ds-shadow-xs: 0 1px 2px oklch(0 0 0 / 0.4);
-  --ds-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.5), 0 1px 2px oklch(0 0 0 / 0.4);
-  --ds-shadow-md: 0 4px 6px oklch(0 0 0 / 0.45), 0 2px 4px oklch(0 0 0 / 0.35);
-  --ds-shadow-lg: 0 10px 15px oklch(0 0 0 / 0.5), 0 4px 6px oklch(0 0 0 / 0.4);
-  --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.55), 0 8px 10px oklch(0 0 0 / 0.45);
+  --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --ds-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.5), 0 1px 2px rgb(0 0 0 / 0.4);
+  --ds-shadow-md: 0 4px 6px rgb(0 0 0 / 0.45), 0 2px 4px rgb(0 0 0 / 0.35);
+  --ds-shadow-lg: 0 10px 15px rgb(0 0 0 / 0.5), 0 4px 6px rgb(0 0 0 / 0.4);
+  --ds-shadow-xl: 0 20px 25px rgb(0 0 0 / 0.55), 0 8px 10px rgb(0 0 0 / 0.45);
 }
