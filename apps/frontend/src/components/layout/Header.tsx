@@ -25,22 +25,24 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200">
       <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="/logo.png" alt="lmaa.space" className="h-8 w-auto" />
-          </Link>
+          {/* Left: Logo + Nav */}
+          <div className="flex items-center gap-10">
+            <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+              <img src="/logo.png" alt="lmaa.space" className="h-8 w-auto" />
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <NavLink to="/" end className={({ isActive }) => navLinkClass(isActive)}>
-              Kategorien
-            </NavLink>
-            <NavLink to="/vorschlagen" className={({ isActive }) => navLinkClass(isActive)}>
-              Shop vorschlagen
-            </NavLink>
-            <NavLink to="/ueber-uns" className={({ isActive }) => navLinkClass(isActive)}>
-              Über uns
-            </NavLink>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-8">
+              <NavLink to="/" end className={({ isActive }) => navLinkClass(isActive)}>
+                Kategorien
+              </NavLink>
+              <NavLink to="/vorschlagen" className={({ isActive }) => navLinkClass(isActive)}>
+                Shop vorschlagen
+              </NavLink>
+              <NavLink to="/ueber-uns" className={({ isActive }) => navLinkClass(isActive)}>
+                Über uns
+              </NavLink>
+            </div>
           </div>
 
           {/* Right: Search + Donate + Mobile Toggle */}

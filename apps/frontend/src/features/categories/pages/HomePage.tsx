@@ -110,7 +110,7 @@ export function HomePage() {
             Vermisst du einen Shop?
           </h2>
           <p className="text-stone-500 mb-6 text-sm leading-relaxed">
-            Hilf der Community und schlage deinen Shop vor – schnell und ohne Anmeldung.
+            Hilf der Community und schlage deinen Shop vor. Schnell und ohne Anmeldung.
           </p>
           <a
             href="/vorschlagen"
