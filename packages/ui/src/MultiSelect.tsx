@@ -231,7 +231,7 @@ export function MultiSelect({
         type="button"
         onClick={handleToggle}
         className={cn(
-          "w-full flex items-center justify-between min-h-10 h-auto px-3 py-1.5 border rounded-lg text-sm text-left transition-colors [&_svg]:pointer-events-auto",
+          "w-full flex items-center justify-between min-h-10 h-auto px-3 py-1.5 border rounded-control text-sm text-left transition-colors [&_svg]:pointer-events-auto",
           isOpen
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error
