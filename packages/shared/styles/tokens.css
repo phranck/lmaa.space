@@ -130,39 +130,41 @@
    ──────────────────────────────────────────────────────────── */
 
 .dark {
-  /* Surfaces — warm dark stone scale */
-  --ds-bg: oklch(0.145 0.005 38.2);
-  --ds-bg-elevated: oklch(0.21 0.006 38.2);
-  --ds-surface: oklch(0.19 0.006 38.2);
-  --ds-surface-alt: oklch(0.16 0.005 38.2);
-  --ds-input-bg: oklch(0.26 0.007 38.2);
+  /* Surfaces — GitHub Soft Dark palette (blue-gray/navy)
+     #0d1117 → page bg    #161b22 → surface    #21262d → elevated/input
+     Hue ≈ 256 (cool blue-gray, perceptually uniform in OKLCH)         */
+  --ds-bg:          oklch(0.132 0.016 256); /* #0d1117 – page background */
+  --ds-bg-elevated: oklch(0.215 0.015 256); /* #21262d – elevated */
+  --ds-surface:     oklch(0.174 0.016 256); /* #161b22 – card / sidebar */
+  --ds-surface-alt: oklch(0.132 0.016 256); /* #0d1117 – inset / alt */
+  --ds-input-bg:    oklch(0.215 0.015 256); /* #21262d – canvas subtle */
 
-  /* Borders */
-  --ds-border: oklch(0.3 0.008 38.2);
-  --ds-border-strong: oklch(0.37 0.01 38.2);
-  --ds-border-subtle: oklch(0.22 0.007 38.2);
+  /* Borders — #30363d default · #21262d subtle · #444c56 strong */
+  --ds-border:        oklch(0.28  0.012 255); /* #30363d */
+  --ds-border-strong: oklch(0.35  0.012 255); /* #444c56 */
+  --ds-border-subtle: oklch(0.215 0.013 256); /* #21262d */
 
-  /* Text */
-  --ds-text: oklch(0.965 0.003 106.4);
-  --ds-text-muted: oklch(0.706 0.023 48.7);
-  --ds-text-subtle: oklch(0.553 0.021 38.2);
-  --ds-text-inverse: oklch(0.145 0.005 38.2);
+  /* Text — #e6edf3 primary · #8b949e secondary · #6e7681 subtle */
+  --ds-text:         oklch(0.938 0.009 255); /* #e6edf3 */
+  --ds-text-muted:   oklch(0.625 0.012 240); /* #8b949e */
+  --ds-text-subtle:  oklch(0.54  0.009 245); /* #6e7681 */
+  --ds-text-inverse: oklch(0.132 0.016 256);
 
-  /* Accent — dark amber-tinted surface, keeps text readable */
-  --ds-accent-subtle: oklch(0.22 0.025 92); /* dark amber tint instead of near-white */
+  /* Accent — blue tint for dark surfaces */
+  --ds-accent-subtle: oklch(0.22 0.04 256);
 
-  /* Status — darker backgrounds, lighter text */
-  --ds-success-bg: oklch(0.18 0.025 155.8);
-  --ds-success-text: oklch(0.72 0.15 149.6);
-  --ds-danger-bg: oklch(0.18 0.02 17.4);
-  --ds-danger-text: oklch(0.72 0.2 27.3);
-  --ds-warning-bg: oklch(0.18 0.025 95.3);
-  --ds-warning-text: oklch(0.78 0.15 58.3);
+  /* Status — GitHub Soft Dark status colors */
+  --ds-success-bg:   oklch(0.185 0.03  142);
+  --ds-success-text: oklch(0.72  0.19  142); /* #3fb950 */
+  --ds-danger-bg:    oklch(0.185 0.03   25);
+  --ds-danger-text:  oklch(0.65  0.24   25); /* #f85149 */
+  --ds-warning-bg:   oklch(0.185 0.03   75);
+  --ds-warning-text: oklch(0.72  0.14   75); /* #d29922 */
 
-  /* Shadows — slightly stronger for dark surfaces */
-  --ds-shadow-xs: 0 1px 2px oklch(0 0 0 / 0.25);
-  --ds-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.35), 0 1px 2px oklch(0 0 0 / 0.25);
-  --ds-shadow-md: 0 4px 6px oklch(0 0 0 / 0.3), 0 2px 4px oklch(0 0 0 / 0.22);
-  --ds-shadow-lg: 0 10px 15px oklch(0 0 0 / 0.35), 0 4px 6px oklch(0 0 0 / 0.25);
-  --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.4), 0 8px 10px oklch(0 0 0 / 0.3);
+  /* Shadows — stronger for very dark surfaces */
+  --ds-shadow-xs: 0 1px 2px oklch(0 0 0 / 0.4);
+  --ds-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.5), 0 1px 2px oklch(0 0 0 / 0.4);
+  --ds-shadow-md: 0 4px 6px oklch(0 0 0 / 0.45), 0 2px 4px oklch(0 0 0 / 0.35);
+  --ds-shadow-lg: 0 10px 15px oklch(0 0 0 / 0.5), 0 4px 6px oklch(0 0 0 / 0.4);
+  --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.55), 0 8px 10px oklch(0 0 0 / 0.45);
 }

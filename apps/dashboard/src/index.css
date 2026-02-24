@@ -65,94 +65,96 @@
   --ds-badge-danger-text: oklch(0.55 0.2 27); /* ~red-600 */
 }
 
-/* Dark mode overrides */
+/* Dark mode overrides — GitHub Soft Dark palette */
 .dark {
-  --ds-nav-active-bg: var(--ds-color-neutral-800);
-  --ds-nav-active-text: var(--ds-color-neutral-50);
-  --ds-nav-text: var(--ds-color-neutral-400);
-  --ds-nav-hover-bg: oklch(0.22 0.006 38.2);
-  --ds-nav-hover-text: var(--ds-color-neutral-100);
-  --ds-brand-text: var(--ds-color-neutral-100);
+  /* Nav — blue indicator instead of amber */
+  --ds-nav-active-bg:     oklch(0.22  0.018 256);
+  --ds-nav-active-text:   oklch(0.938 0.009 255);
+  --ds-nav-active-border: oklch(0.72  0.19  255); /* GitHub blue #58a6ff */
+  --ds-nav-text:          oklch(0.625 0.012 240);
+  --ds-nav-hover-bg:      oklch(0.195 0.016 256);
+  --ds-nav-hover-text:    oklch(0.938 0.009 255);
+  --ds-brand-text:        oklch(0.938 0.009 255);
 
-  /* Segment controls: LIGHTER than header surface for visible pill effect */
-  --ds-segment-bg: oklch(0.25 0.007 38.2); /* lighter than --ds-surface 0.19 */
-  --ds-segment-active-bg: oklch(0.33 0.008 38.2); /* even lighter — active clearly visible */
+  /* Segment controls — visible lift above header surface (0.174) */
+  --ds-segment-bg:        oklch(0.22  0.015 256); /* #21262d */
+  --ds-segment-active-bg: oklch(0.28  0.012 255); /* #30363d – active pill */
 
-  /* Table row hover: noticeably lighter than surface (0.19) */
-  --ds-row-hover: oklch(0.28 0.008 38.2);
+  /* Table row hover */
+  --ds-row-hover: oklch(0.215 0.015 256);
 
-  /* Neutral outline buttons: slightly brighter in dark mode */
-  --ds-btn-neutral-border: oklch(0.42 0.009 38.2);
-  --ds-btn-neutral-text: oklch(0.8 0.015 38.2);
-  --ds-btn-neutral-hover-border: oklch(0.52 0.01 38.2);
+  /* Neutral outline buttons */
+  --ds-btn-neutral-border:       oklch(0.35  0.012 255);
+  --ds-btn-neutral-text:         oklch(0.75  0.009 255);
+  --ds-btn-neutral-hover-border: oklch(0.45  0.012 255);
 
   /* Outline action buttons: danger */
-  --ds-btn-danger-border: oklch(0.42 0.1 27);
-  --ds-btn-danger-text: oklch(0.72 0.18 27);
-  --ds-btn-danger-hover-bg: oklch(0.22 0.04 27);
-  --ds-btn-danger-hover-border: oklch(0.52 0.14 27);
+  --ds-btn-danger-border:       oklch(0.42 0.1  25);
+  --ds-btn-danger-text:         oklch(0.72 0.18 25);
+  --ds-btn-danger-hover-bg:     oklch(0.22 0.04 25);
+  --ds-btn-danger-hover-border: oklch(0.52 0.14 25);
 
   /* Outline action buttons: success */
-  --ds-btn-success-border: oklch(0.42 0.1 155);
-  --ds-btn-success-text: oklch(0.72 0.18 155);
-  --ds-btn-success-hover-bg: oklch(0.22 0.04 155);
-  --ds-btn-success-hover-border: oklch(0.52 0.14 155);
+  --ds-btn-success-border:       oklch(0.42 0.1  142);
+  --ds-btn-success-text:         oklch(0.72 0.18 142);
+  --ds-btn-success-hover-bg:     oklch(0.22 0.04 142);
+  --ds-btn-success-hover-border: oklch(0.52 0.14 142);
 
   /* Status badges */
-  --ds-badge-pending-bg: oklch(0.26 0.06 80);
-  --ds-badge-pending-text: oklch(0.8 0.13 80);
-  --ds-badge-success-bg: oklch(0.22 0.05 155);
-  --ds-badge-success-text: oklch(0.72 0.18 155);
-  --ds-badge-danger-bg: oklch(0.22 0.04 27);
-  --ds-badge-danger-text: oklch(0.72 0.18 27);
+  --ds-badge-pending-bg:   oklch(0.24 0.05  80);
+  --ds-badge-pending-text: oklch(0.78 0.13  80);
+  --ds-badge-success-bg:   oklch(0.22 0.05  142);
+  --ds-badge-success-text: oklch(0.72 0.18  142);
+  --ds-badge-danger-bg:    oklch(0.22 0.04  25);
+  --ds-badge-danger-text:  oklch(0.72 0.18  25);
 }
 
-/* Dark mode: MDXEditor toolbar and popups */
+/* Dark mode: MDXEditor toolbar and popups — GitHub Soft Dark */
 .dark .mdxeditor {
-  --baseBg: oklch(0.21 0.006 38.2);
-  --basePageBg: oklch(0.19 0.006 38.2);
-  --baseBgSubtle: oklch(0.19 0.006 38.2);
-  --baseBgHover: oklch(0.25 0.006 38.2);
-  --baseBgActive: oklch(0.28 0.006 38.2);
-  --baseBorder: oklch(0.3 0.008 38.2);
-  --baseBorderHover: oklch(0.37 0.01 38.2);
-  --baseBase: oklch(0.24 0.007 38.2);
-  --baseLine: oklch(0.3 0.008 38.2);
-  --baseSolid: oklch(0.553 0.021 38.2);
-  --baseSolidHover: oklch(0.6 0.021 38.2);
-  --baseText: oklch(0.706 0.023 48.7);
-  --baseTextContrast: oklch(0.965 0.003 106.4);
+  --baseBg:           oklch(0.174 0.016 256); /* #161b22 */
+  --basePageBg:       oklch(0.132 0.016 256); /* #0d1117 */
+  --baseBgSubtle:     oklch(0.132 0.016 256);
+  --baseBgHover:      oklch(0.22  0.015 256); /* #21262d */
+  --baseBgActive:     oklch(0.28  0.012 255); /* #30363d */
+  --baseBorder:       oklch(0.28  0.012 255);
+  --baseBorderHover:  oklch(0.35  0.012 255);
+  --baseBase:         oklch(0.215 0.015 256);
+  --baseLine:         oklch(0.28  0.012 255);
+  --baseSolid:        oklch(0.625 0.012 240);
+  --baseSolidHover:   oklch(0.70  0.012 240);
+  --baseText:         oklch(0.625 0.012 240); /* #8b949e */
+  --baseTextContrast: oklch(0.938 0.009 255); /* #e6edf3 */
   color-scheme: dark;
 }
 
 .dark .mdxeditor-popup-container [role="dialog"],
 .dark .mdxeditor-popup-container [role="tooltip"],
 .dark .mdxeditor-popup-container [data-radix-popper-content-wrapper] > * {
-  background-color: oklch(0.21 0.006 38.2) !important;
-  border-color: oklch(0.3 0.008 38.2) !important;
-  color: oklch(0.965 0.003 106.4) !important;
+  background-color: oklch(0.174 0.016 256) !important;
+  border-color: oklch(0.28 0.012 255) !important;
+  color: oklch(0.938 0.009 255) !important;
 }
 
 .dark .mdxeditor input,
 .dark .mdxeditor select {
-  background-color: oklch(0.19 0.006 38.2);
-  border-color: oklch(0.3 0.008 38.2);
-  color: oklch(0.965 0.003 106.4);
+  background-color: oklch(0.132 0.016 256);
+  border-color: oklch(0.28 0.012 255);
+  color: oklch(0.938 0.009 255);
 }
 
 /* Source (CodeMirror) dark mode */
 .dark .mdxeditor .cm-editor {
-  background-color: oklch(0.19 0.006 38.2);
-  color: oklch(0.965 0.003 106.4);
+  background-color: oklch(0.132 0.016 256);
+  color: oklch(0.938 0.009 255);
 }
 .dark .mdxeditor .cm-gutters {
-  background-color: oklch(0.19 0.006 38.2);
-  border-color: oklch(0.3 0.008 38.2);
-  color: oklch(0.553 0.021 38.2);
+  background-color: oklch(0.132 0.016 256);
+  border-color: oklch(0.28 0.012 255);
+  color: oklch(0.625 0.012 240);
 }
 .dark .mdxeditor .cm-activeLineGutter,
 .dark .mdxeditor .cm-activeLine {
-  background-color: oklch(0.22 0.006 38.2);
+  background-color: oklch(0.195 0.016 256);
 }
 
 /* Backward-compatible aliases for existing component classes */
