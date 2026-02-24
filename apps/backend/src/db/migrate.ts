@@ -316,8 +316,8 @@ async function main() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_nav_items_nav ON nav_items(nav_id)`;
 
-  // Rename legacy slug 'about' → 'ueber-uns' to match the canonical URL
-  await sql`UPDATE content_pages SET slug = 'ueber-uns' WHERE slug = 'about'`;
+  // Remove stale 'ueber-uns' row created by a previous (now-reverted) rename migration
+  await sql`DELETE FROM content_pages WHERE slug = 'ueber-uns'`;
 
   // nav_items: make page_slug nullable, add url + target columns
   await sql`ALTER TABLE nav_items ALTER COLUMN page_slug DROP NOT NULL`;

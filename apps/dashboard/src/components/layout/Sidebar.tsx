@@ -87,7 +87,10 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
             }
           >
             <StatusIcon status={page.status} />
-            <span className="truncate">{page.title}</span>
+            <span className="flex flex-col min-w-0">
+              <span className="truncate">{page.title}</span>
+              <span className="truncate text-[10px] opacity-50">/{page.slug}</span>
+            </span>
           </NavLink>
         ))}
         <NavLink

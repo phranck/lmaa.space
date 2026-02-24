@@ -235,6 +235,27 @@ button {
   cursor: pointer;
 }
 
+/* Sidebar-aware layout: header + main offset by resizable sidebar on desktop */
+.sidebar-aware-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+@media (min-width: 768px) {
+  .sidebar-aware-header {
+    left: var(--sidebar-w, 14rem);
+  }
+}
+.sidebar-aware-main {
+  padding-top: 3.5rem; /* same as header height h-14 */
+}
+@media (min-width: 768px) {
+  .sidebar-aware-main {
+    margin-left: var(--sidebar-w, 14rem);
+  }
+}
+
 /* Overlay fade animations */
 @keyframes overlay-in {
   from {
@@ -284,6 +305,10 @@ button {
 }
 .overlay-card-exit {
   animation: card-out 280ms ease forwards;
+}
+
+html {
+  font-size: 17px;
 }
 
 body {
