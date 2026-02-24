@@ -100,12 +100,8 @@ export function ShopEditForm({
               isDashboard ? "rounded-control" : "rounded-xl"
             } ${
               value.url
-                ? isDashboard
-                  ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-                  : "border-stone-300 bg-stone-50 text-stone-500 hover:border-stone-400 hover:text-stone-700 hover:bg-stone-100"
-                : isDashboard
-                  ? "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
-                  : "border-stone-200 bg-stone-50 text-stone-300 pointer-events-none"
+                ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
+                : "border-[var(--ds-border-subtle)] text-[var(--ds-text-subtle)] pointer-events-none"
             }`}
           >
             <LuExternalLink size={14} />
@@ -136,9 +132,9 @@ export function ShopEditForm({
       <div>
         <p className={labelClass}>Kategorien</p>
         <MultiSelect
-          options={categories}
-          value={value.categoryIds}
-          onChange={(ids) => set("categoryIds", ids)}
+          options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
+          defaultValue={value.categoryIds.map(String)}
+          onValueChange={(vals) => set("categoryIds", vals.map(Number))}
           placeholder="Kategorie wählen…"
           error={errors?.categoryIds}
         />
