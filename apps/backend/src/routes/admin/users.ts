@@ -19,6 +19,8 @@ const USER_FIELDS = {
   username: adminUsers.username,
   email: adminUsers.email,
   isOwner: adminUsers.isOwner,
+  firstName: adminUsers.firstName,
+  lastName: adminUsers.lastName,
   avatarUrl: adminUsers.avatarUrl,
   createdAt: adminUsers.createdAt,
   lastLoginAt: adminUsers.lastLoginAt,
@@ -60,6 +62,8 @@ const updateUserSchema = z.object({
   username: z.string().min(1).max(64).optional(),
   email: z.string().email().optional(),
   password: z.string().min(8).optional(),
+  firstName: z.string().max(64).optional(),
+  lastName: z.string().max(64).optional(),
 });
 
 usersRoutes.patch(
@@ -76,11 +80,13 @@ usersRoutes.patch(
       return c.json({ error: { message: "Forbidden" } }, 403);
     }
 
-    const { username, email, password } = c.req.valid("json");
+    const { username, email, password, firstName, lastName } = c.req.valid("json");
     const updates: Partial<typeof adminUsers.$inferInsert> = {};
     if (username !== undefined) updates.username = username;
     if (email !== undefined) updates.email = email;
     if (password !== undefined) updates.passwordHash = await hashPassword(password);
+    if (firstName !== undefined) updates.firstName = firstName;
+    if (lastName !== undefined) updates.lastName = lastName;
 
     if (Object.keys(updates).length === 0) {
       return c.json({ error: { message: "Nothing to update" } }, 400);
