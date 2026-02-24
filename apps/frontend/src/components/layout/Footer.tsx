@@ -2,20 +2,13 @@ import { useNav } from "@/hooks/useNav.ts";
 import { Link } from "react-router";
 import { KoFiIcon } from "../common/KoFiIcon.tsx";
 
-const FALLBACK_NAV = [
-  { label: "Über uns", to: "/ueber-uns" },
-  { label: "Shop vorschlagen", to: "/vorschlagen" },
-  { label: "Impressum", to: "/impressum" },
-  { label: "Datenschutz", to: "/datenschutz" },
-];
-
 export function Footer() {
   const { data: navItems } = useNav("footer");
 
-  const footerLinks =
-    navItems && navItems.length > 0
-      ? navItems.map((item) => ({ label: item.label ?? item.pageTitle, to: `/${item.pageSlug}` }))
-      : FALLBACK_NAV;
+  const footerLinks = (navItems ?? []).map((item) => ({
+    label: item.label ?? item.pageTitle,
+    to: `/${item.pageSlug}`,
+  }));
 
   return (
     <footer className="mt-auto bg-stone-900 text-stone-300">
