@@ -73,7 +73,7 @@ export function RegionSelect({ value, onChange, error, buttonClassName, variant 
             const opt = REGION_OPTIONS.find((o) => o.code === value[0]);
             return opt ? `${opt.flag} ${opt.name}` : value[0];
           })()
-        : `${value.length} Regionen ausgewählt`;
+        : value.map((code) => REGION_OPTIONS.find((o) => o.code === code)?.flag ?? code).join("  ");
 
   const dropdown =
     open && dropdownRect

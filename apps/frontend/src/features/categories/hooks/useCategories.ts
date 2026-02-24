@@ -10,6 +10,14 @@ export function useCategories() {
   });
 }
 
+export function useShopStats() {
+  return useQuery({
+    queryKey: ["stats"],
+    queryFn: () => api.get<{ shopCount: number }>("/stats"),
+    staleTime: 60 * 1000,
+  });
+}
+
 export function useCategory(slug: string) {
   return useQuery({
     queryKey: ["categories", slug],
