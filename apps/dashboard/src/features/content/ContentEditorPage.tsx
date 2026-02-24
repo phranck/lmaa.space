@@ -376,7 +376,7 @@ export function ContentEditorPage() {
             key={slug}
             markdown={page.content}
             onChange={handleChange}
-            contentEditableClassName="prose prose-stone prose-sm dark:prose-invert max-w-none prose-a:text-amber-700 dark:prose-a:text-amber-500 min-h-[60vh] focus:outline-none px-6 py-4"
+            contentEditableClassName="prose prose-stone prose-sm dark:prose-invert max-w-none prose-a:text-amber-700 dark:prose-a:text-amber-500 min-h-[60vh] focus:outline-none"
             plugins={plugins}
           />
         )}
