@@ -17,9 +17,10 @@ export interface RegionSelectProps {
   onChange: (value: string[]) => void;
   error?: string;
   buttonClassName?: string;
+  variant?: "dashboard" | "frontend";
 }
 
-export function RegionSelect({ value, onChange, error, buttonClassName }: RegionSelectProps) {
+export function RegionSelect({ value, onChange, error, buttonClassName, variant = "dashboard" }: RegionSelectProps) {
   const [open, setOpen] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -123,27 +124,55 @@ export function RegionSelect({ value, onChange, error, buttonClassName }: Region
         )
       : null;
 
+  const labelClass =
+    variant === "frontend"
+      ? "block text-sm font-medium text-stone-700 mb-1.5"
+      : "block text-xs font-medium text-[var(--ds-text-muted)] mb-1";
+
   return (
     <div>
-      {/* Label + Info Popover */}
-      <div className="flex items-center gap-1.5 mb-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">Region</span>
+      <span className={labelClass}>Region</span>
+
+      {/* Trigger button + Info button */}
+      <div className="flex gap-2">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleToggle}
+          className={`flex-1 flex items-center justify-between px-3 py-2 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
+            open
+              ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
+              : error
+                ? "border-red-400"
+                : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
+          }`}
+        >
+          <span
+            className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
+          >
+            {label ?? "Region wählen…"}
+          </span>
+          <LuChevronDown
+            size={14}
+            className={`shrink-0 ml-2 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
 
         <PopoverPrimitive.Root>
           <PopoverPrimitive.Trigger asChild>
             <button
               type="button"
-              className="w-4 h-4 flex items-center justify-center text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
+              className="shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
               aria-label="Info zur Regionauswahl"
             >
-              <LuInfo size={13} />
+              <LuInfo size={14} />
             </button>
           </PopoverPrimitive.Trigger>
 
           <PopoverPrimitive.Portal>
             <PopoverPrimitive.Content
               side="bottom"
-              align="start"
+              align="end"
               sideOffset={6}
               style={{ zIndex: 9999 }}
               className="w-[276px] rounded-lg border border-black/[.175] bg-[var(--ds-surface)] shadow-md outline-none dark:border-white/[.15]"
@@ -179,33 +208,7 @@ export function RegionSelect({ value, onChange, error, buttonClassName }: Region
         </PopoverPrimitive.Root>
       </div>
 
-      {/* Trigger button */}
-      <div className="relative">
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleToggle}
-          className={`w-full flex items-center justify-between px-3 py-2 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
-            open
-              ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
-              : error
-                ? "border-red-400"
-                : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
-          }`}
-        >
-          <span
-            className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
-          >
-            {label ?? "Region wählen…"}
-          </span>
-          <LuChevronDown
-            size={14}
-            className={`shrink-0 ml-2 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        {dropdown}
-      </div>
+      {dropdown}
 
       {error && <p className="text-red-500 text-xs mt-1.5">{error}</p>}
     </div>

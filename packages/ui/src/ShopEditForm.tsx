@@ -142,6 +142,7 @@ export function ShopEditForm({
         value={value.region}
         onChange={(v) => set("region", v)}
         error={errors?.region}
+        variant={variant}
       />
 
       {/* Shipping */}
