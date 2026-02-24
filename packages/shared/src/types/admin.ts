@@ -3,6 +3,8 @@ export interface AdminUser {
   username: string;
   email: string;
   isOwner: boolean;
+  firstName: string | null;
+  lastName: string | null;
   avatarUrl: string | null;
   createdAt: string;
   lastLoginAt: string | null;

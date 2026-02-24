@@ -5,6 +5,7 @@ import {
   SFCamera,
   SFKey,
   SFPencil,
+  SFPerson,
   SFPersonCropCircle,
   SFTrash,
   SFXmark,
@@ -41,6 +42,8 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [avatar, setAvatar] = useState<AvatarState>(EMPTY_AVATAR_STATE);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,6 +71,8 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     if (user) {
       setUsername(user.username);
       setEmail(user.email);
+      setFirstName(user.firstName ?? "");
+      setLastName(user.lastName ?? "");
       setAvatar({ ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null });
     }
   }, [user?.id]);
@@ -103,10 +108,12 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     if (!user) return;
 
     // 1. Update profile fields if changed
-    const profileChanges: { username?: string; email?: string; password?: string } = {};
+    const profileChanges: { username?: string; email?: string; password?: string; firstName?: string; lastName?: string } = {};
     if (username !== user.username) profileChanges.username = username;
     if (email !== user.email) profileChanges.email = email;
     if (password.trim()) profileChanges.password = password;
+    if (firstName !== (user.firstName ?? "")) profileChanges.firstName = firstName;
+    if (lastName !== (user.lastName ?? "")) profileChanges.lastName = lastName;
 
     if (Object.keys(profileChanges).length > 0) {
       await updateUser.mutateAsync({ id: userId, data: profileChanges });
@@ -130,6 +137,8 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     username !== (user?.username ?? "") ||
     email !== (user?.email ?? "") ||
     password.trim() !== "" ||
+    firstName !== (user?.firstName ?? "") ||
+    lastName !== (user?.lastName ?? "") ||
     avatar.pendingFile !== null ||
     avatar.pendingGravatarUrl !== null ||
     avatar.deleted;
@@ -243,6 +252,34 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+                />
+              </div>
+
+              {/* First name */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                  <SFPerson className="w-3 h-3" />
+                  Vorname
+                </label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+                />
+              </div>
+
+              {/* Last name */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                  <SFPerson className="w-3 h-3" />
+                  Nachname
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
                 />
               </div>

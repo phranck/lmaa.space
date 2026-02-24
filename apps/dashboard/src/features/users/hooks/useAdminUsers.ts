@@ -41,6 +41,8 @@ export interface UpdateUserFormData {
   username?: string;
   email?: string;
   password?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export function useUpdateUser() {
