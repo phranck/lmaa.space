@@ -57,42 +57,42 @@
 }
 
 /* ── SEMANTIC TOKENS · Light mode ────────────────────────────
-   Intent-driven. Reference these in component styles.
+   GitHub Primer light default (exact @primer/primitives)
    ──────────────────────────────────────────────────────────── */
 
 :root {
-  /* Surfaces */
-  --ds-bg: var(--ds-color-neutral-50);
-  --ds-bg-elevated: var(--ds-color-neutral-100);
-  --ds-surface: oklch(1 0 0);
-  --ds-surface-alt: var(--ds-color-neutral-50);
-  --ds-input-bg: oklch(1 0 0);
+  /* Surfaces — bgColor-default #fff · bgColor-muted #f6f8fa */
+  --ds-bg:          #f6f8fa; /* bgColor-muted / canvas-subtle */
+  --ds-bg-elevated: #eff1f3; /* neutral-muted chip/badge bg (rgba(175,184,193,.2) on #fff) */
+  --ds-surface:     #ffffff; /* bgColor-default / canvas-default */
+  --ds-surface-alt: #f6f8fa; /* bgColor-muted */
+  --ds-input-bg:    #ffffff; /* bgColor-default */
 
   /* Borders */
-  --ds-border: var(--ds-color-neutral-200);
-  --ds-border-strong: var(--ds-color-neutral-300);
-  --ds-border-subtle: var(--ds-color-neutral-100);
+  --ds-border:        #d0d7de;               /* borderColor-default */
+  --ds-border-strong: #6e7781;               /* borderColor-emphasis */
+  --ds-border-subtle: rgba(175,184,193,0.2); /* borderColor-muted */
 
   /* Text */
-  --ds-text: var(--ds-color-neutral-800);
-  --ds-text-muted: var(--ds-color-neutral-500);
-  --ds-text-subtle: var(--ds-color-neutral-400);
-  --ds-text-inverse: oklch(1 0 0);
+  --ds-text:         #1f2328; /* fgColor-default */
+  --ds-text-muted:   #656d76; /* fgColor-muted */
+  --ds-text-subtle:  #6e7781; /* fgColor-subtle */
+  --ds-text-inverse: #ffffff;
 
   /* Accent / CTA — full brand saturation for public UI */
   --ds-accent: var(--ds-color-brand-500);
   --ds-accent-hover: var(--ds-color-brand-600);
   --ds-accent-active: var(--ds-color-brand-700);
   --ds-accent-subtle: var(--ds-color-brand-50);
-  --ds-accent-fg: oklch(1 0 0);
+  --ds-accent-fg: #ffffff;
 
-  /* Status */
-  --ds-success-bg: var(--ds-color-success-50);
-  --ds-success-text: var(--ds-color-success-700);
-  --ds-danger-bg: var(--ds-color-danger-50);
-  --ds-danger-text: var(--ds-color-danger-700);
-  --ds-warning-bg: var(--ds-color-warning-50);
-  --ds-warning-text: var(--ds-color-warning-700);
+  /* Status — exact GitHub Light primer values */
+  --ds-success-bg:   #dafbe1; /* bgColor-success-muted */
+  --ds-success-text: #1a7f37; /* fgColor-success */
+  --ds-danger-bg:    #ffebe9; /* bgColor-danger-muted */
+  --ds-danger-text:  #d1242f; /* fgColor-danger */
+  --ds-warning-bg:   #fff8c5; /* bgColor-attention-muted */
+  --ds-warning-text: #9a6700; /* fgColor-attention */
 
   /* Typography */
   --ds-font-sans: "Inter", system-ui, -apple-system, sans-serif;
