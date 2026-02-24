@@ -7,6 +7,7 @@ import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useMutation } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
+import { SFCheckmark } from "sf-symbols-lib/monochrome";
 import { Link } from "react-router";
 
 type UrlCheckResult =
@@ -127,20 +128,7 @@ export function SuggestPage() {
       <PageLayout>
         <div className="max-w-lg mx-auto px-4 py-24 text-center">
           <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
-            <svg
-              className="w-8 h-8 text-amber-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+            <SFCheckmark size={32} className="text-amber-600" aria-hidden="true" />
           </div>
           <h1 className="font-serif text-2xl font-semibold text-stone-900 mb-3">
             Vielen Dank für deinen Vorschlag!

@@ -59,7 +59,7 @@ export function Footer() {
               Projekt unterstützen
             </p>
             <p className="text-sm text-stone-400 mb-5 leading-relaxed">
-              lmaa.space ist ein privates Community-Projekt. Über eine kleine Unterstützung freuen wir uns sehr.
+              lmaa.space ist ein privates Community-Projekt. Über eine kleine Unterstützung freue ich mich sehr.
             </p>
             <div className="flex flex-col gap-2.5">
               <a

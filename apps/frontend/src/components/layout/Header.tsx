@@ -2,6 +2,7 @@ import { DonateButton } from "@/components/common/DonateButton.tsx";
 import { useNav } from "@/hooks/useNav.ts";
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
+import { SFLine3Horizontal, SFMagnifyingglass, SFXmark } from "sf-symbols-lib/monochrome";
 
 const navLinkClass = (isActive: boolean) =>
   `font-serif text-lg tracking-wide transition-colors ${isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"}`;
@@ -77,20 +78,11 @@ export function Header() {
                   placeholder="Suchen…"
                   className="w-48 pl-9 pr-3 py-1.5 text-sm rounded-full border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
                 />
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <SFMagnifyingglass
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
                   aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+                />
               </div>
             </form>
 
@@ -107,20 +99,10 @@ export function Header() {
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d={menuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
-                />
-              </svg>
+              {menuOpen
+                ? <SFXmark size={20} aria-hidden="true" />
+                : <SFLine3Horizontal size={20} aria-hidden="true" />
+              }
             </button>
           </div>
         </div>
@@ -138,20 +120,11 @@ export function Header() {
                     placeholder="Shop oder Kategorie suchen…"
                     className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                   />
-                  <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <SFMagnifyingglass
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
                     aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+                  />
                 </div>
               </form>
 
