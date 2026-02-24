@@ -316,8 +316,10 @@ async function main() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_nav_items_nav ON nav_items(nav_id)`;
 
-  // Remove stale 'ueber-uns' row created by a previous (now-reverted) rename migration
-  await sql`DELETE FROM content_pages WHERE slug = 'ueber-uns'`;
+  // Remove stale English-slug rows created by a previous (now-reverted) rename migration.
+  // The canonical slugs are the German ones (about, impressum, datenschutz, aufnahmekriterien).
+  // The English variants (ueber-uns, imprint, privacy, admission-criteria) are leftovers.
+  await sql`DELETE FROM content_pages WHERE slug IN ('ueber-uns', 'imprint', 'privacy', 'admission-criteria')`;
 
   // nav_items: make page_slug nullable, add url + target columns
   await sql`ALTER TABLE nav_items ALTER COLUMN page_slug DROP NOT NULL`;
