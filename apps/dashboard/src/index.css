@@ -65,96 +65,96 @@
   --ds-badge-danger-text: oklch(0.55 0.2 27); /* ~red-600 */
 }
 
-/* Dark mode overrides — GitHub Soft Dark palette */
+/* Dark mode overrides — GitHub Primer dark_dimmed (exact @primer/primitives@11.4.0) */
 .dark {
-  /* Nav — blue indicator instead of amber */
-  --ds-nav-active-bg:     oklch(0.22  0.018 256);
-  --ds-nav-active-text:   oklch(0.938 0.009 255);
-  --ds-nav-active-border: oklch(0.72  0.19  255); /* GitHub blue #58a6ff */
-  --ds-nav-text:          oklch(0.625 0.012 240);
-  --ds-nav-hover-bg:      oklch(0.195 0.016 256);
-  --ds-nav-hover-text:    oklch(0.938 0.009 255);
-  --ds-brand-text:        oklch(0.938 0.009 255);
+  /* Nav — accent blue #478be6 as active indicator (fgColor-accent) */
+  --ds-nav-active-bg:     #2a313c; /* slightly above surface #262c36 */
+  --ds-nav-active-text:   #f0f6fc; /* fgColor-default */
+  --ds-nav-active-border: #478be6; /* fgColor-accent */
+  --ds-nav-text:          #9198a1; /* fgColor-muted */
+  --ds-nav-hover-bg:      #2f3742; /* button-default-bgColor-hover */
+  --ds-nav-hover-text:    #f0f6fc;
+  --ds-brand-text:        #f0f6fc;
 
-  /* Segment controls — visible lift above header surface (0.174) */
-  --ds-segment-bg:        oklch(0.22  0.015 256); /* #21262d */
-  --ds-segment-active-bg: oklch(0.28  0.012 255); /* #30363d – active pill */
+  /* Segment controls — visible lift above header (#262c36) */
+  --ds-segment-bg:        #2a313c; /* control-bgColor-rest */
+  --ds-segment-active-bg: #3d444d; /* bgColor-emphasis */
 
   /* Table row hover */
-  --ds-row-hover: oklch(0.215 0.015 256);
+  --ds-row-hover: #2a313c; /* control-bgColor-rest */
 
   /* Neutral outline buttons */
-  --ds-btn-neutral-border:       oklch(0.35  0.012 255);
-  --ds-btn-neutral-text:         oklch(0.75  0.009 255);
-  --ds-btn-neutral-hover-border: oklch(0.45  0.012 255);
+  --ds-btn-neutral-border:       #3d444d; /* borderColor-default */
+  --ds-btn-neutral-text:         #9198a1; /* fgColor-muted */
+  --ds-btn-neutral-hover-border: #656c76; /* borderColor-emphasis */
 
-  /* Outline action buttons: danger */
-  --ds-btn-danger-border:       oklch(0.42 0.1  25);
-  --ds-btn-danger-text:         oklch(0.72 0.18 25);
-  --ds-btn-danger-hover-bg:     oklch(0.22 0.04 25);
-  --ds-btn-danger-hover-border: oklch(0.52 0.14 25);
+  /* Outline action buttons: danger — fgColor-danger #e5534b */
+  --ds-btn-danger-border:       rgba(229,83,75,0.40);
+  --ds-btn-danger-text:         #e5534b;
+  --ds-btn-danger-hover-bg:     rgba(229,83,75,0.10);
+  --ds-btn-danger-hover-border: rgba(229,83,75,0.70);
 
-  /* Outline action buttons: success */
-  --ds-btn-success-border:       oklch(0.42 0.1  142);
-  --ds-btn-success-text:         oklch(0.72 0.18 142);
-  --ds-btn-success-hover-bg:     oklch(0.22 0.04 142);
-  --ds-btn-success-hover-border: oklch(0.52 0.14 142);
+  /* Outline action buttons: success — fgColor-success #57ab5a */
+  --ds-btn-success-border:       rgba(87,171,90,0.40);
+  --ds-btn-success-text:         #57ab5a;
+  --ds-btn-success-hover-bg:     rgba(70,149,74,0.15);
+  --ds-btn-success-hover-border: rgba(87,171,90,0.70);
 
   /* Status badges */
-  --ds-badge-pending-bg:   oklch(0.24 0.05  80);
-  --ds-badge-pending-text: oklch(0.78 0.13  80);
-  --ds-badge-success-bg:   oklch(0.22 0.05  142);
-  --ds-badge-success-text: oklch(0.72 0.18  142);
-  --ds-badge-danger-bg:    oklch(0.22 0.04  25);
-  --ds-badge-danger-text:  oklch(0.72 0.18  25);
+  --ds-badge-pending-bg:   rgba(174,124,20,0.15);  /* bgColor-attention-muted */
+  --ds-badge-pending-text: #c69026;                /* fgColor-attention */
+  --ds-badge-success-bg:   rgba(70,149,74,0.15);   /* bgColor-success-muted */
+  --ds-badge-success-text: #57ab5a;                /* fgColor-success */
+  --ds-badge-danger-bg:    rgba(229,83,75,0.10);   /* bgColor-danger-muted */
+  --ds-badge-danger-text:  #e5534b;                /* fgColor-danger */
 }
 
-/* Dark mode: MDXEditor toolbar and popups — GitHub Soft Dark */
+/* Dark mode: MDXEditor toolbar and popups — GitHub Primer dark_dimmed */
 .dark .mdxeditor {
-  --baseBg:           oklch(0.174 0.016 256); /* #161b22 */
-  --basePageBg:       oklch(0.132 0.016 256); /* #0d1117 */
-  --baseBgSubtle:     oklch(0.132 0.016 256);
-  --baseBgHover:      oklch(0.22  0.015 256); /* #21262d */
-  --baseBgActive:     oklch(0.28  0.012 255); /* #30363d */
-  --baseBorder:       oklch(0.28  0.012 255);
-  --baseBorderHover:  oklch(0.35  0.012 255);
-  --baseBase:         oklch(0.215 0.015 256);
-  --baseLine:         oklch(0.28  0.012 255);
-  --baseSolid:        oklch(0.625 0.012 240);
-  --baseSolidHover:   oklch(0.70  0.012 240);
-  --baseText:         oklch(0.625 0.012 240); /* #8b949e */
-  --baseTextContrast: oklch(0.938 0.009 255); /* #e6edf3 */
+  --baseBg:           #262c36; /* card-bgColor */
+  --basePageBg:       #151b23; /* bgColor-inset */
+  --baseBgSubtle:     #151b23;
+  --baseBgHover:      #2f3742; /* button-default-bgColor-hover */
+  --baseBgActive:     #3d444d; /* bgColor-emphasis */
+  --baseBorder:       #3d444d; /* borderColor-default */
+  --baseBorderHover:  #656c76; /* borderColor-emphasis */
+  --baseBase:         #2a313c; /* control-bgColor-rest */
+  --baseLine:         #3d444d;
+  --baseSolid:        #9198a1; /* fgColor-muted */
+  --baseSolidHover:   #b7bdc8; /* neutral.9 */
+  --baseText:         #9198a1; /* fgColor-muted */
+  --baseTextContrast: #f0f6fc; /* fgColor-default */
   color-scheme: dark;
 }
 
 .dark .mdxeditor-popup-container [role="dialog"],
 .dark .mdxeditor-popup-container [role="tooltip"],
 .dark .mdxeditor-popup-container [data-radix-popper-content-wrapper] > * {
-  background-color: oklch(0.174 0.016 256) !important;
-  border-color: oklch(0.28 0.012 255) !important;
-  color: oklch(0.938 0.009 255) !important;
+  background-color: #262c36 !important;
+  border-color: #3d444d !important;
+  color: #f0f6fc !important;
 }
 
 .dark .mdxeditor input,
 .dark .mdxeditor select {
-  background-color: oklch(0.132 0.016 256);
-  border-color: oklch(0.28 0.012 255);
-  color: oklch(0.938 0.009 255);
+  background-color: #2a313c;
+  border-color: #3d444d;
+  color: #f0f6fc;
 }
 
 /* Source (CodeMirror) dark mode */
 .dark .mdxeditor .cm-editor {
-  background-color: oklch(0.132 0.016 256);
-  color: oklch(0.938 0.009 255);
+  background-color: #151b23;
+  color: #f0f6fc;
 }
 .dark .mdxeditor .cm-gutters {
-  background-color: oklch(0.132 0.016 256);
-  border-color: oklch(0.28 0.012 255);
-  color: oklch(0.625 0.012 240);
+  background-color: #151b23;
+  border-color: #3d444d;
+  color: #9198a1;
 }
 .dark .mdxeditor .cm-activeLineGutter,
 .dark .mdxeditor .cm-activeLine {
-  background-color: oklch(0.195 0.016 256);
+  background-color: #212830;
 }
 
 /* Backward-compatible aliases for existing component classes */
