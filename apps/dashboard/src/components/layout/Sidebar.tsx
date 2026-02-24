@@ -79,7 +79,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
             to={`/seiten/${page.slug}`}
             onClick={onItemClick}
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-1.5 rounded-control text-xs font-medium transition-colors border-l-2 ${
+              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors border-l-2 ${
                 isActive
                   ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
                   : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
@@ -89,7 +89,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
             <StatusIcon status={page.status} />
             <span className="flex flex-col min-w-0">
               <span className="truncate">{page.title}</span>
-              <span className="truncate text-[10px] opacity-50">/{page.slug}</span>
+              <span className="truncate text-xs opacity-50">/{page.slug}</span>
             </span>
           </NavLink>
         ))}

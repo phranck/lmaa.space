@@ -35,7 +35,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
             src={resolvedUrl}
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover"
             loading="lazy"
             onError={() => setImgError(true)}
           />
