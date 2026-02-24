@@ -66,12 +66,10 @@ export function MultiSelect({
   const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
   const [isOpen, setIsOpen] = React.useState(false);
   const [dropdownRect, setDropdownRect] = React.useState<DOMRect | null>(null);
-  const [search, setSearch] = React.useState("");
   const [isAnimating, setIsAnimating] = React.useState(animation > 0);
 
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
-  const searchRef = React.useRef<HTMLInputElement>(null);
 
   // Sync when parent updates defaultValue (controlled usage)
   const defaultKey = defaultValue.join(",");
@@ -89,7 +87,6 @@ export function MultiSelect({
         !dropdownRef.current?.contains(target)
       ) {
         setIsOpen(false);
-        setSearch("");
       }
     }
     if (isOpen) document.addEventListener("mousedown", onClickOutside);
@@ -102,18 +99,10 @@ export function MultiSelect({
       if (e.key === "Escape") {
         e.stopPropagation();
         setIsOpen(false);
-        setSearch("");
       }
     }
     if (isOpen) window.addEventListener("keydown", onEsc, true);
     return () => window.removeEventListener("keydown", onEsc, true);
-  }, [isOpen]);
-
-  // Focus search input when dropdown opens
-  React.useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => searchRef.current?.focus(), 0);
-    }
   }, [isOpen]);
 
   function handleToggle() {
@@ -121,7 +110,6 @@ export function MultiSelect({
       setDropdownRect(triggerRef.current.getBoundingClientRect());
     }
     setIsOpen((prev) => !prev);
-    if (isOpen) setSearch("");
   }
 
   function toggleOption(optionValue: string) {
@@ -156,20 +144,6 @@ export function MultiSelect({
     onValueChange(next);
   }
 
-  function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace" && !search) {
-      const next = selectedValues.slice(0, -1);
-      setSelectedValues(next);
-      onValueChange(next);
-    }
-  }
-
-  const filteredOptions = search.trim()
-    ? options.filter((o) =>
-        o.label.toLowerCase().includes(search.toLowerCase()),
-      )
-    : options;
-
   const allSelected = options.length > 0 && selectedValues.length === options.length;
 
   const dropdown =
@@ -187,63 +161,31 @@ export function MultiSelect({
             }}
             className="border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
           >
-            {/* Search */}
-            <div className="flex items-center border-b border-[var(--ds-border)] px-3">
-              <input
-                ref={searchRef}
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                placeholder="Suchen…"
-                className="w-full py-2 text-sm bg-transparent outline-none border-none"
-                style={{ color: "var(--ds-text)" }}
-              />
-            </div>
-
             {/* List */}
             <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-              {filteredOptions.length === 0 && (
-                <div
-                  style={{
-                    padding: "12px",
-                    textAlign: "center",
-                    fontSize: "0.875rem",
-                    color: "var(--ds-text-subtle)",
-                  }}
-                >
-                  Keine Ergebnisse.
-                </div>
-              )}
-
-              {/* Select all (only when not searching) */}
-              {!search && (
-                <button
-                  type="button"
-                  onClick={handleToggleAll}
+              {/* Select all */}
+              <button
+                type="button"
+                onClick={handleToggleAll}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors outline-none hover:bg-[var(--ds-bg-elevated)]"
+              >
+                <span
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors outline-none",
-                    "hover:bg-[var(--ds-bg-elevated)]",
+                    "w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors",
+                    allSelected
+                      ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
+                      : "border-[var(--ds-border-strong)] opacity-50",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors",
-                      allSelected
-                        ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                        : "border-[var(--ds-border-strong)] opacity-50",
-                    )}
-                  >
-                    {allSelected && (
-                      <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-                    )}
-                  </span>
-                  <span className="text-[var(--ds-text)]">(Alle auswählen)</span>
-                </button>
-              )}
+                  {allSelected && (
+                    <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                  )}
+                </span>
+                <span className="text-[var(--ds-text)]">(Alle auswählen)</span>
+              </button>
 
               {/* Options */}
-              {filteredOptions.map((opt) => {
+              {options.map((opt) => {
                 const isSelected = selectedValues.includes(opt.value);
                 return (
                   <button
@@ -253,10 +195,8 @@ export function MultiSelect({
                     disabled={opt.disabled}
                     style={opt.style}
                     className={cn(
-                      "w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors outline-none",
-                      isSelected
-                        ? "text-[var(--ds-text)]"
-                        : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)]",
+                      "w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors outline-none hover:bg-[var(--ds-bg-elevated)]",
+                      isSelected ? "text-[var(--ds-text)]" : "text-[var(--ds-text-muted)]",
                       opt.disabled && "opacity-50 cursor-not-allowed",
                     )}
                   >
@@ -277,25 +217,6 @@ export function MultiSelect({
                   </button>
                 );
               })}
-
-              {/* Clear selection */}
-              {selectedValues.length > 0 && (
-                <>
-                  <div
-                    style={{ borderTop: "1px solid var(--ds-border)", margin: "2px 0" }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedValues([]);
-                      onValueChange([]);
-                    }}
-                    className="w-full py-2 text-sm text-center text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
-                  >
-                    Auswahl aufheben
-                  </button>
-                </>
-              )}
             </div>
           </div>,
           document.body,
