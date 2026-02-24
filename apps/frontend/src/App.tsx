@@ -31,7 +31,7 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/kategorie/:slug" element={<CategoryPage />} />
       <Route path="/suche" element={<SearchPage />} />
-      <Route path="/vorschlagen" element={<SuggestPage />} />
+      <Route path="/suggestion" element={<SuggestPage />} />
       {/* Legacy redirect */}
       <Route path="/kriterien" element={<Navigate to="/aufnahmekriterien" replace />} />
       {/* Dynamic CMS pages (catch-all) */}
