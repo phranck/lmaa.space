@@ -42,8 +42,8 @@ export interface MultiSelectOption {
 export interface MultiSelectProps
   extends VariantProps<typeof multiSelectVariants> {
   options: MultiSelectOption[];
+  value: string[];
   onValueChange: (value: string[]) => void;
-  defaultValue?: string[];
   placeholder?: string;
   animation?: number;
   maxCount?: number;
@@ -54,29 +54,21 @@ export interface MultiSelectProps
 
 export function MultiSelect({
   options,
+  value,
   onValueChange,
   variant,
-  defaultValue = [],
   placeholder = "Auswählen…",
   animation = 0,
   maxCount = 3,
   className,
   error,
 }: MultiSelectProps) {
-  const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
   const [isOpen, setIsOpen] = React.useState(false);
   const [dropdownRect, setDropdownRect] = React.useState<DOMRect | null>(null);
   const [isAnimating, setIsAnimating] = React.useState(animation > 0);
 
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  // Sync when parent updates defaultValue (controlled usage)
-  const defaultKey = defaultValue.join(",");
-  React.useEffect(() => {
-    setSelectedValues(defaultValue);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultKey]);
 
   // Close on click outside
   React.useEffect(() => {
@@ -113,38 +105,32 @@ export function MultiSelect({
   }
 
   function toggleOption(optionValue: string) {
-    const next = selectedValues.includes(optionValue)
-      ? selectedValues.filter((v) => v !== optionValue)
-      : [...selectedValues, optionValue];
-    setSelectedValues(next);
+    const next = value.includes(optionValue)
+      ? value.filter((v) => v !== optionValue)
+      : [...value, optionValue];
     onValueChange(next);
   }
 
   function handleClear(e: React.MouseEvent | React.KeyboardEvent) {
     e.stopPropagation();
-    setSelectedValues([]);
     onValueChange([]);
   }
 
   function handleToggleAll() {
     const all = options.map((o) => o.value);
-    if (selectedValues.length === options.length) {
-      setSelectedValues([]);
+    if (value.length === options.length) {
       onValueChange([]);
     } else {
-      setSelectedValues(all);
       onValueChange(all);
     }
   }
 
   function clearExtraOptions(e: React.MouseEvent) {
     e.stopPropagation();
-    const next = selectedValues.slice(0, maxCount);
-    setSelectedValues(next);
-    onValueChange(next);
+    onValueChange(value.slice(0, maxCount));
   }
 
-  const allSelected = options.length > 0 && selectedValues.length === options.length;
+  const allSelected = options.length > 0 && value.length === options.length;
 
   const dropdown =
     isOpen && dropdownRect
@@ -186,7 +172,7 @@ export function MultiSelect({
 
               {/* Options */}
               {options.map((opt) => {
-                const isSelected = selectedValues.includes(opt.value);
+                const isSelected = value.includes(opt.value);
                 return (
                   <button
                     key={opt.value}
@@ -241,9 +227,9 @@ export function MultiSelect({
         )}
         style={{ backgroundColor: "var(--ds-input-bg, #ffffff)" }}
       >
-        {selectedValues.length > 0 ? (
+        {value.length > 0 ? (
           <div className="flex flex-wrap items-center gap-1 flex-1 min-w-0">
-            {selectedValues.slice(0, maxCount).map((val) => {
+            {value.slice(0, maxCount).map((val) => {
               const opt = options.find((o) => o.value === val);
               if (!opt) return null;
               return (
@@ -279,12 +265,12 @@ export function MultiSelect({
                 </span>
               );
             })}
-            {selectedValues.length > maxCount && (
+            {value.length > maxCount && (
               <span
                 className={cn(multiSelectVariants({ variant }), "cursor-pointer")}
                 onClick={clearExtraOptions}
               >
-                {`+ ${selectedValues.length - maxCount} weitere`}
+                {`+ ${value.length - maxCount} weitere`}
                 <XCircle className="h-3 w-3 opacity-60" />
               </span>
             )}
@@ -294,7 +280,7 @@ export function MultiSelect({
         )}
 
         <div className="flex items-center shrink-0 ml-2 gap-0.5">
-          {selectedValues.length > 0 && (
+          {value.length > 0 && (
             <>
               <span
                 role="button"
