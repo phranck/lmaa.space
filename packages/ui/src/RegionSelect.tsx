@@ -179,7 +179,7 @@ export function RegionSelect({ value, onChange, error, buttonClassName, variant 
               onEscapeKeyDown={(e) => e.stopPropagation()}
             >
               {/* Popover header */}
-              <div className="flex items-center justify-between px-4 py-2 bg-black/[.06] border-b border-black/[.1] rounded-t-lg dark:bg-white/[.06] dark:border-white/[.1]">
+              <div className="flex items-center justify-between px-4 py-2 bg-black/[.1] border-b border-black/[.15] rounded-t-lg dark:bg-white/[.1] dark:border-white/[.15]">
                 <span className="font-semibold text-sm text-[var(--ds-text)]">
                   Was bedeutet Region?
                 </span>
