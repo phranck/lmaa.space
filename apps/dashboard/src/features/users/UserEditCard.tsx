@@ -16,8 +16,6 @@ import {
   useSetGravatarAvatar,
   useUpdateUser,
 } from "./hooks/useAdminUsers.ts";
-import { UserAvatar } from "./UserAvatar.tsx";
-
 interface UserEditCardProps {
   userId: number;
   onClose: () => void;
