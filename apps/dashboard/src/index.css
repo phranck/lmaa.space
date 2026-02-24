@@ -11,58 +11,57 @@
   --radius-card: calc(var(--radius-control) + 0.75rem);
 }
 
-/* Dashboard-specific overrides
-   Navigation uses muted, pastel-adjacent tones — not full brand saturation */
+/* Dashboard-specific overrides — GitHub Primer light default (exact @primer/primitives) */
 :root {
-  /* Nav: active state — subtle warm tint, darker text, amber left border */
-  --ds-nav-active-bg: var(--ds-color-neutral-100);
-  --ds-nav-active-text: var(--ds-color-neutral-900);
-  --ds-nav-active-border: var(--color-primary);
+  /* Nav: active state — actionList-item-default-activeBg + fgColor-accent border */
+  --ds-nav-active-bg:     rgba(175,184,193,0.2); /* actionList-item-default-activeBg */
+  --ds-nav-active-text:   #1f2328;               /* fgColor-default */
+  --ds-nav-active-border: #0969da;               /* fgColor-accent */
 
-  /* Nav: default item */
-  --ds-nav-text: var(--ds-color-neutral-600);
-  --ds-nav-hover-bg: var(--ds-color-neutral-50);
-  --ds-nav-hover-text: var(--ds-color-neutral-800);
+  /* Nav: default / hover */
+  --ds-nav-text:       #656d76;               /* fgColor-muted */
+  --ds-nav-hover-bg:   rgba(175,184,193,0.12); /* actionList-item-default-hoverBg */
+  --ds-nav-hover-text: #1f2328;               /* fgColor-default */
 
-  /* Brand name in sidebar: dark, not orange */
-  --ds-brand-text: var(--ds-color-neutral-800);
+  /* Brand name in sidebar */
+  --ds-brand-text: #1f2328; /* fgColor-default */
 
-  /* Buttons: muted amber — reduced chroma for a softer, less vivid look */
-  --ds-btn-primary-bg: #5ea349;
+  /* Primary button — brand green (kept, not GitHub blue) */
+  --ds-btn-primary-bg:    #5ea349;
   --ds-btn-primary-hover: #4e8f3c;
-  --ds-btn-primary-fg: oklch(1 0 0);
+  --ds-btn-primary-fg:    #ffffff;
 
   /* Segment controls (ThemeToggle, view toggle, tab switcher) */
-  --ds-segment-bg: var(--ds-bg-elevated); /* container background */
-  --ds-segment-active-bg: var(--ds-surface); /* active button background */
+  --ds-segment-bg:        #eff1f3; /* neutral-muted track */
+  --ds-segment-active-bg: #ffffff; /* active button */
 
   /* Table row hover */
-  --ds-row-hover: var(--ds-color-neutral-100);
+  --ds-row-hover: rgba(175,184,193,0.12); /* actionList-item-default-hoverBg */
 
   /* Neutral outline buttons (Bearbeiten) */
-  --ds-btn-neutral-border: var(--ds-border);
-  --ds-btn-neutral-text: var(--ds-text-muted);
-  --ds-btn-neutral-hover-border: var(--ds-border-strong);
+  --ds-btn-neutral-border:       #d0d7de; /* borderColor-default */
+  --ds-btn-neutral-text:         #656d76; /* fgColor-muted */
+  --ds-btn-neutral-hover-border: #6e7781; /* borderColor-emphasis */
 
-  /* Outline action buttons: danger (Ablehnen) */
-  --ds-btn-danger-border: oklch(0.82 0.08 27); /* ~red-300 */
-  --ds-btn-danger-text: oklch(0.55 0.2 27); /* ~red-600 */
-  --ds-btn-danger-hover-bg: oklch(0.97 0.015 27); /* ~red-50 */
-  --ds-btn-danger-hover-border: oklch(0.73 0.12 27); /* ~red-400 */
+  /* Outline action buttons: danger — fgColor-danger #d1242f */
+  --ds-btn-danger-border:       rgba(209,36,47,0.4);
+  --ds-btn-danger-text:         #d1242f;   /* fgColor-danger */
+  --ds-btn-danger-hover-bg:     #ffebe9;   /* bgColor-danger-muted */
+  --ds-btn-danger-hover-border: rgba(209,36,47,0.7);
 
-  /* Outline action buttons: success (Annehmen) */
-  --ds-btn-success-border: oklch(0.79 0.11 155); /* ~green-300 */
-  --ds-btn-success-text: oklch(0.52 0.17 155); /* ~green-700 */
-  --ds-btn-success-hover-bg: oklch(0.97 0.02 155); /* ~green-50 */
-  --ds-btn-success-hover-border: oklch(0.67 0.14 155); /* ~green-400 */
+  /* Outline action buttons: success — fgColor-success #1a7f37 */
+  --ds-btn-success-border:       rgba(26,127,55,0.4);
+  --ds-btn-success-text:         #1a7f37;  /* fgColor-success */
+  --ds-btn-success-hover-bg:     #dafbe1;  /* bgColor-success-muted */
+  --ds-btn-success-hover-border: rgba(26,127,55,0.7);
 
   /* Status badges (inline chips) */
-  --ds-badge-pending-bg: oklch(0.95 0.05 85); /* ~amber-50 */
-  --ds-badge-pending-text: oklch(0.58 0.12 80); /* ~amber-700 */
-  --ds-badge-success-bg: oklch(0.96 0.04 155); /* ~green-50 */
-  --ds-badge-success-text: oklch(0.52 0.17 155); /* ~green-700 */
-  --ds-badge-danger-bg: oklch(0.97 0.015 27); /* ~red-50 */
-  --ds-badge-danger-text: oklch(0.55 0.2 27); /* ~red-600 */
+  --ds-badge-pending-bg:   #fff8c5; /* bgColor-attention-muted */
+  --ds-badge-pending-text: #9a6700; /* fgColor-attention */
+  --ds-badge-success-bg:   #dafbe1; /* bgColor-success-muted */
+  --ds-badge-success-text: #1a7f37; /* fgColor-success */
+  --ds-badge-danger-bg:    #ffebe9; /* bgColor-danger-muted */
+  --ds-badge-danger-text:  #d1242f; /* fgColor-danger */
 }
 
 /* Dark mode overrides — GitHub Primer dark_dimmed (exact @primer/primitives@11.4.0) */
