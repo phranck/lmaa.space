@@ -2,11 +2,13 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminShops, useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
 import { useState } from "react";
 import { SFXmark } from "sf-symbols-lib/monochrome";
 
 export function ShopsPage() {
+  const { user: me } = useAuth();
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -78,7 +80,11 @@ export function ShopsPage() {
 
       {!isLoading && filtered.length > 0 && (
         <div className="-mx-6 -mt-6">
-          <ShopTable shops={filtered} onEdit={setEditTarget} onDelete={setDeleteId} />
+          <ShopTable
+            shops={filtered}
+            onEdit={setEditTarget}
+            onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
+          />
         </div>
       )}
 

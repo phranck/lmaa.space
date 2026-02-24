@@ -64,6 +64,7 @@ export const adminUsers = pgTable("admin_users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   isOwner: boolean("is_owner").notNull().default(false),
+  role: text("role").$type<"owner" | "admin" | "moderator">().notNull().default("admin"),
   firstName: text("first_name"),
   lastName: text("last_name"),
   avatarUrl: text("avatar_url"),

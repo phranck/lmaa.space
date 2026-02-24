@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "../../db/index.js";
 import { categories, shopCategories, shops } from "../../db/schema.js";
 import { detectImageType, parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
 
 const categoryBodySchema = z.object({
   name: z.string().min(1).max(100),
@@ -80,7 +80,7 @@ for (const method of ["put", "patch"] as const) {
   );
 }
 
-categoriesRoutes.delete("/categories/:id", requireAuth, async (c) => {
+categoriesRoutes.delete("/categories/:id", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   await db.delete(categories).where(eq(categories.id, id));
@@ -137,7 +137,7 @@ categoriesRoutes.post("/categories/:id/image", requireAuth, async (c) => {
 });
 
 // Delete image of a category
-categoriesRoutes.delete("/categories/:id/image", requireAuth, async (c) => {
+categoriesRoutes.delete("/categories/:id/image", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);

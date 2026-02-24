@@ -3,7 +3,7 @@ import type { Category } from "@lmaa/shared";
 interface CategoryGridItemProps {
   category: Category;
   onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
 }
 
 export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridItemProps) {
@@ -36,13 +36,15 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
           >
             Bearbeiten
           </button>
-          <button
-            type="button"
-            onClick={() => onDelete(category.id)}
-            className="btn-delete flex-1 py-1.5 text-xs border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-          >
-            Löschen
-          </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(category.id)}
+              className="btn-delete flex-1 py-1.5 text-xs border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+            >
+              Löschen
+            </button>
+          )}
         </div>
       </div>
     </div>

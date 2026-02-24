@@ -7,7 +7,7 @@ import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers, sessions } from "../../db/schema.js";
 import { detectImageType, parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAuth, requireOwner } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin, requireAuth, requireOwner } from "../../middleware/auth.js";
 import { hashPassword, setupSchema } from "../../services/auth.js";
 
 export const usersRoutes = new Hono<{ Variables: AuthVariables }>();
@@ -18,7 +18,7 @@ const USER_FIELDS = {
   id: adminUsers.id,
   username: adminUsers.username,
   email: adminUsers.email,
-  isOwner: adminUsers.isOwner,
+  role: adminUsers.role,
   firstName: adminUsers.firstName,
   lastName: adminUsers.lastName,
   avatarUrl: adminUsers.avatarUrl,
@@ -31,28 +31,32 @@ function canModify(adminId: number, isOwner: boolean, targetId: number): boolean
   return isOwner || adminId === targetId;
 }
 
-// ─── List users (owner only) ──────────────────────────────────────────────────
+// ─── List users (admin+) ──────────────────────────────────────────────────────
 
-usersRoutes.get("/users", requireAuth, requireOwner, async (c) => {
+usersRoutes.get("/users", requireAuth, requireAdmin, async (c) => {
   const users = await db.select(USER_FIELDS).from(adminUsers);
-  return c.json({ data: users });
+  return c.json({ data: users.map((u) => ({ ...u, isOwner: u.role === "owner" })) });
 });
 
 // ─── Create user (owner only) ─────────────────────────────────────────────────
+
+const createUserSchema = setupSchema.extend({
+  role: z.enum(["admin", "moderator"]).optional(),
+});
 
 usersRoutes.post(
   "/users",
   requireAuth,
   requireOwner,
-  zValidator("json", setupSchema),
+  zValidator("json", createUserSchema),
   async (c) => {
-    const { username, email, password } = c.req.valid("json");
+    const { username, email, password, role } = c.req.valid("json");
     const passwordHash = await hashPassword(password);
     const [admin] = await db
       .insert(adminUsers)
-      .values({ username, email, passwordHash })
-      .returning();
-    return c.json({ data: { id: admin.id, username: admin.username, email: admin.email } }, 201);
+      .values({ username, email, passwordHash, role: role ?? "admin" })
+      .returning(USER_FIELDS);
+    return c.json({ data: { ...admin, isOwner: admin.role === "owner" } }, 201);
   },
 );
 
@@ -64,6 +68,7 @@ const updateUserSchema = z.object({
   password: z.string().min(8).optional(),
   firstName: z.string().max(64).optional(),
   lastName: z.string().max(64).optional(),
+  role: z.enum(["admin", "moderator"]).optional(),
 });
 
 usersRoutes.patch(
@@ -80,13 +85,20 @@ usersRoutes.patch(
       return c.json({ error: { message: "Forbidden" } }, 403);
     }
 
-    const { username, email, password, firstName, lastName } = c.req.valid("json");
+    const { username, email, password, firstName, lastName, role } = c.req.valid("json");
     const updates: Partial<typeof adminUsers.$inferInsert> = {};
     if (username !== undefined) updates.username = username;
     if (email !== undefined) updates.email = email;
     if (password !== undefined) updates.passwordHash = await hashPassword(password);
     if (firstName !== undefined) updates.firstName = firstName;
     if (lastName !== undefined) updates.lastName = lastName;
+
+    if (role !== undefined) {
+      if (!isOwner || adminId === id) {
+        return c.json({ error: { message: "Forbidden" } }, 403);
+      }
+      updates.role = role;
+    }
 
     if (Object.keys(updates).length === 0) {
       return c.json({ error: { message: "Nothing to update" } }, 400);
@@ -98,7 +110,7 @@ usersRoutes.patch(
       .where(eq(adminUsers.id, id))
       .returning(USER_FIELDS);
 
-    return c.json({ data: updated });
+    return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
   },
 );
 
@@ -158,7 +170,7 @@ usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
     .where(eq(adminUsers.id, id))
     .returning(USER_FIELDS);
 
-  return c.json({ data: updated });
+  return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
 });
 
 // ─── Set Gravatar as avatar (self or owner) ───────────────────────────────────
@@ -204,7 +216,7 @@ usersRoutes.patch(
       .where(eq(adminUsers.id, id))
       .returning(USER_FIELDS);
 
-    return c.json({ data: updated });
+    return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
   },
 );
 
@@ -239,7 +251,7 @@ usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
     .where(eq(adminUsers.id, id))
     .returning(USER_FIELDS);
 
-  return c.json({ data: updated });
+  return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
 });
 
 // ─── Delete user (owner only) ─────────────────────────────────────────────────

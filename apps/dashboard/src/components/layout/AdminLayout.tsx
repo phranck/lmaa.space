@@ -42,7 +42,7 @@ function AdminLayoutInner() {
           username={user?.username}
           email={user?.email}
           avatarUrl={user?.avatarUrl}
-          isOwner={user?.isOwner}
+          role={user?.role}
           onLogout={handleLogout}
         />
       </aside>
@@ -61,7 +61,7 @@ function AdminLayoutInner() {
               username={user?.username}
               email={user?.email}
               avatarUrl={user?.avatarUrl}
-              isOwner={user?.isOwner}
+              role={user?.role}
               onLogout={handleLogout}
               onItemClick={() => setSidebarOpen(false)}
             />

@@ -6,6 +6,7 @@ export interface CreateUserFormData {
   username: string;
   email: string;
   password: string;
+  role?: "admin" | "moderator";
 }
 
 export const EMPTY_CREATE_USER_FORM: CreateUserFormData = {
@@ -43,6 +44,7 @@ export interface UpdateUserFormData {
   password?: string;
   firstName?: string;
   lastName?: string;
+  role?: "admin" | "moderator";
 }
 
 export function useUpdateUser() {

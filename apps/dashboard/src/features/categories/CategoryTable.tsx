@@ -5,7 +5,7 @@ import { useMemo } from "react";
 interface CategoryTableProps {
   categories: Category[];
   onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
 }
 
 function CategoryThumb({ category }: { category: Category }) {
@@ -63,13 +63,15 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
             >
               Bearbeiten
             </button>
-            <button
-              type="button"
-              onClick={() => onDelete(cat.id)}
-              className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-            >
-              Löschen
-            </button>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(cat.id)}
+                className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+              >
+                Löschen
+              </button>
+            )}
           </div>
         ),
       },

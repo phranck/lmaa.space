@@ -10,6 +10,7 @@ import {
   SFTrash,
   SFXmark,
 } from "sf-symbols-lib/monochrome";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   useAdminUsers,
   useDeleteUserAvatar,
@@ -38,12 +39,14 @@ const EMPTY_AVATAR_STATE: AvatarState = {
 };
 
 export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
+  const { user: me } = useAuth();
   const [closing, setClosing] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState<"admin" | "moderator">("admin");
   const [avatar, setAvatar] = useState<AvatarState>(EMPTY_AVATAR_STATE);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,6 +76,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       setEmail(user.email);
       setFirstName(user.firstName ?? "");
       setLastName(user.lastName ?? "");
+      setRole(user.role === "moderator" ? "moderator" : "admin");
       setAvatar({ ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null });
     }
   }, [user?.id]);
@@ -104,16 +108,27 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     setAvatar({ previewUrl: null, pendingFile: null, pendingGravatarUrl: null, deleted: true });
   }
 
+  const canChangeRole = me?.isOwner && userId !== me?.id && user?.role !== "owner";
+  const roleChanged = canChangeRole && role !== (user?.role ?? "admin");
+
   async function handleSave() {
     if (!user) return;
 
     // 1. Update profile fields if changed
-    const profileChanges: { username?: string; email?: string; password?: string; firstName?: string; lastName?: string } = {};
+    const profileChanges: {
+      username?: string;
+      email?: string;
+      password?: string;
+      firstName?: string;
+      lastName?: string;
+      role?: "admin" | "moderator";
+    } = {};
     if (username !== user.username) profileChanges.username = username;
     if (email !== user.email) profileChanges.email = email;
     if (password.trim()) profileChanges.password = password;
     if (firstName !== (user.firstName ?? "")) profileChanges.firstName = firstName;
     if (lastName !== (user.lastName ?? "")) profileChanges.lastName = lastName;
+    if (roleChanged) profileChanges.role = role;
 
     if (Object.keys(profileChanges).length > 0) {
       await updateUser.mutateAsync({ id: userId, data: profileChanges });
@@ -139,6 +154,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     password.trim() !== "" ||
     firstName !== (user?.firstName ?? "") ||
     lastName !== (user?.lastName ?? "") ||
+    roleChanged ||
     avatar.pendingFile !== null ||
     avatar.pendingGravatarUrl !== null ||
     avatar.deleted;
@@ -283,6 +299,23 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
                 />
               </div>
+
+              {/* Role (only for owner editing someone else) */}
+              {canChangeRole && (
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                    Rolle
+                  </label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as "admin" | "moderator")}
+                    className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="moderator">Moderator</option>
+                  </select>
+                </div>
+              )}
 
               {/* Password */}
               <div>

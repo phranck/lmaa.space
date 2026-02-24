@@ -43,13 +43,13 @@ authRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
 
   const [admin] = await db
     .insert(adminUsers)
-    .values({ username, email, passwordHash, isOwner: true })
+    .values({ username, email, passwordHash, role: "owner" })
     .returning();
 
   const sessionId = await createSession(admin.id);
   setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
-  return c.json({ data: { id: admin.id, username: admin.username, isOwner: true } }, 201);
+  return c.json({ data: { id: admin.id, username: admin.username, role: "owner", isOwner: true } }, 201);
 });
 
 // POST /api/admin/login
@@ -69,7 +69,7 @@ authRoutes.post(
     setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
     return c.json({
-      data: { id: admin.id, username: admin.username, isOwner: admin.isOwner },
+      data: { id: admin.id, username: admin.username, role: admin.role, isOwner: admin.role === "owner" },
     });
   },
 );
@@ -90,7 +90,7 @@ authRoutes.get("/me", requireAuth, async (c) => {
       id: adminUsers.id,
       username: adminUsers.username,
       email: adminUsers.email,
-      isOwner: adminUsers.isOwner,
+      role: adminUsers.role,
       firstName: adminUsers.firstName,
       lastName: adminUsers.lastName,
       avatarUrl: adminUsers.avatarUrl,
@@ -101,5 +101,5 @@ authRoutes.get("/me", requireAuth, async (c) => {
     .where(eq(adminUsers.id, adminId))
     .limit(1);
 
-  return c.json({ data: admin });
+  return c.json({ data: { ...admin, isOwner: admin.role === "owner" } });
 });

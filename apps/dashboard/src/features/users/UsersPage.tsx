@@ -140,11 +140,17 @@ export function UsersPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
-                {user.isOwner && (
-                  <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
-                    Owner
-                  </span>
-                )}
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    user.role === "owner"
+                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+                      : user.role === "admin"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                  }`}
+                >
+                  {user.role === "owner" ? "Owner" : user.role === "admin" ? "Admin" : "Moderator"}
+                </span>
                 {user.id === me?.id && (
                   <span className="text-xs bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] px-2 py-0.5 rounded-full">
                     Du
@@ -164,7 +170,7 @@ export function UsersPage() {
                   <SFSquareAndPencil className="w-3.5 h-3.5" />
                 </button>
               )}
-              {!user.isOwner && user.id !== me?.id && (
+              {me?.isOwner && user.id !== me?.id && (
                 <button
                   type="button"
                   onClick={() => setDeleteId(user.id)}

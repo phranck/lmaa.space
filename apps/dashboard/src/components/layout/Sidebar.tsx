@@ -1,6 +1,7 @@
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
+import type { AdminRole } from "@lmaa/shared";
 import { NavLink, useMatch } from "react-router";
 import {
   SFChevronDown,
@@ -12,11 +13,13 @@ import {
   SFTrayFill,
 } from "sf-symbols-lib/monochrome";
 
+const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
+
 interface NavItem {
   to: string;
   label: string;
   icon: React.ReactNode;
-  ownerOnly?: boolean;
+  minRole?: AdminRole;
 }
 
 interface NavGroup {
@@ -34,7 +37,7 @@ const NAV_ITEMS: NavItem[] = [
     to: "/benutzer",
     label: "Benutzer",
     icon: <SFPerson3Fill className="w-4 h-4" />,
-    ownerOnly: true,
+    minRole: "admin",
   },
 ];
 
@@ -53,7 +56,7 @@ interface SidebarProps {
   username?: string;
   email?: string;
   avatarUrl?: string | null;
-  isOwner?: boolean;
+  role?: AdminRole;
   onLogout: () => void;
   onItemClick?: () => void;
 }
@@ -90,8 +93,10 @@ function ContentGroup({ group, onItemClick }: { group: NavGroup; onItemClick?: (
   );
 }
 
-export function Sidebar({ username, email, avatarUrl, isOwner, onLogout, onItemClick }: SidebarProps) {
-  const navItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
+export function Sidebar({ username, email, avatarUrl, role, onLogout, onItemClick }: SidebarProps) {
+  const navItems = NAV_ITEMS.filter(
+    (item) => !item.minRole || (role !== undefined && ROLE_RANK[role] >= ROLE_RANK[item.minRole]),
+  );
 
   return (
     <>
@@ -108,7 +113,7 @@ export function Sidebar({ username, email, avatarUrl, isOwner, onLogout, onItemC
             onClick={onItemClick}
           />
         ))}
-        <ContentGroup group={CONTENT_GROUP} onItemClick={onItemClick} />
+        {role === "owner" && <ContentGroup group={CONTENT_GROUP} onItemClick={onItemClick} />}
       </nav>
 
       <SidebarFooter username={username} email={email} avatarUrl={avatarUrl} onLogout={onLogout} />
