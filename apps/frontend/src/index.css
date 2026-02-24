@@ -3,7 +3,7 @@
 @plugin "@tailwindcss/typography";
 
 /* Scan packages/ui for Tailwind class generation */
-@source "../../packages/ui/src";
+@source "../../../packages/ui/src";
 
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
