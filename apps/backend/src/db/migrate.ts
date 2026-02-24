@@ -286,6 +286,9 @@ async function main() {
     END $do$
   `;
 
+  // Add avatar_url to admin_users
+  await sql`ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS avatar_url TEXT`;
+
   // Migrate submissions.region TEXT → JSONB
   await sql`
     DO $do$ BEGIN

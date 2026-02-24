@@ -41,6 +41,7 @@ function AdminLayoutInner() {
         <Sidebar
           username={user?.username}
           email={user?.email}
+          avatarUrl={user?.avatarUrl}
           isOwner={user?.isOwner}
           onLogout={handleLogout}
         />
@@ -59,6 +60,7 @@ function AdminLayoutInner() {
             <Sidebar
               username={user?.username}
               email={user?.email}
+              avatarUrl={user?.avatarUrl}
               isOwner={user?.isOwner}
               onLogout={handleLogout}
               onItemClick={() => setSidebarOpen(false)}

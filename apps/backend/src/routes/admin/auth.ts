@@ -91,6 +91,7 @@ authRoutes.get("/me", requireAuth, async (c) => {
       username: adminUsers.username,
       email: adminUsers.email,
       isOwner: adminUsers.isOwner,
+      avatarUrl: adminUsers.avatarUrl,
       createdAt: adminUsers.createdAt,
       lastLoginAt: adminUsers.lastLoginAt,
     })
