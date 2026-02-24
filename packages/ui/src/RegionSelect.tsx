@@ -1,3 +1,4 @@
+import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LuCheck, LuChevronDown, LuInfo, LuX } from "react-icons/lu";
@@ -20,11 +21,8 @@ export interface RegionSelectProps {
 export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
   const [open, setOpen] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
-  const [infoOpen, setInfoOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const portalRef = useRef<HTMLDivElement>(null);
-  const infoRef = useRef<HTMLDivElement>(null);
-  const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -49,18 +47,6 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
     if (open) window.addEventListener("keydown", onEsc, true);
     return () => window.removeEventListener("keydown", onEsc, true);
   }, [open]);
-
-  // Close info on click outside
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      const target = e.target as Node;
-      if (!infoRef.current?.contains(target) && !infoButtonRef.current?.contains(target)) {
-        setInfoOpen(false);
-      }
-    }
-    if (infoOpen) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [infoOpen]);
 
   function handleToggle() {
     if (!open && buttonRef.current) {
@@ -138,42 +124,61 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
 
   return (
     <div>
+      {/* Label + Info Popover */}
       <div className="flex items-center gap-1.5 mb-1">
         <span className="text-xs font-medium text-[var(--ds-text-muted)]">Region</span>
-        <div className="relative">
-          <button
-            ref={infoButtonRef}
-            type="button"
-            onClick={() => setInfoOpen((o) => !o)}
-            className="w-4 h-4 flex items-center justify-center text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
-            aria-label="Info zur Regionauswahl"
-          >
-            <LuInfo size={13} />
-          </button>
-          {infoOpen && (
-            <div
-              ref={infoRef}
-              className="absolute left-0 top-6 z-50 w-72 bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-lg shadow-lg p-3 text-xs text-[var(--ds-text-muted)] leading-relaxed"
+
+        <PopoverPrimitive.Root>
+          <PopoverPrimitive.Trigger asChild>
+            <button
+              type="button"
+              className="w-4 h-4 flex items-center justify-center text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
+              aria-label="Info zur Regionauswahl"
             >
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <span className="font-medium text-[var(--ds-text)]">Was bedeutet Region?</span>
-                <button
-                  type="button"
-                  onClick={() => setInfoOpen(false)}
-                  className="shrink-0 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
-                >
-                  <LuX size={12} />
-                </button>
+              <LuInfo size={13} />
+            </button>
+          </PopoverPrimitive.Trigger>
+
+          <PopoverPrimitive.Portal>
+            <PopoverPrimitive.Content
+              side="bottom"
+              align="start"
+              sideOffset={6}
+              style={{ zIndex: 9999 }}
+              className="w-[276px] rounded-lg border border-black/[.175] bg-[var(--ds-surface)] shadow-md outline-none dark:border-white/[.15]"
+              onEscapeKeyDown={(e) => e.stopPropagation()}
+            >
+              {/* Popover header */}
+              <div className="flex items-center justify-between px-4 py-2 bg-[var(--ds-bg)] border-b border-black/[.1] rounded-t-lg dark:border-white/[.1]">
+                <span className="font-semibold text-sm text-[var(--ds-text)]">
+                  Was bedeutet Region?
+                </span>
+                <PopoverPrimitive.Close className="text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] transition-colors">
+                  <LuX size={13} />
+                </PopoverPrimitive.Close>
               </div>
-              Gibt an, ob dieser Shop eine eigene Website für die jeweilige Region hat. Bei
-              Deutschland, Österreich und der Schweiz ist das meist an der TLD erkennbar (.de, .at,
-              .ch). Bei Europa können auch .com, .biz oder andere internationale Domains genutzt
-              werden.
-            </div>
-          )}
-        </div>
+
+              {/* Popover body */}
+              <div className="px-4 py-4 text-xs text-[var(--ds-text-muted)] leading-relaxed">
+                Gibt an, ob dieser Shop eine eigene Website für die jeweilige Region hat. Bei
+                Deutschland, Österreich und der Schweiz ist das meist an der TLD erkennbar (.de,
+                .at, .ch). Bei Europa können auch .com, .biz oder andere internationale Domains
+                genutzt werden.
+              </div>
+
+              {/* Arrow */}
+              <PopoverPrimitive.Arrow
+                width={16}
+                height={8}
+                className="fill-[var(--ds-bg)]"
+                style={{ filter: "drop-shadow(0 -1px 0 rgba(0,0,0,0.175))" }}
+              />
+            </PopoverPrimitive.Content>
+          </PopoverPrimitive.Portal>
+        </PopoverPrimitive.Root>
       </div>
 
+      {/* Trigger button */}
       <div className="relative">
         <button
           ref={buttonRef}
