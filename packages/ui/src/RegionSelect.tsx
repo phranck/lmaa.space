@@ -96,14 +96,14 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
                     key={code}
                     type="button"
                     onClick={() => toggle(code)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors ${
+                    className={`w-full flex items-center px-3 py-2 text-sm text-left transition-colors hover:bg-[var(--ds-bg-elevated)] ${
                       checked
                         ? "bg-[var(--color-primary)]/5 text-[var(--ds-text)]"
-                        : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)]"
+                        : "text-[var(--ds-text-muted)]"
                     }`}
                   >
                     <span
-                      className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors ${
+                      className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors mr-3 ${
                         checked
                           ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
                           : "border-[var(--ds-border-strong)]"
@@ -111,7 +111,7 @@ export function RegionSelect({ value, onChange, error }: RegionSelectProps) {
                     >
                       {checked && <LuCheck size={10} className="text-white" strokeWidth={3} />}
                     </span>
-                    <span>{flag}</span>
+                    <span className="mr-1.5">{flag}</span>
                     <span>{name}</span>
                   </button>
                 );
