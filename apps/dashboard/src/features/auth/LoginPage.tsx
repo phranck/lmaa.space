@@ -41,8 +41,8 @@ export function LoginPage() {
           <p className="text-sm text-[var(--ds-text-muted)] mt-1">Admin-Bereich</p>
         </div>
 
-        <div className="bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] p-8">
-          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-6">Anmelden</h2>
+        <div className="bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] p-5">
+          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-6 text-center">Anmelden</h2>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
