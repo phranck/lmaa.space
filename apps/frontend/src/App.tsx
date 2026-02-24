@@ -12,6 +12,12 @@ const MarkdownContentPage = lazy(() =>
   })),
 );
 
+const DynamicContentPage = lazy(() =>
+  import("./features/content/DynamicContentPage.tsx").then((m) => ({
+    default: m.DynamicContentPage,
+  })),
+);
+
 declare global {
   interface Window {
     HSStaticMethods?: { autoInit: () => void };
@@ -87,6 +93,15 @@ export default function App() {
               title="Aufnahmekriterien"
               canonicalPath="/aufnahmekriterien"
             />
+          </Suspense>
+        }
+      />
+      {/* Catch-all: dynamic CMS pages */}
+      <Route
+        path="/:slug"
+        element={
+          <Suspense fallback={<MarkdownLoadingFallback />}>
+            <DynamicContentPage />
           </Suspense>
         }
       />

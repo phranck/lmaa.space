@@ -18,6 +18,18 @@ const ContentEditorPage = lazy(() =>
   })),
 );
 
+const PagesListPage = lazy(() =>
+  import("@/features/content/PagesListPage.tsx").then((m) => ({
+    default: m.PagesListPage,
+  })),
+);
+
+const NavManagerPage = lazy(() =>
+  import("@/features/content/NavManagerPage.tsx").then((m) => ({
+    default: m.NavManagerPage,
+  })),
+);
+
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
 
@@ -41,14 +53,36 @@ function AppRoutes() {
           <Route path="shops" element={<ShopsPage />} />
           <Route path="kategorien" element={<CategoriesPage />} />
           {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
-          <Route
-            path="content/:slug"
-            element={
-              <Suspense fallback={<ContentEditorLoadingFallback />}>
-                <ContentEditorPage />
-              </Suspense>
-            }
-          />
+          {user.role !== "moderator" && (
+            <>
+              <Route
+                path="seiten"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <PagesListPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="seiten/navigationen"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <NavManagerPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="seiten/:slug"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <ContentEditorPage />
+                  </Suspense>
+                }
+              />
+            </>
+          )}
+          {/* backward compat redirect */}
+          <Route path="content/:slug" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       ) : (

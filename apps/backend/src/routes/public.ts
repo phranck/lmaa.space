@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { zValidator } from "@hono/zod-validator";
 import type { Shop, ShopCategory } from "@lmaa/shared";
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, asc, count, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../db/index.js";
@@ -21,6 +21,7 @@ import {
   categories,
   contentPages,
   deadLinkReports,
+  navItems,
   shopCategories,
   shops,
   submissionCategories,
@@ -250,6 +251,31 @@ publicRoutes.post(
     return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
   },
 );
+
+// GET /api/nav/:navId
+publicRoutes.get("/nav/:navId", async (c) => {
+  const navId = c.req.param("navId");
+  if (navId !== "header" && navId !== "footer") {
+    return c.json({ error: { message: "Invalid navId" } }, 400);
+  }
+
+  const rows = await db
+    .select({
+      id: navItems.id,
+      navId: navItems.navId,
+      pageSlug: navItems.pageSlug,
+      pageTitle: contentPages.title,
+      label: navItems.label,
+      position: navItems.position,
+    })
+    .from(navItems)
+    .innerJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
+    .where(and(eq(navItems.navId, navId), eq(contentPages.status, "published")))
+    .orderBy(asc(navItems.position));
+
+  c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+  return c.json({ data: rows });
+});
 
 // GET /api/content/:slug
 publicRoutes.get("/content/:slug", async (c) => {
