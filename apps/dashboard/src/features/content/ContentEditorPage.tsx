@@ -118,6 +118,7 @@ export function ContentEditorPage() {
   }, []);
 
   const handleSave = () => {
+    if (!page || contentRef.current === page.content) return;
     save.mutate(contentRef.current, {
       onSuccess: () => setSaved(true),
     });
