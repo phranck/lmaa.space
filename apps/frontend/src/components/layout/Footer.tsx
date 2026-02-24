@@ -83,7 +83,7 @@ export function Footer() {
 
         <div className="border-t border-stone-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
           <span>
-            © {new Date().getFullYear()} lmaa.space – Community-Projekt ohne kommerzielle Interessen
+            © {new Date().getFullYear()} lmaa.space
           </span>
           <a
             href="https://codeberg.org/phranck/Amazon-Alternativen"
