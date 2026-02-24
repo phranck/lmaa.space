@@ -12,8 +12,7 @@ export function Footer() {
               lmaa.space
             </p>
             <p className="text-sm text-stone-400 leading-relaxed">
-              Eine Community-kuratierte Liste von Online-Shops als Alternativen zu Amazon – für den
-              deutschsprachigen Raum.
+              Eine kuratierte Liste von Online-Shops als Alternativen zu Amazon.
             </p>
           </div>
 
