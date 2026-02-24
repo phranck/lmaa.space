@@ -93,6 +93,11 @@ app.route("/api/admin", adminRoutes);
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 app.notFound((c) => c.json({ error: { message: "Not found" } }, 404));
+app.onError((err, c) => {
+  console.error("[error]", err);
+  const status = "status" in err && typeof err.status === "number" ? err.status : 500;
+  return c.json({ error: { message: err.message ?? "Internal Server Error" } }, status as 500);
+});
 
 // Start background jobs
 startSessionCleanupJob();
