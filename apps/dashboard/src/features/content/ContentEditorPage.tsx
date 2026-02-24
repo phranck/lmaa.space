@@ -2,6 +2,7 @@ import "@mdxeditor/editor/style.css";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import {
   useAdminContentPage,
+  useDeleteContentPage,
   usePatchContentPage,
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
@@ -43,7 +44,7 @@ import { InternalLinkPicker } from "@/features/content/InternalLinkPicker.tsx";
 import { sourceKeymap } from "@/features/content/sourceKeymap.ts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { SFMinus, SFPlus, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
+import { SFMinus, SFPlus, SFSquareAndArrowDownFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 
 const VIEW_MODE_KEY = "content-editor-view-mode";
 const FONT_SIZE_KEY = "content-editor-source-font-size";
@@ -81,8 +82,10 @@ export function ContentEditorPage() {
   const { data: page, isLoading } = useAdminContentPage(slug);
   const save = useSaveContentPage(slug);
   const patch = usePatchContentPage(slug);
+  const deletePage = useDeleteContentPage();
 
   const [saved, setSaved] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const contentRef = useRef<string>("");
   const [sourceFontSize, setSourceFontSize] = useState(loadFontSize);
 
@@ -224,6 +227,41 @@ export function ContentEditorPage() {
               <SFPlus className="w-2.5 h-2.5" />
             </button>
           </div>
+
+          {/* Delete button */}
+          {!confirmDelete ? (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-2 px-3 py-2 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors"
+              title="Seite löschen"
+            >
+              <SFTrashFill className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1.5 border border-[var(--ds-btn-danger-border)] rounded-control bg-[var(--ds-btn-danger-hover-bg)]">
+              <span className="text-xs text-[var(--ds-btn-danger-text)] font-medium">Wirklich löschen?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  deletePage.mutate(slug, {
+                    onSuccess: () => navigate("/seiten"),
+                  });
+                }}
+                disabled={deletePage.isPending}
+                className="text-xs font-semibold text-[var(--ds-btn-danger-text)] hover:underline disabled:opacity-60"
+              >
+                Ja, löschen
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="text-xs text-[var(--ds-text-muted)] hover:underline"
+              >
+                Abbrechen
+              </button>
+            </div>
+          )}
 
           {/* Save button */}
           <button
