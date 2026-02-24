@@ -4,7 +4,7 @@ const BASE_URL = "https://lmaa.space";
 const SITE_NAME = "lmaa.space";
 const DEFAULT_DESCRIPTION =
   "Entdecke faire, nachhaltige und unabhängige Online-Shops als Alternativen zu Amazon – kuratiert von der Community.";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
 
 export interface PageMetaOptions {
   title?: string;
