@@ -4,10 +4,10 @@ import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
 
 const navLinkClass = (isActive: boolean) =>
-  `font-serif text-base tracking-wide transition-colors ${isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"}`;
+  `font-serif text-lg tracking-wide transition-colors ${isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"}`;
 
 const mobileNavLinkClass = (isActive: boolean) =>
-  `block px-3 py-2 rounded-md font-serif text-base transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"}`;
+  `block px-3 py-2 rounded-md font-serif text-lg transition-colors ${isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"}`;
 
 export function Header() {
   const navigate = useNavigate();

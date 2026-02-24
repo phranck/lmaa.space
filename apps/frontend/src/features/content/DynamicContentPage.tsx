@@ -42,7 +42,7 @@ export function DynamicContentPage() {
     <PageLayout>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
         <h1 className="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
-        <div className="prose prose-stone prose-sm max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
+        <div className="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
           <ReactMarkdown>{page.content}</ReactMarkdown>
         </div>
       </div>
