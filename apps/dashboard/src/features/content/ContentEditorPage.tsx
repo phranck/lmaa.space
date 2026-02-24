@@ -40,6 +40,7 @@ import {
   viewMode$,
 } from "@mdxeditor/editor";
 import { InternalLinkPicker } from "@/features/content/InternalLinkPicker.tsx";
+import { sourceKeymap } from "@/features/content/sourceKeymap.ts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { SFMinus, SFPlus, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
@@ -151,7 +152,7 @@ export function ContentEditorPage() {
       codeBlockPlugin({ defaultCodeBlockLanguage: "" }),
       directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
       markdownShortcutPlugin(),
-      diffSourcePlugin({ viewMode: loadViewMode() }),
+      diffSourcePlugin({ viewMode: loadViewMode(), codeMirrorExtensions: [sourceKeymap] }),
       realmPlugin({
         postInit(realm) {
           let skip = true;

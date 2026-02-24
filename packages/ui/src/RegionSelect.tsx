@@ -1,7 +1,7 @@
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LuCheck, LuChevronDown, LuInfo, LuX } from "react-icons/lu";
+import { LuCheck, LuChevronDown, LuInfo } from "react-icons/lu";
 
 export const REGION_OPTIONS = [
   { code: "DE", flag: "🇩🇪", name: "Deutschland" },
@@ -171,11 +171,11 @@ export function RegionSelect({ value, onChange, error, buttonClassName, variant 
 
           <PopoverPrimitive.Portal>
             <PopoverPrimitive.Content
-              side="bottom"
-              align="end"
+              side="top"
+              align="center"
               sideOffset={6}
               style={{ zIndex: 9999 }}
-              className="w-[276px] rounded-lg border border-black/[.175] bg-[var(--ds-surface)] shadow-md outline-none dark:border-white/[.15]"
+              className="w-[276px] rounded-lg border border-black/[.175] bg-[var(--ds-surface)] shadow-md outline-none dark:border-white/[.15] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150"
               onEscapeKeyDown={(e) => e.stopPropagation()}
             >
               {/* Popover header */}
@@ -183,9 +183,6 @@ export function RegionSelect({ value, onChange, error, buttonClassName, variant 
                 <span className="font-semibold text-sm text-[var(--ds-text)]">
                   Was bedeutet Region?
                 </span>
-                <PopoverPrimitive.Close className="text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] transition-colors">
-                  <LuX size={13} />
-                </PopoverPrimitive.Close>
               </div>
 
               {/* Popover body */}
@@ -200,8 +197,8 @@ export function RegionSelect({ value, onChange, error, buttonClassName, variant 
               <PopoverPrimitive.Arrow
                 width={16}
                 height={8}
-                className="fill-[var(--ds-bg)]"
-                style={{ filter: "drop-shadow(0 -1px 0 rgba(0,0,0,0.175))" }}
+                className="fill-[var(--ds-surface)]"
+                style={{ filter: "drop-shadow(0 1px 0 rgba(0,0,0,0.175))" }}
               />
             </PopoverPrimitive.Content>
           </PopoverPrimitive.Portal>
