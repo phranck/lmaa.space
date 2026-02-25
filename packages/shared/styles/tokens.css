@@ -117,6 +117,7 @@
 
   /* Border radius — referenced by UnoCSS theme config */
   --radius-control: 0.5rem; /* 8px */
+  --radius-card: 1.25rem; /* 20px */
 
   /* Alias — packages/ui components reference this; apps can override */
   --color-primary: var(--ds-accent);

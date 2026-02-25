@@ -8,8 +8,8 @@ export default defineConfig({
   transformers: [transformerDirectives()],
   theme: {
     radius: {
-      control: "var(--radius-control)",
-      card: "var(--radius-card)",
+      control: "0.5rem",
+      card: "1.25rem",
     },
     font: {
       sans: '"Barlow", system-ui, -apple-system, sans-serif',
