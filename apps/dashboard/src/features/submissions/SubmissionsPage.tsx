@@ -2,7 +2,9 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
+import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
+import { useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
 import {
   useAdminSubmissions,
   useDeadLinkReports,
@@ -499,6 +501,9 @@ export function SubmissionsPage() {
 function ShopMeldungenTab() {
   const { data: reports = [], isLoading } = useShopConcernReports();
   const dismiss = useDismissShopConcern();
+  const deleteMutation = useDeleteShop();
+  const [editShopId, setEditShopId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ reportId: number; shopId: number; shopName: string } | null>(null);
 
   if (isLoading) {
     return (
@@ -515,48 +520,92 @@ function ShopMeldungenTab() {
   }
 
   return (
-    <div className="p-6 space-y-3">
-      {reports.map((r) => (
-        <div
-          key={r.id}
-          className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] p-4 flex flex-col gap-3"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="font-medium text-sm text-[var(--ds-text)] truncate">{r.shopName}</p>
-              <a
-                href={r.shopUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-[var(--ds-text-muted)] hover:underline truncate block"
-              >
-                {r.shopUrl}
-              </a>
+    <>
+      <div className="p-6 space-y-3">
+        {reports.map((r) => (
+          <div
+            key={r.id}
+            className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] p-4 flex flex-col gap-3"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-medium text-sm text-[var(--ds-text)] truncate">{r.shopName}</p>
+                <a
+                  href={r.shopUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[var(--ds-text-muted)] hover:underline truncate block"
+                >
+                  {r.shopUrl}
+                </a>
+              </div>
+              <span className="shrink-0 text-xs text-[var(--ds-text-muted)]">
+                {new Date(r.reportedAt).toLocaleString("de-DE", {
+                  day: "2-digit", month: "2-digit", year: "numeric",
+                  hour: "2-digit", minute: "2-digit",
+                })}
+              </span>
             </div>
-            <span className="shrink-0 text-xs text-[var(--ds-text-muted)]">
-              {new Date(r.reportedAt).toLocaleString("de-DE", {
-                day: "2-digit", month: "2-digit", year: "numeric",
-                hour: "2-digit", minute: "2-digit",
-              })}
-            </span>
-          </div>
 
-          <p className="text-sm text-[var(--ds-text)] bg-[var(--ds-surface-hover)] rounded-lg px-3 py-2 whitespace-pre-wrap">
-            {r.reason}
-          </p>
+            <p className="text-sm text-[var(--ds-text)] bg-[var(--ds-surface-hover)] rounded-lg px-3 py-2 whitespace-pre-wrap">
+              {r.reason}
+            </p>
 
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => dismiss.mutate(r.id)}
-              disabled={dismiss.isPending}
-              className="text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
-            >
-              Erledigt / Ablehnen
-            </button>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => dismiss.mutate(r.id)}
+                disabled={dismiss.isPending}
+                className="text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
+              >
+                Erledigt / Ablehnen
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditShopId(r.shopId)}
+                className="h-7 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-xs hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+              >
+                Bearbeiten
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteTarget({ reportId: r.id, shopId: r.shopId, shopName: r.shopName })}
+                className="h-7 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-xs hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+              >
+                Löschen
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      {editShopId !== null && (
+        <ShopEditCard
+          shopId={editShopId}
+          onClose={() => setEditShopId(null)}
+          onSaved={() => setEditShopId(null)}
+        />
+      )}
+
+      {deleteTarget !== null && (
+        <ShopDeleteReasonCard
+          shopName={deleteTarget.shopName}
+          wasReported={true}
+          isPending={deleteMutation.isPending}
+          onConfirm={(reason, wasReported) => {
+            deleteMutation.mutate(
+              { id: deleteTarget.shopId, reason, wasReported },
+              {
+                onSuccess: () => {
+                  dismiss.mutate(deleteTarget.reportId);
+                  setDeleteTarget(null);
+                },
+              },
+            );
+          }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+    </>
   );
 }
