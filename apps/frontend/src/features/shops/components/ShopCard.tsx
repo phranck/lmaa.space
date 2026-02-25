@@ -3,6 +3,7 @@ import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { ReportShopCard } from "./ReportShopCard.tsx";
+import { DeadLinkConfirmCard } from "./DeadLinkConfirmCard.tsx";
 
 interface ShopCardProps {
   shop: Shop;
@@ -11,6 +12,7 @@ interface ShopCardProps {
 export function ShopCard({ shop }: ShopCardProps) {
   const [reported, setReported] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [showDeadLinkModal, setShowDeadLinkModal] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [showConcernModal, setShowConcernModal] = useState(false);
 
@@ -107,7 +109,7 @@ export function ShopCard({ shop }: ShopCardProps) {
           ) : (
             <button
               type="button"
-              onClick={handleReport}
+              onClick={() => setShowDeadLinkModal(true)}
               disabled={reporting}
               className="text-xs text-stone-400 hover:text-red-400 transition-colors disabled:opacity-50"
             >
@@ -138,6 +140,13 @@ export function ShopCard({ shop }: ShopCardProps) {
         shopId={shop.id}
         shopName={shop.name}
         onClose={() => setShowConcernModal(false)}
+      />
+    )}
+    {showDeadLinkModal && (
+      <DeadLinkConfirmCard
+        shopName={shop.name}
+        onConfirm={() => { handleReport(); setShowDeadLinkModal(false); }}
+        onClose={() => setShowDeadLinkModal(false)}
       />
     )}
     </>
