@@ -2,7 +2,7 @@
 import type { ContentPage, ContentPageSummary } from "@lmaa/shared";
 import { apiGet } from "@/lib/api";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { marked } from "marked";
+import { renderMarkdown } from "@/lib/markdown";
 
 export async function getStaticPaths() {
   const pages = await apiGet<ContentPageSummary[]>("/content");
@@ -12,7 +12,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 
 const page = await apiGet<ContentPage>(`/content/${slug}`);
-const html = await marked(page.content);
+const html = await renderMarkdown(page.content);
 ---
 
 <BaseLayout
