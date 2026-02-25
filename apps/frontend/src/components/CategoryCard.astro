@@ -1,0 +1,52 @@
+---
+import type { Category } from "@lmaa/shared";
+import { resolveImageUrl } from "@/lib/api";
+
+interface Props {
+  category: Category;
+  index?: number;
+}
+
+const { category, index = 0 } = Astro.props;
+const imageUrl = resolveImageUrl(category.imageUrl) ?? `/images/${category.slug}.jpg`;
+const delay = index * 60;
+---
+
+<a
+  href={`/kategorie/${category.slug}`}
+  class="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 card-fade-in"
+  style={`animation-delay: ${delay}ms`}
+>
+  <!-- Photo -->
+  <div class="aspect-video overflow-hidden relative">
+    <img
+      src={imageUrl}
+      alt=""
+      aria-hidden="true"
+      class="w-full h-full object-cover"
+      loading="lazy"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+    />
+    <!-- Fallback placeholder -->
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 items-center justify-center hidden"
+      aria-hidden="true"
+    >
+      <span class="font-serif font-bold text-4xl text-stone-300 select-none">
+        {category.name.charAt(0).toUpperCase()}
+      </span>
+    </div>
+  </div>
+
+  <!-- Text -->
+  <div class="px-4 py-3">
+    <p class="font-serif font-semibold text-stone-800 text-base leading-snug truncate group-hover:text-amber-700 transition-colors">
+      {category.name}
+    </p>
+    {category.shopCount !== undefined && (
+      <p class="text-stone-400 text-sm mt-0.5">
+        {category.shopCount} {category.shopCount === 1 ? "Shop" : "Shops"}
+      </p>
+    )}
+  </div>
+</a>

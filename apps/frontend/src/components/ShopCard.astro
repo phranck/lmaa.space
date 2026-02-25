@@ -1,0 +1,214 @@
+---
+import type { Shop } from "@lmaa/shared";
+import { marked } from "marked";
+
+interface Props {
+  shop: Shop;
+}
+
+const { shop } = Astro.props;
+
+const domain = (() => {
+  try {
+    return new URL(shop.url).hostname.replace("www.", "");
+  } catch {
+    return shop.url;
+  }
+})();
+
+const shopUrl = (() => {
+  try {
+    const u = new URL(shop.url);
+    u.searchParams.set("ref", "lmaa.space");
+    return u.toString();
+  } catch {
+    return shop.url;
+  }
+})();
+
+const regionOrder = ["DE", "AT", "CH", "EU"];
+const sortedRegions = [...shop.region].sort(
+  (a, b) => regionOrder.indexOf(a) - regionOrder.indexOf(b),
+);
+
+const deadDialogId = `dialog-dead-${shop.id}`;
+const reportDialogId = `dialog-report-${shop.id}`;
+
+const descriptionHtml = shop.description ? await marked(shop.description) : null;
+---
+
+<div
+  class="bg-white rounded-3xl border border-stone-200 p-4 flex flex-col gap-3 hover:shadow-md hover:border-stone-300 transition-all duration-200"
+  data-shop-id={shop.id}
+>
+  <!-- Top row: og:image + name + domain -->
+  <div class="flex items-start gap-4">
+    <div class="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
+      {shop.ogImage ? (
+        <img
+          src={shop.ogImage}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          class="w-full h-full object-cover"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        />
+        <span class="text-2xl font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
+          {shop.name.charAt(0).toUpperCase()}
+        </span>
+      ) : (
+        <span class="text-2xl font-bold text-stone-300 select-none">
+          {shop.name.charAt(0).toUpperCase()}
+        </span>
+      )}
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <h3 class="font-serif font-semibold text-stone-900 text-lg leading-snug">
+        {shop.name}
+      </h3>
+      <p class="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
+    </div>
+  </div>
+
+  {descriptionHtml && (
+    <div
+      class="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-0 prose-a:text-amber-700"
+      set:html={descriptionHtml}
+    />
+  )}
+
+  {(sortedRegions.length > 0 || shop.shipping) && (
+    <div class="flex flex-wrap gap-1.5">
+      {sortedRegions.map((r) => (
+        <span class="px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
+          {r}
+        </span>
+      ))}
+      {shop.shipping && (
+        <span class="px-2.5 py-0.5 rounded-md bg-stone-50 text-stone-600 text-xs font-medium border border-stone-100">
+          Versand: {shop.shipping}
+        </span>
+      )}
+    </div>
+  )}
+
+  <!-- Footer: actions + visit button -->
+  <div class="flex items-center justify-between mt-auto">
+    <div class="flex items-center gap-3" data-shop-actions>
+      <button
+        type="button"
+        class="text-xs text-stone-400 hover:text-red-400 transition-colors"
+        data-action="dead-link"
+        data-shop-id={shop.id}
+        data-dialog={deadDialogId}
+      >
+        Link defekt?
+      </button>
+      <button
+        type="button"
+        class="text-xs text-stone-400 hover:text-red-400 transition-colors"
+        data-action="report"
+        data-shop-id={shop.id}
+        data-dialog={reportDialogId}
+      >
+        Shop melden
+      </button>
+    </div>
+    <a
+      href={shopUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
+    >
+      Besuchen ↗
+    </a>
+  </div>
+</div>
+
+<!-- Dead link confirmation dialog -->
+<dialog
+  id={deadDialogId}
+  class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
+>
+  <h2 class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+    Link defekt?
+  </h2>
+  <p class="text-sm text-[var(--ds-text-muted)] mb-6">
+    Ist der Link von <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> wirklich nicht mehr erreichbar?
+  </p>
+  <div class="flex gap-3 justify-end">
+    <button
+      type="button"
+      class="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+      data-dismiss
+    >
+      Abbrechen
+    </button>
+    <button
+      type="button"
+      class="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
+      data-confirm="dead-link"
+      data-shop-id={shop.id}
+    >
+      Ja, Link melden
+    </button>
+  </div>
+</dialog>
+
+<!-- Report/concern dialog -->
+<dialog
+  id={reportDialogId}
+  class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
+>
+  <div data-report-form>
+    <h2 class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+      Shop melden
+    </h2>
+    <p class="text-sm text-[var(--ds-text-muted)] mb-5">
+      Du möchtest <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> melden? Beschreibe kurz, warum dieser Shop deiner Meinung nach nicht auf lmaa.space gehört.
+    </p>
+    <div class="space-y-4">
+      <textarea
+        rows="4"
+        placeholder="z. B. Shop verkauft keine fairen oder nachhaltigen Produkte, ist nicht mehr erreichbar, …"
+        class="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+        data-reason-input
+      ></textarea>
+      <p class="text-[var(--ds-danger-text)] text-xs hidden" data-error-msg></p>
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          class="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+          data-dismiss
+        >
+          Abbrechen
+        </button>
+        <button
+          type="button"
+          class="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors disabled:opacity-50"
+          data-confirm="report"
+          data-shop-id={shop.id}
+        >
+          Melden
+        </button>
+      </div>
+    </div>
+  </div>
+  <div data-report-success class="text-center py-6 hidden">
+    <p class="text-2xl mb-3">🙏</p>
+    <h2 class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-2">
+      Danke für deinen Hinweis!
+    </h2>
+    <p class="text-sm text-[var(--ds-text-muted)] mb-6">
+      Wir prüfen deine Meldung und handeln bei Bedarf.
+    </p>
+    <button
+      type="button"
+      class="h-9 px-6 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
+      data-dismiss
+    >
+      Schließen
+    </button>
+  </div>
+</dialog>

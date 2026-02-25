@@ -56,7 +56,7 @@ export function ShopDeleteReasonCard({
               onChange={(e) => setReason(e.target.value)}
               rows={5}
               placeholder="Warum wird dieser Shop entfernt?"
-              className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-input)] text-sm text-[var(--ds-text)] px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
+              className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
             />
           </div>
 

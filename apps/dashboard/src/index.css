@@ -21,6 +21,9 @@
   /* Table row hover */
   --ds-row-hover: rgba(175,184,193,0.12);
 
+  /* Subtle surface hover (icon buttons, section headers, inline notes) */
+  --ds-surface-hover: rgba(175,184,193,0.12);
+
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
   --color-primary-light: var(--ds-btn-primary-hover);
@@ -39,6 +42,7 @@
   --ds-nav-hover-text:    #f0f6fc;
   --ds-brand-text:        #f0f6fc;
   --ds-row-hover:         #2a313c;
+  --ds-surface-hover:     #2f3742;
 }
 
 /* Dark mode: MDXEditor toolbar and popups */

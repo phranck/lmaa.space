@@ -1,0 +1,120 @@
+---
+import type { NavItem } from "@lmaa/shared";
+import { apiGet } from "@/lib/api";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>;
+}
+
+const {
+  title,
+  description = "Eine kuratierte Liste von Online-Shops als Alternativen zu Amazon – für den DACH-Raum.",
+  canonicalUrl,
+  ogImage,
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
+const siteTitle = title ? `${title} · lmaa.space` : "lmaa.space – Amazon-Alternativen";
+const canonical = canonicalUrl ?? Astro.url.href;
+
+let headerNav: NavItem[] = [];
+let footerNav: NavItem[] = [];
+try {
+  [headerNav, footerNav] = await Promise.all([
+    apiGet<NavItem[]>("/nav/header"),
+    apiGet<NavItem[]>("/nav/footer"),
+  ]);
+} catch {
+  // Nav items optional – graceful degradation
+}
+---
+
+<!doctype html>
+<html lang="de" data-theme="theme-autumn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{siteTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    <link rel="canonical" href={canonical} />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- Font preloads -->
+    <link
+      rel="preload"
+      href="/fonts/barlow-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/barlow-condensed-600.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/dynapuff-500.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+
+    <!-- OG / Twitter -->
+    <meta property="og:title" content={siteTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:site_name" content="lmaa.space" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <!-- JSON-LD -->
+    {
+      jsonLd && (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={JSON.stringify(jsonLd)}
+        />
+      )
+    }
+
+    <!-- Theme color -->
+    <meta name="theme-color" content="#1C1917" />
+
+    <!-- Umami Analytics (privacy-friendly, no cookies) -->
+    <script
+      is:inline
+      defer
+      src="https://umami.layered.work/script.js"
+      data-website-id="ebec4dd2-b578-4f10-a416-6503c7fe2da0"
+    ></script>
+  </head>
+  <body>
+    <Header navItems={headerNav} />
+    <main>
+      <slot />
+    </main>
+    <Footer navItems={footerNav} />
+    <script>
+      import "@/styles/global.css";
+      import "@/scripts/shop-actions.ts";
+    </script>
+  </body>
+</html>

@@ -301,6 +301,17 @@ publicRoutes.get("/nav/:navId", async (c) => {
   return c.json({ data: rows });
 });
 
+// GET /api/content – list all published pages (slugs + titles, for SSG)
+publicRoutes.get("/content", async (c) => {
+  const rows = await db
+    .select({ slug: contentPages.slug, title: contentPages.title })
+    .from(contentPages)
+    .where(eq(contentPages.status, "published"))
+    .orderBy(contentPages.slug);
+  c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  return c.json({ data: rows });
+});
+
 // GET /api/content/:slug  (published pages only)
 publicRoutes.get("/content/:slug", async (c) => {
   const slug = c.req.param("slug");

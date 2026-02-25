@@ -1,0 +1,16 @@
+---
+import type { Category } from "@lmaa/shared";
+import { apiGet } from "@/lib/api";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import SuggestForm from "@/components/islands/SuggestForm";
+
+const categories = await apiGet<Category[]>("/categories");
+---
+
+<BaseLayout
+  title="Shop vorschlagen"
+  description="Kennst du einen fairen Online-Shop? Schlage ihn für lmaa.space vor und hilf der Community."
+  canonicalUrl="https://lmaa.space/suggestion"
+>
+  <SuggestForm client:load categories={categories} />
+</BaseLayout>
