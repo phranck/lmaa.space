@@ -198,7 +198,7 @@ export default function SuggestForm({ categories }: Props) {
           <li>Willst du ihn aus Überzeugung unterstützen, weil er es „verdient" hat?</li>
         </ul>
         <p className="text-amber-800">
-          Wenn du all das mit „Ja" beantworten kannst: dann weiter, trag ihn ein. Anderenfalls würde ich dir davon abraten.
+          Wenn du all das mit „Ja" beantworten kannst: dann weiter. Trag ihn ein. Anderenfalls würde ich dir davon abraten.
         </p>
       </div>
 
