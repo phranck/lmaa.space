@@ -81,7 +81,7 @@ export function ShopCard({ shop }: ShopCardProps) {
 
       {(shop.region.length > 0 || shop.shipping) && (
         <div className="flex flex-wrap gap-1.5">
-          {shop.region.map((r) => (
+          {[...shop.region].sort((a, b) => ["DE", "AT", "CH", "EU"].indexOf(a) - ["DE", "AT", "CH", "EU"].indexOf(b)).map((r) => (
             <span
               key={r}
               className="px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"
