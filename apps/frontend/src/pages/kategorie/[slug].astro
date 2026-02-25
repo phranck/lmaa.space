@@ -1,16 +1,17 @@
 ---
-import type { Category, CategoryWithShops } from "@lmaa/shared";
+import type { CategoryWithShops } from "@lmaa/shared";
 import { apiGet } from "@/lib/api";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ShopCard from "@/components/ShopCard.astro";
 
-export async function getStaticPaths() {
-  const categories = await apiGet<Category[]>("/categories");
-  return categories.map((cat) => ({ params: { slug: cat.slug } }));
-}
-
 const { slug } = Astro.params;
-const category = await apiGet<CategoryWithShops>(`/categories/${slug}`);
+
+let category: CategoryWithShops;
+try {
+  category = await apiGet<CategoryWithShops>(`/categories/${slug}`);
+} catch {
+  return Astro.redirect("/404");
+}
 
 const shopCount = category.shops.length;
 const site = Astro.site?.origin ?? "https://lmaa.space";

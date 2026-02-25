@@ -11,6 +11,7 @@
     "typecheck": "astro check"
   },
   "dependencies": {
+    "@astrojs/node": "^9.5.4",
     "@astrojs/react": "^4.2.0",
     "@astrojs/sitemap": "^3.7.0",
     "@lmaa/shared": "0.1.0",
