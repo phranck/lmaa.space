@@ -68,7 +68,7 @@ publicRoutes.get("/categories", async (c) => {
     })
     .from(categories)
     .leftJoin(shopCategories, eq(shopCategories.categoryId, categories.id))
-    .leftJoin(shops, and(eq(shops.id, shopCategories.shopId), eq(shops.isActive, true)))
+    .leftJoin(shops, and(eq(shops.id, shopCategories.shopId), eq(shops.isActive, true), isNull(shops.deletedAt)))
     .groupBy(categories.id)
     .orderBy(categories.name);
 
@@ -81,7 +81,7 @@ publicRoutes.get("/stats", async (c) => {
   const [{ total }] = await db
     .select({ total: count(shops.id) })
     .from(shops)
-    .where(eq(shops.isActive, true));
+    .where(and(eq(shops.isActive, true), isNull(shops.deletedAt)));
 
   c.header("Cache-Control", "public, max-age=60");
   return c.json({ data: { shopCount: total } });
@@ -111,7 +111,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
            s.og_image as "ogImage"
     FROM shops s
     INNER JOIN shop_categories sc ON sc.shop_id = s.id AND sc.category_id = ${category.id}
-    WHERE s.is_active = true
+    WHERE s.is_active = true AND s.deleted_at IS NULL
     ORDER BY s.name
   `);
 
@@ -141,7 +141,7 @@ publicRoutes.get("/shops", async (c) => {
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
-    WHERE s.is_active = true
+    WHERE s.is_active = true AND s.deleted_at IS NULL
     GROUP BY s.id
     ORDER BY s.name
   `);
@@ -176,7 +176,7 @@ publicRoutes.get("/search", async (c) => {
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
     WHERE s.search_vector @@ websearch_to_tsquery('german', ${q})
-      AND s.is_active = true
+      AND s.is_active = true AND s.deleted_at IS NULL
     GROUP BY s.id
     ORDER BY rank DESC
     LIMIT 20
@@ -221,7 +221,7 @@ publicRoutes.get("/check-url", async (c) => {
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
-    WHERE s.is_active = true
+    WHERE s.is_active = true AND s.deleted_at IS NULL
       AND replace(split_part(split_part(s.url, '://', 2), '/', 1), 'www.', '') = ${hostname}
     GROUP BY s.id
     LIMIT 1

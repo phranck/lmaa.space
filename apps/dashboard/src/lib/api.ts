@@ -38,9 +38,11 @@ export const api = {
       credentials: "include",
     }).then((r) => handleResponse<T>(r)),
 
-  delete: <T>(path: string): Promise<T> =>
+  delete: <T>(path: string, body?: unknown): Promise<T> =>
     fetch(`${API_BASE}${path}`, {
       method: "DELETE",
+      headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
       credentials: "include",
     }).then((r) => handleResponse<T>(r)),
 

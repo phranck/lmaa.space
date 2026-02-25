@@ -5,10 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type { ShopEditFormValue };
 
-export function useAdminShops() {
+export function useAdminShops(includeDeleted = false) {
   return useQuery({
-    queryKey: ["shops-admin"],
-    queryFn: () => api.get<ShopSummary[]>("/admin/shops"),
+    queryKey: ["shops-admin", includeDeleted],
+    queryFn: () =>
+      api.get<ShopSummary[]>(`/admin/shops${includeDeleted ? "?includeDeleted=true" : ""}`),
   });
 }
 
@@ -32,7 +33,8 @@ export function useSaveShop(editId: number | null) {
 export function useDeleteShop() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => api.delete(`/admin/shops/${id}`),
+    mutationFn: ({ id, reason, wasReported }: { id: number; reason?: string; wasReported?: boolean }) =>
+      api.delete(`/admin/shops/${id}`, { reason: reason ?? null, wasReported: wasReported ?? false }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }

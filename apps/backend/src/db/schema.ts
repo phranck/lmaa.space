@@ -39,6 +39,10 @@ export const shops = pgTable(
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at"),
+    deletedBy: integer("deleted_by").references(() => adminUsers.id, { onDelete: "set null" }),
+    deleteReason: text("delete_reason"),
+    deletedWasReported: boolean("deleted_was_reported").notNull().default(false),
   },
   (table) => [index("idx_shops_active").on(table.isActive)],
 );

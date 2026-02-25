@@ -18,7 +18,16 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         sortKey: (shop) => shop.name.toLowerCase(),
         cell: (shop) => (
           <div className="min-w-0">
-            <p className="font-medium text-[var(--ds-text)] truncate">{shop.name}</p>
+            <div className="flex items-center gap-2">
+              <p className={`font-medium truncate ${shop.deletedAt ? "text-[var(--ds-text-subtle)] line-through" : "text-[var(--ds-text)]"}`}>
+                {shop.name}
+              </p>
+              {shop.deletedAt && (
+                <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
+                  gelöscht
+                </span>
+              )}
+            </div>
             <a
               href={shop.url}
               target="_blank"
@@ -58,14 +67,19 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         cell: (shop) =>
           shop.region?.length ? (
             <div className="flex items-center gap-1.5">
-              {[...shop.region].sort((a, b) => ["DE", "AT", "CH", "EU"].indexOf(a) - ["DE", "AT", "CH", "EU"].indexOf(b)).map((code) => {
-                const opt = REGION_OPTIONS.find((o) => o.code === code);
-                return (
-                  <span key={code} title={opt?.name ?? code} className="text-base leading-none">
-                    {opt?.flag ?? code}
-                  </span>
-                );
-              })}
+              {[...shop.region]
+                .sort(
+                  (a, b) =>
+                    ["DE", "AT", "CH", "EU"].indexOf(a) - ["DE", "AT", "CH", "EU"].indexOf(b),
+                )
+                .map((code) => {
+                  const opt = REGION_OPTIONS.find((o) => o.code === code);
+                  return (
+                    <span key={code} title={opt?.name ?? code} className="text-base leading-none">
+                      {opt?.flag ?? code}
+                    </span>
+                  );
+                })}
             </div>
           ) : (
             <span className="text-sm text-[var(--ds-text-muted)]">–</span>
@@ -76,14 +90,16 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         className: "w-44",
         cell: (shop) => (
           <div className="flex gap-2 justify-end">
-            <button
-              type="button"
-              onClick={() => onEdit(shop.id)}
-              className="h-8 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-            >
-              Bearbeiten
-            </button>
-            {onDelete && (
+            {!shop.deletedAt && (
+              <button
+                type="button"
+                onClick={() => onEdit(shop.id)}
+                className="h-8 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+              >
+                Bearbeiten
+              </button>
+            )}
+            {onDelete && !shop.deletedAt && (
               <button
                 type="button"
                 onClick={() => onDelete(shop.id)}
