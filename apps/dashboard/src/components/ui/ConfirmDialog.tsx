@@ -26,7 +26,7 @@ export function ConfirmDialog({
         onClick={onCancel}
         aria-label="Abbrechen"
       />
-      <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full">
+      <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full overlay-card-enter">
         <h3 className="font-bold text-[var(--ds-text)] mb-2">{title}</h3>
         <p className="text-sm text-[var(--ds-text-muted)] mb-5">{description}</p>
         <div className="flex gap-3">

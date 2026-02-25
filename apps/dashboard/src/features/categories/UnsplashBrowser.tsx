@@ -168,7 +168,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
       <div
-        className="relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden"
+        className="relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden overlay-card-enter"
         style={{ width: "85vw", height: "85vh" }}
       >
         {/* Header */}

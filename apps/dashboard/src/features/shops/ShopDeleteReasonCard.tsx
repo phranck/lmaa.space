@@ -34,7 +34,7 @@ export function ShopDeleteReasonCard({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-[var(--ds-surface)] rounded-2xl shadow-xl w-full max-w-lg border border-[var(--ds-border)] overflow-hidden">
+      <div className="bg-[var(--ds-surface)] rounded-2xl shadow-xl w-full max-w-lg border border-[var(--ds-border)] overflow-hidden overlay-card-enter">
         <div className="px-6 py-5 border-b border-[var(--ds-border)]">
           <h2 className="text-base font-semibold text-[var(--ds-text)]">Shop löschen</h2>
           <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">
