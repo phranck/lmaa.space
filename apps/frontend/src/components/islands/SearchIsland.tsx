@@ -80,7 +80,7 @@ export default function SearchIsland({ shops, categories }: Props) {
       </div>
 
       {debouncedQuery.length >= 2 && (
-        <p className="text-sm text-stone-400 mb-6 search-section-enter">
+        <p role="status" aria-live="polite" className="text-sm text-stone-400 mb-6 search-section-enter">
           {total} {total === 1 ? "Treffer" : "Treffer gefunden"}
         </p>
       )}

@@ -33,6 +33,8 @@ const sortedRegions = [...shop.region].sort(
 
 const deadDialogId = `dialog-dead-${shop.id}`;
 const reportDialogId = `dialog-report-${shop.id}`;
+const deadTitleId = `${deadDialogId}-title`;
+const reportTitleId = `${reportDialogId}-title`;
 
 const descriptionHtml = shop.description ? await marked(shop.description) : null;
 ---
@@ -102,6 +104,7 @@ const descriptionHtml = shop.description ? await marked(shop.description) : null
         data-action="dead-link"
         data-shop-id={shop.id}
         data-dialog={deadDialogId}
+        aria-label={`Defekten Link für ${shop.name} melden`}
       >
         Link defekt?
       </button>
@@ -111,6 +114,7 @@ const descriptionHtml = shop.description ? await marked(shop.description) : null
         data-action="report"
         data-shop-id={shop.id}
         data-dialog={reportDialogId}
+        aria-label={`${shop.name} melden`}
       >
         Shop melden
       </button>
@@ -129,9 +133,11 @@ const descriptionHtml = shop.description ? await marked(shop.description) : null
 <!-- Dead link confirmation dialog -->
 <dialog
   id={deadDialogId}
+  aria-labelledby={deadTitleId}
+  aria-modal="true"
   class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
 >
-  <h2 class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+  <h2 id={deadTitleId} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
     Link defekt?
   </h2>
   <p class="text-sm text-[var(--ds-text-muted)] mb-6">
@@ -159,10 +165,12 @@ const descriptionHtml = shop.description ? await marked(shop.description) : null
 <!-- Report/concern dialog -->
 <dialog
   id={reportDialogId}
+  aria-labelledby={reportTitleId}
+  aria-modal="true"
   class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
 >
   <div data-report-form>
-    <h2 class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+    <h2 id={reportTitleId} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
       Shop melden
     </h2>
     <p class="text-sm text-[var(--ds-text-muted)] mb-5">
