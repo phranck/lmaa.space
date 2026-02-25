@@ -12,7 +12,7 @@ type UrlCheckResult =
   | { exists: false }
   | { exists: true; shop: { id: number; name: string; categories: ShopCategory[] } };
 
-const API_BASE = import.meta.env.PUBLIC_API_URL ?? "/api";
+import { API_BASE } from "@/lib/client-api";
 
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
