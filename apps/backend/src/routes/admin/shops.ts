@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
-import { deadLinkReports, shopCategories, shops } from "../../db/schema.js";
+import { deadLinkReports, shopCategories, shops, adminUsers } from "../../db/schema.js";
 import { extractHomepage, fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
@@ -43,8 +43,13 @@ const previewImageSchema = z.object({ url: z.string().url() });
 export const shopsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 shopsRoutes.get("/shops", requireAuth, async (c) => {
+  const includeDeleted = c.req.query("includeDeleted") === "true";
   const rows = await db.execute<ShopSummary & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region,
+           s.deleted_at as "deletedAt",
+           s.delete_reason as "deleteReason",
+           s.deleted_was_reported as "deletedWasReported",
+           u.username as "deletedByUsername",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -53,7 +58,9 @@ shopsRoutes.get("/shops", requireAuth, async (c) => {
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
-    GROUP BY s.id
+    LEFT JOIN admin_users u ON u.id = s.deleted_by
+    ${includeDeleted ? sql`` : sql`WHERE s.deleted_at IS NULL`}
+    GROUP BY s.id, u.username
     ORDER BY s.name
   `);
   return c.json({ data: rows });
@@ -151,14 +158,21 @@ for (const method of ["put", "patch"] as const) {
 shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
-  await db.transaction(async (tx) => {
-    await tx.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
-    await tx.delete(shops).where(eq(shops.id, id));
-  });
 
-  // Invalidate cache
+  const body = await c.req.json().catch(() => ({}));
+  const reason = typeof body?.reason === "string" ? body.reason.trim() || null : null;
+  const wasReported = typeof body?.wasReported === "boolean" ? body.wasReported : false;
+
+  const adminId = c.get("adminId");
+
+  await db.update(shops).set({
+    deletedAt: new Date(),
+    deletedBy: adminId ?? null,
+    deleteReason: reason,
+    deletedWasReported: wasReported,
+  }).where(eq(shops.id, id));
+
   invalidateCache(SHOPS_CACHE_KEY);
-
   return c.json({ data: { message: "Shop deleted" } });
 });
 

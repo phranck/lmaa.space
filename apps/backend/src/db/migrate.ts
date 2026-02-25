@@ -345,6 +345,11 @@ async function main() {
     END $do$
   `;
 
+  await sql`ALTER TABLE shops ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP`;
+  await sql`ALTER TABLE shops ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES admin_users(id) ON DELETE SET NULL`;
+  await sql`ALTER TABLE shops ADD COLUMN IF NOT EXISTS delete_reason TEXT`;
+  await sql`ALTER TABLE shops ADD COLUMN IF NOT EXISTS deleted_was_reported BOOLEAN NOT NULL DEFAULT FALSE`;
+
   await sql`
     CREATE TABLE IF NOT EXISTS shop_concern_reports (
       id          SERIAL PRIMARY KEY,

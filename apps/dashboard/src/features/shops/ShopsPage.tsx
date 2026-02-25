@@ -1,7 +1,7 @@
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
+import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminShops, useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
 import { useState } from "react";
@@ -12,8 +12,9 @@ export function ShopsPage() {
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [showDeleted, setShowDeleted] = useState(false);
 
-  const { data: shops = [], isLoading } = useAdminShops();
+  const { data: shops = [], isLoading } = useAdminShops(showDeleted);
   const deleteMutation = useDeleteShop();
 
   const filtered = shops.filter(
@@ -45,6 +46,15 @@ export function ShopsPage() {
             </button>
           )}
         </div>
+        <label className="flex items-center gap-2 text-sm text-[var(--ds-text-muted)] cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={showDeleted}
+            onChange={(e) => setShowDeleted(e.target.checked)}
+            className="w-4 h-4 rounded accent-[var(--color-primary)]"
+          />
+          Gelöschte anzeigen
+        </label>
         <button
           type="button"
           onClick={() => setEditTarget("new")}
@@ -97,21 +107,21 @@ export function ShopsPage() {
         />
       )}
 
-      <ConfirmDialog
-        open={deleteId !== null && !!deleteTarget}
-        title="Shop löschen?"
-        description={
-          <>
-            <span className="font-medium">{deleteTarget?.name}</span> wird dauerhaft entfernt.
-          </>
-        }
-        isPending={deleteMutation.isPending}
-        onConfirm={() => {
-          if (deleteId !== null)
-            deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
-        }}
-        onCancel={() => setDeleteId(null)}
-      />
+      {/* Delete Modal */}
+      {deleteId !== null && deleteTarget && (
+        <ShopDeleteReasonCard
+          shopName={deleteTarget.name}
+          wasReported={deleteTarget.deletedWasReported}
+          isPending={deleteMutation.isPending}
+          onConfirm={(reason, wasReported) => {
+            deleteMutation.mutate(
+              { id: deleteId, reason, wasReported },
+              { onSuccess: () => setDeleteId(null) },
+            );
+          }}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
     </div>
   );
 }

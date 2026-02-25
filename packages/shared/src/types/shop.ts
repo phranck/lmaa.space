@@ -10,6 +10,10 @@ export interface ShopSummary {
   url: string;
   categories: ShopCategory[];
   region: string[];
+  deletedAt?: string | null;
+  deleteReason?: string | null;
+  deletedWasReported?: boolean;
+  deletedByUsername?: string | null;
 }
 
 export interface Shop {
