@@ -13,7 +13,15 @@ export function resolveImageUrl(url: string | null | undefined): string | null {
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
+  const url = `${API_BASE}${path}`;
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    throw new Error(
+      `API fetch failed for ${url} — is API_URL set correctly? (current: ${API_BASE})\n${err}`,
+    );
+  }
   if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
   const json = await res.json();
   return json.data as T;
