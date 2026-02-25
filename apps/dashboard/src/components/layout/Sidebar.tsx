@@ -3,6 +3,7 @@ import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import type { AdminRole } from "@lmaa/shared";
+import { useState } from "react";
 import { NavLink, useMatch } from "react-router";
 import {
   SFCheckmarkCircleFill,
@@ -63,10 +64,24 @@ interface SidebarProps {
 function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   const isGroupActive = !!useMatch("/seiten/*");
   const { data: pages } = useContentPages();
+  const [localOpen, setLocalOpen] = useState(
+    () => localStorage.getItem("sidebar-pages-open") === "true",
+  );
+  const isOpen = isGroupActive || localOpen;
+
+  function handleSummaryClick(e: React.MouseEvent) {
+    e.preventDefault();
+    const next = !isOpen;
+    setLocalOpen(next);
+    localStorage.setItem("sidebar-pages-open", String(next));
+  }
 
   return (
-    <details open={isGroupActive} className="group/details">
-      <summary className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors border-l-2 cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent">
+    <details open={isOpen} className="group/details">
+      <summary
+        onClick={handleSummaryClick}
+        className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors border-l-2 cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
+      >
         <span className="shrink-0 opacity-70">
           <SFDocumentFill className="w-4 h-4" />
         </span>

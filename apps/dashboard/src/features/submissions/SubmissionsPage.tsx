@@ -16,7 +16,15 @@ import {
 } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { useState } from "react";
-import { SFArrowUpRightSquareFill } from "sf-symbols-lib/monochrome";
+import {
+  SFArrowDownCircleFill,
+  SFArrowUpCircleFill,
+  SFArrowUpRightSquareFill,
+  SFCheckmarkCircleFill,
+  SFClockFill,
+  SFPauseCircleFill,
+  SFXmarkCircleFill,
+} from "sf-symbols-lib/monochrome";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -69,7 +77,7 @@ function ShopImage({ url, name }: { url: string; name: string }) {
 
 function VorschlaegeTab() {
   const [filter, setFilter] = useState<SubmissionStatus>("pending");
-  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [sendFeedback, setSendFeedback] = useState(false);
@@ -91,29 +99,24 @@ function VorschlaegeTab() {
     <>
       {/* Status filter + sort */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2">
-          {(["pending", "onhold", "approved", "rejected"] as SubmissionStatus[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
-                filter === s
-                  ? "bg-[var(--color-primary)] text-white"
-                  : "bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-btn-neutral-hover-border)]"
-              }`}
-            >
-              {STATUS_LABELS[s]}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
-          className="px-3 py-1.5 rounded-control text-sm border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-        >
-          {sortDir === "desc" ? "↓ Neue zuerst" : "↑ Alte zuerst"}
-        </button>
+        <SegmentedControl
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { value: "pending" as SubmissionStatus,  label: STATUS_LABELS.pending,  icon: <SFClockFill className="w-3.5 h-3.5" /> },
+            { value: "onhold" as SubmissionStatus,   label: STATUS_LABELS.onhold,   icon: <SFPauseCircleFill className="w-3.5 h-3.5" /> },
+            { value: "approved" as SubmissionStatus, label: STATUS_LABELS.approved, icon: <SFCheckmarkCircleFill className="w-3.5 h-3.5" /> },
+            { value: "rejected" as SubmissionStatus, label: STATUS_LABELS.rejected, icon: <SFXmarkCircleFill className="w-3.5 h-3.5" /> },
+          ]}
+        />
+        <SegmentedControl
+          value={sortDir}
+          onChange={setSortDir}
+          options={[
+            { value: "asc" as const,  label: "Alte zuerst",  icon: <SFArrowUpCircleFill className="w-3.5 h-3.5" /> },
+            { value: "desc" as const, label: "Neue zuerst", icon: <SFArrowDownCircleFill className="w-3.5 h-3.5" /> },
+          ]}
+        />
       </div>
 
       {isLoading && (
