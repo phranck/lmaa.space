@@ -2,7 +2,7 @@
 // API based on shadcn-multi-select-component
 // Dropdown implemented via createPortal (same approach as RegionSelect)
 import { cva, type VariantProps } from "class-variance-authority";
-import { CheckIcon, ChevronDown, WandSparkles, XCircle, XIcon } from "lucide-react";
+import { CheckIcon, ChevronDown, XCircle, XIcon } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -45,7 +45,6 @@ export interface MultiSelectProps
   value: string[];
   onValueChange: (value: string[]) => void;
   placeholder?: string;
-  animation?: number;
   maxCount?: number;
   modalPopover?: boolean;
   className?: string;
@@ -58,15 +57,12 @@ export function MultiSelect({
   onValueChange,
   variant,
   placeholder = "Auswählen…",
-  animation = 0,
   maxCount = 3,
   className,
   error,
 }: MultiSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [dropdownRect, setDropdownRect] = React.useState<DOMRect | null>(null);
-  const [isAnimating, setIsAnimating] = React.useState(animation > 0);
-
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -235,11 +231,8 @@ export function MultiSelect({
               return (
                 <span
                   key={val}
-                  className={cn(
-                    multiSelectVariants({ variant }),
-                    isAnimating ? "animate-bounce" : "",
-                  )}
-                  style={{ animationDuration: `${animation}s`, ...opt.style }}
+                  className={cn(multiSelectVariants({ variant }))}
+                  style={opt.style}
                 >
                   {opt.icon && <opt.icon className="h-3 w-3" />}
                   {opt.label}
@@ -294,24 +287,6 @@ export function MultiSelect({
               >
                 <XIcon className="h-3.5 w-3.5" />
               </span>
-              {animation > 0 && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsAnimating(!isAnimating);
-                  }}
-                  className="cursor-pointer text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] p-0.5"
-                >
-                  <WandSparkles
-                    className={cn(
-                      "h-3.5 w-3.5",
-                      isAnimating ? "text-[var(--color-primary)]" : "",
-                    )}
-                  />
-                </span>
-              )}
               <div className="w-px h-4 bg-[var(--ds-border)] mx-0.5" />
             </>
           )}
