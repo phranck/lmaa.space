@@ -81,7 +81,7 @@ const THEME_OPTIONS = [
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  return <SegmentedControl value={theme} onChange={setTheme} size="sm" options={THEME_OPTIONS} />;
+  return <SegmentedControl value={theme} onChange={setTheme} options={THEME_OPTIONS} />;
 }
 
 function AdminLayoutInner() {

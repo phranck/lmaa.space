@@ -359,7 +359,6 @@ export function AnalyticsSection() {
         <SegmentedControl
           value={period}
           onChange={handlePeriodChange}
-          size="sm"
           options={PERIODS}
         />
       </div>

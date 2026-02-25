@@ -80,7 +80,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
     <details open={isOpen} className="group/details">
       <summary
         onClick={handleSummaryClick}
-        className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors border-l-2 cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
+        className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
       >
         <span className="shrink-0 opacity-70">
           <SFDocumentFill className="w-4 h-4" />
@@ -94,7 +94,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
           end
           onClick={onItemClick}
           className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors border-l-2 ${
+            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
               isActive
                 ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
                 : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
@@ -109,7 +109,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
             to={`/seiten/${page.slug}`}
             onClick={onItemClick}
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors border-l-2 ${
+              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
                   : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
