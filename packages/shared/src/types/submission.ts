@@ -41,6 +41,15 @@ export interface DeadLinkReportSummary {
   reportCount: number;
 }
 
+export interface ShopConcernReportEntry {
+  id: number;
+  shopId: number;
+  shopName: string;
+  shopUrl: string;
+  reason: string;
+  reportedAt: string;
+}
+
 export interface SubmissionReview {
   status: "approved" | "rejected";
   adminNote?: string;

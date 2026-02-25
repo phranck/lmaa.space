@@ -21,6 +21,7 @@ import {
   categories,
   contentPages,
   deadLinkReports,
+  shopConcernReports,
   navItems,
   shopCategories,
   shops,
@@ -32,6 +33,7 @@ import { getCacheEntry, setCacheEntry, invalidateCache, getCacheStats } from "..
 import {
   sendDeadLinkReportNotification,
   sendNewSubmissionNotification,
+  sendShopConcernNotification,
 } from "../services/email.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
@@ -353,6 +355,40 @@ publicRoutes.post(
     sendDeadLinkReportNotification(shop.name, shop.url, reportCount).catch(() => {});
 
     return c.json({ data: { message: "Danke für deinen Hinweis!" } });
+  },
+);
+
+// POST /api/shops/:id/concern – shop concern report (rate limited per IP)
+publicRoutes.post(
+  "/shops/:id/concern",
+  rateLimit({ max: 5, windowMs: 60 * 60 * 1000 }),
+  async (c) => {
+    const id = Number(c.req.param("id"));
+    if (!Number.isInteger(id) || id <= 0) {
+      return c.json({ error: { message: "Invalid shop id" } }, 400);
+    }
+
+    const body = await c.req.json().catch(() => ({}));
+    const reason = typeof body?.reason === "string" ? body.reason.trim() : "";
+    if (reason.length < 10) {
+      return c.json({ error: { message: "Bitte eine aussagekräftige Begründung angeben (mind. 10 Zeichen)." } }, 400);
+    }
+
+    const [shop] = await db
+      .select({ id: shops.id, name: shops.name, url: shops.url })
+      .from(shops)
+      .where(eq(shops.id, id))
+      .limit(1);
+    if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+
+    const ip = c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip") ?? "unknown";
+    const ipHash = createHash("sha256").update(ip).digest("hex");
+
+    await db.insert(shopConcernReports).values({ shopId: id, reason, ipHash });
+
+    sendShopConcernNotification(shop.name, shop.url, reason).catch(() => {});
+
+    return c.json({ data: { message: "Danke für dein Feedback!" } });
   },
 );
 

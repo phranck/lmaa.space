@@ -58,7 +58,7 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         cell: (shop) =>
           shop.region?.length ? (
             <div className="flex items-center gap-1.5">
-              {shop.region.map((code) => {
+              {[...shop.region].sort((a, b) => ["DE", "AT", "CH", "EU"].indexOf(a) - ["DE", "AT", "CH", "EU"].indexOf(b)).map((code) => {
                 const opt = REGION_OPTIONS.find((o) => o.code === code);
                 return (
                   <span key={code} title={opt?.name ?? code} className="text-base leading-none">

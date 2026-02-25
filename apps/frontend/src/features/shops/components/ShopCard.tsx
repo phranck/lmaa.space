@@ -2,6 +2,7 @@ import { api } from "@/lib/api.ts";
 import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { ReportShopCard } from "./ReportShopCard.tsx";
 
 interface ShopCardProps {
   shop: Shop;
@@ -11,6 +12,7 @@ export function ShopCard({ shop }: ShopCardProps) {
   const [reported, setReported] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [showConcernModal, setShowConcernModal] = useState(false);
 
   const domain = (() => {
     try {
@@ -43,6 +45,7 @@ export function ShopCard({ shop }: ShopCardProps) {
   }
 
   return (
+    <>
     <div className="bg-white rounded-3xl border border-stone-200 p-4 flex flex-col gap-3 hover:shadow-md hover:border-stone-300 transition-all duration-200">
       {/* Top row: logo + name + button */}
       <div className="flex items-start gap-4">
@@ -98,18 +101,27 @@ export function ShopCard({ shop }: ShopCardProps) {
       )}
 
       <div className="flex items-center justify-between mt-auto">
-        {reported ? (
-          <span className="text-xs text-stone-400">Danke für deinen Hinweis!</span>
-        ) : (
+        <div className="flex items-center gap-3">
+          {reported ? (
+            <span className="text-xs text-stone-400">Danke für deinen Hinweis!</span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReport}
+              disabled={reporting}
+              className="text-xs text-stone-400 hover:text-red-400 transition-colors disabled:opacity-50"
+            >
+              Link defekt?
+            </button>
+          )}
           <button
             type="button"
-            onClick={handleReport}
-            disabled={reporting}
-            className="text-xs text-stone-400 hover:text-red-400 transition-colors disabled:opacity-50"
+            onClick={() => setShowConcernModal(true)}
+            className="text-xs text-stone-400 hover:text-red-400 transition-colors"
           >
-            Link defekt?
+            Shop melden
           </button>
-        )}
+        </div>
         <a
           href={shopUrl}
           target="_blank"
@@ -120,5 +132,14 @@ export function ShopCard({ shop }: ShopCardProps) {
         </a>
       </div>
     </div>
+
+    {showConcernModal && (
+      <ReportShopCard
+        shopId={shop.id}
+        shopName={shop.name}
+        onClose={() => setShowConcernModal(false)}
+      />
+    )}
+    </>
   );
 }

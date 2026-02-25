@@ -8,7 +8,9 @@ import {
   useDeadLinkReports,
   useDeleteShopFromDeadLinks,
   useDismissDeadLink,
+  useDismissShopConcern,
   useReviewSubmission,
+  useShopConcernReports,
 } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { useState } from "react";
@@ -401,16 +403,18 @@ function DefekteLinksTab() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = "vorschlaege" | "defekte-links";
+type Tab = "vorschlaege" | "defekte-links" | "shop-meldungen";
 
 export function SubmissionsPage() {
   const [tab, setTab] = useState<Tab>("vorschlaege");
 
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: deadLinkReports = [] } = useDeadLinkReports();
+  const { data: shopConcerns = [] } = useShopConcernReports();
 
   const pendingCount = pendingSubmissions.length;
   const deadLinkCount = deadLinkReports.length;
+  const concernCount = shopConcerns.length;
 
   return (
     <div>
@@ -439,11 +443,91 @@ export function SubmissionsPage() {
                   </span>
                 ) : undefined,
             },
+            {
+              value: "shop-meldungen" as const,
+              label: "Shop-Meldungen",
+              badge:
+                concernCount > 0 ? (
+                  <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
+                    {concernCount}
+                  </span>
+                ) : undefined,
+            },
           ]}
         />
       </PageHeader>
 
-      {tab === "vorschlaege" ? <VorschlaegeTab /> : <DefekteLinksTab />}
+      {tab === "vorschlaege" && <VorschlaegeTab />}
+      {tab === "defekte-links" && <DefekteLinksTab />}
+      {tab === "shop-meldungen" && <ShopMeldungenTab />}
+    </div>
+  );
+}
+
+// ─── Shop-Meldungen Tab ───────────────────────────────────────────────────────
+
+function ShopMeldungenTab() {
+  const { data: reports = [], isLoading } = useShopConcernReports();
+  const dismiss = useDismissShopConcern();
+
+  if (isLoading) {
+    return (
+      <div className="p-6 text-center text-[var(--ds-text-subtle)] text-sm">Lade…</div>
+    );
+  }
+
+  if (reports.length === 0) {
+    return (
+      <div className="text-center py-16 text-[var(--ds-text-subtle)]">
+        Keine Shop-Meldungen.
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-3">
+      {reports.map((r) => (
+        <div
+          key={r.id}
+          className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] p-4 flex flex-col gap-3"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="font-medium text-sm text-[var(--ds-text)] truncate">{r.shopName}</p>
+              <a
+                href={r.shopUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[var(--ds-text-muted)] hover:underline truncate block"
+              >
+                {r.shopUrl}
+              </a>
+            </div>
+            <span className="shrink-0 text-xs text-[var(--ds-text-muted)]">
+              {new Date(r.reportedAt).toLocaleDateString("de-AT", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+
+          <p className="text-sm text-[var(--ds-text)] bg-[var(--ds-surface-hover)] rounded-lg px-3 py-2 whitespace-pre-wrap">
+            {r.reason}
+          </p>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => dismiss.mutate(r.id)}
+              disabled={dismiss.isPending}
+              className="text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
+            >
+              Erledigt / Ablehnen
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

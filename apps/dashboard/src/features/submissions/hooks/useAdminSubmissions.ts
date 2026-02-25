@@ -1,6 +1,6 @@
 import type { ShopEditFormValue } from "@/features/shops/hooks/useAdminShops.ts";
 import { api } from "@/lib/api.ts";
-import type { DeadLinkReportSummary, Submission, SubmissionStatus } from "@lmaa/shared";
+import type { DeadLinkReportSummary, ShopConcernReportEntry, Submission, SubmissionStatus } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -74,5 +74,20 @@ export function useDeleteShopFromDeadLinks() {
       qc.invalidateQueries({ queryKey: ["dead-link-reports"] });
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
     },
+  });
+}
+
+export function useShopConcernReports() {
+  return useQuery({
+    queryKey: ["shop-concern-reports"],
+    queryFn: () => api.get<ShopConcernReportEntry[]>("/admin/shop-concern-reports"),
+  });
+}
+
+export function useDismissShopConcern() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/shop-concern-reports/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["shop-concern-reports"] }),
   });
 }
