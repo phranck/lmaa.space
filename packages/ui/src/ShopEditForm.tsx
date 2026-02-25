@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { LuExternalLink } from "react-icons/lu";
+import { SiMarkdown } from "react-icons/si";
 import { MultiSelect } from "./MultiSelect.tsx";
 import { RegionSelect } from "./RegionSelect.tsx";
 
@@ -110,8 +111,9 @@ export function ShopEditForm({
 
       {/* Description */}
       <div>
-        <label htmlFor="sef-description" className={labelClass}>
+        <label htmlFor="sef-description" className={`${labelClass} flex items-center gap-1.5`}>
           Beschreibung
+          <SiMarkdown className="w-4 h-4 opacity-40" title="Markdown wird unterstützt" />
         </label>
         <textarea
           id="sef-description"
