@@ -186,7 +186,7 @@ export default function SuggestForm({ categories }: Props) {
           Danke, dass du dir die Zeit nimmst, einen Shop einzutragen.
         </p>
         <p className="text-amber-800 mb-3">
-          Doch bevor du das tust – denk kurz an die{" "}
+          Doch bevor du das tust, denk kurz an die{" "}
           <a href="/aufnahmekriterien" className="underline underline-offset-2 hover:text-amber-900 transition-colors">
             Aufnahmekriterien
           </a>
@@ -198,7 +198,7 @@ export default function SuggestForm({ categories }: Props) {
           <li>Willst du ihn aus Überzeugung unterstützen, weil er es „verdient" hat?</li>
         </ul>
         <p className="text-amber-800">
-          Wenn du all das mit „Ja" beantworten kannst – dann weiter, trag ihn ein. Anderenfalls würde ich dir davon abraten.
+          Wenn du all das mit „Ja" beantworten kannst: weiter, trag ihn ein. Anderenfalls würde ich dir davon abraten.
         </p>
       </div>
 
