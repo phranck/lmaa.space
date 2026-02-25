@@ -111,9 +111,12 @@ export function ShopEditForm({
 
       {/* Description */}
       <div>
-        <label htmlFor="sef-description" className={`${labelClass} flex items-center gap-1.5`}>
-          Beschreibung
-          <SiMarkdown className="w-4 h-4 opacity-40" title="Markdown wird unterstützt" />
+        <label htmlFor="sef-description" className={labelClass}>
+          <span className="flex items-center gap-1.5">
+            Beschreibung{" "}
+            <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
+            <SiMarkdown className="w-5 h-5 opacity-40" title="Markdown wird unterstützt" />
+          </span>
         </label>
         <textarea
           id="sef-description"

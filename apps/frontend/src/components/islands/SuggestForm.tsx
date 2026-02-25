@@ -116,7 +116,7 @@ export default function SuggestForm({ categories }: Props) {
   const descriptionHint = (
     <div className="flex justify-between items-start mt-1.5 gap-4">
       <p className="text-xs text-[var(--ds-text-subtle)] leading-relaxed">
-        Optional – aber eine gute Beschreibung hilft anderen, den Shop schneller einzuschätzen.
+        Eine gute Beschreibung hilft anderen, den Shop schneller einzuschätzen.
       </p>
       <span className="text-xs text-[var(--ds-text-subtle)] shrink-0">{shopForm.description.length}/500</span>
     </div>
