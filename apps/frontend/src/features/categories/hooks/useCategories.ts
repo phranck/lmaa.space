@@ -6,7 +6,8 @@ export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: () => api.get<Category[]>("/categories"),
-    staleTime: 10 * 60 * 1000,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
   });
 }
 
@@ -14,7 +15,8 @@ export function useShopStats() {
   return useQuery({
     queryKey: ["stats"],
     queryFn: () => api.get<{ shopCount: number }>("/stats"),
-    staleTime: 60 * 1000,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
   });
 }
 

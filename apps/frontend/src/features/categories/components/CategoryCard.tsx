@@ -1,7 +1,7 @@
 import { api, resolveImageUrl } from "@/lib/api.ts";
 import type { Category } from "@lmaa/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 interface CategoryCardProps {
@@ -10,8 +10,14 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category }: CategoryCardProps) {
   const [imgError, setImgError] = useState(false);
+  const [visible, setVisible] = useState(false);
   const qc = useQueryClient();
   const resolvedUrl = resolveImageUrl(category.imageUrl) ?? `/images/${category.slug}.jpg`;
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   function handleMouseEnter() {
     qc.prefetchQuery({
@@ -26,7 +32,9 @@ export function CategoryCard({ category }: CategoryCardProps) {
     <Link
       to={`/kategorie/${category.slug}`}
       onMouseEnter={handleMouseEnter}
-      className="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+      className={`group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+      }`}
     >
       {/* Photo or placeholder */}
       <div className="aspect-video overflow-hidden relative">
