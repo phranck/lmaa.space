@@ -1,65 +1,61 @@
-@import "tailwindcss";
 @import "@lmaa/shared/styles/tokens.css";
-@plugin "@tailwindcss/typography";
-@source "../../../packages/ui/src";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-@theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+/* Dashboard-specific token overrides */
+:root {
   --radius-control: 0.5rem; /* 8px */
   --radius-card: calc(var(--radius-control) + 0.75rem); /* 22px */
-}
 
-/* Dashboard-specific overrides — GitHub Primer light default (exact @primer/primitives) */
-:root {
-  /* Nav: active state — actionList-item-default-activeBg + fgColor-accent border */
-  --ds-nav-active-bg:     rgba(175,184,193,0.2); /* actionList-item-default-activeBg */
-  --ds-nav-active-text:   #1f2328;               /* fgColor-default */
-  --ds-nav-active-border: #0969da;               /* fgColor-accent */
+  /* Nav: active state */
+  --ds-nav-active-bg:     rgba(175,184,193,0.2);
+  --ds-nav-active-text:   #1f2328;
+  --ds-nav-active-border: #0969da;
 
   /* Nav: default / hover */
-  --ds-nav-text:       #656d76;               /* fgColor-muted */
-  --ds-nav-hover-bg:   rgba(175,184,193,0.12); /* actionList-item-default-hoverBg */
-  --ds-nav-hover-text: #1f2328;               /* fgColor-default */
+  --ds-nav-text:       #656d76;
+  --ds-nav-hover-bg:   rgba(175,184,193,0.12);
+  --ds-nav-hover-text: #1f2328;
 
   /* Brand name in sidebar */
-  --ds-brand-text: #1f2328; /* fgColor-default */
+  --ds-brand-text: #1f2328;
 
   /* Table row hover */
-  --ds-row-hover: rgba(175,184,193,0.12); /* actionList-item-default-hoverBg */
+  --ds-row-hover: rgba(175,184,193,0.12);
+
+  /* Backward-compatible aliases */
+  --color-primary: var(--ds-btn-primary-bg);
+  --color-primary-light: var(--ds-btn-primary-hover);
+  --color-background: var(--ds-bg);
+  --color-surface: var(--ds-surface);
+  --color-text: var(--ds-text);
+  --color-text-muted: var(--ds-text-muted);
 }
 
-/* Dark mode overrides — GitHub Primer dark_dimmed (exact @primer/primitives@11.4.0) */
 .dark {
-  /* Nav — accent blue #478be6 as active indicator (fgColor-accent) */
-  --ds-nav-active-bg:     #2a313c; /* slightly above surface #262c36 */
-  --ds-nav-active-text:   #f0f6fc; /* fgColor-default */
-  --ds-nav-active-border: #478be6; /* fgColor-accent */
-  --ds-nav-text:          #9198a1; /* fgColor-muted */
-  --ds-nav-hover-bg:      #2f3742; /* button-default-bgColor-hover */
+  --ds-nav-active-bg:     #2d3d52;
+  --ds-nav-active-text:   #f0f6fc;
+  --ds-nav-active-border: #478be6;
+  --ds-nav-text:          #9198a1;
+  --ds-nav-hover-bg:      #2f3742;
   --ds-nav-hover-text:    #f0f6fc;
   --ds-brand-text:        #f0f6fc;
-
-  /* Table row hover */
-  --ds-row-hover: #2a313c; /* control-bgColor-rest */
+  --ds-row-hover:         #2a313c;
 }
 
-/* Dark mode: MDXEditor toolbar and popups — GitHub Primer dark_dimmed */
+/* Dark mode: MDXEditor toolbar and popups */
 .dark .mdxeditor {
-  --baseBg:           #262c36; /* card-bgColor */
-  --basePageBg:       #151b23; /* bgColor-inset */
+  --baseBg:           #262c36;
+  --basePageBg:       #151b23;
   --baseBgSubtle:     #151b23;
-  --baseBgHover:      #2f3742; /* button-default-bgColor-hover */
-  --baseBgActive:     #3d444d; /* bgColor-emphasis */
-  --baseBorder:       #3d444d; /* borderColor-default */
-  --baseBorderHover:  #656c76; /* borderColor-emphasis */
-  --baseBase:         #2a313c; /* control-bgColor-rest */
+  --baseBgHover:      #2f3742;
+  --baseBgActive:     #3d444d;
+  --baseBorder:       #3d444d;
+  --baseBorderHover:  #656c76;
+  --baseBase:         #2a313c;
   --baseLine:         #3d444d;
-  --baseSolid:        #9198a1; /* fgColor-muted */
-  --baseSolidHover:   #b7bdc8; /* neutral.9 */
-  --baseText:         #9198a1; /* fgColor-muted */
-  --baseTextContrast: #f0f6fc; /* fgColor-default */
+  --baseSolid:        #9198a1;
+  --baseSolidHover:   #b7bdc8;
+  --baseText:         #9198a1;
+  --baseTextContrast: #f0f6fc;
   color-scheme: dark;
 }
 
@@ -78,7 +74,6 @@
   color: #f0f6fc;
 }
 
-/* Image dialog: inputs render inside the popup container, outside .mdxeditor scope */
 .dark .mdxeditor-popup-container input,
 .dark .mdxeditor-popup-container select,
 .dark .mdxeditor-popup-container textarea {
@@ -92,14 +87,12 @@
   color: #9198a1 !important;
 }
 
-/* Labels and text inside the image dialog */
 .dark .mdxeditor-popup-container label,
 .dark .mdxeditor-popup-container p,
 .dark .mdxeditor-popup-container span {
   color: #f0f6fc !important;
 }
 
-/* Generic buttons in popup dialogs — neutral by default */
 .dark .mdxeditor-popup-container [role="dialog"] button {
   background-color: #2a313c !important;
   border: 1px solid #3d444d !important;
@@ -111,7 +104,6 @@
   border-color: #656c76 !important;
 }
 
-/* Primary / submit button — brand green */
 .dark .mdxeditor-popup-container [role="dialog"] button[type="submit"],
 .dark .mdxeditor-popup-container [role="dialog"] button:last-child {
   background-color: #5ea349 !important;
@@ -125,7 +117,6 @@
   border-color: #4e8f3c !important;
 }
 
-/* Source (CodeMirror) dark mode */
 .dark .mdxeditor .cm-editor {
   background-color: #151b23;
   color: #f0f6fc;
@@ -140,22 +131,12 @@
   background-color: #212830;
 }
 
-/* Backward-compatible aliases for existing component classes */
-:root {
-  --color-primary: #5ea349;
-  --color-primary-light: #4e8f3c;
-  --color-background: var(--ds-bg);
-  --color-surface: var(--ds-surface);
-  --color-text: var(--ds-text);
-  --color-text-muted: var(--ds-text-muted);
-}
-
-/* Button hover states for list/grid item components */
+/* Button hover states */
 .btn-edit:hover {
   border-color: var(--ds-border-strong);
 }
 .btn-delete:hover {
-  background-color: rgb(254 242 242); /* red-50, overridden in dark */
+  background-color: rgb(254 242 242);
 }
 
 /* Hover lift for list/grid cards */
@@ -172,7 +153,7 @@ button {
   cursor: pointer;
 }
 
-/* Sidebar-aware layout: header + main offset by resizable sidebar on desktop */
+/* Sidebar-aware layout */
 .sidebar-aware-header {
   position: fixed;
   top: 0;
@@ -185,7 +166,7 @@ button {
   }
 }
 .sidebar-aware-main {
-  padding-top: 3.5rem; /* same as header height h-14 */
+  padding-top: 3.5rem;
 }
 @media (min-width: 768px) {
   .sidebar-aware-main {
@@ -193,56 +174,22 @@ button {
   }
 }
 
-/* Overlay fade animations */
-@keyframes overlay-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes overlay-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+/* Overlay animations */
+@keyframes overlay-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes overlay-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes card-in  {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 @keyframes card-out {
-  from {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.96) translateY(8px);
-  }
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.96) translateY(8px); }
 }
 
-.overlay-backdrop-enter {
-  animation: overlay-in 360ms ease forwards;
-}
-.overlay-backdrop-exit {
-  animation: overlay-out 280ms ease forwards;
-}
-.overlay-card-enter {
-  animation: card-in 380ms ease forwards;
-}
-.overlay-card-exit {
-  animation: card-out 280ms ease forwards;
-}
+.overlay-backdrop-enter { animation: overlay-in  360ms ease forwards; }
+.overlay-backdrop-exit  { animation: overlay-out 280ms ease forwards; }
+.overlay-card-enter     { animation: card-in     380ms ease forwards; }
+.overlay-card-exit      { animation: card-out    280ms ease forwards; }
 
 html {
   font-size: 17px;
@@ -255,28 +202,24 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* MDXEditor: let Tailwind Typography (prose) take precedence over editor defaults */
-.mdxeditor .prose {
-  max-width: none;
-}
+/* MDXEditor: let Typography (prose) take precedence */
+.mdxeditor .prose { max-width: none; }
 .mdxeditor .prose h1,
 .mdxeditor .prose h2,
 .mdxeditor .prose h3,
 .mdxeditor .prose h4 {
-  font-family: var(--font-sans);
+  font-family: var(--ds-font-sans);
 }
 .mdxeditor-popup-container {
   z-index: 50;
 }
 
-/* Source mode: apply configurable font size via CSS variable */
 .mdxeditor .cm-editor .cm-content,
 .mdxeditor .cm-editor .cm-line {
   font-size: var(--source-font-size, 13px);
   line-height: 1.7;
 }
 
-/* Block cursor — red, blinking (CodeMirror source mode) */
 .mdxeditor .cm-cursor,
 .mdxeditor .cm-dropCursor {
   border-left: none !important;
@@ -285,18 +228,15 @@ body {
   margin-left: 0;
 }
 
-/* Rich-text mode: red caret */
 .mdxeditor [contenteditable] {
   caret-color: #dc2626;
 }
 
-/* Rich-text mode: text selection highlight */
 .dark .mdxeditor [contenteditable] ::selection {
   background-color: rgba(71, 139, 230, 0.35);
   color: inherit;
 }
 
-/* Source mode (CodeMirror): text selection highlight */
 .dark .mdxeditor .cm-selectionBackground,
 .dark .mdxeditor .cm-focused .cm-selectionBackground {
   background-color: rgba(71, 139, 230, 0.35) !important;

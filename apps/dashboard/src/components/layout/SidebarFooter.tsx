@@ -36,7 +36,7 @@ export function SidebarFooter({ username, firstName, lastName, role, avatarUrl, 
             type="button"
             onClick={onEditProfile}
             title="Profil bearbeiten"
-            className="w-7 h-7 flex items-center justify-center rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors shrink-0"
+            className="w-7 h-7 flex items-center justify-center rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]  shrink-0"
           >
             <SFSquareAndPencil className="w-3.5 h-3.5" />
           </button>
@@ -45,7 +45,7 @@ export function SidebarFooter({ username, firstName, lastName, role, avatarUrl, 
       <button
         type="button"
         onClick={onLogout}
-        className="w-full flex items-center justify-center gap-3 px-3 py-2 rounded-control text-sm text-[var(--ds-text-muted)] hover:bg-[var(--ds-danger-bg)] hover:text-[var(--ds-danger-text)] transition-colors"
+        className="w-full flex items-center justify-center gap-3 px-3 py-2 rounded-control text-sm text-[var(--ds-text-muted)] hover:bg-[var(--ds-danger-bg)] hover:text-[var(--ds-danger-text)] "
       >
         <SFRectanglePortraitAndArrowRightFill className="w-4 h-4 shrink-0" />
         Abmelden

@@ -9,7 +9,7 @@ interface SidebarItemProps {
 }
 
 function linkClass(isActive: boolean) {
-  return `flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors ${
+  return `flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium ${
     isActive
       ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
       : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"

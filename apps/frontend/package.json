@@ -22,14 +22,12 @@
     "react-router": "^7.6.2"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.1.7",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "tailwindcss": "^4.1.7",
     "typescript": "^5.7.3",
+    "unocss": "^66.3.3",
     "vite": "^6.3.5"
   }
 }

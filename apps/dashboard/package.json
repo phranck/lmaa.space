@@ -26,15 +26,13 @@
     "sf-symbols-lib": "^2.0.1"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.1.7",
     "@types/blueimp-md5": "^2.18.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "tailwindcss": "^4.1.7",
     "typescript": "^5.7.3",
+    "unocss": "^66.3.3",
     "vite": "^6.3.5"
   }
 }
