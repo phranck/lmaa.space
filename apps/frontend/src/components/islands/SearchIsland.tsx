@@ -1,6 +1,6 @@
 import type { Category, Shop } from "@lmaa/shared";
 import Fuse, { type IFuseOptions } from "fuse.js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 interface Props {
   shops: Shop[];
@@ -29,10 +29,6 @@ export default function SearchIsland({ shops, categories }: Props) {
   });
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   const fuse = useMemo(() => new Fuse(shops, FUSE_OPTIONS), [shops]);
 
@@ -67,7 +63,7 @@ export default function SearchIsland({ shops, categories }: Props) {
 
       {query.length >= 2 && (
         <p className="text-sm text-stone-400 mb-6">
-          {total} {total === 1 ? "Treffer" : "Treffer"}
+          {total} {total === 1 ? "Treffer" : "Treffer gefunden"}
         </p>
       )}
 

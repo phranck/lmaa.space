@@ -11,13 +11,7 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 
-let page: ContentPage | null = null;
-try {
-  page = await apiGet<ContentPage>(`/content/${slug}`);
-} catch {
-  return Astro.redirect("/", 404);
-}
-
+const page = await apiGet<ContentPage>(`/content/${slug}`);
 const html = await marked(page.content);
 ---
 
