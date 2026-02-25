@@ -1,4 +1,4 @@
-import { count, desc, eq, max } from "drizzle-orm";
+import { count, desc, eq, max, ne } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db/index.js";
 import { deadLinkReports, shops } from "../../db/schema.js";
@@ -19,6 +19,7 @@ deadLinkReportsRoutes.get("/dead-link-reports", requireAuth, async (c) => {
     })
     .from(deadLinkReports)
     .innerJoin(shops, eq(deadLinkReports.shopId, shops.id))
+    .where(ne(shops.visibility, "deleted"))
     .groupBy(deadLinkReports.shopId, shops.name, shops.url)
     .orderBy(desc(count(deadLinkReports.id)));
   return c.json({ data: rows });
