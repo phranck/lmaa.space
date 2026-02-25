@@ -39,6 +39,7 @@ export interface DeadLinkReportSummary {
   shopName: string;
   shopUrl: string;
   reportCount: number;
+  lastReportedAt: string | null;
 }
 
 export interface ShopConcernReportEntry {

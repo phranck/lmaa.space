@@ -1,4 +1,4 @@
-import { count, desc, eq } from "drizzle-orm";
+import { count, desc, eq, max } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db/index.js";
 import { deadLinkReports, shops } from "../../db/schema.js";
@@ -15,6 +15,7 @@ deadLinkReportsRoutes.get("/dead-link-reports", requireAuth, async (c) => {
       shopName: shops.name,
       shopUrl: shops.url,
       reportCount: count(deadLinkReports.id),
+      lastReportedAt: max(deadLinkReports.reportedAt),
     })
     .from(deadLinkReports)
     .innerJoin(shops, eq(deadLinkReports.shopId, shops.id))
