@@ -22,12 +22,14 @@ import { SFArrowUpRightSquareFill } from "sf-symbols-lib/monochrome";
 
 const STATUS_LABELS: Record<SubmissionStatus, string> = {
   pending: "Offen",
+  onhold: "Zurückgestellt",
   approved: "Angenommen",
   rejected: "Abgelehnt",
 };
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
+  onhold: "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]",
   approved: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
   rejected: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
 };
@@ -90,7 +92,7 @@ function VorschlaegeTab() {
       {/* Status filter + sort */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex gap-2">
-          {(["pending", "approved", "rejected"] as SubmissionStatus[]).map((s) => (
+          {(["pending", "onhold", "approved", "rejected"] as SubmissionStatus[]).map((s) => (
             <button
               key={s}
               type="button"
@@ -200,6 +202,20 @@ function VorschlaegeTab() {
                   className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
                 >
                   Ablehnen
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    reviewMutation.mutate({
+                      id: sub.id,
+                      status: "onhold",
+                      adminNote: "",
+                      sendFeedback: false,
+                    })
+                  }
+                  className="h-8 px-3 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
+                >
+                  Zurückstellen
                 </button>
                 <button
                   type="button"

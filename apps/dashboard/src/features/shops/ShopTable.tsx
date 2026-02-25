@@ -133,7 +133,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   <button
                     type="button"
                     onClick={() => onHold(shop.id)}
-                    className="h-8 px-3 border border-amber-300 rounded-control text-amber-700 text-sm hover:bg-amber-50 transition-colors"
+                    className="h-8 px-3 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
                   >
                     Zurückstellen
                   </button>
@@ -155,7 +155,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   <button
                     type="button"
                     onClick={() => onRestore(shop.id)}
-                    className="h-8 px-3 border border-emerald-300 rounded-control text-emerald-700 text-sm hover:bg-emerald-50 transition-colors"
+                    className="h-8 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                   >
                     Wiederherstellen
                   </button>
@@ -177,7 +177,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   <button
                     type="button"
                     onClick={() => onRestore(shop.id)}
-                    className="h-8 px-3 border border-emerald-300 rounded-control text-emerald-700 text-sm hover:bg-emerald-50 transition-colors"
+                    className="h-8 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                   >
                     Wiederherstellen
                   </button>

@@ -22,7 +22,7 @@ export function useReviewSubmission() {
       sendFeedback,
     }: {
       id: number;
-      status: "approved" | "rejected";
+      status: "approved" | "rejected" | "onhold";
       adminNote?: string;
       sendFeedback: boolean;
     }) =>

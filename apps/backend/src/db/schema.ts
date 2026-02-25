@@ -91,7 +91,7 @@ export const submissions = pgTable(
     submitterEmail: text("submitter_email"),
     submitterNote: text("submitter_note"),
     status: text("status")
-      .$type<"pending" | "approved" | "rejected">()
+      .$type<"pending" | "onhold" | "approved" | "rejected">()
       .notNull()
       .default("pending"),
     adminNote: text("admin_note"),

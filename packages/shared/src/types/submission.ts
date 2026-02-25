@@ -1,4 +1,4 @@
-export type SubmissionStatus = "pending" | "approved" | "rejected";
+export type SubmissionStatus = "pending" | "onhold" | "approved" | "rejected";
 
 export interface Submission {
   id: number;
@@ -52,7 +52,7 @@ export interface ShopConcernReportEntry {
 }
 
 export interface SubmissionReview {
-  status: "approved" | "rejected";
+  status: "approved" | "rejected" | "onhold";
   adminNote?: string;
   sendFeedback?: boolean;
 }
