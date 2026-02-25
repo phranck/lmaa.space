@@ -187,7 +187,7 @@ export default function SuggestForm({ categories }: Props) {
         </p>
         <p className="text-amber-800 mb-3">
           Doch bevor du das tust, denk kurz an die{" "}
-          <a href="/aufnahmekriterien" className="underline underline-offset-2 hover:text-amber-900 transition-colors">
+          <a href="/admissioncriteria" className="underline underline-offset-2 hover:text-amber-900 transition-colors">
             Aufnahmekriterien
           </a>
           :
