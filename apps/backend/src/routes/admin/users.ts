@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -148,27 +147,10 @@ usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
     return c.json({ error: { message: "Invalid image content (only JPEG, PNG or WebP)" } }, 400);
   }
 
-  // Resize to 256x256 cover, convert to WebP
+  // Resize to 256x256 cover, convert to WebP, store as base64 data URL in DB
   const resized = await sharp(rawBuffer).resize(256, 256, { fit: "cover" }).webp().toBuffer();
+  const avatarUrl = `data:image/webp;base64,${resized.toString("base64")}`;
 
-  const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-  const filename = `avatar-${id}.webp`;
-  const fullPath = `${imagePath}/${filename}`;
-
-  // Delete old local avatar if present
-  if (user.avatarUrl?.startsWith("/uploads/avatar-")) {
-    const oldFilename = user.avatarUrl.replace("/uploads/", "");
-    try {
-      await fs.promises.unlink(`${imagePath}/${oldFilename}`);
-    } catch {
-      /* File may not exist */
-    }
-  }
-
-  await fs.promises.mkdir(imagePath, { recursive: true });
-  await fs.promises.writeFile(fullPath, resized);
-
-  const avatarUrl = `/uploads/${filename}`;
   const [updated] = await db
     .update(adminUsers)
     .set({ avatarUrl })
@@ -203,18 +185,6 @@ usersRoutes.patch(
 
     const { gravatarUrl } = c.req.valid("json");
 
-    // Clean up old local avatar file if present
-    const [user] = await db.select({ avatarUrl: adminUsers.avatarUrl }).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
-    if (user?.avatarUrl?.startsWith("/uploads/avatar-")) {
-      const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-      const oldFilename = user.avatarUrl.replace("/uploads/", "");
-      try {
-        await fs.promises.unlink(`${imagePath}/${oldFilename}`);
-      } catch {
-        /* File may not exist */
-      }
-    }
-
     const [updated] = await db
       .update(adminUsers)
       .set({ avatarUrl: gravatarUrl })
@@ -240,16 +210,6 @@ usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
   const [user] = await db.select({ avatarUrl: adminUsers.avatarUrl }).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
   if (!user) return c.json({ error: { message: "User not found" } }, 404);
 
-  if (user.avatarUrl?.startsWith("/uploads/avatar-")) {
-    const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-    const oldFilename = user.avatarUrl.replace("/uploads/", "");
-    try {
-      await fs.promises.unlink(`${imagePath}/${oldFilename}`);
-    } catch {
-      /* File may not exist */
-    }
-  }
-
   const [updated] = await db
     .update(adminUsers)
     .set({ avatarUrl: null })
@@ -268,18 +228,6 @@ usersRoutes.delete("/users/:id", requireAuth, requireOwner, async (c) => {
 
   if (id === adminId) {
     return c.json({ error: { message: "Cannot delete yourself" } }, 400);
-  }
-
-  // Clean up local avatar file if present
-  const [user] = await db.select({ avatarUrl: adminUsers.avatarUrl }).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
-  if (user?.avatarUrl?.startsWith("/uploads/avatar-")) {
-    const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-    const oldFilename = user.avatarUrl.replace("/uploads/", "");
-    try {
-      await fs.promises.unlink(`${imagePath}/${oldFilename}`);
-    } catch {
-      /* File may not exist */
-    }
   }
 
   await db.transaction(async (tx) => {
