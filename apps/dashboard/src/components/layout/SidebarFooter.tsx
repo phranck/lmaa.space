@@ -1,14 +1,25 @@
 import { UserAvatar } from "@/features/users/UserAvatar.tsx";
 import { SFRectanglePortraitAndArrowRightFill } from "sf-symbols-lib/monochrome";
 
+import type { AdminRole } from "@lmaa/shared";
+
+const ROLE_LABEL: Record<AdminRole, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  moderator: "Moderator",
+};
+
 interface SidebarFooterProps {
   username?: string;
-  email?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  role?: AdminRole;
   avatarUrl?: string | null;
   onLogout: () => void;
 }
 
-export function SidebarFooter({ username, email, avatarUrl, onLogout }: SidebarFooterProps) {
+export function SidebarFooter({ username, firstName, lastName, role, avatarUrl, onLogout }: SidebarFooterProps) {
+  const displayName = [firstName, lastName].filter(Boolean).join(" ") || username;
   return (
     <div className="px-3 py-4 border-t border-[var(--ds-border)] shrink-0">
       <div className="flex items-center gap-3 px-3 py-2 mb-1">
@@ -16,8 +27,8 @@ export function SidebarFooter({ username, email, avatarUrl, onLogout }: SidebarF
           <UserAvatar username={username} avatarUrl={avatarUrl} size="md" className="shrink-0" />
         )}
         <div className="min-w-0">
-          <p className="text-xs font-medium text-[var(--ds-text)] truncate">{username}</p>
-          <p className="text-xs text-[var(--ds-text-muted)] truncate">{email}</p>
+          <p className="text-xs font-medium text-[var(--ds-text)] truncate">{displayName}</p>
+          {role && <p className="text-xs text-[var(--ds-text-muted)] truncate">{ROLE_LABEL[role]}</p>}
         </div>
       </div>
       <button

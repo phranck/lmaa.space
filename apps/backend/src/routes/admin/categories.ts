@@ -1,7 +1,7 @@
-import fs from "node:fs";
 import { zValidator } from "@hono/zod-validator";
 import { count, eq, getTableColumns } from "drizzle-orm";
 import { Hono } from "hono";
+import sharp from "sharp";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { categories, shopCategories, shops } from "../../db/schema.js";
@@ -55,20 +55,6 @@ for (const method of ["put", "patch"] as const) {
       if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
       const body = c.req.valid("json");
 
-      // If imageUrl is changing away from an uploaded file, delete the old file from disk
-      if (body.imageUrl !== undefined) {
-        const [current] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
-        if (current?.imageUrl?.startsWith("/uploads/") && body.imageUrl !== current.imageUrl) {
-          const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-          const filename = current.imageUrl.replace("/uploads/", "");
-          try {
-            await fs.promises.unlink(`${imagePath}/${filename}`);
-          } catch {
-            /* File may not exist */
-          }
-        }
-      }
-
       const [category] = await db
         .update(categories)
         .set({ ...body, updatedAt: new Date() })
@@ -106,27 +92,9 @@ categoriesRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   if (!detectedType)
     return c.json({ error: { message: "Invalid image content (only JPEG, PNG or WebP)" } }, 400);
 
-  const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-  const ext = detectedType === "png" ? "png" : detectedType === "webp" ? "webp" : "jpg";
-  const filename = `${id}-${cat.slug}.${ext}`;
-  const fullPath = `${imagePath}/${filename}`;
-
-  // Delete old uploaded file if filename differs (e.g. extension changed)
-  if (cat.imageUrl?.startsWith("/uploads/")) {
-    const oldFilename = cat.imageUrl.replace("/uploads/", "");
-    if (oldFilename !== filename) {
-      try {
-        await fs.promises.unlink(`${imagePath}/${oldFilename}`);
-      } catch {
-        /* File may not exist */
-      }
-    }
-  }
-
-  await fs.promises.mkdir(imagePath, { recursive: true });
-  await fs.promises.writeFile(fullPath, buffer);
-
-  const imageUrl = `/uploads/${filename}`;
+  // Resize to 1200x675 (16:9), convert to WebP, store as base64 data URL in DB
+  const resized = await sharp(buffer).resize(1200, 675, { fit: "cover" }).webp().toBuffer();
+  const imageUrl = `data:image/webp;base64,${resized.toString("base64")}`;
   const [updated] = await db
     .update(categories)
     .set({ imageUrl, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date() })
@@ -142,16 +110,6 @@ categoriesRoutes.delete("/categories/:id/image", requireAuth, requireAdmin, asyn
   if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
   const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
   if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
-
-  if (cat.imageUrl?.startsWith("/uploads/")) {
-    const imagePath = process.env.IMAGE_PATH ?? "./uploads";
-    const filename = cat.imageUrl.replace("/uploads/", "");
-    try {
-      await fs.promises.unlink(`${imagePath}/${filename}`);
-    } catch {
-      /* File may not exist */
-    }
-  }
 
   const [updated] = await db
     .update(categories)
