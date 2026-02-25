@@ -65,6 +65,7 @@ function ShopImage({ url, name }: { url: string; name: string }) {
 
 function VorschlaegeTab() {
   const [filter, setFilter] = useState<SubmissionStatus>("pending");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [sendFeedback, setSendFeedback] = useState(false);
@@ -77,24 +78,38 @@ function VorschlaegeTab() {
   // reviewId > 0 = approve, reviewId < 0 = reject
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
 
+  const sorted = [...submissions].sort((a, b) => {
+    const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    return sortDir === "asc" ? diff : -diff;
+  });
+
   return (
     <>
-      {/* Status filter */}
-      <div className="flex gap-2 mb-6">
-        {(["pending", "approved", "rejected"] as SubmissionStatus[]).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setFilter(s)}
-            className={`px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
-              filter === s
-                ? "bg-[var(--color-primary)] text-white"
-                : "bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
-            }`}
-          >
-            {STATUS_LABELS[s]}
-          </button>
-        ))}
+      {/* Status filter + sort */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-2">
+          {(["pending", "approved", "rejected"] as SubmissionStatus[]).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setFilter(s)}
+              className={`px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
+                filter === s
+                  ? "bg-[var(--color-primary)] text-white"
+                  : "bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-btn-neutral-hover-border)]"
+              }`}
+            >
+              {STATUS_LABELS[s]}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
+          className="px-3 py-1.5 rounded-control text-sm border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+        >
+          {sortDir === "desc" ? "↓ Neue zuerst" : "↑ Alte zuerst"}
+        </button>
       </div>
 
       {isLoading && (
@@ -115,7 +130,7 @@ function VorschlaegeTab() {
       )}
 
       <div className="space-y-3">
-        {submissions.map((sub) => (
+        {sorted.map((sub) => (
           <div
             key={sub.id}
             className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-4 flex items-stretch gap-4"
@@ -160,7 +175,12 @@ function VorschlaegeTab() {
                 </div>
               )}
               <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
-                <span>{new Date(sub.createdAt).toLocaleDateString("de-DE")}</span>
+                <span>
+                  {new Date(sub.createdAt).toLocaleString("de-DE", {
+                    day: "2-digit", month: "2-digit", year: "numeric",
+                    hour: "2-digit", minute: "2-digit",
+                  })}
+                </span>
                 {sub.submitterEmail && <span>✉ {sub.submitterEmail}</span>}
               </div>
             </div>
@@ -361,9 +381,19 @@ function DefekteLinksTab() {
             </a>
           </div>
 
-          <span className="shrink-0 px-2.5 py-1 rounded-full bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)] text-xs font-semibold">
-            {r.reportCount}× gemeldet
-          </span>
+          <div className="shrink-0 text-right">
+            <span className="block px-2.5 py-1 rounded-full bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)] text-xs font-semibold">
+              {r.reportCount}× gemeldet
+            </span>
+            {r.lastReportedAt && (
+              <span className="block mt-1 text-xs text-[var(--ds-text-subtle)]">
+                {new Date(r.lastReportedAt).toLocaleString("de-DE", {
+                  day: "2-digit", month: "2-digit", year: "numeric",
+                  hour: "2-digit", minute: "2-digit",
+                })}
+              </span>
+            )}
+          </div>
 
           <div className="flex gap-2 shrink-0">
             <button
@@ -504,10 +534,9 @@ function ShopMeldungenTab() {
               </a>
             </div>
             <span className="shrink-0 text-xs text-[var(--ds-text-muted)]">
-              {new Date(r.reportedAt).toLocaleDateString("de-AT", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
+              {new Date(r.reportedAt).toLocaleString("de-DE", {
+                day: "2-digit", month: "2-digit", year: "numeric",
+                hour: "2-digit", minute: "2-digit",
               })}
             </span>
           </div>
