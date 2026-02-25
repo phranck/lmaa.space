@@ -19,15 +19,15 @@ export function DonateButton() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-amber-700 border border-amber-300 hover:bg-amber-50 transition-colors"
+        className="flex items-center gap-1.5 h-9 px-3 rounded-[var(--ds-radius-pill)] text-sm font-medium text-[var(--ds-accent)] border border-[var(--ds-accent)]/40 hover:bg-[var(--ds-accent-subtle)] transition-colors"
       >
         <SFHeartFill size={14} aria-hidden="true" />
         <span className="hidden sm:inline">Unterstützen</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-lg border border-stone-100 p-4 z-50">
-          <p className="text-xs text-stone-500 mb-3 leading-relaxed">
+        <div className="absolute right-0 mt-2 w-60 bg-[var(--ds-surface)] rounded-control shadow-[var(--ds-shadow-lg)] border border-[var(--ds-border-subtle)] p-4 z-50">
+          <p className="text-xs text-[var(--ds-text-muted)] mb-3 leading-relaxed">
             Hilf uns, lmaa.space am Laufen zu halten!
           </p>
           <div className="flex flex-col gap-2">
@@ -35,7 +35,7 @@ export function DonateButton() {
               href="https://ko-fi.com/layeredwork?ref=lmaa.space"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#FF5E5B] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+              className="flex items-center justify-center gap-2 h-9 px-3 rounded-control bg-[#FF5E5B] text-white text-sm font-medium hover:opacity-90 transition-opacity"
             >
               <KoFiIcon />
               Via Ko-Fi spenden

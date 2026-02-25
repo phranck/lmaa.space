@@ -172,11 +172,108 @@
   --ds-shadow-xl: 0 20px 25px rgb(0 0 0 / 0.55), 0 8px 10px rgb(0 0 0 / 0.45);
 }
 
+/* ── COMPONENT TOKENS · Light mode ───────────────────────────
+   Shared component-level tokens used across all apps.
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+  /* Overlay / modal backdrop */
+  --ds-overlay-bg: oklch(0 0 0 / 0.5);
+
+  /* Filled button (dark primary action — not CTA green) */
+  --ds-btn-filled-bg:    var(--ds-color-neutral-900);
+  --ds-btn-filled-hover: var(--ds-color-neutral-800);
+  --ds-btn-filled-fg:    #ffffff;
+
+  /* Primary CTA button (brand green) */
+  --ds-btn-primary-bg:    #5ea349;
+  --ds-btn-primary-hover: #4e8f3c;
+  --ds-btn-primary-fg:    #ffffff;
+
+  /* Segment controls */
+  --ds-segment-bg:        #eff1f3; /* neutral-muted track */
+  --ds-segment-active-bg: #ffffff; /* active button */
+
+  /* Neutral outline button */
+  --ds-btn-neutral-border:       #d0d7de; /* borderColor-default */
+  --ds-btn-neutral-text:         #656d76; /* fgColor-muted */
+  --ds-btn-neutral-hover-border: #6e7781; /* borderColor-emphasis */
+
+  /* Outline action button: danger */
+  --ds-btn-danger-border:       rgba(209,36,47,0.4);
+  --ds-btn-danger-text:         #d1242f;   /* fgColor-danger */
+  --ds-btn-danger-hover-bg:     #ffebe9;   /* bgColor-danger-muted */
+  --ds-btn-danger-hover-border: rgba(209,36,47,0.7);
+
+  /* Outline action button: success */
+  --ds-btn-success-border:       rgba(26,127,55,0.4);
+  --ds-btn-success-text:         #1a7f37;  /* fgColor-success */
+  --ds-btn-success-hover-bg:     #dafbe1;  /* bgColor-success-muted */
+  --ds-btn-success-hover-border: rgba(26,127,55,0.7);
+
+  /* Outline action button: warning */
+  --ds-btn-warning-border:       rgba(154,103,0,0.40);
+  --ds-btn-warning-text:         #9a6700;  /* fgColor-attention */
+  --ds-btn-warning-hover-bg:     #fff8c5;  /* bgColor-attention-muted */
+  --ds-btn-warning-hover-border: rgba(154,103,0,0.70);
+
+  /* Status badges (inline chips) */
+  --ds-badge-pending-bg:   #fff8c5; /* bgColor-attention-muted */
+  --ds-badge-pending-text: #9a6700; /* fgColor-attention */
+  --ds-badge-success-bg:   #dafbe1; /* bgColor-success-muted */
+  --ds-badge-success-text: #1a7f37; /* fgColor-success */
+  --ds-badge-danger-bg:    #ffebe9; /* bgColor-danger-muted */
+  --ds-badge-danger-text:  #d1242f; /* fgColor-danger */
+}
+
+/* ── COMPONENT TOKENS · Dark mode ────────────────────────────  */
+
+.dark {
+  /* Filled button — lighter on dark surfaces */
+  --ds-btn-filled-bg:    var(--ds-color-neutral-700);
+  --ds-btn-filled-hover: var(--ds-color-neutral-600);
+
+  /* Segment controls */
+  --ds-segment-bg:        #2a313c; /* control-bgColor-rest */
+  --ds-segment-active-bg: #3d444d; /* bgColor-emphasis */
+
+  /* Neutral outline button */
+  --ds-btn-neutral-border:       #3d444d; /* borderColor-default */
+  --ds-btn-neutral-text:         #9198a1; /* fgColor-muted */
+  --ds-btn-neutral-hover-border: #656c76; /* borderColor-emphasis */
+
+  /* Outline action button: danger */
+  --ds-btn-danger-border:       rgba(229,83,75,0.40);
+  --ds-btn-danger-text:         #e5534b;
+  --ds-btn-danger-hover-bg:     rgba(229,83,75,0.10);
+  --ds-btn-danger-hover-border: rgba(229,83,75,0.70);
+
+  /* Outline action button: success */
+  --ds-btn-success-border:       rgba(87,171,90,0.40);
+  --ds-btn-success-text:         #57ab5a;
+  --ds-btn-success-hover-bg:     rgba(70,149,74,0.15);
+  --ds-btn-success-hover-border: rgba(87,171,90,0.70);
+
+  /* Outline action button: warning */
+  --ds-btn-warning-border:       rgba(198,144,38,0.40);
+  --ds-btn-warning-text:         #c69026;  /* fgColor-attention */
+  --ds-btn-warning-hover-bg:     rgba(174,124,20,0.15);
+  --ds-btn-warning-hover-border: rgba(198,144,38,0.70);
+
+  /* Status badges */
+  --ds-badge-pending-bg:   rgba(174,124,20,0.15);
+  --ds-badge-pending-text: #c69026;
+  --ds-badge-success-bg:   rgba(70,149,74,0.15);
+  --ds-badge-success-text: #57ab5a;
+  --ds-badge-danger-bg:    rgba(229,83,75,0.10);
+  --ds-badge-danger-text:  #e5534b;
+}
+
 /* ── SHARED TAILWIND THEME ────────────────────────────────────
    @theme registers custom Tailwind utilities usable in all apps.
    Apps can override per-app in their own @theme block.
    ──────────────────────────────────────────────────────────── */
 @theme {
   /* Form control border-radius — generates rounded-control utility */
-  --radius-control: 0.375rem; /* 6px */
+  --radius-control: 0.5rem; /* 8px */
 }

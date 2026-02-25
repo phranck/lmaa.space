@@ -11,14 +11,12 @@ interface SegmentedControlProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   options: readonly SegmentOption<T>[];
-  size?: "sm" | "md";
 }
 
 export function SegmentedControl<T extends string>({
   value,
   onChange,
   options,
-  size = "md",
 }: SegmentedControlProps<T>) {
   const activeIndex = options.findIndex((o) => o.value === value);
 
@@ -32,7 +30,8 @@ export function SegmentedControl<T extends string>({
   const [pill, setPill] = useState<{ left: number; width: number; height: number } | null>(null);
   const didMount = useRef(false);
 
-  useLayoutEffect(() => {
+  const measure = useRef(() => {});
+  measure.current = () => {
     if (!containerRef.current) return;
     const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>("button");
     const btn = buttons[activeIndex];
@@ -41,24 +40,30 @@ export function SegmentedControl<T extends string>({
     const bRect = btn.getBoundingClientRect();
     setPill({ left: bRect.left - cRect.left, width: bRect.width, height: bRect.height });
     didMount.current = true;
+  };
+
+  // Re-measure when active index changes or when button sizes change (e.g. badge loads async)
+  useLayoutEffect(() => {
+    measure.current();
+    const observer = new ResizeObserver(() => measure.current());
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, [activeIndex]);
 
-  // Button size classes
-  const btnPad = iconOnly
-    ? size === "sm" ? "w-7 h-7" : "w-9 h-9"
-    : size === "sm" ? "px-2.5 py-1" : "px-3.5 py-2";
-  const textSize = size === "sm" ? "text-xs" : "text-sm";
+  const h  = "h-7";
+  const w  = iconOnly ? "w-7" : "";
+  const px = iconOnly ? "" : "px-3.5";
 
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center bg-[var(--ds-segment-bg)] rounded-2xl p-1"
+      className="relative flex items-center bg-[var(--ds-segment-bg)] rounded-control p-1"
     >
       {/* Sliding pill indicator */}
       {pill && (
         <div
           aria-hidden="true"
-          className="absolute rounded-xl bg-[var(--ds-segment-active-bg)] shadow-sm pointer-events-none"
+          className="absolute rounded-[4px] bg-[var(--ds-segment-active-bg)] shadow-sm pointer-events-none"
           style={{
             left: pill.left,
             width: pill.width,
@@ -81,9 +86,8 @@ export function SegmentedControl<T extends string>({
             onClick={() => onChange(opt.value)}
             title={iconOnly ? (opt.label ?? String(opt.value)) : undefined}
             className={[
-              "relative z-10 flex items-center justify-center gap-1.5 rounded-xl font-medium transition-colors",
-              btnPad,
-              textSize,
+              "relative z-10 flex items-center justify-center gap-1.5 rounded-[4px] text-sm font-medium transition-colors",
+              h, w, px,
               isActive
                 ? "text-[var(--ds-text)]"
                 : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]",

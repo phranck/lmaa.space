@@ -17,30 +17,30 @@ export function DeadLinkConfirmCard({ shopName, onConfirm, onClose }: DeadLinkCo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--ds-overlay-bg)] backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-6">
-        <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
+      <div className="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6">
+        <h2 className="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
           Link defekt?
         </h2>
-        <p className="text-sm text-stone-500 mb-6">
+        <p className="text-sm text-[var(--ds-text-muted)] mb-6">
           Ist der Link von{" "}
-          <span className="font-medium text-stone-700">{shopName}</span>{" "}
+          <span className="font-medium text-[var(--ds-text)]">{shopName}</span>{" "}
           wirklich nicht mehr erreichbar?
         </p>
         <div className="flex gap-3 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm text-stone-500 hover:text-stone-700 transition-colors"
+            className="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
           >
             Abbrechen
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="px-5 py-2 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors"
+            className="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
           >
             Ja, Link melden
           </button>

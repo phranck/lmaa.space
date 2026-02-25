@@ -1,3 +1,4 @@
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
@@ -9,12 +10,12 @@ import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-l
 
 type VisibilityFilter = "all" | "public" | "onhold" | "deleted";
 
-const FILTER_OPTIONS: { value: VisibilityFilter; label: string; Icon?: React.ComponentType<{ className?: string }> }[] = [
-  { value: "all", label: "Alle" },
-  { value: "public", label: "Öffentlich", Icon: SFEyeFill },
-  { value: "onhold", label: "Zurückgestellt", Icon: SFPauseCircleFill },
-  { value: "deleted", label: "Gelöscht", Icon: SFTrashFill },
-];
+const FILTER_OPTIONS = [
+  { value: "all" as VisibilityFilter,     label: "Alle" },
+  { value: "public" as VisibilityFilter,  label: "Öffentlich",    icon: <SFEyeFill className="w-3.5 h-3.5" /> },
+  { value: "onhold" as VisibilityFilter,  label: "Zurückgestellt", icon: <SFPauseCircleFill className="w-3.5 h-3.5" /> },
+  { value: "deleted" as VisibilityFilter, label: "Gelöscht",      icon: <SFTrashFill className="w-3.5 h-3.5" /> },
+] as const;
 
 export function ShopsPage() {
   const { user: me } = useAuth();
@@ -61,24 +62,11 @@ export function ShopsPage() {
           )}
         </div>
 
-        {/* Visibility filter */}
-        <div className="flex rounded-control overflow-hidden border border-[var(--ds-border)]">
-          {FILTER_OPTIONS.map(({ value, label, Icon }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setVisibilityFilter(value)}
-              className={`flex items-center gap-1.5 h-9 px-3 text-sm transition-colors border-r border-[var(--ds-border)] last:border-r-0 ${
-                visibilityFilter === value
-                  ? "bg-[var(--color-primary)] text-white"
-                  : "bg-[var(--ds-surface)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)]"
-              }`}
-            >
-              {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          value={visibilityFilter}
+          onChange={setVisibilityFilter}
+          options={FILTER_OPTIONS}
+        />
 
         <button
           type="button"

@@ -145,7 +145,7 @@ export function MultiSelect({
               zIndex: 9999,
               backgroundColor: "var(--ds-input-bg, #ffffff)",
             }}
-            className="border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
+            className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
             {/* List */}
             <div style={{ maxHeight: "300px", overflowY: "auto" }}>
