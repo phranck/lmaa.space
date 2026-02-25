@@ -1,3 +1,5 @@
+export { Checkbox } from "./Checkbox.tsx";
+export type { CheckboxProps } from "./Checkbox.tsx";
 export { MultiSelect } from "./MultiSelect.tsx";
 export type { MultiSelectOption, MultiSelectProps } from "./MultiSelect.tsx";
 export { RegionSelect, REGION_OPTIONS } from "./RegionSelect.tsx";

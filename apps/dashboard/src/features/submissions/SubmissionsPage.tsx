@@ -14,6 +14,7 @@ import {
   useReviewSubmission,
   useShopConcernReports,
 } from "@/features/submissions/hooks/useAdminSubmissions.ts";
+import { Checkbox } from "@lmaa/ui";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { useState } from "react";
 import {
@@ -292,16 +293,12 @@ function VorschlaegeTab() {
             />
 
             {reviewing.submitterEmail && (
-              <label className="flex items-center gap-2 text-sm text-[var(--ds-text-muted)] mb-4 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={sendFeedback}
-                  onChange={(e) => setSendFeedback(e.target.checked)}
-                  className="rounded"
-                />
-                E-Mail-Feedback senden an{" "}
-                <span className="font-medium">{reviewing.submitterEmail}</span>
-              </label>
+              <Checkbox
+                checked={sendFeedback}
+                onChange={setSendFeedback}
+                label={<>E-Mail-Feedback senden an{" "}<span className="font-medium">{reviewing.submitterEmail}</span></>}
+                className="mb-4"
+              />
             )}
 
             {reviewMutation.isError && (

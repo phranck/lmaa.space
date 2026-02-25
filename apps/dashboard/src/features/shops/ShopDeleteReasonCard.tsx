@@ -1,3 +1,4 @@
+import { Checkbox } from "@lmaa/ui";
 import { SiMarkdown } from "react-icons/si";
 import { useEffect, useRef, useState } from "react";
 
@@ -45,10 +46,12 @@ export function ShopDeleteReasonCard({
 
         <div className="px-6 py-5 space-y-4">
           <div>
-            <label className="flex items-center gap-1.5 text-sm font-medium text-[var(--ds-text)] mb-1.5">
-              Begründung
-              <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
-              <SiMarkdown className="w-3.5 h-3.5 text-[var(--ds-text-muted)]" title="Markdown unterstützt" />
+            <label className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+              <span className="flex items-center gap-1.5">
+                Begründung{" "}
+                <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
+                <SiMarkdown className="w-5 h-5 opacity-40" title="Markdown unterstützt" />
+              </span>
             </label>
             <textarea
               ref={textareaRef}
@@ -60,17 +63,11 @@ export function ShopDeleteReasonCard({
             />
           </div>
 
-          <label className="flex items-center gap-3 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={wasReported}
-              onChange={(e) => setWasReported(e.target.checked)}
-              className="w-4 h-4 rounded accent-[var(--color-primary)]"
-            />
-            <span className="text-sm text-[var(--ds-text)]">
-              Shop wurde gemeldet (Dead-Link oder Shop-Meldung)
-            </span>
-          </label>
+          <Checkbox
+            checked={wasReported}
+            onChange={setWasReported}
+            label="Shop wurde gemeldet (Dead-Link oder Shop-Meldung)"
+          />
         </div>
 
         <div className="px-6 py-4 border-t border-[var(--ds-border)] flex justify-end gap-2">
