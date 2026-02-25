@@ -1,3 +1,4 @@
+import node from "@astrojs/node";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
@@ -6,7 +7,8 @@ import { resolve } from "node:path";
 
 export default defineConfig({
   site: "https://lmaa.space",
-  output: "static",
+  output: "server",
+  adapter: node({ mode: "standalone" }),
   integrations: [
     UnoCSS({ injectReset: false }),
     react(),

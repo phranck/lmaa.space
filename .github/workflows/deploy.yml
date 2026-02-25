@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
+      website: ${{ steps.filter.outputs.website }}
       dashboard: ${{ steps.filter.outputs.dashboard }}
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
               - 'package.json'
               - 'package-lock.json'
               - 'zerops.yml'
-            frontend:
+            website:
               - 'apps/frontend/**'
               - 'packages/shared/**'
               - 'packages/ui/**'
@@ -49,11 +49,11 @@ jobs:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_BACKEND_SERVICE_ID }}
 
-  deploy-frontend:
+  deploy-website:
     needs: [detect-changes, deploy-backend]
     if: |
       always() &&
-      needs.detect-changes.outputs.frontend == 'true' &&
+      needs.detect-changes.outputs.website == 'true' &&
       needs.deploy-backend.result != 'failure'
     runs-on: ubuntu-latest
     steps:
@@ -61,7 +61,7 @@ jobs:
       - uses: zeropsio/actions@main
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
-          service-id: ${{ secrets.ZEROPS_FRONTEND_SERVICE_ID }}
+          service-id: ${{ secrets.ZEROPS_WEBSITE_SERVICE_ID }}
 
   deploy-dashboard:
     needs: detect-changes
