@@ -172,6 +172,8 @@ shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
     deletedWasReported: wasReported,
   }).where(eq(shops.id, id));
 
+  await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+
   invalidateCache(SHOPS_CACHE_KEY);
   return c.json({ data: { message: "Shop deleted" } });
 });
