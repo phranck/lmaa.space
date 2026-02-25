@@ -14,6 +14,7 @@ const [shops, categories] = await Promise.all([
   title="Suche"
   description="Shops und Kategorien durchsuchen – faire Amazon-Alternativen auf lmaa.space."
   canonicalUrl="https://lmaa.space/suche"
+  noindex={true}
 >
   <SearchIsland client:load shops={shops} categories={categories} />
 </BaseLayout>
