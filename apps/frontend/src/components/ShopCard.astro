@@ -1,6 +1,7 @@
 ---
 import type { Shop } from "@lmaa/shared";
 import { marked } from "marked";
+import { shopDomain, shopRefUrl } from "@/lib/shop";
 
 interface Props {
   shop: Shop;
@@ -8,23 +9,8 @@ interface Props {
 
 const { shop } = Astro.props;
 
-const domain = (() => {
-  try {
-    return new URL(shop.url).hostname.replace("www.", "");
-  } catch {
-    return shop.url;
-  }
-})();
-
-const shopUrl = (() => {
-  try {
-    const u = new URL(shop.url);
-    u.searchParams.set("ref", "lmaa.space");
-    return u.toString();
-  } catch {
-    return shop.url;
-  }
-})();
+const domain = shopDomain(shop.url);
+const shopUrl = shopRefUrl(shop.url);
 
 const regionOrder = ["DE", "AT", "CH", "EU"];
 const sortedRegions = [...shop.region].sort(

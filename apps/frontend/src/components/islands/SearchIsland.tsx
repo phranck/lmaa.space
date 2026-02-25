@@ -1,6 +1,7 @@
 import type { Category, Shop } from "@lmaa/shared";
 import Fuse, { type IFuseOptions } from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { shopDomain, shopRefUrl } from "@/lib/shop";
 
 interface Props {
   shops: Shop[];
@@ -129,17 +130,8 @@ export default function SearchIsland({ shops, categories }: Props) {
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {shopResults.map((shop) => {
-              const domain = (() => {
-                try { return new URL(shop.url).hostname.replace("www.", ""); }
-                catch { return shop.url; }
-              })();
-              const shopUrl = (() => {
-                try {
-                  const u = new URL(shop.url);
-                  u.searchParams.set("ref", "lmaa.space");
-                  return u.toString();
-                } catch { return shop.url; }
-              })();
+              const domain = shopDomain(shop.url);
+              const shopUrl = shopRefUrl(shop.url);
               return (
                 <div
                   key={shop.id}
