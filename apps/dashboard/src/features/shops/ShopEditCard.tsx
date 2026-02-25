@@ -9,7 +9,7 @@ import { useEditSubmission } from "@/features/submissions/hooks/useAdminSubmissi
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useEffect, useState } from "react";
-import { SFArrowClockwise, SFXmark } from "sf-symbols-lib/monochrome";
+import { SFArrowClockwise } from "sf-symbols-lib/monochrome";
 
 type ShopEditCardProps = {
   initialData?: Partial<ShopEditFormValue>;
@@ -96,15 +96,8 @@ export function ShopEditCard({
         className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-lg overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--ds-border-subtle)]">
+        <div className="flex items-center px-5 py-4 border-b border-[var(--ds-border-subtle)]">
           <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
-          <button
-            type="button"
-            onClick={() => setClosing(true)}
-            className="w-7 h-7 flex items-center justify-center rounded-full text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
-          >
-            <SFXmark className="w-3.5 h-3.5" />
-          </button>
         </div>
 
         {/* Form */}

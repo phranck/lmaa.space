@@ -1,4 +1,5 @@
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
+import { UserEditCard } from "@/features/users/UserEditCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
@@ -88,6 +89,7 @@ function AdminLayoutInner() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editingOwnProfile, setEditingOwnProfile] = useState(false);
   const { title, setActionsEl } = usePageHeaderContext();
   const { width: sidebarWidth, onMouseDown: onResizeStart } = useSidebarWidth();
 
@@ -113,6 +115,7 @@ function AdminLayoutInner() {
           avatarUrl={user?.avatarUrl}
           role={user?.role}
           onLogout={handleLogout}
+          onEditProfile={() => setEditingOwnProfile(true)}
         />
         {/* Resize handle */}
         <div
@@ -142,6 +145,7 @@ function AdminLayoutInner() {
               role={user?.role}
               onLogout={handleLogout}
               onItemClick={() => setSidebarOpen(false)}
+              onEditProfile={() => setEditingOwnProfile(true)}
             />
           </aside>
         </div>
@@ -174,6 +178,14 @@ function AdminLayoutInner() {
           <Outlet />
         </main>
       </div>
+
+      {editingOwnProfile && user && (
+        <UserEditCard
+          userId={user.id}
+          onClose={() => setEditingOwnProfile(false)}
+          onSaved={() => setEditingOwnProfile(false)}
+        />
+      )}
     </div>
   );
 }

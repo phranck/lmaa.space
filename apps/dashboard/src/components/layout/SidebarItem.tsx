@@ -9,10 +9,10 @@ interface SidebarItemProps {
 }
 
 function linkClass(isActive: boolean) {
-  return `flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors border-l-2 ${
+  return `flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors ${
     isActive
-      ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-      : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
+      ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+      : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
   }`;
 }
 

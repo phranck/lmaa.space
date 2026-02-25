@@ -59,6 +59,7 @@ interface SidebarProps {
   role?: AdminRole;
   onLogout: () => void;
   onItemClick?: () => void;
+  onEditProfile?: () => void;
 }
 
 function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
@@ -128,7 +129,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
-export function Sidebar({ username, firstName, lastName, avatarUrl, role, onLogout, onItemClick }: SidebarProps) {
+export function Sidebar({ username, firstName, lastName, avatarUrl, role, onLogout, onItemClick, onEditProfile }: SidebarProps) {
   const navItems = NAV_ITEMS.filter(
     (item) => !item.minRole || (role !== undefined && ROLE_RANK[role] >= ROLE_RANK[item.minRole]),
   );
@@ -160,7 +161,7 @@ export function Sidebar({ username, firstName, lastName, avatarUrl, role, onLogo
         )}
       </nav>
 
-      <SidebarFooter username={username} firstName={firstName} lastName={lastName} role={role} avatarUrl={avatarUrl} onLogout={onLogout} />
+      <SidebarFooter username={username} firstName={firstName} lastName={lastName} role={role} avatarUrl={avatarUrl} onLogout={onLogout} onEditProfile={onEditProfile} />
     </>
   );
 }
