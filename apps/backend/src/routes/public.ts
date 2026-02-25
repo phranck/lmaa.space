@@ -30,11 +30,6 @@ import {
 } from "../db/schema.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import { getCacheEntry, setCacheEntry, invalidateCache, getCacheStats } from "../middleware/cache.js";
-import {
-  sendDeadLinkReportNotification,
-  sendNewSubmissionNotification,
-  sendShopConcernNotification,
-} from "../services/email.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
 const SHOPS_CACHE_KEY = "shops:all";
@@ -265,12 +260,6 @@ publicRoutes.post(
         .values(body.categoryIds.map((cid) => ({ submissionId: submission.id, categoryId: cid })));
     }
 
-    sendNewSubmissionNotification(
-      body.shopName,
-      body.shopUrl,
-      body.region.length > 0 ? body.region : undefined,
-      body.submitterNote ?? undefined,
-    ).catch(() => {});
 
     return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
   },
@@ -352,7 +341,6 @@ publicRoutes.post(
       .from(deadLinkReports)
       .where(eq(deadLinkReports.shopId, id));
 
-    sendDeadLinkReportNotification(shop.name, shop.url, reportCount).catch(() => {});
 
     return c.json({ data: { message: "Danke für deinen Hinweis!" } });
   },
@@ -386,7 +374,6 @@ publicRoutes.post(
 
     await db.insert(shopConcernReports).values({ shopId: id, reason, ipHash });
 
-    sendShopConcernNotification(shop.name, shop.url, reason).catch(() => {});
 
     return c.json({ data: { message: "Danke für dein Feedback!" } });
   },
