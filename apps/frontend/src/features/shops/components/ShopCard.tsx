@@ -1,6 +1,7 @@
 import { api } from "@/lib/api.ts";
 import type { Shop } from "@lmaa/shared";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface ShopCardProps {
   shop: Shop;
@@ -73,7 +74,9 @@ export function ShopCard({ shop }: ShopCardProps) {
       </div>
 
       {shop.description && (
-        <p className="text-sm text-stone-600 leading-relaxed">{shop.description}</p>
+        <div className="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-0 prose-a:text-amber-700">
+          <ReactMarkdown>{shop.description}</ReactMarkdown>
+        </div>
       )}
 
       {(shop.region.length > 0 || shop.shipping) && (
@@ -81,20 +84,20 @@ export function ShopCard({ shop }: ShopCardProps) {
           {shop.region.map((r) => (
             <span
               key={r}
-              className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"
+              className="px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100"
             >
               {r}
             </span>
           ))}
           {shop.shipping && (
-            <span className="px-2.5 py-0.5 rounded-full bg-stone-50 text-stone-600 text-xs font-medium border border-stone-100">
+            <span className="px-2.5 py-0.5 rounded-md bg-stone-50 text-stone-600 text-xs font-medium border border-stone-100">
               Versand: {shop.shipping}
             </span>
           )}
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-1 border-t border-stone-100 mt-auto">
+      <div className="flex items-center justify-between mt-auto">
         {reported ? (
           <span className="text-xs text-stone-400">Danke für deinen Hinweis!</span>
         ) : (
