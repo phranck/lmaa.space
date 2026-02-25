@@ -108,7 +108,8 @@ function AdminLayoutInner() {
       >
         <Sidebar
           username={user?.username}
-          email={user?.email}
+          firstName={user?.firstName}
+          lastName={user?.lastName}
           avatarUrl={user?.avatarUrl}
           role={user?.role}
           onLogout={handleLogout}
@@ -135,7 +136,8 @@ function AdminLayoutInner() {
           >
             <Sidebar
               username={user?.username}
-              email={user?.email}
+              firstName={user?.firstName}
+              lastName={user?.lastName}
               avatarUrl={user?.avatarUrl}
               role={user?.role}
               onLogout={handleLogout}
