@@ -8,22 +8,22 @@ import HeroLogo from "@/components/HeroLogo.astro";
 const categories = await apiGet<Category[]>("/categories");
 const shopCount = categories.reduce((sum, c) => sum + (c.shopCount ?? 0), 0);
 
+const site = Astro.site?.origin ?? "https://lmaa.space";
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "lmaa.space",
-  url: "https://lmaa.space",
+  url: site,
   description: "Community-kuratiertes Verzeichnis von Amazon-Alternativen für den DACH-Raum",
   potentialAction: {
     "@type": "SearchAction",
-    target: "https://lmaa.space/suche?q={search_term_string}",
+    target: `${site}/suche?q={search_term_string}`,
     "query-input": "required name=search_term_string",
   },
 };
 ---
 
 <BaseLayout
-  canonicalUrl="https://lmaa.space/"
   jsonLd={jsonLd}
 >
   <!-- Hero -->

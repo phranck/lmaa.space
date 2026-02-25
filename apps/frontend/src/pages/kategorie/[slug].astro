@@ -13,16 +13,17 @@ const { slug } = Astro.params;
 const category = await apiGet<CategoryWithShops>(`/categories/${slug}`);
 
 const shopCount = category.shops.length;
+const site = Astro.site?.origin ?? "https://lmaa.space";
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Start", item: "https://lmaa.space/" },
+    { "@type": "ListItem", position: 1, name: "Start", item: `${site}/` },
     {
       "@type": "ListItem",
       position: 2,
       name: category.name,
-      item: `https://lmaa.space/kategorie/${slug}`,
+      item: `${site}/kategorie/${slug}`,
     },
   ],
 };
@@ -31,7 +32,6 @@ const jsonLd = {
 <BaseLayout
   title={category.name}
   description={`${shopCount} ${shopCount === 1 ? "Shop" : "Shops"} in der Kategorie ${category.name} – faire Amazon-Alternativen auf lmaa.space.`}
-  canonicalUrl={`https://lmaa.space/kategorie/${slug}`}
   ogImage={category.imageUrl ?? undefined}
   jsonLd={jsonLd}
 >

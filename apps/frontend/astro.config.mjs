@@ -7,7 +7,14 @@ import { resolve } from "node:path";
 export default defineConfig({
   site: "https://lmaa.space",
   output: "static",
-  integrations: [UnoCSS({ injectReset: false }), react(), sitemap()],
+  integrations: [
+    UnoCSS({ injectReset: false }),
+    react(),
+    sitemap({
+      filter: (page) =>
+        !page.includes("/suche") && !page.includes("/suggestion"),
+    }),
+  ],
   redirects: {
     "/kriterien": "/aufnahmekriterien",
   },

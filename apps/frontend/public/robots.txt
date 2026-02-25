@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /suche
+Disallow: /suggestion
 
-Sitemap: https://lmaa.space/sitemap.xml
+Sitemap: https://lmaa.space/sitemap-index.xml
