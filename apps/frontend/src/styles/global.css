@@ -23,16 +23,6 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--ds-font-serif);
 }
 
-/* Category card stagger fade-in */
-@keyframes card-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.card-fade-in {
-  animation: card-fade-in 300ms ease both;
-}
-
 /* Search results section fade-in */
 @keyframes search-in {
   from { opacity: 0; transform: translateY(6px); }
