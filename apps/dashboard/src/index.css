@@ -55,6 +55,12 @@
   --ds-btn-success-hover-bg:     #dafbe1;  /* bgColor-success-muted */
   --ds-btn-success-hover-border: rgba(26,127,55,0.7);
 
+  /* Outline action buttons: warning — fgColor-attention #9a6700 */
+  --ds-btn-warning-border:       rgba(154,103,0,0.40);
+  --ds-btn-warning-text:         #9a6700;  /* fgColor-attention */
+  --ds-btn-warning-hover-bg:     #fff8c5;  /* bgColor-attention-muted */
+  --ds-btn-warning-hover-border: rgba(154,103,0,0.70);
+
   /* Status badges (inline chips) */
   --ds-badge-pending-bg:   #fff8c5; /* bgColor-attention-muted */
   --ds-badge-pending-text: #9a6700; /* fgColor-attention */
@@ -98,6 +104,12 @@
   --ds-btn-success-text:         #57ab5a;
   --ds-btn-success-hover-bg:     rgba(70,149,74,0.15);
   --ds-btn-success-hover-border: rgba(87,171,90,0.70);
+
+  /* Outline action buttons: warning — fgColor-attention #c69026 */
+  --ds-btn-warning-border:       rgba(198,144,38,0.40);
+  --ds-btn-warning-text:         #c69026;  /* fgColor-attention */
+  --ds-btn-warning-hover-bg:     rgba(174,124,20,0.15); /* bgColor-attention-muted */
+  --ds-btn-warning-hover-border: rgba(198,144,38,0.70);
 
   /* Status badges */
   --ds-badge-pending-bg:   rgba(174,124,20,0.15);  /* bgColor-attention-muted */

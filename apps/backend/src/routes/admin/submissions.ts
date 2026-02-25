@@ -10,7 +10,7 @@ import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { sendSubmissionApproved, sendSubmissionRejected } from "../../services/email.js";
 
 const reviewSchema = z.object({
-  status: z.enum(["approved", "rejected"]),
+  status: z.enum(["approved", "rejected", "onhold"]),
   adminNote: z.string().max(500).optional(),
   sendFeedback: z.boolean().optional(),
 });
@@ -31,7 +31,7 @@ export const submissionsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/submissions
 submissionsRoutes.get("/submissions", requireAuth, async (c) => {
-  const status = c.req.query("status") as "pending" | "approved" | "rejected" | undefined;
+  const status = c.req.query("status") as "pending" | "onhold" | "approved" | "rejected" | undefined;
 
   const query = db.select().from(submissions).orderBy(desc(submissions.createdAt));
   const rows = status ? await query.where(eq(submissions.status, status)) : await query;
