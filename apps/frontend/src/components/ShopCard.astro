@@ -20,7 +20,9 @@ const sortedRegions = [...shop.region].sort(
 const deadDialogId = `dialog-dead-${shop.id}`;
 const reportDialogId = `dialog-report-${shop.id}`;
 const deadTitleId = `${deadDialogId}-title`;
+const deadDescId = `${deadDialogId}-desc`;
 const reportTitleId = `${reportDialogId}-title`;
+const reportDescId = `${reportDialogId}-desc`;
 
 const descriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
 ---
@@ -120,13 +122,14 @@ const descriptionHtml = shop.description ? await renderMarkdown(shop.description
 <dialog
   id={deadDialogId}
   aria-labelledby={deadTitleId}
+  aria-describedby={deadDescId}
   aria-modal="true"
   class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
 >
   <h2 id={deadTitleId} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
     Link defekt?
   </h2>
-  <p class="text-sm text-[var(--ds-text-muted)] mb-6">
+  <p id={deadDescId} class="text-sm text-[var(--ds-text-muted)] mb-6">
     Ist der Link von <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> wirklich nicht mehr erreichbar?
   </p>
   <div class="flex gap-3 justify-end">
@@ -152,6 +155,7 @@ const descriptionHtml = shop.description ? await renderMarkdown(shop.description
 <dialog
   id={reportDialogId}
   aria-labelledby={reportTitleId}
+  aria-describedby={reportDescId}
   aria-modal="true"
   class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
 >
@@ -159,7 +163,7 @@ const descriptionHtml = shop.description ? await renderMarkdown(shop.description
     <h2 id={reportTitleId} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
       Shop melden
     </h2>
-    <p class="text-sm text-[var(--ds-text-muted)] mb-5">
+    <p id={reportDescId} class="text-sm text-[var(--ds-text-muted)] mb-5">
       Du möchtest <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> melden? Beschreibe kurz, warum dieser Shop deiner Meinung nach nicht auf lmaa.space gehört.
     </p>
     <div class="space-y-4">
