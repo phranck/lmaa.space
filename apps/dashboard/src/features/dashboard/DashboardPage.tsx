@@ -53,7 +53,7 @@ export function DashboardPage() {
           value={stats?.deadLinkReports ?? 0}
           accent={(stats?.deadLinkReports ?? 0) > 0}
           sub={(stats?.deadLinkReports ?? 0) > 0 ? "Shops gemeldet" : undefined}
-          href={(stats?.deadLinkReports ?? 0) > 0 ? "/meldungen" : undefined}
+          href={(stats?.deadLinkReports ?? 0) > 0 ? "/meldungen?tab=defekte-links" : undefined}
         />
       </div>
 

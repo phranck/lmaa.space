@@ -456,8 +456,15 @@ function DefekteLinksTab() {
 
 type Tab = "vorschlaege" | "defekte-links" | "shop-meldungen";
 
+function getInitialTab(): Tab {
+  const params = new URLSearchParams(window.location.search);
+  const t = params.get("tab");
+  if (t === "defekte-links" || t === "shop-meldungen") return t;
+  return "vorschlaege";
+}
+
 export function SubmissionsPage() {
-  const [tab, setTab] = useState<Tab>("vorschlaege");
+  const [tab, setTab] = useState<Tab>(getInitialTab);
 
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: deadLinkReports = [] } = useDeadLinkReports();
