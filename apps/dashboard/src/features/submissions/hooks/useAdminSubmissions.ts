@@ -69,7 +69,7 @@ export function useDismissDeadLink() {
 export function useDeleteShopFromDeadLinks() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (shopId: number) => api.delete(`/admin/shops/${shopId}`),
+    mutationFn: (shopId: number) => api.delete(`/admin/shops/${shopId}`, { wasReported: true }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dead-link-reports"] });
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
