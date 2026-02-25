@@ -13,7 +13,7 @@ document.addEventListener("error", (e) => {
   if (fallback) fallback.style.display = "flex";
 }, { capture: true });
 
-const API_BASE = import.meta.env.PUBLIC_API_URL ?? "/api";
+import { API_BASE } from "@/lib/client-api";
 
 // Open a dialog when action button is clicked
 document.addEventListener("click", (e) => {
