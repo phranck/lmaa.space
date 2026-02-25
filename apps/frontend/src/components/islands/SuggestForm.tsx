@@ -172,12 +172,33 @@ export default function SuggestForm({ categories }: Props) {
 
   return (
     <div className="max-w-lg mx-auto px-4 sm:px-6 py-12">
-      <div className="mb-10">
+      <div className="mb-8">
         <h1 className="font-serif text-3xl font-semibold text-[var(--ds-text)] mb-2">
           Shop vorschlagen
         </h1>
         <p className="text-[var(--ds-text-muted)] text-sm leading-relaxed">
           Hilf mit, die Liste zu erweitern. Dein Vorschlag wird geprüft und bei Eignung aufgenommen.
+        </p>
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-8 text-sm leading-relaxed">
+        <p className="font-medium text-amber-900 mb-2">
+          Danke, dass du dir die Zeit nimmst, einen Shop einzutragen.
+        </p>
+        <p className="text-amber-800 mb-3">
+          Doch bevor du das tust – denk kurz an die{" "}
+          <a href="/aufnahmekriterien" className="underline underline-offset-2 hover:text-amber-900 transition-colors">
+            Aufnahmekriterien
+          </a>
+          :
+        </p>
+        <ul className="text-amber-800 space-y-1 mb-3 pl-4 list-disc">
+          <li>Ist es ein Online-Shop <em>mit Ladengeschäft</em> in deiner Gegend?</li>
+          <li>Kennst du diesen Laden persönlich?</li>
+          <li>Willst du ihn aus Überzeugung unterstützen, weil er es „verdient" hat?</li>
+        </ul>
+        <p className="text-amber-800">
+          Wenn du all das mit „Ja" beantworten kannst – dann weiter, trag ihn ein. Anderenfalls würde ich dir davon abraten.
         </p>
       </div>
 
