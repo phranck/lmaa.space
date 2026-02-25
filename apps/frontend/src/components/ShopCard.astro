@@ -1,7 +1,7 @@
 ---
 import type { Shop } from "@lmaa/shared";
-import { marked } from "marked";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
+import { renderMarkdown } from "@/lib/markdown";
 
 interface Props {
   shop: Shop;
@@ -22,7 +22,7 @@ const reportDialogId = `dialog-report-${shop.id}`;
 const deadTitleId = `${deadDialogId}-title`;
 const reportTitleId = `${reportDialogId}-title`;
 
-const descriptionHtml = shop.description ? await marked(shop.description) : null;
+const descriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
 ---
 
 <div
