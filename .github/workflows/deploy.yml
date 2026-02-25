@@ -50,8 +50,11 @@ jobs:
           service-id: ${{ secrets.ZEROPS_BACKEND_SERVICE_ID }}
 
   deploy-frontend:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
+    needs: [detect-changes, deploy-backend]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.frontend == 'true' &&
+      needs.deploy-backend.result != 'failure'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
