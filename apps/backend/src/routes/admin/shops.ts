@@ -43,10 +43,10 @@ const previewImageSchema = z.object({ url: z.string().url() });
 export const shopsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 shopsRoutes.get("/shops", requireAuth, async (c) => {
-  const includeDeleted = c.req.query("includeDeleted") === "true";
+  const visibilityFilter = c.req.query("visibility");
   const rows = await db.execute<ShopSummary & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region,
-           s.deleted_at as "deletedAt",
+           s.visibility,
            s.delete_reason as "deleteReason",
            s.deleted_was_reported as "deletedWasReported",
            u.username as "deletedByUsername",
@@ -59,7 +59,7 @@ shopsRoutes.get("/shops", requireAuth, async (c) => {
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
     LEFT JOIN admin_users u ON u.id = s.deleted_by
-    ${includeDeleted ? sql`` : sql`WHERE s.deleted_at IS NULL`}
+    ${visibilityFilter ? sql`WHERE s.visibility = ${visibilityFilter}` : sql``}
     GROUP BY s.id, u.username
     ORDER BY s.name
   `);
@@ -166,7 +166,7 @@ shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
   const adminId = c.get("adminId");
 
   await db.update(shops).set({
-    deletedAt: new Date(),
+    visibility: "deleted",
     deletedBy: adminId ?? null,
     deleteReason: reason,
     deletedWasReported: wasReported,
@@ -174,6 +174,29 @@ shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
 
   invalidateCache(SHOPS_CACHE_KEY);
   return c.json({ data: { message: "Shop deleted" } });
+});
+
+// PATCH /admin/shops/:id/visibility — set public or onhold (use DELETE for deleted)
+shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+
+  const body = await c.req.json().catch(() => ({}));
+  const { visibility } = body;
+  if (!["public", "onhold"].includes(visibility)) {
+    return c.json({ error: { message: "Use 'public' or 'onhold'; for deleting use DELETE" } }, 400);
+  }
+
+  await db.update(shops).set({
+    visibility,
+    deletedBy: null,
+    deleteReason: null,
+    deletedWasReported: false,
+    updatedAt: new Date(),
+  }).where(eq(shops.id, id));
+
+  invalidateCache(SHOPS_CACHE_KEY);
+  return c.json({ data: { message: `Shop visibility set to ${visibility}` } });
 });
 
 shopsRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {

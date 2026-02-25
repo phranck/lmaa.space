@@ -3,19 +3,31 @@ import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
 import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { useAdminShops, useDeleteShop } from "@/features/shops/hooks/useAdminShops.ts";
+import { useAdminShops, useDeleteShop, useSetShopVisibility } from "@/features/shops/hooks/useAdminShops.ts";
 import { useState } from "react";
-import { SFXmark } from "sf-symbols-lib/monochrome";
+import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-lib/monochrome";
+
+type VisibilityFilter = "all" | "public" | "onhold" | "deleted";
+
+const FILTER_OPTIONS: { value: VisibilityFilter; label: string; Icon?: React.ComponentType<{ className?: string }> }[] = [
+  { value: "all", label: "Alle" },
+  { value: "public", label: "Öffentlich", Icon: SFEyeFill },
+  { value: "onhold", label: "Zurückgestellt", Icon: SFPauseCircleFill },
+  { value: "deleted", label: "Gelöscht", Icon: SFTrashFill },
+];
 
 export function ShopsPage() {
   const { user: me } = useAuth();
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
-  const [showDeleted, setShowDeleted] = useState(false);
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
 
-  const { data: shops = [], isLoading } = useAdminShops(showDeleted);
+  const { data: shops = [], isLoading } = useAdminShops(
+    visibilityFilter === "all" ? undefined : visibilityFilter,
+  );
   const deleteMutation = useDeleteShop();
+  const visibilityMutation = useSetShopVisibility();
 
   const filtered = shops.filter(
     (s) =>
@@ -24,6 +36,8 @@ export function ShopsPage() {
   );
 
   const deleteTarget = shops.find((s) => s.id === deleteId);
+
+  const canModify = me?.role !== "moderator";
 
   return (
     <div>
@@ -46,15 +60,26 @@ export function ShopsPage() {
             </button>
           )}
         </div>
-        <label className="flex items-center gap-2 text-sm text-[var(--ds-text-muted)] cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={showDeleted}
-            onChange={(e) => setShowDeleted(e.target.checked)}
-            className="w-4 h-4 rounded accent-[var(--color-primary)]"
-          />
-          Gelöschte anzeigen
-        </label>
+
+        {/* Visibility filter */}
+        <div className="flex rounded-control overflow-hidden border border-[var(--ds-border)]">
+          {FILTER_OPTIONS.map(({ value, label, Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setVisibilityFilter(value)}
+              className={`flex items-center gap-1.5 h-9 px-3 text-sm transition-colors border-r border-[var(--ds-border)] last:border-r-0 ${
+                visibilityFilter === value
+                  ? "bg-[var(--color-primary)] text-white"
+                  : "bg-[var(--ds-surface)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)]"
+              }`}
+            >
+              {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
+              {label}
+            </button>
+          ))}
+        </div>
+
         <button
           type="button"
           onClick={() => setEditTarget("new")}
@@ -78,7 +103,7 @@ export function ShopsPage() {
 
       {!isLoading && shops.length === 0 && (
         <p className="text-center py-16 text-[var(--ds-text-subtle)]">
-          Noch keine Shops vorhanden.
+          Keine Shops gefunden.
         </p>
       )}
 
@@ -93,7 +118,9 @@ export function ShopsPage() {
           <ShopTable
             shops={filtered}
             onEdit={setEditTarget}
-            onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
+            onDelete={canModify ? setDeleteId : undefined}
+            onHold={canModify ? (id) => visibilityMutation.mutate({ id, visibility: "onhold" }) : undefined}
+            onRestore={canModify ? (id) => visibilityMutation.mutate({ id, visibility: "public" }) : undefined}
           />
         </div>
       )}

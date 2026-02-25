@@ -5,11 +5,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type { ShopEditFormValue };
 
-export function useAdminShops(includeDeleted = false) {
+export function useAdminShops(visibility?: "public" | "onhold" | "deleted") {
   return useQuery({
-    queryKey: ["shops-admin", includeDeleted],
+    queryKey: ["shops-admin", visibility],
     queryFn: () =>
-      api.get<ShopSummary[]>(`/admin/shops${includeDeleted ? "?includeDeleted=true" : ""}`),
+      api.get<ShopSummary[]>(`/admin/shops${visibility ? `?visibility=${visibility}` : ""}`),
+  });
+}
+
+export function useSetShopVisibility() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, visibility }: { id: number; visibility: "public" | "onhold" }) =>
+      api.patch(`/admin/shops/${id}/visibility`, { visibility }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }
 

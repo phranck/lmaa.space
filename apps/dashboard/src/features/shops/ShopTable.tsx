@@ -1,15 +1,38 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import type { ShopSummary } from "@lmaa/shared";
 import { REGION_OPTIONS } from "@lmaa/ui";
+import { SFEyeFill, SFPauseCircleFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 import { useMemo } from "react";
 
 interface ShopTableProps {
   shops: ShopSummary[];
   onEdit: (id: number) => void;
   onDelete?: (id: number) => void;
+  onHold?: (id: number) => void;
+  onRestore?: (id: number) => void;
 }
 
-export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
+function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"] }) {
+  if (visibility === "onhold") {
+    return (
+      <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">
+        <SFPauseCircleFill className="w-3 h-3" />
+        zurückgestellt
+      </span>
+    );
+  }
+  if (visibility === "deleted") {
+    return (
+      <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
+        <SFTrashFill className="w-3 h-3" />
+        gelöscht
+      </span>
+    );
+  }
+  return null;
+}
+
+export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTableProps) {
   const columns = useMemo<ColumnDef<ShopSummary>[]>(
     () => [
       {
@@ -19,14 +42,21 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
         cell: (shop) => (
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <p className={`font-medium truncate ${shop.deletedAt ? "text-[var(--ds-text-subtle)] line-through" : "text-[var(--ds-text)]"}`}>
+              {shop.visibility === "public" && (
+                <SFEyeFill className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+              )}
+              <p
+                className={`font-medium truncate ${
+                  shop.visibility === "deleted"
+                    ? "text-[var(--ds-text-subtle)] line-through"
+                    : shop.visibility === "onhold"
+                      ? "text-[var(--ds-text-muted)]"
+                      : "text-[var(--ds-text)]"
+                }`}
+              >
                 {shop.name}
               </p>
-              {shop.deletedAt && (
-                <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
-                  gelöscht
-                </span>
-              )}
+              <VisibilityBadge visibility={shop.visibility} />
             </div>
             <a
               href={shop.url}
@@ -87,32 +117,78 @@ export function ShopTable({ shops, onEdit, onDelete }: ShopTableProps) {
       },
       {
         id: "actions",
-        className: "w-44",
+        className: "w-56",
         cell: (shop) => (
           <div className="flex gap-2 justify-end">
-            {!shop.deletedAt && (
-              <button
-                type="button"
-                onClick={() => onEdit(shop.id)}
-                className="h-8 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-              >
-                Bearbeiten
-              </button>
+            {shop.visibility === "public" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onEdit(shop.id)}
+                  className="h-8 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  Bearbeiten
+                </button>
+                {onHold && (
+                  <button
+                    type="button"
+                    onClick={() => onHold(shop.id)}
+                    className="h-8 px-3 border border-amber-300 rounded-control text-amber-700 text-sm hover:bg-amber-50 transition-colors"
+                  >
+                    Zurückstellen
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(shop.id)}
+                    className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  >
+                    Löschen
+                  </button>
+                )}
+              </>
             )}
-            {onDelete && !shop.deletedAt && (
-              <button
-                type="button"
-                onClick={() => onDelete(shop.id)}
-                className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-              >
-                Löschen
-              </button>
+            {shop.visibility === "onhold" && (
+              <>
+                {onRestore && (
+                  <button
+                    type="button"
+                    onClick={() => onRestore(shop.id)}
+                    className="h-8 px-3 border border-emerald-300 rounded-control text-emerald-700 text-sm hover:bg-emerald-50 transition-colors"
+                  >
+                    Wiederherstellen
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(shop.id)}
+                    className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  >
+                    Löschen
+                  </button>
+                )}
+              </>
+            )}
+            {shop.visibility === "deleted" && (
+              <>
+                {onRestore && (
+                  <button
+                    type="button"
+                    onClick={() => onRestore(shop.id)}
+                    className="h-8 px-3 border border-emerald-300 rounded-control text-emerald-700 text-sm hover:bg-emerald-50 transition-colors"
+                  >
+                    Wiederherstellen
+                  </button>
+                )}
+              </>
             )}
           </div>
         ),
       },
     ],
-    [onEdit, onDelete],
+    [onEdit, onDelete, onHold, onRestore],
   );
 
   return (

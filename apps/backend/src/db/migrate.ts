@@ -350,6 +350,11 @@ async function main() {
   await sql`ALTER TABLE shops ADD COLUMN IF NOT EXISTS delete_reason TEXT`;
   await sql`ALTER TABLE shops ADD COLUMN IF NOT EXISTS deleted_was_reported BOOLEAN NOT NULL DEFAULT FALSE`;
 
+  // Add visibility column, migrate existing soft-deletes, drop deleted_at
+  await sql`ALTER TABLE shops ADD COLUMN IF NOT EXISTS visibility TEXT NOT NULL DEFAULT 'public'`;
+  await sql`UPDATE shops SET visibility = 'deleted' WHERE deleted_at IS NOT NULL AND visibility = 'public'`;
+  await sql`ALTER TABLE shops DROP COLUMN IF EXISTS deleted_at`;
+
   await sql`
     CREATE TABLE IF NOT EXISTS shop_concern_reports (
       id          SERIAL PRIMARY KEY,

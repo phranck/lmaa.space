@@ -10,7 +10,7 @@ export interface ShopSummary {
   url: string;
   categories: ShopCategory[];
   region: string[];
-  deletedAt?: string | null;
+  visibility: "public" | "onhold" | "deleted";
   deleteReason?: string | null;
   deletedWasReported?: boolean;
   deletedByUsername?: string | null;
