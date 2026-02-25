@@ -1,0 +1,24 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Seite nicht gefunden"
+  noindex={true}
+>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-24 text-center">
+    <p class="text-6xl font-serif font-semibold text-stone-200 mb-4 select-none">404</p>
+    <h1 class="font-serif text-2xl font-semibold text-stone-900 mb-3">
+      Seite nicht gefunden
+    </h1>
+    <p class="text-stone-500 mb-10 leading-relaxed">
+      Diese Seite existiert nicht oder wurde verschoben.
+    </p>
+    <a
+      href="/"
+      class="inline-flex items-center justify-center h-9 px-6 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors"
+    >
+      Zur Startseite
+    </a>
+  </div>
+</BaseLayout>
