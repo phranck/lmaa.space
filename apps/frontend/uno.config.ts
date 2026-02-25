@@ -19,7 +19,7 @@ export default defineConfig({
   content: {
     pipeline: {
       include: [
-        "./src/**/*.{ts,tsx,html}",
+        "./src/**/*.{astro,ts,tsx,html}",
         "../../packages/ui/src/**/*.{ts,tsx}",
       ],
     },

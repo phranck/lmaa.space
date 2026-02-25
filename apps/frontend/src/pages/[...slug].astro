@@ -1,0 +1,35 @@
+---
+import type { ContentPage, ContentPageSummary } from "@lmaa/shared";
+import { apiGet } from "@/lib/api";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { marked } from "marked";
+
+export async function getStaticPaths() {
+  const pages = await apiGet<ContentPageSummary[]>("/content");
+  return pages.map((p) => ({ params: { slug: p.slug }, props: { title: p.title } }));
+}
+
+const { slug } = Astro.params;
+
+let page: ContentPage | null = null;
+try {
+  page = await apiGet<ContentPage>(`/content/${slug}`);
+} catch {
+  return Astro.redirect("/", 404);
+}
+
+const html = await marked(page.content);
+---
+
+<BaseLayout
+  title={page.title}
+  canonicalUrl={`https://lmaa.space/${slug}`}
+>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+    <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
+    <article
+      class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
+      set:html={html}
+    />
+  </div>
+</BaseLayout>

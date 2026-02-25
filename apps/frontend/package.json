@@ -4,30 +4,30 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5173",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview --port 5173",
-    "typecheck": "tsc --noEmit"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "typecheck": "astro check"
   },
   "dependencies": {
+    "@astrojs/react": "^4.2.0",
+    "@astrojs/sitemap": "^3.7.0",
     "@lmaa/shared": "0.1.0",
     "@lmaa/ui": "0.1.0",
-    "sf-symbols-lib": "*",
-    "@tanstack/react-query": "^5.74.4",
-    "@tanstack/react-query-devtools": "^5.74.4",
+    "@unocss/astro": "^66.6.1",
+    "astro": "^5.7.0",
     "fuse.js": "^7.1.0",
+    "marked": "^17.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-markdown": "^10.1.0",
-    "react-router": "^7.6.2"
+    "sf-symbols-lib": "*"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@astrojs/check": "^0.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.3",
-    "unocss": "^66.3.3",
-    "vite": "^6.3.5"
+    "unocss": "^66.3.3"
   }
 }
