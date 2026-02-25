@@ -6,7 +6,7 @@ import { SFChevronDown, SFChevronUp, SFChevronUpChevronDown } from "sf-symbols-l
 
 export function Table({ className = "", ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full border border-[var(--ds-border)]">
+    <div className="w-full">
       <table className={`w-full border-collapse text-sm ${className}`} {...props} />
     </div>
   );

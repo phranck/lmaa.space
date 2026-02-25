@@ -39,35 +39,35 @@ export function ReportShopCard({ shopId, shopName, onClose }: ReportShopCardProp
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--ds-overlay-bg)] backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-6">
+      <div className="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6">
         {submitted ? (
           <div className="text-center py-6">
             <p className="text-2xl mb-3">🙏</p>
-            <h2 className="font-serif text-xl font-semibold text-stone-900 mb-2">
+            <h2 className="font-serif text-xl font-semibold text-[var(--ds-text)] mb-2">
               Danke für deinen Hinweis!
             </h2>
-            <p className="text-sm text-stone-500 mb-6">
+            <p className="text-sm text-[var(--ds-text-muted)] mb-6">
               Wir prüfen deine Meldung und handeln bei Bedarf.
             </p>
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors"
+              className="h-9 px-6 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
             >
               Schließen
             </button>
           </div>
         ) : (
           <>
-            <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
+            <h2 className="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
               Shop melden
             </h2>
-            <p className="text-sm text-stone-500 mb-5">
+            <p className="text-sm text-[var(--ds-text-muted)] mb-5">
               Du möchtest{" "}
-              <span className="font-medium text-stone-700">{shopName}</span>{" "}
+              <span className="font-medium text-[var(--ds-text)]">{shopName}</span>{" "}
               melden? Beschreibe kurz, warum dieser Shop deiner Meinung nach nicht auf lmaa.space gehört.
             </p>
 
@@ -78,23 +78,23 @@ export function ReportShopCard({ shopId, shopName, onClose }: ReportShopCardProp
                 onChange={(e) => setReason(e.target.value)}
                 rows={4}
                 placeholder="z. B. Shop verkauft keine fairen oder nachhaltigen Produkte, ist nicht mehr erreichbar, …"
-                className="w-full px-3 py-2.5 border border-stone-200 rounded-xl text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300 resize-none"
+                className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
               />
 
-              {error && <p className="text-red-500 text-xs">{error}</p>}
+              {error && <p className="text-[var(--ds-danger-text)] text-xs">{error}</p>}
 
               <div className="flex gap-3 justify-end">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm text-stone-500 hover:text-stone-700 transition-colors"
+                  className="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
                 >
                   Abbrechen
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || reason.trim().length < 10}
-                  className="px-5 py-2 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors disabled:opacity-50"
+                  className="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors disabled:opacity-50"
                 >
                   {submitting ? "Wird gesendet…" : "Melden"}
                 </button>

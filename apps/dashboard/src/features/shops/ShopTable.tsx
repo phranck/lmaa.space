@@ -81,7 +81,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
               {shop.categories.map((cat) => (
                 <span
                   key={cat.id}
-                  className="px-2 py-0.5 rounded-full bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-xs"
+                  className="px-2 py-0.5 rounded-[4px] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-xs"
                 >
                   {cat.name}
                 </span>
@@ -125,7 +125,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                 <button
                   type="button"
                   onClick={() => onEdit(shop.id)}
-                  className="h-8 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  className="h-9 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
                   Bearbeiten
                 </button>
@@ -133,7 +133,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   <button
                     type="button"
                     onClick={() => onHold(shop.id)}
-                    className="h-8 px-3 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
+                    className="h-9 px-3 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
                   >
                     Zurückstellen
                   </button>
@@ -142,7 +142,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   <button
                     type="button"
                     onClick={() => onDelete(shop.id)}
-                    className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                    className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                   >
                     Löschen
                   </button>
@@ -151,11 +151,18 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
             )}
             {shop.visibility === "onhold" && (
               <>
+                <button
+                  type="button"
+                  onClick={() => onEdit(shop.id)}
+                  className="h-9 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  Bearbeiten
+                </button>
                 {onRestore && (
                   <button
                     type="button"
                     onClick={() => onRestore(shop.id)}
-                    className="h-8 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
+                    className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                   >
                     Wiederherstellen
                   </button>
@@ -164,7 +171,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   <button
                     type="button"
                     onClick={() => onDelete(shop.id)}
-                    className="h-8 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                    className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                   >
                     Löschen
                   </button>
@@ -177,7 +184,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   <button
                     type="button"
                     onClick={() => onRestore(shop.id)}
-                    className="h-8 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
+                    className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                   >
                     Wiederherstellen
                   </button>

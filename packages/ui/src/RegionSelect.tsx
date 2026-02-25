@@ -88,7 +88,7 @@ export function RegionSelect({ value, onChange, error, buttonClassName, variant 
               zIndex: 9999,
               backgroundColor: "var(--ds-input-bg, #ffffff)",
             }}
-            className="border border-[var(--ds-border)] rounded-lg shadow-lg overflow-hidden"
+            className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
               {REGION_OPTIONS.map(({ code, flag, name }) => {
@@ -175,7 +175,7 @@ export function RegionSelect({ value, onChange, error, buttonClassName, variant 
               align="center"
               sideOffset={6}
               style={{ zIndex: 9999 }}
-              className="w-[276px] rounded-lg border border-black/[.175] bg-[var(--ds-surface)] shadow-md outline-none dark:border-white/[.15] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150"
+              className="w-[276px] rounded-control border border-black/[.175] bg-[var(--ds-surface)] shadow-md outline-none dark:border-white/[.15] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150"
               onEscapeKeyDown={(e) => e.stopPropagation()}
             >
               {/* Popover header */}
