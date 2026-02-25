@@ -44,7 +44,7 @@ const submissionSchema = z.object({
     .optional()
     .default([]),
   shipping: z.string().max(200).optional(),
-  description: z.string().max(500).optional(),
+  description: z.string().max(2000).optional(),
   submitterEmail: z.string().email().optional(),
   submitterNote: z.string().max(500).optional(),
 });
