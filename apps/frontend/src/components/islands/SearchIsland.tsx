@@ -1,6 +1,6 @@
 import type { Category, Shop } from "@lmaa/shared";
 import Fuse, { type IFuseOptions } from "fuse.js";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface Props {
   shops: Shop[];
@@ -21,14 +21,18 @@ const FUSE_OPTIONS: IFuseOptions<Shop> = {
 };
 
 export default function SearchIsland({ shops, categories }: Props) {
-  const [query, setQuery] = useState(() => {
-    if (typeof window !== "undefined") {
-      return new URLSearchParams(window.location.search).get("q") ?? "";
-    }
-    return "";
-  });
-
+  const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Read ?q= URL param after hydration (useState initializer runs server-side
+  // in Astro SSR with window=undefined, so we must sync via useEffect)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q") ?? "";
+    if (q) {
+      setQuery(q);
+      inputRef.current?.focus();
+    }
+  }, []);
 
   const fuse = useMemo(() => new Fuse(shops, FUSE_OPTIONS), [shops]);
 
@@ -54,7 +58,14 @@ export default function SearchIsland({ shops, categories }: Props) {
           ref={inputRef}
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            setQuery(v);
+            const url = new URL(window.location.href);
+            if (v) url.searchParams.set("q", v);
+            else url.searchParams.delete("q");
+            window.history.replaceState(null, "", url);
+          }}
           placeholder="Shop oder Kategorie suchen…"
           className="w-full max-w-lg px-4 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
           autoFocus
