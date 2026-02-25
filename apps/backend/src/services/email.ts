@@ -72,6 +72,21 @@ export async function sendDeadLinkReportNotification(
   });
 }
 
+export async function sendShopConcernNotification(
+  shopName: string,
+  shopUrl: string,
+  reason: string,
+): Promise<void> {
+  if (!resend || !OWNER_EMAIL) return;
+
+  await resend.emails.send({
+    from: FROM,
+    to: OWNER_EMAIL,
+    subject: `Shop gemeldet: ${shopName}`,
+    html: `<p><strong>${shopName}</strong> (<a href="${shopUrl}">${shopUrl}</a>) wurde gemeldet.</p><p><strong>Begründung:</strong><br>${reason.replace(/\n/g, "<br>")}</p>`,
+  });
+}
+
 export async function sendSubmissionRejected(
   to: string,
   shopName: string,

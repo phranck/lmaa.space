@@ -345,6 +345,17 @@ async function main() {
     END $do$
   `;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS shop_concern_reports (
+      id          SERIAL PRIMARY KEY,
+      shop_id     INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+      reason      TEXT NOT NULL,
+      ip_hash     TEXT NOT NULL,
+      reported_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_scr_shop ON shop_concern_reports(shop_id)`;
+
   console.log("Migrations complete.");
   await sql.end();
 }

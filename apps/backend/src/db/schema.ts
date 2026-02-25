@@ -183,3 +183,19 @@ export type AdminUser = typeof adminUsers.$inferSelect;
 export type AdminUserInsert = typeof adminUsers.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type DeadLinkReport = typeof deadLinkReports.$inferSelect;
+
+export const shopConcernReports = pgTable(
+  "shop_concern_reports",
+  {
+    id: serial("id").primaryKey(),
+    shopId: integer("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    reason: text("reason").notNull(),
+    ipHash: text("ip_hash").notNull(),
+    reportedAt: timestamp("reported_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_scr_shop").on(table.shopId)],
+);
+
+export type ShopConcernReport = typeof shopConcernReports.$inferSelect;
