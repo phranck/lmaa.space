@@ -27,14 +27,21 @@ export function LoginPage() {
     <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img
-            src="/logo.png"
-            alt="lmaa.space"
+          <div
+            role="img"
+            aria-label="lmaa.space"
             style={{
               width: 120,
               height: 120,
-              filter:
-                "brightness(0) saturate(100%) invert(64%) sepia(50%) saturate(400%) hue-rotate(72deg) brightness(90%)",
+              backgroundColor: "var(--color-primary)",
+              WebkitMaskImage: "url(/logo.png)",
+              WebkitMaskSize: "contain",
+              WebkitMaskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskImage: "url(/logo.png)",
+              maskSize: "contain",
+              maskRepeat: "no-repeat",
+              maskPosition: "center",
             }}
             className="mx-auto"
           />
