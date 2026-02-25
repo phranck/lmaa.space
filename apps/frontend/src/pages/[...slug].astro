@@ -13,10 +13,21 @@ const { slug } = Astro.params;
 
 const page = await apiGet<ContentPage>(`/content/${slug}`);
 const html = await renderMarkdown(page.content);
+
+const description = page.content
+  .replace(/#{1,6}\s+/g, "")
+  .replace(/\*\*(.+?)\*\*/g, "$1")
+  .replace(/\*(.+?)\*/g, "$1")
+  .replace(/\[(.+?)\]\(.+?\)/g, "$1")
+  .replace(/`(.+?)`/g, "$1")
+  .replace(/\n+/g, " ")
+  .trim()
+  .slice(0, 160);
 ---
 
 <BaseLayout
   title={page.title}
+  description={description}
 >
   <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
     <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
