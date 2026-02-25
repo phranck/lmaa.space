@@ -22,38 +22,45 @@ const FUSE_OPTIONS: IFuseOptions<Shop> = {
 
 export default function SearchIsland({ shops, categories }: Props) {
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Read ?q= URL param after hydration (useState initializer runs server-side
-  // in Astro SSR with window=undefined, so we must sync via useEffect)
+  // Read ?q= URL param after hydration
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("q") ?? "";
     if (q) {
       setQuery(q);
+      setDebouncedQuery(q);
       inputRef.current?.focus();
     }
   }, []);
 
+  // Debounce: update debouncedQuery 200ms after last keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 350);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   const fuse = useMemo(() => new Fuse(shops, FUSE_OPTIONS), [shops]);
 
   const shopResults = useMemo(() => {
-    if (!query.trim() || query.length < 2) return [];
-    return fuse.search(query).map((r) => r.item);
-  }, [fuse, query]);
+    if (!debouncedQuery.trim() || debouncedQuery.length < 2) return [];
+    return fuse.search(debouncedQuery).map((r) => r.item);
+  }, [fuse, debouncedQuery]);
 
   const categoryResults = useMemo(() => {
-    if (!query.trim()) return [];
+    if (!debouncedQuery.trim()) return [];
     return categories.filter((c) =>
-      c.name.toLowerCase().includes(query.toLowerCase()),
+      c.name.toLowerCase().includes(debouncedQuery.toLowerCase()),
     );
-  }, [categories, query]);
+  }, [categories, debouncedQuery]);
 
   const total = shopResults.length + categoryResults.length;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Search input */}
-      <div className="mb-10">
+      {/* Search input – centered */}
+      <div className="flex flex-col items-center mb-10">
         <input
           ref={inputRef}
           type="search"
@@ -67,20 +74,20 @@ export default function SearchIsland({ shops, categories }: Props) {
             window.history.replaceState(null, "", url);
           }}
           placeholder="Shop oder Kategorie suchen…"
-          className="w-full max-w-lg px-4 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
+          className="w-full max-w-xl px-4 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
           autoFocus
         />
       </div>
 
-      {query.length >= 2 && (
-        <p className="text-sm text-stone-400 mb-6">
+      {debouncedQuery.length >= 2 && (
+        <p className="text-sm text-stone-400 mb-6 search-section-enter">
           {total} {total === 1 ? "Treffer" : "Treffer gefunden"}
         </p>
       )}
 
-      {total === 0 && query.length >= 2 && (
-        <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-          <p className="text-stone-600 mb-2 font-medium">Keine Ergebnisse für „{query}"</p>
+      {total === 0 && debouncedQuery.length >= 2 && (
+        <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100 search-section-enter">
+          <p className="text-stone-600 mb-2 font-medium">Keine Ergebnisse für „{debouncedQuery}"</p>
           <p className="text-sm text-stone-400 mb-6">
             Vielleicht ist dieser Shop noch nicht in der Liste?
           </p>
@@ -94,7 +101,7 @@ export default function SearchIsland({ shops, categories }: Props) {
       )}
 
       {categoryResults.length > 0 && (
-        <section className="mb-10">
+        <section className="mb-10 search-section-enter">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
             Kategorien
           </h2>
@@ -116,7 +123,7 @@ export default function SearchIsland({ shops, categories }: Props) {
       )}
 
       {shopResults.length > 0 && (
-        <section>
+        <section className="search-section-enter">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
             Shops
           </h2>
