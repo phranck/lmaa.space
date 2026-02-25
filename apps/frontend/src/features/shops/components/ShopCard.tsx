@@ -63,22 +63,12 @@ export function ShopCard({ shop }: ShopCardProps) {
           )}
         </div>
 
-        {/* Name + domain + button */}
-        <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="font-serif font-semibold text-stone-900 text-lg leading-snug">
-              {shop.name}
-            </h3>
-            <p className="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
-          </div>
-          <a
-            href={shopUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
-          >
-            Besuchen ↗
-          </a>
+        {/* Name + domain */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-serif font-semibold text-stone-900 text-lg leading-snug">
+            {shop.name}
+          </h3>
+          <p className="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
         </div>
       </div>
 
@@ -104,7 +94,7 @@ export function ShopCard({ shop }: ShopCardProps) {
         </div>
       )}
 
-      <div className="flex justify-end pt-1 border-t border-stone-100 mt-auto">
+      <div className="flex items-center justify-between pt-1 border-t border-stone-100 mt-auto">
         {reported ? (
           <span className="text-xs text-stone-400">Danke für deinen Hinweis!</span>
         ) : (
@@ -117,6 +107,14 @@ export function ShopCard({ shop }: ShopCardProps) {
             Link defekt?
           </button>
         )}
+        <a
+          href={shopUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
+        >
+          Besuchen ↗
+        </a>
       </div>
     </div>
   );
