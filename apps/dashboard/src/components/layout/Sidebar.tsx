@@ -78,16 +78,16 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   }
 
   return (
-    <details open={isOpen} className="group/details">
+    <details open={isOpen} className="group">
       <summary
         onClick={handleSummaryClick}
-        className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium transition-colors cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
+        className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
       >
         <span className="shrink-0 opacity-70">
           <SFDocumentFill className="w-4 h-4" />
         </span>
         <span className="flex-1">Seiten</span>
-        <SFChevronDown className="w-3.5 h-3.5 opacity-50 transition-transform group-open/details:rotate-180" />
+        <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
         <NavLink
@@ -95,10 +95,10 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
           end
           onClick={onItemClick}
           className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
+            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
               isActive
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
+                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
             }`
           }
         >
@@ -110,10 +110,10 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
             to={`/seiten/${page.slug}`}
             onClick={onItemClick}
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium transition-colors ${
+              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
                 isActive
-                  ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-                  : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] border-transparent"
+                  ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                  : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
               }`
             }
           >

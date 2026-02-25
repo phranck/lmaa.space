@@ -1,16 +1,5 @@
-@import "tailwindcss";
 @import "@lmaa/shared/styles/tokens.css";
-@plugin "@tailwindcss/typography";
 
-/* Scan packages/ui for Tailwind class generation */
-@source "../../../packages/ui/src";
-
-@theme {
-  --font-sans: "Barlow", system-ui, -apple-system, sans-serif;
-  --font-serif: "Barlow Condensed", system-ui, sans-serif;
-}
-
-/* Aliases: keep existing component references working */
 :root {
   --accent-base: var(--ds-accent);
   --accent-hover: var(--ds-accent-hover);
@@ -39,11 +28,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--ds-font-serif);
 }

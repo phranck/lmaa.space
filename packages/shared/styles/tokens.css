@@ -115,6 +115,9 @@
   --ds-shadow-lg: 0 10px 15px oklch(0 0 0 / 0.06), 0 4px 6px oklch(0 0 0 / 0.04);
   --ds-shadow-xl: 0 20px 25px oklch(0 0 0 / 0.08), 0 8px 10px oklch(0 0 0 / 0.04);
 
+  /* Border radius — referenced by UnoCSS theme config */
+  --radius-control: 0.5rem; /* 8px */
+
   /* Alias — packages/ui components reference this; apps can override */
   --color-primary: var(--ds-accent);
 
@@ -269,11 +272,3 @@
   --ds-badge-danger-text:  #e5534b;
 }
 
-/* ── SHARED TAILWIND THEME ────────────────────────────────────
-   @theme registers custom Tailwind utilities usable in all apps.
-   Apps can override per-app in their own @theme block.
-   ──────────────────────────────────────────────────────────── */
-@theme {
-  /* Form control border-radius — generates rounded-control utility */
-  --radius-control: 0.5rem; /* 8px */
-}
