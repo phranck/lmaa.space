@@ -11,10 +11,11 @@ import {
   useSetShopVisibility,
 } from "@/features/shops/hooks/useAdminShops.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import type { ShopVisibility } from "@lmaa/shared";
 import { useState } from "react";
 import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-lib/monochrome";
 
-type VisibilityFilter = "all" | "public" | "onhold" | "deleted";
+type VisibilityFilter = "all" | ShopVisibility;
 
 export function ShopsPage() {
   const { messages } = useI18n();

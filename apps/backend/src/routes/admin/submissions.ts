@@ -1,4 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
+import {
+  REGION_CODES,
+  SUBMISSION_REVIEW_STATUSES,
+  SUBMISSION_STATUSES,
+  type SubmissionStatus,
+} from "@lmaa/shared";
 import { desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -11,7 +17,7 @@ import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/
 import { sendSubmissionApproved, sendSubmissionRejected } from "../../services/email.js";
 
 const reviewSchema = z.object({
-  status: z.enum(["approved", "rejected", "onhold"]),
+  status: z.enum(SUBMISSION_REVIEW_STATUSES),
   adminNote: z.string().max(500).optional(),
   sendFeedback: z.boolean().optional(),
 });
@@ -20,10 +26,7 @@ const submissionEditSchema = z.object({
   shopName: z.string().min(1).max(200),
   shopUrl: z.string().url(),
   description: z.string().max(2000).optional(),
-  region: z
-    .array(z.enum(["DE", "AT", "CH", "EU"]))
-    .optional()
-    .default([]),
+  region: z.array(z.enum(REGION_CODES)).optional().default([]),
   shipping: z.string().max(200).optional(),
   categoryIds: z.array(z.number().int().positive()),
 });
@@ -32,12 +35,15 @@ export const submissionsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/submissions
 submissionsRoutes.get("/submissions", requireAuth, async (c) => {
-  const status = c.req.query("status") as
-    | "pending"
-    | "onhold"
-    | "approved"
-    | "rejected"
-    | undefined;
+  const statusQuery = c.req.query("status");
+  const parsedStatus = statusQuery ? z.enum(SUBMISSION_STATUSES).safeParse(statusQuery) : null;
+  if (parsedStatus && !parsedStatus.success) {
+    return fail(c, 400, "Invalid status filter");
+  }
+
+  const status: SubmissionStatus | undefined = parsedStatus?.success
+    ? parsedStatus.data
+    : undefined;
 
   const query = db.select().from(submissions).orderBy(desc(submissions.createdAt));
   const rows = status ? await query.where(eq(submissions.status, status)) : await query;

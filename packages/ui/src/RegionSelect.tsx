@@ -1,16 +1,20 @@
+import { REGION_CODES, type RegionCode } from "@lmaa/shared";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LuCheck, LuChevronDown, LuInfo } from "react-icons/lu";
 
-export const REGION_OPTIONS = [
-  { code: "DE", flag: "🇩🇪", name: "Deutschland" },
-  { code: "AT", flag: "🇦🇹", name: "Österreich" },
-  { code: "CH", flag: "🇨🇭", name: "Schweiz" },
-  { code: "EU", flag: "🇪🇺", name: "Europa" },
-] as const;
+const REGION_DETAILS: Record<RegionCode, { flag: string; name: string }> = {
+  DE: { flag: "🇩🇪", name: "Deutschland" },
+  AT: { flag: "🇦🇹", name: "Österreich" },
+  CH: { flag: "🇨🇭", name: "Schweiz" },
+  EU: { flag: "🇪🇺", name: "Europa" },
+};
 
-export type RegionCode = (typeof REGION_OPTIONS)[number]["code"];
+export const REGION_OPTIONS: ReadonlyArray<{ code: RegionCode; flag: string; name: string }> =
+  REGION_CODES.map((code) => ({ code, ...REGION_DETAILS[code] }));
+
+export type { RegionCode };
 
 export interface RegionSelectProps {
   value: string[];
@@ -63,7 +67,7 @@ export function RegionSelect({
     setOpen((o) => !o);
   }
 
-  function toggle(code: string) {
+  function toggle(code: RegionCode) {
     if (value.includes(code)) {
       onChange(value.filter((v) => v !== code));
     } else {

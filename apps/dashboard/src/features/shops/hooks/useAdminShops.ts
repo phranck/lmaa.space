@@ -1,12 +1,12 @@
 import type { ShopDeleteMode } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { api } from "@/lib/api.ts";
-import type { Shop, ShopSummary } from "@lmaa/shared";
+import type { Shop, ShopMutableVisibility, ShopSummary, ShopVisibility } from "@lmaa/shared";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type { ShopEditFormValue };
 
-export function useAdminShops(visibility?: "public" | "onhold" | "deleted") {
+export function useAdminShops(visibility?: ShopVisibility) {
   return useQuery({
     queryKey: ["shops-admin", visibility],
     queryFn: () =>
@@ -17,7 +17,7 @@ export function useAdminShops(visibility?: "public" | "onhold" | "deleted") {
 export function useSetShopVisibility() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, visibility }: { id: number; visibility: "public" | "onhold" }) =>
+    mutationFn: ({ id, visibility }: { id: number; visibility: ShopMutableVisibility }) =>
       api.patch(`/admin/shops/${id}/visibility`, { visibility }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });

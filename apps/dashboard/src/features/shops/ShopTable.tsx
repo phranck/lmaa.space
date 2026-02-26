@@ -1,6 +1,6 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import type { ShopSummary } from "@lmaa/shared";
+import { REGION_CODES, type ShopSummary } from "@lmaa/shared";
 import { REGION_OPTIONS } from "@lmaa/ui";
 import { useMemo } from "react";
 import { SFEyeFill, SFPauseCircleFill, SFTrashFill } from "sf-symbols-lib/monochrome";
@@ -104,10 +104,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
           shop.region?.length ? (
             <div className="flex items-center gap-1.5">
               {[...shop.region]
-                .sort(
-                  (a, b) =>
-                    ["DE", "AT", "CH", "EU"].indexOf(a) - ["DE", "AT", "CH", "EU"].indexOf(b),
-                )
+                .sort((a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b))
                 .map((code) => {
                   const opt = REGION_OPTIONS.find((o) => o.code === code);
                   return (

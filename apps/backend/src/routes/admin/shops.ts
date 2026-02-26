@@ -1,5 +1,12 @@
 import { zValidator } from "@hono/zod-validator";
-import type { Shop, ShopCategory, ShopSummary } from "@lmaa/shared";
+import {
+  REGION_CODES,
+  SHOP_MUTABLE_VISIBILITIES,
+  SHOP_VISIBILITIES,
+  type Shop,
+  type ShopCategory,
+  type ShopSummary,
+} from "@lmaa/shared";
 import { eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -19,10 +26,7 @@ const shopBodySchema = z.object({
   name: z.string().min(1).max(200),
   url: z.string().url(),
   categoryIds: z.array(z.number().int().positive()).optional().default([]),
-  region: z
-    .array(z.enum(["DE", "AT", "CH", "EU"]))
-    .optional()
-    .default([]),
+  region: z.array(z.enum(REGION_CODES)).optional().default([]),
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(2000).optional(),
@@ -32,7 +36,7 @@ const shopUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   url: z.string().url().optional(),
   categoryIds: z.array(z.number().int().positive()).optional(),
-  region: z.array(z.enum(["DE", "AT", "CH", "EU"])).optional(),
+  region: z.array(z.enum(REGION_CODES)).optional(),
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(2000).optional(),
@@ -40,11 +44,22 @@ const shopUpdateSchema = z.object({
 });
 
 const previewImageSchema = z.object({ url: z.string().url() });
+const visibilityFilterSchema = z.enum(SHOP_VISIBILITIES);
+const visibilityUpdateSchema = z.object({ visibility: z.enum(SHOP_MUTABLE_VISIBILITIES) });
 
 export const shopsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 shopsRoutes.get("/shops", requireAuth, async (c) => {
   const visibilityFilter = c.req.query("visibility");
+  const parsedVisibility = visibilityFilter
+    ? visibilityFilterSchema.safeParse(visibilityFilter)
+    : null;
+
+  if (parsedVisibility && !parsedVisibility.success) {
+    return fail(c, 400, "Invalid visibility filter");
+  }
+
+  const visibilityValue = parsedVisibility?.success ? parsedVisibility.data : undefined;
   const rows = await db.execute<ShopSummary & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region,
            s.visibility,
@@ -60,7 +75,7 @@ shopsRoutes.get("/shops", requireAuth, async (c) => {
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
     LEFT JOIN admin_users u ON u.id = s.deleted_by
-    ${visibilityFilter ? sql`WHERE s.visibility = ${visibilityFilter}` : sql``}
+    ${visibilityValue ? sql`WHERE s.visibility = ${visibilityValue}` : sql``}
     GROUP BY s.id, u.username
     ORDER BY s.name
   `);
@@ -198,11 +213,11 @@ shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) 
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
-  const body = await c.req.json().catch(() => ({}));
-  const { visibility } = body;
-  if (!["public", "onhold"].includes(visibility)) {
+  const parsedBody = visibilityUpdateSchema.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsedBody.success) {
     return fail(c, 400, "Use 'public' or 'onhold'; for deleting use DELETE");
   }
+  const { visibility } = parsedBody.data;
 
   await db
     .update(shops)

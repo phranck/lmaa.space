@@ -1,4 +1,5 @@
 import type { Category, ShopCategory } from "@lmaa/shared";
+import { type ApiRequestError, createApiRequestError } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import type React from "react";
@@ -6,11 +7,6 @@ import { useState } from "react";
 
 interface Props {
   categories: Category[];
-}
-
-interface SubmissionRequestError extends Error {
-  status?: number;
-  responseMessage?: string | null;
 }
 
 type UrlCheckResult =
@@ -22,25 +18,12 @@ import { API_BASE } from "@/lib/client-api";
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
-function extractApiErrorMessage(payload: unknown): string | null {
-  if (!payload || typeof payload !== "object") return null;
-
-  const error = "error" in payload ? (payload as { error?: unknown }).error : undefined;
-  if (error && typeof error === "object" && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    return typeof message === "string" ? message : null;
-  }
-
-  const message = "message" in payload ? (payload as { message?: unknown }).message : undefined;
-  return typeof message === "string" ? message : null;
-}
-
 function getSubmissionErrorMessage(error: unknown): string {
   if (error instanceof TypeError) {
     return "Verbindung zum Server fehlgeschlagen. Bitte prüfe deine Verbindung.";
   }
 
-  const typedError = error as SubmissionRequestError;
+  const typedError = error as ApiRequestError;
   const status = typedError.status;
 
   if (status === 429) {
@@ -171,12 +154,7 @@ export default function SuggestForm({ categories }: Props) {
         }),
       });
       if (!res.ok) {
-        const payload = await res.json().catch(() => null);
-        const apiMessage = extractApiErrorMessage(payload);
-        const requestError = new Error("Submission request failed") as SubmissionRequestError;
-        requestError.status = res.status;
-        requestError.responseMessage = apiMessage;
-        throw requestError;
+        throw await createApiRequestError(res, "Submission request failed");
       }
       setSubmitted(true);
     } catch (error) {

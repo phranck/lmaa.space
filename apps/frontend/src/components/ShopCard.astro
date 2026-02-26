@@ -1,7 +1,7 @@
 ---
 import { renderMarkdown } from "@/lib/markdown";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
-import type { Shop } from "@lmaa/shared";
+import { REGION_CODES, type Shop } from "@lmaa/shared";
 
 interface Props {
   shop: Shop;
@@ -12,9 +12,8 @@ const { shop } = Astro.props;
 const domain = shopDomain(shop.url);
 const shopUrl = shopRefUrl(shop.url);
 
-const regionOrder = ["DE", "AT", "CH", "EU"];
 const sortedRegions = [...shop.region].sort(
-  (a, b) => regionOrder.indexOf(a) - regionOrder.indexOf(b),
+  (a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b),
 );
 
 const deadDialogId = `dialog-dead-${shop.id}`;
