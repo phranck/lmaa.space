@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 import { zValidator } from "@hono/zod-validator";
-import { REGION_CODES, type Shop, type ShopCategory } from "@lmaa/shared";
+import { submissionSchema } from "@lmaa/contracts";
+import type { Shop, ShopCategory } from "@lmaa/shared";
 import { and, asc, count, eq, isNull, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
-import { z } from "zod";
 import { env } from "../config/env.js";
 import { db } from "../db/index.js";
 import { fail, ok } from "../lib/http.js";
@@ -40,18 +40,6 @@ import { rateLimit } from "../middleware/rate-limit.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
 const SHOPS_CACHE_KEY = "shops:all";
-
-const submissionSchema = z.object({
-  shopName: z.string().min(2).max(100),
-  shopUrl: z.string().url(),
-  categoryIds: z.array(z.number().int().positive()).optional().default([]),
-  categorySuggestion: z.string().max(100).optional(),
-  region: z.array(z.enum(REGION_CODES)).optional().default([]),
-  shipping: z.string().max(200).optional(),
-  description: z.string().max(2000).optional(),
-  submitterEmail: z.string().email().optional(),
-  submitterNote: z.string().max(500).optional(),
-});
 
 export const publicRoutes = new Hono();
 

@@ -1,13 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
-import {
-  REGION_CODES,
-  SUBMISSION_REVIEW_STATUSES,
-  SUBMISSION_STATUSES,
-  type SubmissionStatus,
-} from "@lmaa/shared";
+import { reviewSchema, submissionEditSchema, submissionStatusFilterSchema } from "@lmaa/contracts";
 import { desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
-import { z } from "zod";
 import { db } from "../../db/index.js";
 import { shopCategories, shops, submissionCategories, submissions } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
@@ -16,34 +10,17 @@ import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
 import { sendSubmissionApproved, sendSubmissionRejected } from "../../services/email.js";
 
-const reviewSchema = z.object({
-  status: z.enum(SUBMISSION_REVIEW_STATUSES),
-  adminNote: z.string().max(500).optional(),
-  sendFeedback: z.boolean().optional(),
-});
-
-const submissionEditSchema = z.object({
-  shopName: z.string().min(1).max(200),
-  shopUrl: z.string().url(),
-  description: z.string().max(2000).optional(),
-  region: z.array(z.enum(REGION_CODES)).optional().default([]),
-  shipping: z.string().max(200).optional(),
-  categoryIds: z.array(z.number().int().positive()),
-});
-
 export const submissionsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/submissions
 submissionsRoutes.get("/submissions", requireAuth, async (c) => {
   const statusQuery = c.req.query("status");
-  const parsedStatus = statusQuery ? z.enum(SUBMISSION_STATUSES).safeParse(statusQuery) : null;
+  const parsedStatus = statusQuery ? submissionStatusFilterSchema.safeParse(statusQuery) : null;
   if (parsedStatus && !parsedStatus.success) {
     return fail(c, 400, "Invalid status filter");
   }
 
-  const status: SubmissionStatus | undefined = parsedStatus?.success
-    ? parsedStatus.data
-    : undefined;
+  const status = parsedStatus?.success ? parsedStatus.data : undefined;
 
   const query = db.select().from(submissions).orderBy(desc(submissions.createdAt));
   const rows = status ? await query.where(eq(submissions.status, status)) : await query;
