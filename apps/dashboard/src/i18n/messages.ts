@@ -160,6 +160,9 @@ export interface DashboardMessages {
       markdownSupported: string;
       reasonPlaceholder: string;
       reportedLabel: string;
+      modeLabel: string;
+      markDeleted: string;
+      deletePermanently: string;
       deleting: string;
       deleteShop: string;
     };
@@ -226,6 +229,9 @@ export interface DashboardMessages {
       onhold: string;
       edit: string;
       approve: string;
+      delete: string;
+      confirmDeleteTitle: string;
+      confirmDeleteDescription: string;
       feedbackToPrefix: string;
       reviewApproveTitle: string;
       reviewRejectTitle: string;
@@ -506,6 +512,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownSupported: "Markdown unterstützt",
         reasonPlaceholder: "Warum wird dieser Shop entfernt?",
         reportedLabel: "Shop wurde gemeldet (Dead-Link oder Shop-Meldung)",
+        modeLabel: "Löschmodus",
+        markDeleted: "Als gelöscht markieren",
+        deletePermanently: "Löschen",
         deleting: "Wird gelöscht…",
         deleteShop: "Shop löschen",
       },
@@ -573,6 +582,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         onhold: "Zurückstellen",
         edit: "Bearbeiten",
         approve: "Annehmen",
+        delete: "Löschen",
+        confirmDeleteTitle: "Abgelehnten Vorschlag löschen?",
+        confirmDeleteDescription: "wird dauerhaft entfernt.",
         feedbackToPrefix: "E-Mail-Feedback senden an",
         reviewApproveTitle: "Vorschlag annehmen",
         reviewRejectTitle: "Vorschlag ablehnen",
@@ -853,6 +865,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownSupported: "Markdown supported",
         reasonPlaceholder: "Why is this shop being removed?",
         reportedLabel: "Shop was reported (dead link or shop report)",
+        modeLabel: "Delete mode",
+        markDeleted: "Mark as deleted",
+        deletePermanently: "Delete",
         deleting: "Deleting…",
         deleteShop: "Delete shop",
       },
@@ -919,6 +934,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         onhold: "Put on hold",
         edit: "Edit",
         approve: "Approve",
+        delete: "Delete",
+        confirmDeleteTitle: "Delete rejected suggestion?",
+        confirmDeleteDescription: "will be permanently removed.",
         feedbackToPrefix: "Send email feedback to",
         reviewApproveTitle: "Approve suggestion",
         reviewRejectTitle: "Reject suggestion",

@@ -7,7 +7,7 @@ import { shopCategories, shops, submissionCategories, submissions } from "../../
 import { fail, ok } from "../../lib/http.js";
 import { fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
 import { sendSubmissionApproved, sendSubmissionRejected } from "../../services/email.js";
 
 const reviewSchema = z.object({
@@ -194,3 +194,22 @@ submissionsRoutes.patch(
     return ok(c, submission);
   },
 );
+
+// DELETE /api/admin/submissions/:id – permanently remove rejected submissions
+submissionsRoutes.delete("/submissions/:id", requireAuth, requireAdmin, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+
+  const [entry] = await db
+    .select({ id: submissions.id, status: submissions.status })
+    .from(submissions)
+    .where(eq(submissions.id, id));
+
+  if (!entry) return fail(c, 404, "Submission not found");
+  if (entry.status !== "rejected") {
+    return fail(c, 400, "Only rejected submissions can be deleted");
+  }
+
+  await db.delete(submissions).where(eq(submissions.id, id));
+  return ok(c, { message: "Submission deleted" });
+});

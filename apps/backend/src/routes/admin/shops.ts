@@ -163,23 +163,34 @@ shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const reason = typeof body?.reason === "string" ? body.reason.trim() || null : null;
   const wasReported = typeof body?.wasReported === "boolean" ? body.wasReported : false;
+  const mode = body?.mode === "delete" ? "delete" : "mark_deleted";
 
-  const adminId = c.get("adminId");
+  const [existing] = await db.select({ id: shops.id }).from(shops).where(eq(shops.id, id));
+  if (!existing) return fail(c, 404, "Shop not found");
 
-  await db
-    .update(shops)
-    .set({
-      visibility: "deleted",
-      deletedBy: adminId ?? null,
-      deleteReason: reason,
-      deletedWasReported: wasReported,
-    })
-    .where(eq(shops.id, id));
+  if (mode === "delete") {
+    await db.transaction(async (tx) => {
+      await tx.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+      await tx.delete(shops).where(eq(shops.id, id));
+    });
+  } else {
+    const adminId = c.get("adminId");
+    await db
+      .update(shops)
+      .set({
+        visibility: "deleted",
+        deletedBy: adminId ?? null,
+        deleteReason: reason,
+        deletedWasReported: wasReported,
+        updatedAt: new Date(),
+      })
+      .where(eq(shops.id, id));
 
-  await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+    await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+  }
 
   invalidateCache(SHOPS_CACHE_KEY);
-  return ok(c, { message: "Shop deleted" });
+  return ok(c, { message: mode === "delete" ? "Shop permanently deleted" : "Shop marked deleted" });
 });
 
 // PATCH /admin/shops/:id/visibility — set public or onhold (use DELETE for deleted)

@@ -56,6 +56,14 @@ export function useEditSubmission() {
   });
 }
 
+export function useDeleteSubmission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/submissions/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),
+  });
+}
+
 export function useDeadLinkReports() {
   return useQuery({
     queryKey: ["dead-link-reports"],
@@ -74,7 +82,20 @@ export function useDismissDeadLink() {
 export function useDeleteShopFromDeadLinks() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (shopId: number) => api.delete(`/admin/shops/${shopId}`, { wasReported: true }),
+    mutationFn: ({
+      shopId,
+      reason,
+      mode,
+    }: {
+      shopId: number;
+      reason?: string;
+      mode?: "mark_deleted" | "delete";
+    }) =>
+      api.delete(`/admin/shops/${shopId}`, {
+        wasReported: true,
+        reason: reason ?? null,
+        mode: mode ?? "mark_deleted",
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dead-link-reports"] });
       qc.invalidateQueries({ queryKey: ["shops-admin"] });

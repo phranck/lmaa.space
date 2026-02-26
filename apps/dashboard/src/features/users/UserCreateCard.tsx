@@ -1,5 +1,7 @@
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useEffect, useState } from "react";
 import { SFPersonBadgePlus, SFPersonFill, SFPersonFillCheckmark } from "sf-symbols-lib/monochrome";
 import { EMPTY_CREATE_USER_FORM, useCreateUser } from "./hooks/useAdminUsers.ts";
@@ -15,6 +17,7 @@ const inputClass =
 
 export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
   const { messages } = useI18n();
+  const { user } = useAuth();
   const common = messages.common;
   const usersMessages = messages.users;
   const roleOptions = [
@@ -89,6 +92,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             <SegmentedControl
               value={form.role ?? "admin"}
               onChange={(role) => setForm((f) => ({ ...f, role }))}
+              storageKey={getSegmentedStorageKey(user?.id, "users:create:role")}
               options={roleOptions}
             />
           </div>
