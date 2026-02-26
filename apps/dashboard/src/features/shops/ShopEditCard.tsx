@@ -6,6 +6,7 @@ import {
   useRefetchShopImage,
   useSaveShop,
 } from "@/features/shops/hooks/useAdminShops.ts";
+import { getShopEditFormI18n } from "@/features/shops/shop-form-i18n.ts";
 import { useEditSubmission } from "@/features/submissions/hooks/useAdminSubmissions.ts";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
@@ -25,9 +26,10 @@ export function ShopEditCard({
   onClose,
   onSaved,
 }: ShopEditCardProps) {
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const common = messages.common;
   const shopsMessages = messages.shops;
+  const shopFormI18n = getShopEditFormI18n(locale);
   const isSubmissionMode = submissionId !== undefined;
   const isNew = shopId === "new";
   const [closing, setClosing] = useState(false);
@@ -117,6 +119,8 @@ export function ShopEditCard({
               value={form}
               onChange={setForm}
               categories={categories}
+              regionOptions={shopFormI18n.regionOptions}
+              messages={shopFormI18n.messages}
               variant="dashboard"
             />
           )}
