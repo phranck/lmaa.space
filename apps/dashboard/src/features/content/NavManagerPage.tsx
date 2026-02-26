@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/content/hooks/useAdminNav.ts";
 import {
@@ -28,11 +29,64 @@ import {
   SFXmark,
 } from "sf-symbols-lib/monochrome";
 
-const STATIC_ROUTES = [
-  { label: "Startseite", url: "/" },
-  { label: "Shop vorschlagen", url: "/suggestion" },
-  { label: "Suche", url: "/suche" },
-];
+const NAV_TEXT = {
+  de: {
+    pageTitle: "Navigationen",
+    headerNav: "Header-Navigation",
+    footerNav: "Footer-Navigation",
+    staticRoutes: [
+      { label: "Startseite", url: "/" },
+      { label: "Shop vorschlagen", url: "/suggestion" },
+      { label: "Suche", url: "/suche" },
+    ],
+    dragTitle: "Verschieben",
+    labelOverrideTitle: "Label-Override (leer = Standard)",
+    openNewTab: "Öffnet in neuem Tab",
+    openSameTab: "Öffnet im selben Tab",
+    remove: "Entfernen",
+    save: "Speichern",
+    saving: "Speichert…",
+    load: "Lade…",
+    noEntries: "Keine Einträge",
+    typePage: "Seite",
+    typeUrl: "URL",
+    choosePage: "Seite wählen…",
+    add: "Hinzufügen",
+    urlPlaceholder: "https://… oder /pfad",
+    labelPlaceholder: "Label",
+    newTab: "Neuer Tab",
+    sameTab: "Selber Tab",
+    errorSaving: "Fehler beim Speichern",
+  },
+  en: {
+    pageTitle: "Navigations",
+    headerNav: "Header navigation",
+    footerNav: "Footer navigation",
+    staticRoutes: [
+      { label: "Home", url: "/" },
+      { label: "Suggest shop", url: "/suggestion" },
+      { label: "Search", url: "/suche" },
+    ],
+    dragTitle: "Drag",
+    labelOverrideTitle: "Label override (empty = default)",
+    openNewTab: "Opens in new tab",
+    openSameTab: "Opens in same tab",
+    remove: "Remove",
+    save: "Save",
+    saving: "Saving…",
+    load: "Loading…",
+    noEntries: "No entries",
+    typePage: "Page",
+    typeUrl: "URL",
+    choosePage: "Select page…",
+    add: "Add",
+    urlPlaceholder: "https://… or /path",
+    labelPlaceholder: "Label",
+    newTab: "New tab",
+    sameTab: "Same tab",
+    errorSaving: "Error while saving",
+  },
+} as const;
 
 interface NavItemState {
   id: number;
@@ -48,11 +102,13 @@ function SortableNavItem({
   onRemove,
   onLabelChange,
   onTargetChange,
+  text,
 }: {
   item: NavItemState;
   onRemove: (id: number) => void;
   onLabelChange: (id: number, label: string) => void;
   onTargetChange: (id: number, target: "_self" | "_blank") => void;
+  text: (typeof NAV_TEXT)["de"];
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -77,7 +133,7 @@ function SortableNavItem({
         {...attributes}
         {...listeners}
         className="cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors touch-none"
-        title="Verschieben"
+        title={text.dragTitle}
       >
         <SFLine3Horizontal className="w-4 h-4" />
       </button>
@@ -95,7 +151,7 @@ function SortableNavItem({
         onChange={(e) => onLabelChange(item.id, e.target.value)}
         placeholder={item.pageTitle ?? item.url ?? ""}
         className="w-32 px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-        title="Label-Override (leer = Standard)"
+        title={text.labelOverrideTitle}
       />
 
       <button
@@ -106,7 +162,7 @@ function SortableNavItem({
             ? "text-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
             : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
         }`}
-        title={item.target === "_blank" ? "Öffnet in neuem Tab" : "Öffnet im selben Tab"}
+        title={item.target === "_blank" ? text.openNewTab : text.openSameTab}
       >
         <SFArrowUpRightSquare className="w-3.5 h-3.5" />
       </button>
@@ -115,7 +171,7 @@ function SortableNavItem({
         type="button"
         onClick={() => onRemove(item.id)}
         className="p-1 text-[var(--ds-text-muted)] hover:text-red-500 transition-colors"
-        title="Entfernen"
+        title={text.remove}
       >
         <SFXmark className="w-3.5 h-3.5" />
       </button>
@@ -124,6 +180,9 @@ function SortableNavItem({
 }
 
 function NavColumn({ navId, label }: { navId: NavId; label: string }) {
+  const { locale } = useI18n();
+  const text = NAV_TEXT[locale];
+  const staticRoutes = text.staticRoutes;
   const { data: serverItems = [], isLoading } = useAdminNav(navId);
   const { data: allPages = [] } = useContentPages();
   const saveNav = useSaveNav(navId);
@@ -207,7 +266,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
     if (!trimmed) return;
 
     // Check for static route shortcut
-    const staticRoute = STATIC_ROUTES.find((r) => r.url === trimmed);
+    const staticRoute = staticRoutes.find((r) => r.url === trimmed);
     const derivedLabel = addLabel.trim() || staticRoute?.label || "";
 
     setItems((prev) => [
@@ -256,14 +315,14 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
       );
       setDirty(false);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Fehler beim Speichern");
+      setSaveError(err instanceof Error ? err.message : text.errorSaving);
     }
   }
 
   const usedPageSlugs = new Set(items.filter((i) => i.pageSlug).map((i) => i.pageSlug));
   const usedUrls = new Set(items.filter((i) => i.url).map((i) => i.url));
   const availablePages = allPages.filter((p) => !usedPageSlugs.has(p.slug));
-  const availableStatics = STATIC_ROUTES.filter((r) => !usedUrls.has(r.url));
+  const availableStatics = staticRoutes.filter((r) => !usedUrls.has(r.url));
 
   return (
     <div className="flex flex-col gap-4">
@@ -276,21 +335,21 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-50 transition-colors"
         >
           <SFSquareAndArrowDownFill className="w-3 h-3" />
-          {saveNav.isPending ? "Speichert…" : "Speichern"}
+          {saveNav.isPending ? text.saving : text.save}
         </button>
       </div>
 
       {saveError && <p className="text-xs text-red-500">{saveError}</p>}
 
       {isLoading ? (
-        <div className="text-xs text-[var(--ds-text-muted)]">Lade…</div>
+        <div className="text-xs text-[var(--ds-text-muted)]">{text.load}</div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {items.length === 0 && (
                 <div className="text-xs text-[var(--ds-text-muted)] py-4 text-center border border-dashed border-[var(--ds-border)] rounded-control">
-                  Keine Einträge
+                  {text.noEntries}
                 </div>
               )}
               {items.map((item) => (
@@ -300,6 +359,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                   onRemove={handleRemove}
                   onLabelChange={handleLabelChange}
                   onTargetChange={handleTargetChange}
+                  text={text}
                 />
               ))}
             </div>
@@ -320,7 +380,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                 : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
             }`}
           >
-            Seite
+            {text.typePage}
           </button>
           <button
             type="button"
@@ -331,7 +391,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                 : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
             }`}
           >
-            URL
+            {text.typeUrl}
           </button>
         </div>
 
@@ -342,7 +402,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
               onChange={(e) => setAddPageSlug(e.target.value)}
               className="flex-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
             >
-              <option value="">Seite wählen…</option>
+              <option value="">{text.choosePage}</option>
               {availablePages.map((p) => (
                 <option key={p.slug} value={p.slug}>
                   {p.title} (/{p.slug})
@@ -354,7 +414,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
               onClick={handleAddPage}
               disabled={!addPageSlug}
               className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
-              title="Hinzufügen"
+              title={text.add}
             >
               <SFPlusCircle className="w-5 h-5" />
             </button>
@@ -381,14 +441,14 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                 type="text"
                 value={addUrl}
                 onChange={(e) => setAddUrl(e.target.value)}
-                placeholder="https://… oder /pfad"
+                placeholder={text.urlPlaceholder}
                 className="flex-1 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] font-mono"
               />
               <input
                 type="text"
                 value={addLabel}
                 onChange={(e) => setAddLabel(e.target.value)}
-                placeholder="Label"
+                placeholder={text.labelPlaceholder}
                 className="w-24 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
               />
               <button
@@ -399,7 +459,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                     ? "text-[var(--color-primary)]"
                     : "text-[var(--ds-text-muted)]"
                 }`}
-                title={addTarget === "_blank" ? "Neuer Tab" : "Selber Tab"}
+                title={addTarget === "_blank" ? text.newTab : text.sameTab}
               >
                 <SFArrowUpRightSquare className="w-3.5 h-3.5" />
               </button>
@@ -408,7 +468,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                 onClick={handleAddUrl}
                 disabled={!addUrl.trim()}
                 className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
-                title="Hinzufügen"
+                title={text.add}
               >
                 <SFPlusCircle className="w-5 h-5" />
               </button>
@@ -421,16 +481,19 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
 }
 
 export function NavManagerPage() {
+  const { locale } = useI18n();
+  const text = NAV_TEXT[locale];
+
   return (
     <>
-      <PageHeader title="Navigationen" />
+      <PageHeader title={text.pageTitle} />
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control p-5">
-            <NavColumn navId="header" label="Header-Navigation" />
+            <NavColumn navId="header" label={text.headerNav} />
           </div>
           <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control p-5">
-            <NavColumn navId="footer" label="Footer-Navigation" />
+            <NavColumn navId="footer" label={text.footerNav} />
           </div>
         </div>
       </div>

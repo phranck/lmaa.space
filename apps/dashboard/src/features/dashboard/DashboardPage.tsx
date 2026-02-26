@@ -1,6 +1,7 @@
 import { AnalyticsLoadingFallback } from "@/components/AnalyticsLoadingFallback.tsx";
 import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminStats } from "@/features/dashboard/hooks/useAdminStats.ts";
 import { Suspense, lazy } from "react";
 
@@ -11,12 +12,14 @@ const AnalyticsSection = lazy(() =>
 );
 
 export function DashboardPage() {
+  const { messages } = useI18n();
+  const dashboardMessages = messages.dashboard;
   const { data: stats, isLoading } = useAdminStats();
 
   if (isLoading) {
     return (
       <div>
-        <PageHeader title="Übersicht" />
+        <PageHeader title={dashboardMessages.overviewTitle} />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
             <div
@@ -31,28 +34,37 @@ export function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Übersicht" />
+      <PageHeader title={dashboardMessages.overviewTitle} />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <DashboardInfoCard label="Shops" value={stats?.shops ?? 0} />
-        <DashboardInfoCard label="Kategorien" value={stats?.categories ?? 0} />
+        <DashboardInfoCard label={dashboardMessages.cards.shops} value={stats?.shops ?? 0} />
         <DashboardInfoCard
-          label="Offene Vorschläge"
+          label={dashboardMessages.cards.categories}
+          value={stats?.categories ?? 0}
+        />
+        <DashboardInfoCard
+          label={dashboardMessages.cards.pendingSuggestions}
           value={stats?.pendingSubmissions ?? 0}
           accent={(stats?.pendingSubmissions ?? 0) > 0}
-          sub={(stats?.pendingSubmissions ?? 0) > 0 ? "Warten auf Review" : undefined}
+          sub={
+            (stats?.pendingSubmissions ?? 0) > 0
+              ? dashboardMessages.cards.waitingForReview
+              : undefined
+          }
           href={(stats?.pendingSubmissions ?? 0) > 0 ? "/meldungen" : undefined}
         />
         <DashboardInfoCard
-          label="Vorschläge gesamt"
+          label={dashboardMessages.cards.suggestionsTotal}
           value={stats?.totalSubmissions ?? 0}
-          sub="aller Zeiten"
+          sub={dashboardMessages.cards.allTime}
         />
         <DashboardInfoCard
-          label="Defekte Links"
+          label={dashboardMessages.cards.brokenLinks}
           value={stats?.deadLinkReports ?? 0}
           accent={(stats?.deadLinkReports ?? 0) > 0}
-          sub={(stats?.deadLinkReports ?? 0) > 0 ? "Shops gemeldet" : undefined}
+          sub={
+            (stats?.deadLinkReports ?? 0) > 0 ? dashboardMessages.cards.shopsReported : undefined
+          }
           href={(stats?.deadLinkReports ?? 0) > 0 ? "/meldungen?tab=defekte-links" : undefined}
         />
       </div>

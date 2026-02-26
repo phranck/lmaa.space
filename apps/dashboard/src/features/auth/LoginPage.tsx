@@ -1,8 +1,11 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
 export function LoginPage() {
+  const { messages } = useI18n();
+  const loginMessages = messages.auth.login;
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -17,7 +20,7 @@ export function LoginPage() {
       await login(fd.get("username") as string, fd.get("password") as string);
       navigate("/");
     } catch {
-      setError("Ungültige Zugangsdaten.");
+      setError(loginMessages.invalidCredentials);
     } finally {
       setLoading(false);
     }
@@ -29,7 +32,7 @@ export function LoginPage() {
         <div className="text-center mb-8">
           <div
             role="img"
-            aria-label="lmaa.space"
+            aria-label={messages.auth.logoAlt}
             style={{
               width: 120,
               height: 120,
@@ -45,11 +48,13 @@ export function LoginPage() {
             }}
             className="mx-auto"
           />
-          <p className="text-sm text-[var(--ds-text-muted)] mt-1">Admin-Bereich</p>
+          <p className="text-sm text-[var(--ds-text-muted)] mt-1">{messages.auth.adminArea}</p>
         </div>
 
         <div className="bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] p-5">
-          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-6 text-center">Anmelden</h2>
+          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-6 text-center">
+            {loginMessages.title}
+          </h2>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
@@ -57,7 +62,7 @@ export function LoginPage() {
                 htmlFor="username"
                 className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
               >
-                Benutzername
+                {loginMessages.username}
               </label>
               <input
                 id="username"
@@ -74,7 +79,7 @@ export function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
               >
-                Passwort
+                {loginMessages.password}
               </label>
               <input
                 id="password"
@@ -94,7 +99,7 @@ export function LoginPage() {
                 disabled={loading}
                 className="px-6 py-2.5 bg-[var(--color-primary)] text-white rounded-control font-semibold hover:bg-[var(--color-primary-light)] transition-colors disabled:opacity-60"
               >
-                {loading ? "Anmelden..." : "Anmelden"}
+                {loading ? loginMessages.submitLoading : loginMessages.submit}
               </button>
             </div>
           </form>

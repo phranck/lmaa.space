@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
@@ -14,26 +15,9 @@ import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-l
 
 type VisibilityFilter = "all" | "public" | "onhold" | "deleted";
 
-const FILTER_OPTIONS = [
-  { value: "all" as VisibilityFilter, label: "Alle" },
-  {
-    value: "public" as VisibilityFilter,
-    label: "Öffentlich",
-    icon: <SFEyeFill className="w-3.5 h-3.5" />,
-  },
-  {
-    value: "onhold" as VisibilityFilter,
-    label: "Zurückgestellt",
-    icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
-  },
-  {
-    value: "deleted" as VisibilityFilter,
-    label: "Gelöscht",
-    icon: <SFTrashFill className="w-3.5 h-3.5" />,
-  },
-] as const;
-
 export function ShopsPage() {
+  const { messages } = useI18n();
+  const shopsMessages = messages.shops;
   const { user: me } = useAuth();
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -56,15 +40,34 @@ export function ShopsPage() {
 
   const canModify = me?.role !== "moderator";
 
+  const filterOptions = [
+    { value: "all" as VisibilityFilter, label: shopsMessages.filters.all },
+    {
+      value: "public" as VisibilityFilter,
+      label: shopsMessages.filters.public,
+      icon: <SFEyeFill className="w-3.5 h-3.5" />,
+    },
+    {
+      value: "onhold" as VisibilityFilter,
+      label: shopsMessages.filters.onhold,
+      icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
+    },
+    {
+      value: "deleted" as VisibilityFilter,
+      label: shopsMessages.filters.deleted,
+      icon: <SFTrashFill className="w-3.5 h-3.5" />,
+    },
+  ] as const;
+
   return (
     <div>
-      <PageHeader title="Shops">
+      <PageHeader title={shopsMessages.title}>
         <div className="relative">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Suchen…"
+            placeholder={shopsMessages.searchPlaceholder}
             className="h-9 w-52 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
           />
           {search && (
@@ -81,7 +84,7 @@ export function ShopsPage() {
         <SegmentedControl
           value={visibilityFilter}
           onChange={setVisibilityFilter}
-          options={FILTER_OPTIONS}
+          options={filterOptions}
         />
 
         <button
@@ -89,7 +92,7 @@ export function ShopsPage() {
           onClick={() => setEditTarget("new")}
           className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
         >
-          Neuer Shop
+          {shopsMessages.newShop}
         </button>
       </PageHeader>
 
@@ -106,12 +109,12 @@ export function ShopsPage() {
       )}
 
       {!isLoading && shops.length === 0 && (
-        <p className="text-center py-16 text-[var(--ds-text-subtle)]">Keine Shops gefunden.</p>
+        <p className="text-center py-16 text-[var(--ds-text-subtle)]">{shopsMessages.noShops}</p>
       )}
 
       {!isLoading && shops.length > 0 && filtered.length === 0 && (
         <p className="text-center py-16 text-[var(--ds-text-subtle)]">
-          Keine Treffer für „{search}".
+          {shopsMessages.noResultsPrefix} „{search}".
         </p>
       )}
 

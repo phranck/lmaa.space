@@ -1,6 +1,7 @@
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
@@ -28,19 +29,6 @@ interface NavItem {
   minRole?: AdminRole;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { to: "/", label: "Übersicht", icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },
-  { to: "/meldungen", label: "Meldungen", icon: <SFTrayFill className="w-4 h-4" /> },
-  { to: "/shops", label: "Shops", icon: <SFStorefrontFill className="w-4 h-4" /> },
-  { to: "/kategorien", label: "Kategorien", icon: <SFTagFill className="w-4 h-4" /> },
-  {
-    to: "/benutzer",
-    label: "Benutzer",
-    icon: <SFPerson3Fill className="w-4 h-4" />,
-    minRole: "admin",
-  },
-];
-
 function StatusIcon({ status }: { status: string }) {
   if (status === "published") {
     return <SFCheckmarkCircleFill className="w-3 h-3 text-green-500 shrink-0" />;
@@ -63,6 +51,8 @@ interface SidebarProps {
 }
 
 function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
+  const { messages } = useI18n();
+  const sidebarMessages = messages.layout.sidebar;
   const isGroupActive = !!useMatch("/seiten/*");
   const { data: pages } = useContentPages();
   const [localOpen, setLocalOpen] = useState(
@@ -84,7 +74,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
         <span className="shrink-0 opacity-70">
           <SFDocumentFill className="w-4 h-4" />
         </span>
-        <span className="flex-1">Seiten</span>
+        <span className="flex-1">{sidebarMessages.pages}</span>
         <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
@@ -100,7 +90,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
             }`
           }
         >
-          Übersicht
+          {sidebarMessages.pagesOverview}
         </NavLink>
         {(pages ?? []).map((page) => (
           <NavLink
@@ -137,7 +127,29 @@ export function Sidebar({
   onItemClick,
   onEditProfile,
 }: SidebarProps) {
-  const navItems = NAV_ITEMS.filter(
+  const { messages } = useI18n();
+  const sidebarMessages = messages.layout.sidebar;
+  const navItems: NavItem[] = [
+    { to: "/", label: sidebarMessages.overview, icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },
+    {
+      to: "/meldungen",
+      label: sidebarMessages.submissions,
+      icon: <SFTrayFill className="w-4 h-4" />,
+    },
+    { to: "/shops", label: sidebarMessages.shops, icon: <SFStorefrontFill className="w-4 h-4" /> },
+    {
+      to: "/kategorien",
+      label: sidebarMessages.categories,
+      icon: <SFTagFill className="w-4 h-4" />,
+    },
+    {
+      to: "/benutzer",
+      label: sidebarMessages.users,
+      icon: <SFPerson3Fill className="w-4 h-4" />,
+      minRole: "admin",
+    },
+  ];
+  const visibleNavItems = navItems.filter(
     (item) => !item.minRole || (role !== undefined && ROLE_RANK[role] >= ROLE_RANK[item.minRole]),
   );
   const showPages = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
@@ -147,7 +159,7 @@ export function Sidebar({
       <SidebarHeader />
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <SidebarItem
             key={item.to}
             to={item.to}
@@ -161,7 +173,7 @@ export function Sidebar({
         {showPages && (
           <SidebarItem
             to="/seiten/navigationen"
-            label="Navigationen"
+            label={sidebarMessages.navigations}
             icon={<SFLink className="w-4 h-4" />}
             onClick={onItemClick}
           />

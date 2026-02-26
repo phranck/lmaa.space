@@ -1,6 +1,7 @@
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
 import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
@@ -15,6 +16,8 @@ import { SFListBullet, SFSquareGrid2x2Fill } from "sf-symbols-lib/monochrome";
 type ViewMode = "list" | "grid";
 
 export function CategoriesPage() {
+  const { messages } = useI18n();
+  const categoriesMessages = messages.categories;
   const { user: me } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>(
     () => (localStorage.getItem("categories-view") as ViewMode) ?? "list",
@@ -34,7 +37,7 @@ export function CategoriesPage() {
 
   return (
     <div>
-      <PageHeader title="Kategorien">
+      <PageHeader title={categoriesMessages.title}>
         <SegmentedControl
           value={viewMode}
           onChange={changeViewMode}
@@ -49,7 +52,7 @@ export function CategoriesPage() {
           onClick={() => setEditTarget("new")}
           className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
         >
-          Neue Kategorie
+          {categoriesMessages.newCategory}
         </button>
       </PageHeader>
 
@@ -72,9 +75,7 @@ export function CategoriesPage() {
       )}
 
       {!isLoading && categories.length === 0 && (
-        <p className="text-center py-12 text-[var(--ds-text-subtle)]">
-          Noch keine Kategorien vorhanden.
-        </p>
+        <p className="text-center py-12 text-[var(--ds-text-subtle)]">{categoriesMessages.empty}</p>
       )}
 
       {/* List View */}
@@ -113,11 +114,11 @@ export function CategoriesPage() {
 
       <ConfirmDialog
         open={deleteId !== null && !!deleteTarget}
-        title="Kategorie löschen?"
+        title={categoriesMessages.deleteTitle}
         description={
           <>
-            <span className="font-medium">{deleteTarget?.name}</span> wird dauerhaft gelöscht. Alle
-            zugeordneten Shops verlieren ihre Kategorie.
+            <span className="font-medium">{deleteTarget?.name}</span>{" "}
+            {categoriesMessages.deleteDescriptionSuffix}
           </>
         }
         isPending={deleteMutation.isPending}

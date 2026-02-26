@@ -1,4 +1,5 @@
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useEffect, useState } from "react";
 import { SFPersonBadgePlus, SFPersonFill, SFPersonFillCheckmark } from "sf-symbols-lib/monochrome";
 import { EMPTY_CREATE_USER_FORM, useCreateUser } from "./hooks/useAdminUsers.ts";
@@ -9,19 +10,25 @@ interface UserCreateCardProps {
   onCreated: () => void;
 }
 
-const ROLE_OPTIONS = [
-  { value: "admin" as const, label: "Admin", icon: <SFPersonFill className="w-3.5 h-3.5" /> },
-  {
-    value: "moderator" as const,
-    label: "Moderator",
-    icon: <SFPersonFillCheckmark className="w-3.5 h-3.5" />,
-  },
-] as const;
-
 const inputClass =
   "w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
 export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const usersMessages = messages.users;
+  const roleOptions = [
+    {
+      value: "admin" as const,
+      label: usersMessages.role.admin,
+      icon: <SFPersonFill className="w-3.5 h-3.5" />,
+    },
+    {
+      value: "moderator" as const,
+      label: usersMessages.role.moderator,
+      icon: <SFPersonFillCheckmark className="w-3.5 h-3.5" />,
+    },
+  ] as const;
   const [closing, setClosing] = useState(false);
   const [form, setForm] = useState<CreateUserFormData>({
     ...EMPTY_CREATE_USER_FORM,
@@ -59,7 +66,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
     >
       <button
         type="button"
-        aria-label="Dialog schließen"
+        aria-label={usersMessages.createCard.closeAria}
         className="absolute inset-0"
         onClick={close}
       />
@@ -69,18 +76,20 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-[var(--ds-border-subtle)]">
           <SFPersonBadgePlus className="w-5 h-5 text-[var(--ds-text-muted)]" />
-          <h2 className="font-semibold text-[var(--ds-text)]">Neuen Benutzer anlegen</h2>
+          <h2 className="font-semibold text-[var(--ds-text)]">{usersMessages.createCard.title}</h2>
         </div>
 
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
           {/* Rolle */}
           <div>
-            <p className="block text-sm font-medium text-[var(--ds-text)] mb-2">Rolle</p>
+            <p className="block text-sm font-medium text-[var(--ds-text)] mb-2">
+              {usersMessages.createCard.role}
+            </p>
             <SegmentedControl
               value={form.role ?? "admin"}
               onChange={(role) => setForm((f) => ({ ...f, role }))}
-              options={ROLE_OPTIONS}
+              options={roleOptions}
             />
           </div>
 
@@ -90,7 +99,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               htmlFor="uc-username"
               className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
             >
-              Benutzername
+              {usersMessages.createCard.username}
             </label>
             <input
               id="uc-username"
@@ -108,7 +117,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               htmlFor="uc-email"
               className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
             >
-              E-Mail
+              {usersMessages.createCard.email}
             </label>
             <input
               id="uc-email"
@@ -125,7 +134,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               htmlFor="uc-password"
               className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
             >
-              Temporäres Passwort
+              {usersMessages.createCard.tempPassword}
             </label>
             <input
               id="uc-password"
@@ -135,14 +144,16 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               minLength={8}
               className={inputClass}
             />
-            <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">Mindestens 8 Zeichen.</p>
+            <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">
+              {usersMessages.createCard.minLengthHint}
+            </p>
           </div>
 
           {createMutation.isError && (
             <p className="text-[var(--ds-danger-text)] text-sm">
               {createMutation.error instanceof Error
                 ? createMutation.error.message
-                : "Fehler beim Erstellen."}
+                : usersMessages.createCard.errorCreating}
             </p>
           )}
         </div>
@@ -154,7 +165,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             onClick={close}
             className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
           >
-            Abbrechen
+            {common.cancel}
           </button>
           <button
             type="button"
@@ -162,7 +173,9 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             disabled={!canSubmit}
             className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
           >
-            {createMutation.isPending ? "Wird erstellt…" : "Benutzer erstellen"}
+            {createMutation.isPending
+              ? usersMessages.createCard.creating
+              : usersMessages.createCard.create}
           </button>
         </div>
       </div>

@@ -1,9 +1,13 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { api } from "@/lib/api.ts";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
 export function SetupPage() {
+  const { messages } = useI18n();
+  const loginMessages = messages.auth.login;
+  const setupMessages = messages.auth.setup;
   const { refresh } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -16,7 +20,7 @@ export function SetupPage() {
     const fd = new FormData(e.currentTarget);
 
     if (fd.get("password") !== fd.get("passwordConfirm")) {
-      setError("Passwörter stimmen nicht überein.");
+      setError(setupMessages.passwordMismatch);
       setLoading(false);
       return;
     }
@@ -30,7 +34,7 @@ export function SetupPage() {
       await refresh();
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fehler beim Setup.");
+      setError(err instanceof Error ? err.message : setupMessages.genericError);
     } finally {
       setLoading(false);
     }
@@ -42,18 +46,18 @@ export function SetupPage() {
         <div className="text-center mb-8">
           <img
             src="/logo.png"
-            alt="lmaa.space"
+            alt={messages.auth.logoAlt}
             style={{ width: 120, height: 120 }}
             className="mx-auto"
           />
-          <p className="text-sm text-[var(--ds-text-muted)] mt-1">Willkommen!</p>
+          <p className="text-sm text-[var(--ds-text-muted)] mt-1">{setupMessages.welcome}</p>
         </div>
 
         <div className="bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] p-8">
-          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-2">Admin einrichten</h2>
-          <p className="text-sm text-[var(--ds-text-muted)] mb-6">
-            Erstelle den ersten Admin-Account für lmaa.space.
-          </p>
+          <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-2">
+            {setupMessages.title}
+          </h2>
+          <p className="text-sm text-[var(--ds-text-muted)] mb-6">{setupMessages.subtitle}</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
@@ -61,7 +65,7 @@ export function SetupPage() {
                 htmlFor="username"
                 className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
               >
-                Benutzername
+                {loginMessages.username}
               </label>
               <input
                 id="username"
@@ -78,7 +82,7 @@ export function SetupPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
               >
-                E-Mail
+                {setupMessages.email}
               </label>
               <input
                 id="email"
@@ -94,7 +98,7 @@ export function SetupPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
               >
-                Passwort
+                {loginMessages.password}
               </label>
               <input
                 id="password"
@@ -111,7 +115,7 @@ export function SetupPage() {
                 htmlFor="passwordConfirm"
                 className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
               >
-                Passwort bestätigen
+                {setupMessages.confirmPassword}
               </label>
               <input
                 id="passwordConfirm"
@@ -130,7 +134,7 @@ export function SetupPage() {
                 disabled={loading}
                 className="px-6 py-2.5 bg-[var(--color-primary)] text-white rounded-control font-semibold hover:bg-[var(--color-primary-light)] transition-colors disabled:opacity-60"
               >
-                {loading ? "Wird eingerichtet..." : "Admin-Account erstellen"}
+                {loading ? setupMessages.submitLoading : setupMessages.submit}
               </button>
             </div>
           </form>

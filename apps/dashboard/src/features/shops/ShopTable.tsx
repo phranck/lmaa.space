@@ -1,4 +1,5 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import type { ShopSummary } from "@lmaa/shared";
 import { REGION_OPTIONS } from "@lmaa/ui";
 import { useMemo } from "react";
@@ -13,11 +14,14 @@ interface ShopTableProps {
 }
 
 function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"] }) {
+  const { messages } = useI18n();
+  const shopsMessages = messages.shops;
+
   if (visibility === "onhold") {
     return (
       <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">
         <SFPauseCircleFill className="w-3 h-3" />
-        zurückgestellt
+        {shopsMessages.table.statusOnhold}
       </span>
     );
   }
@@ -25,7 +29,7 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
     return (
       <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
         <SFTrashFill className="w-3 h-3" />
-        gelöscht
+        {shopsMessages.table.statusDeleted}
       </span>
     );
   }
@@ -33,11 +37,13 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
 }
 
 export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTableProps) {
+  const { messages } = useI18n();
+  const shopsMessages = messages.shops;
   const columns = useMemo<ColumnDef<ShopSummary>[]>(
     () => [
       {
         id: "name",
-        header: "Shop",
+        header: shopsMessages.table.shop,
         sortKey: (shop) => shop.name.toLowerCase(),
         cell: (shop) => (
           <div className="min-w-0">
@@ -72,7 +78,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
       },
       {
         id: "categories",
-        header: "Kategorien",
+        header: shopsMessages.table.categories,
         cell: (shop) =>
           shop.categories.length === 0 ? (
             <span className="text-[var(--ds-text-subtle)]">–</span>
@@ -91,7 +97,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
       },
       {
         id: "region",
-        header: "Region",
+        header: shopsMessages.table.region,
         className: "w-36",
         sortKey: (shop) => (shop.region ?? []).join(", "),
         cell: (shop) =>
@@ -127,7 +133,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   onClick={() => onEdit(shop.id)}
                   className="h-9 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
-                  Bearbeiten
+                  {shopsMessages.table.edit}
                 </button>
                 {onHold && (
                   <button
@@ -135,7 +141,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                     onClick={() => onHold(shop.id)}
                     className="h-9 px-3 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
                   >
-                    Zurückstellen
+                    {shopsMessages.table.putOnHold}
                   </button>
                 )}
                 {onDelete && (
@@ -144,7 +150,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                     onClick={() => onDelete(shop.id)}
                     className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                   >
-                    Löschen
+                    {shopsMessages.table.delete}
                   </button>
                 )}
               </>
@@ -156,7 +162,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                   onClick={() => onEdit(shop.id)}
                   className="h-9 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
-                  Bearbeiten
+                  {shopsMessages.table.edit}
                 </button>
                 {onRestore && (
                   <button
@@ -164,7 +170,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                     onClick={() => onRestore(shop.id)}
                     className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                   >
-                    Wiederherstellen
+                    {shopsMessages.table.restore}
                   </button>
                 )}
                 {onDelete && (
@@ -173,7 +179,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                     onClick={() => onDelete(shop.id)}
                     className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                   >
-                    Löschen
+                    {shopsMessages.table.delete}
                   </button>
                 )}
               </>
@@ -184,14 +190,14 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                 onClick={() => onRestore(shop.id)}
                 className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
               >
-                Wiederherstellen
+                {shopsMessages.table.restore}
               </button>
             )}
           </div>
         ),
       },
     ],
-    [onEdit, onDelete, onHold, onRestore],
+    [onDelete, onEdit, onHold, onRestore, shopsMessages],
   );
 
   return (

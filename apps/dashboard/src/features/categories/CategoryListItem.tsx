@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import type { Category } from "@lmaa/shared";
 
 function CategoryImage({ category }: { category: Category }) {
@@ -21,6 +22,9 @@ interface CategoryListItemProps {
 }
 
 export function CategoryListItem({ category, onEdit, onDelete }: CategoryListItemProps) {
+  const { messages } = useI18n();
+  const categoriesMessages = messages.categories;
+
   return (
     <div className="relative bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border)] flex items-stretch card-hover">
       <CategoryImage category={category} />
@@ -29,7 +33,8 @@ export function CategoryListItem({ category, onEdit, onDelete }: CategoryListIte
           <p className="font-medium text-[var(--ds-text)]">{category.name}</p>
           <p className="text-xs text-[var(--ds-text-subtle)]">
             {category.slug}
-            {category.shopCount !== undefined && ` · ${category.shopCount} Shops`}
+            {category.shopCount !== undefined &&
+              ` · ${category.shopCount} ${categoriesMessages.card.shopPlural}`}
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -38,14 +43,14 @@ export function CategoryListItem({ category, onEdit, onDelete }: CategoryListIte
             onClick={() => onEdit(category.id)}
             className="btn-edit h-9 px-3 text-sm border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
           >
-            Bearbeiten
+            {categoriesMessages.card.edit}
           </button>
           <button
             type="button"
             onClick={() => onDelete(category.id)}
             className="btn-delete h-9 px-3 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
           >
-            Löschen
+            {categoriesMessages.card.delete}
           </button>
         </div>
       </div>
