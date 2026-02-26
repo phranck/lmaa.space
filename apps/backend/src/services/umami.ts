@@ -61,3 +61,95 @@ export function periodToRange(period: UmamiPeriod): { startAt: number; endAt: nu
   startAt.setHours(0, 0, 0, 0);
   return { startAt: startAt.getTime(), endAt };
 }
+
+type UmamiKpiMetric = {
+  value: number;
+  change: number;
+};
+
+export type NormalizedUmamiStats = {
+  pageviews: UmamiKpiMetric;
+  visitors: UmamiKpiMetric;
+  visits: UmamiKpiMetric;
+  bounces: UmamiKpiMetric;
+  totaltime: UmamiKpiMetric;
+};
+
+type MetricField = keyof NormalizedUmamiStats;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function toNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function toChange(current: number, previous: number): number {
+  if (previous <= 0) return 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+function getMetricFromLegacyShape(
+  source: Record<string, unknown>,
+  field: MetricField,
+): UmamiKpiMetric {
+  const metric = source[field];
+  if (!isRecord(metric)) return { value: 0, change: 0 };
+  const value = toNumber(metric.value);
+  const explicitChange = toNumber(metric.change);
+  if (explicitChange !== 0) return { value, change: explicitChange };
+  const prev = toNumber(metric.prev);
+  return { value, change: toChange(value, prev) };
+}
+
+function getMetricFromCurrentShape(
+  source: Record<string, unknown>,
+  comparison: Record<string, unknown>,
+  field: MetricField,
+): UmamiKpiMetric {
+  const value = toNumber(source[field]);
+  const previous = toNumber(comparison[field]);
+  return { value, change: toChange(value, previous) };
+}
+
+export function normalizeUmamiStats(raw: unknown): NormalizedUmamiStats {
+  if (!isRecord(raw)) {
+    return {
+      pageviews: { value: 0, change: 0 },
+      visitors: { value: 0, change: 0 },
+      visits: { value: 0, change: 0 },
+      bounces: { value: 0, change: 0 },
+      totaltime: { value: 0, change: 0 },
+    };
+  }
+
+  const comparison = isRecord(raw.comparison) ? raw.comparison : {};
+  const hasCurrentShape = typeof raw.pageviews === "number";
+
+  return {
+    pageviews: hasCurrentShape
+      ? getMetricFromCurrentShape(raw, comparison, "pageviews")
+      : getMetricFromLegacyShape(raw, "pageviews"),
+    visitors: hasCurrentShape
+      ? getMetricFromCurrentShape(raw, comparison, "visitors")
+      : getMetricFromLegacyShape(raw, "visitors"),
+    visits: hasCurrentShape
+      ? getMetricFromCurrentShape(raw, comparison, "visits")
+      : getMetricFromLegacyShape(raw, "visits"),
+    bounces: hasCurrentShape
+      ? getMetricFromCurrentShape(raw, comparison, "bounces")
+      : getMetricFromLegacyShape(raw, "bounces"),
+    totaltime: hasCurrentShape
+      ? getMetricFromCurrentShape(raw, comparison, "totaltime")
+      : getMetricFromLegacyShape(raw, "totaltime"),
+  };
+}
+
+const METRIC_TYPE_MAP: Record<string, string> = {
+  url: "path",
+};
+
+export function normalizeUmamiMetricType(type: string): string {
+  return METRIC_TYPE_MAP[type] ?? type;
+}
