@@ -92,6 +92,25 @@ const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   usa: "US",
 };
 
+const DE_REGION_CODE_TO_NAME: Record<string, string> = {
+  BB: "Brandenburg",
+  BE: "Berlin",
+  BW: "Baden-Württemberg",
+  BY: "Bayern",
+  HB: "Bremen",
+  HE: "Hessen",
+  HH: "Hamburg",
+  MV: "Mecklenburg-Vorpommern",
+  NI: "Niedersachsen",
+  NW: "Nordrhein-Westfalen",
+  RP: "Rheinland-Pfalz",
+  SH: "Schleswig-Holstein",
+  SL: "Saarland",
+  SN: "Sachsen",
+  ST: "Sachsen-Anhalt",
+  TH: "Thüringen",
+};
+
 const COUNTRY_CODE_TO_NAME: Record<string, string> = {
   AT: "Österreich",
   CH: "Schweiz",
@@ -168,6 +187,18 @@ function parseLocationDisplay(
       return { label: `${regionPart}, ${countryLabel}`, flag };
     }
     return { label: regionPart || "(Unbekannt)", flag };
+  }
+
+  const regionCodeMatch = /^([A-Za-z]{2})-([A-Za-z0-9]{2,3})$/.exec(regionPart);
+  if (regionCodeMatch) {
+    const countryCode = regionCodeMatch[1].toUpperCase();
+    const subCode = regionCodeMatch[2].toUpperCase();
+    const countryLabel = getCountryDisplayName(countryCode);
+    const regionName =
+      countryCode === "DE"
+        ? (DE_REGION_CODE_TO_NAME[subCode] ?? `${countryCode}-${subCode}`)
+        : regionPart;
+    return { label: `${regionName}, ${countryLabel}`, flag: countryFlag(countryCode) };
   }
 
   if (parts.length >= 2) {
