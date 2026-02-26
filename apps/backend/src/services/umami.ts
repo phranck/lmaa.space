@@ -1,7 +1,9 @@
-const UMAMI_URL = process.env.UMAMI_URL ?? "";
-const UMAMI_USERNAME = process.env.UMAMI_USERNAME ?? "";
-const UMAMI_PASSWORD = process.env.UMAMI_PASSWORD ?? "";
-export const UMAMI_WEBSITE_ID = process.env.UMAMI_WEBSITE_ID ?? "";
+import { env } from "../config/env.js";
+
+const UMAMI_URL = env.UMAMI_URL;
+const UMAMI_USERNAME = env.UMAMI_USERNAME;
+const UMAMI_PASSWORD = env.UMAMI_PASSWORD;
+export const UMAMI_WEBSITE_ID = env.UMAMI_WEBSITE_ID;
 
 export const umamiConfigured =
   UMAMI_URL !== "" && UMAMI_USERNAME !== "" && UMAMI_PASSWORD !== "" && UMAMI_WEBSITE_ID !== "";

@@ -1,4 +1,5 @@
 import { lt } from "drizzle-orm";
+import { env } from "../config/env.js";
 import { db } from "../db/index.js";
 import { sessions } from "../db/schema.js";
 
@@ -22,7 +23,7 @@ export async function cleanupExpiredSessions(): Promise<{ purged: number }> {
  * Runs every 1 hour (configurable via env var).
  */
 export function startSessionCleanupJob(): void {
-  const intervalMs = Number(process.env.SESSION_CLEANUP_INTERVAL_MS ?? 1 * 60 * 60 * 1000); // 1 hour default
+  const intervalMs = env.SESSION_CLEANUP_INTERVAL_MS;
 
   setInterval(async () => {
     try {

@@ -5,6 +5,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";
 import {
@@ -28,14 +29,14 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>();
 // GET /api/admin/setup – check if initial setup is needed
 authRoutes.get("/setup", async (c) => {
   const count = await getAdminCount();
-  return c.json({ data: { needsSetup: count === 0 } });
+  return ok(c, { needsSetup: count === 0 });
 });
 
 // POST /api/admin/setup (only if no admin exists)
 authRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
   const adminCount = await getAdminCount();
   if (adminCount > 0) {
-    return c.json({ error: { message: "Setup already completed" } }, 403);
+    return fail(c, 403, "Setup already completed");
   }
 
   const { username, email, password } = c.req.valid("json");
@@ -49,10 +50,7 @@ authRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
   const sessionId = await createSession(admin.id);
   setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
-  return c.json(
-    { data: { id: admin.id, username: admin.username, role: "owner", isOwner: true } },
-    201,
-  );
+  return ok(c, { id: admin.id, username: admin.username, role: "owner", isOwner: true }, 201);
 });
 
 // POST /api/admin/login
@@ -65,19 +63,17 @@ authRoutes.post(
     const admin = await findAdminByUsername(username);
 
     if (!admin || !(await verifyPassword(password, admin.passwordHash))) {
-      return c.json({ error: { message: "Invalid credentials" } }, 401);
+      return fail(c, 401, "Invalid credentials");
     }
 
     const sessionId = await createSession(admin.id);
     setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
-    return c.json({
-      data: {
-        id: admin.id,
-        username: admin.username,
-        role: admin.role,
-        isOwner: admin.role === "owner",
-      },
+    return ok(c, {
+      id: admin.id,
+      username: admin.username,
+      role: admin.role,
+      isOwner: admin.role === "owner",
     });
   },
 );
@@ -87,7 +83,7 @@ authRoutes.post("/logout", requireAuth, async (c) => {
   const sessionId = getCookie(c, "session");
   if (sessionId) await deleteSession(sessionId);
   deleteCookie(c, "session", { path: "/" });
-  return c.json({ data: { message: "Logged out" } });
+  return ok(c, { message: "Logged out" });
 });
 
 // GET /api/admin/me
@@ -109,5 +105,5 @@ authRoutes.get("/me", requireAuth, async (c) => {
     .where(eq(adminUsers.id, adminId))
     .limit(1);
 
-  return c.json({ data: { ...admin, isOwner: admin.role === "owner" } });
+  return ok(c, { ...admin, isOwner: admin.role === "owner" });
 });

@@ -4,6 +4,7 @@
  */
 
 import postgres from "postgres";
+import { env } from "../config/env.js";
 
 const BASE_URL = "https://codeberg.org/api/v1/repos/phranck/Amazon-Alternativen/raw/categories";
 
@@ -185,8 +186,7 @@ function parseContent(text: string): {
 }
 
 async function main() {
-  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
-  const sql = postgres(process.env.DATABASE_URL);
+  const sql = postgres(env.DATABASE_URL);
 
   let totalCategories = 0;
   let totalShops = 0;

@@ -4,6 +4,8 @@
  */
 
 import type { Context, Next } from "hono";
+import { env } from "../config/env.js";
+import { ok } from "../lib/http.js";
 
 interface CacheEntry<T> {
   data: T;
@@ -29,7 +31,7 @@ export function createCacheMiddleware<T>(options: {
     // Check if cached entry is still valid
     if (cached && Date.now() - cached.cachedAt < cached.ttlMs) {
       c.header("X-Cache", "HIT");
-      return c.json({ data: cached.data });
+      return ok(c, cached.data as T);
     }
 
     // Proceed to next middleware
@@ -90,7 +92,7 @@ export function getCacheStats() {
 
 // Start periodic cleanup of expired cache entries (every 10 minutes)
 if (typeof global !== "undefined") {
-  const cleanupIntervalMs = Number(process.env.CACHE_CLEANUP_INTERVAL_MS ?? 10 * 60 * 1000);
+  const cleanupIntervalMs = env.CACHE_CLEANUP_INTERVAL_MS;
 
   setInterval(() => {
     const now = Date.now();

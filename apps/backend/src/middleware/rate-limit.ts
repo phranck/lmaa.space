@@ -1,4 +1,6 @@
 import { createMiddleware } from "hono/factory";
+import { env } from "../config/env.js";
+import { fail } from "../lib/http.js";
 
 interface RateLimitEntry {
   count: number;
@@ -9,7 +11,7 @@ const store = new Map<string, RateLimitEntry>();
 
 // Start periodic cleanup of expired entries (every 5 minutes by default)
 if (typeof global !== "undefined") {
-  const cleanupIntervalMs = Number(process.env.RATE_LIMIT_CLEANUP_INTERVAL_MS ?? 5 * 60 * 1000);
+  const cleanupIntervalMs = env.RATE_LIMIT_CLEANUP_INTERVAL_MS;
 
   setInterval(() => {
     const now = Date.now();
@@ -45,7 +47,7 @@ export function rateLimit(options: { max: number; windowMs: number }) {
     }
 
     if (entry.count >= options.max) {
-      return c.json({ error: { message: "Too many requests" } }, 429);
+      return fail(c, 429, "Too many requests");
     }
 
     entry.count++;

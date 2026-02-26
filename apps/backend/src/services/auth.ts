@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { env } from "../config/env.js";
 import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
 
@@ -14,7 +15,7 @@ const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24h
 
 export const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: env.NODE_ENV === "production",
   sameSite: "Strict" as const,
   maxAge: 86400,
   path: "/",

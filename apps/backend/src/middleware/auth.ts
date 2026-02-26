@@ -4,6 +4,7 @@ import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
+import { fail } from "../lib/http.js";
 
 export type AuthVariables = {
   adminId: number;
@@ -15,7 +16,7 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
   const sessionId = getCookie(c, "session");
 
   if (!sessionId) {
-    return c.json({ error: { message: "Unauthorized" } }, 401);
+    return fail(c, 401, "Unauthorized");
   }
 
   const now = new Date();
@@ -31,7 +32,7 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
     .limit(1);
 
   if (!session || session.expiresAt < now) {
-    return c.json({ error: { message: "Session expired" } }, 401);
+    return fail(c, 401, "Session expired");
   }
 
   c.set("adminId", session.adminId);
@@ -43,14 +44,14 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
 
 export const requireOwner = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   if (!c.get("isOwner")) {
-    return c.json({ error: { message: "Forbidden" } }, 403);
+    return fail(c, 403, "Forbidden");
   }
   await next();
 });
 
 export const requireAdmin = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   if (c.get("role") === "moderator") {
-    return c.json({ error: { message: "Forbidden" } }, 403);
+    return fail(c, 403, "Forbidden");
   }
   await next();
 });

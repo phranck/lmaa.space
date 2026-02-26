@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers, contentPages } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
 
 const contentUpdateSchema = z.object({
@@ -62,8 +63,9 @@ contentRoutes.get("/content", requireAuth, requireAdmin, async (c) => {
 
   const userMap = await buildUserMap(pages.flatMap((r) => [r.createdBy, r.updatedBy]));
 
-  return c.json({
-    data: pages.map((r) => ({
+  return ok(
+    c,
+    pages.map((r) => ({
       slug: r.slug,
       title: r.title,
       status: r.status,
@@ -72,7 +74,7 @@ contentRoutes.get("/content", requireAuth, requireAdmin, async (c) => {
       updatedAt: r.updatedAt ? r.updatedAt.toISOString() : null,
       updatedByUsername: r.updatedBy ? (userMap.get(r.updatedBy) ?? null) : null,
     })),
-  });
+  );
 });
 
 // ─── Create page ──────────────────────────────────────────────────────────────
@@ -92,7 +94,7 @@ contentRoutes.post(
       .where(eq(contentPages.slug, slug))
       .limit(1);
     if (existing.length > 0) {
-      return c.json({ error: { message: "Slug bereits vergeben" } }, 409);
+      return fail(c, 409, "Slug bereits vergeben");
     }
 
     const [page] = await db
@@ -106,17 +108,16 @@ contentRoutes.post(
       .where(eq(adminUsers.id, adminId))
       .limit(1);
 
-    return c.json(
+    return ok(
+      c,
       {
-        data: {
-          slug: page.slug,
-          title: page.title,
-          status: page.status,
-          createdAt: page.createdAt.toISOString(),
-          createdByUsername: creator?.username ?? null,
-          updatedAt: null,
-          updatedByUsername: null,
-        },
+        slug: page.slug,
+        title: page.title,
+        status: page.status,
+        createdAt: page.createdAt.toISOString(),
+        createdByUsername: creator?.username ?? null,
+        updatedAt: null,
+        updatedByUsername: null,
       },
       201,
     );
@@ -128,21 +129,19 @@ contentRoutes.post(
 contentRoutes.get("/content/:slug", requireAuth, requireAdmin, async (c) => {
   const slug = c.req.param("slug");
   const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug)).limit(1);
-  if (!page) return c.json({ error: { message: "Not found" } }, 404);
+  if (!page) return fail(c, 404, "Not found");
 
   const userMap = await buildUserMap([page.createdBy, page.updatedBy]);
 
-  return c.json({
-    data: {
-      slug: page.slug,
-      title: page.title,
-      content: page.content,
-      status: page.status,
-      createdAt: page.createdAt.toISOString(),
-      createdByUsername: page.createdBy ? (userMap.get(page.createdBy) ?? null) : null,
-      updatedAt: page.updatedAt ? page.updatedAt.toISOString() : null,
-      updatedByUsername: page.updatedBy ? (userMap.get(page.updatedBy) ?? null) : null,
-    },
+  return ok(c, {
+    slug: page.slug,
+    title: page.title,
+    content: page.content,
+    status: page.status,
+    createdAt: page.createdAt.toISOString(),
+    createdByUsername: page.createdBy ? (userMap.get(page.createdBy) ?? null) : null,
+    updatedAt: page.updatedAt ? page.updatedAt.toISOString() : null,
+    updatedByUsername: page.updatedBy ? (userMap.get(page.updatedBy) ?? null) : null,
   });
 });
 
@@ -163,7 +162,7 @@ contentRoutes.put(
       .set({ content, updatedAt: new Date(), updatedBy: adminId })
       .where(eq(contentPages.slug, slug))
       .returning();
-    if (!updated) return c.json({ error: { message: "Not found" } }, 404);
+    if (!updated) return fail(c, 404, "Not found");
 
     const [editor] = await db
       .select({ username: adminUsers.username })
@@ -171,12 +170,10 @@ contentRoutes.put(
       .where(eq(adminUsers.id, adminId))
       .limit(1);
 
-    return c.json({
-      data: {
-        slug: updated.slug,
-        updatedAt: updated.updatedAt?.toISOString() ?? null,
-        updatedByUsername: editor?.username ?? null,
-      },
+    return ok(c, {
+      slug: updated.slug,
+      updatedAt: updated.updatedAt?.toISOString() ?? null,
+      updatedByUsername: editor?.username ?? null,
     });
   },
 );
@@ -200,7 +197,7 @@ contentRoutes.patch(
         .where(eq(contentPages.slug, newSlug))
         .limit(1);
       if (existing.length > 0) {
-        return c.json({ error: { message: "Slug bereits vergeben" } }, 409);
+        return fail(c, 409, "Slug bereits vergeben");
       }
     }
 
@@ -217,15 +214,13 @@ contentRoutes.patch(
       .set(updates)
       .where(eq(contentPages.slug, currentSlug))
       .returning();
-    if (!updated) return c.json({ error: { message: "Not found" } }, 404);
+    if (!updated) return fail(c, 404, "Not found");
 
-    return c.json({
-      data: {
-        slug: updated.slug,
-        title: updated.title,
-        status: updated.status,
-        updatedAt: updated.updatedAt?.toISOString() ?? null,
-      },
+    return ok(c, {
+      slug: updated.slug,
+      title: updated.title,
+      status: updated.status,
+      updatedAt: updated.updatedAt?.toISOString() ?? null,
     });
   },
 );
@@ -238,6 +233,6 @@ contentRoutes.delete("/content/:slug", requireAuth, requireAdmin, async (c) => {
     .delete(contentPages)
     .where(eq(contentPages.slug, slug))
     .returning({ slug: contentPages.slug });
-  if (!deleted) return c.json({ error: { message: "Not found" } }, 404);
-  return c.json({ data: { message: "Gelöscht" } });
+  if (!deleted) return fail(c, 404, "Not found");
+  return ok(c, { message: "Gelöscht" });
 });

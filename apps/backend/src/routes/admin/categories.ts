@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { categories, shopCategories, shops } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { detectImageType, parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
 
@@ -31,7 +32,7 @@ categoriesRoutes.get("/categories", requireAuth, async (c) => {
     .leftJoin(shops, eq(shops.id, shopCategories.shopId))
     .groupBy(categories.id)
     .orderBy(categories.name);
-  return c.json({ data: rows });
+  return ok(c, rows);
 });
 
 categoriesRoutes.post(
@@ -41,7 +42,7 @@ categoriesRoutes.post(
   async (c) => {
     const body = c.req.valid("json");
     const [category] = await db.insert(categories).values(body).returning();
-    return c.json({ data: category }, 201);
+    return ok(c, category, 201);
   },
 );
 
@@ -52,7 +53,7 @@ for (const method of ["put", "patch"] as const) {
     zValidator("json", categoryUpdateSchema),
     async (c) => {
       const id = parseId(c.req.param("id"));
-      if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+      if (!id) return fail(c, 400, "Invalid id");
       const body = c.req.valid("json");
 
       const [category] = await db
@@ -60,37 +61,35 @@ for (const method of ["put", "patch"] as const) {
         .set({ ...body, updatedAt: new Date() })
         .where(eq(categories.id, id))
         .returning();
-      if (!category) return c.json({ error: { message: "Category not found" } }, 404);
-      return c.json({ data: category });
+      if (!category) return fail(c, 404, "Category not found");
+      return ok(c, category);
     },
   );
 }
 
 categoriesRoutes.delete("/categories/:id", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
   await db.delete(categories).where(eq(categories.id, id));
-  return c.json({ data: { message: "Category deleted" } });
+  return ok(c, { message: "Category deleted" });
 });
 
 // Image upload for a category
 categoriesRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
   const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
-  if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
+  if (!cat) return fail(c, 404, "Category not found");
 
   const formData = await c.req.formData();
   const file = formData.get("image");
-  if (!(file instanceof File)) return c.json({ error: { message: "No image file provided" } }, 400);
+  if (!(file instanceof File)) return fail(c, 400, "No image file provided");
 
-  if (file.size > 5 * 1024 * 1024)
-    return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
+  if (file.size > 5 * 1024 * 1024) return fail(c, 400, "File too large (max 5 MB)");
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const detectedType = detectImageType(buffer);
-  if (!detectedType)
-    return c.json({ error: { message: "Invalid image content (only JPEG, PNG or WebP)" } }, 400);
+  if (!detectedType) return fail(c, 400, "Invalid image content (only JPEG, PNG or WebP)");
 
   // Resize to 1200x675 (16:9), convert to WebP, store as base64 data URL in DB
   const resized = await sharp(buffer).resize(1200, 675, { fit: "cover" }).webp().toBuffer();
@@ -101,15 +100,15 @@ categoriesRoutes.post("/categories/:id/image", requireAuth, async (c) => {
     .where(eq(categories.id, id))
     .returning();
 
-  return c.json({ data: updated });
+  return ok(c, updated);
 });
 
 // Delete image of a category
 categoriesRoutes.delete("/categories/:id/image", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
   const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
-  if (!cat) return c.json({ error: { message: "Category not found" } }, 404);
+  if (!cat) return fail(c, 404, "Category not found");
 
   const [updated] = await db
     .update(categories)
@@ -122,5 +121,5 @@ categoriesRoutes.delete("/categories/:id/image", requireAuth, requireAdmin, asyn
     .where(eq(categories.id, id))
     .returning();
 
-  return c.json({ data: updated });
+  return ok(c, updated);
 });

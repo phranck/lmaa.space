@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers, sessions } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { detectImageType, parseId } from "../../lib/validate.js";
 import {
   type AuthVariables,
@@ -40,7 +41,10 @@ function canModify(adminId: number, isOwner: boolean, targetId: number): boolean
 
 usersRoutes.get("/users", requireAuth, requireAdmin, async (c) => {
   const users = await db.select(USER_FIELDS).from(adminUsers);
-  return c.json({ data: users.map((u) => ({ ...u, isOwner: u.role === "owner" })) });
+  return ok(
+    c,
+    users.map((u) => ({ ...u, isOwner: u.role === "owner" })),
+  );
 });
 
 // ─── Create user (owner only) ─────────────────────────────────────────────────
@@ -65,7 +69,7 @@ usersRoutes.post(
     // Send welcome email (fire-and-forget, don't block the response)
     sendWelcomeEmail(email, username, password).catch(() => {});
 
-    return c.json({ data: { ...admin, isOwner: admin.role === "owner" } }, 201);
+    return ok(c, { ...admin, isOwner: admin.role === "owner" }, 201);
   },
 );
 
@@ -82,12 +86,12 @@ const updateUserSchema = z.object({
 
 usersRoutes.patch("/users/:id", requireAuth, zValidator("json", updateUserSchema), async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
 
   const adminId = c.get("adminId");
   const isOwner = c.get("isOwner");
   if (!canModify(adminId, isOwner, id)) {
-    return c.json({ error: { message: "Forbidden" } }, 403);
+    return fail(c, 403, "Forbidden");
   }
 
   const { username, email, password, firstName, lastName, role } = c.req.valid("json");
@@ -100,13 +104,13 @@ usersRoutes.patch("/users/:id", requireAuth, zValidator("json", updateUserSchema
 
   if (role !== undefined) {
     if (!isOwner || adminId === id) {
-      return c.json({ error: { message: "Forbidden" } }, 403);
+      return fail(c, 403, "Forbidden");
     }
     updates.role = role;
   }
 
   if (Object.keys(updates).length === 0) {
-    return c.json({ error: { message: "Nothing to update" } }, 400);
+    return fail(c, 400, "Nothing to update");
   }
 
   const [updated] = await db
@@ -115,19 +119,19 @@ usersRoutes.patch("/users/:id", requireAuth, zValidator("json", updateUserSchema
     .where(eq(adminUsers.id, id))
     .returning(USER_FIELDS);
 
-  return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
+  return ok(c, { ...updated, isOwner: updated.role === "owner" });
 });
 
 // ─── Upload avatar (self or owner) ───────────────────────────────────────────
 
 usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
 
   const adminId = c.get("adminId");
   const isOwner = c.get("isOwner");
   if (!canModify(adminId, isOwner, id)) {
-    return c.json({ error: { message: "Forbidden" } }, 403);
+    return fail(c, 403, "Forbidden");
   }
 
   const [user] = await db
@@ -135,21 +139,20 @@ usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
     .from(adminUsers)
     .where(eq(adminUsers.id, id))
     .limit(1);
-  if (!user) return c.json({ error: { message: "User not found" } }, 404);
+  if (!user) return fail(c, 404, "User not found");
 
   const formData = await c.req.formData();
   const file = formData.get("avatar");
-  if (!(file instanceof File))
-    return c.json({ error: { message: "No avatar file provided" } }, 400);
+  if (!(file instanceof File)) return fail(c, 400, "No avatar file provided");
 
   if (file.size > 5 * 1024 * 1024) {
-    return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
+    return fail(c, 400, "File too large (max 5 MB)");
   }
 
   const rawBuffer = Buffer.from(await file.arrayBuffer());
   const detectedType = detectImageType(rawBuffer);
   if (!detectedType) {
-    return c.json({ error: { message: "Invalid image content (only JPEG, PNG or WebP)" } }, 400);
+    return fail(c, 400, "Invalid image content (only JPEG, PNG or WebP)");
   }
 
   // Resize to 256x256 cover, convert to WebP, store as base64 data URL in DB
@@ -162,7 +165,7 @@ usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
     .where(eq(adminUsers.id, id))
     .returning(USER_FIELDS);
 
-  return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
+  return ok(c, { ...updated, isOwner: updated.role === "owner" });
 });
 
 // ─── Set Gravatar as avatar (self or owner) ───────────────────────────────────
@@ -180,12 +183,12 @@ usersRoutes.patch(
   zValidator("json", gravatarSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
-    if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+    if (!id) return fail(c, 400, "Invalid id");
 
     const adminId = c.get("adminId");
     const isOwner = c.get("isOwner");
     if (!canModify(adminId, isOwner, id)) {
-      return c.json({ error: { message: "Forbidden" } }, 403);
+      return fail(c, 403, "Forbidden");
     }
 
     const { gravatarUrl } = c.req.valid("json");
@@ -196,7 +199,7 @@ usersRoutes.patch(
       .where(eq(adminUsers.id, id))
       .returning(USER_FIELDS);
 
-    return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
+    return ok(c, { ...updated, isOwner: updated.role === "owner" });
   },
 );
 
@@ -204,12 +207,12 @@ usersRoutes.patch(
 
 usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
 
   const adminId = c.get("adminId");
   const isOwner = c.get("isOwner");
   if (!canModify(adminId, isOwner, id)) {
-    return c.json({ error: { message: "Forbidden" } }, 403);
+    return fail(c, 403, "Forbidden");
   }
 
   const [user] = await db
@@ -217,7 +220,7 @@ usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
     .from(adminUsers)
     .where(eq(adminUsers.id, id))
     .limit(1);
-  if (!user) return c.json({ error: { message: "User not found" } }, 404);
+  if (!user) return fail(c, 404, "User not found");
 
   const [updated] = await db
     .update(adminUsers)
@@ -225,23 +228,23 @@ usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
     .where(eq(adminUsers.id, id))
     .returning(USER_FIELDS);
 
-  return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
+  return ok(c, { ...updated, isOwner: updated.role === "owner" });
 });
 
 // ─── Delete user (owner only) ─────────────────────────────────────────────────
 
 usersRoutes.delete("/users/:id", requireAuth, requireOwner, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
   const adminId = c.get("adminId");
 
   if (id === adminId) {
-    return c.json({ error: { message: "Cannot delete yourself" } }, 400);
+    return fail(c, 400, "Cannot delete yourself");
   }
 
   await db.transaction(async (tx) => {
     await tx.delete(sessions).where(eq(sessions.adminUserId, id));
     await tx.delete(adminUsers).where(eq(adminUsers.id, id));
   });
-  return c.json({ data: { message: "User deleted" } });
+  return ok(c, { message: "User deleted" });
 });
