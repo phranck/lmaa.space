@@ -1,6 +1,7 @@
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   type UmamiMetricType,
   type UmamiPeriod,
@@ -11,6 +12,7 @@ import {
   useUmamiStats,
 } from "@/features/dashboard/hooks/useUmamiStats.ts";
 import type { DashboardLocale } from "@/i18n/messages.ts";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { type ReactNode, Suspense, lazy, useState } from "react";
 import type { IconType } from "react-icons";
 import {
@@ -248,10 +250,8 @@ function getEnvironmentIcon(type: UmamiMetricType, value: string): IconType | nu
   return null;
 }
 
-const STORAGE_KEY = "analytics-period";
-
-function loadPeriod(): UmamiPeriod {
-  const saved = localStorage.getItem(STORAGE_KEY);
+function loadPeriod(storageKey: string): UmamiPeriod {
+  const saved = localStorage.getItem(storageKey);
   if (saved && PERIOD_VALUES.some((p) => p === saved)) return saved as UmamiPeriod;
   return "7d";
 }
@@ -290,17 +290,54 @@ function formatLabel(x: string, period: UmamiPeriod, locale: DashboardLocale): s
 interface KpiCardProps {
   label: string;
   value: string | number;
+  trend?: number | null;
   sub?: string;
 }
 
-function KpiCard({ label, value, sub }: KpiCardProps) {
+function formatTrendValue(change: number): string {
+  const abs = Math.abs(change);
+  if (abs >= 100) return `${Math.round(abs)}%`;
+  if (abs >= 10) return `${abs.toFixed(1)}%`;
+  return `${abs.toFixed(2)}%`;
+}
+
+function KpiCard({ label, value, trend, sub }: KpiCardProps) {
+  const hasTrend = typeof trend === "number" && Number.isFinite(trend);
+  const trendArrow = !hasTrend ? "→" : trend > 0 ? "↑" : trend < 0 ? "↓" : "→";
+  const trendText = !hasTrend ? "—" : formatTrendValue(trend);
+
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm px-4 py-3">
       <p className="text-sm text-[var(--ds-text-subtle)] mb-1">{label}</p>
       <p className="text-2xl font-semibold text-[var(--ds-text)]">{value}</p>
+      <p className="text-sm text-[var(--ds-text-subtle)] mt-0.5 tabular-nums">
+        {trendArrow} {trendText}
+      </p>
       {sub && <p className="text-sm text-[var(--ds-text-subtle)] mt-0.5">{sub}</p>}
     </div>
   );
+}
+
+function previousValueFromChange(
+  current: number,
+  change: number | null | undefined,
+): number | null {
+  if (!Number.isFinite(current) || typeof change !== "number" || !Number.isFinite(change))
+    return null;
+  const factor = 1 + change / 100;
+  if (factor === 0) return null;
+  return current / factor;
+}
+
+function relativeChange(current: number, previous: number | null): number | null {
+  if (
+    !Number.isFinite(current) ||
+    previous === null ||
+    !Number.isFinite(previous) ||
+    previous === 0
+  )
+    return null;
+  return ((current - previous) / previous) * 100;
 }
 
 function formatMinute(ts: number, locale: DashboardLocale): string {
@@ -541,9 +578,10 @@ interface TabbedMetricCardProps {
   title: string;
   tabs: readonly MetricTabConfig[];
   period: UmamiPeriod;
+  storageKey: string;
 }
 
-function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
+function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardProps) {
   const { locale, messages, formatNumber } = useI18n();
   const analyticsMessages = messages.dashboard.analytics;
   const [activeType, setActiveType] = useState<UmamiMetricType>(tabs[0]?.value ?? "country");
@@ -559,6 +597,7 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
         <SegmentedControl
           value={activeType}
           onChange={setActiveType}
+          storageKey={storageKey}
           options={tabs.map((tab) => ({ value: tab.value, label: tab.label }))}
         />
       </div>
@@ -635,9 +674,11 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
 }
 
 export function AnalyticsSection() {
+  const { user } = useAuth();
   const { locale, messages, formatNumber } = useI18n();
   const { effectiveTheme } = useTheme();
   const analyticsMessages = messages.dashboard.analytics;
+  const periodStorageKey = getSegmentedStorageKey(user?.id, "analytics:period");
   const isDark = effectiveTheme === "dark";
   const gridColor = isDark ? "#3d444d" : "#f1f0ef";
   const tickColor = isDark ? "#a8a29e" : "#9ca3af";
@@ -645,11 +686,10 @@ export function AnalyticsSection() {
   const tooltipBorder = isDark ? "oklch(0.30 0.008 38.2)" : "#e7e5e4";
   const tooltipColor = isDark ? "#fafaf9" : "#111827";
 
-  const [period, setPeriod] = useState<UmamiPeriod>(loadPeriod);
+  const [period, setPeriod] = useState<UmamiPeriod>(() => loadPeriod(periodStorageKey));
 
   function handlePeriodChange(p: UmamiPeriod) {
     setPeriod(p);
-    localStorage.setItem(STORAGE_KEY, p);
   }
   const periodOptions: { label: string; value: UmamiPeriod }[] = [
     { value: "today", label: analyticsMessages.periods.today },
@@ -695,14 +735,27 @@ export function AnalyticsSection() {
   const visitsVal = stats?.visits?.value ?? 0;
   const bouncesVal = stats?.bounces?.value ?? 0;
   const bounceRate = visitsVal > 0 ? Math.round((bouncesVal / visitsVal) * 100) : 0;
+  const bounceRateRaw = visitsVal > 0 ? bouncesVal / visitsVal : 0;
 
   const totalTime = stats?.totaltime?.value ?? 0;
+  const avgDurationSeconds = visitsVal > 0 ? totalTime / visitsVal : 0;
   const avgDuration = stats
     ? formatDuration(
         Math.round(totalTime / Math.max(visitsVal, 1)),
         analyticsMessages.durationUnits,
       )
     : "–";
+  const previousVisits = previousValueFromChange(visitsVal, stats?.visits?.change);
+  const previousBounces = previousValueFromChange(bouncesVal, stats?.bounces?.change);
+  const previousBounceRate =
+    previousVisits !== null && previousVisits > 0 && previousBounces !== null
+      ? previousBounces / previousVisits
+      : null;
+  const previousTotalTime = previousValueFromChange(totalTime, stats?.totaltime?.change);
+  const previousAvgDuration =
+    previousVisits !== null && previousVisits > 0 && previousTotalTime !== null
+      ? previousTotalTime / previousVisits
+      : null;
 
   const hasStats = stats && stats.visitors != null && stats.pageviews != null;
 
@@ -712,7 +765,12 @@ export function AnalyticsSection() {
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-[var(--ds-text)]">{analyticsMessages.title}</h2>
-        <SegmentedControl value={period} onChange={handlePeriodChange} options={periodOptions} />
+        <SegmentedControl
+          value={period}
+          onChange={handlePeriodChange}
+          storageKey={periodStorageKey}
+          options={periodOptions}
+        />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
@@ -725,13 +783,23 @@ export function AnalyticsSection() {
             <KpiCard
               label={analyticsMessages.visitors}
               value={formatNumber(stats.visitors?.value ?? 0)}
+              trend={stats.visitors?.change ?? null}
             />
             <KpiCard
               label={analyticsMessages.pageviews}
               value={formatNumber(stats.pageviews?.value ?? 0)}
+              trend={stats.pageviews?.change ?? null}
             />
-            <KpiCard label={analyticsMessages.bounceRate} value={`${bounceRate} %`} />
-            <KpiCard label={analyticsMessages.averageDuration} value={avgDuration} />
+            <KpiCard
+              label={analyticsMessages.bounceRate}
+              value={`${bounceRate} %`}
+              trend={relativeChange(bounceRateRaw, previousBounceRate)}
+            />
+            <KpiCard
+              label={analyticsMessages.averageDuration}
+              value={avgDuration}
+              trend={relativeChange(avgDurationSeconds, previousAvgDuration)}
+            />
           </>
         ) : (
           <div className="col-span-4 text-sm text-[var(--ds-text-subtle)] py-2">
@@ -809,8 +877,14 @@ export function AnalyticsSection() {
           title={analyticsMessages.environment}
           tabs={environmentTabs}
           period={period}
+          storageKey={getSegmentedStorageKey(user?.id, "analytics:environment")}
         />
-        <TabbedMetricCard title={analyticsMessages.location} tabs={locationTabs} period={period} />
+        <TabbedMetricCard
+          title={analyticsMessages.location}
+          tabs={locationTabs}
+          period={period}
+          storageKey={getSegmentedStorageKey(user?.id, "analytics:location")}
+        />
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import type { ShopDeleteMode } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { api } from "@/lib/api.ts";
 import type { Shop, ShopSummary } from "@lmaa/shared";
 import type { ShopEditFormValue } from "@lmaa/ui";
@@ -46,10 +47,12 @@ export function useDeleteShop() {
       id,
       reason,
       wasReported,
-    }: { id: number; reason?: string; wasReported?: boolean }) =>
+      mode,
+    }: { id: number; reason?: string; wasReported?: boolean; mode?: ShopDeleteMode }) =>
       api.delete(`/admin/shops/${id}`, {
         reason: reason ?? null,
         wasReported: wasReported ?? false,
+        mode: mode ?? "mark_deleted",
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });

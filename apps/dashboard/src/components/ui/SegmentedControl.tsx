@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface SegmentOption<T extends string> {
   value: T;
@@ -11,12 +11,14 @@ interface SegmentedControlProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   options: readonly SegmentOption<T>[];
+  storageKey?: string;
 }
 
 export function SegmentedControl<T extends string>({
   value,
   onChange,
   options,
+  storageKey,
 }: SegmentedControlProps<T>) {
   const activeIndex = options.findIndex((o) => o.value === value);
 
@@ -29,6 +31,34 @@ export function SegmentedControl<T extends string>({
   const containerRef = useRef<HTMLDivElement>(null);
   const [pill, setPill] = useState<{ left: number; width: number; height: number } | null>(null);
   const didMount = useRef(false);
+  const restoredRef = useRef(false);
+
+  useEffect(() => {
+    if (restoredRef.current || !storageKey || typeof window === "undefined") return;
+    restoredRef.current = true;
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      if (!stored) return;
+      const hasStoredValue = options.some((option) => option.value === stored);
+      if (!hasStoredValue) {
+        window.localStorage.removeItem(storageKey);
+        return;
+      }
+      if (stored !== value) onChange(stored as T);
+    } catch {}
+  }, [onChange, options, storageKey, value]);
+
+  useEffect(() => {
+    if (!storageKey || typeof window === "undefined") return;
+    try {
+      const hasValue = options.some((option) => option.value === value);
+      if (!hasValue) {
+        window.localStorage.removeItem(storageKey);
+        return;
+      }
+      window.localStorage.setItem(storageKey, value);
+    } catch {}
+  }, [options, storageKey, value]);
 
   const measurePill = useCallback(() => {
     const container = containerRef.current;

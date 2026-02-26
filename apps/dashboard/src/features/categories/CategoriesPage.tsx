@@ -10,6 +10,7 @@ import {
   useAdminCategories,
   useDeleteCategory,
 } from "@/features/categories/hooks/useAdminCategories.ts";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useState } from "react";
 import { SFListBullet, SFSquareGrid2x2Fill } from "sf-symbols-lib/monochrome";
 
@@ -19,16 +20,9 @@ export function CategoriesPage() {
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;
   const { user: me } = useAuth();
-  const [viewMode, setViewMode] = useState<ViewMode>(
-    () => (localStorage.getItem("categories-view") as ViewMode) ?? "list",
-  );
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-
-  function changeViewMode(mode: ViewMode) {
-    setViewMode(mode);
-    localStorage.setItem("categories-view", mode);
-  }
 
   const { data: categories = [], isLoading } = useAdminCategories();
   const deleteMutation = useDeleteCategory();
@@ -40,7 +34,8 @@ export function CategoriesPage() {
       <PageHeader title={categoriesMessages.title}>
         <SegmentedControl
           value={viewMode}
-          onChange={changeViewMode}
+          onChange={setViewMode}
+          storageKey={getSegmentedStorageKey(me?.id, "categories:view")}
           options={[
             { value: "list" as const, icon: <SFListBullet className="w-4 h-4" /> },
             { value: "grid" as const, icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },

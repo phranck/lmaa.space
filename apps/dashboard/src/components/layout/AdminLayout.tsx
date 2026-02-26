@@ -6,6 +6,7 @@ import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/users/UserEditCard.tsx";
 import type { DashboardLocale } from "@/i18n/messages.ts";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
 import {
@@ -86,18 +87,26 @@ const LANGUAGE_OPTIONS = [
   { value: "en" as const, label: "EN" },
 ];
 
-function ThemeToggle() {
+function ThemeToggle({ userId }: { userId?: number }) {
   const { theme, setTheme } = useTheme();
-  return <SegmentedControl value={theme} onChange={setTheme} options={THEME_OPTIONS} />;
+  return (
+    <SegmentedControl
+      value={theme}
+      onChange={setTheme}
+      options={THEME_OPTIONS}
+      storageKey={getSegmentedStorageKey(userId, "layout:theme")}
+    />
+  );
 }
 
-function LanguageToggle() {
+function LanguageToggle({ userId }: { userId?: number }) {
   const { locale, setLocale } = useI18n();
   return (
     <SegmentedControl<DashboardLocale>
       value={locale}
       onChange={setLocale}
       options={LANGUAGE_OPTIONS}
+      storageKey={getSegmentedStorageKey(userId, "layout:locale")}
     />
   );
 }
@@ -188,8 +197,8 @@ function AdminLayoutInner() {
 
         <div className="flex items-center gap-3 ml-auto">
           <div ref={setActionsEl} className="flex items-center gap-2" />
-          <LanguageToggle />
-          <ThemeToggle />
+          <LanguageToggle userId={user?.id} />
+          <ThemeToggle userId={user?.id} />
         </div>
       </header>
 

@@ -2,6 +2,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
@@ -10,11 +11,13 @@ import {
   useAdminSubmissions,
   useDeadLinkReports,
   useDeleteShopFromDeadLinks,
+  useDeleteSubmission,
   useDismissDeadLink,
   useDismissShopConcern,
   useReviewSubmission,
   useShopConcernReports,
 } from "@/features/submissions/hooks/useAdminSubmissions.ts";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { Checkbox } from "@lmaa/ui";
 import { useState } from "react";
@@ -83,6 +86,7 @@ function ShopImage({ url, name }: { url: string; name: string }) {
 
 function VorschlaegeTab() {
   const { locale, messages } = useI18n();
+  const { user } = useAuth();
   const statusLabels = useStatusLabels();
   const common = messages.common;
   const submissionsMessages = messages.submissions;
@@ -92,10 +96,14 @@ function VorschlaegeTab() {
   const [adminNote, setAdminNote] = useState("");
   const [sendFeedback, setSendFeedback] = useState(false);
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
+  const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
   const { data: categories = [] } = useAdminCategories();
   const reviewMutation = useReviewSubmission();
+  const deleteSubmissionMutation = useDeleteSubmission();
+  const deleteSubmissionTarget =
+    submissions.find((entry) => entry.id === deleteSubmissionId) ?? null;
 
   // reviewId > 0 = approve, reviewId < 0 = reject
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
@@ -112,6 +120,7 @@ function VorschlaegeTab() {
         <SegmentedControl
           value={filter}
           onChange={setFilter}
+          storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:status")}
           options={[
             {
               value: "pending" as SubmissionStatus,
@@ -138,6 +147,7 @@ function VorschlaegeTab() {
         <SegmentedControl
           value={sortDir}
           onChange={setSortDir}
+          storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:sort")}
           options={[
             {
               value: "asc" as const,
@@ -230,7 +240,7 @@ function VorschlaegeTab() {
               </div>
             </div>
 
-            {/* Actions (pending only) */}
+            {/* Actions */}
             {filter === "pending" && (
               <div className="flex flex-row items-end gap-1.5 shrink-0">
                 <button
@@ -275,6 +285,17 @@ function VorschlaegeTab() {
                   className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                 >
                   {submissionsMessages.suggestions.approve}
+                </button>
+              </div>
+            )}
+            {filter === "rejected" && (
+              <div className="flex flex-row items-end gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setDeleteSubmissionId(sub.id)}
+                  className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                >
+                  {submissionsMessages.suggestions.delete}
                 </button>
               </div>
             )}
@@ -403,6 +424,25 @@ function VorschlaegeTab() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteSubmissionId !== null && deleteSubmissionTarget !== null}
+        title={submissionsMessages.suggestions.confirmDeleteTitle}
+        description={
+          <>
+            <span className="font-medium">{deleteSubmissionTarget?.shopName}</span>{" "}
+            {submissionsMessages.suggestions.confirmDeleteDescription}
+          </>
+        }
+        isPending={deleteSubmissionMutation.isPending}
+        onConfirm={() => {
+          if (deleteSubmissionId === null) return;
+          deleteSubmissionMutation.mutate(deleteSubmissionId, {
+            onSuccess: () => setDeleteSubmissionId(null),
+          });
+        }}
+        onCancel={() => setDeleteSubmissionId(null)}
+      />
     </>
   );
 }
@@ -410,7 +450,9 @@ function VorschlaegeTab() {
 function DefekteLinksTab() {
   const { locale, messages } = useI18n();
   const submissionsMessages = messages.submissions;
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ shopId: number; shopName: string } | null>(
+    null,
+  );
 
   const { data: reports = [], isLoading } = useDeadLinkReports();
   const dismissMutation = useDismissDeadLink();
@@ -486,7 +528,7 @@ function DefekteLinksTab() {
             </button>
             <button
               type="button"
-              onClick={() => setConfirmDeleteId(r.shopId)}
+              onClick={() => setDeleteTarget({ shopId: r.shopId, shopName: r.shopName })}
               disabled={dismissMutation.isPending || deleteMutation.isPending}
               className="px-3 py-1.5 bg-[var(--ds-badge-danger-bg)] border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm rounded-control hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors disabled:opacity-50"
             >
@@ -496,17 +538,20 @@ function DefekteLinksTab() {
         </div>
       ))}
 
-      <ConfirmDialog
-        open={confirmDeleteId !== null}
-        title={submissionsMessages.deadLinks.confirmDeleteTitle}
-        description={submissionsMessages.deadLinks.confirmDeleteDescription}
-        isPending={deleteMutation.isPending}
-        onConfirm={() => {
-          if (confirmDeleteId !== null)
-            deleteMutation.mutate(confirmDeleteId, { onSuccess: () => setConfirmDeleteId(null) });
-        }}
-        onCancel={() => setConfirmDeleteId(null)}
-      />
+      {deleteTarget !== null && (
+        <ShopDeleteReasonCard
+          shopName={deleteTarget.shopName}
+          wasReported={true}
+          isPending={deleteMutation.isPending}
+          onConfirm={(reason, _wasReported, mode) => {
+            deleteMutation.mutate(
+              { shopId: deleteTarget.shopId, reason, mode },
+              { onSuccess: () => setDeleteTarget(null) },
+            );
+          }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }
@@ -524,6 +569,7 @@ function getInitialTab(): Tab {
 
 export function SubmissionsPage() {
   const { messages } = useI18n();
+  const { user } = useAuth();
   const submissionsMessages = messages.submissions;
   const [tab, setTab] = useState<Tab>(getInitialTab);
 
@@ -541,6 +587,7 @@ export function SubmissionsPage() {
         <SegmentedControl
           value={tab}
           onChange={setTab}
+          storageKey={getSegmentedStorageKey(user?.id, "submissions:tab")}
           options={[
             {
               value: "vorschlaege" as const,
@@ -692,9 +739,9 @@ function ShopMeldungenTab() {
           shopName={deleteTarget.shopName}
           wasReported={true}
           isPending={deleteMutation.isPending}
-          onConfirm={(reason, wasReported) => {
+          onConfirm={(reason, wasReported, mode) => {
             deleteMutation.mutate(
-              { id: deleteTarget.shopId, reason, wasReported },
+              { id: deleteTarget.shopId, reason, wasReported, mode },
               {
                 onSuccess: () => {
                   dismiss.mutate(deleteTarget.reportId);

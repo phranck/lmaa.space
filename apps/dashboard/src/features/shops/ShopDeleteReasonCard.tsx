@@ -3,11 +3,13 @@ import { Checkbox } from "@lmaa/ui";
 import { useEffect, useRef, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
 
+export type ShopDeleteMode = "mark_deleted" | "delete";
+
 interface ShopDeleteReasonCardProps {
   shopName: string;
   wasReported?: boolean;
   isPending?: boolean;
-  onConfirm: (reason: string, wasReported: boolean) => void;
+  onConfirm: (reason: string, wasReported: boolean, mode: ShopDeleteMode) => void;
   onCancel: () => void;
 }
 
@@ -23,6 +25,7 @@ export function ShopDeleteReasonCard({
   const shopsMessages = messages.shops;
   const [reason, setReason] = useState("");
   const [wasReported, setWasReported] = useState(initialWasReported);
+  const [deleteMode, setDeleteMode] = useState<ShopDeleteMode>("mark_deleted");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -83,6 +86,24 @@ export function ShopDeleteReasonCard({
             onChange={setWasReported}
             label={shopsMessages.deleteCard.reportedLabel}
           />
+
+          <div>
+            <label
+              htmlFor="shop-delete-mode"
+              className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+            >
+              {shopsMessages.deleteCard.modeLabel}
+            </label>
+            <select
+              id="shop-delete-mode"
+              value={deleteMode}
+              onChange={(event) => setDeleteMode(event.target.value as ShopDeleteMode)}
+              className="w-full h-9 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+              <option value="mark_deleted">{shopsMessages.deleteCard.markDeleted}</option>
+              <option value="delete">{shopsMessages.deleteCard.deletePermanently}</option>
+            </select>
+          </div>
         </div>
 
         <div className="px-6 py-4 border-t border-[var(--ds-border)] flex justify-end gap-2">
@@ -96,11 +117,15 @@ export function ShopDeleteReasonCard({
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(reason.trim(), wasReported)}
+            onClick={() => onConfirm(reason.trim(), wasReported, deleteMode)}
             disabled={isPending}
             className="h-9 px-4 bg-red-600 text-white rounded-control text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
           >
-            {isPending ? shopsMessages.deleteCard.deleting : shopsMessages.deleteCard.deleteShop}
+            {isPending
+              ? shopsMessages.deleteCard.deleting
+              : deleteMode === "delete"
+                ? shopsMessages.deleteCard.deletePermanently
+                : shopsMessages.deleteCard.markDeleted}
           </button>
         </div>
       </div>

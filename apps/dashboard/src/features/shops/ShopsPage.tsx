@@ -10,6 +10,7 @@ import {
   useDeleteShop,
   useSetShopVisibility,
 } from "@/features/shops/hooks/useAdminShops.ts";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useState } from "react";
 import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-lib/monochrome";
 
@@ -84,6 +85,7 @@ export function ShopsPage() {
         <SegmentedControl
           value={visibilityFilter}
           onChange={setVisibilityFilter}
+          storageKey={getSegmentedStorageKey(me?.id, "shops:visibility")}
           options={filterOptions}
         />
 
@@ -153,9 +155,9 @@ export function ShopsPage() {
           shopName={deleteTarget.name}
           wasReported={deleteTarget.deletedWasReported}
           isPending={deleteMutation.isPending}
-          onConfirm={(reason, wasReported) => {
+          onConfirm={(reason, wasReported, mode) => {
             deleteMutation.mutate(
-              { id: deleteId, reason, wasReported },
+              { id: deleteId, reason, wasReported, mode },
               { onSuccess: () => setDeleteId(null) },
             );
           }}
