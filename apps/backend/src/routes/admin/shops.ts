@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { extractHomepage, fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
@@ -63,12 +64,12 @@ shopsRoutes.get("/shops", requireAuth, async (c) => {
     GROUP BY s.id, u.username
     ORDER BY s.name
   `);
-  return c.json({ data: rows });
+  return ok(c, rows);
 });
 
 shopsRoutes.get("/shops/:id", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
   const [row] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.is_active as "isActive",
@@ -84,8 +85,8 @@ shopsRoutes.get("/shops/:id", requireAuth, async (c) => {
     WHERE s.id = ${id}
     GROUP BY s.id
   `);
-  if (!row) return c.json({ error: { message: "Shop not found" } }, 404);
-  return c.json({ data: row });
+  if (!row) return fail(c, 404, "Shop not found");
+  return ok(c, row);
 });
 
 shopsRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), async (c) => {
@@ -112,7 +113,7 @@ shopsRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), asyn
     })
     .catch(() => {});
 
-  return c.json({ data: { ...shop, categories: [] } }, 201);
+  return ok(c, { ...shop, categories: [] }, 201);
 });
 
 for (const method of ["put", "patch"] as const) {
@@ -122,7 +123,7 @@ for (const method of ["put", "patch"] as const) {
     zValidator("json", shopUpdateSchema),
     async (c) => {
       const id = parseId(c.req.param("id"));
-      if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+      if (!id) return fail(c, 400, "Invalid id");
       const { categoryIds, ...shopData } = c.req.valid("json");
 
       const shop = await db.transaction(async (tx) => {
@@ -145,19 +146,19 @@ for (const method of ["put", "patch"] as const) {
         return s;
       });
 
-      if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+      if (!shop) return fail(c, 404, "Shop not found");
 
       // Invalidate cache
       invalidateCache(SHOPS_CACHE_KEY);
 
-      return c.json({ data: { ...shop, categories: [] } });
+      return ok(c, { ...shop, categories: [] });
     },
   );
 }
 
 shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
 
   const body = await c.req.json().catch(() => ({}));
   const reason = typeof body?.reason === "string" ? body.reason.trim() || null : null;
@@ -178,18 +179,18 @@ shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
   await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
 
   invalidateCache(SHOPS_CACHE_KEY);
-  return c.json({ data: { message: "Shop deleted" } });
+  return ok(c, { message: "Shop deleted" });
 });
 
 // PATCH /admin/shops/:id/visibility — set public or onhold (use DELETE for deleted)
 shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
 
   const body = await c.req.json().catch(() => ({}));
   const { visibility } = body;
   if (!["public", "onhold"].includes(visibility)) {
-    return c.json({ error: { message: "Use 'public' or 'onhold'; for deleting use DELETE" } }, 400);
+    return fail(c, 400, "Use 'public' or 'onhold'; for deleting use DELETE");
   }
 
   await db
@@ -204,21 +205,21 @@ shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) 
     .where(eq(shops.id, id));
 
   invalidateCache(SHOPS_CACHE_KEY);
-  return c.json({ data: { message: `Shop visibility set to ${visibility}` } });
+  return ok(c, { message: `Shop visibility set to ${visibility}` });
 });
 
 shopsRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+  if (!id) return fail(c, 400, "Invalid id");
 
   const [shop] = await db.select({ url: shops.url }).from(shops).where(eq(shops.id, id));
-  if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+  if (!shop) return fail(c, 404, "Shop not found");
 
   const result = await fetchPreviewImage(extractHomepage(shop.url));
   const ogImage = result?.url ?? null;
   await db.update(shops).set({ ogImage }).where(eq(shops.id, id));
 
-  return c.json({ data: { ogImage } });
+  return ok(c, { ogImage });
 });
 
 shopsRoutes.post(
@@ -228,6 +229,6 @@ shopsRoutes.post(
   async (c) => {
     const { url } = c.req.valid("json");
     const result = await fetchPreviewImage(extractHomepage(url));
-    return c.json({ data: { ogImage: result?.url ?? null } });
+    return ok(c, { ogImage: result?.url ?? null });
   },
 );

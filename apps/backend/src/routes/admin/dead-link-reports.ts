@@ -2,6 +2,7 @@ import { count, desc, eq, max, ne } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db/index.js";
 import { deadLinkReports, shops } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 
@@ -22,13 +23,13 @@ deadLinkReportsRoutes.get("/dead-link-reports", requireAuth, async (c) => {
     .where(ne(shops.visibility, "deleted"))
     .groupBy(deadLinkReports.shopId, shops.name, shops.url)
     .orderBy(desc(count(deadLinkReports.id)));
-  return c.json({ data: rows });
+  return ok(c, rows);
 });
 
 // DELETE /api/admin/dead-link-reports/:shopId – clear all reports for a shop
 deadLinkReportsRoutes.delete("/dead-link-reports/:shopId", requireAuth, async (c) => {
   const shopId = parseId(c.req.param("shopId"));
-  if (!shopId) return c.json({ error: { message: "Invalid shop id" } }, 400);
+  if (!shopId) return fail(c, 400, "Invalid shop id");
   await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, shopId));
-  return c.json({ data: { message: "Reports cleared" } });
+  return ok(c, { message: "Reports cleared" });
 });

@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { shopCategories, shops, submissionCategories, submissions } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
@@ -58,7 +59,7 @@ submissionsRoutes.get("/submissions", requireAuth, async (c) => {
   }
 
   const mapped = rows.map((row) => ({ ...row, categoryIds: catMap.get(row.id) ?? [] }));
-  return c.json({ data: mapped });
+  return ok(c, mapped);
 });
 
 // PATCH /api/admin/submissions/:id
@@ -68,7 +69,7 @@ submissionsRoutes.patch(
   zValidator("json", reviewSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
-    if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+    if (!id) return fail(c, 400, "Invalid id");
     const { status, adminNote, sendFeedback } = c.req.valid("json");
     const adminId = c.get("adminId");
 
@@ -118,7 +119,7 @@ submissionsRoutes.patch(
     });
 
     if (!submission) {
-      return c.json({ error: { message: "Submission not found" } }, 404);
+      return fail(c, 404, "Submission not found");
     }
 
     // Side effects outside transaction
@@ -145,7 +146,7 @@ submissionsRoutes.patch(
       }
     }
 
-    return c.json({ data: submission });
+    return ok(c, submission);
   },
 );
 
@@ -156,7 +157,7 @@ submissionsRoutes.patch(
   zValidator("json", submissionEditSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
-    if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+    if (!id) return fail(c, 400, "Invalid id");
     const body = c.req.valid("json");
 
     const submission = await db.transaction(async (tx) => {
@@ -187,9 +188,9 @@ submissionsRoutes.patch(
     });
 
     if (!submission) {
-      return c.json({ error: { message: "Submission not found" } }, 404);
+      return fail(c, 404, "Submission not found");
     }
 
-    return c.json({ data: submission });
+    return ok(c, submission);
   },
 );

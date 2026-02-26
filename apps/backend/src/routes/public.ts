@@ -4,7 +4,9 @@ import type { Shop, ShopCategory } from "@lmaa/shared";
 import { and, asc, count, eq, isNull, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
+import { env } from "../config/env.js";
 import { db } from "../db/index.js";
+import { fail, ok } from "../lib/http.js";
 
 type CategoryShopRow = Pick<
   Shop,
@@ -80,7 +82,7 @@ publicRoutes.get("/categories", async (c) => {
     .orderBy(categories.name);
 
   c.header("Cache-Control", "private, max-age=30");
-  return c.json({ data: rows });
+  return ok(c, rows);
 });
 
 // GET /api/stats – unique active shop count
@@ -91,7 +93,7 @@ publicRoutes.get("/stats", async (c) => {
     .where(and(eq(shops.isActive, true), eq(shops.visibility, "public")));
 
   c.header("Cache-Control", "public, max-age=60");
-  return c.json({ data: { shopCount: total } });
+  return ok(c, { shopCount: total });
 });
 
 // GET /api/categories/:slug
@@ -110,7 +112,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
     .limit(1);
 
   if (!category) {
-    return c.json({ error: { message: "Category not found" } }, 404);
+    return fail(c, 404, "Category not found");
   }
 
   const categoryShops = await db.execute<CategoryShopRow & Record<string, unknown>>(sql`
@@ -123,7 +125,7 @@ publicRoutes.get("/categories/:slug", async (c) => {
   `);
 
   c.header("Cache-Control", "private, max-age=30");
-  return c.json({ data: { ...category, shops: categoryShops } });
+  return ok(c, { ...category, shops: categoryShops });
 });
 
 // GET /api/shops
@@ -133,7 +135,7 @@ publicRoutes.get("/shops", async (c) => {
   if (cached) {
     c.header("X-Cache", "HIT");
     c.header("Cache-Control", "public, max-age=60");
-    return c.json({ data: cached });
+    return ok(c, cached);
   }
 
   // Cache miss - fetch from database
@@ -158,7 +160,7 @@ publicRoutes.get("/shops", async (c) => {
 
   c.header("X-Cache", "MISS");
   c.header("Cache-Control", "public, max-age=60");
-  return c.json({ data: allShops });
+  return ok(c, allShops);
 });
 
 // GET /api/search?q=...
@@ -166,7 +168,7 @@ publicRoutes.get("/search", async (c) => {
   const q = c.req.query("q")?.trim();
 
   if (!q || q.length < 2) {
-    return c.json({ data: { shops: [], categories: [], query: q ?? "", total: 0 } });
+    return ok(c, { shops: [], categories: [], query: q ?? "", total: 0 });
   }
 
   const matchingShops = await db.execute<SearchShopRow & Record<string, unknown>>(sql`
@@ -196,26 +198,24 @@ publicRoutes.get("/search", async (c) => {
     .where(sql`lower(${categories.name}) LIKE ${`%${escapedQ}%`} ESCAPE '\\'`)
     .limit(5);
 
-  return c.json({
-    data: {
-      shops: matchingShops,
-      categories: matchingCategories,
-      query: q,
-      total: matchingShops.length + matchingCategories.length,
-    },
+  return ok(c, {
+    shops: matchingShops,
+    categories: matchingCategories,
+    query: q,
+    total: matchingShops.length + matchingCategories.length,
   });
 });
 
 // GET /api/check-url?url= – check if a shop with the same domain already exists
 publicRoutes.get("/check-url", async (c) => {
   const url = c.req.query("url")?.trim();
-  if (!url) return c.json({ data: { exists: false } });
+  if (!url) return ok(c, { exists: false });
 
   let hostname: string;
   try {
     hostname = new URL(url).hostname.replace(/^www\./, "");
   } catch {
-    return c.json({ data: { exists: false } });
+    return ok(c, { exists: false });
   }
 
   const [match] = await db.execute<CheckUrlRow & Record<string, unknown>>(sql`
@@ -234,13 +234,11 @@ publicRoutes.get("/check-url", async (c) => {
     LIMIT 1
   `);
 
-  if (!match) return c.json({ data: { exists: false } });
+  if (!match) return ok(c, { exists: false });
 
-  return c.json({
-    data: {
-      exists: true,
-      shop: { id: match.id, name: match.name, categories: match.categories },
-    },
+  return ok(c, {
+    exists: true,
+    shop: { id: match.id, name: match.name, categories: match.categories },
   });
 });
 
@@ -272,7 +270,7 @@ publicRoutes.post(
         .values(body.categoryIds.map((cid) => ({ submissionId: submission.id, categoryId: cid })));
     }
 
-    return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
+    return ok(c, { message: "Vorschlag eingereicht" }, 201);
   },
 );
 
@@ -280,7 +278,7 @@ publicRoutes.post(
 publicRoutes.get("/nav/:navId", async (c) => {
   const navId = c.req.param("navId");
   if (navId !== "header" && navId !== "footer") {
-    return c.json({ error: { message: "Invalid navId" } }, 400);
+    return fail(c, 400, "Invalid navId");
   }
 
   const rows = await db
@@ -306,7 +304,7 @@ publicRoutes.get("/nav/:navId", async (c) => {
     .orderBy(asc(navItems.position));
 
   c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
-  return c.json({ data: rows });
+  return ok(c, rows);
 });
 
 // GET /api/content – list all published pages (slugs + titles, for SSG)
@@ -317,7 +315,7 @@ publicRoutes.get("/content", async (c) => {
     .where(eq(contentPages.status, "published"))
     .orderBy(contentPages.slug);
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
-  return c.json({ data: rows });
+  return ok(c, rows);
 });
 
 // GET /api/content/:slug  (published pages only)
@@ -328,9 +326,9 @@ publicRoutes.get("/content/:slug", async (c) => {
     .from(contentPages)
     .where(and(eq(contentPages.slug, slug), eq(contentPages.status, "published")))
     .limit(1);
-  if (!page) return c.json({ error: { message: "Not found" } }, 404);
+  if (!page) return fail(c, 404, "Not found");
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
-  return c.json({ data: page });
+  return ok(c, page);
 });
 
 // POST /api/shops/:id/report – dead link report (rate limited per IP)
@@ -340,7 +338,7 @@ publicRoutes.post(
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
-      return c.json({ error: { message: "Invalid shop id" } }, 400);
+      return fail(c, 400, "Invalid shop id");
     }
 
     const [shop] = await db
@@ -348,7 +346,7 @@ publicRoutes.post(
       .from(shops)
       .where(eq(shops.id, id))
       .limit(1);
-    if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+    if (!shop) return fail(c, 404, "Shop not found");
 
     const ip = c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip") ?? "unknown";
     const ipHash = createHash("sha256").update(ip).digest("hex");
@@ -360,7 +358,7 @@ publicRoutes.post(
       .from(deadLinkReports)
       .where(eq(deadLinkReports.shopId, id));
 
-    return c.json({ data: { message: "Danke für deinen Hinweis!" } });
+    return ok(c, { message: "Danke für deinen Hinweis!" });
   },
 );
 
@@ -371,16 +369,13 @@ publicRoutes.post(
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
-      return c.json({ error: { message: "Invalid shop id" } }, 400);
+      return fail(c, 400, "Invalid shop id");
     }
 
     const body = await c.req.json().catch(() => ({}));
     const reason = typeof body?.reason === "string" ? body.reason.trim() : "";
     if (reason.length < 10) {
-      return c.json(
-        { error: { message: "Bitte eine aussagekräftige Begründung angeben (mind. 10 Zeichen)." } },
-        400,
-      );
+      return fail(c, 400, "Bitte eine aussagekräftige Begründung angeben (mind. 10 Zeichen).");
     }
 
     const [shop] = await db
@@ -388,21 +383,21 @@ publicRoutes.post(
       .from(shops)
       .where(eq(shops.id, id))
       .limit(1);
-    if (!shop) return c.json({ error: { message: "Shop not found" } }, 404);
+    if (!shop) return fail(c, 404, "Shop not found");
 
     const ip = c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip") ?? "unknown";
     const ipHash = createHash("sha256").update(ip).digest("hex");
 
     await db.insert(shopConcernReports).values({ shopId: id, reason, ipHash });
 
-    return c.json({ data: { message: "Danke für dein Feedback!" } });
+    return ok(c, { message: "Danke für dein Feedback!" });
   },
 );
 
 // Debug endpoint: cache stats (dev only)
 publicRoutes.get("/cache/stats", (c) => {
-  if (process.env.NODE_ENV !== "development") {
-    return c.json({ error: { message: "Not available" } }, 404);
+  if (env.NODE_ENV !== "development") {
+    return fail(c, 404, "Not available");
   }
-  return c.json({ data: getCacheStats() });
+  return ok(c, getCacheStats());
 });

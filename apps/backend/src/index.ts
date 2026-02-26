@@ -5,17 +5,19 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
+import { env } from "./config/env.js";
 import { db } from "./db/index.js";
 import { categories } from "./db/schema.js";
+import { fail, getErrorResponse } from "./lib/http.js";
 import { adminRoutes } from "./routes/admin/index.js";
 import { publicRoutes } from "./routes/public.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 
 const app = new Hono();
-const imagePath = process.env.IMAGE_PATH ?? "./uploads";
+const imagePath = env.IMAGE_PATH;
 
 const allowedOrigins =
-  process.env.NODE_ENV === "production"
+  env.NODE_ENV === "production"
     ? ["https://lmaa.space", "https://dashboard.lmaa.space"]
     : ["http://localhost:5173", "http://localhost:5174"];
 
@@ -32,7 +34,7 @@ app.use("*", logger());
 // Serve uploaded category images
 app.get("/uploads/:filename{[^/]+}", async (c) => {
   const filename = c.req.param("filename");
-  if (filename.includes("..")) return c.json({ error: { message: "Not found" } }, 404);
+  if (filename.includes("..")) return fail(c, 404, "Not found");
   const filepath = path.join(imagePath, filename);
   try {
     const data = await fs.promises.readFile(filepath);
@@ -40,7 +42,7 @@ app.get("/uploads/:filename{[^/]+}", async (c) => {
     const contentType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
     return new Response(data, { headers: { "Content-Type": contentType } });
   } catch {
-    return c.json({ error: { message: "Not found" } }, 404);
+    return fail(c, 404, "Not found");
   }
 });
 
@@ -92,17 +94,18 @@ app.route("/api/admin", adminRoutes);
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-app.notFound((c) => c.json({ error: { message: "Not found" } }, 404));
+app.notFound((c) => fail(c, 404, "Not found"));
 app.onError((err, c) => {
   console.error("[error]", err);
-  const status = "status" in err && typeof err.status === "number" ? err.status : 500;
-  return c.json({ error: { message: err.message ?? "Internal Server Error" } }, status as 500);
+  const { status, error } = getErrorResponse(err);
+  c.status(status);
+  return c.json({ error });
 });
 
 // Start background jobs
 startSessionCleanupJob();
 
-const port = Number(process.env.PORT ?? 3000);
+const port = env.PORT;
 console.log(`Backend running on port ${port}`);
 
 serve({ fetch: app.fetch, port });

@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
 import { contentPages, navItems } from "../../db/schema.js";
+import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
 
 const navItemsSchema = z.object({
@@ -24,7 +25,7 @@ export const navAdminRoutes = new Hono<{ Variables: AuthVariables }>();
 navAdminRoutes.get("/nav/:navId", requireAuth, requireAdmin, async (c) => {
   const navId = c.req.param("navId");
   if (navId !== "header" && navId !== "footer") {
-    return c.json({ error: { message: "Invalid navId" } }, 400);
+    return fail(c, 400, "Invalid navId");
   }
 
   const rows = await db
@@ -43,7 +44,7 @@ navAdminRoutes.get("/nav/:navId", requireAuth, requireAdmin, async (c) => {
     .where(eq(navItems.navId, navId))
     .orderBy(asc(navItems.position));
 
-  return c.json({ data: rows });
+  return ok(c, rows);
 });
 
 // ─── PUT /admin/nav/:navId ────────────────────────────────────────────────────
@@ -56,7 +57,7 @@ navAdminRoutes.put(
   async (c) => {
     const navId = c.req.param("navId");
     if (navId !== "header" && navId !== "footer") {
-      return c.json({ error: { message: "Invalid navId" } }, 400);
+      return fail(c, 400, "Invalid navId");
     }
 
     const { items } = c.req.valid("json");
@@ -93,6 +94,6 @@ navAdminRoutes.put(
       .where(eq(navItems.navId, navId))
       .orderBy(asc(navItems.position));
 
-    return c.json({ data: updated });
+    return ok(c, updated);
   },
 );
