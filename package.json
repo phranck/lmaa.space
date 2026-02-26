@@ -10,6 +10,8 @@
     "build:frontend": "npm run build -w @lmaa/frontend",
     "build:backend": "npm run build -w @lmaa/backend",
     "build:dashboard": "npm run build -w @lmaa/dashboard",
+    "ci:smoke": "test -f apps/backend/dist/index.js && test -f apps/frontend/dist/server/entry.mjs && test -f apps/dashboard/dist/index.html",
+    "ci:quality": "npm run lint && npm run typecheck && npm run build && npm run ci:smoke",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
