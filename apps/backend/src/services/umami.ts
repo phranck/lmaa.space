@@ -82,12 +82,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function toNumber(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
 }
 
 function toChange(current: number, previous: number): number {
   if (previous <= 0) return 0;
-  return Math.round(((current - previous) / previous) * 100);
+  return Number((((current - previous) / previous) * 100).toFixed(2));
+}
+
+function getMetricValue(metric: unknown): number {
+  if (isRecord(metric)) {
+    return toNumber(metric.value);
+  }
+  return toNumber(metric);
 }
 
 function getMetricFromLegacyShape(
@@ -108,8 +120,8 @@ function getMetricFromCurrentShape(
   comparison: Record<string, unknown>,
   field: MetricField,
 ): UmamiKpiMetric {
-  const value = toNumber(source[field]);
-  const previous = toNumber(comparison[field]);
+  const value = getMetricValue(source[field]);
+  const previous = getMetricValue(comparison[field]);
   return { value, change: toChange(value, previous) };
 }
 
