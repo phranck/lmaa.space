@@ -2,7 +2,15 @@ import { api } from "@/lib/api.ts";
 import { useQuery } from "@tanstack/react-query";
 
 export type UmamiPeriod = "today" | "7d" | "30d" | "60d" | "90d";
-export type UmamiMetricType = "url" | "country" | "referrer";
+export type UmamiMetricType =
+  | "url"
+  | "referrer"
+  | "browser"
+  | "os"
+  | "device"
+  | "country"
+  | "region"
+  | "city";
 
 export interface UmamiStats {
   pageviews: { value: number; change: number };
