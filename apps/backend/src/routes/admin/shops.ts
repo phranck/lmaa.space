@@ -1,15 +1,14 @@
 import { zValidator } from "@hono/zod-validator";
 import {
-  REGION_CODES,
-  SHOP_MUTABLE_VISIBILITIES,
-  SHOP_VISIBILITIES,
-  type Shop,
-  type ShopCategory,
-  type ShopSummary,
-} from "@lmaa/shared";
+  previewImageSchema,
+  shopBodySchema,
+  shopUpdateSchema,
+  visibilityFilterSchema,
+  visibilityUpdateSchema,
+} from "@lmaa/contracts";
+import type { Shop, ShopCategory, ShopSummary } from "@lmaa/shared";
 import { eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
-import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
@@ -21,31 +20,6 @@ import { invalidateCache } from "../../middleware/cache.js";
 const SHOPS_CACHE_KEY = "shops:all";
 
 type AdminShopDetail = Shop & { categories: ShopCategory[] };
-
-const shopBodySchema = z.object({
-  name: z.string().min(1).max(200),
-  url: z.string().url(),
-  categoryIds: z.array(z.number().int().positive()).optional().default([]),
-  region: z.array(z.enum(REGION_CODES)).optional().default([]),
-  pickup: z.string().optional(),
-  shipping: z.string().optional(),
-  description: z.string().max(2000).optional(),
-});
-
-const shopUpdateSchema = z.object({
-  name: z.string().min(1).max(200).optional(),
-  url: z.string().url().optional(),
-  categoryIds: z.array(z.number().int().positive()).optional(),
-  region: z.array(z.enum(REGION_CODES)).optional(),
-  pickup: z.string().optional(),
-  shipping: z.string().optional(),
-  description: z.string().max(2000).optional(),
-  isActive: z.boolean().optional(),
-});
-
-const previewImageSchema = z.object({ url: z.string().url() });
-const visibilityFilterSchema = z.enum(SHOP_VISIBILITIES);
-const visibilityUpdateSchema = z.object({ visibility: z.enum(SHOP_MUTABLE_VISIBILITIES) });
 
 export const shopsRoutes = new Hono<{ Variables: AuthVariables }>();
 
