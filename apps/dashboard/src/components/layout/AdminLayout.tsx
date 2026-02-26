@@ -1,9 +1,11 @@
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/users/UserEditCard.tsx";
+import type { DashboardLocale } from "@/i18n/messages.ts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
 import {
@@ -79,14 +81,30 @@ const THEME_OPTIONS = [
   { value: "dark" as const, icon: <SFMoonFill className="w-3.5 h-3.5" /> },
   { value: "system" as const, icon: <SFDesktopcomputer className="w-3.5 h-3.5" /> },
 ];
+const LANGUAGE_OPTIONS = [
+  { value: "de" as const, label: "DE" },
+  { value: "en" as const, label: "EN" },
+];
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   return <SegmentedControl value={theme} onChange={setTheme} options={THEME_OPTIONS} />;
 }
 
+function LanguageToggle() {
+  const { locale, setLocale } = useI18n();
+  return (
+    <SegmentedControl<DashboardLocale>
+      value={locale}
+      onChange={setLocale}
+      options={LANGUAGE_OPTIONS}
+    />
+  );
+}
+
 function AdminLayoutInner() {
   const { user, logout } = useAuth();
+  const { messages } = useI18n();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOwnProfile, setEditingOwnProfile] = useState(false);
@@ -131,7 +149,7 @@ function AdminLayoutInner() {
             type="button"
             className="absolute inset-0 bg-black/30"
             onClick={() => setSidebarOpen(false)}
-            aria-label="Menü schließen"
+            aria-label={messages.layout.menuClose}
           />
           <aside
             className="relative flex flex-col h-full bg-[var(--ds-surface)] border-r border-[var(--ds-border)]"
@@ -157,17 +175,18 @@ function AdminLayoutInner() {
           type="button"
           onClick={() => setSidebarOpen(true)}
           className="md:hidden p-2 -ml-2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-          aria-label="Menü öffnen"
+          aria-label={messages.layout.menuOpen}
         >
           <SFLine3Horizontal className="w-5 h-5" />
         </button>
 
         <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
-          {title || "lmaa.space"}
+          {title || messages.layout.pageFallbackTitle}
         </span>
 
         <div className="flex items-center gap-3 ml-auto">
           <div ref={setActionsEl} className="flex items-center gap-2" />
+          <LanguageToggle />
           <ThemeToggle />
         </div>
       </header>

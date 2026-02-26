@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import type { Category } from "@lmaa/shared";
 
 interface CategoryGridItemProps {
@@ -7,6 +8,9 @@ interface CategoryGridItemProps {
 }
 
 export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridItemProps) {
+  const { messages } = useI18n();
+  const categoriesMessages = messages.categories;
+
   return (
     <div className="relative bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border)] flex flex-col card-hover">
       <div className="aspect-[4/3] overflow-hidden rounded-t-[var(--radius-card)]">
@@ -24,7 +28,10 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
           <p className="font-medium text-[var(--ds-text)] text-sm truncate">{category.name}</p>
           {category.shopCount !== undefined && (
             <p className="text-xs text-[var(--ds-text-subtle)]">
-              {category.shopCount} {category.shopCount === 1 ? "Shop" : "Shops"}
+              {category.shopCount}{" "}
+              {category.shopCount === 1
+                ? categoriesMessages.card.shopSingular
+                : categoriesMessages.card.shopPlural}
             </p>
           )}
         </div>
@@ -34,7 +41,7 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
             onClick={() => onEdit(category.id)}
             className="btn-edit flex-1 py-1.5 text-xs border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
           >
-            Bearbeiten
+            {categoriesMessages.card.edit}
           </button>
           {onDelete && (
             <button
@@ -42,7 +49,7 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
               onClick={() => onDelete(category.id)}
               className="btn-delete flex-1 py-1.5 text-xs border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
             >
-              Löschen
+              {categoriesMessages.card.delete}
             </button>
           )}
         </div>

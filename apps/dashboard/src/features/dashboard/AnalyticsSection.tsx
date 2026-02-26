@@ -1,4 +1,5 @@
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import {
   type UmamiMetricType,
@@ -9,6 +10,7 @@ import {
   useUmamiRealtime,
   useUmamiStats,
 } from "@/features/dashboard/hooks/useUmamiStats.ts";
+import type { DashboardLocale } from "@/i18n/messages.ts";
 import { type ReactNode, useState } from "react";
 import type { IconType } from "react-icons";
 import {
@@ -39,33 +41,14 @@ import {
   YAxis,
 } from "recharts";
 
-const PERIODS: { label: string; value: UmamiPeriod }[] = [
-  { label: "Heute", value: "today" },
-  { label: "7 Tage", value: "7d" },
-  { label: "30 Tage", value: "30d" },
-  { label: "60 Tage", value: "60d" },
-  { label: "90 Tage", value: "90d" },
-];
+const PERIOD_VALUES: UmamiPeriod[] = ["today", "7d", "30d", "60d", "90d"];
 
 interface MetricTabConfig {
   label: string;
   value: UmamiMetricType;
   columnLabel: string;
   renderLabel?: (x: string) => string;
-  showCountryFlag?: boolean;
 }
-
-const ENVIRONMENT_TABS: readonly MetricTabConfig[] = [
-  { label: "Browser", value: "browser", columnLabel: "Browser" },
-  { label: "OS", value: "os", columnLabel: "OS" },
-  { label: "Geräte", value: "device", columnLabel: "Gerät" },
-];
-
-const LOCATION_TABS: readonly MetricTabConfig[] = [
-  { label: "Länder", value: "country", columnLabel: "Land", showCountryFlag: true },
-  { label: "Regionen", value: "region", columnLabel: "Region" },
-  { label: "Städte", value: "city", columnLabel: "Stadt" },
-];
 
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   deutschland: "DE",
@@ -92,44 +75,45 @@ const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   usa: "US",
 };
 
-const DE_REGION_CODE_TO_NAME: Record<string, string> = {
-  BB: "Brandenburg",
-  BE: "Berlin",
-  BW: "Baden-Württemberg",
-  BY: "Bayern",
-  HB: "Bremen",
-  HE: "Hessen",
-  HH: "Hamburg",
-  MV: "Mecklenburg-Vorpommern",
-  NI: "Niedersachsen",
-  NW: "Nordrhein-Westfalen",
-  RP: "Rheinland-Pfalz",
-  SH: "Schleswig-Holstein",
-  SL: "Saarland",
-  SN: "Sachsen",
-  ST: "Sachsen-Anhalt",
-  TH: "Thüringen",
+const DE_REGION_CODE_TO_NAME: Record<DashboardLocale, Record<string, string>> = {
+  de: {
+    BB: "Brandenburg",
+    BE: "Berlin",
+    BW: "Baden-Württemberg",
+    BY: "Bayern",
+    HB: "Bremen",
+    HE: "Hessen",
+    HH: "Hamburg",
+    MV: "Mecklenburg-Vorpommern",
+    NI: "Niedersachsen",
+    NW: "Nordrhein-Westfalen",
+    RP: "Rheinland-Pfalz",
+    SH: "Schleswig-Holstein",
+    SL: "Saarland",
+    SN: "Sachsen",
+    ST: "Sachsen-Anhalt",
+    TH: "Thüringen",
+  },
+  en: {
+    BB: "Brandenburg",
+    BE: "Berlin",
+    BW: "Baden-Württemberg",
+    BY: "Bavaria",
+    HB: "Bremen",
+    HE: "Hesse",
+    HH: "Hamburg",
+    MV: "Mecklenburg-Western Pomerania",
+    NI: "Lower Saxony",
+    NW: "North Rhine-Westphalia",
+    RP: "Rhineland-Palatinate",
+    SH: "Schleswig-Holstein",
+    SL: "Saarland",
+    SN: "Saxony",
+    ST: "Saxony-Anhalt",
+    TH: "Thuringia",
+  },
 };
-
-const COUNTRY_CODE_TO_NAME: Record<string, string> = {
-  AT: "Österreich",
-  CH: "Schweiz",
-  CZ: "Tschechien",
-  DE: "Deutschland",
-  DK: "Dänemark",
-  FR: "Frankreich",
-  GB: "Vereinigtes Königreich",
-  NL: "Niederlande",
-  SE: "Schweden",
-  US: "Vereinigte Staaten",
-};
-
-let germanRegionNames: Intl.DisplayNames | null = null;
-try {
-  germanRegionNames = new Intl.DisplayNames(["de"], { type: "region" });
-} catch {
-  germanRegionNames = null;
-}
+const regionNameCache = new Map<DashboardLocale, Intl.DisplayNames | null>();
 
 function normalizeName(value: string): string {
   return value.trim().toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
@@ -152,17 +136,38 @@ function getCountryCodeFromName(value: string): string | null {
   return COUNTRY_NAME_TO_CODE[normalized] ?? null;
 }
 
-function getCountryDisplayName(value: string): string {
+function getRegionNames(locale: DashboardLocale): Intl.DisplayNames | null {
+  if (regionNameCache.has(locale)) {
+    return regionNameCache.get(locale) ?? null;
+  }
+
+  let resolved: Intl.DisplayNames | null = null;
+  try {
+    resolved = new Intl.DisplayNames([locale], { type: "region" });
+  } catch {
+    resolved = null;
+  }
+  regionNameCache.set(locale, resolved);
+  return resolved;
+}
+
+function getCountryDisplayName(
+  value: string,
+  locale: DashboardLocale,
+  unknownLabel: string,
+): string {
   const code = getCountryCodeFromName(value);
   if (code) {
-    return germanRegionNames?.of(code) ?? COUNTRY_CODE_TO_NAME[code] ?? value;
+    return getRegionNames(locale)?.of(code) ?? code;
   }
-  return isUnknownValue(value) ? "(Unbekannt)" : value.trim();
+  return isUnknownValue(value) ? unknownLabel : value.trim();
 }
 
 function parseLocationDisplay(
   type: UmamiMetricType,
   value: string,
+  locale: DashboardLocale,
+  unknownLabel: string,
 ): { label: string; flag: string | null } {
   const parts = value
     .split(",")
@@ -170,10 +175,10 @@ function parseLocationDisplay(
     .filter(Boolean);
   const regionPart = parts[0] ?? value.trim();
   const countryPart = parts[parts.length - 1] ?? "";
-  const firstLabel = isUnknownValue(regionPart) ? "(Unbekannt)" : regionPart;
+  const firstLabel = isUnknownValue(regionPart) ? unknownLabel : regionPart;
   const code = getCountryCodeFromName(countryPart);
   const flag = code ? countryFlag(code) : null;
-  const countryLabel = getCountryDisplayName(countryPart);
+  const countryLabel = getCountryDisplayName(countryPart, locale, unknownLabel);
 
   if (type === "country") {
     return { label: countryLabel, flag };
@@ -186,17 +191,17 @@ function parseLocationDisplay(
     if (parts.length >= 2) {
       return { label: `${regionPart}, ${countryLabel}`, flag };
     }
-    return { label: regionPart || "(Unbekannt)", flag };
+    return { label: regionPart || unknownLabel, flag };
   }
 
   const regionCodeMatch = /^([A-Za-z]{2})-([A-Za-z0-9]{2,3})$/.exec(regionPart);
   if (regionCodeMatch) {
     const countryCode = regionCodeMatch[1].toUpperCase();
     const subCode = regionCodeMatch[2].toUpperCase();
-    const countryLabel = getCountryDisplayName(countryCode);
+    const countryLabel = getCountryDisplayName(countryCode, locale, unknownLabel);
     const regionName =
       countryCode === "DE"
-        ? (DE_REGION_CODE_TO_NAME[subCode] ?? `${countryCode}-${subCode}`)
+        ? (DE_REGION_CODE_TO_NAME[locale][subCode] ?? `${countryCode}-${subCode}`)
         : regionPart;
     return { label: `${regionName}, ${countryLabel}`, flag: countryFlag(countryCode) };
   }
@@ -205,7 +210,7 @@ function parseLocationDisplay(
     return { label: `${firstLabel}, ${countryLabel}`, flag };
   }
 
-  return { label: countryLabel || "(Unbekannt)", flag };
+  return { label: countryLabel || unknownLabel, flag };
 }
 
 function normalizeMetricValue(value: string): string {
@@ -251,7 +256,7 @@ const STORAGE_KEY = "analytics-period";
 
 function loadPeriod(): UmamiPeriod {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved && PERIODS.some((p) => p.value === saved)) return saved as UmamiPeriod;
+  if (saved && PERIOD_VALUES.some((p) => p === saved)) return saved as UmamiPeriod;
   return "7d";
 }
 
@@ -264,20 +269,26 @@ function countryFlag(countryCode: string): string {
   );
 }
 
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
+function formatDuration(
+  seconds: number,
+  units: { secondsShort: string; minutesShort: string },
+): string {
+  if (seconds < 60) return `${seconds}${units.secondsShort}`;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return `${m}m ${s}s`;
+  return `${m}${units.minutesShort} ${s}${units.secondsShort}`;
 }
 
-function formatLabel(x: string, period: UmamiPeriod): string {
+function formatLabel(x: string, period: UmamiPeriod, locale: DashboardLocale): string {
+  const date = new Date(x);
   if (period === "today") {
-    const h = new Date(x).getHours();
-    return `${h}:00`;
+    return new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).format(date);
   }
-  const d = new Date(x);
-  return `${d.getDate()}.${d.getMonth() + 1}.`;
+  return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit" }).format(date);
 }
 
 interface KpiCardProps {
@@ -296,9 +307,12 @@ function KpiCard({ label, value, sub }: KpiCardProps) {
   );
 }
 
-function formatMinute(ts: number): string {
-  const d = new Date(ts);
-  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+function formatMinute(ts: number, locale: DashboardLocale): string {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(ts));
 }
 
 function intTicks(max: number): number[] {
@@ -312,7 +326,9 @@ function intTicks(max: number): number[] {
 }
 
 function RealtimeCard() {
+  const { locale, messages, formatNumber } = useI18n();
   const { effectiveTheme } = useTheme();
+  const analyticsMessages = messages.dashboard.analytics;
   const isDark = effectiveTheme === "dark";
   const gridColor = isDark ? "#3d444d" : "#f1f0ef";
   const tickColor = isDark ? "#a8a29e" : "#9ca3af";
@@ -326,31 +342,29 @@ function RealtimeCard() {
 
   const chartData = (() => {
     const now = Date.now();
-    // Build full 30-minute grid (one slot per minute, oldest first)
     const slots = Array.from({ length: 30 }, (_, i) => {
       const ts = Math.floor((now - (29 - i) * 60_000) / 60_000) * 60_000;
-      return { ts, time: formatMinute(ts), Besucher: 0, Aufrufe: 0 };
+      return { ts, time: formatMinute(ts, locale), visitors: 0, pageviews: 0 };
     });
 
     if (realtime?.series) {
-      // Umami v2 uses "pageviews", older versions use "views" — support both
       const viewSeries = realtime.series.pageviews ?? realtime.series.views ?? [];
-      // Umami may return x as seconds, milliseconds, or ISO string — normalise to ms
       const toMs = (x: number | string) =>
         typeof x === "string" ? new Date(x).getTime() : x > 1e12 ? x : x * 1000;
+
       for (const v of realtime.series.visitors ?? []) {
         const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
         const slot = slots.find((s) => s.ts === rounded);
-        if (slot) slot.Besucher = v.y;
+        if (slot) slot.visitors = v.y;
       }
       for (const v of viewSeries) {
         const rounded = Math.floor(toMs(v.x) / 60_000) * 60_000;
         const slot = slots.find((s) => s.ts === rounded);
-        if (slot) slot.Aufrufe = v.y;
+        if (slot) slot.pageviews = v.y;
       }
     }
 
-    return slots.map(({ time, Besucher, Aufrufe }) => ({ time, Besucher, Aufrufe }));
+    return slots.map(({ time, visitors, pageviews }) => ({ time, visitors, pageviews }));
   })();
 
   const topUrls = realtime?.urls
@@ -358,120 +372,127 @@ function RealtimeCard() {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
     : [];
-  const rtMaxVal = Math.max(...chartData.map((d) => Math.max(d.Besucher, d.Aufrufe)), 1);
+  const rtMaxVal = Math.max(...chartData.map((d) => Math.max(d.visitors, d.pageviews)), 1);
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 mb-4">
-      {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
         </span>
-        <p className="text-base font-medium text-[var(--ds-text)]">Live</p>
+        <p className="text-base font-medium text-[var(--ds-text)]">
+          {analyticsMessages.realtime.title}
+        </p>
 
-        {/* KPIs */}
         {realtime && (
           <div className="flex items-center gap-5 ml-4">
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl font-bold text-[var(--ds-text)]">
-                {active?.visitors ?? realtime.totals.visitors}
+                {formatNumber(active?.visitors ?? realtime.totals.visitors ?? 0)}
               </span>
               <span className="text-sm text-[var(--ds-text-subtle)]">
-                {active?.visitors != null ? "aktiv (5 min)" : "Besucher"}
+                {active?.visitors != null
+                  ? analyticsMessages.realtime.active5m
+                  : analyticsMessages.visitors}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl font-bold text-[var(--ds-text)]">
-                {realtime.totals.pageviews ?? realtime.totals.views ?? 0}
+                {formatNumber(realtime.totals.pageviews ?? realtime.totals.views ?? 0)}
               </span>
-              <span className="text-sm text-[var(--ds-text-subtle)]">Aufrufe (30 min)</span>
+              <span className="text-sm text-[var(--ds-text-subtle)]">
+                {analyticsMessages.realtime.pageviews30m}
+              </span>
             </div>
           </div>
         )}
 
-        <span className="ml-auto text-sm text-[var(--ds-text-subtle)]">aktualisiert alle 30 s</span>
+        <span className="ml-auto text-sm text-[var(--ds-text-subtle)]">
+          {analyticsMessages.realtime.updatedEvery30s}
+        </span>
       </div>
 
       {rtLoading ? (
         <div className="h-24 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
       ) : !realtime ? (
-        <p className="text-sm text-[var(--ds-text-subtle)]">Keine Realtime-Daten</p>
+        <p className="text-sm text-[var(--ds-text-subtle)]">{analyticsMessages.noRealtimeData}</p>
       ) : (
-        <>
-          {/* Legende */}
-          <div className="flex gap-4 items-start">
-            {/* Legende + Bar Chart (3/4) */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-4 mb-2">
-                <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
-                  Besucher
-                </span>
-                <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
-                  Seitenaufrufe
-                </span>
-              </div>
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
-                  barSize={5}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={true} />
-                  <XAxis
-                    dataKey="time"
-                    tick={{ fontSize: 10, fill: tickColor }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={1}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: tickColor }}
-                    axisLine={false}
-                    tickLine={false}
-                    allowDecimals={false}
-                    domain={[0, rtMaxVal]}
-                    ticks={intTicks(rtMaxVal)}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      fontSize: 12,
-                      borderRadius: 8,
-                      border: `1px solid ${tooltipBorder}`,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                      background: tooltipBg,
-                      color: tooltipColor,
-                    }}
-                    cursor={{ fill: cursorColor }}
-                  />
-                  <Bar dataKey="Besucher" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="Aufrufe" fill="#a8a29e" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+        <div className="flex gap-4 items-start">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-4 mb-2">
+              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
+                {analyticsMessages.visitors}
+              </span>
+              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
+                <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
+                {analyticsMessages.pageviews}
+              </span>
             </div>
-
-            {/* Top URLs (1/4) */}
-            {topUrls.length > 0 && (
-              <div className="w-1/4 shrink-0 pl-4 border-l border-[var(--ds-border-subtle)]">
-                <p className="text-sm font-medium text-[var(--ds-text-muted)] mb-2">Top Seiten</p>
-                <div className="space-y-1.5">
-                  {topUrls.map(([url, count]) => (
-                    <div key={url} className="flex items-center gap-2 text-sm">
-                      <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={url}>
-                        {url === "/" ? "Startseite" : url}
-                      </span>
-                      <span className="shrink-0 text-right text-sm text-[var(--ds-text-subtle)]">
-                        {count}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
+                barSize={5}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={true} />
+                <XAxis
+                  dataKey="time"
+                  tick={{ fontSize: 10, fill: tickColor }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={1}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: tickColor }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                  domain={[0, rtMaxVal]}
+                  ticks={intTicks(rtMaxVal)}
+                />
+                <Tooltip
+                  contentStyle={{
+                    fontSize: 12,
+                    borderRadius: 8,
+                    border: `1px solid ${tooltipBorder}`,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    background: tooltipBg,
+                    color: tooltipColor,
+                  }}
+                  formatter={(value, name) => [
+                    formatNumber(Number(value)),
+                    name === "visitors" ? analyticsMessages.visitors : analyticsMessages.pageviews,
+                  ]}
+                  cursor={{ fill: cursorColor }}
+                />
+                <Bar dataKey="visitors" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="pageviews" fill="#a8a29e" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        </>
+
+          {topUrls.length > 0 && (
+            <div className="w-1/4 shrink-0 pl-4 border-l border-[var(--ds-border-subtle)]">
+              <p className="text-sm font-medium text-[var(--ds-text-muted)] mb-2">
+                {analyticsMessages.topPages}
+              </p>
+              <div className="space-y-1.5">
+                {topUrls.map(([url, count]) => (
+                  <div key={url} className="flex items-center gap-2 text-sm">
+                    <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={url}>
+                      {url === "/" ? analyticsMessages.home : url}
+                    </span>
+                    <span className="shrink-0 text-right text-sm text-[var(--ds-text-subtle)]">
+                      {formatNumber(count)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -485,6 +506,8 @@ interface MetricListProps {
 }
 
 function MetricList({ title, type, period, renderLabel }: MetricListProps) {
+  const { messages, formatNumber } = useI18n();
+  const analyticsMessages = messages.dashboard.analytics;
   const { data, isLoading } = useUmamiMetrics(type, period);
   const rows = data ?? [];
   const max = rows[0]?.y ?? 1;
@@ -500,13 +523,17 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
         </div>
       )}
       {!isLoading && rows.length === 0 && (
-        <p className="text-sm text-[var(--ds-text-subtle)] py-4 text-center">Keine Daten</p>
+        <p className="text-sm text-[var(--ds-text-subtle)] py-4 text-center">
+          {analyticsMessages.noData}
+        </p>
       )}
       {!isLoading && rows.length > 0 && (
         <ul className="space-y-2">
           {rows.map((row, index) => {
             const rowText = toMetricText(row.x);
-            const rowLabel = renderLabel ? renderLabel(rowText) : rowText || "(Unbekannt)";
+            const rowLabel = renderLabel
+              ? renderLabel(rowText)
+              : rowText || analyticsMessages.unknown;
             return (
               <li
                 key={`${type}-${rowText}-${row.y}-${index}`}
@@ -525,7 +552,7 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
                   />
                 </div>
                 <span className="shrink-0 w-8 text-right text-sm text-[var(--ds-text-muted)]">
-                  {row.y}
+                  {formatNumber(row.y)}
                 </span>
               </li>
             );
@@ -543,6 +570,8 @@ interface TabbedMetricCardProps {
 }
 
 function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
+  const { locale, messages, formatNumber } = useI18n();
+  const analyticsMessages = messages.dashboard.analytics;
   const [activeType, setActiveType] = useState<UmamiMetricType>(tabs[0]?.value ?? "country");
   const activeTab = tabs.find((tab) => tab.value === activeType) ?? tabs[0];
   const { data, isLoading } = useUmamiMetrics(activeTab.value, period);
@@ -562,8 +591,8 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
 
       <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-2 border-b border-[var(--ds-border-subtle)] text-sm font-medium text-[var(--ds-text-subtle)]">
         <span>{activeTab.columnLabel}</span>
-        <span className="text-right">Besucher</span>
-        <span className="text-right">%</span>
+        <span className="text-right">{analyticsMessages.visitors}</span>
+        <span className="text-right">{analyticsMessages.percentColumn}</span>
       </div>
 
       {isLoading ? (
@@ -573,7 +602,9 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
           ))}
         </div>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-[var(--ds-text-subtle)] py-6 text-center">Keine Daten</p>
+        <p className="text-sm text-[var(--ds-text-subtle)] py-6 text-center">
+          {analyticsMessages.noData}
+        </p>
       ) : (
         <ul className="pt-2 space-y-1.5">
           {rows.map((row, index) => {
@@ -581,12 +612,17 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
             const rowText = toMetricText(row.x);
             let label = activeTab.renderLabel
               ? activeTab.renderLabel(rowText)
-              : rowText || "(Unbekannt)";
+              : rowText || analyticsMessages.unknown;
             const EnvironmentIcon = getEnvironmentIcon(activeType, rowText);
             let leadingVisual: ReactNode = null;
 
             if (activeType === "country" || activeType === "region" || activeType === "city") {
-              const parsed = parseLocationDisplay(activeType, rowText);
+              const parsed = parseLocationDisplay(
+                activeType,
+                rowText,
+                locale,
+                analyticsMessages.unknown,
+              );
               label = parsed.label;
               leadingVisual = parsed.flag ? (
                 <span className="shrink-0 leading-none">{parsed.flag}</span>
@@ -610,7 +646,7 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
                   <span className="truncate">{label}</span>
                 </span>
                 <span className="text-right text-[var(--ds-text)] tabular-nums">
-                  {row.y.toLocaleString("de")}
+                  {formatNumber(row.y)}
                 </span>
                 <span className="text-right text-[var(--ds-text-subtle)] tabular-nums">
                   {percentage}%
@@ -625,7 +661,9 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
 }
 
 export function AnalyticsSection() {
+  const { locale, messages, formatNumber } = useI18n();
   const { effectiveTheme } = useTheme();
+  const analyticsMessages = messages.dashboard.analytics;
   const isDark = effectiveTheme === "dark";
   const gridColor = isDark ? "#3d444d" : "#f1f0ef";
   const tickColor = isDark ? "#a8a29e" : "#9ca3af";
@@ -639,24 +677,58 @@ export function AnalyticsSection() {
     setPeriod(p);
     localStorage.setItem(STORAGE_KEY, p);
   }
+  const periodOptions: { label: string; value: UmamiPeriod }[] = [
+    { value: "today", label: analyticsMessages.periods.today },
+    { value: "7d", label: analyticsMessages.periods.d7 },
+    { value: "30d", label: analyticsMessages.periods.d30 },
+    { value: "60d", label: analyticsMessages.periods.d60 },
+    { value: "90d", label: analyticsMessages.periods.d90 },
+  ];
+  const environmentTabs: readonly MetricTabConfig[] = [
+    {
+      label: analyticsMessages.browser,
+      value: "browser",
+      columnLabel: analyticsMessages.browser,
+    },
+    { label: analyticsMessages.os, value: "os", columnLabel: analyticsMessages.os },
+    {
+      label: analyticsMessages.devices,
+      value: "device",
+      columnLabel: analyticsMessages.device,
+    },
+  ];
+  const locationTabs: readonly MetricTabConfig[] = [
+    {
+      label: analyticsMessages.countries,
+      value: "country",
+      columnLabel: analyticsMessages.country,
+    },
+    { label: analyticsMessages.regions, value: "region", columnLabel: analyticsMessages.region },
+    { label: analyticsMessages.cities, value: "city", columnLabel: analyticsMessages.city },
+  ];
   const { data: stats, isLoading: statsLoading } = useUmamiStats(period);
   const { data: pageviews, isLoading: pvLoading } = useUmamiPageviews(period);
 
   const chartData =
     pageviews?.pageviews.map((pv) => ({
-      label: formatLabel(pv.x, period),
-      Seitenaufrufe: pv.y,
-      Besucher: pageviews.sessions.find((s) => s.x === pv.x)?.y ?? 0,
+      label: formatLabel(pv.x, period, locale),
+      pageviews: pv.y,
+      visitors: pageviews.sessions.find((s) => s.x === pv.x)?.y ?? 0,
     })) ?? [];
 
-  const pvMaxVal = Math.max(...chartData.map((d) => Math.max(d.Besucher, d.Seitenaufrufe)), 1);
+  const pvMaxVal = Math.max(...chartData.map((d) => Math.max(d.visitors, d.pageviews)), 1);
 
   const visitsVal = stats?.visits?.value ?? 0;
   const bouncesVal = stats?.bounces?.value ?? 0;
   const bounceRate = visitsVal > 0 ? Math.round((bouncesVal / visitsVal) * 100) : 0;
 
   const totalTime = stats?.totaltime?.value ?? 0;
-  const avgDuration = stats ? formatDuration(Math.round(totalTime / Math.max(visitsVal, 1))) : "–";
+  const avgDuration = stats
+    ? formatDuration(
+        Math.round(totalTime / Math.max(visitsVal, 1)),
+        analyticsMessages.durationUnits,
+      )
+    : "–";
 
   const hasStats = stats && stats.visitors != null && stats.pageviews != null;
 
@@ -664,13 +736,11 @@ export function AnalyticsSection() {
     <div className="mt-8">
       <RealtimeCard />
 
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-[var(--ds-text)]">Analytics</h2>
-        <SegmentedControl value={period} onChange={handlePeriodChange} options={PERIODS} />
+        <h2 className="text-base font-semibold text-[var(--ds-text)]">{analyticsMessages.title}</h2>
+        <SegmentedControl value={period} onChange={handlePeriodChange} options={periodOptions} />
       </div>
 
-      {/* KPI-Leiste */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         {statsLoading ? (
           Array.from({ length: 4 }, (_, i) => `kpi-${i}`).map((k) => (
@@ -678,34 +748,38 @@ export function AnalyticsSection() {
           ))
         ) : hasStats ? (
           <>
-            <KpiCard label="Besucher" value={(stats.visitors?.value ?? 0).toLocaleString("de")} />
             <KpiCard
-              label="Seitenaufrufe"
-              value={(stats.pageviews?.value ?? 0).toLocaleString("de")}
+              label={analyticsMessages.visitors}
+              value={formatNumber(stats.visitors?.value ?? 0)}
             />
-            <KpiCard label="Absprungrate" value={`${bounceRate} %`} />
-            <KpiCard label="Ø Verweildauer" value={avgDuration} />
+            <KpiCard
+              label={analyticsMessages.pageviews}
+              value={formatNumber(stats.pageviews?.value ?? 0)}
+            />
+            <KpiCard label={analyticsMessages.bounceRate} value={`${bounceRate} %`} />
+            <KpiCard label={analyticsMessages.averageDuration} value={avgDuration} />
           </>
         ) : (
           <div className="col-span-4 text-sm text-[var(--ds-text-subtle)] py-2">
-            Umami nicht konfiguriert (UMAMI_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID).
+            {analyticsMessages.umamiNotConfigured}
           </div>
         )}
       </div>
 
-      {/* Traffic Chart */}
       {(pvLoading || chartData.length > 0) && (
         <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-base font-medium text-[var(--ds-text)]">Traffic</p>
+            <p className="text-base font-medium text-[var(--ds-text)]">
+              {analyticsMessages.traffic}
+            </p>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
                 <span className="w-3 h-0.5 rounded-full bg-amber-400 inline-block" />
-                Besucher
+                {analyticsMessages.visitors}
               </span>
               <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
                 <span className="w-3 h-0.5 rounded-full bg-stone-400 inline-block" />
-                Seitenaufrufe
+                {analyticsMessages.pageviews}
               </span>
             </div>
           </div>
@@ -748,10 +822,14 @@ export function AnalyticsSection() {
                     background: tooltipBg,
                     color: tooltipColor,
                   }}
+                  formatter={(value, name) => [
+                    formatNumber(Number(value)),
+                    name === "visitors" ? analyticsMessages.visitors : analyticsMessages.pageviews,
+                  ]}
                 />
                 <Area
                   type="monotone"
-                  dataKey="Seitenaufrufe"
+                  dataKey="pageviews"
                   stroke="#a8a29e"
                   strokeWidth={2}
                   fill="url(#gradPageviews)"
@@ -759,7 +837,7 @@ export function AnalyticsSection() {
                 />
                 <Area
                   type="monotone"
-                  dataKey="Besucher"
+                  dataKey="visitors"
                   stroke="#f59e0b"
                   strokeWidth={2}
                   fill="url(#gradVisitors)"
@@ -771,30 +849,32 @@ export function AnalyticsSection() {
         </div>
       )}
 
-      {/* Top Seiten + Quellen */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <div className="md:col-span-3">
           <MetricList
-            title="Top Seiten"
+            title={analyticsMessages.topPages}
             type="url"
             period={period}
-            renderLabel={(x) => (x === "/" ? "Startseite" : x)}
+            renderLabel={(x) => (x === "/" ? analyticsMessages.home : x)}
           />
         </div>
         <div className="md:col-span-2">
           <MetricList
-            title="Quellen"
+            title={analyticsMessages.sources}
             type="referrer"
             period={period}
-            renderLabel={(x) => x || "(Direkt)"}
+            renderLabel={(x) => x || analyticsMessages.direct}
           />
         </div>
       </div>
 
-      {/* Environment + Location */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-3">
-        <TabbedMetricCard title="Environment" tabs={ENVIRONMENT_TABS} period={period} />
-        <TabbedMetricCard title="Location" tabs={LOCATION_TABS} period={period} />
+        <TabbedMetricCard
+          title={analyticsMessages.environment}
+          tabs={environmentTabs}
+          period={period}
+        />
+        <TabbedMetricCard title={analyticsMessages.location} tabs={locationTabs} period={period} />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import "@mdxeditor/editor/style.css";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { InternalLinkPicker } from "@/features/content/InternalLinkPicker.tsx";
 import {
   useAdminContentPage,
@@ -77,6 +78,9 @@ function slugify(str: string): string {
 }
 
 export function ContentEditorPage() {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const editorMessages = messages.content.editor;
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { data: page, isLoading } = useAdminContentPage(slug);
@@ -155,7 +159,7 @@ export function ContentEditorPage() {
         navigate(`/seiten/${updated.slug}`, { replace: true });
       }
     } catch (err) {
-      setPatchError(err instanceof Error ? err.message : "Fehler beim Speichern");
+      setPatchError(err instanceof Error ? err.message : editorMessages.saveError);
     }
   }
 
@@ -227,7 +231,7 @@ export function ContentEditorPage() {
               onClick={() => changeFontSize(-1)}
               disabled={sourceFontSize <= FONT_SIZE_MIN}
               className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
-              title="Schriftgröße verkleinern"
+              title={editorMessages.decreaseFontSize}
             >
               <SFMinus className="w-2.5 h-2.5" />
             </button>
@@ -239,7 +243,7 @@ export function ContentEditorPage() {
               onClick={() => changeFontSize(+1)}
               disabled={sourceFontSize >= FONT_SIZE_MAX}
               className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
-              title="Schriftgröße vergrößern"
+              title={editorMessages.increaseFontSize}
             >
               <SFPlus className="w-2.5 h-2.5" />
             </button>
@@ -251,14 +255,14 @@ export function ContentEditorPage() {
               type="button"
               onClick={() => setConfirmDelete(true)}
               className="flex items-center gap-2 px-3 py-2 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors"
-              title="Seite löschen"
+              title={editorMessages.deletePage}
             >
               <SFTrashFill className="w-3.5 h-3.5" />
             </button>
           ) : (
             <div className="flex items-center gap-2 px-3 py-1.5 border border-[var(--ds-btn-danger-border)] rounded-control bg-[var(--ds-btn-danger-hover-bg)]">
               <span className="text-xs text-[var(--ds-btn-danger-text)] font-medium">
-                Wirklich löschen?
+                {editorMessages.confirmDelete}
               </span>
               <button
                 type="button"
@@ -270,14 +274,14 @@ export function ContentEditorPage() {
                 disabled={deletePage.isPending}
                 className="text-xs font-semibold text-[var(--ds-btn-danger-text)] hover:underline disabled:opacity-60"
               >
-                Ja, löschen
+                {editorMessages.confirmDeleteAction}
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
                 className="text-xs text-[var(--ds-text-muted)] hover:underline"
               >
-                Abbrechen
+                {common.cancel}
               </button>
             </div>
           )}
@@ -290,7 +294,7 @@ export function ContentEditorPage() {
             className="flex items-center gap-2 px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-60 transition-colors"
           >
             <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-            {save.isPending ? "Wird gespeichert…" : saved ? "Gespeichert" : "Speichern"}
+            {save.isPending ? common.saving : saved ? editorMessages.saved : common.save}
           </button>
         </div>
       </PageHeader>
@@ -300,7 +304,7 @@ export function ContentEditorPage() {
         <div className="border-b border-[var(--ds-border)] px-6 py-3 flex flex-wrap items-center gap-6 text-xs text-[var(--ds-text-muted)] bg-[var(--ds-surface)]">
           {/* Title */}
           <div className="flex items-center gap-2">
-            <span className="font-medium">Titel:</span>
+            <span className="font-medium">{editorMessages.titleLabel}:</span>
             {editingTitle ? (
               <form
                 onSubmit={(e) => {
@@ -317,14 +321,14 @@ export function ContentEditorPage() {
                   className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none w-48"
                 />
                 <button type="submit" className="text-[var(--color-primary)] hover:underline">
-                  OK
+                  {editorMessages.ok}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingTitle(false)}
                   className="hover:underline"
                 >
-                  Abbrechen
+                  {common.cancel}
                 </button>
               </form>
             ) : (
@@ -343,7 +347,7 @@ export function ContentEditorPage() {
 
           {/* Slug */}
           <div className="flex items-center gap-2">
-            <span className="font-medium">Slug:</span>
+            <span className="font-medium">{editorMessages.slugLabel}:</span>
             {editingSlug ? (
               <form
                 onSubmit={(e) => {
@@ -363,14 +367,14 @@ export function ContentEditorPage() {
                   className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none font-mono w-40"
                 />
                 <button type="submit" className="text-[var(--color-primary)] hover:underline">
-                  OK
+                  {editorMessages.ok}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingSlug(false)}
                   className="hover:underline"
                 >
-                  Abbrechen
+                  {common.cancel}
                 </button>
               </form>
             ) : (
@@ -389,26 +393,27 @@ export function ContentEditorPage() {
 
           {/* Status */}
           <div className="flex items-center gap-2">
-            <span className="font-medium">Status:</span>
+            <span className="font-medium">{editorMessages.statusLabel}:</span>
             <select
               value={page.status}
               onChange={(e) => handlePatch({ status: e.target.value })}
               className="text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded px-1.5 py-0.5 text-[var(--ds-text)] focus:outline-none cursor-pointer"
             >
-              <option value="draft">Entwurf</option>
-              <option value="published">Veröffentlicht</option>
-              <option value="hidden">Versteckt</option>
+              <option value="draft">{editorMessages.statusDraft}</option>
+              <option value="published">{editorMessages.statusPublished}</option>
+              <option value="hidden">{editorMessages.statusHidden}</option>
             </select>
           </div>
 
           {/* Audit info */}
           {page.createdByUsername && (
             <div className="ml-auto">
-              Erstellt von <span className="text-[var(--ds-text)]">{page.createdByUsername}</span>
+              {editorMessages.createdBy}{" "}
+              <span className="text-[var(--ds-text)]">{page.createdByUsername}</span>
               {page.updatedByUsername && (
                 <>
                   {" "}
-                  · Geändert von{" "}
+                  · {editorMessages.updatedBy}{" "}
                   <span className="text-[var(--ds-text)]">{page.updatedByUsername}</span>
                 </>
               )}
@@ -425,7 +430,7 @@ export function ContentEditorPage() {
       >
         {isLoading && (
           <div className="flex items-center justify-center h-64 text-[var(--ds-text-subtle)] text-sm">
-            Lade Inhalt…
+            {editorMessages.loadingContent}
           </div>
         )}
 
@@ -440,9 +445,7 @@ export function ContentEditorPage() {
         )}
 
         {save.isError && (
-          <p className="text-red-500 text-sm text-center mt-4">
-            Fehler beim Speichern. Bitte erneut versuchen.
-          </p>
+          <p className="text-red-500 text-sm text-center mt-4">{editorMessages.saveError}</p>
         )}
       </div>
     </>

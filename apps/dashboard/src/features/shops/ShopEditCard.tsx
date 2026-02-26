@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import {
   useAdminShop,
@@ -24,6 +25,9 @@ export function ShopEditCard({
   onClose,
   onSaved,
 }: ShopEditCardProps) {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const shopsMessages = messages.shops;
   const isSubmissionMode = submissionId !== undefined;
   const isNew = shopId === "new";
   const [closing, setClosing] = useState(false);
@@ -80,10 +84,10 @@ export function ShopEditCard({
   }
 
   const title = isSubmissionMode
-    ? "Vorschlag bearbeiten"
+    ? shopsMessages.editCard.titleSubmissionEdit
     : isNew
-      ? "Neuer Shop"
-      : "Shop bearbeiten";
+      ? shopsMessages.editCard.titleNew
+      : shopsMessages.editCard.titleEdit;
 
   return (
     <div
@@ -147,10 +151,10 @@ export function ShopEditCard({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-[var(--ds-text-muted)] mb-0.5">
-                      Vorschaubild
+                      {shopsMessages.editCard.previewImage}
                     </p>
                     <p className="text-xs text-[var(--ds-text-subtle)] truncate">
-                      {displayImage ?? "Kein Bild gesetzt"}
+                      {displayImage ?? shopsMessages.editCard.noImage}
                     </p>
                   </div>
                   <button
@@ -160,7 +164,7 @@ export function ShopEditCard({
                     className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-40"
                   >
                     <SFArrowClockwise className={`w-3 h-3 ${isPending ? "animate-spin" : ""}`} />
-                    Neu laden
+                    {shopsMessages.editCard.reloadImage}
                   </button>
                 </div>
               );
@@ -168,7 +172,7 @@ export function ShopEditCard({
 
           {isError && (
             <p className="text-red-500 text-sm mt-4">
-              {error instanceof Error ? error.message : "Fehler beim Speichern."}
+              {error instanceof Error ? error.message : shopsMessages.editCard.errorSaving}
             </p>
           )}
         </div>
@@ -180,7 +184,7 @@ export function ShopEditCard({
             onClick={() => setClosing(true)}
             className="px-4 py-2 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
           >
-            Abbrechen
+            {common.cancel}
           </button>
           <button
             type="button"
@@ -188,7 +192,7 @@ export function ShopEditCard({
             disabled={!canSave}
             className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
           >
-            {isPending ? "Wird gespeichert…" : "Speichern"}
+            {isPending ? common.saving : common.save}
           </button>
         </div>
       </div>

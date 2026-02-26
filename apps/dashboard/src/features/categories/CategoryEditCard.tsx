@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { UnsplashBrowser } from "@/features/categories/UnsplashBrowser.tsx";
 import {
   useAdminCategories,
@@ -28,6 +29,9 @@ function slugify(s: string) {
 }
 
 export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditCardProps) {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const categoriesMessages = messages.categories;
   const isNew = categoryId === "new";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUnsplash, setShowUnsplash] = useState(false);
@@ -168,7 +172,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium transition-colors w-full"
                 >
                   <SFTrashFill className="w-3 h-3" />
-                  Löschen
+                  {categoriesMessages.editCard.deleteImage}
                 </button>
               )}
               <button
@@ -177,7 +181,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
               >
                 <SFSquareAndArrowUpFill className="w-3 h-3" />
-                Hochladen
+                {categoriesMessages.editCard.upload}
               </button>
               <button
                 type="button"
@@ -185,7 +189,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
               >
                 <span className="text-[10px] font-bold leading-none">U</span>
-                Unsplash
+                {categoriesMessages.editCard.unsplash}
               </button>
             </div>
 
@@ -201,7 +205,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
           {/* Form Panel – 50 % */}
           <div className="flex flex-col p-3 min-w-0">
             <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-4">
-              {isNew ? "Neue Kategorie" : "Kategorie bearbeiten"}
+              {isNew ? categoriesMessages.editCard.titleNew : categoriesMessages.editCard.titleEdit}
             </h2>
 
             <div className="flex flex-col gap-3 flex-1">
@@ -210,7 +214,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   htmlFor="cat-name"
                   className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
                 >
-                  Name
+                  {categoriesMessages.editCard.name}
                 </label>
                 <input
                   id="cat-name"
@@ -226,7 +230,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   htmlFor="cat-slug"
                   className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
                 >
-                  Slug
+                  {categoriesMessages.editCard.slug}
                 </label>
                 <input
                   id="cat-slug"
@@ -242,7 +246,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   htmlFor="cat-description"
                   className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
                 >
-                  Beschreibung
+                  {categoriesMessages.editCard.description}
                 </label>
                 <textarea
                   id="cat-description"
@@ -258,7 +262,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               <p className="text-red-500 text-sm mt-3">
                 {saveMutation.error instanceof Error
                   ? saveMutation.error.message
-                  : "Fehler beim Speichern."}
+                  : categoriesMessages.editCard.errorSaving}
               </p>
             )}
 
@@ -269,7 +273,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 onClick={() => setClosing(true)}
                 className="px-4 py-2 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
               >
-                Abbrechen
+                {common.cancel}
               </button>
               <button
                 type="button"
@@ -277,7 +281,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 disabled={!canSave}
                 className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
               >
-                {saveMutation.isPending ? "Wird gespeichert…" : "Speichern"}
+                {saveMutation.isPending ? common.saving : common.save}
               </button>
             </div>
           </div>

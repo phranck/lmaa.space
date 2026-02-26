@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import md5 from "blueimp-md5";
 import { useEffect, useRef, useState } from "react";
@@ -38,6 +39,9 @@ const EMPTY_AVATAR_STATE: AvatarState = {
 };
 
 export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const usersMessages = messages.users;
   const { user: me } = useAuth();
   const [closing, setClosing] = useState(false);
   const [username, setUsername] = useState("");
@@ -174,7 +178,9 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       >
         {/* Header */}
         <div className="flex items-center px-5 py-4 border-b border-[var(--ds-border-subtle)]">
-          <h2 className="text-base font-semibold text-[var(--ds-text)]">Benutzer bearbeiten</h2>
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">
+            {usersMessages.editCard.title}
+          </h2>
         </div>
 
         {/* Body */}
@@ -205,7 +211,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
                 >
                   <SFCamera className="w-3.5 h-3.5 shrink-0" />
-                  Bild hochladen
+                  {usersMessages.editCard.uploadImage}
                 </button>
                 <button
                   type="button"
@@ -213,7 +219,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
                 >
                   <SFPersonCropCircle className="w-3.5 h-3.5 shrink-0" />
-                  Gravatar verwenden
+                  {usersMessages.editCard.useGravatar}
                 </button>
                 {currentAvatarUrl && (
                   <button
@@ -222,7 +228,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
                   >
                     <SFTrash className="w-3.5 h-3.5 shrink-0" />
-                    Entfernen
+                    {usersMessages.editCard.removeAvatar}
                   </button>
                 )}
               </div>
@@ -245,7 +251,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
                 >
                   <SFPencil className="w-3 h-3" />
-                  Benutzername
+                  {usersMessages.editCard.username}
                 </label>
                 <input
                   id="user-edit-username"
@@ -263,7 +269,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
                 >
                   <SFAt className="w-3 h-3" />
-                  E-Mail
+                  {usersMessages.editCard.email}
                 </label>
                 <input
                   id="user-edit-email"
@@ -281,7 +287,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
                 >
                   <SFPerson className="w-3 h-3" />
-                  Vorname
+                  {usersMessages.editCard.firstName}
                 </label>
                 <input
                   id="user-edit-first-name"
@@ -299,7 +305,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
                 >
                   <SFPerson className="w-3 h-3" />
-                  Nachname
+                  {usersMessages.editCard.lastName}
                 </label>
                 <input
                   id="user-edit-last-name"
@@ -317,7 +323,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                     htmlFor="user-edit-role"
                     className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
                   >
-                    Rolle
+                    {usersMessages.editCard.role}
                   </label>
                   <select
                     id="user-edit-role"
@@ -325,8 +331,8 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                     onChange={(e) => setRole(e.target.value as "admin" | "moderator")}
                     className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
                   >
-                    <option value="admin">Admin</option>
-                    <option value="moderator">Moderator</option>
+                    <option value="admin">{usersMessages.editCard.roleAdmin}</option>
+                    <option value="moderator">{usersMessages.editCard.roleModerator}</option>
                   </select>
                 </div>
               )}
@@ -338,14 +344,14 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
                 >
                   <SFKey className="w-3 h-3" />
-                  Neues Passwort
+                  {usersMessages.editCard.password}
                 </label>
                 <input
                   id="user-edit-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Nicht ändern"
+                  placeholder={usersMessages.editCard.passwordPlaceholder}
                   className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
                 />
               </div>
@@ -354,7 +360,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
           {isError && (
             <p className="text-red-500 text-sm mt-4">
-              {error instanceof Error ? error.message : "Fehler beim Speichern."}
+              {error instanceof Error ? error.message : usersMessages.editCard.errorSaving}
             </p>
           )}
         </div>
@@ -366,7 +372,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
             onClick={() => setClosing(true)}
             className="px-4 py-2 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
           >
-            Abbrechen
+            {common.cancel}
           </button>
           <button
             type="button"
@@ -374,7 +380,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
             disabled={!canSave}
             className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
           >
-            {isPending ? "Wird gespeichert…" : "Speichern"}
+            {isPending ? common.saving : common.save}
           </button>
         </div>
       </div>

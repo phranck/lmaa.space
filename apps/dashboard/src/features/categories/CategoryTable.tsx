@@ -1,4 +1,5 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import type { Category } from "@lmaa/shared";
 import { useMemo } from "react";
 
@@ -25,6 +26,8 @@ function CategoryThumb({ category }: { category: Category }) {
 }
 
 export function CategoryTable({ categories, onEdit, onDelete }: CategoryTableProps) {
+  const { messages } = useI18n();
+  const categoriesMessages = messages.categories;
   const columns = useMemo<ColumnDef<Category>[]>(
     () => [
       {
@@ -34,19 +37,19 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
       },
       {
         id: "name",
-        header: "Name",
+        header: categoriesMessages.table.name,
         sortKey: (cat) => cat.name.toLowerCase(),
         cell: (cat) => <span className="font-medium text-[var(--ds-text)]">{cat.name}</span>,
       },
       {
         id: "slug",
-        header: "Slug",
+        header: categoriesMessages.table.slug,
         sortKey: (cat) => cat.slug,
         cell: (cat) => <span className="font-mono text-[var(--ds-text-subtle)]">{cat.slug}</span>,
       },
       {
         id: "shopCount",
-        header: "Shops",
+        header: categoriesMessages.table.shops,
         className: "w-20",
         sortKey: (cat) => cat.shopCount ?? 0,
         cell: (cat) => <span className="text-[var(--ds-text-muted)]">{cat.shopCount ?? "–"}</span>,
@@ -61,7 +64,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
               onClick={() => onEdit(cat.id)}
               className="h-9 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
             >
-              Bearbeiten
+              {categoriesMessages.table.edit}
             </button>
             {onDelete && (
               <button
@@ -69,14 +72,14 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
                 onClick={() => onDelete(cat.id)}
                 className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
               >
-                Löschen
+                {categoriesMessages.table.delete}
               </button>
             )}
           </div>
         ),
       },
     ],
-    [onEdit, onDelete],
+    [categoriesMessages, onDelete, onEdit],
   );
 
   return <DataTable columns={columns} data={categories} getRowKey={(c) => c.id} stickyHeader />;

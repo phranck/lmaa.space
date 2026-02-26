@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { SFArrowClockwise, SFMagnifyingglass, SFXmark } from "sf-symbols-lib/monochrome";
@@ -65,6 +66,9 @@ function reducer(state: SearchState, action: SearchAction): SearchState {
 }
 
 export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: UnsplashBrowserProps) {
+  const { messages } = useI18n();
+  const categoriesMessages = messages.categories;
+  const common = messages.common;
   const [state, dispatch] = useReducer(reducer, {
     query: defaultQuery,
     photos: [],
@@ -87,25 +91,28 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
   const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const search = useCallback(async (q: string, pg: number, append: boolean) => {
-    if (!q.trim()) {
-      dispatch({ type: "search-success", photos: [], total: 0, append: false });
-      return;
-    }
-    dispatch(append ? { type: "load-more-start" } : { type: "search-start" });
-    try {
-      const result = await api.get<UnsplashSearchResult>(
-        `/admin/unsplash/search?q=${encodeURIComponent(q)}&page=${pg}`,
-      );
-      dispatch({ type: "search-success", photos: result.results, total: result.total, append });
-    } catch (e) {
-      dispatch({
-        type: "search-error",
-        error: e instanceof Error ? e.message : "Fehler bei der Suche",
-        append,
-      });
-    }
-  }, []);
+  const search = useCallback(
+    async (q: string, pg: number, append: boolean) => {
+      if (!q.trim()) {
+        dispatch({ type: "search-success", photos: [], total: 0, append: false });
+        return;
+      }
+      dispatch(append ? { type: "load-more-start" } : { type: "search-start" });
+      try {
+        const result = await api.get<UnsplashSearchResult>(
+          `/admin/unsplash/search?q=${encodeURIComponent(q)}&page=${pg}`,
+        );
+        dispatch({ type: "search-success", photos: result.results, total: result.total, append });
+      } catch (e) {
+        dispatch({
+          type: "search-error",
+          error: e instanceof Error ? e.message : categoriesMessages.unsplash.searchError,
+          append,
+        });
+      }
+    },
+    [categoriesMessages.unsplash.searchError],
+  );
 
   // First run: search immediately (no debounce). Subsequent changes: debounced + reset page.
   useEffect(() => {
@@ -179,7 +186,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
               type="text"
               value={query}
               onChange={(e) => dispatch({ type: "set-query", query: e.target.value })}
-              placeholder="Suchbegriff eingeben…"
+              placeholder={categoriesMessages.unsplash.searchPlaceholder}
               className="w-full pl-8 pr-3 py-2 text-sm border border-[var(--ds-border)] rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
@@ -187,7 +194,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
             type="button"
             onClick={onClose}
             className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors rounded-control hover:bg-[var(--ds-bg-elevated)]"
-            aria-label="Schließen"
+            aria-label={categoriesMessages.unsplash.closeAria}
           >
             <SFXmark className="w-4 h-4" />
           </button>
@@ -197,7 +204,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4">
           {!query.trim() && (
             <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
-              Suchbegriff eingeben, um Bilder zu finden
+              {categoriesMessages.unsplash.searchHint}
             </p>
           )}
 
@@ -211,7 +218,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
           {!isLoading && !error && photos.length === 0 && query.trim() && (
             <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
-              Keine Bilder gefunden für „{query}"
+              {categoriesMessages.unsplash.emptyPrefix} „{query}"
             </p>
           )}
 
@@ -224,7 +231,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
                     type="button"
                     onClick={() => handleSelect(photo)}
                     className="group relative aspect-video overflow-hidden rounded-control bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                    title={`Foto von ${photo.user.name}`}
+                    title={`${categoriesMessages.unsplash.addTitlePrefix} ${photo.user.name}`}
                   >
                     <img
                       src={photo.urls.small}
@@ -242,7 +249,10 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
               {/* Sentinel for infinite scroll – spinner visible while loading more */}
               <div ref={sentinelRef} className="flex justify-center py-4">
                 {isLoadingMore && (
-                  <SFArrowClockwise className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin" />
+                  <SFArrowClockwise
+                    className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin"
+                    title={common.loading}
+                  />
                 )}
               </div>
             </>

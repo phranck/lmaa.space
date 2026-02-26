@@ -1,5 +1,6 @@
 import { ContentEditorLoadingFallback } from "@/components/ContentEditorLoadingFallback.tsx";
 import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
+import { I18nProvider } from "@/context/I18nContext.tsx";
 import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
@@ -94,10 +95,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ThemeProvider>
+    </I18nProvider>
   );
 }

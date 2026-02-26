@@ -1,6 +1,7 @@
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
@@ -29,19 +30,23 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STATUS_LABELS: Record<SubmissionStatus, string> = {
-  pending: "Offen",
-  onhold: "Zurückgestellt",
-  approved: "Angenommen",
-  rejected: "Abgelehnt",
-};
-
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
   onhold: "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)]",
   approved: "bg-[var(--ds-badge-success-bg)] text-[var(--ds-badge-success-text)]",
   rejected: "bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]",
 };
+
+function useStatusLabels() {
+  const { messages } = useI18n();
+  const status = messages.submissions.status;
+  return {
+    pending: status.pending,
+    onhold: status.onhold,
+    approved: status.approved,
+    rejected: status.rejected,
+  } satisfies Record<SubmissionStatus, string>;
+}
 
 // ─── Shop image (favicon + lettermark fallback) ───────────────────────────────
 
@@ -77,6 +82,10 @@ function ShopImage({ url, name }: { url: string; name: string }) {
 // ─── Sub-views ────────────────────────────────────────────────────────────────
 
 function VorschlaegeTab() {
+  const { locale, messages } = useI18n();
+  const statusLabels = useStatusLabels();
+  const common = messages.common;
+  const submissionsMessages = messages.submissions;
   const [filter, setFilter] = useState<SubmissionStatus>("pending");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
   const [reviewId, setReviewId] = useState<number | null>(null);
@@ -106,22 +115,22 @@ function VorschlaegeTab() {
           options={[
             {
               value: "pending" as SubmissionStatus,
-              label: STATUS_LABELS.pending,
+              label: statusLabels.pending,
               icon: <SFClockFill className="w-3.5 h-3.5" />,
             },
             {
               value: "onhold" as SubmissionStatus,
-              label: STATUS_LABELS.onhold,
+              label: statusLabels.onhold,
               icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
             },
             {
               value: "approved" as SubmissionStatus,
-              label: STATUS_LABELS.approved,
+              label: statusLabels.approved,
               icon: <SFCheckmarkCircleFill className="w-3.5 h-3.5" />,
             },
             {
               value: "rejected" as SubmissionStatus,
-              label: STATUS_LABELS.rejected,
+              label: statusLabels.rejected,
               icon: <SFXmarkCircleFill className="w-3.5 h-3.5" />,
             },
           ]}
@@ -132,12 +141,12 @@ function VorschlaegeTab() {
           options={[
             {
               value: "asc" as const,
-              label: "Alte zuerst",
+              label: submissionsMessages.sort.oldFirst,
               icon: <SFArrowUpCircleFill className="w-3.5 h-3.5" />,
             },
             {
               value: "desc" as const,
-              label: "Neue zuerst",
+              label: submissionsMessages.sort.newFirst,
               icon: <SFArrowDownCircleFill className="w-3.5 h-3.5" />,
             },
           ]}
@@ -157,7 +166,8 @@ function VorschlaegeTab() {
 
       {!isLoading && submissions.length === 0 && (
         <div className="text-center py-16 text-[var(--ds-text-subtle)]">
-          Keine {STATUS_LABELS[filter].toLowerCase()} Vorschläge.
+          {submissionsMessages.suggestions.nonePrefix} {statusLabels[filter].toLowerCase()}{" "}
+          {submissionsMessages.tabs.suggestions.toLowerCase()}.
         </div>
       )}
 
@@ -177,7 +187,7 @@ function VorschlaegeTab() {
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status as SubmissionStatus]}`}
                 >
-                  {STATUS_LABELS[sub.status as SubmissionStatus]}
+                  {statusLabels[sub.status as SubmissionStatus]}
                 </span>
               </div>
               <a
@@ -208,7 +218,7 @@ function VorschlaegeTab() {
               )}
               <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
                 <span>
-                  {new Date(sub.createdAt).toLocaleString("de-DE", {
+                  {new Date(sub.createdAt).toLocaleString(locale, {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
@@ -232,7 +242,7 @@ function VorschlaegeTab() {
                   }}
                   className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
                 >
-                  Ablehnen
+                  {submissionsMessages.suggestions.reject}
                 </button>
                 <button
                   type="button"
@@ -246,14 +256,14 @@ function VorschlaegeTab() {
                   }
                   className="h-9 px-3 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
                 >
-                  Zurückstellen
+                  {submissionsMessages.suggestions.onhold}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditSubmission(sub)}
                   className="h-9 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
-                  Bearbeiten
+                  {submissionsMessages.suggestions.edit}
                 </button>
                 <button
                   type="button"
@@ -264,7 +274,7 @@ function VorschlaegeTab() {
                   }}
                   className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                 >
-                  Annehmen
+                  {submissionsMessages.suggestions.approve}
                 </button>
               </div>
             )}
@@ -296,11 +306,13 @@ function VorschlaegeTab() {
             type="button"
             className="absolute inset-0 bg-black/30"
             onClick={() => setReviewId(null)}
-            aria-label="Abbrechen"
+            aria-label={common.cancel}
           />
           <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-md w-full">
             <h3 className="font-bold text-[var(--ds-text)] mb-1">
-              {reviewId > 0 ? "Vorschlag annehmen" : "Vorschlag ablehnen"}
+              {reviewId > 0
+                ? submissionsMessages.suggestions.reviewApproveTitle
+                : submissionsMessages.suggestions.reviewRejectTitle}
             </h3>
             <p className="text-sm text-[var(--ds-text-muted)] mb-4">{reviewing.shopName}</p>
 
@@ -308,14 +320,21 @@ function VorschlaegeTab() {
               htmlFor="admin-note"
               className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
             >
-              Kommentar <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
+              {submissionsMessages.suggestions.comment}{" "}
+              <span className="text-[var(--ds-text-subtle)] font-normal">
+                {submissionsMessages.suggestions.optional}
+              </span>
             </label>
             <textarea
               id="admin-note"
               value={adminNote}
               onChange={(e) => setAdminNote(e.target.value)}
               rows={3}
-              placeholder={reviewId < 0 ? "Grund für Ablehnung…" : "Optionaler Kommentar…"}
+              placeholder={
+                reviewId < 0
+                  ? submissionsMessages.suggestions.rejectReasonPlaceholder
+                  : submissionsMessages.suggestions.commentPlaceholder
+              }
               className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm text-[var(--ds-text)] resize-none mb-3"
             />
 
@@ -325,7 +344,7 @@ function VorschlaegeTab() {
                 onChange={setSendFeedback}
                 label={
                   <>
-                    E-Mail-Feedback senden an{" "}
+                    {submissionsMessages.suggestions.feedbackToPrefix}{" "}
                     <span className="font-medium">{reviewing.submitterEmail}</span>
                   </>
                 }
@@ -335,7 +354,8 @@ function VorschlaegeTab() {
 
             {reviewMutation.isError && (
               <p className="text-sm text-red-600 mb-3">
-                Fehler: {reviewMutation.error?.message ?? "Unbekannter Fehler"}
+                {submissionsMessages.suggestions.reviewErrorPrefix}{" "}
+                {reviewMutation.error?.message ?? common.unknownError}
               </p>
             )}
 
@@ -345,7 +365,7 @@ function VorschlaegeTab() {
                 onClick={() => setReviewId(null)}
                 className="flex-1 py-2.5 border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
-                Abbrechen
+                {common.cancel}
               </button>
               <button
                 type="button"
@@ -373,7 +393,11 @@ function VorschlaegeTab() {
                     : "bg-red-500 hover:bg-red-600"
                 }`}
               >
-                {reviewMutation.isPending ? "…" : reviewId > 0 ? "Annehmen" : "Ablehnen"}
+                {reviewMutation.isPending
+                  ? "…"
+                  : reviewId > 0
+                    ? submissionsMessages.suggestions.accept
+                    : submissionsMessages.suggestions.decline}
               </button>
             </div>
           </div>
@@ -384,6 +408,8 @@ function VorschlaegeTab() {
 }
 
 function DefekteLinksTab() {
+  const { locale, messages } = useI18n();
+  const submissionsMessages = messages.submissions;
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const { data: reports = [], isLoading } = useDeadLinkReports();
@@ -406,7 +432,7 @@ function DefekteLinksTab() {
   if (reports.length === 0) {
     return (
       <div className="text-center py-16 text-[var(--ds-text-subtle)]">
-        Keine gemeldeten defekten Links.
+        {submissionsMessages.deadLinks.none}
       </div>
     );
   }
@@ -433,11 +459,12 @@ function DefekteLinksTab() {
 
           <div className="shrink-0 text-right">
             <span className="block px-2.5 py-1 rounded-full bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)] text-xs font-semibold">
-              {r.reportCount}× gemeldet
+              {r.reportCount}
+              {submissionsMessages.deadLinks.reportedSuffix}
             </span>
             {r.lastReportedAt && (
               <span className="block mt-1 text-xs text-[var(--ds-text-subtle)]">
-                {new Date(r.lastReportedAt).toLocaleString("de-DE", {
+                {new Date(r.lastReportedAt).toLocaleString(locale, {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
@@ -455,7 +482,7 @@ function DefekteLinksTab() {
               disabled={dismissMutation.isPending || deleteMutation.isPending}
               className="px-3 py-1.5 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] text-sm rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
             >
-              Belassen
+              {submissionsMessages.deadLinks.keep}
             </button>
             <button
               type="button"
@@ -463,7 +490,7 @@ function DefekteLinksTab() {
               disabled={dismissMutation.isPending || deleteMutation.isPending}
               className="px-3 py-1.5 bg-[var(--ds-badge-danger-bg)] border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm rounded-control hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors disabled:opacity-50"
             >
-              Löschen
+              {submissionsMessages.deadLinks.delete}
             </button>
           </div>
         </div>
@@ -471,8 +498,8 @@ function DefekteLinksTab() {
 
       <ConfirmDialog
         open={confirmDeleteId !== null}
-        title="Shop wirklich löschen?"
-        description="Der Shop wird dauerhaft entfernt und ist nicht mehr im Frontend sichtbar."
+        title={submissionsMessages.deadLinks.confirmDeleteTitle}
+        description={submissionsMessages.deadLinks.confirmDeleteDescription}
         isPending={deleteMutation.isPending}
         onConfirm={() => {
           if (confirmDeleteId !== null)
@@ -496,6 +523,8 @@ function getInitialTab(): Tab {
 }
 
 export function SubmissionsPage() {
+  const { messages } = useI18n();
+  const submissionsMessages = messages.submissions;
   const [tab, setTab] = useState<Tab>(getInitialTab);
 
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
@@ -508,14 +537,14 @@ export function SubmissionsPage() {
 
   return (
     <div>
-      <PageHeader title="Meldungen">
+      <PageHeader title={submissionsMessages.title}>
         <SegmentedControl
           value={tab}
           onChange={setTab}
           options={[
             {
               value: "vorschlaege" as const,
-              label: "Vorschläge",
+              label: submissionsMessages.tabs.suggestions,
               badge:
                 pendingCount > 0 ? (
                   <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]">
@@ -525,7 +554,7 @@ export function SubmissionsPage() {
             },
             {
               value: "defekte-links" as const,
-              label: "Defekte Links",
+              label: submissionsMessages.tabs.deadLinks,
               badge:
                 deadLinkCount > 0 ? (
                   <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
@@ -535,7 +564,7 @@ export function SubmissionsPage() {
             },
             {
               value: "shop-meldungen" as const,
-              label: "Shop-Meldungen",
+              label: submissionsMessages.tabs.shopReports,
               badge:
                 concernCount > 0 ? (
                   <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
@@ -557,6 +586,8 @@ export function SubmissionsPage() {
 // ─── Shop-Meldungen Tab ───────────────────────────────────────────────────────
 
 function ShopMeldungenTab() {
+  const { locale, messages } = useI18n();
+  const submissionsMessages = messages.submissions;
   const { data: reports = [], isLoading } = useShopConcernReports();
   const dismiss = useDismissShopConcern();
   const deleteMutation = useDeleteShop();
@@ -568,12 +599,18 @@ function ShopMeldungenTab() {
   } | null>(null);
 
   if (isLoading) {
-    return <div className="p-6 text-center text-[var(--ds-text-subtle)] text-sm">Lade…</div>;
+    return (
+      <div className="p-6 text-center text-[var(--ds-text-subtle)] text-sm">
+        {submissionsMessages.shopReports.loading}
+      </div>
+    );
   }
 
   if (reports.length === 0) {
     return (
-      <div className="text-center py-16 text-[var(--ds-text-subtle)]">Keine Shop-Meldungen.</div>
+      <div className="text-center py-16 text-[var(--ds-text-subtle)]">
+        {submissionsMessages.shopReports.none}
+      </div>
     );
   }
 
@@ -598,7 +635,7 @@ function ShopMeldungenTab() {
                 </a>
               </div>
               <span className="shrink-0 text-xs text-[var(--ds-text-muted)]">
-                {new Date(r.reportedAt).toLocaleString("de-DE", {
+                {new Date(r.reportedAt).toLocaleString(locale, {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
@@ -619,14 +656,14 @@ function ShopMeldungenTab() {
                 disabled={dismiss.isPending}
                 className="text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
               >
-                Erledigt / Ablehnen
+                {submissionsMessages.shopReports.doneOrDecline}
               </button>
               <button
                 type="button"
                 onClick={() => setEditShopId(r.shopId)}
                 className="h-7 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
               >
-                Bearbeiten
+                {submissionsMessages.shopReports.edit}
               </button>
               <button
                 type="button"
@@ -635,7 +672,7 @@ function ShopMeldungenTab() {
                 }
                 className="h-7 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
               >
-                Löschen
+                {submissionsMessages.shopReports.delete}
               </button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { insertMarkdown$, usePublisher } from "@mdxeditor/editor";
@@ -10,13 +11,9 @@ interface LinkEntry {
   group: string;
 }
 
-const STATIC_ROUTES: LinkEntry[] = [
-  { label: "Startseite / Kategorien", path: "/", group: "Statisch" },
-  { label: "Shop vorschlagen", path: "/suggestion", group: "Statisch" },
-  { label: "Suche", path: "/suche", group: "Statisch" },
-];
-
 export function InternalLinkPicker() {
+  const { messages } = useI18n();
+  const linkPickerMessages = messages.content.linkPicker;
   const insertMarkdown = usePublisher(insertMarkdown$);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -24,16 +21,33 @@ export function InternalLinkPicker() {
 
   const { data: pages = [] } = useContentPages();
   const { data: categories = [] } = useAdminCategories();
+  const staticRoutes: LinkEntry[] = [
+    {
+      label: linkPickerMessages.staticRoutes.homeCategories,
+      path: "/",
+      group: linkPickerMessages.groups.static,
+    },
+    {
+      label: linkPickerMessages.staticRoutes.suggestShop,
+      path: "/suggestion",
+      group: linkPickerMessages.groups.static,
+    },
+    {
+      label: linkPickerMessages.staticRoutes.search,
+      path: "/suche",
+      group: linkPickerMessages.groups.static,
+    },
+  ];
 
   const entries: LinkEntry[] = [
-    ...STATIC_ROUTES,
+    ...staticRoutes,
     ...pages
       .filter((p) => p.status === "published")
-      .map((p) => ({ label: p.title, path: `/${p.slug}`, group: "Seiten" })),
+      .map((p) => ({ label: p.title, path: `/${p.slug}`, group: linkPickerMessages.groups.pages })),
     ...categories.map((c) => ({
       label: c.name,
       path: `/kategorien/${c.slug}`,
-      group: "Kategorien",
+      group: linkPickerMessages.groups.categories,
     })),
   ];
 
@@ -66,7 +80,7 @@ export function InternalLinkPicker() {
     <div className="relative">
       <button
         type="button"
-        title="Internen Link einfügen"
+        title={linkPickerMessages.insertInternalLink}
         onClick={handleOpen}
         className="flex items-center justify-center w-7 h-7 rounded hover:bg-[var(--ds-surface-hover)] transition-colors text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
       >
@@ -78,7 +92,7 @@ export function InternalLinkPicker() {
           {/* Backdrop */}
           <button
             type="button"
-            aria-label="Link-Auswahl schließen"
+            aria-label={linkPickerMessages.closeSelection}
             className="fixed inset-0 z-40"
             onClick={() => {
               setOpen(false);
@@ -93,14 +107,14 @@ export function InternalLinkPicker() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Seite oder Kategorie suchen…"
+                placeholder={linkPickerMessages.searchPlaceholder}
                 className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
               />
             </div>
             <div className="max-h-72 overflow-y-auto">
               {Object.keys(grouped).length === 0 ? (
                 <div className="px-3 py-4 text-xs text-[var(--ds-text-muted)] text-center">
-                  Keine Treffer
+                  {linkPickerMessages.noResults}
                 </div>
               ) : (
                 Object.entries(grouped).map(([group, items]) => (

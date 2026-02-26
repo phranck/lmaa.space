@@ -1,3 +1,4 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import { Checkbox } from "@lmaa/ui";
 import { useEffect, useRef, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
@@ -17,6 +18,9 @@ export function ShopDeleteReasonCard({
   onConfirm,
   onCancel,
 }: ShopDeleteReasonCardProps) {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const shopsMessages = messages.shops;
   const [reason, setReason] = useState("");
   const [wasReported, setWasReported] = useState(initialWasReported);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -37,10 +41,12 @@ export function ShopDeleteReasonCard({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-[var(--ds-surface)] rounded-2xl shadow-xl w-full max-w-lg border border-[var(--ds-border)] overflow-hidden overlay-card-enter">
         <div className="px-6 py-5 border-b border-[var(--ds-border)]">
-          <h2 className="text-base font-semibold text-[var(--ds-text)]">Shop löschen</h2>
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">
+            {shopsMessages.deleteCard.title}
+          </h2>
           <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">
-            <span className="font-medium text-[var(--ds-text)]">{shopName}</span> wird als gelöscht
-            markiert und ist öffentlich nicht mehr sichtbar.
+            <span className="font-medium text-[var(--ds-text)]">{shopName}</span>{" "}
+            {shopsMessages.deleteCard.markedDeletedHint}
           </p>
         </div>
 
@@ -51,9 +57,14 @@ export function ShopDeleteReasonCard({
               className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
             >
               <span className="flex items-center gap-1.5">
-                Begründung{" "}
-                <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
-                <SiMarkdown className="w-5 h-5 opacity-40" title="Markdown unterstützt" />
+                {shopsMessages.deleteCard.reason}{" "}
+                <span className="text-[var(--ds-text-subtle)] font-normal">
+                  {shopsMessages.deleteCard.optional}
+                </span>
+                <SiMarkdown
+                  className="w-5 h-5 opacity-40"
+                  title={shopsMessages.deleteCard.markdownSupported}
+                />
               </span>
             </label>
             <textarea
@@ -62,7 +73,7 @@ export function ShopDeleteReasonCard({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={5}
-              placeholder="Warum wird dieser Shop entfernt?"
+              placeholder={shopsMessages.deleteCard.reasonPlaceholder}
               className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
             />
           </div>
@@ -70,7 +81,7 @@ export function ShopDeleteReasonCard({
           <Checkbox
             checked={wasReported}
             onChange={setWasReported}
-            label="Shop wurde gemeldet (Dead-Link oder Shop-Meldung)"
+            label={shopsMessages.deleteCard.reportedLabel}
           />
         </div>
 
@@ -81,7 +92,7 @@ export function ShopDeleteReasonCard({
             disabled={isPending}
             className="h-9 px-4 border border-[var(--ds-btn-neutral-border)] rounded-control text-sm text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
           >
-            Abbrechen
+            {common.cancel}
           </button>
           <button
             type="button"
@@ -89,7 +100,7 @@ export function ShopDeleteReasonCard({
             disabled={isPending}
             className="h-9 px-4 bg-red-600 text-white rounded-control text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
           >
-            {isPending ? "Wird gelöscht…" : "Shop löschen"}
+            {isPending ? shopsMessages.deleteCard.deleting : shopsMessages.deleteCard.deleteShop}
           </button>
         </div>
       </div>

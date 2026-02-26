@@ -1,5 +1,6 @@
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminUsers, useDeleteUser } from "@/features/users/hooks/useAdminUsers.ts";
 import { useState } from "react";
@@ -9,6 +10,9 @@ import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
 
 export function UsersPage() {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const usersMessages = messages.users;
   const { user: me } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -21,13 +25,13 @@ export function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Benutzer">
+      <PageHeader title={usersMessages.title}>
         <button
           type="button"
           onClick={() => setShowCreate(true)}
           className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
         >
-          + Benutzer einladen
+          {usersMessages.inviteUser}
         </button>
       </PageHeader>
 
@@ -62,11 +66,15 @@ export function UsersPage() {
                         : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                   }`}
                 >
-                  {user.role === "owner" ? "Owner" : user.role === "admin" ? "Admin" : "Moderator"}
+                  {user.role === "owner"
+                    ? usersMessages.role.owner
+                    : user.role === "admin"
+                      ? usersMessages.role.admin
+                      : usersMessages.role.moderator}
                 </span>
                 {user.id === me?.id && (
                   <span className="text-xs bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] px-2 py-0.5 rounded-full">
-                    Du
+                    {usersMessages.you}
                   </span>
                 )}
               </div>
@@ -78,7 +86,7 @@ export function UsersPage() {
                   type="button"
                   onClick={() => setEditingUserId(user.id)}
                   className="w-8 h-8 flex items-center justify-center rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
-                  title="Bearbeiten"
+                  title={usersMessages.editCard.editTooltip}
                 >
                   <SFSquareAndPencil className="w-3.5 h-3.5" />
                 </button>
@@ -89,7 +97,7 @@ export function UsersPage() {
                   onClick={() => setDeleteId(user.id)}
                   className="px-3 py-1.5 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                 >
-                  Entfernen
+                  {usersMessages.remove}
                 </button>
               )}
             </div>
@@ -99,14 +107,14 @@ export function UsersPage() {
 
       <ConfirmDialog
         open={deleteId !== null && !!deleteTarget}
-        title="Benutzer entfernen?"
+        title={usersMessages.removeConfirmTitle}
         description={
           <>
-            <span className="font-medium">{deleteTarget?.username}</span> verliert den Admin-Zugang.
-            Diese Aktion kann nicht rückgängig gemacht werden.
+            <span className="font-medium">{deleteTarget?.username}</span>{" "}
+            {usersMessages.removeConfirmDescription}
           </>
         }
-        confirmLabel="Entfernen"
+        confirmLabel={common.remove}
         isPending={deleteMutation.isPending}
         onConfirm={() => {
           if (deleteId !== null)
