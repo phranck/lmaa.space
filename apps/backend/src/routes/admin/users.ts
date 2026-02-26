@@ -1,79 +1,30 @@
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
 import { Hono } from "hono";
-import sharp from "sharp";
 import { z } from "zod";
-import { db } from "../../db/index.js";
-import { adminUsers, sessions } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
-import { detectImageType, parseId } from "../../lib/validate.js";
+import { parseId } from "../../lib/validate.js";
 import {
   type AuthVariables,
   requireAdmin,
   requireAuth,
   requireOwner,
 } from "../../middleware/auth.js";
-import { hashPassword, setupSchema } from "../../services/auth.js";
-import { sendWelcomeEmail } from "../../services/email.js";
+import {
+  createManagedAdminUser,
+  deleteManagedAdminUser,
+  deleteManagedAdminUserAvatar,
+  getManagedAdminUsers,
+  setManagedAdminUserGravatar,
+  updateManagedAdminUser,
+  uploadManagedAdminUserAvatar,
+} from "../../services/admin-users.js";
+import { setupSchema } from "../../services/auth.js";
 
 export const usersRoutes = new Hono<{ Variables: AuthVariables }>();
-
-// ─── Helper ───────────────────────────────────────────────────────────────────
-
-const USER_FIELDS = {
-  id: adminUsers.id,
-  username: adminUsers.username,
-  email: adminUsers.email,
-  role: adminUsers.role,
-  firstName: adminUsers.firstName,
-  lastName: adminUsers.lastName,
-  avatarUrl: adminUsers.avatarUrl,
-  createdAt: adminUsers.createdAt,
-  lastLoginAt: adminUsers.lastLoginAt,
-};
-
-/** Returns true if the requester may modify the target user. */
-function canModify(adminId: number, isOwner: boolean, targetId: number): boolean {
-  return isOwner || adminId === targetId;
-}
-
-// ─── List users (admin+) ──────────────────────────────────────────────────────
-
-usersRoutes.get("/users", requireAuth, requireAdmin, async (c) => {
-  const users = await db.select(USER_FIELDS).from(adminUsers);
-  return ok(
-    c,
-    users.map((u) => ({ ...u, isOwner: u.role === "owner" })),
-  );
-});
-
-// ─── Create user (owner only) ─────────────────────────────────────────────────
 
 const createUserSchema = setupSchema.extend({
   role: z.enum(["admin", "moderator"]).optional(),
 });
-
-usersRoutes.post(
-  "/users",
-  requireAuth,
-  requireOwner,
-  zValidator("json", createUserSchema),
-  async (c) => {
-    const { username, email, password, role } = c.req.valid("json");
-    const passwordHash = await hashPassword(password);
-    const [admin] = await db
-      .insert(adminUsers)
-      .values({ username, email, passwordHash, role: role ?? "admin" })
-      .returning(USER_FIELDS);
-
-    // Send welcome email (fire-and-forget, don't block the response)
-    sendWelcomeEmail(email, username, password).catch(() => {});
-
-    return ok(c, { ...admin, isOwner: admin.role === "owner" }, 201);
-  },
-);
-
-// ─── Update user profile (self or owner) ─────────────────────────────────────
 
 const updateUserSchema = z.object({
   username: z.string().min(1).max(64).optional(),
@@ -84,167 +35,159 @@ const updateUserSchema = z.object({
   role: z.enum(["admin", "moderator"]).optional(),
 });
 
-usersRoutes.patch("/users/:id", requireAuth, zValidator("json", updateUserSchema), async (c) => {
-  const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid id");
-
-  const adminId = c.get("adminId");
-  const isOwner = c.get("isOwner");
-  if (!canModify(adminId, isOwner, id)) {
-    return fail(c, 403, "Forbidden");
-  }
-
-  const { username, email, password, firstName, lastName, role } = c.req.valid("json");
-  const updates: Partial<typeof adminUsers.$inferInsert> = {};
-  if (username !== undefined) updates.username = username;
-  if (email !== undefined) updates.email = email;
-  if (password !== undefined) updates.passwordHash = await hashPassword(password);
-  if (firstName !== undefined) updates.firstName = firstName;
-  if (lastName !== undefined) updates.lastName = lastName;
-
-  if (role !== undefined) {
-    if (!isOwner || adminId === id) {
-      return fail(c, 403, "Forbidden");
-    }
-    updates.role = role;
-  }
-
-  if (Object.keys(updates).length === 0) {
-    return fail(c, 400, "Nothing to update");
-  }
-
-  const [updated] = await db
-    .update(adminUsers)
-    .set(updates)
-    .where(eq(adminUsers.id, id))
-    .returning(USER_FIELDS);
-
-  return ok(c, { ...updated, isOwner: updated.role === "owner" });
-});
-
-// ─── Upload avatar (self or owner) ───────────────────────────────────────────
-
-usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
-  const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid id");
-
-  const adminId = c.get("adminId");
-  const isOwner = c.get("isOwner");
-  if (!canModify(adminId, isOwner, id)) {
-    return fail(c, 403, "Forbidden");
-  }
-
-  const [user] = await db
-    .select(USER_FIELDS)
-    .from(adminUsers)
-    .where(eq(adminUsers.id, id))
-    .limit(1);
-  if (!user) return fail(c, 404, "User not found");
-
-  const formData = await c.req.formData();
-  const file = formData.get("avatar");
-  if (!(file instanceof File)) return fail(c, 400, "No avatar file provided");
-
-  if (file.size > 5 * 1024 * 1024) {
-    return fail(c, 400, "File too large (max 5 MB)");
-  }
-
-  const rawBuffer = Buffer.from(await file.arrayBuffer());
-  const detectedType = detectImageType(rawBuffer);
-  if (!detectedType) {
-    return fail(c, 400, "Invalid image content (only JPEG, PNG or WebP)");
-  }
-
-  // Resize to 256x256 cover, convert to WebP, store as base64 data URL in DB
-  const resized = await sharp(rawBuffer).resize(256, 256, { fit: "cover" }).webp().toBuffer();
-  const avatarUrl = `data:image/webp;base64,${resized.toString("base64")}`;
-
-  const [updated] = await db
-    .update(adminUsers)
-    .set({ avatarUrl })
-    .where(eq(adminUsers.id, id))
-    .returning(USER_FIELDS);
-
-  return ok(c, { ...updated, isOwner: updated.role === "owner" });
-});
-
-// ─── Set Gravatar as avatar (self or owner) ───────────────────────────────────
-
 const gravatarSchema = z.object({
   gravatarUrl: z
     .string()
     .url()
-    .refine((u) => u.startsWith("https://www.gravatar.com/avatar/"), "Must be a Gravatar URL"),
+    .refine((url) => url.startsWith("https://www.gravatar.com/avatar/"), "Must be a Gravatar URL"),
 });
 
+// GET /api/admin/users
+usersRoutes.get("/users", requireAuth, requireAdmin, async (c) => {
+  const users = await getManagedAdminUsers();
+  return ok(c, users);
+});
+
+// POST /api/admin/users
+usersRoutes.post(
+  "/users",
+  requireAuth,
+  requireOwner,
+  zValidator("json", createUserSchema),
+  async (c) => {
+    const { username, email, password, role } = c.req.valid("json");
+    const user = await createManagedAdminUser({ username, email, password, role });
+    return ok(c, user, 201);
+  },
+);
+
+// PATCH /api/admin/users/:id
+usersRoutes.patch("/users/:id", requireAuth, zValidator("json", updateUserSchema), async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) {
+    return fail(c, 400, "Invalid id");
+  }
+
+  const result = await updateManagedAdminUser({
+    id,
+    actorAdminId: c.get("adminId"),
+    actorIsOwner: c.get("isOwner"),
+    ...c.req.valid("json"),
+  });
+
+  if (!result.ok && result.reason === "forbidden") {
+    return fail(c, 403, "Forbidden");
+  }
+  if (!result.ok && result.reason === "nothing_to_update") {
+    return fail(c, 400, "Nothing to update");
+  }
+  if (!result.ok && result.reason === "not_found") {
+    return fail(c, 404, "User not found");
+  }
+
+  return ok(c, result.user);
+});
+
+// POST /api/admin/users/:id/avatar
+usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) {
+    return fail(c, 400, "Invalid id");
+  }
+
+  const formData = await c.req.formData();
+  const file = formData.get("avatar");
+
+  const result = await uploadManagedAdminUserAvatar({
+    id,
+    actorAdminId: c.get("adminId"),
+    actorIsOwner: c.get("isOwner"),
+    file,
+  });
+
+  if (!result.ok && result.reason === "forbidden") {
+    return fail(c, 403, "Forbidden");
+  }
+  if (!result.ok && result.reason === "not_found") {
+    return fail(c, 404, "User not found");
+  }
+  if (!result.ok && result.reason === "missing_file") {
+    return fail(c, 400, "No avatar file provided");
+  }
+  if (!result.ok && result.reason === "too_large") {
+    return fail(c, 400, "File too large (max 5 MB)");
+  }
+  if (!result.ok && result.reason === "invalid_image") {
+    return fail(c, 400, "Invalid image content (only JPEG, PNG or WebP)");
+  }
+
+  return ok(c, result.user);
+});
+
+// PATCH /api/admin/users/:id/avatar
 usersRoutes.patch(
   "/users/:id/avatar",
   requireAuth,
   zValidator("json", gravatarSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
-    if (!id) return fail(c, 400, "Invalid id");
-
-    const adminId = c.get("adminId");
-    const isOwner = c.get("isOwner");
-    if (!canModify(adminId, isOwner, id)) {
-      return fail(c, 403, "Forbidden");
+    if (!id) {
+      return fail(c, 400, "Invalid id");
     }
 
     const { gravatarUrl } = c.req.valid("json");
+    const result = await setManagedAdminUserGravatar({
+      id,
+      actorAdminId: c.get("adminId"),
+      actorIsOwner: c.get("isOwner"),
+      gravatarUrl,
+    });
 
-    const [updated] = await db
-      .update(adminUsers)
-      .set({ avatarUrl: gravatarUrl })
-      .where(eq(adminUsers.id, id))
-      .returning(USER_FIELDS);
+    if (!result.ok && result.reason === "forbidden") {
+      return fail(c, 403, "Forbidden");
+    }
+    if (!result.ok && result.reason === "not_found") {
+      return fail(c, 404, "User not found");
+    }
 
-    return ok(c, { ...updated, isOwner: updated.role === "owner" });
+    return ok(c, result.user);
   },
 );
 
-// ─── Delete avatar (self or owner) ───────────────────────────────────────────
-
+// DELETE /api/admin/users/:id/avatar
 usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid id");
-
-  const adminId = c.get("adminId");
-  const isOwner = c.get("isOwner");
-  if (!canModify(adminId, isOwner, id)) {
-    return fail(c, 403, "Forbidden");
+  if (!id) {
+    return fail(c, 400, "Invalid id");
   }
 
-  const [user] = await db
-    .select({ avatarUrl: adminUsers.avatarUrl })
-    .from(adminUsers)
-    .where(eq(adminUsers.id, id))
-    .limit(1);
-  if (!user) return fail(c, 404, "User not found");
+  const result = await deleteManagedAdminUserAvatar({
+    id,
+    actorAdminId: c.get("adminId"),
+    actorIsOwner: c.get("isOwner"),
+  });
 
-  const [updated] = await db
-    .update(adminUsers)
-    .set({ avatarUrl: null })
-    .where(eq(adminUsers.id, id))
-    .returning(USER_FIELDS);
+  if (!result.ok && result.reason === "forbidden") {
+    return fail(c, 403, "Forbidden");
+  }
+  if (!result.ok && result.reason === "not_found") {
+    return fail(c, 404, "User not found");
+  }
 
-  return ok(c, { ...updated, isOwner: updated.role === "owner" });
+  return ok(c, result.user);
 });
 
-// ─── Delete user (owner only) ─────────────────────────────────────────────────
-
+// DELETE /api/admin/users/:id
 usersRoutes.delete("/users/:id", requireAuth, requireOwner, async (c) => {
   const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid id");
-  const adminId = c.get("adminId");
+  if (!id) {
+    return fail(c, 400, "Invalid id");
+  }
 
-  if (id === adminId) {
+  const result = await deleteManagedAdminUser({ id, actorAdminId: c.get("adminId") });
+  if (!result.ok && result.reason === "cannot_delete_self") {
     return fail(c, 400, "Cannot delete yourself");
   }
 
-  await db.transaction(async (tx) => {
-    await tx.delete(sessions).where(eq(sessions.adminUserId, id));
-    await tx.delete(adminUsers).where(eq(adminUsers.id, id));
-  });
   return ok(c, { message: "User deleted" });
 });
