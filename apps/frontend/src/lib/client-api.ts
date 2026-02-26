@@ -1,6 +1,7 @@
 /**
  * Runtime API base URL for client-side code (React islands, Vanilla JS scripts).
- * Uses PUBLIC_API_URL env var; falls back to /api (proxied via Vite/Astro dev server).
+ * Uses PUBLIC_API_URL env var (production should point to api.lmaa.space);
+ * falls back to /api for local dev via Vite/Astro proxy.
  */
 const rawApiBase = import.meta.env.PUBLIC_API_URL;
 const normalizedApiBase =
