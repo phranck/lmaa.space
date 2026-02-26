@@ -1,3 +1,4 @@
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import md5 from "blueimp-md5";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -9,7 +10,6 @@ import {
   SFPersonCropCircle,
   SFTrash,
 } from "sf-symbols-lib/monochrome";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   useAdminUsers,
   useDeleteUserAvatar,
@@ -58,10 +58,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const deleteAvatar = useDeleteUserAvatar();
 
   const isPending =
-    updateUser.isPending ||
-    saveAvatar.isPending ||
-    setGravatar.isPending ||
-    deleteAvatar.isPending;
+    updateUser.isPending || saveAvatar.isPending || setGravatar.isPending || deleteAvatar.isPending;
 
   const isError =
     updateUser.isError || saveAvatar.isError || setGravatar.isError || deleteAvatar.isError;
@@ -78,7 +75,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       setRole(user.role === "moderator" ? "moderator" : "admin");
       setAvatar({ ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null });
     }
-  }, [user?.id]);
+  }, [user]);
 
   // ESC key
   useEffect(() => {
@@ -100,7 +97,12 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   function handleGravatar() {
     const hash = md5(email.trim().toLowerCase());
     const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?s=256&d=mp`;
-    setAvatar({ previewUrl: gravatarUrl, pendingFile: null, pendingGravatarUrl: gravatarUrl, deleted: false });
+    setAvatar({
+      previewUrl: gravatarUrl,
+      pendingFile: null,
+      pendingGravatarUrl: gravatarUrl,
+      deleted: false,
+    });
   }
 
   function handleRemoveAvatar() {
@@ -238,11 +240,15 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
             <div className="flex-1 space-y-3 min-w-0">
               {/* Username */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                <label
+                  htmlFor="user-edit-username"
+                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   <SFPencil className="w-3 h-3" />
                   Benutzername
                 </label>
                 <input
+                  id="user-edit-username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -252,11 +258,15 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
               {/* Email */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                <label
+                  htmlFor="user-edit-email"
+                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   <SFAt className="w-3 h-3" />
                   E-Mail
                 </label>
                 <input
+                  id="user-edit-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -266,11 +276,15 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
               {/* First name */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                <label
+                  htmlFor="user-edit-first-name"
+                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   <SFPerson className="w-3 h-3" />
                   Vorname
                 </label>
                 <input
+                  id="user-edit-first-name"
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -280,11 +294,15 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
               {/* Last name */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                <label
+                  htmlFor="user-edit-last-name"
+                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   <SFPerson className="w-3 h-3" />
                   Nachname
                 </label>
                 <input
+                  id="user-edit-last-name"
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
@@ -295,10 +313,14 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
               {/* Role (only for owner editing someone else) */}
               {canChangeRole && (
                 <div>
-                  <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                  <label
+                    htmlFor="user-edit-role"
+                    className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                  >
                     Rolle
                   </label>
                   <select
+                    id="user-edit-role"
                     value={role}
                     onChange={(e) => setRole(e.target.value as "admin" | "moderator")}
                     className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
@@ -311,11 +333,15 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
               {/* Password */}
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                <label
+                  htmlFor="user-edit-password"
+                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   <SFKey className="w-3 h-3" />
                   Neues Passwort
                 </label>
                 <input
+                  id="user-edit-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

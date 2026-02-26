@@ -3,13 +3,15 @@
  * Caches responses for configurable TTL
  */
 
+import type { Context, Next } from "hono";
+
 interface CacheEntry<T> {
   data: T;
   cachedAt: number;
   ttlMs: number;
 }
 
-const cache = new Map<string, CacheEntry<any>>();
+const cache = new Map<string, CacheEntry<unknown>>();
 
 /**
  * Create a cache middleware for a specific route/resource
@@ -18,9 +20,9 @@ const cache = new Map<string, CacheEntry<any>>();
  */
 export function createCacheMiddleware<T>(options: {
   ttlMs: number;
-  key: (c: any) => string;
+  key: (c: Context) => string;
 }) {
-  return async (c: any, next: any) => {
+  return async (c: Context, next: Next) => {
     const cacheKey = options.key(c);
     const cached = cache.get(cacheKey);
 
@@ -88,9 +90,7 @@ export function getCacheStats() {
 
 // Start periodic cleanup of expired cache entries (every 10 minutes)
 if (typeof global !== "undefined") {
-  const cleanupIntervalMs = Number(
-    process.env.CACHE_CLEANUP_INTERVAL_MS ?? 10 * 60 * 1000
-  );
+  const cleanupIntervalMs = Number(process.env.CACHE_CLEANUP_INTERVAL_MS ?? 10 * 60 * 1000);
 
   setInterval(() => {
     const now = Date.now();

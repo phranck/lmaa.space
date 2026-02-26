@@ -1,10 +1,7 @@
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useEffect, useState } from "react";
 import { SFPersonBadgePlus, SFPersonFill, SFPersonFillCheckmark } from "sf-symbols-lib/monochrome";
-import {
-  EMPTY_CREATE_USER_FORM,
-  useCreateUser,
-} from "./hooks/useAdminUsers.ts";
+import { EMPTY_CREATE_USER_FORM, useCreateUser } from "./hooks/useAdminUsers.ts";
 import type { CreateUserFormData } from "./hooks/useAdminUsers.ts";
 
 interface UserCreateCardProps {
@@ -13,8 +10,12 @@ interface UserCreateCardProps {
 }
 
 const ROLE_OPTIONS = [
-  { value: "admin" as const,     label: "Admin",     icon: <SFPersonFill className="w-3.5 h-3.5" /> },
-  { value: "moderator" as const, label: "Moderator", icon: <SFPersonFillCheckmark className="w-3.5 h-3.5" /> },
+  { value: "admin" as const, label: "Admin", icon: <SFPersonFill className="w-3.5 h-3.5" /> },
+  {
+    value: "moderator" as const,
+    label: "Moderator",
+    icon: <SFPersonFillCheckmark className="w-3.5 h-3.5" />,
+  },
 ] as const;
 
 const inputClass =
@@ -55,8 +56,13 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
   return (
     <div
       className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
-      onClick={(e) => { if (e.target === e.currentTarget) close(); }}
     >
+      <button
+        type="button"
+        aria-label="Dialog schließen"
+        className="absolute inset-0"
+        onClick={close}
+      />
       <div
         className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-md overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
@@ -70,9 +76,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
         <div className="px-6 py-5 space-y-4">
           {/* Rolle */}
           <div>
-            <label className="block text-sm font-medium text-[var(--ds-text)] mb-2">
-              Rolle
-            </label>
+            <p className="block text-sm font-medium text-[var(--ds-text)] mb-2">Rolle</p>
             <SegmentedControl
               value={form.role ?? "admin"}
               onChange={(role) => setForm((f) => ({ ...f, role }))}
@@ -94,7 +98,6 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               value={form.username}
               onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
               minLength={3}
-              autoFocus
               className={inputClass}
             />
           </div>
@@ -132,9 +135,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               minLength={8}
               className={inputClass}
             />
-            <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">
-              Mindestens 8 Zeichen.
-            </p>
+            <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">Mindestens 8 Zeichen.</p>
           </div>
 
           {createMutation.isError && (

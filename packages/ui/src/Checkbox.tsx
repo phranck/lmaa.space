@@ -23,13 +23,16 @@ export function Checkbox({
       htmlFor={id}
       className={`flex items-center gap-3 select-none ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${className}`}
     >
-      <button
+      <input
         id={id}
-        type="button"
-        role="checkbox"
-        aria-checked={checked}
+        type="checkbox"
+        checked={checked}
         disabled={disabled}
-        onClick={() => onChange(!checked)}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sr-only"
+      />
+      <span
+        aria-hidden="true"
         className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors ${
           checked
             ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
@@ -37,7 +40,7 @@ export function Checkbox({
         }`}
       >
         {checked && <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
-      </button>
+      </span>
       {label && <span className="text-sm text-[var(--ds-text)]">{label}</span>}
     </label>
   );

@@ -126,26 +126,33 @@ export function PagesListPage() {
             <h3 className="text-sm font-semibold text-[var(--ds-text)]">Neue Seite erstellen</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                <label
+                  htmlFor="content-page-title"
+                  className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   Titel
                 </label>
                 <input
+                  id="content-page-title"
                   type="text"
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   required
-                  autoFocus
                   placeholder="z.B. Über uns"
                   className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                <label
+                  htmlFor="content-page-slug"
+                  className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
                   Slug (URL-Pfad)
                 </label>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-[var(--ds-text-muted)] shrink-0">/</span>
                   <input
+                    id="content-page-slug"
                     type="text"
                     value={slug}
                     onChange={(e) => handleSlugChange(e.target.value)}
@@ -157,9 +164,7 @@ export function PagesListPage() {
                 </div>
               </div>
             </div>
-            {createError && (
-              <p className="text-xs text-red-500">{createError}</p>
-            )}
+            {createError && <p className="text-xs text-red-500">{createError}</p>}
             <div className="flex items-center gap-3">
               <button
                 type="submit"

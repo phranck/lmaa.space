@@ -1,7 +1,7 @@
+import { shopDomain, shopRefUrl } from "@/lib/shop";
 import type { Category, Shop } from "@lmaa/shared";
 import Fuse, { type IFuseOptions } from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { shopDomain, shopRefUrl } from "@/lib/shop";
 
 interface Props {
   shops: Shop[];
@@ -51,9 +51,7 @@ export default function SearchIsland({ shops, categories }: Props) {
 
   const categoryResults = useMemo(() => {
     if (!debouncedQuery.trim()) return [];
-    return categories.filter((c) =>
-      c.name.toLowerCase().includes(debouncedQuery.toLowerCase()),
-    );
+    return categories.filter((c) => c.name.toLowerCase().includes(debouncedQuery.toLowerCase()));
   }, [categories, debouncedQuery]);
 
   const total = shopResults.length + categoryResults.length;
@@ -76,14 +74,13 @@ export default function SearchIsland({ shops, categories }: Props) {
           }}
           placeholder="Shop oder Kategorie suchen…"
           className="w-full max-w-xl px-4 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
-          autoFocus
         />
       </div>
 
       {debouncedQuery.length >= 2 && (
-        <p role="status" aria-live="polite" className="text-sm text-stone-400 mb-6 search-section-enter">
+        <output aria-live="polite" className="text-sm text-stone-400 mb-6 search-section-enter">
           {total} {total === 1 ? "Treffer" : "Treffer gefunden"}
-        </p>
+        </output>
       )}
 
       {total === 0 && debouncedQuery.length >= 2 && (
@@ -140,7 +137,13 @@ export default function SearchIsland({ shops, categories }: Props) {
                   <div className="flex items-start gap-4">
                     <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
                       {shop.ogImage ? (
-                        <img src={shop.ogImage} alt="" aria-hidden loading="lazy" className="w-full h-full object-cover" />
+                        <img
+                          src={shop.ogImage}
+                          alt=""
+                          aria-hidden
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <span className="text-xl font-bold text-stone-300 select-none">
                           {shop.name.charAt(0).toUpperCase()}
@@ -148,7 +151,9 @@ export default function SearchIsland({ shops, categories }: Props) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-serif font-semibold text-stone-900 text-base leading-snug">{shop.name}</h3>
+                      <h3 className="font-serif font-semibold text-stone-900 text-base leading-snug">
+                        {shop.name}
+                      </h3>
                       <p className="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
                     </div>
                     <a

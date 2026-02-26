@@ -1,7 +1,7 @@
 import type { Category, ShopCategory } from "@lmaa/shared";
-import React from "react";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
+import type React from "react";
 import { useState } from "react";
 
 interface Props {
@@ -20,7 +20,9 @@ const inputClass =
 export default function SuggestForm({ categories }: Props) {
   const [submitted, setSubmitted] = useState(false);
   const [shopForm, setShopForm] = useState<ShopEditFormValue>(EMPTY_SHOP_FORM_VALUE);
-  const [shopErrors, setShopErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>({});
+  const [shopErrors, setShopErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>(
+    {},
+  );
   const [submitterEmail, setSubmitterEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [urlCheck, setUrlCheck] = useState<UrlCheckResult | null>(null);
@@ -92,14 +94,17 @@ export default function SuggestForm({ categories }: Props) {
   const urlWarning = (
     <>
       {urlChecking && (
-        <p className="text-[var(--ds-text-subtle)] text-xs mt-1.5">Prüfe ob Shop bereits bekannt…</p>
+        <p className="text-[var(--ds-text-subtle)] text-xs mt-1.5">
+          Prüfe ob Shop bereits bekannt…
+        </p>
       )}
       {!urlChecking && urlCheck?.exists && (
         <div className="mt-2 px-3 py-2.5 bg-[var(--ds-warning-bg)] border border-[var(--ds-warning-text)]/25 rounded-control text-sm text-[var(--ds-warning-text)]">
           <span className="font-medium">{urlCheck.shop.name}</span> ist bereits in unserer Liste
           {urlCheck.shop.categories.length > 0 && (
             <span>
-              {" "}in{" "}
+              {" "}
+              in{" "}
               {urlCheck.shop.categories.map((c, i) => (
                 <span key={c.id}>
                   {i > 0 && ", "}
@@ -107,7 +112,8 @@ export default function SuggestForm({ categories }: Props) {
                 </span>
               ))}
             </span>
-          )}.
+          )}
+          .
         </div>
       )}
     </>
@@ -118,7 +124,9 @@ export default function SuggestForm({ categories }: Props) {
       <p className="text-xs text-[var(--ds-text-subtle)] leading-relaxed">
         Eine gute Beschreibung hilft anderen, den Shop schneller einzuschätzen.
       </p>
-      <span className="text-xs text-[var(--ds-text-subtle)] shrink-0">{shopForm.description.length}/500</span>
+      <span className="text-xs text-[var(--ds-text-subtle)] shrink-0">
+        {shopForm.description.length}/500
+      </span>
     </div>
   );
 
@@ -126,8 +134,20 @@ export default function SuggestForm({ categories }: Props) {
     return (
       <div className="max-w-lg mx-auto px-4 py-24 text-center">
         <div className="w-16 h-16 rounded-full bg-[var(--ds-accent-subtle)] flex items-center justify-center mx-auto mb-6">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-accent)]" aria-hidden>
-            <polyline points="20 6 9 17 4 12"></polyline>
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-[var(--ds-accent)]"
+            aria-hidden
+          >
+            <title>Erfolgreich gesendet</title>
+            <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
         <h1 className="font-serif text-2xl font-semibold text-[var(--ds-text)] mb-3">
@@ -187,18 +207,24 @@ export default function SuggestForm({ categories }: Props) {
         </p>
         <p className="text-amber-800 mb-3">
           Doch bevor du das tust, denk kurz an die{" "}
-          <a href="/admissioncriteria" className="underline underline-offset-2 hover:text-amber-900 transition-colors">
+          <a
+            href="/admissioncriteria"
+            className="underline underline-offset-2 hover:text-amber-900 transition-colors"
+          >
             Aufnahmekriterien
           </a>
           :
         </p>
         <ul className="text-amber-800 space-y-1 mb-3 pl-4 list-disc">
-          <li>Ist es ein Online-Shop <em>mit Ladengeschäft</em> in deiner Gegend?</li>
+          <li>
+            Ist es ein Online-Shop <em>mit Ladengeschäft</em> in deiner Gegend?
+          </li>
           <li>Kennst du diesen Laden persönlich?</li>
           <li>Willst du ihn aus Überzeugung unterstützen, weil er es „verdient" hat?</li>
         </ul>
         <p className="text-amber-800">
-          Wenn du all das mit „Ja" beantworten kannst: dann weiter. Trag ihn ein. Anderenfalls würde ich dir davon abraten.
+          Wenn du all das mit „Ja" beantworten kannst: dann weiter. Trag ihn ein. Anderenfalls würde
+          ich dir davon abraten.
         </p>
       </div>
 

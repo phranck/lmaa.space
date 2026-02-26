@@ -1,8 +1,8 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import type { ShopSummary } from "@lmaa/shared";
 import { REGION_OPTIONS } from "@lmaa/ui";
-import { SFEyeFill, SFPauseCircleFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 import { useMemo } from "react";
+import { SFEyeFill, SFPauseCircleFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 
 interface ShopTableProps {
   shops: ShopSummary[];
@@ -178,18 +178,14 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
                 )}
               </>
             )}
-            {shop.visibility === "deleted" && (
-              <>
-                {onRestore && (
-                  <button
-                    type="button"
-                    onClick={() => onRestore(shop.id)}
-                    className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
-                  >
-                    Wiederherstellen
-                  </button>
-                )}
-              </>
+            {shop.visibility === "deleted" && onRestore && (
+              <button
+                type="button"
+                onClick={() => onRestore(shop.id)}
+                className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
+              >
+                Wiederherstellen
+              </button>
             )}
           </div>
         ),

@@ -70,19 +70,17 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
   const isOpen = isGroupActive || localOpen;
 
-  function handleSummaryClick(e: React.MouseEvent) {
-    e.preventDefault();
-    const next = !isOpen;
-    setLocalOpen(next);
-    localStorage.setItem("sidebar-pages-open", String(next));
-  }
-
   return (
-    <details open={isOpen} className="group">
-      <summary
-        onClick={handleSummaryClick}
-        className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-      >
+    <details
+      open={isOpen}
+      className="group"
+      onToggle={(e) => {
+        const next = e.currentTarget.open;
+        setLocalOpen(next);
+        localStorage.setItem("sidebar-pages-open", String(next));
+      }}
+    >
+      <summary className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]">
         <span className="shrink-0 opacity-70">
           <SFDocumentFill className="w-4 h-4" />
         </span>
@@ -129,11 +127,20 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
-export function Sidebar({ username, firstName, lastName, avatarUrl, role, onLogout, onItemClick, onEditProfile }: SidebarProps) {
+export function Sidebar({
+  username,
+  firstName,
+  lastName,
+  avatarUrl,
+  role,
+  onLogout,
+  onItemClick,
+  onEditProfile,
+}: SidebarProps) {
   const navItems = NAV_ITEMS.filter(
     (item) => !item.minRole || (role !== undefined && ROLE_RANK[role] >= ROLE_RANK[item.minRole]),
   );
-  const showPages = role !== undefined && ROLE_RANK[role] >= ROLE_RANK["admin"];
+  const showPages = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
 
   return (
     <>
@@ -161,7 +168,15 @@ export function Sidebar({ username, firstName, lastName, avatarUrl, role, onLogo
         )}
       </nav>
 
-      <SidebarFooter username={username} firstName={firstName} lastName={lastName} role={role} avatarUrl={avatarUrl} onLogout={onLogout} onEditProfile={onEditProfile} />
+      <SidebarFooter
+        username={username}
+        firstName={firstName}
+        lastName={lastName}
+        role={role}
+        avatarUrl={avatarUrl}
+        onLogout={onLogout}
+        onEditProfile={onEditProfile}
+      />
     </>
   );
 }

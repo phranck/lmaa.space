@@ -1,6 +1,6 @@
 import { Checkbox } from "@lmaa/ui";
-import { SiMarkdown } from "react-icons/si";
 import { useEffect, useRef, useState } from "react";
+import { SiMarkdown } from "react-icons/si";
 
 interface ShopDeleteReasonCardProps {
   shopName: string;
@@ -46,7 +46,10 @@ export function ShopDeleteReasonCard({
 
         <div className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+            <label
+              htmlFor="shop-delete-reason"
+              className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+            >
               <span className="flex items-center gap-1.5">
                 Begründung{" "}
                 <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
@@ -54,6 +57,7 @@ export function ShopDeleteReasonCard({
               </span>
             </label>
             <textarea
+              id="shop-delete-reason"
               ref={textareaRef}
               value={reason}
               onChange={(e) => setReason(e.target.value)}

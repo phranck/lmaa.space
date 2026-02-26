@@ -1,11 +1,13 @@
 import "@mdxeditor/editor/style.css";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { InternalLinkPicker } from "@/features/content/InternalLinkPicker.tsx";
 import {
   useAdminContentPage,
   useDeleteContentPage,
   usePatchContentPage,
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
+import { sourceKeymap } from "@/features/content/sourceKeymap.ts";
 import {
   AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
@@ -40,8 +42,6 @@ import {
   toolbarPlugin,
   viewMode$,
 } from "@mdxeditor/editor";
-import { InternalLinkPicker } from "@/features/content/InternalLinkPicker.tsx";
-import { sourceKeymap } from "@/features/content/sourceKeymap.ts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { SFMinus, SFPlus, SFSquareAndArrowDownFill, SFTrashFill } from "sf-symbols-lib/monochrome";
@@ -92,6 +92,7 @@ export function ContentEditorPage() {
   // Reset stale content when slug changes (navigation or rename).
   // Prevents Cmd+S saving the previous page's content to the new slug.
   useEffect(() => {
+    void slug;
     contentRef.current = "";
     setSaved(false);
   }, [slug]);
@@ -103,7 +104,7 @@ export function ContentEditorPage() {
     if (page) {
       contentRef.current = page.content;
     }
-  }, [page?.slug]);
+  }, [page]);
 
   // Metadata editing state
   const [editingSlug, setEditingSlug] = useState(false);
@@ -256,7 +257,9 @@ export function ContentEditorPage() {
             </button>
           ) : (
             <div className="flex items-center gap-2 px-3 py-1.5 border border-[var(--ds-btn-danger-border)] rounded-control bg-[var(--ds-btn-danger-hover-bg)]">
-              <span className="text-xs text-[var(--ds-btn-danger-text)] font-medium">Wirklich löschen?</span>
+              <span className="text-xs text-[var(--ds-btn-danger-text)] font-medium">
+                Wirklich löschen?
+              </span>
               <button
                 type="button"
                 onClick={() => {
@@ -311,7 +314,6 @@ export function ContentEditorPage() {
                   type="text"
                   value={editTitleValue}
                   onChange={(e) => setEditTitleValue(e.target.value)}
-                  autoFocus
                   className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none w-48"
                 />
                 <button type="submit" className="text-[var(--color-primary)] hover:underline">
@@ -357,7 +359,6 @@ export function ContentEditorPage() {
                   value={editSlugValue}
                   onChange={(e) => setEditSlugValue(e.target.value)}
                   onBlur={(e) => setEditSlugValue(slugify(e.target.value))}
-                  autoFocus
                   pattern="[a-z0-9-]+"
                   className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none font-mono w-40"
                 />
@@ -405,14 +406,16 @@ export function ContentEditorPage() {
             <div className="ml-auto">
               Erstellt von <span className="text-[var(--ds-text)]">{page.createdByUsername}</span>
               {page.updatedByUsername && (
-                <> · Geändert von <span className="text-[var(--ds-text)]">{page.updatedByUsername}</span></>
+                <>
+                  {" "}
+                  · Geändert von{" "}
+                  <span className="text-[var(--ds-text)]">{page.updatedByUsername}</span>
+                </>
               )}
             </div>
           )}
 
-          {patchError && (
-            <span className="text-red-500">{patchError}</span>
-          )}
+          {patchError && <span className="text-red-500">{patchError}</span>}
         </div>
       )}
 

@@ -76,7 +76,9 @@ export function InternalLinkPicker() {
       {open && (
         <>
           {/* Backdrop */}
-          <div
+          <button
+            type="button"
+            aria-label="Link-Auswahl schließen"
             className="fixed inset-0 z-40"
             onClick={() => {
               setOpen(false);
