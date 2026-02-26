@@ -245,7 +245,7 @@ publicRoutes.get("/check-url", async (c) => {
 // POST /api/submissions
 publicRoutes.post(
   "/submissions",
-  rateLimit({ max: 5, windowMs: 60 * 60 * 1000 }),
+  rateLimit({ max: 20, windowMs: 60 * 60 * 1000 }),
   zValidator("json", submissionSchema),
   async (c) => {
     const body = c.req.valid("json");

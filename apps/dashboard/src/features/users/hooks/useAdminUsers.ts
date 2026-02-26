@@ -38,7 +38,7 @@ export function useDeleteUser() {
   });
 }
 
-export interface UpdateUserFormData {
+interface UpdateUserFormData {
   username?: string;
   email?: string;
   password?: string;

@@ -136,8 +136,10 @@ function AdminLayoutInner() {
           onEditProfile={() => setEditingOwnProfile(true)}
         />
         {/* Resize handle */}
-        <div
+        <button
+          type="button"
           onMouseDown={onResizeStart}
+          aria-label="Resize sidebar"
           className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[var(--color-primary)]/40 active:bg-[var(--color-primary)]/60"
         />
       </aside>
