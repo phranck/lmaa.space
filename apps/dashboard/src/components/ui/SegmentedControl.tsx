@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 interface SegmentOption<T extends string> {
   value: T;
@@ -30,25 +30,56 @@ export function SegmentedControl<T extends string>({
   const [pill, setPill] = useState<{ left: number; width: number; height: number } | null>(null);
   const didMount = useRef(false);
 
-  const measure = useRef(() => {});
-  measure.current = () => {
-    if (!containerRef.current) return;
-    const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>("button");
+  const measurePill = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const buttons = container.querySelectorAll<HTMLButtonElement>("button");
     const btn = buttons[activeIndex];
-    if (!btn) return;
-    const cRect = containerRef.current.getBoundingClientRect();
+    if (!btn) {
+      setPill((prev) => (prev === null ? prev : null));
+      return;
+    }
+    const cRect = container.getBoundingClientRect();
     const bRect = btn.getBoundingClientRect();
-    setPill({ left: bRect.left - cRect.left, width: bRect.width, height: bRect.height });
+    const next = { left: bRect.left - cRect.left, width: bRect.width, height: bRect.height };
+    setPill((prev) => {
+      if (
+        prev &&
+        prev.left === next.left &&
+        prev.width === next.width &&
+        prev.height === next.height
+      ) {
+        return prev;
+      }
+      return next;
+    });
     didMount.current = true;
-  };
+  }, [activeIndex]);
 
-  // Re-measure when active index changes or when button sizes change (e.g. badge loads async)
+  // Re-measure when selected segment changes
   useLayoutEffect(() => {
-    measure.current();
-    const observer = new ResizeObserver(() => measure.current());
-    if (containerRef.current) observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
+    measurePill();
+  }, [measurePill]);
+
+  // Re-measure when container/button sizes change (e.g. async badges, viewport resize)
+  useLayoutEffect(() => {
+    const observer = new ResizeObserver(() => measurePill());
+    const container = containerRef.current;
+    if (container) {
+      observer.observe(container);
+      for (const button of container.querySelectorAll<HTMLButtonElement>("button")) {
+        observer.observe(button);
+      }
+    }
+
+    const handleResize = () => measurePill();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
+    };
+  }, [measurePill]);
 
   const h = "h-7";
   const w = iconOnly ? "w-7" : "";
