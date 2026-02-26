@@ -1,11 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
-import { asc, eq } from "drizzle-orm";
+import type { NavId } from "@lmaa/shared";
 import { Hono } from "hono";
 import { z } from "zod";
-import { db } from "../../db/index.js";
-import { contentPages, navItems } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
+import { getManagedNavItems, replaceManagedNavItems } from "../../services/admin-nav.js";
 
 const navItemsSchema = z.object({
   items: z.array(
@@ -20,30 +19,23 @@ const navItemsSchema = z.object({
 
 export const navAdminRoutes = new Hono<{ Variables: AuthVariables }>();
 
+function parseNavId(navId: string): NavId | null {
+  if (navId === "header" || navId === "footer") {
+    return navId;
+  }
+
+  return null;
+}
+
 // ─── GET /admin/nav/:navId ────────────────────────────────────────────────────
 
 navAdminRoutes.get("/nav/:navId", requireAuth, requireAdmin, async (c) => {
-  const navId = c.req.param("navId");
-  if (navId !== "header" && navId !== "footer") {
+  const navId = parseNavId(c.req.param("navId"));
+  if (!navId) {
     return fail(c, 400, "Invalid navId");
   }
 
-  const rows = await db
-    .select({
-      id: navItems.id,
-      navId: navItems.navId,
-      pageSlug: navItems.pageSlug,
-      pageTitle: contentPages.title,
-      url: navItems.url,
-      target: navItems.target,
-      label: navItems.label,
-      position: navItems.position,
-    })
-    .from(navItems)
-    .leftJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
-    .where(eq(navItems.navId, navId))
-    .orderBy(asc(navItems.position));
-
+  const rows = await getManagedNavItems(navId);
   return ok(c, rows);
 });
 
@@ -55,44 +47,21 @@ navAdminRoutes.put(
   requireAdmin,
   zValidator("json", navItemsSchema),
   async (c) => {
-    const navId = c.req.param("navId");
-    if (navId !== "header" && navId !== "footer") {
+    const navId = parseNavId(c.req.param("navId"));
+    if (!navId) {
       return fail(c, 400, "Invalid navId");
     }
 
     const { items } = c.req.valid("json");
-
-    await db.transaction(async (tx) => {
-      await tx.delete(navItems).where(eq(navItems.navId, navId));
-      if (items.length > 0) {
-        await tx.insert(navItems).values(
-          items.map((item, i) => ({
-            navId: navId as "header" | "footer",
-            pageSlug: item.pageSlug ?? null,
-            url: item.url ?? null,
-            target: item.target,
-            position: i,
-            label: item.label ?? null,
-          })),
-        );
-      }
-    });
-
-    const updated = await db
-      .select({
-        id: navItems.id,
-        navId: navItems.navId,
-        pageSlug: navItems.pageSlug,
-        pageTitle: contentPages.title,
-        url: navItems.url,
-        target: navItems.target,
-        label: navItems.label,
-        position: navItems.position,
-      })
-      .from(navItems)
-      .leftJoin(contentPages, eq(navItems.pageSlug, contentPages.slug))
-      .where(eq(navItems.navId, navId))
-      .orderBy(asc(navItems.position));
+    const updated = await replaceManagedNavItems(
+      navId,
+      items.map((item) => ({
+        pageSlug: item.pageSlug ?? null,
+        url: item.url ?? null,
+        target: item.target,
+        label: item.label ?? null,
+      })),
+    );
 
     return ok(c, updated);
   },
