@@ -1,10 +1,13 @@
 import type { Context } from "hono";
 import type { StatusCode } from "hono/utils/http-status";
+import { env } from "../config/env.js";
 
 type ApiError = {
   message: string;
   code?: string;
 };
+
+const INTERNAL_SERVER_ERROR_MESSAGE = "Internal Server Error";
 
 export class HttpError extends Error {
   constructor(
@@ -37,15 +40,20 @@ export function getErrorResponse(error: unknown): { status: StatusCode; error: A
   }
 
   if (error instanceof Error) {
+    const message =
+      env.NODE_ENV === "production"
+        ? INTERNAL_SERVER_ERROR_MESSAGE
+        : error.message || INTERNAL_SERVER_ERROR_MESSAGE;
+
     return {
       status: 500,
-      error: { message: error.message || "Internal Server Error" },
+      error: { message },
     };
   }
 
   return {
     status: 500,
-    error: { message: "Internal Server Error" },
+    error: { message: INTERNAL_SERVER_ERROR_MESSAGE },
   };
 }
 

@@ -5,7 +5,22 @@ on:
     branches: [main]
 
 jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:quality
+        env:
+          API_URL: http://localhost:3000/api
+          PUBLIC_API_URL: /api
+
   detect-changes:
+    needs: quality-gate
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
