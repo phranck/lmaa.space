@@ -9,7 +9,7 @@ import {
   useUmamiRealtime,
   useUmamiStats,
 } from "@/features/dashboard/hooks/useUmamiStats.ts";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   FaAndroid,
@@ -66,6 +66,110 @@ const LOCATION_TABS: readonly MetricTabConfig[] = [
   { label: "Regionen", value: "region", columnLabel: "Region" },
   { label: "Städte", value: "city", columnLabel: "Stadt" },
 ];
+
+const COUNTRY_NAME_TO_CODE: Record<string, string> = {
+  deutschland: "DE",
+  germany: "DE",
+  osterreich: "AT",
+  austria: "AT",
+  schweiz: "CH",
+  switzerland: "CH",
+  tschechien: "CZ",
+  czechia: "CZ",
+  "czech republic": "CZ",
+  niederlande: "NL",
+  netherlands: "NL",
+  frankreich: "FR",
+  france: "FR",
+  schweden: "SE",
+  sweden: "SE",
+  danemark: "DK",
+  denmark: "DK",
+  "vereinigtes konigreich": "GB",
+  "united kingdom": "GB",
+  "vereinigte staaten": "US",
+  "united states": "US",
+  usa: "US",
+};
+
+const COUNTRY_CODE_TO_NAME: Record<string, string> = {
+  AT: "Österreich",
+  CH: "Schweiz",
+  CZ: "Tschechien",
+  DE: "Deutschland",
+  DK: "Dänemark",
+  FR: "Frankreich",
+  GB: "Vereinigtes Königreich",
+  NL: "Niederlande",
+  SE: "Schweden",
+  US: "Vereinigte Staaten",
+};
+
+let germanRegionNames: Intl.DisplayNames | null = null;
+try {
+  germanRegionNames = new Intl.DisplayNames(["de"], { type: "region" });
+} catch {
+  germanRegionNames = null;
+}
+
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+}
+
+function isUnknownValue(value: string): boolean {
+  const normalized = normalizeName(value).replace(/[()]/g, "");
+  return normalized === "unknown" || normalized === "unbekannt" || normalized === "null";
+}
+
+function getCountryCodeFromName(value: string): string | null {
+  const normalized = normalizeName(value);
+  if (/^[a-z]{2}$/.test(normalized)) return normalized.toUpperCase();
+  return COUNTRY_NAME_TO_CODE[normalized] ?? null;
+}
+
+function getCountryDisplayName(value: string): string {
+  const code = getCountryCodeFromName(value);
+  if (code) {
+    return germanRegionNames?.of(code) ?? COUNTRY_CODE_TO_NAME[code] ?? value;
+  }
+  return isUnknownValue(value) ? "(Unbekannt)" : value.trim();
+}
+
+function parseLocationDisplay(
+  type: UmamiMetricType,
+  value: string,
+): { label: string; flag: string | null } {
+  const parts = value
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const regionPart = parts[0] ?? value.trim();
+  const countryPart = parts[parts.length - 1] ?? "";
+  const firstLabel = isUnknownValue(regionPart) ? "(Unbekannt)" : regionPart;
+  const code = getCountryCodeFromName(countryPart);
+  const flag = code ? countryFlag(code) : null;
+  const countryLabel = getCountryDisplayName(countryPart);
+
+  if (type === "country") {
+    return { label: countryLabel, flag };
+  }
+
+  if (type === "city") {
+    if (isUnknownValue(regionPart)) {
+      return { label: countryLabel, flag };
+    }
+    if (parts.length >= 2) {
+      return { label: `${regionPart}, ${countryLabel}`, flag };
+    }
+    return { label: regionPart || "(Unbekannt)", flag };
+  }
+
+  if (parts.length >= 2) {
+    return { label: `${firstLabel}, ${countryLabel}`, flag };
+  }
+
+  return { label: countryLabel || "(Unbekannt)", flag };
+}
 
 function normalizeMetricValue(value: string): string {
   return value.trim().toLowerCase();
@@ -433,9 +537,21 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
         <ul className="pt-2 space-y-1.5">
           {rows.map((row) => {
             const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
-            const showFlag = activeTab.showCountryFlag === true && /^[A-Za-z]{2}$/.test(row.x);
-            const label = activeTab.renderLabel ? activeTab.renderLabel(row.x) : row.x || "(leer)";
+            let label = activeTab.renderLabel ? activeTab.renderLabel(row.x) : row.x || "(leer)";
             const EnvironmentIcon = getEnvironmentIcon(activeType, row.x);
+            let leadingVisual: ReactNode = null;
+
+            if (activeType === "country" || activeType === "region" || activeType === "city") {
+              const parsed = parseLocationDisplay(activeType, row.x);
+              label = parsed.label;
+              leadingVisual = parsed.flag ? (
+                <span className="shrink-0 leading-none">{parsed.flag}</span>
+              ) : (
+                <FaGlobe className="w-3.5 h-3.5 shrink-0 opacity-70" />
+              );
+            } else if (EnvironmentIcon) {
+              leadingVisual = <EnvironmentIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />;
+            }
 
             return (
               <li key={row.x} className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5">
@@ -443,11 +559,7 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
                   className="min-w-0 flex items-center gap-2 text-[var(--ds-text-muted)]"
                   title={label}
                 >
-                  {EnvironmentIcon ? (
-                    <EnvironmentIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />
-                  ) : showFlag ? (
-                    <span className="shrink-0 leading-none">{countryFlag(row.x)}</span>
-                  ) : null}
+                  {leadingVisual}
                   <span className="truncate">{label}</span>
                 </span>
                 <span className="text-right text-[var(--ds-text)] tabular-nums">
