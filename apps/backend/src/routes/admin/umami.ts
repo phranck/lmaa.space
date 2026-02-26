@@ -4,6 +4,8 @@ import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import {
   UMAMI_WEBSITE_ID,
   type UmamiPeriod,
+  normalizeUmamiMetricType,
+  normalizeUmamiStats,
   periodToRange,
   umamiConfigured,
   umamiGet,
@@ -17,9 +19,10 @@ umamiRoutes.get("/umami/stats", requireAuth, async (c) => {
   const period = (c.req.query("period") ?? "7d") as UmamiPeriod;
   const { startAt, endAt } = periodToRange(period);
   try {
-    const data = await umamiGet(
+    const rawData = await umamiGet(
       `/websites/${UMAMI_WEBSITE_ID}/stats?startAt=${startAt}&endAt=${endAt}`,
     );
+    const data = normalizeUmamiStats(rawData);
     return ok(c, data);
   } catch {
     return ok(c, null);
@@ -46,7 +49,7 @@ umamiRoutes.get("/umami/pageviews", requireAuth, async (c) => {
 umamiRoutes.get("/umami/metrics", requireAuth, async (c) => {
   if (!umamiConfigured) return ok(c, null);
   const period = (c.req.query("period") ?? "7d") as UmamiPeriod;
-  const type = c.req.query("type") ?? "url";
+  const type = normalizeUmamiMetricType(c.req.query("type") ?? "url");
   const { startAt, endAt } = periodToRange(period);
   try {
     const data = await umamiGet(
