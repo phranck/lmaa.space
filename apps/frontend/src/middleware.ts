@@ -1,6 +1,9 @@
 /**
- * Astro middleware that proxies /api/*, /uploads/*, and /sitemap.xml
- * to the backend service. Replaces the nginx proxy_pass rules.
+ * Astro middleware that can proxy /api/*, /uploads/*, and /sitemap.xml
+ * to the backend service.
+ *
+ * Set ASTRO_API_PROXY_MODE=l7 (or off/disabled) to disable app-level proxying
+ * once Zerops L7 path routing is configured.
  */
 import { defineMiddleware } from "astro:middleware";
 
@@ -46,6 +49,8 @@ function resolveBackendOrigin(): string {
 }
 
 const BACKEND_ORIGIN = resolveBackendOrigin();
+const ASTRO_API_PROXY_MODE = (process.env.ASTRO_API_PROXY_MODE ?? "fallback").trim().toLowerCase();
+const PROXY_ENABLED = !["disabled", "off", "l7"].includes(ASTRO_API_PROXY_MODE);
 
 function buildProxyHeaders(request: Request, requestUrl: URL): Headers {
   const headers = new Headers(request.headers);
@@ -87,6 +92,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith("/uploads/") ||
     pathname === "/sitemap.xml"
   ) {
+    if (!PROXY_ENABLED) return next();
+
     const target = new URL(`${pathname}${context.url.search}`, BACKEND_ORIGIN);
     if (target.origin === context.url.origin) {
       return new Response("API proxy misconfigured (self-referential target).", { status: 503 });
