@@ -1,10 +1,37 @@
 /**
- * Build-time API client for use in Astro frontmatter only.
- * Runtime calls (from shop-actions.ts) use fetch('/api/...') directly.
+ * Server-side API client for Astro frontmatter/SSR only.
+ * Runtime browser calls use /api/* via same-origin fetch.
  */
-const API_BASE = import.meta.env.API_URL ?? "http://localhost:3000/api";
+const DEV_DEFAULT_API_URL = "http://localhost:3000/api";
 
-const BACKEND_ORIGIN = API_BASE.endsWith("/api") ? API_BASE.slice(0, -4) : "";
+function normalizeApiBase(input: string): string {
+  const trimmed = input.trim().replace(/\/+$/, "");
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+}
+
+function resolveApiBase(): string {
+  const configured = process.env.API_URL?.trim();
+  const fallback = import.meta.env.DEV ? DEV_DEFAULT_API_URL : "";
+  const value = configured || fallback;
+
+  if (!value) {
+    throw new Error("Missing API_URL runtime env for frontend server.");
+  }
+
+  const base = normalizeApiBase(value);
+
+  if (process.env.NODE_ENV === "production") {
+    const hostname = new URL(base).hostname.toLowerCase();
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+      throw new Error(`Invalid API_URL in production: ${base}`);
+    }
+  }
+
+  return base;
+}
+
+const API_BASE = resolveApiBase();
+const BACKEND_ORIGIN = API_BASE.slice(0, -4);
 
 export function resolveImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
