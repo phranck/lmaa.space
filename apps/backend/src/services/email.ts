@@ -15,7 +15,11 @@ export function isEmailConfigured(): boolean {
   return resend !== null;
 }
 
-export async function sendWelcomeEmail(to: string, username: string, password: string): Promise<void> {
+export async function sendWelcomeEmail(
+  to: string,
+  username: string,
+  password: string,
+): Promise<void> {
   if (!resend) return;
 
   await resend.emails.send({

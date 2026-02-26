@@ -1,9 +1,9 @@
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
-import { UserEditCard } from "@/features/users/UserEditCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { UserEditCard } from "@/features/users/UserEditCard.tsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
 import {

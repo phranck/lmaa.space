@@ -33,9 +33,7 @@ const contentCreateSchema = z.object({
 
 // ─── Helper: load usernames for a list of rows ────────────────────────────────
 
-async function buildUserMap(
-  ids: (number | null | undefined)[],
-): Promise<Map<number, string>> {
+async function buildUserMap(ids: (number | null | undefined)[]): Promise<Map<number, string>> {
   const unique = [...new Set(ids.filter((id): id is number => id != null))];
   if (unique.length === 0) return new Map();
   const rows = await db
@@ -129,11 +127,7 @@ contentRoutes.post(
 
 contentRoutes.get("/content/:slug", requireAuth, requireAdmin, async (c) => {
   const slug = c.req.param("slug");
-  const [page] = await db
-    .select()
-    .from(contentPages)
-    .where(eq(contentPages.slug, slug))
-    .limit(1);
+  const [page] = await db.select().from(contentPages).where(eq(contentPages.slug, slug)).limit(1);
   if (!page) return c.json({ error: { message: "Not found" } }, 404);
 
   const userMap = await buildUserMap([page.createdBy, page.updatedBy]);

@@ -1,6 +1,5 @@
-import { lazy, Suspense } from "react";
-import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
 import { ContentEditorLoadingFallback } from "@/components/ContentEditorLoadingFallback.tsx";
+import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
 import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
@@ -10,6 +9,7 @@ import { DashboardPage } from "@/features/dashboard/DashboardPage.tsx";
 import { ShopsPage } from "@/features/shops/ShopsPage.tsx";
 import { SubmissionsPage } from "@/features/submissions/SubmissionsPage.tsx";
 import { UsersPage } from "@/features/users/UsersPage.tsx";
+import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router";
 
 const ContentEditorPage = lazy(() =>

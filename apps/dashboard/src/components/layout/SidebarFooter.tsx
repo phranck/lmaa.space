@@ -19,7 +19,15 @@ interface SidebarFooterProps {
   onEditProfile?: () => void;
 }
 
-export function SidebarFooter({ username, firstName, lastName, role, avatarUrl, onLogout, onEditProfile }: SidebarFooterProps) {
+export function SidebarFooter({
+  username,
+  firstName,
+  lastName,
+  role,
+  avatarUrl,
+  onLogout,
+  onEditProfile,
+}: SidebarFooterProps) {
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || username;
   return (
     <div className="px-3 py-4 border-t border-[var(--ds-border)] shrink-0">
@@ -29,7 +37,9 @@ export function SidebarFooter({ username, firstName, lastName, role, avatarUrl, 
         )}
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-[var(--ds-text)] truncate">{displayName}</p>
-          {role && <p className="text-xs text-[var(--ds-text-muted)] truncate">{ROLE_LABEL[role]}</p>}
+          {role && (
+            <p className="text-xs text-[var(--ds-text-muted)] truncate">{ROLE_LABEL[role]}</p>
+          )}
         </div>
         {onEditProfile && (
           <button

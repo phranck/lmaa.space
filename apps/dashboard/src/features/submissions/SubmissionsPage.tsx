@@ -14,8 +14,8 @@ import {
   useReviewSubmission,
   useShopConcernReports,
 } from "@/features/submissions/hooks/useAdminSubmissions.ts";
-import { Checkbox } from "@lmaa/ui";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
+import { Checkbox } from "@lmaa/ui";
 import { useState } from "react";
 import {
   SFArrowDownCircleFill,
@@ -104,18 +104,42 @@ function VorschlaegeTab() {
           value={filter}
           onChange={setFilter}
           options={[
-            { value: "pending" as SubmissionStatus,  label: STATUS_LABELS.pending,  icon: <SFClockFill className="w-3.5 h-3.5" /> },
-            { value: "onhold" as SubmissionStatus,   label: STATUS_LABELS.onhold,   icon: <SFPauseCircleFill className="w-3.5 h-3.5" /> },
-            { value: "approved" as SubmissionStatus, label: STATUS_LABELS.approved, icon: <SFCheckmarkCircleFill className="w-3.5 h-3.5" /> },
-            { value: "rejected" as SubmissionStatus, label: STATUS_LABELS.rejected, icon: <SFXmarkCircleFill className="w-3.5 h-3.5" /> },
+            {
+              value: "pending" as SubmissionStatus,
+              label: STATUS_LABELS.pending,
+              icon: <SFClockFill className="w-3.5 h-3.5" />,
+            },
+            {
+              value: "onhold" as SubmissionStatus,
+              label: STATUS_LABELS.onhold,
+              icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
+            },
+            {
+              value: "approved" as SubmissionStatus,
+              label: STATUS_LABELS.approved,
+              icon: <SFCheckmarkCircleFill className="w-3.5 h-3.5" />,
+            },
+            {
+              value: "rejected" as SubmissionStatus,
+              label: STATUS_LABELS.rejected,
+              icon: <SFXmarkCircleFill className="w-3.5 h-3.5" />,
+            },
           ]}
         />
         <SegmentedControl
           value={sortDir}
           onChange={setSortDir}
           options={[
-            { value: "asc" as const,  label: "Alte zuerst",  icon: <SFArrowUpCircleFill className="w-3.5 h-3.5" /> },
-            { value: "desc" as const, label: "Neue zuerst", icon: <SFArrowDownCircleFill className="w-3.5 h-3.5" /> },
+            {
+              value: "asc" as const,
+              label: "Alte zuerst",
+              icon: <SFArrowUpCircleFill className="w-3.5 h-3.5" />,
+            },
+            {
+              value: "desc" as const,
+              label: "Neue zuerst",
+              icon: <SFArrowDownCircleFill className="w-3.5 h-3.5" />,
+            },
           ]}
         />
       </div>
@@ -185,8 +209,11 @@ function VorschlaegeTab() {
               <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
                 <span>
                   {new Date(sub.createdAt).toLocaleString("de-DE", {
-                    day: "2-digit", month: "2-digit", year: "numeric",
-                    hour: "2-digit", minute: "2-digit",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </span>
                 {sub.submitterEmail && <span>✉ {sub.submitterEmail}</span>}
@@ -296,7 +323,12 @@ function VorschlaegeTab() {
               <Checkbox
                 checked={sendFeedback}
                 onChange={setSendFeedback}
-                label={<>E-Mail-Feedback senden an{" "}<span className="font-medium">{reviewing.submitterEmail}</span></>}
+                label={
+                  <>
+                    E-Mail-Feedback senden an{" "}
+                    <span className="font-medium">{reviewing.submitterEmail}</span>
+                  </>
+                }
                 className="mb-4"
               />
             )}
@@ -406,8 +438,11 @@ function DefekteLinksTab() {
             {r.lastReportedAt && (
               <span className="block mt-1 text-xs text-[var(--ds-text-subtle)]">
                 {new Date(r.lastReportedAt).toLocaleString("de-DE", {
-                  day: "2-digit", month: "2-digit", year: "numeric",
-                  hour: "2-digit", minute: "2-digit",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </span>
             )}
@@ -526,19 +561,19 @@ function ShopMeldungenTab() {
   const dismiss = useDismissShopConcern();
   const deleteMutation = useDeleteShop();
   const [editShopId, setEditShopId] = useState<number | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ reportId: number; shopId: number; shopName: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    reportId: number;
+    shopId: number;
+    shopName: string;
+  } | null>(null);
 
   if (isLoading) {
-    return (
-      <div className="p-6 text-center text-[var(--ds-text-subtle)] text-sm">Lade…</div>
-    );
+    return <div className="p-6 text-center text-[var(--ds-text-subtle)] text-sm">Lade…</div>;
   }
 
   if (reports.length === 0) {
     return (
-      <div className="text-center py-16 text-[var(--ds-text-subtle)]">
-        Keine Shop-Meldungen.
-      </div>
+      <div className="text-center py-16 text-[var(--ds-text-subtle)]">Keine Shop-Meldungen.</div>
     );
   }
 
@@ -564,8 +599,11 @@ function ShopMeldungenTab() {
               </div>
               <span className="shrink-0 text-xs text-[var(--ds-text-muted)]">
                 {new Date(r.reportedAt).toLocaleString("de-DE", {
-                  day: "2-digit", month: "2-digit", year: "numeric",
-                  hour: "2-digit", minute: "2-digit",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </span>
             </div>
@@ -592,7 +630,9 @@ function ShopMeldungenTab() {
               </button>
               <button
                 type="button"
-                onClick={() => setDeleteTarget({ reportId: r.id, shopId: r.shopId, shopName: r.shopName })}
+                onClick={() =>
+                  setDeleteTarget({ reportId: r.id, shopId: r.shopId, shopName: r.shopName })
+                }
                 className="h-7 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
               >
                 Löschen

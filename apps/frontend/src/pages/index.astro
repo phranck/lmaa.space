@@ -1,9 +1,9 @@
 ---
-import type { Category } from "@lmaa/shared";
-import { apiGet } from "@/lib/api";
-import BaseLayout from "@/layouts/BaseLayout.astro";
 import CategoryCard from "@/components/CategoryCard.astro";
 import HeroLogo from "@/components/HeroLogo.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import type { Category } from "@lmaa/shared";
 
 const categories = await apiGet<Category[]>("/categories");
 const shopCount = categories.reduce((sum, c) => sum + (c.shopCount ?? 0), 0);

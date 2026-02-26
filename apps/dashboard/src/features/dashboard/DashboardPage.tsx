@@ -1,8 +1,8 @@
-import { lazy, Suspense } from "react";
-import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
 import { AnalyticsLoadingFallback } from "@/components/AnalyticsLoadingFallback.tsx";
+import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useAdminStats } from "@/features/dashboard/hooks/useAdminStats.ts";
+import { Suspense, lazy } from "react";
 
 const AnalyticsSection = lazy(() =>
   import("@/features/dashboard/AnalyticsSection.tsx").then((m) => ({

@@ -1,20 +1,36 @@
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/shops/ShopTable.tsx";
-import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { useAdminShops, useDeleteShop, useSetShopVisibility } from "@/features/shops/hooks/useAdminShops.ts";
+import {
+  useAdminShops,
+  useDeleteShop,
+  useSetShopVisibility,
+} from "@/features/shops/hooks/useAdminShops.ts";
 import { useState } from "react";
 import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-lib/monochrome";
 
 type VisibilityFilter = "all" | "public" | "onhold" | "deleted";
 
 const FILTER_OPTIONS = [
-  { value: "all" as VisibilityFilter,     label: "Alle" },
-  { value: "public" as VisibilityFilter,  label: "Öffentlich",    icon: <SFEyeFill className="w-3.5 h-3.5" /> },
-  { value: "onhold" as VisibilityFilter,  label: "Zurückgestellt", icon: <SFPauseCircleFill className="w-3.5 h-3.5" /> },
-  { value: "deleted" as VisibilityFilter, label: "Gelöscht",      icon: <SFTrashFill className="w-3.5 h-3.5" /> },
+  { value: "all" as VisibilityFilter, label: "Alle" },
+  {
+    value: "public" as VisibilityFilter,
+    label: "Öffentlich",
+    icon: <SFEyeFill className="w-3.5 h-3.5" />,
+  },
+  {
+    value: "onhold" as VisibilityFilter,
+    label: "Zurückgestellt",
+    icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
+  },
+  {
+    value: "deleted" as VisibilityFilter,
+    label: "Gelöscht",
+    icon: <SFTrashFill className="w-3.5 h-3.5" />,
+  },
 ] as const;
 
 export function ShopsPage() {
@@ -90,9 +106,7 @@ export function ShopsPage() {
       )}
 
       {!isLoading && shops.length === 0 && (
-        <p className="text-center py-16 text-[var(--ds-text-subtle)]">
-          Keine Shops gefunden.
-        </p>
+        <p className="text-center py-16 text-[var(--ds-text-subtle)]">Keine Shops gefunden.</p>
       )}
 
       {!isLoading && shops.length > 0 && filtered.length === 0 && (
@@ -107,8 +121,16 @@ export function ShopsPage() {
             shops={filtered}
             onEdit={setEditTarget}
             onDelete={canModify ? setDeleteId : undefined}
-            onHold={canModify ? (id) => visibilityMutation.mutate({ id, visibility: "onhold" }) : undefined}
-            onRestore={canModify ? (id) => visibilityMutation.mutate({ id, visibility: "public" }) : undefined}
+            onHold={
+              canModify
+                ? (id) => visibilityMutation.mutate({ id, visibility: "onhold" })
+                : undefined
+            }
+            onRestore={
+              canModify
+                ? (id) => visibilityMutation.mutate({ id, visibility: "public" })
+                : undefined
+            }
           />
         </div>
       )}

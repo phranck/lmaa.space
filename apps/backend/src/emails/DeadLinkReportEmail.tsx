@@ -57,7 +57,9 @@ export function DeadLinkReportEmail({
               <Hr style={detailDivider} />
               <Text style={detailRow}>
                 <span style={detailLabel}>URL</span>
-                <Link href={shopUrl} style={detailLink}>{shopUrl}</Link>
+                <Link href={shopUrl} style={detailLink}>
+                  {shopUrl}
+                </Link>
               </Text>
               <Hr style={detailDivider} />
               <Text style={detailRow}>

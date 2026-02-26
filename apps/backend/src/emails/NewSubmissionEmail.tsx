@@ -47,9 +47,7 @@ export function NewSubmissionEmail({
           <Section style={content}>
             <Heading style={heading}>Neuer Shop-Vorschlag eingegangen</Heading>
 
-            <Text style={paragraph}>
-              Jemand hat einen neuen Shop für die Liste vorgeschlagen:
-            </Text>
+            <Text style={paragraph}>Jemand hat einen neuen Shop für die Liste vorgeschlagen:</Text>
 
             <Section style={detailsBox}>
               <Text style={detailRow}>
@@ -59,7 +57,9 @@ export function NewSubmissionEmail({
               <Hr style={detailDivider} />
               <Text style={detailRow}>
                 <span style={detailLabel}>URL</span>
-                <Link href={shopUrl} style={detailLink}>{shopUrl}</Link>
+                <Link href={shopUrl} style={detailLink}>
+                  {shopUrl}
+                </Link>
               </Text>
               {region && region.length > 0 && (
                 <>

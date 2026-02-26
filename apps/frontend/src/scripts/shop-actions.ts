@@ -5,13 +5,17 @@
 
 // Image fallback: hide broken images and show the letter placeholder next to them.
 // Uses capture:true because 'error' does not bubble.
-document.addEventListener("error", (e) => {
-  const img = e.target as HTMLElement;
-  if (!(img instanceof HTMLImageElement) || !("imgFallback" in img.dataset)) return;
-  img.style.display = "none";
-  const fallback = img.nextElementSibling as HTMLElement | null;
-  if (fallback) fallback.style.display = "flex";
-}, { capture: true });
+document.addEventListener(
+  "error",
+  (e) => {
+    const img = e.target as HTMLElement;
+    if (!(img instanceof HTMLImageElement) || !("imgFallback" in img.dataset)) return;
+    img.style.display = "none";
+    const fallback = img.nextElementSibling as HTMLElement | null;
+    if (fallback) fallback.style.display = "flex";
+  },
+  { capture: true },
+);
 
 import { API_BASE } from "@/lib/client-api";
 
@@ -32,7 +36,10 @@ document.addEventListener("click", (e) => {
     const form = dialog.querySelector<HTMLElement>("[data-report-form]");
     const success = dialog.querySelector<HTMLElement>("[data-report-success]");
     if (textarea) textarea.value = "";
-    if (errorMsg) { errorMsg.textContent = ""; errorMsg.classList.add("hidden"); }
+    if (errorMsg) {
+      errorMsg.textContent = "";
+      errorMsg.classList.add("hidden");
+    }
     if (form) form.classList.remove("hidden");
     if (success) success.classList.add("hidden");
   }

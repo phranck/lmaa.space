@@ -20,7 +20,13 @@ export interface RegionSelectProps {
   variant?: "dashboard" | "frontend";
 }
 
-export function RegionSelect({ value, onChange, error, buttonClassName, variant = "dashboard" }: RegionSelectProps) {
+export function RegionSelect({
+  value,
+  onChange,
+  error,
+  buttonClassName,
+  variant = "dashboard",
+}: RegionSelectProps) {
   const [open, setOpen] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);

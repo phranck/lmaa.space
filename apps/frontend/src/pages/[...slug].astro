@@ -1,8 +1,8 @@
 ---
-import type { ContentPage } from "@lmaa/shared";
-import { apiGet } from "@/lib/api";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
+import type { ContentPage } from "@lmaa/shared";
 
 const { slug } = Astro.params;
 

@@ -1,10 +1,7 @@
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import {
-  useAdminUsers,
-  useDeleteUser,
-} from "@/features/users/hooks/useAdminUsers.ts";
+import { useAdminUsers, useDeleteUser } from "@/features/users/hooks/useAdminUsers.ts";
 import { useState } from "react";
 import { SFSquareAndPencil } from "sf-symbols-lib/monochrome";
 import { UserAvatar } from "./UserAvatar.tsx";

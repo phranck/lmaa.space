@@ -6,7 +6,12 @@ import { z } from "zod";
 import { db } from "../../db/index.js";
 import { adminUsers, sessions } from "../../db/schema.js";
 import { detectImageType, parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAdmin, requireAuth, requireOwner } from "../../middleware/auth.js";
+import {
+  type AuthVariables,
+  requireAdmin,
+  requireAuth,
+  requireOwner,
+} from "../../middleware/auth.js";
 import { hashPassword, setupSchema } from "../../services/auth.js";
 import { sendWelcomeEmail } from "../../services/email.js";
 
@@ -75,48 +80,43 @@ const updateUserSchema = z.object({
   role: z.enum(["admin", "moderator"]).optional(),
 });
 
-usersRoutes.patch(
-  "/users/:id",
-  requireAuth,
-  zValidator("json", updateUserSchema),
-  async (c) => {
-    const id = parseId(c.req.param("id"));
-    if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
+usersRoutes.patch("/users/:id", requireAuth, zValidator("json", updateUserSchema), async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return c.json({ error: { message: "Invalid id" } }, 400);
 
-    const adminId = c.get("adminId");
-    const isOwner = c.get("isOwner");
-    if (!canModify(adminId, isOwner, id)) {
+  const adminId = c.get("adminId");
+  const isOwner = c.get("isOwner");
+  if (!canModify(adminId, isOwner, id)) {
+    return c.json({ error: { message: "Forbidden" } }, 403);
+  }
+
+  const { username, email, password, firstName, lastName, role } = c.req.valid("json");
+  const updates: Partial<typeof adminUsers.$inferInsert> = {};
+  if (username !== undefined) updates.username = username;
+  if (email !== undefined) updates.email = email;
+  if (password !== undefined) updates.passwordHash = await hashPassword(password);
+  if (firstName !== undefined) updates.firstName = firstName;
+  if (lastName !== undefined) updates.lastName = lastName;
+
+  if (role !== undefined) {
+    if (!isOwner || adminId === id) {
       return c.json({ error: { message: "Forbidden" } }, 403);
     }
+    updates.role = role;
+  }
 
-    const { username, email, password, firstName, lastName, role } = c.req.valid("json");
-    const updates: Partial<typeof adminUsers.$inferInsert> = {};
-    if (username !== undefined) updates.username = username;
-    if (email !== undefined) updates.email = email;
-    if (password !== undefined) updates.passwordHash = await hashPassword(password);
-    if (firstName !== undefined) updates.firstName = firstName;
-    if (lastName !== undefined) updates.lastName = lastName;
+  if (Object.keys(updates).length === 0) {
+    return c.json({ error: { message: "Nothing to update" } }, 400);
+  }
 
-    if (role !== undefined) {
-      if (!isOwner || adminId === id) {
-        return c.json({ error: { message: "Forbidden" } }, 403);
-      }
-      updates.role = role;
-    }
+  const [updated] = await db
+    .update(adminUsers)
+    .set(updates)
+    .where(eq(adminUsers.id, id))
+    .returning(USER_FIELDS);
 
-    if (Object.keys(updates).length === 0) {
-      return c.json({ error: { message: "Nothing to update" } }, 400);
-    }
-
-    const [updated] = await db
-      .update(adminUsers)
-      .set(updates)
-      .where(eq(adminUsers.id, id))
-      .returning(USER_FIELDS);
-
-    return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
-  },
-);
+  return c.json({ data: { ...updated, isOwner: updated.role === "owner" } });
+});
 
 // ─── Upload avatar (self or owner) ───────────────────────────────────────────
 
@@ -130,12 +130,17 @@ usersRoutes.post("/users/:id/avatar", requireAuth, async (c) => {
     return c.json({ error: { message: "Forbidden" } }, 403);
   }
 
-  const [user] = await db.select(USER_FIELDS).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
+  const [user] = await db
+    .select(USER_FIELDS)
+    .from(adminUsers)
+    .where(eq(adminUsers.id, id))
+    .limit(1);
   if (!user) return c.json({ error: { message: "User not found" } }, 404);
 
   const formData = await c.req.formData();
   const file = formData.get("avatar");
-  if (!(file instanceof File)) return c.json({ error: { message: "No avatar file provided" } }, 400);
+  if (!(file instanceof File))
+    return c.json({ error: { message: "No avatar file provided" } }, 400);
 
   if (file.size > 5 * 1024 * 1024) {
     return c.json({ error: { message: "File too large (max 5 MB)" } }, 400);
@@ -207,7 +212,11 @@ usersRoutes.delete("/users/:id/avatar", requireAuth, async (c) => {
     return c.json({ error: { message: "Forbidden" } }, 403);
   }
 
-  const [user] = await db.select({ avatarUrl: adminUsers.avatarUrl }).from(adminUsers).where(eq(adminUsers.id, id)).limit(1);
+  const [user] = await db
+    .select({ avatarUrl: adminUsers.avatarUrl })
+    .from(adminUsers)
+    .where(eq(adminUsers.id, id))
+    .limit(1);
   if (!user) return c.json({ error: { message: "User not found" } }, 404);
 
   const [updated] = await db

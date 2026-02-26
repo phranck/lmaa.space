@@ -10,7 +10,8 @@ const { navItems } = Astro.props;
 const currentPath = Astro.url.pathname;
 
 function navLinkClass(href: string, external = false) {
-  const isActive = !external && (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
+  const isActive =
+    !external && (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
   return `font-serif text-lg tracking-wide transition-colors ${
     isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"
   }`;

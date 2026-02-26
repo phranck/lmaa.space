@@ -3,12 +3,12 @@ import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/content/hooks/useAdminNav.ts";
 import {
   DndContext,
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   closestCenter,
   useSensor,
   useSensors,
-  type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
