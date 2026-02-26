@@ -1,13 +1,17 @@
 import { zValidator } from "@hono/zod-validator";
-import { count, eq, getTableColumns } from "drizzle-orm";
 import { Hono } from "hono";
-import sharp from "sharp";
 import { z } from "zod";
-import { db } from "../../db/index.js";
-import { categories, shopCategories, shops } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
-import { detectImageType, parseId } from "../../lib/validate.js";
+import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
+import {
+  createManagedAdminCategory,
+  deleteManagedAdminCategory,
+  getAdminCategories,
+  removeManagedAdminCategoryImage,
+  updateManagedAdminCategory,
+  uploadManagedAdminCategoryImage,
+} from "../../services/admin-categories.js";
 
 const categoryBodySchema = z.object({
   name: z.string().min(1).max(100),
@@ -25,13 +29,7 @@ const categoryUpdateSchema = categoryBodySchema.partial();
 export const categoriesRoutes = new Hono<{ Variables: AuthVariables }>();
 
 categoriesRoutes.get("/categories", requireAuth, async (c) => {
-  const rows = await db
-    .select({ ...getTableColumns(categories), shopCount: count(shops.id) })
-    .from(categories)
-    .leftJoin(shopCategories, eq(shopCategories.categoryId, categories.id))
-    .leftJoin(shops, eq(shops.id, shopCategories.shopId))
-    .groupBy(categories.id)
-    .orderBy(categories.name);
+  const rows = await getAdminCategories();
   return ok(c, rows);
 });
 
@@ -41,7 +39,7 @@ categoriesRoutes.post(
   zValidator("json", categoryBodySchema),
   async (c) => {
     const body = c.req.valid("json");
-    const [category] = await db.insert(categories).values(body).returning();
+    const category = await createManagedAdminCategory(body);
     return ok(c, category, 201);
   },
 );
@@ -56,11 +54,7 @@ for (const method of ["put", "patch"] as const) {
       if (!id) return fail(c, 400, "Invalid id");
       const body = c.req.valid("json");
 
-      const [category] = await db
-        .update(categories)
-        .set({ ...body, updatedAt: new Date() })
-        .where(eq(categories.id, id))
-        .returning();
+      const category = await updateManagedAdminCategory(id, body);
       if (!category) return fail(c, 404, "Category not found");
       return ok(c, category);
     },
@@ -70,7 +64,7 @@ for (const method of ["put", "patch"] as const) {
 categoriesRoutes.delete("/categories/:id", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
-  await db.delete(categories).where(eq(categories.id, id));
+  await deleteManagedAdminCategory(id);
   return ok(c, { message: "Category deleted" });
 });
 
@@ -78,48 +72,26 @@ categoriesRoutes.delete("/categories/:id", requireAuth, requireAdmin, async (c) 
 categoriesRoutes.post("/categories/:id/image", requireAuth, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
-  const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
-  if (!cat) return fail(c, 404, "Category not found");
 
   const formData = await c.req.formData();
   const file = formData.get("image");
-  if (!(file instanceof File)) return fail(c, 400, "No image file provided");
 
-  if (file.size > 5 * 1024 * 1024) return fail(c, 400, "File too large (max 5 MB)");
+  const result = await uploadManagedAdminCategoryImage(id, file);
+  if (!result.ok && result.reason === "not_found") return fail(c, 404, "Category not found");
+  if (!result.ok && result.reason === "missing_file") return fail(c, 400, "No image file provided");
+  if (!result.ok && result.reason === "too_large") return fail(c, 400, "File too large (max 5 MB)");
+  if (!result.ok && result.reason === "invalid_image")
+    return fail(c, 400, "Invalid image content (only JPEG, PNG or WebP)");
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const detectedType = detectImageType(buffer);
-  if (!detectedType) return fail(c, 400, "Invalid image content (only JPEG, PNG or WebP)");
-
-  // Resize to 1200x675 (16:9), convert to WebP, store as base64 data URL in DB
-  const resized = await sharp(buffer).resize(1200, 675, { fit: "cover" }).webp().toBuffer();
-  const imageUrl = `data:image/webp;base64,${resized.toString("base64")}`;
-  const [updated] = await db
-    .update(categories)
-    .set({ imageUrl, imagePhotographer: null, imagePhotographerUrl: null, updatedAt: new Date() })
-    .where(eq(categories.id, id))
-    .returning();
-
-  return ok(c, updated);
+  return ok(c, result.category);
 });
 
 // Delete image of a category
 categoriesRoutes.delete("/categories/:id/image", requireAuth, requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
-  const [cat] = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
-  if (!cat) return fail(c, 404, "Category not found");
+  const result = await removeManagedAdminCategoryImage(id);
+  if (!result.ok) return fail(c, 404, "Category not found");
 
-  const [updated] = await db
-    .update(categories)
-    .set({
-      imageUrl: null,
-      imagePhotographer: null,
-      imagePhotographerUrl: null,
-      updatedAt: new Date(),
-    })
-    .where(eq(categories.id, id))
-    .returning();
-
-  return ok(c, updated);
+  return ok(c, result.category);
 });
