@@ -35,10 +35,18 @@ export interface MultiSelectOption {
   style?: React.CSSProperties;
 }
 
+export interface MultiSelectMessages {
+  selectAll: string;
+  clearAllAriaLabel: string;
+  clearSelectionAriaLabel: string;
+  moreSelected: (count: number) => string;
+}
+
 export interface MultiSelectProps extends VariantProps<typeof multiSelectVariants> {
   options: MultiSelectOption[];
   value: string[];
   onValueChange: (value: string[]) => void;
+  messages: MultiSelectMessages;
   placeholder?: string;
   maxCount?: number;
   modalPopover?: boolean;
@@ -50,8 +58,9 @@ export function MultiSelect({
   options,
   value,
   onValueChange,
+  messages,
   variant,
-  placeholder = "Auswählen…",
+  placeholder,
   maxCount = 3,
   className,
   error,
@@ -172,7 +181,7 @@ export function MultiSelect({
                 >
                   {allSelected && <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                 </span>
-                <span className="text-[var(--ds-text)]">(Alle auswählen)</span>
+                <span className="text-[var(--ds-text)]">{messages.selectAll}</span>
               </button>
 
               {/* Options */}
@@ -244,6 +253,7 @@ export function MultiSelect({
                   <span
                     data-remove-value={val}
                     className="cursor-pointer text-current opacity-60 hover:opacity-100"
+                    aria-label={messages.clearSelectionAriaLabel}
                   >
                     <XCircle className="h-3 w-3" />
                   </span>
@@ -255,13 +265,13 @@ export function MultiSelect({
                 data-clear-extra="true"
                 className={cn(multiSelectVariants({ variant }), "cursor-pointer")}
               >
-                {`+ ${value.length - maxCount} weitere`}
+                {messages.moreSelected(value.length - maxCount)}
                 <XCircle className="h-3 w-3 opacity-60" />
               </span>
             )}
           </div>
         ) : (
-          <span className="text-[var(--ds-text-subtle)]">{placeholder}</span>
+          <span className="text-[var(--ds-text-subtle)]">{placeholder ?? ""}</span>
         )}
 
         <div className="flex items-center shrink-0 ml-2 gap-0.5">
@@ -270,6 +280,7 @@ export function MultiSelect({
               <span
                 data-clear-all="true"
                 className="cursor-pointer text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] p-0.5"
+                aria-label={messages.clearAllAriaLabel}
               >
                 <XIcon className="h-3.5 w-3.5" />
               </span>

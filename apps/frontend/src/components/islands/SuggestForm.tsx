@@ -1,3 +1,4 @@
+import { getFrontendShopFormI18n } from "@/lib/shop-form-i18n";
 import type { Category, ShopCategory } from "@lmaa/shared";
 import { type ApiRequestError, createApiRequestError } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
@@ -80,6 +81,7 @@ function useSuggestFormState() {
 }
 
 export default function SuggestForm({ categories }: Props) {
+  const shopFormI18n = getFrontendShopFormI18n("de");
   const {
     submitted,
     setSubmitted,
@@ -306,6 +308,8 @@ export default function SuggestForm({ categories }: Props) {
           value={shopForm}
           onChange={setShopForm}
           categories={categories}
+          regionOptions={shopFormI18n.regionOptions}
+          messages={shopFormI18n.messages}
           errors={shopErrors}
           variant="frontend"
           onUrlBlur={checkUrl}

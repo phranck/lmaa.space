@@ -1,8 +1,12 @@
 import type { ReactNode } from "react";
 import { LuExternalLink } from "react-icons/lu";
 import { SiMarkdown } from "react-icons/si";
-import { MultiSelect } from "./MultiSelect.tsx";
-import { RegionSelect } from "./RegionSelect.tsx";
+import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
+import {
+  RegionSelect,
+  type RegionSelectMessages,
+  type RegionSelectOption,
+} from "./RegionSelect.tsx";
 
 export interface ShopEditFormValue {
   name: string;
@@ -22,10 +26,28 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   shipping: "",
 };
 
+export interface ShopEditFormMessages {
+  nameLabel: string;
+  urlLabel: string;
+  urlPlaceholder: string;
+  openUrlAriaLabel: string;
+  descriptionLabel: string;
+  optionalLabel: string;
+  markdownSupportedLabel: string;
+  categoriesLabel: string;
+  categoriesPlaceholder: string;
+  shippingLabel: string;
+  shippingPlaceholder: string;
+  regionSelect: RegionSelectMessages;
+  categorySelect: MultiSelectMessages;
+}
+
 export interface ShopEditFormProps {
   value: ShopEditFormValue;
   onChange: (value: ShopEditFormValue) => void;
   categories: { id: number; name: string }[];
+  regionOptions: ReadonlyArray<RegionSelectOption>;
+  messages: ShopEditFormMessages;
   errors?: Partial<Record<keyof ShopEditFormValue, string>>;
   variant: "dashboard" | "frontend";
   onUrlBlur?: (url: string) => void;
@@ -37,6 +59,8 @@ export function ShopEditForm({
   value,
   onChange,
   categories,
+  regionOptions,
+  messages,
   errors,
   variant,
   onUrlBlur,
@@ -63,7 +87,7 @@ export function ShopEditForm({
       {/* Name */}
       <div>
         <label htmlFor="sef-name" className={labelClass}>
-          Shop-Name
+          {messages.nameLabel}
         </label>
         <input
           id="sef-name"
@@ -78,7 +102,7 @@ export function ShopEditForm({
       {/* URL */}
       <div>
         <label htmlFor="sef-url" className={labelClass}>
-          URL
+          {messages.urlLabel}
         </label>
         <div className="flex gap-2">
           <input
@@ -87,14 +111,14 @@ export function ShopEditForm({
             value={value.url}
             onChange={(e) => set("url", e.target.value)}
             onBlur={() => onUrlBlur?.(value.url)}
-            placeholder="https://…"
+            placeholder={messages.urlPlaceholder}
             className={`flex-1 ${inputClass}${errors?.url ? " border-red-400" : ""}`}
           />
           <a
             href={value.url || undefined}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="URL öffnen"
+            aria-label={messages.openUrlAriaLabel}
             tabIndex={value.url ? 0 : -1}
             className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
               value.url
@@ -113,9 +137,11 @@ export function ShopEditForm({
       <div>
         <label htmlFor="sef-description" className={labelClass}>
           <span className="flex items-center gap-1.5">
-            Beschreibung{" "}
-            <span className="text-[var(--ds-text-subtle)] font-normal">(optional)</span>
-            <SiMarkdown className="w-5 h-5 opacity-40" title="Markdown wird unterstützt" />
+            {messages.descriptionLabel}{" "}
+            <span className="text-[var(--ds-text-subtle)] font-normal">
+              {messages.optionalLabel}
+            </span>
+            <SiMarkdown className="w-5 h-5 opacity-40" title={messages.markdownSupportedLabel} />
           </span>
         </label>
         <textarea
@@ -132,12 +158,13 @@ export function ShopEditForm({
 
       {/* Categories */}
       <div>
-        <p className={labelClass}>Kategorien</p>
+        <p className={labelClass}>{messages.categoriesLabel}</p>
         <MultiSelect
           options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
           value={value.categoryIds.map(String)}
           onValueChange={(vals) => set("categoryIds", vals.map(Number))}
-          placeholder="Kategorie wählen…"
+          placeholder={messages.categoriesPlaceholder}
+          messages={messages.categorySelect}
           error={errors?.categoryIds}
         />
       </div>
@@ -146,6 +173,8 @@ export function ShopEditForm({
       <RegionSelect
         value={value.region}
         onChange={(v) => set("region", v)}
+        options={regionOptions}
+        messages={messages.regionSelect}
         error={errors?.region}
         variant={variant}
       />
@@ -153,14 +182,14 @@ export function ShopEditForm({
       {/* Shipping */}
       <div>
         <label htmlFor="sef-shipping" className={labelClass}>
-          Versand
+          {messages.shippingLabel}
         </label>
         <input
           id="sef-shipping"
           type="text"
           value={value.shipping}
           onChange={(e) => set("shipping", e.target.value)}
-          placeholder="z.B. Kostenlos ab 50 €"
+          placeholder={messages.shippingPlaceholder}
           className={`${inputClass}${errors?.shipping ? " border-red-400" : ""}`}
         />
         {errors?.shipping && <p className="text-red-500 text-xs mt-1">{errors.shipping}</p>}

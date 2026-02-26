@@ -4,21 +4,40 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LuCheck, LuChevronDown, LuInfo } from "react-icons/lu";
 
-const REGION_DETAILS: Record<RegionCode, { flag: string; name: string }> = {
-  DE: { flag: "🇩🇪", name: "Deutschland" },
-  AT: { flag: "🇦🇹", name: "Österreich" },
-  CH: { flag: "🇨🇭", name: "Schweiz" },
-  EU: { flag: "🇪🇺", name: "Europa" },
+export interface RegionSelectOption {
+  code: RegionCode;
+  flag: string;
+  name: string;
+}
+
+export interface RegionSelectMessages {
+  label: string;
+  placeholder: string;
+  infoAriaLabel: string;
+  infoTitle: string;
+  infoDescription: string;
+}
+
+export const REGION_FLAGS: Readonly<Record<RegionCode, string>> = {
+  DE: "🇩🇪",
+  AT: "🇦🇹",
+  CH: "🇨🇭",
+  EU: "🇪🇺",
 };
 
-export const REGION_OPTIONS: ReadonlyArray<{ code: RegionCode; flag: string; name: string }> =
-  REGION_CODES.map((code) => ({ code, ...REGION_DETAILS[code] }));
+export function createRegionOptions(
+  regionNames: Readonly<Record<RegionCode, string>>,
+): ReadonlyArray<RegionSelectOption> {
+  return REGION_CODES.map((code) => ({ code, flag: REGION_FLAGS[code], name: regionNames[code] }));
+}
 
 export type { RegionCode };
 
 export interface RegionSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
+  options: ReadonlyArray<RegionSelectOption>;
+  messages: RegionSelectMessages;
   error?: string;
   buttonClassName?: string;
   variant?: "dashboard" | "frontend";
@@ -27,6 +46,8 @@ export interface RegionSelectProps {
 export function RegionSelect({
   value,
   onChange,
+  options,
+  messages,
   error,
   buttonClassName,
   variant = "dashboard",
@@ -80,10 +101,10 @@ export function RegionSelect({
       ? null
       : value.length === 1
         ? (() => {
-            const opt = REGION_OPTIONS.find((o) => o.code === value[0]);
+            const opt = options.find((o) => o.code === value[0]);
             return opt ? `${opt.flag} ${opt.name}` : value[0];
           })()
-        : value.map((code) => REGION_OPTIONS.find((o) => o.code === code)?.flag ?? code).join("  ");
+        : value.map((code) => options.find((o) => o.code === code)?.flag ?? code).join("  ");
 
   const dropdown =
     open && dropdownRect
@@ -101,7 +122,7 @@ export function RegionSelect({
             className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
             <div className="max-h-[360px] overflow-y-auto">
-              {REGION_OPTIONS.map(({ code, flag, name }) => {
+              {options.map(({ code, flag, name }) => {
                 const checked = value.includes(code);
                 return (
                   <button
@@ -141,7 +162,7 @@ export function RegionSelect({
 
   return (
     <div>
-      <span className={labelClass}>Region</span>
+      <span className={labelClass}>{messages.label}</span>
 
       {/* Trigger button + Info button */}
       <div className="flex gap-2">
@@ -160,7 +181,7 @@ export function RegionSelect({
           <span
             className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
           >
-            {label ?? "Region wählen…"}
+            {label ?? messages.placeholder}
           </span>
           <LuChevronDown
             size={14}
@@ -173,7 +194,7 @@ export function RegionSelect({
             <button
               type="button"
               className="shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
-              aria-label="Info zur Regionauswahl"
+              aria-label={messages.infoAriaLabel}
             >
               <LuInfo size={14} />
             </button>
@@ -191,16 +212,13 @@ export function RegionSelect({
               {/* Popover header */}
               <div className="flex items-center justify-between px-4 py-2 bg-black/[.1] border-b border-black/[.15] rounded-t-lg dark:bg-white/[.1] dark:border-white/[.15]">
                 <span className="font-semibold text-sm text-[var(--ds-text)]">
-                  Was bedeutet Region?
+                  {messages.infoTitle}
                 </span>
               </div>
 
               {/* Popover body */}
               <div className="px-4 py-4 text-xs text-[var(--ds-text-muted)] leading-relaxed">
-                Gibt an, ob dieser Shop eine eigene Website für die jeweilige Region hat. Bei
-                Deutschland, Österreich und der Schweiz ist das meist an der TLD erkennbar (.de,
-                .at, .ch). Bei Europa können auch .com, .biz oder andere internationale Domains
-                genutzt werden.
+                {messages.infoDescription}
               </div>
 
               {/* Arrow */}

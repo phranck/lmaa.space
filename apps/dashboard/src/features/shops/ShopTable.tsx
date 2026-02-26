@@ -1,7 +1,7 @@
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { getRegionOptions } from "@/features/shops/shop-form-i18n.ts";
 import { REGION_CODES, type ShopSummary } from "@lmaa/shared";
-import { REGION_OPTIONS } from "@lmaa/ui";
 import { useMemo } from "react";
 import { SFEyeFill, SFPauseCircleFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 
@@ -37,8 +37,9 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
 }
 
 export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTableProps) {
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const shopsMessages = messages.shops;
+  const regionOptions = getRegionOptions(locale);
   const columns = useMemo<ColumnDef<ShopSummary>[]>(
     () => [
       {
@@ -106,7 +107,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
               {[...shop.region]
                 .sort((a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b))
                 .map((code) => {
-                  const opt = REGION_OPTIONS.find((o) => o.code === code);
+                  const opt = regionOptions.find((o) => o.code === code);
                   return (
                     <span key={code} title={opt?.name ?? code} className="text-base leading-none">
                       {opt?.flag ?? code}
@@ -194,7 +195,7 @@ export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTa
         ),
       },
     ],
-    [onDelete, onEdit, onHold, onRestore, shopsMessages],
+    [onDelete, onEdit, onHold, onRestore, regionOptions, shopsMessages],
   );
 
   return (
