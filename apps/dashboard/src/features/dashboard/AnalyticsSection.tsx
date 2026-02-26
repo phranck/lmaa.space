@@ -116,6 +116,12 @@ function normalizeName(value: string): string {
   return value.trim().toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 }
 
+function toMetricText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value === null || value === undefined) return "";
+  return String(value);
+}
+
 function isUnknownValue(value: string): boolean {
   const normalized = normalizeName(value).replace(/[()]/g, "");
   return normalized === "unknown" || normalized === "unbekannt" || normalized === "null";
@@ -467,28 +473,32 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
       )}
       {!isLoading && rows.length > 0 && (
         <ul className="space-y-2">
-          {rows.map((row) => (
-            <li key={row.x} className="flex items-center gap-2 text-sm">
-              <span className="shrink-0 w-5 text-base leading-none">
-                {type === "country" ? countryFlag(row.x) : null}
-              </span>
-              <span
-                className="flex-1 truncate text-[var(--ds-text-muted)]"
-                title={renderLabel ? renderLabel(row.x) : row.x}
+          {rows.map((row, index) => {
+            const rowText = toMetricText(row.x);
+            const rowLabel = renderLabel ? renderLabel(rowText) : rowText || "(Unbekannt)";
+            return (
+              <li
+                key={`${type}-${rowText}-${row.y}-${index}`}
+                className="flex items-center gap-2 text-sm"
               >
-                {renderLabel ? renderLabel(row.x) : row.x}
-              </span>
-              <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-amber-400 rounded-full"
-                  style={{ width: `${Math.round((row.y / max) * 100)}%` }}
-                />
-              </div>
-              <span className="shrink-0 w-8 text-right text-sm text-[var(--ds-text-muted)]">
-                {row.y}
-              </span>
-            </li>
-          ))}
+                <span className="shrink-0 w-5 text-base leading-none">
+                  {type === "country" && rowText ? countryFlag(rowText) : null}
+                </span>
+                <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={rowLabel}>
+                  {rowLabel}
+                </span>
+                <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-400 rounded-full"
+                    style={{ width: `${Math.round((row.y / max) * 100)}%` }}
+                  />
+                </div>
+                <span className="shrink-0 w-8 text-right text-sm text-[var(--ds-text-muted)]">
+                  {row.y}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
@@ -535,14 +545,17 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
         <p className="text-sm text-[var(--ds-text-subtle)] py-6 text-center">Keine Daten</p>
       ) : (
         <ul className="pt-2 space-y-1.5">
-          {rows.map((row) => {
+          {rows.map((row, index) => {
             const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
-            let label = activeTab.renderLabel ? activeTab.renderLabel(row.x) : row.x || "(leer)";
-            const EnvironmentIcon = getEnvironmentIcon(activeType, row.x);
+            const rowText = toMetricText(row.x);
+            let label = activeTab.renderLabel
+              ? activeTab.renderLabel(rowText)
+              : rowText || "(Unbekannt)";
+            const EnvironmentIcon = getEnvironmentIcon(activeType, rowText);
             let leadingVisual: ReactNode = null;
 
             if (activeType === "country" || activeType === "region" || activeType === "city") {
-              const parsed = parseLocationDisplay(activeType, row.x);
+              const parsed = parseLocationDisplay(activeType, rowText);
               label = parsed.label;
               leadingVisual = parsed.flag ? (
                 <span className="shrink-0 leading-none">{parsed.flag}</span>
@@ -554,7 +567,10 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
             }
 
             return (
-              <li key={row.x} className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5">
+              <li
+                key={`${activeType}-${rowText}-${row.y}-${index}`}
+                className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5"
+              >
                 <span
                   className="min-w-0 flex items-center gap-2 text-[var(--ds-text-muted)]"
                   title={label}

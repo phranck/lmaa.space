@@ -31,7 +31,7 @@ export interface UmamiPageviews {
 }
 
 export interface UmamiMetricRow {
-  x: string;
+  x: string | null;
   y: number;
 }
 
