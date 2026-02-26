@@ -5,6 +5,16 @@
 import { defineMiddleware } from "astro:middleware";
 
 const DEV_DEFAULT_API_URL = "http://localhost:3000/api";
+const HOP_BY_HOP_HEADERS = [
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+];
 
 function normalizeApiBase(input: string): string {
   const trimmed = input.trim().replace(/\/+$/, "");
@@ -37,6 +47,38 @@ function resolveBackendOrigin(): string {
 
 const BACKEND_ORIGIN = resolveBackendOrigin();
 
+function buildProxyHeaders(request: Request, requestUrl: URL): Headers {
+  const headers = new Headers(request.headers);
+
+  headers.delete("host");
+
+  const connectionValue = headers.get("connection");
+  if (connectionValue) {
+    const connectionTokens = connectionValue
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+
+    for (const token of connectionTokens) {
+      headers.delete(token);
+    }
+  }
+
+  for (const header of HOP_BY_HOP_HEADERS) {
+    headers.delete(header);
+  }
+
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const clientIp = request.headers.get("x-real-ip");
+  if (clientIp) {
+    headers.set("x-forwarded-for", forwardedFor ? `${forwardedFor}, ${clientIp}` : clientIp);
+  }
+  headers.set("x-forwarded-host", requestUrl.host);
+  headers.set("x-forwarded-proto", requestUrl.protocol.replace(":", ""));
+
+  return headers;
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
@@ -50,12 +92,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return new Response("API proxy misconfigured (self-referential target).", { status: 503 });
     }
 
-    const headers = new Headers(context.request.headers);
-    headers.delete("host");
-
     const init: RequestInit = {
       method: context.request.method,
-      headers,
+      headers: buildProxyHeaders(context.request, context.url),
     };
 
     if (!["GET", "HEAD"].includes(context.request.method)) {
