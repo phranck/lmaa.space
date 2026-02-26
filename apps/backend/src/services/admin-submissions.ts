@@ -1,5 +1,4 @@
 import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
-import { fetchPreviewImage } from "../lib/og.js";
 import {
   type SubmissionEditData,
   deleteSubmission,
@@ -10,7 +9,8 @@ import {
   setShopOgImage,
   setSubmissionFeedbackSent,
 } from "../repositories/admin-submissions.js";
-import { sendSubmissionApproved, sendSubmissionRejected } from "./email.js";
+import { sendSubmissionFeedbackEmail } from "./notifications.js";
+import { hydrateShopOgImageInBackground } from "./preview-images.js";
 
 export async function getAdminSubmissions(status?: SubmissionStatus) {
   return listAdminSubmissions(status);
@@ -37,29 +37,20 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
   }
 
   if (newShop) {
-    fetchPreviewImage(newShop.url)
-      .then(async (result) => {
-        if (result) {
-          await setShopOgImage(newShop.id, result.url);
-        }
-      })
-      .catch(() => {});
+    hydrateShopOgImageInBackground(newShop.url, async (imageUrl) => {
+      await setShopOgImage(newShop.id, imageUrl);
+    });
   }
 
   if (input.sendFeedback && submission.submitterEmail) {
-    try {
-      if (input.status === "approved") {
-        await sendSubmissionApproved(submission.submitterEmail, submission.shopName);
-      } else {
-        await sendSubmissionRejected(
-          submission.submitterEmail,
-          submission.shopName,
-          input.adminNote,
-        );
-      }
+    const sent = await sendSubmissionFeedbackEmail({
+      to: submission.submitterEmail,
+      shopName: submission.shopName,
+      status: input.status,
+      reason: input.adminNote,
+    });
+    if (sent) {
       await setSubmissionFeedbackSent(input.id);
-    } catch (error) {
-      console.error("[email] Failed to send feedback:", error);
     }
   }
 

@@ -8,7 +8,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { env } from "../config/env.js";
 import { shops } from "../db/schema.js";
-import { fetchPreviewImage } from "../lib/og.js";
+import { fetchShopPreviewImage } from "../services/preview-images.js";
 
 async function main() {
   const client = postgres(env.DATABASE_URL);
@@ -25,7 +25,7 @@ async function main() {
   let failed = 0;
 
   for (const shop of pending) {
-    const result = await fetchPreviewImage(shop.url);
+    const result = await fetchShopPreviewImage(shop.url);
     await db
       .update(shops)
       .set({ ogImage: result?.url ?? "" })

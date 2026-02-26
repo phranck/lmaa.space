@@ -10,7 +10,7 @@ import {
   updateAdminUser,
 } from "../repositories/admin-users.js";
 import { hashPassword } from "./auth.js";
-import { sendWelcomeEmail } from "./email.js";
+import { sendWelcomeEmailInBackground } from "./notifications.js";
 
 const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -68,7 +68,7 @@ export async function createManagedAdminUser(
     role: input.role ?? "admin",
   });
 
-  sendWelcomeEmail(input.email, input.username, input.password).catch(() => {});
+  sendWelcomeEmailInBackground(input.email, input.username, input.password);
 
   return toAdminUser(created);
 }
