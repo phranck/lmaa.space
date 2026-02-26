@@ -1,3 +1,5 @@
+import type { RegionCode, ShopVisibility } from "../constants/domain.js";
+
 export interface ShopCategory {
   id: number;
   slug: string;
@@ -9,8 +11,8 @@ export interface ShopSummary {
   name: string;
   url: string;
   categories: ShopCategory[];
-  region: string[];
-  visibility: "public" | "onhold" | "deleted";
+  region: RegionCode[];
+  visibility: ShopVisibility;
   deleteReason?: string | null;
   deletedWasReported?: boolean;
   deletedByUsername?: string | null;
@@ -21,7 +23,7 @@ export interface Shop {
   name: string;
   url: string;
   categories: ShopCategory[];
-  region: string[];
+  region: RegionCode[];
   pickup: string;
   shipping: string;
   description: string;
@@ -35,7 +37,7 @@ export interface ShopCreate {
   name: string;
   url: string;
   categoryIds: number[];
-  region?: string[];
+  region?: RegionCode[];
   pickup?: string;
   shipping?: string;
   description?: string;

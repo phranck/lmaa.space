@@ -1,4 +1,6 @@
-export type SubmissionStatus = "pending" | "onhold" | "approved" | "rejected";
+import type { RegionCode, SubmissionReviewStatus, SubmissionStatus } from "../constants/domain.js";
+
+export type { SubmissionReviewStatus, SubmissionStatus };
 
 export interface Submission {
   id: number;
@@ -6,7 +8,7 @@ export interface Submission {
   shopUrl: string;
   categoryIds: number[];
   categorySuggestion: string | null;
-  region: string[];
+  region: RegionCode[];
   pickup: string;
   shipping: string;
   description: string;
@@ -26,7 +28,7 @@ export interface SubmissionCreate {
   shopUrl: string;
   categoryIds?: number[];
   categorySuggestion?: string;
-  region?: string[];
+  region?: RegionCode[];
   pickup?: string;
   shipping?: string;
   description?: string;
@@ -52,7 +54,7 @@ export interface ShopConcernReportEntry {
 }
 
 export interface SubmissionReview {
-  status: "approved" | "rejected" | "onhold";
+  status: SubmissionReviewStatus;
   adminNote?: string;
   sendFeedback?: boolean;
 }

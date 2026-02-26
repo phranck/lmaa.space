@@ -18,31 +18,14 @@ document.addEventListener(
 );
 
 import { API_BASE } from "@/lib/client-api";
-
-interface RequestError extends Error {
-  status?: number;
-  responseMessage?: string | null;
-}
-
-function extractApiErrorMessage(payload: unknown): string | null {
-  if (!payload || typeof payload !== "object") return null;
-
-  const error = "error" in payload ? (payload as { error?: unknown }).error : undefined;
-  if (error && typeof error === "object" && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    return typeof message === "string" ? message : null;
-  }
-
-  const message = "message" in payload ? (payload as { message?: unknown }).message : undefined;
-  return typeof message === "string" ? message : null;
-}
+import { type ApiRequestError, createApiRequestError } from "@lmaa/shared";
 
 function getConcernErrorMessage(error: unknown): string {
   if (error instanceof TypeError) {
     return "Verbindung zum Server fehlgeschlagen. Bitte prüfe deine Verbindung.";
   }
 
-  const typedError = error as RequestError;
+  const typedError = error as ApiRequestError;
   const status = typedError.status;
 
   if (status === 429) {
@@ -159,11 +142,7 @@ document.addEventListener("click", async (e) => {
         body: JSON.stringify({ reason }),
       });
       if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        const requestError = new Error("Concern request failed") as RequestError;
-        requestError.status = response.status;
-        requestError.responseMessage = extractApiErrorMessage(payload);
-        throw requestError;
+        throw await createApiRequestError(response, "Concern request failed");
       }
 
       const form = dialog?.querySelector<HTMLElement>("[data-report-form]");

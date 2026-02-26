@@ -1,4 +1,6 @@
-export type AdminRole = "owner" | "admin" | "moderator";
+import type { AdminRole } from "../constants/domain.js";
+
+export type { AdminRole };
 
 export interface AdminUser {
   id: number;

@@ -1,14 +1,10 @@
+import { createApiRequestError } from "@lmaa/shared";
+
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    const msg =
-      body?.error?.message ??
-      body?.error?.issues?.[0]?.message ??
-      body?.message ??
-      `HTTP ${res.status}`;
-    throw new Error(msg);
+    throw await createApiRequestError(res);
   }
   const body = await res.json();
   return body.data as T;
