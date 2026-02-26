@@ -88,6 +88,8 @@ const NAV_TEXT = {
   },
 } as const;
 
+type NavText = (typeof NAV_TEXT)[keyof typeof NAV_TEXT];
+
 interface NavItemState {
   id: number;
   pageSlug: string | null;
@@ -108,7 +110,7 @@ function SortableNavItem({
   onRemove: (id: number) => void;
   onLabelChange: (id: number, label: string) => void;
   onTargetChange: (id: number, target: "_self" | "_blank") => void;
-  text: (typeof NAV_TEXT)["de"];
+  text: NavText;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,

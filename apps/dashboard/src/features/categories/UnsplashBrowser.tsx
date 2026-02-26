@@ -249,10 +249,9 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
               {/* Sentinel for infinite scroll – spinner visible while loading more */}
               <div ref={sentinelRef} className="flex justify-center py-4">
                 {isLoadingMore && (
-                  <SFArrowClockwise
-                    className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin"
-                    title={common.loading}
-                  />
+                  <span title={common.loading} aria-label={common.loading}>
+                    <SFArrowClockwise className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin" />
+                  </span>
                 )}
               </div>
             </>
