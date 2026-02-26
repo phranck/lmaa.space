@@ -334,7 +334,7 @@ publicRoutes.get("/content/:slug", async (c) => {
 // POST /api/shops/:id/report – dead link report (rate limited per IP)
 publicRoutes.post(
   "/shops/:id/report",
-  rateLimit({ max: 3, windowMs: 60 * 60 * 1000 }),
+  rateLimit({ max: 20, windowMs: 60 * 60 * 1000 }),
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
@@ -365,7 +365,7 @@ publicRoutes.post(
 // POST /api/shops/:id/concern – shop concern report (rate limited per IP)
 publicRoutes.post(
   "/shops/:id/concern",
-  rateLimit({ max: 5, windowMs: 60 * 60 * 1000 }),
+  rateLimit({ max: 20, windowMs: 60 * 60 * 1000 }),
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
