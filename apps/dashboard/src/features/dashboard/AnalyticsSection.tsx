@@ -30,6 +30,26 @@ const PERIODS: { label: string; value: UmamiPeriod }[] = [
   { label: "90 Tage", value: "90d" },
 ];
 
+interface MetricTabConfig {
+  label: string;
+  value: UmamiMetricType;
+  columnLabel: string;
+  renderLabel?: (x: string) => string;
+  showCountryFlag?: boolean;
+}
+
+const ENVIRONMENT_TABS: readonly MetricTabConfig[] = [
+  { label: "Browser", value: "browser", columnLabel: "Browser" },
+  { label: "OS", value: "os", columnLabel: "OS" },
+  { label: "Geräte", value: "device", columnLabel: "Gerät" },
+];
+
+const LOCATION_TABS: readonly MetricTabConfig[] = [
+  { label: "Länder", value: "country", columnLabel: "Land", showCountryFlag: true },
+  { label: "Regionen", value: "region", columnLabel: "Region" },
+  { label: "Städte", value: "city", columnLabel: "Stadt" },
+];
+
 const STORAGE_KEY = "analytics-period";
 
 function loadPeriod(): UmamiPeriod {
@@ -313,6 +333,72 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
   );
 }
 
+interface TabbedMetricCardProps {
+  title: string;
+  tabs: readonly MetricTabConfig[];
+  period: UmamiPeriod;
+}
+
+function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
+  const [activeType, setActiveType] = useState<UmamiMetricType>(tabs[0]?.value ?? "country");
+  const activeTab = tabs.find((tab) => tab.value === activeType) ?? tabs[0];
+  const { data, isLoading } = useUmamiMetrics(activeTab.value, period);
+  const rows = (data ?? []).slice(0, 10);
+  const total = rows.reduce((sum, row) => sum + row.y, 0);
+
+  return (
+    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <p className="text-sm font-semibold text-[var(--ds-text)]">{title}</p>
+        <SegmentedControl
+          value={activeType}
+          onChange={setActiveType}
+          options={tabs.map((tab) => ({ value: tab.value, label: tab.label }))}
+        />
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-2 border-b border-[var(--ds-border-subtle)] text-xs font-medium text-[var(--ds-text-subtle)]">
+        <span>{activeTab.columnLabel}</span>
+        <span className="text-right">Besucher</span>
+        <span className="text-right">%</span>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2 pt-3">
+          {Array.from({ length: 6 }, (_, i) => `env-sk-${title}-${i}`).map((k) => (
+            <div key={k} className="h-6 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
+          ))}
+        </div>
+      ) : rows.length === 0 ? (
+        <p className="text-xs text-[var(--ds-text-subtle)] py-6 text-center">Keine Daten</p>
+      ) : (
+        <ul className="pt-2 space-y-1.5">
+          {rows.map((row) => {
+            const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
+            const showFlag = activeTab.showCountryFlag === true && /^[A-Za-z]{2}$/.test(row.x);
+            const label = activeTab.renderLabel ? activeTab.renderLabel(row.x) : row.x || "(leer)";
+
+            return (
+              <li key={row.x} className="grid grid-cols-[1fr_auto_auto] gap-3 text-sm py-0.5">
+                <span className="truncate text-[var(--ds-text-muted)]" title={label}>
+                  {showFlag ? `${countryFlag(row.x)} ` : ""}
+                  {label}
+                </span>
+                <span className="text-right text-[var(--ds-text)] tabular-nums">
+                  {row.y.toLocaleString("de")}
+                </span>
+                <span className="text-right text-[var(--ds-text-subtle)] tabular-nums">
+                  {percentage}%
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function AnalyticsSection() {
   const { effectiveTheme } = useTheme();
   const isDark = effectiveTheme === "dark";
@@ -460,7 +546,7 @@ export function AnalyticsSection() {
         </div>
       )}
 
-      {/* Top Seiten + Länder */}
+      {/* Top Seiten + Quellen */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <div className="md:col-span-3">
           <MetricList
@@ -471,8 +557,19 @@ export function AnalyticsSection() {
           />
         </div>
         <div className="md:col-span-2">
-          <MetricList title="Länder" type="country" period={period} />
+          <MetricList
+            title="Quellen"
+            type="referrer"
+            period={period}
+            renderLabel={(x) => x || "(Direkt)"}
+          />
         </div>
+      </div>
+
+      {/* Environment + Location */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-3">
+        <TabbedMetricCard title="Environment" tabs={ENVIRONMENT_TABS} period={period} />
+        <TabbedMetricCard title="Location" tabs={LOCATION_TABS} period={period} />
       </div>
     </div>
   );
