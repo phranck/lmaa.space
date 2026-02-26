@@ -56,6 +56,7 @@ function getSubmissionErrorMessage(error: unknown): string {
   }
 
   if (typedError.responseMessage) return typedError.responseMessage;
+  if (status) return `Absenden fehlgeschlagen (HTTP ${status}). Bitte später erneut versuchen.`;
 
   return "Fehler beim Absenden. Bitte versuche es erneut.";
 }

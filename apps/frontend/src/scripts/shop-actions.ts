@@ -19,6 +19,53 @@ document.addEventListener(
 
 import { API_BASE } from "@/lib/client-api";
 
+interface RequestError extends Error {
+  status?: number;
+  responseMessage?: string | null;
+}
+
+function extractApiErrorMessage(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+
+  const error = "error" in payload ? (payload as { error?: unknown }).error : undefined;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    return typeof message === "string" ? message : null;
+  }
+
+  const message = "message" in payload ? (payload as { message?: unknown }).message : undefined;
+  return typeof message === "string" ? message : null;
+}
+
+function getConcernErrorMessage(error: unknown): string {
+  if (error instanceof TypeError) {
+    return "Verbindung zum Server fehlgeschlagen. Bitte prüfe deine Verbindung.";
+  }
+
+  const typedError = error as RequestError;
+  const status = typedError.status;
+
+  if (status === 429) {
+    return "Zu viele Meldungen von deiner Verbindung. Bitte versuche es später erneut.";
+  }
+
+  if (status === 400) {
+    return (
+      typedError.responseMessage ??
+      "Bitte gib eine aussagekräftige Begründung ein und versuche es erneut."
+    );
+  }
+
+  if (status && status >= 500) {
+    return "Serverfehler beim Absenden. Bitte versuche es später erneut.";
+  }
+
+  if (typedError.responseMessage) return typedError.responseMessage;
+  if (status) return `Absenden fehlgeschlagen (HTTP ${status}). Bitte später erneut versuchen.`;
+
+  return "Fehler beim Absenden. Bitte versuche es erneut.";
+}
+
 // Open a dialog when action button is clicked
 document.addEventListener("click", (e) => {
   const btn = (e.target as Element).closest<HTMLButtonElement>("[data-action]");
@@ -68,20 +115,23 @@ document.addEventListener("click", async (e) => {
 
   if (action === "dead-link") {
     try {
-      await fetch(`${API_BASE}/shops/${shopId}/report`, {
+      const response = await fetch(`${API_BASE}/shops/${shopId}/report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-    } catch {
-      // Silently fail – dead link report is best-effort
-    } finally {
-      dialog?.close();
+      if (!response.ok) {
+        throw new Error(`Dead-link report failed (${response.status})`);
+      }
       // Update the button area to show "Danke"
       const card = document.querySelector(`[data-shop-id="${shopId}"] [data-shop-actions]`);
       if (card) {
         card.innerHTML = '<span class="text-xs text-stone-400">Danke für deinen Hinweis!</span>';
       }
+    } catch {
+      // Silently fail – dead link report is best-effort
+    } finally {
+      dialog?.close();
     }
     return;
   }
@@ -103,19 +153,26 @@ document.addEventListener("click", async (e) => {
     btn.textContent = "Wird gesendet…";
 
     try {
-      await fetch(`${API_BASE}/shops/${shopId}/concern`, {
+      const response = await fetch(`${API_BASE}/shops/${shopId}/concern`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason }),
       });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const requestError = new Error("Concern request failed") as RequestError;
+        requestError.status = response.status;
+        requestError.responseMessage = extractApiErrorMessage(payload);
+        throw requestError;
+      }
 
       const form = dialog?.querySelector<HTMLElement>("[data-report-form]");
       const success = dialog?.querySelector<HTMLElement>("[data-report-success]");
       if (form) form.classList.add("hidden");
       if (success) success.classList.remove("hidden");
-    } catch {
+    } catch (error) {
       if (errorMsg) {
-        errorMsg.textContent = "Fehler beim Absenden. Bitte versuche es erneut.";
+        errorMsg.textContent = getConcernErrorMessage(error);
         errorMsg.classList.remove("hidden");
       }
       btn.disabled = false;
