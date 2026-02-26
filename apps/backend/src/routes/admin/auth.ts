@@ -1,23 +1,18 @@
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
-import { db } from "../../db/index.js";
-import { adminUsers } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";
 import {
-  SESSION_COOKIE_OPTIONS,
-  createSession,
-  deleteSession,
-  findAdminByUsername,
-  getAdminCount,
-  hashPassword,
-  setupSchema,
-  verifyPassword,
-} from "../../services/auth.js";
+  getAdminProfile,
+  getAdminSetupState,
+  loginAdmin,
+  logoutAdmin,
+  setupOwnerAdmin,
+} from "../../services/admin-auth.js";
+import { SESSION_COOKIE_OPTIONS, setupSchema } from "../../services/auth.js";
 
 const loginSchema = z.object({
   username: z.string(),
@@ -28,29 +23,21 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/setup – check if initial setup is needed
 authRoutes.get("/setup", async (c) => {
-  const count = await getAdminCount();
-  return ok(c, { needsSetup: count === 0 });
+  const state = await getAdminSetupState();
+  return ok(c, state);
 });
 
 // POST /api/admin/setup (only if no admin exists)
 authRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
-  const adminCount = await getAdminCount();
-  if (adminCount > 0) {
+  const { username, email, password } = c.req.valid("json");
+  const result = await setupOwnerAdmin({ username, email, password });
+
+  if (!result.ok) {
     return fail(c, 403, "Setup already completed");
   }
 
-  const { username, email, password } = c.req.valid("json");
-  const passwordHash = await hashPassword(password);
-
-  const [admin] = await db
-    .insert(adminUsers)
-    .values({ username, email, passwordHash, role: "owner" })
-    .returning();
-
-  const sessionId = await createSession(admin.id);
-  setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
-
-  return ok(c, { id: admin.id, username: admin.username, role: "owner", isOwner: true }, 201);
+  setCookie(c, "session", result.sessionId, SESSION_COOKIE_OPTIONS);
+  return ok(c, result.admin, 201);
 });
 
 // POST /api/admin/login
@@ -60,28 +47,21 @@ authRoutes.post(
   zValidator("json", loginSchema),
   async (c) => {
     const { username, password } = c.req.valid("json");
-    const admin = await findAdminByUsername(username);
+    const result = await loginAdmin({ username, password });
 
-    if (!admin || !(await verifyPassword(password, admin.passwordHash))) {
+    if (!result.ok) {
       return fail(c, 401, "Invalid credentials");
     }
 
-    const sessionId = await createSession(admin.id);
-    setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
-
-    return ok(c, {
-      id: admin.id,
-      username: admin.username,
-      role: admin.role,
-      isOwner: admin.role === "owner",
-    });
+    setCookie(c, "session", result.sessionId, SESSION_COOKIE_OPTIONS);
+    return ok(c, result.admin);
   },
 );
 
 // POST /api/admin/logout
 authRoutes.post("/logout", requireAuth, async (c) => {
   const sessionId = getCookie(c, "session");
-  if (sessionId) await deleteSession(sessionId);
+  await logoutAdmin(sessionId);
   deleteCookie(c, "session", { path: "/" });
   return ok(c, { message: "Logged out" });
 });
@@ -89,21 +69,10 @@ authRoutes.post("/logout", requireAuth, async (c) => {
 // GET /api/admin/me
 authRoutes.get("/me", requireAuth, async (c) => {
   const adminId = c.get("adminId");
-  const [admin] = await db
-    .select({
-      id: adminUsers.id,
-      username: adminUsers.username,
-      email: adminUsers.email,
-      role: adminUsers.role,
-      firstName: adminUsers.firstName,
-      lastName: adminUsers.lastName,
-      avatarUrl: adminUsers.avatarUrl,
-      createdAt: adminUsers.createdAt,
-      lastLoginAt: adminUsers.lastLoginAt,
-    })
-    .from(adminUsers)
-    .where(eq(adminUsers.id, adminId))
-    .limit(1);
+  const admin = await getAdminProfile(adminId);
+  if (!admin) {
+    return fail(c, 404, "Admin user not found");
+  }
 
   return ok(c, { ...admin, isOwner: admin.role === "owner" });
 });
