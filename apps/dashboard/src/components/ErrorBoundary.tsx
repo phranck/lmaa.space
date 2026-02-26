@@ -1,5 +1,5 @@
 import { Component } from "react";
-import type { ReactNode, ErrorInfo } from "react";
+import type { ErrorInfo, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -43,6 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </p>
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={() => {
                   window.location.href = "/";
                 }}
@@ -51,6 +52,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Dashboard neuladen
               </button>
               <button
+                type="button"
                 onClick={() => {
                   this.setState({ hasError: false });
                 }}

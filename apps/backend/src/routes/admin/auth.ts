@@ -28,7 +28,7 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>();
 // GET /api/admin/setup – check if initial setup is needed
 authRoutes.get("/setup", async (c) => {
   const count = await getAdminCount();
-  return c.json({ needsSetup: count === 0 });
+  return c.json({ data: { needsSetup: count === 0 } });
 });
 
 // POST /api/admin/setup (only if no admin exists)
@@ -49,7 +49,10 @@ authRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
   const sessionId = await createSession(admin.id);
   setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
-  return c.json({ data: { id: admin.id, username: admin.username, role: "owner", isOwner: true } }, 201);
+  return c.json(
+    { data: { id: admin.id, username: admin.username, role: "owner", isOwner: true } },
+    201,
+  );
 });
 
 // POST /api/admin/login
@@ -69,7 +72,12 @@ authRoutes.post(
     setCookie(c, "session", sessionId, SESSION_COOKIE_OPTIONS);
 
     return c.json({
-      data: { id: admin.id, username: admin.username, role: admin.role, isOwner: admin.role === "owner" },
+      data: {
+        id: admin.id,
+        username: admin.username,
+        role: admin.role,
+        isOwner: admin.role === "owner",
+      },
     });
   },
 );

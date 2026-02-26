@@ -9,5 +9,5 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react"
   },
-  "exclude": ["uno.config.ts"]
+  "exclude": ["uno.config.ts", "dist", ".astro"]
 }

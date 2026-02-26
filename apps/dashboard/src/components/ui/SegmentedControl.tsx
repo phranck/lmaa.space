@@ -48,10 +48,10 @@ export function SegmentedControl<T extends string>({
     const observer = new ResizeObserver(() => measure.current());
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [activeIndex]);
+  }, []);
 
-  const h  = "h-7";
-  const w  = iconOnly ? "w-7" : "";
+  const h = "h-7";
+  const w = iconOnly ? "w-7" : "";
   const px = iconOnly ? "" : "px-3.5";
 
   return (
@@ -87,7 +87,9 @@ export function SegmentedControl<T extends string>({
             title={iconOnly ? (opt.label ?? String(opt.value)) : undefined}
             className={[
               "relative z-10 flex items-center justify-center gap-1.5 rounded-[4px] text-sm font-medium transition-colors",
-              h, w, px,
+              h,
+              w,
+              px,
               isActive
                 ? "text-[var(--ds-text)]"
                 : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]",

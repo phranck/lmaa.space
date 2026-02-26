@@ -1,7 +1,7 @@
 // Multi-select component
 // API based on shadcn-multi-select-component
 // Dropdown implemented via createPortal (same approach as RegionSelect)
-import { cva, type VariantProps } from "class-variance-authority";
+import { type VariantProps, cva } from "class-variance-authority";
 import { CheckIcon, ChevronDown, XCircle, XIcon } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
@@ -15,14 +15,10 @@ const multiSelectVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-[var(--color-primary)] text-white",
-        secondary:
-          "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text)]",
-        destructive:
-          "border-transparent bg-red-500 text-white",
-        inverted:
-          "border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)]",
+        default: "border-transparent bg-[var(--color-primary)] text-white",
+        secondary: "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text)]",
+        destructive: "border-transparent bg-red-500 text-white",
+        inverted: "border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)]",
       },
     },
     defaultVariants: {
@@ -39,8 +35,7 @@ export interface MultiSelectOption {
   style?: React.CSSProperties;
 }
 
-export interface MultiSelectProps
-  extends VariantProps<typeof multiSelectVariants> {
+export interface MultiSelectProps extends VariantProps<typeof multiSelectVariants> {
   options: MultiSelectOption[];
   value: string[];
   onValueChange: (value: string[]) => void;
@@ -70,10 +65,7 @@ export function MultiSelect({
   React.useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       const target = e.target as Node;
-      if (
-        !triggerRef.current?.contains(target) &&
-        !dropdownRef.current?.contains(target)
-      ) {
+      if (!triggerRef.current?.contains(target) && !dropdownRef.current?.contains(target)) {
         setIsOpen(false);
       }
     }
@@ -107,11 +99,6 @@ export function MultiSelect({
     onValueChange(next);
   }
 
-  function handleClear(e: React.MouseEvent | React.KeyboardEvent) {
-    e.stopPropagation();
-    onValueChange([]);
-  }
-
   function handleToggleAll() {
     const all = options.map((o) => o.value);
     if (value.length === options.length) {
@@ -121,9 +108,33 @@ export function MultiSelect({
     }
   }
 
-  function clearExtraOptions(e: React.MouseEvent) {
-    e.stopPropagation();
+  function clearExtraOptions() {
     onValueChange(value.slice(0, maxCount));
+  }
+
+  function handleTriggerClick(e: React.MouseEvent<HTMLButtonElement>) {
+    const target = e.target as HTMLElement;
+    const removeValue = target.closest<HTMLElement>("[data-remove-value]")?.dataset.removeValue;
+
+    if (removeValue) {
+      e.stopPropagation();
+      toggleOption(removeValue);
+      return;
+    }
+
+    if (target.closest("[data-clear-extra]")) {
+      e.stopPropagation();
+      clearExtraOptions();
+      return;
+    }
+
+    if (target.closest("[data-clear-all]")) {
+      e.stopPropagation();
+      onValueChange([]);
+      return;
+    }
+
+    handleToggle();
   }
 
   const allSelected = options.length > 0 && value.length === options.length;
@@ -159,9 +170,7 @@ export function MultiSelect({
                       : "border-[var(--ds-border-strong)] opacity-50",
                   )}
                 >
-                  {allSelected && (
-                    <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />
-                  )}
+                  {allSelected && <CheckIcon className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                 </span>
                 <span className="text-[var(--ds-text)]">(Alle auswählen)</span>
               </button>
@@ -211,7 +220,7 @@ export function MultiSelect({
       <button
         ref={triggerRef}
         type="button"
-        onClick={handleToggle}
+        onClick={handleTriggerClick}
         className={cn(
           "w-full flex items-center justify-between min-h-10 h-auto px-3 py-1.5 border rounded-control text-sm text-left transition-colors [&_svg]:pointer-events-auto",
           isOpen
@@ -229,28 +238,11 @@ export function MultiSelect({
               const opt = options.find((o) => o.value === val);
               if (!opt) return null;
               return (
-                <span
-                  key={val}
-                  className={cn(multiSelectVariants({ variant }))}
-                  style={opt.style}
-                >
+                <span key={val} className={cn(multiSelectVariants({ variant }))} style={opt.style}>
                   {opt.icon && <opt.icon className="h-3 w-3" />}
                   {opt.label}
                   <span
-                    role="button"
-                    aria-label={`${opt.label} entfernen`}
-                    tabIndex={0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleOption(val);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleOption(val);
-                      }
-                    }}
+                    data-remove-value={val}
                     className="cursor-pointer text-current opacity-60 hover:opacity-100"
                   >
                     <XCircle className="h-3 w-3" />
@@ -260,8 +252,8 @@ export function MultiSelect({
             })}
             {value.length > maxCount && (
               <span
+                data-clear-extra="true"
                 className={cn(multiSelectVariants({ variant }), "cursor-pointer")}
-                onClick={clearExtraOptions}
               >
                 {`+ ${value.length - maxCount} weitere`}
                 <XCircle className="h-3 w-3 opacity-60" />
@@ -276,13 +268,7 @@ export function MultiSelect({
           {value.length > 0 && (
             <>
               <span
-                role="button"
-                aria-label="Auswahl löschen"
-                tabIndex={0}
-                onClick={handleClear}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") handleClear(e);
-                }}
+                data-clear-all="true"
                 className="cursor-pointer text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] p-0.5"
               >
                 <XIcon className="h-3.5 w-3.5" />
