@@ -10,6 +10,23 @@ import {
   useUmamiStats,
 } from "@/features/dashboard/hooks/useUmamiStats.ts";
 import { useState } from "react";
+import type { IconType } from "react-icons";
+import {
+  FaAndroid,
+  FaApple,
+  FaChrome,
+  FaDesktop,
+  FaEdge,
+  FaFirefoxBrowser,
+  FaGlobe,
+  FaLaptop,
+  FaLinux,
+  FaMobileScreenButton,
+  FaOpera,
+  FaSafari,
+  FaTabletScreenButton,
+  FaWindows,
+} from "react-icons/fa6";
 import {
   Area,
   AreaChart,
@@ -49,6 +66,45 @@ const LOCATION_TABS: readonly MetricTabConfig[] = [
   { label: "Regionen", value: "region", columnLabel: "Region" },
   { label: "Städte", value: "city", columnLabel: "Stadt" },
 ];
+
+function normalizeMetricValue(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function getBrowserIcon(value: string): IconType {
+  const key = normalizeMetricValue(value);
+  if (key.includes("firefox") || key.includes("fxios")) return FaFirefoxBrowser;
+  if (key.includes("chrome") || key.includes("crios") || key.includes("chromium")) return FaChrome;
+  if (key.includes("safari") || key === "ios") return FaSafari;
+  if (key.includes("edge")) return FaEdge;
+  if (key.includes("opera")) return FaOpera;
+  return FaGlobe;
+}
+
+function getOsIcon(value: string): IconType {
+  const key = normalizeMetricValue(value);
+  if (key.includes("android")) return FaAndroid;
+  if (key.includes("ios") || key.includes("mac")) return FaApple;
+  if (key.includes("windows")) return FaWindows;
+  if (key.includes("linux")) return FaLinux;
+  return FaDesktop;
+}
+
+function getDeviceIcon(value: string): IconType {
+  const key = normalizeMetricValue(value);
+  if (key.includes("mobile") || key.includes("phone")) return FaMobileScreenButton;
+  if (key.includes("tablet")) return FaTabletScreenButton;
+  if (key.includes("laptop") || key.includes("notebook")) return FaLaptop;
+  if (key.includes("desktop")) return FaDesktop;
+  return FaDesktop;
+}
+
+function getEnvironmentIcon(type: UmamiMetricType, value: string): IconType | null {
+  if (type === "browser") return getBrowserIcon(value);
+  if (type === "os") return getOsIcon(value);
+  if (type === "device") return getDeviceIcon(value);
+  return null;
+}
 
 const STORAGE_KEY = "analytics-period";
 
@@ -92,9 +148,9 @@ interface KpiCardProps {
 function KpiCard({ label, value, sub }: KpiCardProps) {
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm px-4 py-3">
-      <p className="text-xs text-[var(--ds-text-subtle)] mb-1">{label}</p>
-      <p className="text-xl font-semibold text-[var(--ds-text)]">{value}</p>
-      {sub && <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5">{sub}</p>}
+      <p className="text-sm text-[var(--ds-text-subtle)] mb-1">{label}</p>
+      <p className="text-2xl font-semibold text-[var(--ds-text)]">{value}</p>
+      {sub && <p className="text-sm text-[var(--ds-text-subtle)] mt-0.5">{sub}</p>}
     </div>
   );
 }
@@ -171,35 +227,35 @@ function RealtimeCard() {
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
         </span>
-        <p className="text-sm font-medium text-[var(--ds-text)]">Live</p>
+        <p className="text-base font-medium text-[var(--ds-text)]">Live</p>
 
         {/* KPIs */}
         {realtime && (
           <div className="flex items-center gap-5 ml-4">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-[var(--ds-text)]">
+              <span className="text-xl font-bold text-[var(--ds-text)]">
                 {active?.visitors ?? realtime.totals.visitors}
               </span>
-              <span className="text-xs text-[var(--ds-text-subtle)]">
+              <span className="text-sm text-[var(--ds-text-subtle)]">
                 {active?.visitors != null ? "aktiv (5 min)" : "Besucher"}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-[var(--ds-text)]">
+              <span className="text-xl font-bold text-[var(--ds-text)]">
                 {realtime.totals.pageviews ?? realtime.totals.views ?? 0}
               </span>
-              <span className="text-xs text-[var(--ds-text-subtle)]">Aufrufe (30 min)</span>
+              <span className="text-sm text-[var(--ds-text-subtle)]">Aufrufe (30 min)</span>
             </div>
           </div>
         )}
 
-        <span className="ml-auto text-xs text-[var(--ds-text-subtle)]">aktualisiert alle 30 s</span>
+        <span className="ml-auto text-sm text-[var(--ds-text-subtle)]">aktualisiert alle 30 s</span>
       </div>
 
       {rtLoading ? (
         <div className="h-24 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
       ) : !realtime ? (
-        <p className="text-xs text-[var(--ds-text-subtle)]">Keine Realtime-Daten</p>
+        <p className="text-sm text-[var(--ds-text-subtle)]">Keine Realtime-Daten</p>
       ) : (
         <>
           {/* Legende */}
@@ -207,11 +263,11 @@ function RealtimeCard() {
             {/* Legende + Bar Chart (3/4) */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-4 mb-2">
-                <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
+                <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
                   <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
                   Besucher
                 </span>
-                <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
+                <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
                   <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
                   Seitenaufrufe
                 </span>
@@ -258,14 +314,14 @@ function RealtimeCard() {
             {/* Top URLs (1/4) */}
             {topUrls.length > 0 && (
               <div className="w-1/4 shrink-0 pl-4 border-l border-[var(--ds-border-subtle)]">
-                <p className="text-xs font-medium text-[var(--ds-text-muted)] mb-2">Top Seiten</p>
+                <p className="text-sm font-medium text-[var(--ds-text-muted)] mb-2">Top Seiten</p>
                 <div className="space-y-1.5">
                   {topUrls.map(([url, count]) => (
-                    <div key={url} className="flex items-center gap-2 text-xs">
+                    <div key={url} className="flex items-center gap-2 text-sm">
                       <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={url}>
                         {url === "/" ? "Startseite" : url}
                       </span>
-                      <span className="shrink-0 text-right text-[var(--ds-text-subtle)]">
+                      <span className="shrink-0 text-right text-sm text-[var(--ds-text-subtle)]">
                         {count}
                       </span>
                     </div>
@@ -294,7 +350,7 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
-      <p className="text-sm font-medium text-[var(--ds-text)]">{title}</p>
+      <p className="text-base font-medium text-[var(--ds-text)]">{title}</p>
       {isLoading && (
         <div className="space-y-2">
           {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((k) => (
@@ -303,12 +359,12 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
         </div>
       )}
       {!isLoading && rows.length === 0 && (
-        <p className="text-xs text-[var(--ds-text-subtle)] py-4 text-center">Keine Daten</p>
+        <p className="text-sm text-[var(--ds-text-subtle)] py-4 text-center">Keine Daten</p>
       )}
       {!isLoading && rows.length > 0 && (
         <ul className="space-y-2">
           {rows.map((row) => (
-            <li key={row.x} className="flex items-center gap-2 text-xs">
+            <li key={row.x} className="flex items-center gap-2 text-sm">
               <span className="shrink-0 w-5 text-base leading-none">
                 {type === "country" ? countryFlag(row.x) : null}
               </span>
@@ -324,7 +380,9 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
                   style={{ width: `${Math.round((row.y / max) * 100)}%` }}
                 />
               </div>
-              <span className="shrink-0 w-8 text-right text-[var(--ds-text-muted)]">{row.y}</span>
+              <span className="shrink-0 w-8 text-right text-sm text-[var(--ds-text-muted)]">
+                {row.y}
+              </span>
             </li>
           ))}
         </ul>
@@ -349,7 +407,7 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4">
       <div className="flex items-center justify-between gap-3 mb-3">
-        <p className="text-sm font-semibold text-[var(--ds-text)]">{title}</p>
+        <p className="text-base font-semibold text-[var(--ds-text)]">{title}</p>
         <SegmentedControl
           value={activeType}
           onChange={setActiveType}
@@ -357,7 +415,7 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
         />
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-2 border-b border-[var(--ds-border-subtle)] text-xs font-medium text-[var(--ds-text-subtle)]">
+      <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-2 border-b border-[var(--ds-border-subtle)] text-sm font-medium text-[var(--ds-text-subtle)]">
         <span>{activeTab.columnLabel}</span>
         <span className="text-right">Besucher</span>
         <span className="text-right">%</span>
@@ -370,19 +428,27 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
           ))}
         </div>
       ) : rows.length === 0 ? (
-        <p className="text-xs text-[var(--ds-text-subtle)] py-6 text-center">Keine Daten</p>
+        <p className="text-sm text-[var(--ds-text-subtle)] py-6 text-center">Keine Daten</p>
       ) : (
         <ul className="pt-2 space-y-1.5">
           {rows.map((row) => {
             const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
             const showFlag = activeTab.showCountryFlag === true && /^[A-Za-z]{2}$/.test(row.x);
             const label = activeTab.renderLabel ? activeTab.renderLabel(row.x) : row.x || "(leer)";
+            const EnvironmentIcon = getEnvironmentIcon(activeType, row.x);
 
             return (
-              <li key={row.x} className="grid grid-cols-[1fr_auto_auto] gap-3 text-sm py-0.5">
-                <span className="truncate text-[var(--ds-text-muted)]" title={label}>
-                  {showFlag ? `${countryFlag(row.x)} ` : ""}
-                  {label}
+              <li key={row.x} className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5">
+                <span
+                  className="min-w-0 flex items-center gap-2 text-[var(--ds-text-muted)]"
+                  title={label}
+                >
+                  {EnvironmentIcon ? (
+                    <EnvironmentIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                  ) : showFlag ? (
+                    <span className="shrink-0 leading-none">{countryFlag(row.x)}</span>
+                  ) : null}
+                  <span className="truncate">{label}</span>
                 </span>
                 <span className="text-right text-[var(--ds-text)] tabular-nums">
                   {row.y.toLocaleString("de")}
@@ -441,7 +507,7 @@ export function AnalyticsSection() {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-[var(--ds-text)]">Analytics</h2>
+        <h2 className="text-base font-semibold text-[var(--ds-text)]">Analytics</h2>
         <SegmentedControl value={period} onChange={handlePeriodChange} options={PERIODS} />
       </div>
 
@@ -462,7 +528,7 @@ export function AnalyticsSection() {
             <KpiCard label="Ø Verweildauer" value={avgDuration} />
           </>
         ) : (
-          <div className="col-span-4 text-xs text-[var(--ds-text-subtle)] py-2">
+          <div className="col-span-4 text-sm text-[var(--ds-text-subtle)] py-2">
             Umami nicht konfiguriert (UMAMI_URL, UMAMI_USERNAME, UMAMI_PASSWORD, UMAMI_WEBSITE_ID).
           </div>
         )}
@@ -472,13 +538,13 @@ export function AnalyticsSection() {
       {(pvLoading || chartData.length > 0) && (
         <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium text-[var(--ds-text)]">Traffic</p>
+            <p className="text-base font-medium text-[var(--ds-text)]">Traffic</p>
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
+              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
                 <span className="w-3 h-0.5 rounded-full bg-amber-400 inline-block" />
                 Besucher
               </span>
-              <span className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)]">
+              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
                 <span className="w-3 h-0.5 rounded-full bg-stone-400 inline-block" />
                 Seitenaufrufe
               </span>
