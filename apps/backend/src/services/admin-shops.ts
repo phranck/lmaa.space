@@ -1,5 +1,4 @@
 import type { ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
-import { extractHomepage, fetchPreviewImage } from "../lib/og.js";
 import { invalidateCache } from "../middleware/cache.js";
 import {
   type CreateAdminShopData,
@@ -15,6 +14,10 @@ import {
   shopExists,
   updateAdminShop,
 } from "../repositories/admin-shops.js";
+import {
+  fetchShopPreviewImageFromHomepage,
+  hydrateShopOgImageInBackground,
+} from "./preview-images.js";
 
 const SHOPS_CACHE_KEY = "shops:all";
 
@@ -38,13 +41,9 @@ export async function createManagedAdminShop(data: CreateAdminShopData) {
 
   invalidateCache(SHOPS_CACHE_KEY);
 
-  fetchPreviewImage(shop.url)
-    .then(async (result) => {
-      if (result) {
-        await setAdminShopOgImage(shop.id, result.url);
-      }
-    })
-    .catch(() => {});
+  hydrateShopOgImageInBackground(shop.url, async (imageUrl) => {
+    await setAdminShopOgImage(shop.id, imageUrl);
+  });
 
   return { ...shop, categories: [] };
 }
@@ -94,7 +93,7 @@ export async function refetchAdminShopImage(id: number) {
     return { ok: false as const, reason: "not_found" as const };
   }
 
-  const result = await fetchPreviewImage(extractHomepage(url));
+  const result = await fetchShopPreviewImageFromHomepage(url);
   const ogImage = result?.url ?? null;
   await setAdminShopOgImage(id, ogImage);
 
@@ -102,6 +101,6 @@ export async function refetchAdminShopImage(id: number) {
 }
 
 export async function previewAdminShopImage(url: string) {
-  const result = await fetchPreviewImage(extractHomepage(url));
+  const result = await fetchShopPreviewImageFromHomepage(url);
   return { ogImage: result?.url ?? null };
 }
