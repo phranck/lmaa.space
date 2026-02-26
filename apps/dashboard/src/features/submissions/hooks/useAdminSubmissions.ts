@@ -1,6 +1,11 @@
 import type { ShopEditFormValue } from "@/features/shops/hooks/useAdminShops.ts";
 import { api } from "@/lib/api.ts";
-import type { DeadLinkReportSummary, ShopConcernReportEntry, Submission, SubmissionStatus } from "@lmaa/shared";
+import type {
+  DeadLinkReportSummary,
+  ShopConcernReportEntry,
+  Submission,
+  SubmissionStatus,
+} from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────

@@ -6,23 +6,23 @@
   --radius-card: calc(var(--radius-control) + 0.75rem); /* 22px */
 
   /* Nav: active state */
-  --ds-nav-active-bg:     rgba(175,184,193,0.2);
-  --ds-nav-active-text:   #1f2328;
+  --ds-nav-active-bg: rgba(175, 184, 193, 0.2);
+  --ds-nav-active-text: #1f2328;
   --ds-nav-active-border: #0969da;
 
   /* Nav: default / hover */
-  --ds-nav-text:       #656d76;
-  --ds-nav-hover-bg:   rgba(175,184,193,0.12);
+  --ds-nav-text: #656d76;
+  --ds-nav-hover-bg: rgba(175, 184, 193, 0.12);
   --ds-nav-hover-text: #1f2328;
 
   /* Brand name in sidebar */
   --ds-brand-text: #1f2328;
 
   /* Table row hover */
-  --ds-row-hover: rgba(175,184,193,0.12);
+  --ds-row-hover: rgba(175, 184, 193, 0.12);
 
   /* Subtle surface hover (icon buttons, section headers, inline notes) */
-  --ds-surface-hover: rgba(175,184,193,0.12);
+  --ds-surface-hover: rgba(175, 184, 193, 0.12);
 
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
@@ -34,31 +34,31 @@
 }
 
 .dark {
-  --ds-nav-active-bg:     #2d3d52;
-  --ds-nav-active-text:   #f0f6fc;
+  --ds-nav-active-bg: #2d3d52;
+  --ds-nav-active-text: #f0f6fc;
   --ds-nav-active-border: #478be6;
-  --ds-nav-text:          #9198a1;
-  --ds-nav-hover-bg:      #2f3742;
-  --ds-nav-hover-text:    #f0f6fc;
-  --ds-brand-text:        #f0f6fc;
-  --ds-row-hover:         #2a313c;
-  --ds-surface-hover:     #2f3742;
+  --ds-nav-text: #9198a1;
+  --ds-nav-hover-bg: #2f3742;
+  --ds-nav-hover-text: #f0f6fc;
+  --ds-brand-text: #f0f6fc;
+  --ds-row-hover: #2a313c;
+  --ds-surface-hover: #2f3742;
 }
 
 /* Dark mode: MDXEditor toolbar and popups */
 .dark .mdxeditor {
-  --baseBg:           #262c36;
-  --basePageBg:       #151b23;
-  --baseBgSubtle:     #151b23;
-  --baseBgHover:      #2f3742;
-  --baseBgActive:     #3d444d;
-  --baseBorder:       #3d444d;
-  --baseBorderHover:  #656c76;
-  --baseBase:         #2a313c;
-  --baseLine:         #3d444d;
-  --baseSolid:        #9198a1;
-  --baseSolidHover:   #b7bdc8;
-  --baseText:         #9198a1;
+  --baseBg: #262c36;
+  --basePageBg: #151b23;
+  --baseBgSubtle: #151b23;
+  --baseBgHover: #2f3742;
+  --baseBgActive: #3d444d;
+  --baseBorder: #3d444d;
+  --baseBorderHover: #656c76;
+  --baseBase: #2a313c;
+  --baseLine: #3d444d;
+  --baseSolid: #9198a1;
+  --baseSolidHover: #b7bdc8;
+  --baseText: #9198a1;
   --baseTextContrast: #f0f6fc;
   color-scheme: dark;
 }
@@ -179,21 +179,55 @@ button {
 }
 
 /* Overlay animations */
-@keyframes overlay-in  { from { opacity: 0; } to { opacity: 1; } }
-@keyframes overlay-out { from { opacity: 1; } to { opacity: 0; } }
-@keyframes card-in  {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 @keyframes card-out {
-  from { opacity: 1; transform: scale(1) translateY(0); }
-  to   { opacity: 0; transform: scale(0.96) translateY(8px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
 }
 
-.overlay-backdrop-enter { animation: overlay-in  360ms ease forwards; }
-.overlay-backdrop-exit  { animation: overlay-out 280ms ease forwards; }
-.overlay-card-enter     { animation: card-in     380ms ease forwards; }
-.overlay-card-exit      { animation: card-out    280ms ease forwards; }
+.overlay-backdrop-enter {
+  animation: overlay-in 360ms ease forwards;
+}
+.overlay-backdrop-exit {
+  animation: overlay-out 280ms ease forwards;
+}
+.overlay-card-enter {
+  animation: card-in 380ms ease forwards;
+}
+.overlay-card-exit {
+  animation: card-out 280ms ease forwards;
+}
 
 html {
   font-size: 17px;
@@ -207,7 +241,9 @@ body {
 }
 
 /* MDXEditor: let Typography (prose) take precedence */
-.mdxeditor .prose { max-width: none; }
+.mdxeditor .prose {
+  max-width: none;
+}
 .mdxeditor .prose h1,
 .mdxeditor .prose h2,
 .mdxeditor .prose h3,

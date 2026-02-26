@@ -356,11 +356,7 @@ export function AnalyticsSection() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-[var(--ds-text)]">Analytics</h2>
-        <SegmentedControl
-          value={period}
-          onChange={handlePeriodChange}
-          options={PERIODS}
-        />
+        <SegmentedControl value={period} onChange={handlePeriodChange} options={PERIODS} />
       </div>
 
       {/* KPI-Leiste */}

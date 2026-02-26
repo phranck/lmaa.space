@@ -1,8 +1,8 @@
 ---
-import type { Category } from "@lmaa/shared";
-import { apiGet } from "@/lib/api";
-import BaseLayout from "@/layouts/BaseLayout.astro";
 import SuggestForm from "@/components/islands/SuggestForm";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import type { Category } from "@lmaa/shared";
 
 const categories = await apiGet<Category[]>("/categories");
 ---

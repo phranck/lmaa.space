@@ -1,9 +1,9 @@
+import { resolve } from "node:path";
 import node from "@astrojs/node";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 import UnoCSS from "unocss/astro";
-import { resolve } from "node:path";
 
 export default defineConfig({
   site: "https://lmaa.space",
@@ -13,8 +13,7 @@ export default defineConfig({
     UnoCSS({ injectReset: false }),
     react(),
     sitemap({
-      filter: (page) =>
-        !page.includes("/suche") && !page.includes("/suggestion"),
+      filter: (page) => !page.includes("/suche") && !page.includes("/suggestion"),
     }),
   ],
   redirects: {

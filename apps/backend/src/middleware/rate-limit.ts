@@ -9,8 +9,7 @@ const store = new Map<string, RateLimitEntry>();
 
 // Start periodic cleanup of expired entries (every 5 minutes by default)
 if (typeof global !== "undefined") {
-  const cleanupIntervalMs =
-    Number(process.env.RATE_LIMIT_CLEANUP_INTERVAL_MS ?? 5 * 60 * 1000);
+  const cleanupIntervalMs = Number(process.env.RATE_LIMIT_CLEANUP_INTERVAL_MS ?? 5 * 60 * 1000);
 
   setInterval(() => {
     const now = Date.now();

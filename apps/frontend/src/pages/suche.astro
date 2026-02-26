@@ -1,8 +1,8 @@
 ---
-import type { Category, Shop } from "@lmaa/shared";
-import { apiGet } from "@/lib/api";
-import BaseLayout from "@/layouts/BaseLayout.astro";
 import SearchIsland from "@/components/islands/SearchIsland";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import type { Category, Shop } from "@lmaa/shared";
 
 const [shops, categories] = await Promise.all([
   apiGet<Shop[]>("/shops"),

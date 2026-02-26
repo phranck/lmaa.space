@@ -1,10 +1,7 @@
 import { defineConfig, presetTypography, presetWind4, transformerDirectives } from "unocss";
 
 export default defineConfig({
-  presets: [
-    presetWind4({ dark: "class" }),
-    presetTypography(),
-  ],
+  presets: [presetWind4({ dark: "class" }), presetTypography()],
   transformers: [transformerDirectives()],
   theme: {
     radius: {
@@ -17,10 +14,7 @@ export default defineConfig({
   },
   content: {
     pipeline: {
-      include: [
-        "./src/**/*.{ts,tsx,html}",
-        "../../packages/ui/src/**/*.{ts,tsx}",
-      ],
+      include: ["./src/**/*.{ts,tsx,html}", "../../packages/ui/src/**/*.{ts,tsx}"],
     },
   },
 });

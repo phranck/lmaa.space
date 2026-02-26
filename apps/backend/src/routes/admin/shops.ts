@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "../../db/index.js";
-import { deadLinkReports, shopCategories, shops, adminUsers } from "../../db/schema.js";
+import { adminUsers, deadLinkReports, shopCategories, shops } from "../../db/schema.js";
 import { extractHomepage, fetchPreviewImage } from "../../lib/og.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
@@ -165,12 +165,15 @@ shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
 
   const adminId = c.get("adminId");
 
-  await db.update(shops).set({
-    visibility: "deleted",
-    deletedBy: adminId ?? null,
-    deleteReason: reason,
-    deletedWasReported: wasReported,
-  }).where(eq(shops.id, id));
+  await db
+    .update(shops)
+    .set({
+      visibility: "deleted",
+      deletedBy: adminId ?? null,
+      deleteReason: reason,
+      deletedWasReported: wasReported,
+    })
+    .where(eq(shops.id, id));
 
   await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
 
@@ -189,13 +192,16 @@ shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) 
     return c.json({ error: { message: "Use 'public' or 'onhold'; for deleting use DELETE" } }, 400);
   }
 
-  await db.update(shops).set({
-    visibility,
-    deletedBy: null,
-    deleteReason: null,
-    deletedWasReported: false,
-    updatedAt: new Date(),
-  }).where(eq(shops.id, id));
+  await db
+    .update(shops)
+    .set({
+      visibility,
+      deletedBy: null,
+      deleteReason: null,
+      deletedWasReported: false,
+      updatedAt: new Date(),
+    })
+    .where(eq(shops.id, id));
 
   invalidateCache(SHOPS_CACHE_KEY);
   return c.json({ data: { message: `Shop visibility set to ${visibility}` } });

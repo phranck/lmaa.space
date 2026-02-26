@@ -1,10 +1,10 @@
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { CategoryEditCard } from "@/features/categories/CategoryEditCard.tsx";
 import { CategoryGridItem } from "@/features/categories/CategoryGridItem.tsx";
 import { CategoryTable } from "@/features/categories/CategoryTable.tsx";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   useAdminCategories,
   useDeleteCategory,

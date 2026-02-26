@@ -1,6 +1,6 @@
+import { lt } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { sessions } from "../db/schema.js";
-import { lt } from "drizzle-orm";
 
 /**
  * Delete expired sessions from the database.
@@ -22,9 +22,7 @@ export async function cleanupExpiredSessions(): Promise<{ purged: number }> {
  * Runs every 1 hour (configurable via env var).
  */
 export function startSessionCleanupJob(): void {
-  const intervalMs = Number(
-    process.env.SESSION_CLEANUP_INTERVAL_MS ?? 1 * 60 * 60 * 1000
-  ); // 1 hour default
+  const intervalMs = Number(process.env.SESSION_CLEANUP_INTERVAL_MS ?? 1 * 60 * 60 * 1000); // 1 hour default
 
   setInterval(async () => {
     try {

@@ -42,8 +42,15 @@ export function useSaveShop(editId: number | null) {
 export function useDeleteShop() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, reason, wasReported }: { id: number; reason?: string; wasReported?: boolean }) =>
-      api.delete(`/admin/shops/${id}`, { reason: reason ?? null, wasReported: wasReported ?? false }),
+    mutationFn: ({
+      id,
+      reason,
+      wasReported,
+    }: { id: number; reason?: string; wasReported?: boolean }) =>
+      api.delete(`/admin/shops/${id}`, {
+        reason: reason ?? null,
+        wasReported: wasReported ?? false,
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }

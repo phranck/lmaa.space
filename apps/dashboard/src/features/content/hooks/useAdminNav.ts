@@ -13,7 +13,12 @@ export function useSaveNav(navId: NavId) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (
-      items: { pageSlug?: string | null; url?: string | null; label?: string | null; target?: string }[],
+      items: {
+        pageSlug?: string | null;
+        url?: string | null;
+        label?: string | null;
+        target?: string;
+      }[],
     ) => api.put<NavItem[]>(`/admin/nav/${navId}`, { items }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-nav", navId] });

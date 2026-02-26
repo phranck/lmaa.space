@@ -21,15 +21,20 @@ import {
   categories,
   contentPages,
   deadLinkReports,
-  shopConcernReports,
   navItems,
   shopCategories,
+  shopConcernReports,
   shops,
   submissionCategories,
   submissions,
 } from "../db/schema.js";
+import {
+  getCacheEntry,
+  getCacheStats,
+  invalidateCache,
+  setCacheEntry,
+} from "../middleware/cache.js";
 import { rateLimit } from "../middleware/rate-limit.js";
-import { getCacheEntry, setCacheEntry, invalidateCache, getCacheStats } from "../middleware/cache.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
 const SHOPS_CACHE_KEY = "shops:all";
@@ -63,7 +68,14 @@ publicRoutes.get("/categories", async (c) => {
     })
     .from(categories)
     .leftJoin(shopCategories, eq(shopCategories.categoryId, categories.id))
-    .leftJoin(shops, and(eq(shops.id, shopCategories.shopId), eq(shops.isActive, true), eq(shops.visibility, "public")))
+    .leftJoin(
+      shops,
+      and(
+        eq(shops.id, shopCategories.shopId),
+        eq(shops.isActive, true),
+        eq(shops.visibility, "public"),
+      ),
+    )
     .groupBy(categories.id)
     .orderBy(categories.name);
 
@@ -181,7 +193,7 @@ publicRoutes.get("/search", async (c) => {
   const matchingCategories = await db
     .select()
     .from(categories)
-    .where(sql`lower(${categories.name}) LIKE ${"%" + escapedQ + "%"} ESCAPE '\\'`)
+    .where(sql`lower(${categories.name}) LIKE ${`%${escapedQ}%`} ESCAPE '\\'`)
     .limit(5);
 
   return c.json({
@@ -260,7 +272,6 @@ publicRoutes.post(
         .values(body.categoryIds.map((cid) => ({ submissionId: submission.id, categoryId: cid })));
     }
 
-
     return c.json({ data: { message: "Vorschlag eingereicht" } }, 201);
   },
 );
@@ -289,10 +300,7 @@ publicRoutes.get("/nav/:navId", async (c) => {
       and(
         eq(navItems.navId, navId),
         // only include page-based items if the page is published (URL-items always shown)
-        or(
-          eq(contentPages.status, "published"),
-          isNull(navItems.pageSlug),
-        ),
+        or(eq(contentPages.status, "published"), isNull(navItems.pageSlug)),
       ),
     )
     .orderBy(asc(navItems.position));
@@ -352,7 +360,6 @@ publicRoutes.post(
       .from(deadLinkReports)
       .where(eq(deadLinkReports.shopId, id));
 
-
     return c.json({ data: { message: "Danke für deinen Hinweis!" } });
   },
 );
@@ -370,7 +377,10 @@ publicRoutes.post(
     const body = await c.req.json().catch(() => ({}));
     const reason = typeof body?.reason === "string" ? body.reason.trim() : "";
     if (reason.length < 10) {
-      return c.json({ error: { message: "Bitte eine aussagekräftige Begründung angeben (mind. 10 Zeichen)." } }, 400);
+      return c.json(
+        { error: { message: "Bitte eine aussagekräftige Begründung angeben (mind. 10 Zeichen)." } },
+        400,
+      );
     }
 
     const [shop] = await db
@@ -384,7 +394,6 @@ publicRoutes.post(
     const ipHash = createHash("sha256").update(ip).digest("hex");
 
     await db.insert(shopConcernReports).values({ shopId: id, reason, ipHash });
-
 
     return c.json({ data: { message: "Danke für dein Feedback!" } });
   },
