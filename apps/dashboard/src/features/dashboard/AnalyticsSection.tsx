@@ -11,7 +11,7 @@ import {
   useUmamiStats,
 } from "@/features/dashboard/hooks/useUmamiStats.ts";
 import type { DashboardLocale } from "@/i18n/messages.ts";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, Suspense, lazy, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   FaAndroid,
@@ -29,17 +29,13 @@ import {
   FaTabletScreenButton,
   FaWindows,
 } from "react-icons/fa6";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+
+const RealtimeBarsChart = lazy(() =>
+  import("./AnalyticsCharts.tsx").then((module) => ({ default: module.RealtimeBarsChart })),
+);
+const TrafficAreaChart = lazy(() =>
+  import("./AnalyticsCharts.tsx").then((module) => ({ default: module.TrafficAreaChart })),
+);
 
 const PERIOD_VALUES: UmamiPeriod[] = ["today", "7d", "30d", "60d", "90d"];
 
@@ -430,47 +426,28 @@ function RealtimeCard() {
                 {analyticsMessages.pageviews}
               </span>
             </div>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart
+            <Suspense
+              fallback={
+                <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+              }
+            >
+              <RealtimeBarsChart
                 data={chartData}
-                margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
-                barSize={5}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={true} />
-                <XAxis
-                  dataKey="time"
-                  tick={{ fontSize: 10, fill: tickColor }}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={1}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: tickColor }}
-                  axisLine={false}
-                  tickLine={false}
-                  allowDecimals={false}
-                  domain={[0, rtMaxVal]}
-                  ticks={intTicks(rtMaxVal)}
-                />
-                <Tooltip
-                  contentStyle={{
-                    fontSize: 12,
-                    borderRadius: 8,
-                    border: `1px solid ${tooltipBorder}`,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    background: tooltipBg,
-                    color: tooltipColor,
-                  }}
-                  formatter={(value, name) => [
-                    formatNumber(Number(value)),
-                    name === "visitors" ? analyticsMessages.visitors : analyticsMessages.pageviews,
-                  ]}
-                  cursor={{ fill: cursorColor }}
-                />
-                <Bar dataKey="visitors" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="pageviews" fill="#a8a29e" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+                maxValue={rtMaxVal}
+                ticks={intTicks(rtMaxVal)}
+                cursorColor={cursorColor}
+                theme={{
+                  gridColor,
+                  tickColor,
+                  tooltipBg,
+                  tooltipBorder,
+                  tooltipColor,
+                }}
+                visitorsLabel={analyticsMessages.visitors}
+                pageviewsLabel={analyticsMessages.pageviews}
+                formatNumber={formatNumber}
+              />
+            </Suspense>
           </div>
 
           {topUrls.length > 0 && (
@@ -529,16 +506,13 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
       )}
       {!isLoading && rows.length > 0 && (
         <ul className="space-y-2">
-          {rows.map((row, index) => {
+          {rows.map((row) => {
             const rowText = toMetricText(row.x);
             const rowLabel = renderLabel
               ? renderLabel(rowText)
               : rowText || analyticsMessages.unknown;
             return (
-              <li
-                key={`${type}-${rowText}-${row.y}-${index}`}
-                className="flex items-center gap-2 text-sm"
-              >
+              <li key={`${type}-${rowText}-${row.y}`} className="flex items-center gap-2 text-sm">
                 <span className="shrink-0 w-5 text-base leading-none">
                   {type === "country" && rowText ? countryFlag(rowText) : null}
                 </span>
@@ -607,7 +581,7 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
         </p>
       ) : (
         <ul className="pt-2 space-y-1.5">
-          {rows.map((row, index) => {
+          {rows.map((row) => {
             const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
             const rowText = toMetricText(row.x);
             let label = activeTab.renderLabel
@@ -635,7 +609,7 @@ function TabbedMetricCard({ title, tabs, period }: TabbedMetricCardProps) {
 
             return (
               <li
-                key={`${activeType}-${rowText}-${row.y}-${index}`}
+                key={`${activeType}-${rowText}-${row.y}`}
                 className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5"
               >
                 <span
@@ -786,65 +760,27 @@ export function AnalyticsSection() {
           {pvLoading ? (
             <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
           ) : (
-            <ResponsiveContainer width="100%" height={160}>
-              <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                <defs>
-                  <linearGradient id="gradPageviews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a8a29e" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#a8a29e" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gradVisitors" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11, fill: tickColor }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: tickColor }}
-                  axisLine={false}
-                  tickLine={false}
-                  allowDecimals={false}
-                  domain={[0, pvMaxVal]}
-                  ticks={intTicks(pvMaxVal)}
-                />
-                <Tooltip
-                  contentStyle={{
-                    fontSize: 12,
-                    borderRadius: 8,
-                    border: `1px solid ${tooltipBorder}`,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    background: tooltipBg,
-                    color: tooltipColor,
-                  }}
-                  formatter={(value, name) => [
-                    formatNumber(Number(value)),
-                    name === "visitors" ? analyticsMessages.visitors : analyticsMessages.pageviews,
-                  ]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="pageviews"
-                  stroke="#a8a29e"
-                  strokeWidth={2}
-                  fill="url(#gradPageviews)"
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="visitors"
-                  stroke="#f59e0b"
-                  strokeWidth={2}
-                  fill="url(#gradVisitors)"
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <Suspense
+              fallback={
+                <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+              }
+            >
+              <TrafficAreaChart
+                data={chartData}
+                maxValue={pvMaxVal}
+                ticks={intTicks(pvMaxVal)}
+                theme={{
+                  gridColor,
+                  tickColor,
+                  tooltipBg,
+                  tooltipBorder,
+                  tooltipColor,
+                }}
+                visitorsLabel={analyticsMessages.visitors}
+                pageviewsLabel={analyticsMessages.pageviews}
+                formatNumber={formatNumber}
+              />
+            </Suspense>
           )}
         </div>
       )}

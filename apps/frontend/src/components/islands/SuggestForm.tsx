@@ -8,6 +8,11 @@ interface Props {
   categories: Category[];
 }
 
+interface SubmissionRequestError extends Error {
+  status?: number;
+  responseMessage?: string | null;
+}
+
 type UrlCheckResult =
   | { exists: false }
   | { exists: true; shop: { id: number; name: string; categories: ShopCategory[] } };
@@ -17,7 +22,45 @@ import { API_BASE } from "@/lib/client-api";
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
-export default function SuggestForm({ categories }: Props) {
+function extractApiErrorMessage(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+
+  const error = "error" in payload ? (payload as { error?: unknown }).error : undefined;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    return typeof message === "string" ? message : null;
+  }
+
+  const message = "message" in payload ? (payload as { message?: unknown }).message : undefined;
+  return typeof message === "string" ? message : null;
+}
+
+function getSubmissionErrorMessage(error: unknown): string {
+  if (error instanceof TypeError) {
+    return "Verbindung zum Server fehlgeschlagen. Bitte prüfe deine Verbindung.";
+  }
+
+  const typedError = error as SubmissionRequestError;
+  const status = typedError.status;
+
+  if (status === 429) {
+    return "Zu viele Vorschläge von deiner Verbindung. Bitte versuche es später erneut.";
+  }
+
+  if (status === 400) {
+    return typedError.responseMessage || "Bitte prüfe deine Eingaben und versuche es erneut.";
+  }
+
+  if (status && status >= 500) {
+    return "Serverfehler beim Absenden. Bitte versuche es später erneut.";
+  }
+
+  if (typedError.responseMessage) return typedError.responseMessage;
+
+  return "Fehler beim Absenden. Bitte versuche es erneut.";
+}
+
+function useSuggestFormState() {
   const [submitted, setSubmitted] = useState(false);
   const [shopForm, setShopForm] = useState<ShopEditFormValue>(EMPTY_SHOP_FORM_VALUE);
   const [shopErrors, setShopErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>(
@@ -28,7 +71,51 @@ export default function SuggestForm({ categories }: Props) {
   const [urlCheck, setUrlCheck] = useState<UrlCheckResult | null>(null);
   const [urlChecking, setUrlChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  return {
+    submitted,
+    setSubmitted,
+    shopForm,
+    setShopForm,
+    shopErrors,
+    setShopErrors,
+    submitterEmail,
+    setSubmitterEmail,
+    emailError,
+    setEmailError,
+    urlCheck,
+    setUrlCheck,
+    urlChecking,
+    setUrlChecking,
+    submitting,
+    setSubmitting,
+    submitError,
+    setSubmitError,
+  };
+}
+
+export default function SuggestForm({ categories }: Props) {
+  const {
+    submitted,
+    setSubmitted,
+    shopForm,
+    setShopForm,
+    shopErrors,
+    setShopErrors,
+    submitterEmail,
+    setSubmitterEmail,
+    emailError,
+    setEmailError,
+    urlCheck,
+    setUrlCheck,
+    urlChecking,
+    setUrlChecking,
+    submitting,
+    setSubmitting,
+    submitError,
+    setSubmitError,
+  } = useSuggestFormState();
 
   async function checkUrl(url: string) {
     if (!url || !url.startsWith("http")) return;
@@ -65,7 +152,7 @@ export default function SuggestForm({ categories }: Props) {
       return;
     }
     setEmailError("");
-    setSubmitError(false);
+    setSubmitError(null);
     setSubmitting(true);
 
     try {
@@ -82,10 +169,17 @@ export default function SuggestForm({ categories }: Props) {
           submitterEmail: submitterEmail || undefined,
         }),
       });
-      if (!res.ok) throw new Error("API error");
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        const apiMessage = extractApiErrorMessage(payload);
+        const requestError = new Error("Submission request failed") as SubmissionRequestError;
+        requestError.status = res.status;
+        requestError.responseMessage = apiMessage;
+        throw requestError;
+      }
       setSubmitted(true);
-    } catch {
-      setSubmitError(true);
+    } catch (error) {
+      setSubmitError(getSubmissionErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -263,9 +357,7 @@ export default function SuggestForm({ categories }: Props) {
         </div>
 
         {submitError && (
-          <p className="text-[var(--ds-danger-text)] text-sm text-center">
-            Fehler beim Absenden. Bitte versuche es erneut.
-          </p>
+          <p className="text-[var(--ds-danger-text)] text-sm text-center">{submitError}</p>
         )}
 
         <div className="flex justify-end">

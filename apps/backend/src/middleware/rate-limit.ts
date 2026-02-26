@@ -9,6 +9,22 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
+function resolveClientIp(headers: Headers): string {
+  const cfIp = headers.get("CF-Connecting-IP");
+  if (cfIp) return cfIp.trim();
+
+  const xRealIp = headers.get("X-Real-IP");
+  if (xRealIp) return xRealIp.trim();
+
+  const xForwardedFor = headers.get("X-Forwarded-For");
+  if (xForwardedFor) {
+    const first = xForwardedFor.split(",")[0];
+    if (first) return first.trim();
+  }
+
+  return "unknown";
+}
+
 // Start periodic cleanup of expired entries (every 5 minutes by default)
 if (typeof global !== "undefined") {
   const cleanupIntervalMs = env.RATE_LIMIT_CLEANUP_INTERVAL_MS;
@@ -32,25 +48,31 @@ if (typeof global !== "undefined") {
 
 export function rateLimit(options: { max: number; windowMs: number }) {
   return createMiddleware(async (c, next) => {
-    const ip =
-      c.req.header("CF-Connecting-IP") ??
-      c.req.header("X-Forwarded-For")?.split(",")[0].trim() ??
-      "unknown";
+    const ip = resolveClientIp(c.req.raw.headers);
 
     const key = `${c.req.path}:${ip}`;
     const now = Date.now();
-    const entry = store.get(key);
+    const entry = store.get(key) ?? { count: 0, resetAt: now + options.windowMs };
 
-    if (!entry || entry.resetAt < now) {
-      store.set(key, { count: 1, resetAt: now + options.windowMs });
-      return next();
+    if (entry.resetAt < now) {
+      entry.count = 0;
+      entry.resetAt = now + options.windowMs;
     }
 
     if (entry.count >= options.max) {
+      const retryAfterSec = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
+      c.header("X-RateLimit-Limit", String(options.max));
+      c.header("X-RateLimit-Remaining", "0");
+      c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
+      c.header("Retry-After", String(retryAfterSec));
       return fail(c, 429, "Too many requests");
     }
 
     entry.count++;
+    store.set(key, entry);
+    c.header("X-RateLimit-Limit", String(options.max));
+    c.header("X-RateLimit-Remaining", String(Math.max(options.max - entry.count, 0)));
+    c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
     return next();
   });
 }

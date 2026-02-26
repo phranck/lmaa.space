@@ -5,7 +5,7 @@ import {
 } from "@/i18n/messages.ts";
 import { type ReactNode, createContext, useContext, useMemo, useState } from "react";
 
-export const DASHBOARD_LOCALE_STORAGE_KEY = "dashboard-locale";
+const DASHBOARD_LOCALE_STORAGE_KEY = "dashboard-locale";
 
 interface I18nContextValue {
   locale: DashboardLocale;

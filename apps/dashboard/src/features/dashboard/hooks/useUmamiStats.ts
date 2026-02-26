@@ -12,7 +12,7 @@ export type UmamiMetricType =
   | "region"
   | "city";
 
-export interface UmamiStats {
+interface UmamiStats {
   pageviews: { value: number; change: number };
   visitors: { value: number; change: number };
   visits: { value: number; change: number };
@@ -20,22 +20,22 @@ export interface UmamiStats {
   totaltime: { value: number; change: number };
 }
 
-export interface UmamiPageviewPoint {
+interface UmamiPageviewPoint {
   x: string;
   y: number;
 }
 
-export interface UmamiPageviews {
+interface UmamiPageviews {
   pageviews: UmamiPageviewPoint[];
   sessions: UmamiPageviewPoint[];
 }
 
-export interface UmamiMetricRow {
+interface UmamiMetricRow {
   x: string | null;
   y: number;
 }
 
-export interface UmamiRealtimeEvent {
+interface UmamiRealtimeEvent {
   __type: string;
   sessionId: string;
   eventName: string;
@@ -48,7 +48,7 @@ export interface UmamiRealtimeEvent {
   referrerDomain: string;
 }
 
-export interface UmamiRealtime {
+interface UmamiRealtime {
   countries: Record<string, number>;
   urls: Record<string, number>;
   referrers: Record<string, number>;
@@ -71,7 +71,7 @@ export interface UmamiRealtime {
   timestamp: number;
 }
 
-export interface UmamiActive {
+interface UmamiActive {
   visitors: number;
 }
 
