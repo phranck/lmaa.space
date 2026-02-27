@@ -17,8 +17,8 @@ export const API_BASE =
   normalizedApiBase ||
   (import.meta.env.DEV
     ? "/api"
-    : import.meta.env.SSR
-      ? "" // SSR context: API_BASE is never called during server-side rendering
+    : typeof window === "undefined"
+      ? "" // SSR context (Node.js): API_BASE is never used for client-side fetches
       : (() => {
           throw new Error("Missing PUBLIC_API_URL in production build.");
         })());
