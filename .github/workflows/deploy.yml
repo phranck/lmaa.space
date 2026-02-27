@@ -91,6 +91,7 @@ jobs:
       always() &&
       needs.quality-gate.result == 'success' &&
       needs.detect-changes.result == 'success' &&
+      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.website == 'true') &&
       (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped') &&
       (needs.deploy-website.result == 'success' || needs.deploy-website.result == 'skipped') &&
       (needs.deploy-dashboard.result == 'success' || needs.deploy-dashboard.result == 'skipped')

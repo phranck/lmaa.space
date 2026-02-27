@@ -1,7 +1,7 @@
 /**
  * Runtime API base URL for client-side code (React islands, Vanilla JS scripts).
- * Uses PUBLIC_API_URL env var (production should point to api.lmaa.space);
- * falls back to /api for local dev via Vite/Astro proxy (same-origin).
+ * Uses PUBLIC_API_URL env var (production should point to api.lmaa.space/api).
+ * Falls back to `/api` only in local dev via Vite proxy.
  */
 const rawApiBase = import.meta.env.PUBLIC_API_URL;
 const normalizedApiBase =
@@ -10,7 +10,13 @@ const normalizedApiBase =
 /**
  * Client-side API base URL for browser fetch calls.
  *
- * Hidden behavior: falls back to same-origin `/api` when no public env value is
- * configured, which keeps local dev and reverse-proxy setups working.
+ * Hidden behavior: in production, missing `PUBLIC_API_URL` throws early to
+ * prevent accidental same-origin API calls through the website service.
  */
-export const API_BASE = normalizedApiBase || "/api";
+export const API_BASE =
+  normalizedApiBase ||
+  (import.meta.env.DEV
+    ? "/api"
+    : (() => {
+        throw new Error("Missing PUBLIC_API_URL in production build.");
+      })());

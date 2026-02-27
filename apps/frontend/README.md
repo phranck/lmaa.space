@@ -27,4 +27,4 @@ SSR-Ausgabe liegt in `apps/frontend/dist`.
 - `src/pages`: öffentliche Routen
 - `src/components/islands`: React-Komponenten mit Client-Hydration
 - `src/lib`: API-Clients, Domain-Helfer und Shared-Adapter
-- `src/middleware.ts`: API-Proxy/L7-Fallback-Strategie
+- `src/middleware.ts`: schlanker Proxy für `/sitemap.xml` zum Backend
