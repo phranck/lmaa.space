@@ -2,12 +2,18 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { adminUsers } from "../db/schema.js";
 
+/**
+ * Payload used to create the first owner account during setup.
+ */
 export interface CreateOwnerAdminInput {
   username: string;
   email: string;
   passwordHash: string;
 }
 
+/**
+ * Public profile shape used by dashboard auth endpoints.
+ */
 export interface AdminProfileRow {
   id: number;
   username: string;
@@ -20,6 +26,12 @@ export interface AdminProfileRow {
   lastLoginAt: Date | null;
 }
 
+/**
+ * Creates the initial owner account.
+ *
+ * @param input - Setup payload with unique username/email and pre-hashed password.
+ * @returns Newly created admin identity used to bootstrap the first session.
+ */
 export async function createOwnerAdmin(input: CreateOwnerAdminInput) {
   const [admin] = await db
     .insert(adminUsers)
@@ -38,6 +50,12 @@ export async function createOwnerAdmin(input: CreateOwnerAdminInput) {
   return admin;
 }
 
+/**
+ * Resolves an admin profile by numeric id.
+ *
+ * @param adminId - Persistent id from the authenticated session.
+ * @returns Profile row when the user still exists, otherwise `null`.
+ */
 export async function getAdminProfileById(adminId: number): Promise<AdminProfileRow | null> {
   const [admin] = await db
     .select({

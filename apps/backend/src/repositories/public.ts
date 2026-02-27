@@ -13,18 +13,35 @@ import {
   submissions,
 } from "../db/schema.js";
 
+/**
+ * Shared shop shape used in public list/category queries.
+ */
 export type CategoryShopRow = Pick<
   Shop,
   "id" | "name" | "url" | "region" | "pickup" | "shipping" | "description" | "ogImage"
 >;
+/**
+ * Public shop row with hydrated categories.
+ */
 export type PublicShopRow = CategoryShopRow & { categories: ShopCategory[] };
+/**
+ * Full-text search result including ranking score.
+ */
 export type SearchShopRow = Shop & { categories: ShopCategory[]; rank: number };
+/**
+ * Minimal shape returned by duplicate URL checks.
+ */
 export interface CheckUrlRow {
   id: number;
   name: string;
   categories: ShopCategory[];
 }
 
+/**
+ * Lists all categories plus number of currently public/active shops.
+ *
+ * @returns Category rows with `shopCount`.
+ */
 export async function listPublicCategoriesWithShopCount() {
   return db
     .select({
@@ -48,6 +65,11 @@ export async function listPublicCategoriesWithShopCount() {
     .orderBy(categories.name);
 }
 
+/**
+ * Counts visible public shops.
+ *
+ * @returns Number of active shops with `visibility=public`.
+ */
 export async function countPublicShops(): Promise<number> {
   const [row] = await db
     .select({ total: count(shops.id) })
@@ -56,6 +78,12 @@ export async function countPublicShops(): Promise<number> {
   return row?.total ?? 0;
 }
 
+/**
+ * Resolves a category by slug.
+ *
+ * @param slug - URL slug.
+ * @returns Category row or `null` if slug does not exist.
+ */
 export async function getPublicCategoryBySlug(slug: string) {
   const [category] = await db
     .select({
@@ -71,6 +99,12 @@ export async function getPublicCategoryBySlug(slug: string) {
   return category ?? null;
 }
 
+/**
+ * Lists public shops belonging to one category.
+ *
+ * @param categoryId - Category id.
+ * @returns SQL result rows with core shop fields.
+ */
 export async function listPublicShopsByCategoryId(categoryId: number) {
   return db.execute<CategoryShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
@@ -82,6 +116,11 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
   `);
 }
 
+/**
+ * Lists all public shops with aggregated category metadata.
+ *
+ * @returns SQL rows suitable for frontend catalog rendering.
+ */
 export async function listAllPublicShopsWithCategories() {
   return db.execute<PublicShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
@@ -100,6 +139,12 @@ export async function listAllPublicShopsWithCategories() {
   `);
 }
 
+/**
+ * Executes PostgreSQL full-text search over public shops.
+ *
+ * @param query - Raw user search query (websearch syntax).
+ * @returns Ranked result rows limited to top matches.
+ */
 export async function searchPublicShops(query: string) {
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
@@ -122,6 +167,12 @@ export async function searchPublicShops(query: string) {
   `);
 }
 
+/**
+ * Searches categories by escaped lowercase query fragment.
+ *
+ * @param escapedQuery - Already escaped query text for `LIKE`.
+ * @returns Up to five matching category rows.
+ */
 export async function searchPublicCategoriesByEscapedQuery(escapedQuery: string) {
   return db
     .select()
@@ -130,6 +181,12 @@ export async function searchPublicCategoriesByEscapedQuery(escapedQuery: string)
     .limit(5);
 }
 
+/**
+ * Finds a public shop by normalized hostname.
+ *
+ * @param hostname - Hostname without scheme/path.
+ * @returns Matching shop summary or `null`.
+ */
 export async function findPublicShopByHostname(hostname: string) {
   const [row] = await db.execute<CheckUrlRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name,
@@ -150,6 +207,9 @@ export async function findPublicShopByHostname(hostname: string) {
   return row ?? null;
 }
 
+/**
+ * Submission payload accepted from the public website.
+ */
 export interface CreatePublicSubmissionInput {
   shopName: string;
   shopUrl: string;
@@ -161,11 +221,26 @@ export interface CreatePublicSubmissionInput {
   submitterNote: string | null;
 }
 
+/**
+ * Inserts a new public shop submission.
+ *
+ * @param input - Validated submission payload.
+ * @returns New submission id.
+ */
 export async function createPublicSubmission(input: CreatePublicSubmissionInput): Promise<number> {
   const [submission] = await db.insert(submissions).values(input).returning({ id: submissions.id });
   return submission.id;
 }
 
+/**
+ * Inserts submission↔category links.
+ *
+ * Hidden behavior: no-op for empty category arrays.
+ *
+ * @param submissionId - Parent submission id.
+ * @param categoryIds - Category ids to link.
+ * @returns Resolves when links are persisted.
+ */
 export async function addSubmissionCategoryLinks(
   submissionId: number,
   categoryIds: number[],
@@ -179,6 +254,14 @@ export async function addSubmissionCategoryLinks(
     .values(categoryIds.map((categoryId) => ({ submissionId, categoryId })));
 }
 
+/**
+ * Lists navigation entries for public rendering.
+ *
+ * Hidden behavior: linked content pages are only returned when published.
+ *
+ * @param navId - Target nav (`header` or `footer`).
+ * @returns Ordered nav rows including optional page titles.
+ */
 export async function listPublicNavItems(navId: "header" | "footer") {
   return db
     .select({
@@ -202,6 +285,11 @@ export async function listPublicNavItems(navId: "header" | "footer") {
     .orderBy(asc(navItems.position));
 }
 
+/**
+ * Lists all published content pages for static path generation.
+ *
+ * @returns Slug/title pairs for published pages only.
+ */
 export async function listPublishedContentPages() {
   return db
     .select({ slug: contentPages.slug, title: contentPages.title })
@@ -210,6 +298,12 @@ export async function listPublishedContentPages() {
     .orderBy(contentPages.slug);
 }
 
+/**
+ * Loads a single published content page by slug.
+ *
+ * @param slug - Page slug.
+ * @returns Page row or `null` when absent/unpublished.
+ */
 export async function getPublishedContentPageBySlug(slug: string) {
   const [page] = await db
     .select()
@@ -220,6 +314,12 @@ export async function getPublishedContentPageBySlug(slug: string) {
   return page ?? null;
 }
 
+/**
+ * Resolves a minimal public shop record by id.
+ *
+ * @param id - Shop id.
+ * @returns Shop identity or `null`.
+ */
 export async function getPublicShopById(id: number) {
   const [shop] = await db
     .select({ id: shops.id, name: shops.name, url: shops.url })
@@ -230,10 +330,23 @@ export async function getPublicShopById(id: number) {
   return shop ?? null;
 }
 
+/**
+ * Stores a dead-link report event.
+ *
+ * @param shopId - Reported shop id.
+ * @param ipHash - Hashed source IP for throttling/abuse checks.
+ * @returns Resolves when report row is inserted.
+ */
 export async function insertDeadLinkReport(shopId: number, ipHash: string): Promise<void> {
   await db.insert(deadLinkReports).values({ shopId, ipHash });
 }
 
+/**
+ * Counts dead-link reports for one shop.
+ *
+ * @param shopId - Shop id.
+ * @returns Number of reports.
+ */
 export async function countDeadLinkReportsForShop(shopId: number): Promise<number> {
   const [row] = await db
     .select({ reportCount: count(deadLinkReports.id) })
@@ -242,6 +355,14 @@ export async function countDeadLinkReportsForShop(shopId: number): Promise<numbe
   return row?.reportCount ?? 0;
 }
 
+/**
+ * Stores a moderation concern report for a shop.
+ *
+ * @param shopId - Shop id.
+ * @param reason - Free-text concern reason.
+ * @param ipHash - Hashed source IP.
+ * @returns Resolves when row is inserted.
+ */
 export async function insertShopConcernReport(
   shopId: number,
   reason: string,

@@ -5,8 +5,14 @@ import { db } from "../db/index.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../db/schema.js";
 import type { Shop as DbShop } from "../db/schema.js";
 
+/**
+ * Expanded shop detail shape used by admin edit views.
+ */
 export type AdminShopDetail = SharedShop;
 
+/**
+ * Payload used when creating a shop from dashboard.
+ */
 export interface CreateAdminShopData {
   name: string;
   url: string;
@@ -17,6 +23,9 @@ export interface CreateAdminShopData {
   description?: string;
 }
 
+/**
+ * Partial patch payload for admin shop updates.
+ */
 export interface UpdateAdminShopData {
   name?: string;
   url?: string;
@@ -28,6 +37,12 @@ export interface UpdateAdminShopData {
   isActive?: boolean;
 }
 
+/**
+ * Lists all shops with categories and deletion metadata.
+ *
+ * @param visibility - Optional visibility filter.
+ * @returns Shop summaries sorted by name.
+ */
 export async function listAdminShops(visibility?: ShopVisibility): Promise<ShopSummary[]> {
   return db.execute<ShopSummary & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region,
@@ -50,6 +65,12 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<ShopS
   `);
 }
 
+/**
+ * Loads a shop including category assignments.
+ *
+ * @param id - Shop id.
+ * @returns Shop detail or `null` when missing.
+ */
 export async function getAdminShopById(id: number): Promise<AdminShopDetail | null> {
   const [shop] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
@@ -70,6 +91,12 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
   return shop ?? null;
 }
 
+/**
+ * Creates a shop and all category links in a single transaction.
+ *
+ * @param data - Validated shop payload.
+ * @returns Inserted raw DB shop row.
+ */
 export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop> {
   return db.transaction(async (tx) => {
     const { categoryIds, ...shopData } = data;
@@ -85,6 +112,16 @@ export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop
   });
 }
 
+/**
+ * Updates one shop and optionally replaces category links.
+ *
+ * Hidden behavior: when `categoryIds` is present, all previous links are
+ * removed before new links are inserted.
+ *
+ * @param id - Shop id.
+ * @param data - Partial update payload.
+ * @returns Updated shop row or `null` if not found.
+ */
 export async function updateAdminShop(
   id: number,
   data: UpdateAdminShopData,
@@ -116,11 +153,23 @@ export async function updateAdminShop(
   });
 }
 
+/**
+ * Checks whether a shop exists.
+ *
+ * @param id - Shop id.
+ * @returns `true` if a row is present.
+ */
 export async function shopExists(id: number): Promise<boolean> {
   const [row] = await db.select({ id: shops.id }).from(shops).where(eq(shops.id, id));
   return Boolean(row);
 }
 
+/**
+ * Permanently deletes a shop and its dependent dead-link reports.
+ *
+ * @param id - Shop id.
+ * @returns Resolves when transaction has completed.
+ */
 export async function permanentlyDeleteAdminShop(id: number): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
@@ -128,6 +177,17 @@ export async function permanentlyDeleteAdminShop(id: number): Promise<void> {
   });
 }
 
+/**
+ * Marks a shop as deleted while preserving its row for auditability.
+ *
+ * Hidden behavior: clears dead-link reports after the visibility switch.
+ *
+ * @param id - Shop id.
+ * @param adminId - Actor admin id, nullable for system actions.
+ * @param reason - Optional delete reason shown in dashboard.
+ * @param wasReported - Indicates if deletion originated from user reports.
+ * @returns Resolves when flags are persisted.
+ */
 export async function markAdminShopDeleted(
   id: number,
   adminId: number | null,
@@ -148,6 +208,13 @@ export async function markAdminShopDeleted(
   await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
 }
 
+/**
+ * Switches mutable visibility state (`public`/`onhold`) and clears delete metadata.
+ *
+ * @param id - Shop id.
+ * @param visibility - Target visibility.
+ * @returns Resolves after update.
+ */
 export async function setAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
@@ -164,11 +231,24 @@ export async function setAdminShopVisibility(
     .where(eq(shops.id, id));
 }
 
+/**
+ * Reads the canonical URL of a shop.
+ *
+ * @param id - Shop id.
+ * @returns URL or `null` when shop does not exist.
+ */
 export async function getAdminShopUrl(id: number): Promise<string | null> {
   const [shop] = await db.select({ url: shops.url }).from(shops).where(eq(shops.id, id));
   return shop?.url ?? null;
 }
 
+/**
+ * Stores the resolved OG image URL for a shop.
+ *
+ * @param id - Shop id.
+ * @param ogImage - URL or `null` to clear.
+ * @returns Resolves when update has been written.
+ */
 export async function setAdminShopOgImage(id: number, ogImage: string | null): Promise<void> {
   await db.update(shops).set({ ogImage }).where(eq(shops.id, id));
 }

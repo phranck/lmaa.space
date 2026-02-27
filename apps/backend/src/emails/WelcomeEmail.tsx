@@ -12,12 +12,21 @@ import {
   Text,
 } from "@react-email/components";
 
+/**
+ * Props for the dashboard user invitation email.
+ */
 interface WelcomeEmailProps {
   username: string;
   password: string;
   loginUrl: string;
 }
 
+/**
+ * Renders the invitation email for newly created admin users.
+ *
+ * @param props - Credentials and login target.
+ * @returns JSX email markup.
+ */
 export function WelcomeEmail({ username, password, loginUrl }: WelcomeEmailProps) {
   return (
     <Html lang="de">
@@ -92,6 +101,9 @@ WelcomeEmail.PreviewProps = {
   loginUrl: "https://dashboard.lmaa.space",
 } satisfies WelcomeEmailProps;
 
+/**
+ * Default export for React Email tooling.
+ */
 export default WelcomeEmail;
 
 const body = {

@@ -7,6 +7,9 @@ import {
   getManagedAdminDeadLinkReports,
 } from "../../services/admin-dead-link-reports.js";
 
+/**
+ * Admin routes for dead-link report moderation.
+ */
 export const deadLinkReportsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/dead-link-reports

@@ -20,6 +20,12 @@ function extractDomain(url: string): string {
   }
 }
 
+/**
+ * Resolves homepage origin from an arbitrary URL.
+ *
+ * @param url - Any absolute URL.
+ * @returns URL origin (`protocol//host`) or original input when parsing fails.
+ */
 export function extractHomepage(url: string): string {
   try {
     const u = new URL(url);
@@ -152,6 +158,21 @@ function googleFaviconUrl(shopUrl: string): string {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 }
 
+/**
+ * Resolves best-effort preview image URL for a shop.
+ *
+ * @param shopUrl - Shop URL provided by user or database.
+ * @returns Preview descriptor (`url`, `via`) or `null` when no image source is usable.
+ *
+ * @remarks
+ * Resolution order:
+ * 1. Apple touch icon in HTML
+ * 2. Apple touch icon well-known paths
+ * 3. OpenGraph/Twitter image
+ * 4. First large `<img>`
+ * 5. Favicon `<link rel="icon">` (png-like)
+ * 6. Google favicon fallback
+ */
 export async function fetchPreviewImage(
   shopUrl: string,
 ): Promise<{ url: string; via: string } | null> {

@@ -12,10 +12,23 @@ const FROM = env.EMAIL_FROM;
 const DASHBOARD_URL = env.DASHBOARD_URL;
 const OWNER_EMAIL = env.OWNER_EMAIL ?? null;
 
+/**
+ * Indicates whether outbound mail is configured.
+ *
+ * @returns `true` when Resend client is configured and usable.
+ */
 export function isEmailConfigured(): boolean {
   return resend !== null;
 }
 
+/**
+ * Sends a welcome email with initial dashboard credentials.
+ *
+ * @param to - Recipient email address.
+ * @param username - Login username.
+ * @param password - Initial plaintext password.
+ * @returns Resolves when provider accepted the message (or immediately if mail is disabled).
+ */
 export async function sendWelcomeEmail(
   to: string,
   username: string,
@@ -31,6 +44,13 @@ export async function sendWelcomeEmail(
   });
 }
 
+/**
+ * Sends submission-approved confirmation to submitter.
+ *
+ * @param to - Recipient email address.
+ * @param shopName - Approved shop name.
+ * @returns Resolves when provider accepted the message.
+ */
 export async function sendSubmissionApproved(to: string, shopName: string): Promise<void> {
   if (!resend) return;
 
@@ -42,6 +62,15 @@ export async function sendSubmissionApproved(to: string, shopName: string): Prom
   });
 }
 
+/**
+ * Sends internal notification about a new public submission.
+ *
+ * @param shopName - Submitted shop name.
+ * @param shopUrl - Submitted shop URL.
+ * @param region - Optional shipping/region hints.
+ * @param submitterNote - Optional submitter note.
+ * @returns Resolves when provider accepted the message.
+ */
 export async function sendNewSubmissionNotification(
   shopName: string,
   shopUrl: string,
@@ -60,6 +89,14 @@ export async function sendNewSubmissionNotification(
   });
 }
 
+/**
+ * Sends internal notification about dead-link reports.
+ *
+ * @param shopName - Shop display name.
+ * @param shopUrl - Shop URL.
+ * @param reportCount - Current report count.
+ * @returns Resolves when provider accepted the message.
+ */
 export async function sendDeadLinkReportNotification(
   shopName: string,
   shopUrl: string,
@@ -77,6 +114,14 @@ export async function sendDeadLinkReportNotification(
   });
 }
 
+/**
+ * Sends internal notification about shop concern reports.
+ *
+ * @param shopName - Shop display name.
+ * @param shopUrl - Shop URL.
+ * @param reason - Reporter-provided reason text.
+ * @returns Resolves when provider accepted the message.
+ */
 export async function sendShopConcernNotification(
   shopName: string,
   shopUrl: string,
@@ -92,6 +137,14 @@ export async function sendShopConcernNotification(
   });
 }
 
+/**
+ * Sends submission-rejected feedback to submitter.
+ *
+ * @param to - Recipient email address.
+ * @param shopName - Rejected shop name.
+ * @param reason - Optional rejection reason shown to user.
+ * @returns Resolves when provider accepted the message.
+ */
 export async function sendSubmissionRejected(
   to: string,
   shopName: string,

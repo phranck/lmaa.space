@@ -17,6 +17,11 @@ import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-l
 
 type VisibilityFilter = "all" | ShopVisibility;
 
+/**
+ * Shop management route with filters and moderation actions.
+ *
+ * @returns Shops administration page.
+ */
 export function ShopsPage() {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;

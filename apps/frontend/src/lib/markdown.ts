@@ -20,6 +20,12 @@ const markedSafe = new Marked({
   },
 });
 
+/**
+ * Renders Markdown into sanitized HTML.
+ *
+ * @param content - Markdown source text.
+ * @returns HTML string safe for insertion into trusted templates.
+ */
 export async function renderMarkdown(content: string): Promise<string> {
   return markedSafe.parse(content) as Promise<string>;
 }

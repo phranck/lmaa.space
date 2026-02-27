@@ -93,6 +93,11 @@ function AppRoutes() {
   );
 }
 
+/**
+ * Root dashboard application shell with routing, providers and layout.
+ *
+ * @returns Top-level React tree for the admin dashboard SPA.
+ */
 export default function App() {
   return (
     <I18nProvider>

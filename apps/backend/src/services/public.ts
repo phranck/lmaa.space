@@ -25,6 +25,9 @@ import {
 const SHOPS_CACHE_KEY = "shops:all";
 const SHOPS_CACHE_TTL_MS = 60 * 1000;
 
+/**
+ * Public navigation buckets rendered on the website.
+ */
 export type PublicNavId = "header" | "footer";
 
 function normalizeShopHostname(url: string): string | null {
@@ -39,15 +42,33 @@ function hashIp(ip: string): string {
   return createHash("sha256").update(ip).digest("hex");
 }
 
+/**
+ * Returns all public categories with computed shop counts.
+ *
+ * @returns Category list for public catalog navigation.
+ */
 export async function getManagedPublicCategories() {
   return listPublicCategoriesWithShopCount();
 }
 
+/**
+ * Returns website counters shown in public overview widgets.
+ *
+ * @returns Object with current public shop count.
+ */
 export async function getManagedPublicStats() {
   const shopCount = await countPublicShops();
   return { shopCount };
 }
 
+/**
+ * Resolves one public category with its visible shops.
+ *
+ * @param slug - Category slug.
+ * @returns
+ * - `{ ok: false, reason: "not_found" }` if slug does not exist.
+ * - `{ ok: true, data }` with category + `shops`.
+ */
 export async function getManagedPublicCategoryBySlug(slug: string) {
   const category = await getPublicCategoryBySlug(slug);
   if (!category) {
@@ -58,6 +79,15 @@ export async function getManagedPublicCategoryBySlug(slug: string) {
   return { ok: true as const, data: { ...category, shops: categoryShops } };
 }
 
+/**
+ * Returns all public shops with categories, backed by short-lived in-memory cache.
+ *
+ * @returns `{ cache: "HIT" | "MISS", data }`.
+ *
+ * @remarks
+ * Side effects:
+ * - On cache miss, stores result in process-memory cache for `SHOPS_CACHE_TTL_MS`.
+ */
 export async function getManagedPublicShops() {
   const cached = getCacheEntry<PublicShopRow[]>(SHOPS_CACHE_KEY);
   if (cached) {
@@ -69,6 +99,12 @@ export async function getManagedPublicShops() {
   return { cache: "MISS" as const, data };
 }
 
+/**
+ * Searches the public catalog across shops and categories.
+ *
+ * @param queryRaw - Raw `q` query string from request.
+ * @returns Combined result with normalized query and total.
+ */
 export async function searchManagedPublicCatalog(queryRaw: string | undefined) {
   const query = queryRaw?.trim();
   if (!query || query.length < 2) {
@@ -87,6 +123,14 @@ export async function searchManagedPublicCatalog(queryRaw: string | undefined) {
   };
 }
 
+/**
+ * Checks whether a shop URL already exists in catalog by hostname.
+ *
+ * @param urlRaw - Raw URL query parameter.
+ * @returns
+ * - `{ exists: false }` for empty/invalid/non-matching URL.
+ * - `{ exists: true, shop }` when hostname match is found.
+ */
 export async function checkManagedPublicShopUrl(urlRaw: string | undefined) {
   const url = urlRaw?.trim();
   if (!url) {
@@ -109,6 +153,9 @@ export async function checkManagedPublicShopUrl(urlRaw: string | undefined) {
   };
 }
 
+/**
+ * Input contract for creating a public shop submission.
+ */
 export interface CreateManagedPublicSubmissionInput {
   shopName: string;
   shopUrl: string;
@@ -121,6 +168,17 @@ export interface CreateManagedPublicSubmissionInput {
   submitterNote?: string;
 }
 
+/**
+ * Persists a public submission and linked categories.
+ *
+ * @param input - Validated submission payload.
+ * @returns Success message for user-facing confirmation.
+ *
+ * @remarks
+ * Side effects:
+ * - Creates one submission row.
+ * - Creates submission-category relation rows.
+ */
 export async function createManagedPublicSubmission(input: CreateManagedPublicSubmissionInput) {
   const submissionId = await createPublicSubmission({
     shopName: input.shopName,
@@ -138,18 +196,49 @@ export async function createManagedPublicSubmission(input: CreateManagedPublicSu
   return { message: "Vorschlag eingereicht" };
 }
 
+/**
+ * Returns navigation items for one public navigation bucket.
+ *
+ * @param navId - `"header"` or `"footer"`.
+ * @returns Ordered list of navigation items.
+ */
 export async function getManagedPublicNav(navId: PublicNavId) {
   return listPublicNavItems(navId);
 }
 
+/**
+ * Returns metadata list of all published content pages.
+ *
+ * @returns Published content list used for page index/SSG selection.
+ */
 export async function getManagedPublishedContentList() {
   return listPublishedContentPages();
 }
 
+/**
+ * Returns one published content page by slug.
+ *
+ * @param slug - Content page slug.
+ * @returns Published page payload or `null`.
+ */
 export async function getManagedPublishedContentPage(slug: string) {
   return getPublishedContentPageBySlug(slug);
 }
 
+/**
+ * Creates a dead-link report for a shop.
+ *
+ * @param shopId - Public shop id.
+ * @param ip - Request IP (hashed before persistence).
+ * @returns
+ * - `{ ok: false, reason: "not_found" }` when shop does not exist.
+ * - `{ ok: true, message }` when report is stored.
+ *
+ * @remarks
+ * Side effects:
+ * - Stores hashed reporter IP.
+ * - Increments/updates dead-link counters.
+ */
 export async function createManagedDeadLinkReport(shopId: number, ip: string) {
   const shop = await getPublicShopById(shopId);
   if (!shop) {
@@ -162,6 +251,17 @@ export async function createManagedDeadLinkReport(shopId: number, ip: string) {
   return { ok: true as const, message: "Danke für deinen Hinweis!" };
 }
 
+/**
+ * Creates a shop concern report with minimal reason validation.
+ *
+ * @param shopId - Public shop id.
+ * @param reasonRaw - User-provided free-form reason text.
+ * @param ip - Request IP (hashed before persistence).
+ * @returns
+ * - `{ ok: false, reason: "invalid_reason" }` if reason is too short.
+ * - `{ ok: false, reason: "not_found" }` if shop does not exist.
+ * - `{ ok: true, message }` when concern is stored.
+ */
 export async function createManagedShopConcernReport(
   shopId: number,
   reasonRaw: string,
@@ -181,6 +281,13 @@ export async function createManagedShopConcernReport(
   return { ok: true as const, message: "Danke für dein Feedback!" };
 }
 
+/**
+ * Returns cache diagnostics in development mode.
+ *
+ * @returns
+ * - `{ ok: false }` outside development.
+ * - `{ ok: true, data }` with cache internals in development.
+ */
 export function getManagedPublicCacheStats() {
   if (env.NODE_ENV !== "development") {
     return { ok: false as const };

@@ -21,6 +21,9 @@ import {
   updateManagedAdminShop,
 } from "../../services/admin-shops.js";
 
+/**
+ * Admin shop management routes (CRUD, visibility, image helpers).
+ */
 export const shopsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 shopsRoutes.get("/shops", requireAuth, async (c) => {

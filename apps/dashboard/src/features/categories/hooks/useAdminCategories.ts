@@ -4,12 +4,18 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ─── Form & Image Types ───────────────────────────────────────────────────────
 
+/**
+ * Mutable category form fields used by the editor card.
+ */
 export interface CategoryFormData {
   name: string;
   slug: string;
   description: string;
 }
 
+/**
+ * Client-side category image workflow state.
+ */
 export interface CategoryImageState {
   previewUrl: string | null;
   photographer: string | null;
@@ -22,6 +28,12 @@ export interface CategoryImageState {
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
+/**
+ * Loads admin categories.
+ *
+ * @param enabled - Optional query toggle for conditional fetches.
+ * @returns React Query result with category list.
+ */
 export function useAdminCategories(enabled = true) {
   return useQuery({
     queryKey: ["categories-admin"],
@@ -30,6 +42,15 @@ export function useAdminCategories(enabled = true) {
   });
 }
 
+/**
+ * Saves a category (create or update) including image actions.
+ *
+ * Hidden behavior: image operations are sequenced after category save and
+ * depend on `CategoryImageState` flags.
+ *
+ * @param categoryId - Existing id or `"new"` for creation mode.
+ * @returns React Query mutation.
+ */
 export function useSaveCategory(categoryId: number | "new") {
   const qc = useQueryClient();
   const isNew = categoryId === "new";
@@ -72,6 +93,11 @@ export function useSaveCategory(categoryId: number | "new") {
   });
 }
 
+/**
+ * Deletes a category and invalidates category queries.
+ *
+ * @returns React Query mutation for category deletion.
+ */
 export function useDeleteCategory() {
   const qc = useQueryClient();
   return useMutation({

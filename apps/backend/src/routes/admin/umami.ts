@@ -9,6 +9,9 @@ import {
   getManagedUmamiStats,
 } from "../../services/admin-umami.js";
 
+/**
+ * Admin analytics routes backed by Umami.
+ */
 export const umamiRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/umami/stats?period=today|7d|30d

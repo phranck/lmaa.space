@@ -4,6 +4,11 @@ import { api } from "@/lib/api.ts";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
+/**
+ * First-run setup screen that creates the initial owner account.
+ *
+ * @returns Setup form page.
+ */
 export function SetupPage() {
   const { messages } = useI18n();
   const loginMessages = messages.auth.login;

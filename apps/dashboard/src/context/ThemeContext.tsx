@@ -22,6 +22,15 @@ function loadTheme(): Theme {
   return "system";
 }
 
+/**
+ * Provides persisted dashboard theme preference and effective theme.
+ *
+ * Hidden behavior: writes/removes `.dark` on `<html>` and reacts to OS theme
+ * changes when mode is `system`.
+ *
+ * @param props - Provider children.
+ * @returns Context provider element.
+ */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(loadTheme);
   const [systemTheme, setSystemTheme] = useState<"light" | "dark">(getSystemTheme);
@@ -58,6 +67,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Accessor hook for theme state.
+ *
+ * @returns Current theme mode and setter.
+ * @throws Error when used outside `ThemeProvider`.
+ */
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");

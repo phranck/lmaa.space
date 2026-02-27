@@ -18,11 +18,13 @@
     "format": "biome format --write .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "npm run db:migrate -w @lmaa/backend",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "docs:code": "typedoc --options typedoc.json"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "drizzle-kit": "^0.30.4",
+    "typedoc": "^0.28.9",
     "typescript": "^5.7.3"
   },
   "dependencies": {

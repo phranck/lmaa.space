@@ -12,11 +12,20 @@ import {
   Text,
 } from "@react-email/components";
 
+/**
+ * Props for the rejection notification email.
+ */
 interface RejectedEmailProps {
   shopName: string;
   reason?: string;
 }
 
+/**
+ * Renders the email sent when a submission is rejected.
+ *
+ * @param props - Rejected submission data.
+ * @returns JSX email markup.
+ */
 export function RejectedEmail({ shopName, reason }: RejectedEmailProps) {
   return (
     <Html lang="de">
@@ -84,6 +93,9 @@ RejectedEmail.PreviewProps = {
   reason: "Der Shop erfüllt leider nicht unsere Aufnahmekriterien.",
 } satisfies RejectedEmailProps;
 
+/**
+ * Default export for React Email tooling.
+ */
 export default RejectedEmail;
 
 const body = {

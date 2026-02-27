@@ -4,12 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LuCheck, LuChevronDown, LuInfo } from "react-icons/lu";
 
+/**
+ * Display option used by region select inputs.
+ */
 export interface RegionSelectOption {
   code: RegionCode;
   flag: string;
   name: string;
 }
 
+/**
+ * Localizable copy contract for the region select component.
+ */
 export interface RegionSelectMessages {
   label: string;
   placeholder: string;
@@ -18,6 +24,9 @@ export interface RegionSelectMessages {
   infoDescription: string;
 }
 
+/**
+ * Flag mapping keyed by {@link RegionCode}.
+ */
 export const REGION_FLAGS: Readonly<Record<RegionCode, string>> = {
   DE: "🇩🇪",
   AT: "🇦🇹",
@@ -25,14 +34,26 @@ export const REGION_FLAGS: Readonly<Record<RegionCode, string>> = {
   EU: "🇪🇺",
 };
 
+/**
+ * Creates region options from translated names while keeping canonical region order.
+ *
+ * @param regionNames Region label mapping keyed by `RegionCode`.
+ * @returns Ordered list of options with flag + translated name.
+ */
 export function createRegionOptions(
   regionNames: Readonly<Record<RegionCode, string>>,
 ): ReadonlyArray<RegionSelectOption> {
   return REGION_CODES.map((code) => ({ code, flag: REGION_FLAGS[code], name: regionNames[code] }));
 }
 
+/**
+ * Re-export of shared `RegionCode` union for UI consumers.
+ */
 export type { RegionCode };
 
+/**
+ * Props for the shared region select component.
+ */
 export interface RegionSelectProps {
   value: string[];
   onChange: (value: string[]) => void;
@@ -43,6 +64,9 @@ export interface RegionSelectProps {
   variant?: "dashboard" | "frontend";
 }
 
+/**
+ * Region multi-select input with portal dropdown and optional info popover.
+ */
 export function RegionSelect({
   value,
   onChange,

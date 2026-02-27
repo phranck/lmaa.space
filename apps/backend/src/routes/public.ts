@@ -19,6 +19,9 @@ import {
   searchManagedPublicCatalog,
 } from "../services/public.js";
 
+/**
+ * Public API routes consumed by the website and external clients.
+ */
 export const publicRoutes = new Hono();
 
 // GET /api/categories

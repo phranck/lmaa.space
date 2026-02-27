@@ -17,6 +17,12 @@ interface CategoryEditCardProps {
   onSaved: () => void;
 }
 
+/**
+ * Converts category names into slug-safe strings.
+ *
+ * @param s - Free-text category name.
+ * @returns Lowercase URL slug.
+ */
 function slugify(s: string) {
   return s
     .toLowerCase()
@@ -28,6 +34,15 @@ function slugify(s: string) {
     .replace(/^-|-$/g, "");
 }
 
+/**
+ * Overlay card for creating/updating categories and category images.
+ *
+ * Hidden behavior: supports three image input paths (upload, Unsplash, delete)
+ * and syncs all changes in the save mutation.
+ *
+ * @param props - Edit target id and close/save callbacks.
+ * @returns Modal-like category editor.
+ */
 export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditCardProps) {
   const { messages } = useI18n();
   const common = messages.common;

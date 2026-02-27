@@ -16,6 +16,14 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+/**
+ * Resolves the initial dashboard locale from storage/browser settings.
+ *
+ * Hidden behavior: defaults to German when detection fails or no preference
+ * exists.
+ *
+ * @returns Initial locale (`de` or `en`).
+ */
 export function resolveInitialLocale(): DashboardLocale {
   try {
     const stored = localStorage.getItem(DASHBOARD_LOCALE_STORAGE_KEY);
@@ -30,6 +38,12 @@ export function resolveInitialLocale(): DashboardLocale {
   return "de";
 }
 
+/**
+ * Provides translated message bundles and locale-aware format helpers.
+ *
+ * @param props - Provider children.
+ * @returns Context provider element.
+ */
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [localeState, setLocaleState] = useState<DashboardLocale>(resolveInitialLocale);
 
@@ -53,6 +67,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
+/**
+ * Accessor hook for dashboard i18n state.
+ *
+ * @returns Locale, messages and formatter helpers.
+ * @throws Error when called outside `I18nProvider`.
+ */
 export function useI18n() {
   const context = useContext(I18nContext);
   if (!context) {

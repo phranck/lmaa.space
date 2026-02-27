@@ -36,6 +36,12 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
   return null;
 }
 
+/**
+ * Table presentation of shop rows with moderation actions.
+ *
+ * @param props - Shop rows and row-level action callbacks.
+ * @returns Data table with sticky header.
+ */
 export function ShopTable({ shops, onEdit, onDelete, onHold, onRestore }: ShopTableProps) {
   const { locale, messages } = useI18n();
   const shopsMessages = messages.shops;

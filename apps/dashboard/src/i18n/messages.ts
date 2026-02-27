@@ -1,5 +1,11 @@
+/**
+ * Supported dashboard UI locales.
+ */
 export type DashboardLocale = "de" | "en";
 
+/**
+ * Complete translation contract consumed by dashboard views/components.
+ */
 export interface DashboardMessages {
   languageName: string;
   common: {
@@ -350,6 +356,9 @@ export interface DashboardMessages {
   };
 }
 
+/**
+ * Dashboard translation bundle keyed by locale.
+ */
 export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
   de: {
     languageName: "Deutsch",

@@ -12,10 +12,19 @@ import {
   Text,
 } from "@react-email/components";
 
+/**
+ * Props for the approval notification email template.
+ */
 interface ApprovedEmailProps {
   shopName: string;
 }
 
+/**
+ * Renders the email sent when a submission gets approved.
+ *
+ * @param props - Template input values.
+ * @returns JSX email markup compatible with React Email.
+ */
 export function ApprovedEmail({ shopName }: ApprovedEmailProps) {
   return (
     <Html lang="de">
@@ -71,6 +80,9 @@ ApprovedEmail.PreviewProps = {
   shopName: "Manufactum",
 } satisfies ApprovedEmailProps;
 
+/**
+ * Default export for React Email preview tooling.
+ */
 export default ApprovedEmail;
 
 const body = {

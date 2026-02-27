@@ -15,6 +15,12 @@ interface UserCreateCardProps {
 const inputClass =
   "w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
+/**
+ * Modal card for creating dashboard users.
+ *
+ * @param props - Close/create callbacks.
+ * @returns User creation modal.
+ */
 export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
   const { messages } = useI18n();
   const { user } = useAuth();

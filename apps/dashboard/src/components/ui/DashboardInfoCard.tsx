@@ -1,5 +1,11 @@
 import { Link } from "react-router";
 
+/**
+ * Reusable KPI card for dashboard summary metrics.
+ *
+ * @param props - Label/value plus optional trend indicator.
+ * @returns Styled metric card.
+ */
 export function DashboardInfoCard({
   label,
   value,

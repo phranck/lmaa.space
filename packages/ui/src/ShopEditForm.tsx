@@ -8,6 +8,9 @@ import {
   type RegionSelectOption,
 } from "./RegionSelect.tsx";
 
+/**
+ * Canonical value model used by the shared shop edit form.
+ */
 export interface ShopEditFormValue {
   name: string;
   url: string;
@@ -17,6 +20,9 @@ export interface ShopEditFormValue {
   shipping: string;
 }
 
+/**
+ * Empty initial state for shop creation/edit flows.
+ */
 export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   name: "",
   url: "",
@@ -26,6 +32,9 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   shipping: "",
 };
 
+/**
+ * Localizable UI copy contract for the shared shop edit form.
+ */
 export interface ShopEditFormMessages {
   nameLabel: string;
   urlLabel: string;
@@ -42,6 +51,9 @@ export interface ShopEditFormMessages {
   categorySelect: MultiSelectMessages;
 }
 
+/**
+ * Props for the shared shop edit form component.
+ */
 export interface ShopEditFormProps {
   value: ShopEditFormValue;
   onChange: (value: ShopEditFormValue) => void;
@@ -55,6 +67,9 @@ export interface ShopEditFormProps {
   descriptionHint?: ReactNode;
 }
 
+/**
+ * Shared, message-driven shop form used in both dashboard moderation and public suggestion flows.
+ */
 export function ShopEditForm({
   value,
   onChange,

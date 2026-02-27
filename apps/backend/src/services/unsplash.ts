@@ -26,6 +26,14 @@ function getUnsplashApiKey() {
   return key;
 }
 
+/**
+ * Searches Unsplash and returns normalized payload for admin media picker.
+ *
+ * @param query - Search phrase.
+ * @param page - 1-based page number as string.
+ * @returns Normalized search payload with `results` and `total`.
+ * @throws {HttpError} When Unsplash is not configured or request fails.
+ */
 export async function searchUnsplashPhotos(
   query: string,
   page = "1",
@@ -52,6 +60,12 @@ export async function searchUnsplashPhotos(
   };
 }
 
+/**
+ * Calls Unsplash download-tracking endpoint.
+ *
+ * @param downloadLocation - Unsplash-provided tracking endpoint URL.
+ * @returns `true` when request was attempted with configured API key; otherwise `false`.
+ */
 export async function triggerUnsplashDownload(downloadLocation: string): Promise<boolean> {
   const key = env.UNSPLASH_ACCESS_KEY;
   if (!key) return false;

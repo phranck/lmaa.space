@@ -13,6 +13,15 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+/**
+ * Authentication provider for dashboard session state.
+ *
+ * Hidden behavior: on mount it probes `/admin/me`; on failure it falls back to
+ * `/admin/setup` to decide whether first-time setup is required.
+ *
+ * @param props - Provider children.
+ * @returns Context provider element.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Accessor hook for auth/session actions.
+ *
+ * @returns Auth state and mutation methods.
+ * @throws Error when used outside `AuthProvider`.
+ */
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");

@@ -23,6 +23,12 @@ function normalizePeriod(period: string | undefined): UmamiPeriod {
   }
 }
 
+/**
+ * Returns normalized KPI stats from Umami for the requested period.
+ *
+ * @param periodRaw - Untrusted period query string.
+ * @returns Normalized KPI payload or `null` when Umami is unavailable/fails.
+ */
 export async function getManagedUmamiStats(periodRaw: string | undefined) {
   if (!umamiConfigured) return null;
 
@@ -39,6 +45,12 @@ export async function getManagedUmamiStats(periodRaw: string | undefined) {
   }
 }
 
+/**
+ * Returns time-series pageview data from Umami for the requested period.
+ *
+ * @param periodRaw - Untrusted period query string.
+ * @returns Umami pageview series payload or `null`.
+ */
 export async function getManagedUmamiPageviews(periodRaw: string | undefined) {
   if (!umamiConfigured) return null;
 
@@ -55,6 +67,13 @@ export async function getManagedUmamiPageviews(periodRaw: string | undefined) {
   }
 }
 
+/**
+ * Returns top metrics (pages/sources/devices etc.) from Umami.
+ *
+ * @param typeRaw - Metric type from query string.
+ * @param periodRaw - Period preset from query string.
+ * @returns Umami metric payload or `null`.
+ */
 export async function getManagedUmamiMetrics(
   typeRaw: string | undefined,
   periodRaw: string | undefined,
@@ -74,6 +93,11 @@ export async function getManagedUmamiMetrics(
   }
 }
 
+/**
+ * Returns currently active visitor count from Umami.
+ *
+ * @returns Active payload from Umami or `null`.
+ */
 export async function getManagedUmamiActive() {
   if (!umamiConfigured) return null;
 
@@ -84,6 +108,11 @@ export async function getManagedUmamiActive() {
   }
 }
 
+/**
+ * Returns realtime payload from Umami.
+ *
+ * @returns Realtime payload from Umami or `null`.
+ */
 export async function getManagedUmamiRealtime() {
   if (!umamiConfigured) return null;
 

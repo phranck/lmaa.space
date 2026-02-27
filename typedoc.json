@@ -1,0 +1,16 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "packages/shared/src/index.ts",
+    "packages/contracts/src/index.ts",
+    "packages/ui/src/index.ts"
+  ],
+  "entryPointStrategy": "resolve",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "sort": ["source-order"],
+  "hideGenerator": true,
+  "readme": "none",
+  "out": "docs/reference/code"
+}

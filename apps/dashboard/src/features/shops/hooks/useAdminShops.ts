@@ -4,8 +4,17 @@ import type { Shop, ShopMutableVisibility, ShopSummary, ShopVisibility } from "@
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+/**
+ * Re-exported form value type used by shop editor views.
+ */
 export type { ShopEditFormValue };
 
+/**
+ * Loads admin shop summaries, optionally filtered by visibility.
+ *
+ * @param visibility - Optional visibility filter.
+ * @returns React Query result with shop rows.
+ */
 export function useAdminShops(visibility?: ShopVisibility) {
   return useQuery({
     queryKey: ["shops-admin", visibility],
@@ -14,6 +23,11 @@ export function useAdminShops(visibility?: ShopVisibility) {
   });
 }
 
+/**
+ * Updates visibility (`public`/`onhold`) for one shop.
+ *
+ * @returns React Query mutation for visibility updates.
+ */
 export function useSetShopVisibility() {
   const qc = useQueryClient();
   return useMutation({
@@ -23,6 +37,12 @@ export function useSetShopVisibility() {
   });
 }
 
+/**
+ * Loads one shop detail for edit mode.
+ *
+ * @param id - Shop id or `null` to disable fetching.
+ * @returns React Query result with shop detail.
+ */
 export function useAdminShop(id: number | null) {
   return useQuery({
     queryKey: ["shop", id],
@@ -31,6 +51,12 @@ export function useAdminShop(id: number | null) {
   });
 }
 
+/**
+ * Creates or updates a shop depending on presence of `editId`.
+ *
+ * @param editId - Existing shop id or `null` for create mode.
+ * @returns React Query mutation for save operations.
+ */
 export function useSaveShop(editId: number | null) {
   const qc = useQueryClient();
   return useMutation({
@@ -40,6 +66,11 @@ export function useSaveShop(editId: number | null) {
   });
 }
 
+/**
+ * Deletes or soft-deletes a shop with optional reason metadata.
+ *
+ * @returns React Query mutation.
+ */
 export function useDeleteShop() {
   const qc = useQueryClient();
   return useMutation({
@@ -58,6 +89,11 @@ export function useDeleteShop() {
   });
 }
 
+/**
+ * Requests a preview OG image URL for an arbitrary shop URL.
+ *
+ * @returns React Query mutation returning preview image data.
+ */
 export function useFetchPreviewImage() {
   return useMutation({
     mutationFn: (url: string) =>
@@ -65,6 +101,12 @@ export function useFetchPreviewImage() {
   });
 }
 
+/**
+ * Refetches/stores OG image for an existing shop.
+ *
+ * @param shopId - Shop id.
+ * @returns React Query mutation.
+ */
 export function useRefetchShopImage(shopId: number) {
   const qc = useQueryClient();
   return useMutation({

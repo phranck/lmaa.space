@@ -7,12 +7,42 @@ import {
 } from "@lmaa/shared";
 import { z } from "zod";
 
+/**
+ * Region code validator shared by public and admin routes.
+ */
 export const regionCodeSchema = z.enum(REGION_CODES);
+
+/**
+ * Region list validator for payloads that accept multiple target regions.
+ */
 export const regionArraySchema = z.array(regionCodeSchema);
+
+/**
+ * Optional region list validator.
+ */
 export const optionalRegionArraySchema = regionArraySchema.optional();
+
+/**
+ * Region list validator defaulting to an empty array.
+ */
 export const defaultRegionArraySchema = optionalRegionArraySchema.default([]);
 
+/**
+ * Submission status validator for filters and route parameters.
+ */
 export const submissionStatusSchema = z.enum(SUBMISSION_STATUSES);
+
+/**
+ * Submission review outcome validator.
+ */
 export const submissionReviewStatusSchema = z.enum(SUBMISSION_REVIEW_STATUSES);
+
+/**
+ * Full shop visibility validator.
+ */
 export const shopVisibilitySchema = z.enum(SHOP_VISIBILITIES);
+
+/**
+ * Mutable shop visibility validator (excludes hard-delete state).
+ */
 export const shopMutableVisibilitySchema = z.enum(SHOP_MUTABLE_VISIBILITIES);

@@ -19,6 +19,12 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+/**
+ * Admin authentication routes (`/setup`, `/login`, `/logout`, `/me`).
+ *
+ * Hidden behavior: successful setup/login writes the `session` cookie using
+ * shared secure cookie options.
+ */
 export const authRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/setup – check if initial setup is needed

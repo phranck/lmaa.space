@@ -18,11 +18,24 @@ function mapNavRowToApiItem(row: Awaited<ReturnType<typeof listAdminNavItems>>[n
   };
 }
 
+/**
+ * Lists navigation items for one admin-managed nav bucket.
+ *
+ * @param navId - Navigation target (`header` or `footer`).
+ * @returns Ordered list of normalized nav items.
+ */
 export async function getManagedNavItems(navId: NavId): Promise<NavItem[]> {
   const rows = await listAdminNavItems(navId);
   return rows.map(mapNavRowToApiItem);
 }
 
+/**
+ * Replaces all navigation items for a nav bucket transactionally.
+ *
+ * @param navId - Navigation target (`header` or `footer`).
+ * @param items - Full replacement set for that nav bucket.
+ * @returns Persisted and re-ordered nav item list.
+ */
 export async function replaceManagedNavItems(
   navId: NavId,
   items: ReplaceAdminNavItemInput[],

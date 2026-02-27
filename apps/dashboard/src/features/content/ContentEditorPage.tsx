@@ -427,6 +427,11 @@ function EditorMetadataBar({
   );
 }
 
+/**
+ * Markdown content editor page for one content slug.
+ *
+ * @returns Full editor route component.
+ */
 export function ContentEditorPage() {
   const { messages } = useI18n();
   const common = messages.common;

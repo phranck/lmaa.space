@@ -11,6 +11,11 @@ interface LinkEntry {
   group: string;
 }
 
+/**
+ * Helper dialog for inserting internal content links into Markdown.
+ *
+ * @returns Link picker component.
+ */
 export function InternalLinkPicker() {
   const { messages } = useI18n();
   const linkPickerMessages = messages.content.linkPicker;

@@ -6,12 +6,20 @@ import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
 import { fail } from "../lib/http.js";
 
+/**
+ * Request-scoped auth variables available after `requireAuth`.
+ */
 export type AuthVariables = {
   adminId: number;
   role: AdminRole;
   isOwner: boolean; // computed: role === "owner"
 };
 
+/**
+ * Auth middleware validating session cookie and loading admin context.
+ *
+ * @returns Hono middleware that sets `adminId`, `role` and `isOwner` on context variables.
+ */
 export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   const sessionId = getCookie(c, "session");
 
@@ -42,6 +50,11 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
   await next();
 });
 
+/**
+ * Auth middleware allowing only owner role.
+ *
+ * @returns Hono middleware rejecting non-owner users with `403`.
+ */
 export const requireOwner = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   if (!c.get("isOwner")) {
     return fail(c, 403, "Forbidden");
@@ -49,6 +62,11 @@ export const requireOwner = createMiddleware<{ Variables: AuthVariables }>(async
   await next();
 });
 
+/**
+ * Auth middleware allowing owner/admin but rejecting moderators.
+ *
+ * @returns Hono middleware rejecting moderator users with `403`.
+ */
 export const requireAdmin = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   if (c.get("role") === "moderator") {
     return fail(c, 403, "Forbidden");

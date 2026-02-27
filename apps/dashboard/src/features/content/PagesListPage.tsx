@@ -116,6 +116,11 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/**
+ * Content pages overview with create/delete navigation actions.
+ *
+ * @returns Content list route component.
+ */
 export function PagesListPage() {
   const { locale } = useI18n();
   const text = PAGE_LIST_TEXT[locale];

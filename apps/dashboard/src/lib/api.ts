@@ -2,6 +2,13 @@ import { createApiRequestError } from "@lmaa/shared";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
+/**
+ * Normalizes API responses and throws typed request errors on failure.
+ *
+ * @typeParam T - Expected response payload type.
+ * @param res - Raw fetch response.
+ * @returns Parsed `data` payload.
+ */
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     throw await createApiRequestError(res);
@@ -10,6 +17,12 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return body.data as T;
 }
 
+/**
+ * Lightweight dashboard API client with credentialed requests.
+ *
+ * Hidden behavior: all calls include cookies (`credentials: "include"`), which
+ * is required for session-based admin auth.
+ */
 export const api = {
   get: <T>(path: string): Promise<T> =>
     fetch(`${API_BASE}${path}`, { credentials: "include" }).then((r) => handleResponse<T>(r)),

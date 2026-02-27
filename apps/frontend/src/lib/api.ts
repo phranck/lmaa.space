@@ -33,12 +33,29 @@ function resolveApiBase(): string {
 const API_BASE = resolveApiBase();
 const BACKEND_ORIGIN = API_BASE.slice(0, -4);
 
+/**
+ * Resolves backend-hosted upload URLs for frontend rendering.
+ *
+ * Hidden behavior: relative `/uploads/*` paths are rewritten to the configured
+ * backend origin while absolute URLs stay unchanged.
+ *
+ * @param url - Raw image URL from API responses.
+ * @returns Absolute image URL or `null` when input is empty.
+ */
 export function resolveImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   if (url.startsWith("/uploads/")) return `${BACKEND_ORIGIN}${url}`;
   return url;
 }
 
+/**
+ * Executes a typed GET request against the backend API.
+ *
+ * @typeParam T - Expected `data` payload type.
+ * @param path - API path starting with `/`.
+ * @returns Parsed `data` payload cast to `T`.
+ * @throws Error when the request fails or the API answers non-2xx.
+ */
 export async function apiGet<T>(path: string): Promise<T> {
   const url = `${API_BASE}${path}`;
   let res: Response;

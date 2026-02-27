@@ -1,7 +1,13 @@
 import type { RegionCode, SubmissionReviewStatus, SubmissionStatus } from "../constants/domain.js";
 
+/**
+ * Re-exported submission status unions from domain constants.
+ */
 export type { SubmissionReviewStatus, SubmissionStatus };
 
+/**
+ * Submission entity stored in moderation workflow.
+ */
 export interface Submission {
   id: number;
   shopName: string;
@@ -23,6 +29,9 @@ export interface Submission {
   updatedAt: string;
 }
 
+/**
+ * Payload for creating a new submission from the public suggestion form.
+ */
 export interface SubmissionCreate {
   shopName: string;
   shopUrl: string;
@@ -36,6 +45,9 @@ export interface SubmissionCreate {
   submitterNote?: string;
 }
 
+/**
+ * Aggregated dead-link report row grouped by shop.
+ */
 export interface DeadLinkReportSummary {
   shopId: number;
   shopName: string;
@@ -44,6 +56,9 @@ export interface DeadLinkReportSummary {
   lastReportedAt: string | null;
 }
 
+/**
+ * Single report entry for moderation of shop concerns.
+ */
 export interface ShopConcernReportEntry {
   id: number;
   shopId: number;
@@ -53,6 +68,9 @@ export interface ShopConcernReportEntry {
   reportedAt: string;
 }
 
+/**
+ * Moderation payload for reviewing a submission.
+ */
 export interface SubmissionReview {
   status: SubmissionReviewStatus;
   adminNote?: string;

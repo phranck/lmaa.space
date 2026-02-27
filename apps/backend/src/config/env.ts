@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+/**
+ * Environment schema for backend runtime configuration.
+ *
+ * @remarks
+ * Parsing happens at startup. Missing/invalid required variables fail fast.
+ */
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -31,4 +37,9 @@ const envSchema = z.object({
   UNSPLASH_ACCESS_KEY: z.string().optional(),
 });
 
+/**
+ * Validated backend environment configuration.
+ *
+ * @throws {z.ZodError} When required environment variables are missing/invalid.
+ */
 export const env = envSchema.parse(process.env);

@@ -2,6 +2,11 @@ import type { AdminStats } from "@lmaa/shared";
 import { sql } from "drizzle-orm";
 import { db } from "../db/index.js";
 
+/**
+ * Returns aggregated high-level dashboard counters.
+ *
+ * @returns Stats object with shop, category and submission counters.
+ */
 export async function getAdminStatsRow(): Promise<AdminStats> {
   const [stats] = await db.execute<AdminStats & Record<string, unknown>>(sql`
     SELECT

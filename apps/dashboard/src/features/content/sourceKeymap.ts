@@ -1,6 +1,14 @@
 import { EditorSelection } from "@codemirror/state";
 import { type EditorView, keymap } from "@codemirror/view";
 
+/**
+ * Wraps current editor selection with surrounding tokens.
+ *
+ * @param view - CodeMirror editor view.
+ * @param before - Prefix token.
+ * @param after - Suffix token.
+ * @returns Always `true` to signal command handled.
+ */
 function wrapSelection(view: EditorView, before: string, after: string): boolean {
   view.dispatch(
     view.state.changeByRange((range) => {
@@ -18,6 +26,11 @@ function wrapSelection(view: EditorView, before: string, after: string): boolean
   return true;
 }
 
+/**
+ * Keyboard shortcuts used by the Markdown source editor.
+ *
+ * Provides bold/italic/link helpers aligned with common editor behavior.
+ */
 export const sourceKeymap = keymap.of([
   {
     key: "Mod-b",

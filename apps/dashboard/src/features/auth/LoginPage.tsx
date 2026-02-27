@@ -3,6 +3,11 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
+/**
+ * Login screen for existing dashboard users.
+ *
+ * @returns Login form page.
+ */
 export function LoginPage() {
   const { messages } = useI18n();
   const loginMessages = messages.auth.login;

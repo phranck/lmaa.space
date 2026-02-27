@@ -482,6 +482,11 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
   );
 }
 
+/**
+ * Navigation management page for header/footer link sets.
+ *
+ * @returns Nav manager route component.
+ */
 export function NavManagerPage() {
   const { locale } = useI18n();
   const text = NAV_TEXT[locale];

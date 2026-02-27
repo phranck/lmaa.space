@@ -16,6 +16,12 @@ interface State {
  * Error Boundary to catch unhandled React render errors in dashboard
  * Prevents entire admin UI from crashing due to component errors
  */
+/**
+ * Global React error boundary for dashboard routes.
+ *
+ * Hidden behavior: logs runtime errors to console and renders a fallback card
+ * instead of crashing the whole SPA tree.
+ */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);

@@ -33,6 +33,9 @@ function toAdminUser(row: AdminUserRow): AdminUser {
   };
 }
 
+/**
+ * Input contract for creating an admin/moderator account.
+ */
 export interface CreateManagedAdminUserInput {
   username: string;
   email: string;
@@ -40,6 +43,9 @@ export interface CreateManagedAdminUserInput {
   role?: "admin" | "moderator";
 }
 
+/**
+ * Input contract for updating admin/moderator profile/account fields.
+ */
 export interface UpdateManagedAdminUserInput {
   id: number;
   actorAdminId: number;
@@ -52,11 +58,27 @@ export interface UpdateManagedAdminUserInput {
   role?: "admin" | "moderator";
 }
 
+/**
+ * Returns all admin users mapped to shared API model.
+ *
+ * @returns Array of normalized admin users.
+ */
 export async function getManagedAdminUsers(): Promise<AdminUser[]> {
   const rows = await listAdminUsers();
   return rows.map(toAdminUser);
 }
 
+/**
+ * Creates a new admin/moderator user and schedules welcome email delivery.
+ *
+ * @param input - New user payload.
+ * @returns Created user mapped to shared admin model.
+ *
+ * @remarks
+ * Side effects:
+ * - Persists hashed password.
+ * - Sends welcome email asynchronously (non-blocking).
+ */
 export async function createManagedAdminUser(
   input: CreateManagedAdminUserInput,
 ): Promise<AdminUser> {
@@ -73,6 +95,18 @@ export async function createManagedAdminUser(
   return toAdminUser(created);
 }
 
+/**
+ * Updates an admin user with role/self-service permission checks.
+ *
+ * @param input - Update payload including actor metadata.
+ * @returns Result union with `ok` flag and optional reason/user payload.
+ *
+ * @remarks
+ * Hidden rules:
+ * - Non-owners cannot modify other users.
+ * - Role changes require owner and cannot be self-applied.
+ * - Empty payload returns `nothing_to_update`.
+ */
 export async function updateManagedAdminUser(input: UpdateManagedAdminUserInput) {
   if (!canModifyAdminUser(input.actorAdminId, input.actorIsOwner, input.id)) {
     return { ok: false as const, reason: "forbidden" as const };
@@ -104,6 +138,18 @@ export async function updateManagedAdminUser(input: UpdateManagedAdminUserInput)
   return { ok: true as const, user: toAdminUser(updated) };
 }
 
+/**
+ * Uploads and stores a normalized avatar image for an admin user.
+ *
+ * @param input - Upload payload including actor metadata and `File`.
+ * @returns Result union with `ok` flag and optional reason/user payload.
+ *
+ * @remarks
+ * Side effects:
+ * - Validates binary type using magic bytes.
+ * - Resizes/crops image to 256x256 WebP.
+ * - Stores image as data URL in database.
+ */
 export async function uploadManagedAdminUserAvatar(input: {
   id: number;
   actorAdminId: number;
@@ -144,6 +190,12 @@ export async function uploadManagedAdminUserAvatar(input: {
   return { ok: true as const, user: toAdminUser(updated) };
 }
 
+/**
+ * Sets avatar URL to an externally provided gravatar URL.
+ *
+ * @param input - Actor metadata and target gravatar URL.
+ * @returns Result union with `ok` flag and optional reason/user payload.
+ */
 export async function setManagedAdminUserGravatar(input: {
   id: number;
   actorAdminId: number;
@@ -162,6 +214,12 @@ export async function setManagedAdminUserGravatar(input: {
   return { ok: true as const, user: toAdminUser(updated) };
 }
 
+/**
+ * Removes the avatar image for an admin user.
+ *
+ * @param input - Actor metadata and target user id.
+ * @returns Result union with `ok` flag and optional reason/user payload.
+ */
 export async function deleteManagedAdminUserAvatar(input: {
   id: number;
   actorAdminId: number;
@@ -184,6 +242,15 @@ export async function deleteManagedAdminUserAvatar(input: {
   return { ok: true as const, user: toAdminUser(updated) };
 }
 
+/**
+ * Deletes another admin user and their sessions.
+ *
+ * @param input - Target/admin actor ids.
+ * @returns Result union with `ok` flag and optional reason.
+ *
+ * @remarks
+ * Self-deletion is explicitly disallowed to prevent accidental lock-out.
+ */
 export async function deleteManagedAdminUser(input: { id: number; actorAdminId: number }) {
   if (input.id === input.actorAdminId) {
     return { ok: false as const, reason: "cannot_delete_self" as const };
