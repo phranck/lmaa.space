@@ -28,6 +28,9 @@ export default defineConfig({
     build: {
       cssCodeSplit: false,
     },
+    ssr: {
+      noExternal: ["marked"],
+    },
     server: {
       proxy: {
         "/api": {

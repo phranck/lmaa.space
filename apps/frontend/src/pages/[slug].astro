@@ -1,17 +1,74 @@
 ---
-import ContentPage from "@/components/islands/ContentPage";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import { renderMarkdown } from "@/lib/markdown";
+
+interface ContentPageView {
+  title: string;
+  content: string;
+}
 
 const { slug } = Astro.params;
 const forbiddenSlugs = new Set(["api", "uploads", "_astro", "favicon.ico", "sitemap.xml"]);
+const fallbackPages: Record<string, ContentPageView> = {
+  about: {
+    title: "Über LMAA",
+    content:
+      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
+  },
+  history: {
+    title: "Geschichte",
+    content:
+      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
+  },
+  impressum: {
+    title: "Impressum",
+    content:
+      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
+  },
+  datenschutz: {
+    title: "Datenschutz",
+    content:
+      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
+  },
+};
 
 if (!slug || forbiddenSlugs.has(slug)) {
   return Astro.redirect("/404");
 }
 
-const title = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+let page: ContentPageView | null = null;
+try {
+  const remote = await apiGet<{ title: string; content: string }>(`/content/${slug}`);
+  page = { title: remote.title, content: remote.content };
+} catch (err) {
+  console.error("[SSR] /about fetch failed:", err);
+  page = fallbackPages[slug] ?? null;
+}
+
+if (!page) {
+  return Astro.redirect("/404");
+}
+
+const html = await renderMarkdown(page.content);
+
+const description = page.content
+  .replace(/#{1,6}\s+/g, "")
+  .replace(/\*\*(.+?)\*\*/g, "$1")
+  .replace(/\*(.+?)\*/g, "$1")
+  .replace(/\[(.+?)\]\(.+?\)/g, "$1")
+  .replace(/`(.+?)`/g, "$1")
+  .replace(/\n+/g, " ")
+  .trim()
+  .slice(0, 160);
 ---
 
-<BaseLayout title={title}>
-  <ContentPage client:only="react" slug={slug} />
+<BaseLayout title={page.title} description={description}>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+    <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
+    <article
+      class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
+      set:html={html}
+    />
+  </div>
 </BaseLayout>
