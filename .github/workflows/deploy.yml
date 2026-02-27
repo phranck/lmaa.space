@@ -102,4 +102,3 @@ jobs:
         run: bash scripts/smoke-prod.sh
         env:
           WEB_BASE_URL: https://lmaa.space
-          API_BASE_URL: https://api.lmaa.space
