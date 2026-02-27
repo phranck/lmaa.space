@@ -3,6 +3,8 @@
  * Runtime browser calls use PUBLIC_API_URL (api.lmaa.space) directly.
  */
 const DEV_DEFAULT_API_URL = "http://localhost:3000/api";
+const PROD_FETCH_TIMEOUT_MS = 8_000;
+const DEV_FETCH_TIMEOUT_MS = 5_000;
 
 function normalizeApiBase(input: string): string {
   const trimmed = input.trim().replace(/\/+$/, "");
@@ -58,14 +60,21 @@ export function resolveImageUrl(url: string | null | undefined): string | null {
  */
 export async function apiGet<T>(path: string): Promise<T> {
   const url = `${API_BASE}${path}`;
+  const timeoutMs = import.meta.env.DEV ? DEV_FETCH_TIMEOUT_MS : PROD_FETCH_TIMEOUT_MS;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   let res: Response;
   try {
-    res = await fetch(url);
+    res = await fetch(url, { signal: controller.signal });
   } catch (err) {
     throw new Error(
       `API fetch failed for ${url} — is API_URL set correctly? (current: ${API_BASE})\n${err}`,
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
+
   if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
   const json = await res.json();
   return json.data as T;
