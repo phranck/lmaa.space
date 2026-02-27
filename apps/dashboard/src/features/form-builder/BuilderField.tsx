@@ -1,7 +1,7 @@
 import { useI18n } from "@/context/I18nContext.tsx";
-import type { FormField } from "@lmaa/contracts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import type { FormField } from "@lmaa/contracts";
 
 interface BuilderFieldProps {
   field: FormField;
@@ -44,11 +44,12 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
   };
 
   return (
-    <div
+    <button
+      type="button"
       ref={setNodeRef}
       style={style}
       onClick={onSelect}
-      className={`relative flex items-center gap-2 px-3 py-2.5 rounded-control border text-sm cursor-pointer transition-colors ${
+      className={`relative flex w-full items-center gap-2 px-3 py-2.5 rounded-control border text-sm cursor-pointer transition-colors text-left ${
         isSelected
           ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
           : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] hover:border-[var(--color-primary)]"
@@ -76,7 +77,9 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
       {/* Label */}
       <span className="flex-1 min-w-0 font-medium text-[var(--ds-text)] truncate">
         {field.label || <span className="opacity-50 italic">Kein Label</span>}
-        {field.required && field.type !== "richtext" && <span className="ml-1 text-red-500">*</span>}
+        {field.required && field.type !== "richtext" && (
+          <span className="ml-1 text-red-500">*</span>
+        )}
         {field.type === "richtext" && field.content && (
           <span className="ml-2 text-xs font-normal opacity-40 truncate">
             {field.content.slice(0, 40).replace(/[#*_`\n]/g, " ")}…
@@ -101,6 +104,6 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
       >
         ✕
       </button>
-    </div>
+    </button>
   );
 }
