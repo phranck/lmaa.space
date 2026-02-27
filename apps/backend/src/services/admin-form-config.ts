@@ -25,7 +25,10 @@ export async function getManagedAdminFormConfigByName(
 ): Promise<{ ok: true; data: FormConfig } | { ok: false }> {
   const row = await getFormConfigByName(name);
   if (!row) return { ok: false };
-  return { ok: true, data: { id: row.id, name: row.name, rows: row.config.rows, isActive: row.isActive } };
+  return {
+    ok: true,
+    data: { id: row.id, name: row.name, rows: row.config.rows, isActive: row.isActive },
+  };
 }
 
 /**
@@ -54,5 +57,8 @@ export async function getManagedPublicFormConfig(
 ): Promise<{ ok: true; data: FormConfig } | { ok: false }> {
   const row = await getActiveFormConfigByName(name);
   if (!row) return { ok: false };
-  return { ok: true, data: { id: row.id, name: row.name, rows: row.config.rows, isActive: row.isActive } };
+  return {
+    ok: true,
+    data: { id: row.id, name: row.name, rows: row.config.rows, isActive: row.isActive },
+  };
 }

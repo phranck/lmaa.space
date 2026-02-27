@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
 import type { FormConfigPayload } from "@lmaa/contracts";
+import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { type FormConfigRow, formConfigs } from "../db/schema.js";
 
@@ -24,10 +24,7 @@ export async function getFormConfigByName(name: string): Promise<FormConfigRow |
  * Returns only active form configs.
  */
 export async function getActiveFormConfigByName(name: string): Promise<FormConfigRow | null> {
-  const [row] = await db
-    .select()
-    .from(formConfigs)
-    .where(eq(formConfigs.name, name));
+  const [row] = await db.select().from(formConfigs).where(eq(formConfigs.name, name));
   return row?.isActive ? row : null;
 }
 
@@ -53,9 +50,6 @@ export async function upsertFormConfig(
     return updated;
   }
 
-  const [created] = await db
-    .insert(formConfigs)
-    .values({ name, config: payload })
-    .returning();
+  const [created] = await db.insert(formConfigs).values({ name, config: payload }).returning();
   return created;
 }

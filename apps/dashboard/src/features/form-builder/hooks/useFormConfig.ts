@@ -30,7 +30,12 @@ export function useFormConfig(name: string) {
         return await api.get<FormConfig>(`/admin/form-configs/${name}`);
       } catch (err: unknown) {
         // Treat 404 as "not yet created" — start with empty rows
-        if (err && typeof err === "object" && "status" in err && (err as { status: number }).status === 404) {
+        if (
+          err &&
+          typeof err === "object" &&
+          "status" in err &&
+          (err as { status: number }).status === 404
+        ) {
           return null;
         }
         throw err;

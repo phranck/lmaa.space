@@ -3,11 +3,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/form-builder/BuilderCanvas.tsx";
 import { FieldConfigPanel } from "@/features/form-builder/FieldConfigPanel.tsx";
 import { FieldPalette } from "@/features/form-builder/FieldPalette.tsx";
-import {
-  useFormConfig,
-  useSaveFormConfig,
-} from "@/features/form-builder/hooks/useFormConfig.ts";
-import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
+import { useFormConfig, useSaveFormConfig } from "@/features/form-builder/hooks/useFormConfig.ts";
 import {
   DndContext,
   type DragEndEvent,
@@ -17,6 +13,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
 import { useEffect, useState } from "react";
 
 const FORM_NAME = "suggestion-form";
@@ -74,14 +71,12 @@ export function FormBuilderPage() {
     }
   }, [config]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   // Find the currently selected field across all rows
   const selectedField =
     selectedFieldId !== null
-      ? rows.flatMap((r) => r.fields).find((f) => f.id === selectedFieldId) ?? null
+      ? (rows.flatMap((r) => r.fields).find((f) => f.id === selectedFieldId) ?? null)
       : null;
 
   function handleDragEnd(event: DragEndEvent) {
