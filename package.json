@@ -29,5 +29,8 @@
   },
   "dependencies": {
     "react-icons": "^5.5.0"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.59.0"
   }
 }
