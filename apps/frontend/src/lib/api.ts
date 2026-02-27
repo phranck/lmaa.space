@@ -1,6 +1,6 @@
 /**
  * Server-side API client for Astro frontmatter/SSR only.
- * Runtime browser calls use /api/* via same-origin fetch.
+ * Runtime browser calls use PUBLIC_API_URL (api.lmaa.space) directly.
  */
 const DEV_DEFAULT_API_URL = "http://localhost:3000/api";
 
