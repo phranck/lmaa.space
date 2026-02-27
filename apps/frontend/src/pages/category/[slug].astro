@@ -1,6 +1,8 @@
 ---
-import CategoryPage from "@/components/islands/CategoryPage";
+import ShopCard from "@/components/ShopCard.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import type { Shop } from "@lmaa/shared";
 
 const { slug } = Astro.params;
 
@@ -8,13 +10,114 @@ if (!slug) {
   return Astro.redirect("/404");
 }
 
-const title = slug
-  .split("-")
-  .filter(Boolean)
-  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-  .join(" ");
+interface CategoryPageView {
+  name: string;
+  imageUrl?: string | null;
+  shops: Shop[];
+}
+
+function slugToTitle(value: string): string {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
+}
+
+let category: CategoryPageView;
+let isFallback = false;
+try {
+  const remote = await apiGet<{ name: string; imageUrl?: string | null; shops: Shop[] }>(
+    `/categories/${slug}`,
+  );
+  category = {
+    name: remote.name,
+    imageUrl: remote.imageUrl ?? null,
+    shops: remote.shops,
+  };
+} catch {
+  isFallback = true;
+  category = {
+    name: slugToTitle(slug),
+    imageUrl: null,
+    shops: [],
+  };
+}
+
+const shopCount = category.shops.length;
+const site = Astro.site?.origin ?? "https://lmaa.space";
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Start", item: `${site}/` },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: category.name,
+      item: `${site}/category/${slug}`,
+    },
+  ],
+};
 ---
 
-<BaseLayout title={title}>
-  <CategoryPage client:only="react" slug={slug} />
+<BaseLayout
+  title={category.name}
+  description={`${shopCount} ${shopCount === 1 ? "Shop" : "Shops"} in der Kategorie ${category.name} – faire Amazon-Alternativen auf lmaa.space.`}
+  ogImage={category.imageUrl ?? undefined}
+  jsonLd={jsonLd}
+>
+  <!-- Hero Banner -->
+  <div class="relative h-52 sm:h-64 overflow-hidden">
+    <img
+      src={category.imageUrl ?? `/images/${slug}.jpg`}
+      alt=""
+      aria-hidden="true"
+      class="w-full h-full object-cover"
+    />
+    <div class="absolute inset-0 bg-stone-900/65"></div>
+    <div class="absolute inset-0 flex flex-col justify-end px-6 sm:px-10 pb-8">
+      <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-white">
+        {category.name}
+      </h1>
+      <p class="text-stone-300 text-sm mt-1">
+        {shopCount} {shopCount === 1 ? "Shop" : "Shops"} in dieser Kategorie
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-1.5 text-sm text-stone-400 mb-8" aria-label="Breadcrumb">
+      <a href="/" class="hover:text-amber-700 transition-colors">Start</a>
+      <span class="text-stone-300" aria-hidden="true">›</span>
+      <span class="text-stone-600">{category.name}</span>
+    </nav>
+
+    {category.shops.length === 0 ? (
+      <div class="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
+        {isFallback ? (
+          <p class="text-stone-500">
+            Kategorie-Inhalte sind gerade nicht erreichbar. Bitte in wenigen Minuten erneut laden.
+          </p>
+        ) : (
+          <>
+            <p class="text-stone-500 mb-5">Noch keine Shops in dieser Kategorie.</p>
+            <a
+              href="/suggestion"
+              class="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
+            >
+              Ersten Shop vorschlagen
+            </a>
+          </>
+        )}
+      </div>
+    ) : (
+      <div class="grid sm:grid-cols-2 gap-4">
+        {category.shops.map((shop) => (
+          <ShopCard shop={shop} />
+        ))}
+      </div>
+    )}
+  </div>
 </BaseLayout>
