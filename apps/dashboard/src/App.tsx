@@ -31,6 +31,12 @@ const NavManagerPage = lazy(() =>
   })),
 );
 
+const FormBuilderPage = lazy(() =>
+  import("@/features/form-builder/FormBuilderPage.tsx").then((m) => ({
+    default: m.FormBuilderPage,
+  })),
+);
+
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
 
@@ -56,6 +62,14 @@ function AppRoutes() {
           {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
           {user.role !== "moderator" && (
             <>
+              <Route
+                path="formular"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <FormBuilderPage />
+                  </Suspense>
+                }
+              />
               <Route
                 path="seiten"
                 element={

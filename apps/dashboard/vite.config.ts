@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),
+      "@lmaa/contracts": resolve(__dirname, "../../packages/contracts/src/index.ts"),
     },
   },
   server: {

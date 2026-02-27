@@ -10,6 +10,7 @@ import {
   timestamp,
   unique,
 } from "drizzle-orm/pg-core";
+import type { FormConfigPayload } from "@lmaa/contracts";
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -282,3 +283,20 @@ export const shopConcernReports = pgTable(
  * Inferred select type for `shop_concern_reports`.
  */
 export type ShopConcernReport = typeof shopConcernReports.$inferSelect;
+
+/**
+ * Named form configurations for dynamic form rendering on the frontend.
+ */
+export const formConfigs = pgTable("form_configs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  config: jsonb("config").$type<FormConfigPayload>().notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+/**
+ * Inferred select type for `form_configs`.
+ */
+export type FormConfigRow = typeof formConfigs.$inferSelect;

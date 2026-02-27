@@ -18,6 +18,7 @@ import {
   getManagedPublishedContentPage,
   searchManagedPublicCatalog,
 } from "../services/public.js";
+import { getManagedPublicFormConfig } from "../services/admin-form-config.js";
 
 /**
  * Public API routes consumed by the website and external clients.
@@ -155,6 +156,14 @@ publicRoutes.post(
     return ok(c, { message: result.message });
   },
 );
+
+// GET /api/form-config/:name — active form configuration for the frontend
+publicRoutes.get("/form-config/:name", async (c) => {
+  const result = await getManagedPublicFormConfig(c.req.param("name"));
+  if (!result.ok) return fail(c, 404, "Form config not found");
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, result.data);
+});
 
 // Debug endpoint: cache stats (dev only)
 publicRoutes.get("/cache/stats", (c) => {

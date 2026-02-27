@@ -1,4 +1,6 @@
+import DynamicForm from "@/components/islands/DynamicForm";
 import { getFrontendShopFormI18n } from "@/lib/shop-form-i18n";
+import type { FormConfig } from "@lmaa/contracts";
 import type { Category, ShopCategory } from "@lmaa/shared";
 import { type ApiRequestError, createApiRequestError } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
@@ -10,6 +12,8 @@ import { useState } from "react";
  */
 interface Props {
   categories: Category[];
+  /** When provided and non-empty, renders the dynamic backend-driven form instead of the hardcoded fallback. */
+  formConfig?: FormConfig;
 }
 
 /**
@@ -105,7 +109,54 @@ function useSuggestFormState() {
  * @param props - Available category options.
  * @returns Full form UI or success state after submission.
  */
-export default function SuggestForm({ categories }: Props) {
+export default function SuggestForm({ categories, formConfig }: Props) {
+  // If a valid form config was fetched from the backend, delegate to the
+  // dynamic renderer. Fall back to the hardcoded form when formConfig is
+  // absent or has no rows (e.g. 404 or empty config in the database).
+  if (formConfig && formConfig.rows.length > 0) {
+    return (
+      <div className="max-w-lg mx-auto px-4 sm:px-6 py-12">
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl font-semibold text-[var(--ds-text)] mb-2">
+            Shop vorschlagen
+          </h1>
+          <p className="text-[var(--ds-text-muted)] text-sm leading-relaxed">
+            Hilf mit, die Liste zu erweitern. Dein Vorschlag wird geprüft und bei Eignung
+            aufgenommen.
+          </p>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-8 text-sm leading-relaxed">
+          <p className="font-medium text-amber-900 mb-2">
+            Danke, dass du dir die Zeit nimmst, einen Shop einzutragen.
+          </p>
+          <p className="text-amber-800 mb-3">
+            Doch bevor du das tust, denk kurz an die{" "}
+            <a
+              href="/admissioncriteria"
+              className="underline underline-offset-2 hover:text-amber-900 transition-colors"
+            >
+              Aufnahmekriterien
+            </a>
+            :
+          </p>
+          <ul className="text-amber-800 space-y-1 mb-3 pl-4 list-disc">
+            <li>
+              Ist es ein Online-Shop <em>mit Ladengeschäft</em> in deiner Gegend?
+            </li>
+            <li>Kennst du diesen Laden persönlich?</li>
+            <li>Willst du ihn aus Überzeugung unterstützen, weil er es „verdient" hat?</li>
+          </ul>
+          <p className="text-amber-800">
+            Wenn du all das mit „Ja" beantworten kannst: dann weiter. Trag ihn ein. Anderenfalls
+            würde ich dir davon abraten.
+          </p>
+        </div>
+
+        <DynamicForm formConfig={formConfig} categories={categories} />
+      </div>
+    );
+  }
   const shopFormI18n = getFrontendShopFormI18n("de");
   const {
     submitted,

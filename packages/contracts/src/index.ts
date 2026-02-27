@@ -6,3 +6,5 @@ export * from "./public";
 export * from "./admin-shops";
 /** Admin submission-related payload schemas. */
 export * from "./admin-submissions";
+/** Form builder type definitions. */
+export * from "./form-builder";
