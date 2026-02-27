@@ -17,6 +17,8 @@ export const API_BASE =
   normalizedApiBase ||
   (import.meta.env.DEV
     ? "/api"
-    : (() => {
-        throw new Error("Missing PUBLIC_API_URL in production build.");
-      })());
+    : import.meta.env.SSR
+      ? "" // SSR context: API_BASE is never called during server-side rendering
+      : (() => {
+          throw new Error("Missing PUBLIC_API_URL in production build.");
+        })());
