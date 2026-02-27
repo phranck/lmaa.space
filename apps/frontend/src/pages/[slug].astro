@@ -42,7 +42,7 @@ try {
   const remote = await apiGet<{ title: string; content: string }>(`/content/${slug}`);
   page = { title: remote.title, content: remote.content };
 } catch (err) {
-  console.error(`[SSR] /about fetch failed:`, err);
+  console.error("[SSR] /about fetch failed:", err);
   page = fallbackPages[slug] ?? null;
 }
 
