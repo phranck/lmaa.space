@@ -84,3 +84,21 @@ jobs:
         with:
           access-token: ${{ secrets.ZEROPS_TOKEN }}
           service-id: ${{ secrets.ZEROPS_DASHBOARD_SERVICE_ID }}
+
+  smoke-prod:
+    needs: [quality-gate, detect-changes, deploy-backend, deploy-website, deploy-dashboard]
+    if: |
+      always() &&
+      needs.quality-gate.result == 'success' &&
+      needs.detect-changes.result == 'success' &&
+      (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped') &&
+      (needs.deploy-website.result == 'success' || needs.deploy-website.result == 'skipped') &&
+      (needs.deploy-dashboard.result == 'success' || needs.deploy-dashboard.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke test production routes
+        run: bash scripts/smoke-prod.sh
+        env:
+          WEB_BASE_URL: https://lmaa.space
+          API_BASE_URL: https://api.lmaa.space
