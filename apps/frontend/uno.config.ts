@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   content: {
+    filesystem: ["./src/**/*.{astro,ts,tsx,html}", "../../packages/ui/src/**/*.{ts,tsx}"],
     pipeline: {
       include: ["./src/**/*.{astro,ts,tsx,html}", "../../packages/ui/src/**/*.{ts,tsx}"],
     },
