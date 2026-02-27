@@ -1,7 +1,7 @@
 import { useI18n } from "@/context/I18nContext.tsx";
-import type { FieldType } from "@lmaa/contracts";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import type { FieldType } from "@lmaa/contracts";
 
 interface PaletteTileProps {
   type: FieldType;
@@ -13,29 +13,72 @@ function FieldTypeIcon({ type }: { type: FieldType }) {
     case "text":
       return (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <rect x="1" y="5" width="14" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+          <rect
+            x="1"
+            y="5"
+            width="14"
+            height="6"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
           <path d="M4 8h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       );
     case "email":
       return (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M1.5 4.5 8 9l6.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <rect
+            x="1"
+            y="3"
+            width="14"
+            height="10"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M1.5 4.5 8 9l6.5-4.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       );
     case "textarea":
       return (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+          <rect
+            x="1"
+            y="2"
+            width="14"
+            height="12"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
           <path d="M4 6h8M4 9h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       );
     case "select":
       return (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <rect x="1" y="5" width="14" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M11 8l-2 2-2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <rect
+            x="1"
+            y="5"
+            width="14"
+            height="6"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M11 8l-2 2-2-2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     case "multi-select":
@@ -50,14 +93,25 @@ function FieldTypeIcon({ type }: { type: FieldType }) {
       return (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M5 8l2.5 2.5L11 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M5 8l2.5 2.5L11 5.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       );
     case "richtext":
       return (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M4 5.5h8M4 8h8M4 10.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M4 5.5h8M4 8h8M4 10.5h5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       );
   }

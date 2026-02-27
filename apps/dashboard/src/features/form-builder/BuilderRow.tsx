@@ -1,6 +1,6 @@
-import type { FormField, FormRow } from "@lmaa/contracts";
-import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { BuilderField } from "@/features/form-builder/BuilderField.tsx";
+import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
+import type { FormField, FormRow } from "@lmaa/contracts";
 
 interface BuilderRowProps {
   row: FormRow;
@@ -23,19 +23,14 @@ export function BuilderRow({
   onDeleteField,
   onDeleteRow,
 }: BuilderRowProps) {
-  const sortableIds = row.fields.map(
-    (f: FormField) => `field:${row.id}:${f.id}`,
-  );
+  const sortableIds = row.fields.map((f: FormField) => `field:${row.id}:${f.id}`);
 
   return (
     <div className="group relative flex items-stretch gap-2 p-3 rounded-card border border-[var(--ds-border)] bg-[var(--ds-surface)]">
       <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
         <div className="flex flex-1 gap-2">
           {row.fields.map((field: FormField) => (
-            <div
-              key={field.id}
-              className={field.width === "half" ? "flex-1" : "flex-1"}
-            >
+            <div key={field.id} className={field.width === "half" ? "flex-1" : "flex-1"}>
               <BuilderField
                 field={field}
                 rowId={row.id}

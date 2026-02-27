@@ -3,6 +3,7 @@ import { submissionSchema } from "@lmaa/contracts";
 import { Hono } from "hono";
 import { fail, ok } from "../lib/http.js";
 import { rateLimit } from "../middleware/rate-limit.js";
+import { getManagedPublicFormConfig } from "../services/admin-form-config.js";
 import {
   checkManagedPublicShopUrl,
   createManagedDeadLinkReport,
@@ -18,7 +19,6 @@ import {
   getManagedPublishedContentPage,
   searchManagedPublicCatalog,
 } from "../services/public.js";
-import { getManagedPublicFormConfig } from "../services/admin-form-config.js";
 
 /**
  * Public API routes consumed by the website and external clients.

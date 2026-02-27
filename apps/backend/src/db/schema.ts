@@ -1,3 +1,4 @@
+import type { FormConfigPayload } from "@lmaa/contracts";
 import {
   boolean,
   index,
@@ -10,7 +11,6 @@ import {
   timestamp,
   unique,
 } from "drizzle-orm/pg-core";
-import type { FormConfigPayload } from "@lmaa/contracts";
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.

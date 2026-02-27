@@ -7,11 +7,11 @@
  */
 
 import type { FormConfigPayload } from "@lmaa/contracts";
-import postgres from "postgres";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { env } from "../config/env.js";
 import { formConfigs } from "../db/schema.js";
-import { eq } from "drizzle-orm";
 
 const INITIAL_CONFIG: FormConfigPayload = {
   rows: [
