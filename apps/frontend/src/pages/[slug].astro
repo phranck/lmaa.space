@@ -5,6 +5,11 @@ import { renderMarkdown } from "@/lib/markdown";
 import type { ContentPage } from "@lmaa/shared";
 
 const { slug } = Astro.params;
+const forbiddenSlugs = new Set(["api", "uploads", "_astro", "favicon.ico", "sitemap.xml"]);
+
+if (!slug || forbiddenSlugs.has(slug)) {
+  return Astro.redirect("/404");
+}
 
 let page: ContentPage;
 try {
