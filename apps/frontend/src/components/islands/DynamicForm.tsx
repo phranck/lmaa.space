@@ -4,7 +4,7 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import type { ApiRequestError } from "@lmaa/shared";
 import { createApiRequestError } from "@lmaa/shared";
 import type { Category, ShopCategory } from "@lmaa/shared";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 // ---------------------------------------------------------------------------
@@ -109,7 +109,7 @@ function buildValidationRules(
   if (field.validation?.pattern) {
     rules.pattern = {
       value: new RegExp(field.validation.pattern),
-      message: `Ungültiges Format`,
+      message: "Ungültiges Format",
     };
   }
 
@@ -386,34 +386,38 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
 // ---------------------------------------------------------------------------
 
 const RICHTEXT_VARIANT_CLASSES: Record<RichTextVariant, string> = {
-  default:
-    "bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text)]",
+  default: "bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text)]",
   info: "bg-blue-50 border border-blue-200 text-blue-900",
   warning: "bg-amber-50 border border-amber-200 text-amber-900",
   hint: "bg-green-50 border border-green-200 text-green-900",
 };
 
 function RichTextBlock({ field }: { field: FormField }) {
-  const [html, setHtml] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
     if (!field.content) {
-      setHtml("");
+      el.innerHTML = "";
       return;
     }
-    void renderMarkdown(field.content).then(setHtml);
+    void renderMarkdown(field.content).then((html) => {
+      if (containerRef.current) {
+        containerRef.current.innerHTML = html;
+      }
+    });
   }, [field.content]);
 
-  if (!html) return null;
+  if (!field.content) return null;
 
   const variantClass =
-    RICHTEXT_VARIANT_CLASSES[field.variant ?? "default"] ??
-    RICHTEXT_VARIANT_CLASSES.default;
+    RICHTEXT_VARIANT_CLASSES[field.variant ?? "default"] ?? RICHTEXT_VARIANT_CLASSES.default;
 
   return (
     <div
+      ref={containerRef}
       className={`rounded-xl px-5 py-4 text-sm leading-relaxed prose prose-sm max-w-none ${variantClass}`}
-      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 }
@@ -430,9 +434,7 @@ interface UrlWarningProps {
 function UrlWarning({ checking, result }: UrlWarningProps) {
   if (checking) {
     return (
-      <p className="text-[var(--ds-text-subtle)] text-xs mt-1.5">
-        Prüfe ob Shop bereits bekannt…
-      </p>
+      <p className="text-[var(--ds-text-subtle)] text-xs mt-1.5">Prüfe ob Shop bereits bekannt…</p>
     );
   }
 
@@ -631,8 +633,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
   // --- field renderer ---
 
   function renderField(field: FormField) {
-    const fieldError =
-      errors[field.id]?.message ?? multiSelectErrors[field.id];
+    const fieldError = errors[field.id]?.message ?? multiSelectErrors[field.id];
 
     switch (field.type) {
       case "text":
@@ -642,9 +643,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
             <div key={field.id}>
               <label htmlFor={field.id} className={labelClass}>
                 {field.label}
-                {field.required && (
-                  <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>
-                )}
+                {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
               </label>
               <input
                 id={field.id}
@@ -665,9 +664,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           <div key={field.id}>
             <label htmlFor={field.id} className={labelClass}>
               {field.label}
-              {field.required && (
-                <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>
-              )}
+              {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
             </label>
             <input
               id={field.id}
@@ -692,9 +689,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         );
 
       case "select":
-        return (
-          <SelectField key={field.id} field={field} register={register} error={fieldError} />
-        );
+        return <SelectField key={field.id} field={field} register={register} error={fieldError} />;
 
       case "multi-select":
         if (field.optionsSource === "categories") {
@@ -740,9 +735,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                 {...register(field.id, buildValidationRules(field))}
               />
               {field.label}
-              {field.required && (
-                <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>
-              )}
+              {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
             </label>
             {fieldError && <p className={errorClass}>{fieldError}</p>}
           </div>
