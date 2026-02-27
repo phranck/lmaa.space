@@ -17,8 +17,17 @@ const navItemsSchema = z.object({
   ),
 });
 
+/**
+ * Admin navigation editor routes (`/nav/:navId`).
+ */
 export const navAdminRoutes = new Hono<{ Variables: AuthVariables }>();
 
+/**
+ * Converts untrusted route params into a valid `NavId`.
+ *
+ * @param navId - Raw param value.
+ * @returns `header`/`footer` when valid, otherwise `null`.
+ */
 function parseNavId(navId: string): NavId | null {
   if (navId === "header" || navId === "footer") {
     return navId;

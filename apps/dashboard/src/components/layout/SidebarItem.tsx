@@ -16,6 +16,12 @@ function linkClass(isActive: boolean) {
   }`;
 }
 
+/**
+ * Navigation item used inside the sidebar menu.
+ *
+ * @param props - Link target, label and optional behavior flags.
+ * @returns Styled `NavLink` entry.
+ */
 export function SidebarItem({ to, label, icon, end, onClick }: SidebarItemProps) {
   return (
     <NavLink to={to} end={end} onClick={onClick} className={({ isActive }) => linkClass(isActive)}>

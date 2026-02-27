@@ -1,6 +1,9 @@
 import { CheckIcon } from "lucide-react";
 import { useId } from "react";
 
+/**
+ * Props for the shared checkbox component.
+ */
 export interface CheckboxProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -9,6 +12,9 @@ export interface CheckboxProps {
   className?: string;
 }
 
+/**
+ * Accessible checkbox component used across dashboard and frontend forms.
+ */
 export function Checkbox({
   checked,
   onChange,

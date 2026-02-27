@@ -38,6 +38,13 @@ type SearchAction =
   | { type: "search-error"; error: string; append: boolean }
   | { type: "next-page" };
 
+/**
+ * Reducer for Unsplash search/pagination state machine.
+ *
+ * @param state - Current state snapshot.
+ * @param action - Transition action.
+ * @returns Next state snapshot.
+ */
 function reducer(state: SearchState, action: SearchAction): SearchState {
   switch (action.type) {
     case "set-query":
@@ -65,6 +72,15 @@ function reducer(state: SearchState, action: SearchAction): SearchState {
   }
 }
 
+/**
+ * Unsplash asset browser used in category image selection.
+ *
+ * Hidden behavior: debounces query changes, supports infinite scrolling and
+ * triggers Unsplash download tracking when an image is selected.
+ *
+ * @param props - Initial query, selection callback and close handler.
+ * @returns Full-screen media picker overlay.
+ */
 export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: UnsplashBrowserProps) {
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;

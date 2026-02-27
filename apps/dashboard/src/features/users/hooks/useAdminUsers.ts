@@ -2,6 +2,9 @@ import { api } from "@/lib/api.ts";
 import type { AdminUser } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+/**
+ * Form model for creating a new dashboard user.
+ */
 export interface CreateUserFormData {
   username: string;
   email: string;
@@ -9,12 +12,20 @@ export interface CreateUserFormData {
   role?: "admin" | "moderator";
 }
 
+/**
+ * Reusable empty state for the create-user form.
+ */
 export const EMPTY_CREATE_USER_FORM: CreateUserFormData = {
   username: "",
   email: "",
   password: "",
 };
 
+/**
+ * Loads all dashboard users.
+ *
+ * @returns React Query result with user rows.
+ */
 export function useAdminUsers() {
   return useQuery({
     queryKey: ["users-admin"],
@@ -22,6 +33,11 @@ export function useAdminUsers() {
   });
 }
 
+/**
+ * Creates a dashboard user account.
+ *
+ * @returns React Query mutation.
+ */
 export function useCreateUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -30,6 +46,11 @@ export function useCreateUser() {
   });
 }
 
+/**
+ * Deletes a dashboard user account.
+ *
+ * @returns React Query mutation.
+ */
 export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -47,6 +68,11 @@ interface UpdateUserFormData {
   role?: "admin" | "moderator";
 }
 
+/**
+ * Updates profile/role fields of an existing dashboard user.
+ *
+ * @returns React Query mutation.
+ */
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -59,6 +85,11 @@ export function useUpdateUser() {
   });
 }
 
+/**
+ * Uploads and stores a custom avatar for a user.
+ *
+ * @returns React Query mutation.
+ */
 export function useSaveUserAvatar() {
   const qc = useQueryClient();
   return useMutation({
@@ -74,6 +105,11 @@ export function useSaveUserAvatar() {
   });
 }
 
+/**
+ * Sets avatar URL to a Gravatar resource.
+ *
+ * @returns React Query mutation.
+ */
 export function useSetGravatarAvatar() {
   const qc = useQueryClient();
   return useMutation({
@@ -86,6 +122,11 @@ export function useSetGravatarAvatar() {
   });
 }
 
+/**
+ * Removes a previously set custom/avatar URL.
+ *
+ * @returns React Query mutation.
+ */
 export function useDeleteUserAvatar() {
   const qc = useQueryClient();
   return useMutation({

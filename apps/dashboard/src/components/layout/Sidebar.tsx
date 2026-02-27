@@ -117,6 +117,12 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
+/**
+ * Collapsible dashboard sidebar including navigation and footer actions.
+ *
+ * @param props - Sidebar state and interaction callbacks.
+ * @returns Sidebar navigation panel.
+ */
 export function Sidebar({
   username,
   firstName,

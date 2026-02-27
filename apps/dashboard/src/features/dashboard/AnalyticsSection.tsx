@@ -685,6 +685,11 @@ function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardP
   );
 }
 
+/**
+ * Full analytics module (KPI cards, charts, environment/location tables).
+ *
+ * @returns Analytics dashboard section.
+ */
 export function AnalyticsSection() {
   const { user } = useAuth();
   const { locale, messages, formatNumber } = useI18n();

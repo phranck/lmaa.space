@@ -25,6 +25,12 @@ function CategoryThumb({ category }: { category: Category }) {
   );
 }
 
+/**
+ * Table variant for category administration.
+ *
+ * @param props - Category rows and action handlers.
+ * @returns Sticky-header data table.
+ */
 export function CategoryTable({ categories, onEdit, onDelete }: CategoryTableProps) {
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;

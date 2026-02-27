@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { defaultRegionArraySchema } from "./common";
 
+/**
+ * Public submission payload contract (`POST /api/submissions`).
+ */
 export const submissionSchema = z.object({
   shopName: z.string().min(2).max(100),
   shopUrl: z.string().url(),

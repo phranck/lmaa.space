@@ -7,6 +7,12 @@ interface CategoryGridItemProps {
   onDelete?: (id: number) => void;
 }
 
+/**
+ * Grid card variant for one category item.
+ *
+ * @param props - Category data and row-level actions.
+ * @returns Visual category card.
+ */
 export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridItemProps) {
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;

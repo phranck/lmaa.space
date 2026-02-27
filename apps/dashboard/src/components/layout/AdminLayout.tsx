@@ -220,6 +220,11 @@ function AdminLayoutInner() {
   );
 }
 
+/**
+ * Main authenticated dashboard layout with sidebar and routed content.
+ *
+ * @returns Two-pane admin UI scaffold.
+ */
 export function AdminLayout() {
   return (
     <PageHeaderProvider>

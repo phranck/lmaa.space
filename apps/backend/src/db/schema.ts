@@ -11,6 +11,9 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 
+/**
+ * Category taxonomy table used for catalog filtering and shop assignment.
+ */
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
@@ -25,6 +28,9 @@ export const categories = pgTable("categories", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+/**
+ * Shop directory table containing canonical metadata and moderation state.
+ */
 export const shops = pgTable(
   "shops",
   {
@@ -50,6 +56,9 @@ export const shops = pgTable(
   (table) => [index("idx_shops_active").on(table.isActive)],
 );
 
+/**
+ * Join table linking shops to categories.
+ */
 export const shopCategories = pgTable(
   "shop_categories",
   {
@@ -66,6 +75,9 @@ export const shopCategories = pgTable(
   ],
 );
 
+/**
+ * Dashboard admin user accounts.
+ */
 export const adminUsers = pgTable("admin_users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -80,6 +92,9 @@ export const adminUsers = pgTable("admin_users", {
   lastLoginAt: timestamp("last_login_at"),
 });
 
+/**
+ * Raw user shop submissions awaiting moderation.
+ */
 export const submissions = pgTable(
   "submissions",
   {
@@ -107,6 +122,9 @@ export const submissions = pgTable(
   (table) => [index("idx_submissions_status").on(table.status)],
 );
 
+/**
+ * Join table linking submissions to suggested categories.
+ */
 export const submissionCategories = pgTable(
   "submission_categories",
   {
@@ -123,6 +141,9 @@ export const submissionCategories = pgTable(
   ],
 );
 
+/**
+ * Session store for dashboard authentication.
+ */
 export const sessions = pgTable(
   "sessions",
   {
@@ -136,6 +157,9 @@ export const sessions = pgTable(
   (table) => [index("idx_sessions_expires").on(table.expiresAt)],
 );
 
+/**
+ * User-reported dead-link incidents grouped by shop.
+ */
 export const deadLinkReports = pgTable(
   "dead_link_reports",
   {
@@ -149,6 +173,9 @@ export const deadLinkReports = pgTable(
   (table) => [index("idx_dlr_shop").on(table.shopId)],
 );
 
+/**
+ * CMS-like content pages used by the frontend (privacy policy, about, etc.).
+ */
 export const contentPages = pgTable("content_pages", {
   slug: text("slug").primaryKey(),
   title: text("title").notNull(),
@@ -160,6 +187,9 @@ export const contentPages = pgTable("content_pages", {
   updatedBy: integer("updated_by").references(() => adminUsers.id, { onDelete: "set null" }),
 });
 
+/**
+ * Configurable header/footer navigation items.
+ */
 export const navItems = pgTable(
   "nav_items",
   {
@@ -174,21 +204,66 @@ export const navItems = pgTable(
   (table) => [index("idx_nav_items_nav").on(table.navId)],
 );
 
+/**
+ * Inferred select type for `content_pages`.
+ */
 export type ContentPage = typeof contentPages.$inferSelect;
+/**
+ * Inferred select type for `nav_items`.
+ */
 export type NavItem = typeof navItems.$inferSelect;
+/**
+ * Inferred select type for `categories`.
+ */
 export type Category = typeof categories.$inferSelect;
+/**
+ * Inferred insert type for `categories`.
+ */
 export type CategoryInsert = typeof categories.$inferInsert;
+/**
+ * Inferred select type for `shops`.
+ */
 export type Shop = typeof shops.$inferSelect;
+/**
+ * Inferred insert type for `shops`.
+ */
 export type ShopInsert = typeof shops.$inferInsert;
+/**
+ * Inferred select type for `shop_categories`.
+ */
 export type ShopCategory = typeof shopCategories.$inferSelect;
+/**
+ * Inferred select type for `submissions`.
+ */
 export type Submission = typeof submissions.$inferSelect;
+/**
+ * Inferred insert type for `submissions`.
+ */
 export type SubmissionInsert = typeof submissions.$inferInsert;
+/**
+ * Inferred select type for `submission_categories`.
+ */
 export type SubmissionCategory = typeof submissionCategories.$inferSelect;
+/**
+ * Inferred select type for `admin_users`.
+ */
 export type AdminUser = typeof adminUsers.$inferSelect;
+/**
+ * Inferred insert type for `admin_users`.
+ */
 export type AdminUserInsert = typeof adminUsers.$inferInsert;
+/**
+ * Inferred select type for `sessions`.
+ */
 export type Session = typeof sessions.$inferSelect;
+/**
+ * Inferred select type for `dead_link_reports`.
+ */
 export type DeadLinkReport = typeof deadLinkReports.$inferSelect;
 
+/**
+ * User-submitted moderation concerns for suspicious shops.
+ */
 export const shopConcernReports = pgTable(
   "shop_concern_reports",
   {
@@ -203,4 +278,7 @@ export const shopConcernReports = pgTable(
   (table) => [index("idx_scr_shop").on(table.shopId)],
 );
 
+/**
+ * Inferred select type for `shop_concern_reports`.
+ */
 export type ShopConcernReport = typeof shopConcernReports.$inferSelect;

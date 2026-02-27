@@ -3,6 +3,9 @@ import { Checkbox } from "@lmaa/ui";
 import { useEffect, useRef, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
 
+/**
+ * Available delete strategies for shop removal flow.
+ */
 export type ShopDeleteMode = "mark_deleted" | "delete";
 
 interface ShopDeleteReasonCardProps {
@@ -13,6 +16,12 @@ interface ShopDeleteReasonCardProps {
   onCancel: () => void;
 }
 
+/**
+ * Dialog card requesting delete reason/mode before shop removal.
+ *
+ * @param props - Target shop name, defaults and action callbacks.
+ * @returns Modal delete confirmation card.
+ */
 export function ShopDeleteReasonCard({
   shopName,
   wasReported: initialWasReported = false,

@@ -1,7 +1,13 @@
 import { api } from "@/lib/api.ts";
 import { useQuery } from "@tanstack/react-query";
 
+/**
+ * Supported period filters for Umami analytics queries.
+ */
 export type UmamiPeriod = "today" | "7d" | "30d" | "60d" | "90d";
+/**
+ * Supported metric dimensions exposed by the backend Umami proxy.
+ */
 export type UmamiMetricType =
   | "url"
   | "referrer"
@@ -75,6 +81,12 @@ interface UmamiActive {
   visitors: number;
 }
 
+/**
+ * Loads KPI stats from Umami for the selected period.
+ *
+ * @param period - Relative period filter.
+ * @returns React Query result with Umami KPI payload.
+ */
 export function useUmamiStats(period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-stats", period],
@@ -84,6 +96,12 @@ export function useUmamiStats(period: UmamiPeriod) {
   });
 }
 
+/**
+ * Loads time-series pageview/session data for charts.
+ *
+ * @param period - Relative period filter.
+ * @returns React Query result with chart points.
+ */
 export function useUmamiPageviews(period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-pageviews", period],
@@ -93,6 +111,11 @@ export function useUmamiPageviews(period: UmamiPeriod) {
   });
 }
 
+/**
+ * Loads near-realtime analytics snapshot.
+ *
+ * @returns React Query result refreshed every 30 seconds.
+ */
 export function useUmamiRealtime() {
   return useQuery({
     queryKey: ["umami-realtime"],
@@ -102,6 +125,11 @@ export function useUmamiRealtime() {
   });
 }
 
+/**
+ * Loads currently active visitors count.
+ *
+ * @returns React Query result refreshed every 30 seconds.
+ */
 export function useUmamiActive() {
   return useQuery({
     queryKey: ["umami-active"],
@@ -111,6 +139,13 @@ export function useUmamiActive() {
   });
 }
 
+/**
+ * Loads aggregated metric rows by dimension (browser/country/etc.).
+ *
+ * @param type - Metric dimension.
+ * @param period - Relative period filter.
+ * @returns React Query result with metric rows.
+ */
 export function useUmamiMetrics(type: UmamiMetricType, period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-metrics", type, period],

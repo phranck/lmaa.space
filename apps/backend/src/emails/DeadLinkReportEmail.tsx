@@ -12,6 +12,9 @@ import {
   Text,
 } from "@react-email/components";
 
+/**
+ * Props for the dead-link moderation alert email.
+ */
 interface DeadLinkReportEmailProps {
   shopName: string;
   shopUrl: string;
@@ -19,6 +22,12 @@ interface DeadLinkReportEmailProps {
   dashboardUrl: string;
 }
 
+/**
+ * Renders the dead-link report alert for moderators.
+ *
+ * @param props - Template data including affected shop and dashboard link.
+ * @returns JSX email markup.
+ */
 export function DeadLinkReportEmail({
   shopName,
   shopUrl,
@@ -100,6 +109,9 @@ DeadLinkReportEmail.PreviewProps = {
   dashboardUrl: "https://dashboard.lmaa.space",
 } satisfies DeadLinkReportEmailProps;
 
+/**
+ * Default export for React Email tooling.
+ */
 export default DeadLinkReportEmail;
 
 const body = {

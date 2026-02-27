@@ -10,6 +10,12 @@ interface ConfirmDialogProps {
   onCancel: () => void;
 }
 
+/**
+ * Generic confirmation dialog used for destructive/admin actions.
+ *
+ * @param props - Dialog state, copy and action callbacks.
+ * @returns Modal dialog element.
+ */
 export function ConfirmDialog({
   open,
   title,

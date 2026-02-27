@@ -2,8 +2,14 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { adminUsers, contentPages } from "../db/schema.js";
 
+/**
+ * Internal storage status of CMS-like content pages.
+ */
 export type ContentPageStatus = "draft" | "published" | "hidden";
 
+/**
+ * Lightweight content page projection used for listings.
+ */
 export interface ContentPageSummaryRow {
   slug: string;
   title: string;
@@ -14,10 +20,18 @@ export interface ContentPageSummaryRow {
   updatedBy: number | null;
 }
 
+/**
+ * Full page projection including Markdown body.
+ */
 export interface ContentPageDetailRow extends ContentPageSummaryRow {
   content: string;
 }
 
+/**
+ * Returns all content pages without loading the full body text.
+ *
+ * @returns Summaries ordered by title.
+ */
 export async function listContentPageSummaries(): Promise<ContentPageSummaryRow[]> {
   return db
     .select({
@@ -33,6 +47,12 @@ export async function listContentPageSummaries(): Promise<ContentPageSummaryRow[
     .orderBy(contentPages.title);
 }
 
+/**
+ * Loads one content page by slug including body text.
+ *
+ * @param slug - Stable page slug.
+ * @returns Matching page row or `null` when not found.
+ */
 export async function getContentPageBySlug(slug: string): Promise<ContentPageDetailRow | null> {
   const [page] = await db
     .select({
@@ -52,6 +72,12 @@ export async function getContentPageBySlug(slug: string): Promise<ContentPageDet
   return page ?? null;
 }
 
+/**
+ * Checks if a slug is already used by another content page.
+ *
+ * @param slug - Candidate slug.
+ * @returns `true` when a row with this slug exists.
+ */
 export async function contentPageSlugExists(slug: string): Promise<boolean> {
   const [page] = await db
     .select({ slug: contentPages.slug })
@@ -62,6 +88,15 @@ export async function contentPageSlugExists(slug: string): Promise<boolean> {
   return Boolean(page);
 }
 
+/**
+ * Creates a new page with empty body content.
+ *
+ * Hidden behavior: `content` is initialized with an empty string so editors can
+ * patch body content separately.
+ *
+ * @param data - Initial metadata and creator id.
+ * @returns Stored page summary.
+ */
 export async function createContentPage(data: {
   slug: string;
   title: string;
@@ -90,6 +125,14 @@ export async function createContentPage(data: {
   return page;
 }
 
+/**
+ * Replaces the body of a page and records updater metadata.
+ *
+ * @param slug - Page slug to update.
+ * @param content - New Markdown source.
+ * @param updatedBy - Admin id performing the write.
+ * @returns Updated summary or `null` when slug was not found.
+ */
 export async function updateContentPageBody(
   slug: string,
   content: string,
@@ -112,6 +155,14 @@ export async function updateContentPageBody(
   return page ?? null;
 }
 
+/**
+ * Updates metadata fields (title/slug/status) for a page.
+ *
+ * @param currentSlug - Existing slug used as lookup key.
+ * @param updates - Partial metadata patch.
+ * @param updatedBy - Admin id performing the update.
+ * @returns Updated summary or `null` when the source slug does not exist.
+ */
 export async function updateContentPageMeta(
   currentSlug: string,
   updates: Partial<{ title: string; slug: string; status: ContentPageStatus }>,
@@ -134,6 +185,12 @@ export async function updateContentPageMeta(
   return page ?? null;
 }
 
+/**
+ * Deletes a content page by slug.
+ *
+ * @param slug - Slug to delete.
+ * @returns `true` when a row was removed.
+ */
 export async function deleteContentPage(slug: string): Promise<boolean> {
   const [deleted] = await db
     .delete(contentPages)
@@ -143,6 +200,12 @@ export async function deleteContentPage(slug: string): Promise<boolean> {
   return Boolean(deleted);
 }
 
+/**
+ * Maps admin ids to usernames.
+ *
+ * @param ids - Admin ids that should be resolved.
+ * @returns Map keyed by admin id.
+ */
 export async function getAdminUsernamesByIds(ids: number[]): Promise<Map<number, string>> {
   if (ids.length === 0) {
     return new Map();
@@ -155,6 +218,12 @@ export async function getAdminUsernamesByIds(ids: number[]): Promise<Map<number,
   return new Map(users.map((user) => [user.id, user.username]));
 }
 
+/**
+ * Resolves a single admin username.
+ *
+ * @param id - Admin user id.
+ * @returns Username string or `null` when not found.
+ */
 export async function getAdminUsernameById(id: number): Promise<string | null> {
   const [user] = await db
     .select({ username: adminUsers.username })

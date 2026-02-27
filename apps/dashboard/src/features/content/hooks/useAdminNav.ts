@@ -2,6 +2,12 @@ import { api } from "@/lib/api.ts";
 import type { NavId, NavItem } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+/**
+ * Loads editable nav items for one nav area.
+ *
+ * @param navId - Navigation id (`header` or `footer`).
+ * @returns React Query result with nav rows.
+ */
 export function useAdminNav(navId: NavId) {
   return useQuery({
     queryKey: ["admin-nav", navId],
@@ -9,6 +15,12 @@ export function useAdminNav(navId: NavId) {
   });
 }
 
+/**
+ * Persists a full replacement set of nav items.
+ *
+ * @param navId - Navigation id (`header` or `footer`).
+ * @returns React Query mutation that updates and invalidates nav queries.
+ */
 export function useSaveNav(navId: NavId) {
   const qc = useQueryClient();
   return useMutation({

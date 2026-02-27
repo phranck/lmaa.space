@@ -1,6 +1,3 @@
-// Multi-select component
-// API based on shadcn-multi-select-component
-// Dropdown implemented via createPortal (same approach as RegionSelect)
 import { type VariantProps, cva } from "class-variance-authority";
 import { CheckIcon, ChevronDown, XCircle, XIcon } from "lucide-react";
 import * as React from "react";
@@ -27,6 +24,9 @@ const multiSelectVariants = cva(
   },
 );
 
+/**
+ * Option model rendered by {@link MultiSelect}.
+ */
 export interface MultiSelectOption {
   label: string;
   value: string;
@@ -35,6 +35,9 @@ export interface MultiSelectOption {
   style?: React.CSSProperties;
 }
 
+/**
+ * UI copy contract for accessibility labels and shared action text.
+ */
 export interface MultiSelectMessages {
   selectAll: string;
   clearAllAriaLabel: string;
@@ -42,6 +45,9 @@ export interface MultiSelectMessages {
   moreSelected: (count: number) => string;
 }
 
+/**
+ * Props for the shared multi-select component.
+ */
 export interface MultiSelectProps extends VariantProps<typeof multiSelectVariants> {
   options: MultiSelectOption[];
   value: string[];
@@ -54,6 +60,11 @@ export interface MultiSelectProps extends VariantProps<typeof multiSelectVariant
   error?: string;
 }
 
+/**
+ * Portal-based multi-select input used by dashboard and frontend forms.
+ *
+ * Keeps the API intentionally message-driven so all user-facing strings can be localized.
+ */
 export function MultiSelect({
   options,
   value,

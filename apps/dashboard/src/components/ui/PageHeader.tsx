@@ -11,6 +11,12 @@ interface PageHeaderProps {
  * Injects title and optional action buttons into the fixed dashboard header.
  * Renders nothing in the page content itself.
  */
+/**
+ * Standard page header used across dashboard feature pages.
+ *
+ * @param props - Title and optional right-aligned action content.
+ * @returns Consistent page heading row.
+ */
 export function PageHeader({ title, children }: PageHeaderProps) {
   const { setTitle, actionsEl } = usePageHeaderContext();
 

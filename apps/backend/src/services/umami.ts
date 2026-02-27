@@ -3,8 +3,15 @@ import { env } from "../config/env.js";
 const UMAMI_URL = env.UMAMI_URL;
 const UMAMI_USERNAME = env.UMAMI_USERNAME;
 const UMAMI_PASSWORD = env.UMAMI_PASSWORD;
+
+/**
+ * Umami website id configured for analytics queries.
+ */
 export const UMAMI_WEBSITE_ID = env.UMAMI_WEBSITE_ID;
 
+/**
+ * Flag indicating whether Umami credentials are configured.
+ */
 export const umamiConfigured =
   UMAMI_URL !== "" && UMAMI_USERNAME !== "" && UMAMI_PASSWORD !== "" && UMAMI_WEBSITE_ID !== "";
 
@@ -27,6 +34,13 @@ async function getToken(): Promise<string> {
   return token;
 }
 
+/**
+ * Authenticated GET helper for Umami API endpoints.
+ *
+ * @param path - API path below `/api`.
+ * @returns Parsed JSON payload typed as `T`.
+ * @throws {Error} When authentication or request fails.
+ */
 export async function umamiGet<T>(path: string): Promise<T> {
   const token = await getToken();
   const res = await fetch(`${UMAMI_URL}/api${path}`, {
@@ -36,6 +50,9 @@ export async function umamiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/**
+ * Supported analytics period presets.
+ */
 export type UmamiPeriod = "today" | "7d" | "30d" | "60d" | "90d";
 
 const PERIOD_DAYS: Record<UmamiPeriod, number | null> = {
@@ -46,6 +63,12 @@ const PERIOD_DAYS: Record<UmamiPeriod, number | null> = {
   "90d": 90,
 };
 
+/**
+ * Resolves period preset to epoch range for Umami requests.
+ *
+ * @param period - Supported period preset.
+ * @returns `{ startAt, endAt }` timestamps in milliseconds.
+ */
 export function periodToRange(period: UmamiPeriod): { startAt: number; endAt: number } {
   const endAt = Date.now();
 
@@ -67,6 +90,9 @@ type UmamiKpiMetric = {
   change: number;
 };
 
+/**
+ * Normalized KPI payload shape consumed by dashboard.
+ */
 export type NormalizedUmamiStats = {
   pageviews: UmamiKpiMetric;
   visitors: UmamiKpiMetric;
@@ -125,6 +151,17 @@ function getMetricFromCurrentShape(
   return { value, change: toChange(value, previous) };
 }
 
+/**
+ * Normalizes Umami stats payload across legacy/current response shapes.
+ *
+ * @param raw - Raw response payload from Umami.
+ * @returns Normalized KPI object with stable fields.
+ *
+ * @remarks
+ * Handles two response variants:
+ * - legacy shape with `{ value, change }`-like objects
+ * - current shape with `comparison` sibling payload
+ */
 export function normalizeUmamiStats(raw: unknown): NormalizedUmamiStats {
   if (!isRecord(raw)) {
     return {
@@ -162,6 +199,12 @@ const METRIC_TYPE_MAP: Record<string, string> = {
   url: "path",
 };
 
+/**
+ * Maps metric types from dashboard UI aliases to Umami API types.
+ *
+ * @param type - Metric type from UI/query string.
+ * @returns Umami-compatible metric type.
+ */
 export function normalizeUmamiMetricType(type: string): string {
   return METRIC_TYPE_MAP[type] ?? type;
 }

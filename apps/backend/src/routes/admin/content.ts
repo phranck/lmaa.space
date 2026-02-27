@@ -37,6 +37,9 @@ const contentCreateSchema = z.object({
   status: z.enum(["draft", "published", "hidden"]).optional(),
 });
 
+/**
+ * Admin content page routes (list/create/read/update/delete).
+ */
 export const contentRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // ─── List all pages (without content body) ───────────────────────────────────

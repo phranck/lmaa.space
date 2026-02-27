@@ -16,6 +16,11 @@ import { SFListBullet, SFSquareGrid2x2Fill } from "sf-symbols-lib/monochrome";
 
 type ViewMode = "list" | "grid";
 
+/**
+ * Category management page with list/grid toggle and CRUD actions.
+ *
+ * @returns Category administration screen.
+ */
 export function CategoriesPage() {
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;

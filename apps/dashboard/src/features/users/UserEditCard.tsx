@@ -38,6 +38,12 @@ const EMPTY_AVATAR_STATE: AvatarState = {
   deleted: false,
 };
 
+/**
+ * Modal card for editing one dashboard user.
+ *
+ * @param props - User id and close/save callbacks.
+ * @returns User edit modal.
+ */
 export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const { messages } = useI18n();
   const common = messages.common;

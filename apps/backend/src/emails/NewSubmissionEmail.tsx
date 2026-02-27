@@ -12,6 +12,9 @@ import {
   Text,
 } from "@react-email/components";
 
+/**
+ * Props for the "new submission" admin notification email.
+ */
 interface NewSubmissionEmailProps {
   shopName: string;
   shopUrl: string;
@@ -20,6 +23,12 @@ interface NewSubmissionEmailProps {
   dashboardUrl: string;
 }
 
+/**
+ * Renders the email sent to moderators for incoming submissions.
+ *
+ * @param props - Submission and dashboard context fields.
+ * @returns JSX email markup.
+ */
 export function NewSubmissionEmail({
   shopName,
   shopUrl,
@@ -110,6 +119,9 @@ NewSubmissionEmail.PreviewProps = {
   dashboardUrl: "https://dashboard.lmaa.space",
 } satisfies NewSubmissionEmailProps;
 
+/**
+ * Default export for React Email tooling.
+ */
 export default NewSubmissionEmail;
 
 const body = {

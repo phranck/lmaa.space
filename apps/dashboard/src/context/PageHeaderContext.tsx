@@ -14,6 +14,12 @@ const PageHeaderContext = createContext<PageHeaderContextValue>({
   setActionsEl: () => {},
 });
 
+/**
+ * Provides shared page-header state (title + action portal target).
+ *
+ * @param props - Provider children.
+ * @returns Context provider element.
+ */
 export function PageHeaderProvider({ children }: { children: ReactNode }) {
   const [title, setTitle] = useState("");
   const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
@@ -25,6 +31,11 @@ export function PageHeaderProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Reads mutable page-header state used by route components.
+ *
+ * @returns Page header context value.
+ */
 export function usePageHeaderContext() {
   return useContext(PageHeaderContext);
 }

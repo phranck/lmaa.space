@@ -26,6 +26,11 @@ const categoryBodySchema = z.object({
 
 const categoryUpdateSchema = categoryBodySchema.partial();
 
+/**
+ * Admin category CRUD routes.
+ *
+ * Includes create/update/delete plus image upload and image removal endpoints.
+ */
 export const categoriesRoutes = new Hono<{ Variables: AuthVariables }>();
 
 categoriesRoutes.get("/categories", requireAuth, async (c) => {

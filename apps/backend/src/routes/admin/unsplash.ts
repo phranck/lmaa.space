@@ -18,6 +18,9 @@ const unsplashDownloadSchema = z.object({
     ),
 });
 
+/**
+ * Admin Unsplash proxy routes (search + download tracking).
+ */
 export const unsplashRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // Unsplash proxy: search

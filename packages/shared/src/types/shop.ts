@@ -1,11 +1,17 @@
 import type { RegionCode, ShopVisibility } from "../constants/domain.js";
 
+/**
+ * Category subset embedded into shop responses.
+ */
 export interface ShopCategory {
   id: number;
   slug: string;
   name: string;
 }
 
+/**
+ * Compact shop representation for tables and cards.
+ */
 export interface ShopSummary {
   id: number;
   name: string;
@@ -18,6 +24,9 @@ export interface ShopSummary {
   deletedByUsername?: string | null;
 }
 
+/**
+ * Full public shop model.
+ */
 export interface Shop {
   id: number;
   name: string;
@@ -33,6 +42,9 @@ export interface Shop {
   updatedAt: string;
 }
 
+/**
+ * Payload for creating a new shop.
+ */
 export interface ShopCreate {
   name: string;
   url: string;
@@ -43,4 +55,7 @@ export interface ShopCreate {
   description?: string;
 }
 
+/**
+ * Partial update payload for editing a shop.
+ */
 export type ShopUpdate = Partial<ShopCreate> & { isActive?: boolean };

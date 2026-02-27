@@ -19,6 +19,12 @@ type ShopEditCardProps = {
   onSaved: () => void;
 } & ({ shopId: number | "new"; submissionId?: never } | { submissionId: number; shopId?: never });
 
+/**
+ * Drawer-like editor for creating/updating shops.
+ *
+ * @param props - Edit target id and close/save callbacks.
+ * @returns Shop edit form card.
+ */
 export function ShopEditCard({
   shopId,
   submissionId,

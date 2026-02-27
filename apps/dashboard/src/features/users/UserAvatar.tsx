@@ -13,6 +13,12 @@ interface UserAvatarProps {
   className?: string;
 }
 
+/**
+ * User avatar component with image fallback to initial letter badge.
+ *
+ * @param props - Username/avatar URL and sizing options.
+ * @returns Avatar image or fallback circle.
+ */
 export function UserAvatar({ username, avatarUrl, size = "md", className = "" }: UserAvatarProps) {
   const [imgError, setImgError] = useState(false);
   const sizeClass = SIZE_CLASSES[size];

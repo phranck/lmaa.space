@@ -2,6 +2,11 @@ import { api } from "@/lib/api.ts";
 import type { ContentPage, ContentPageSummary } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+/**
+ * Loads all content page summaries for the content overview.
+ *
+ * @returns React Query result with page summaries.
+ */
 export function useContentPages() {
   return useQuery({
     queryKey: ["content-pages"],
@@ -9,6 +14,12 @@ export function useContentPages() {
   });
 }
 
+/**
+ * Loads one content page including body content.
+ *
+ * @param slug - Page slug.
+ * @returns React Query result for the selected page.
+ */
 export function useAdminContentPage(slug: string) {
   return useQuery({
     queryKey: ["content-admin", slug],
@@ -17,6 +28,12 @@ export function useAdminContentPage(slug: string) {
   });
 }
 
+/**
+ * Saves full page body content for an existing slug.
+ *
+ * @param slug - Target content page slug.
+ * @returns React Query mutation.
+ */
 export function useSaveContentPage(slug: string) {
   const qc = useQueryClient();
   return useMutation({
@@ -28,6 +45,11 @@ export function useSaveContentPage(slug: string) {
   });
 }
 
+/**
+ * Creates a new content page.
+ *
+ * @returns React Query mutation for page creation.
+ */
 export function useCreateContentPage() {
   const qc = useQueryClient();
   return useMutation({
@@ -39,6 +61,11 @@ export function useCreateContentPage() {
   });
 }
 
+/**
+ * Deletes a content page by slug.
+ *
+ * @returns React Query mutation for content deletion.
+ */
 export function useDeleteContentPage() {
   const qc = useQueryClient();
   return useMutation({
@@ -49,6 +76,15 @@ export function useDeleteContentPage() {
   });
 }
 
+/**
+ * Patches page metadata (title/slug/status).
+ *
+ * Hidden behavior: invalidates both old and new slug cache keys when slug
+ * changes.
+ *
+ * @param slug - Current page slug.
+ * @returns React Query mutation.
+ */
 export function usePatchContentPage(slug: string) {
   const qc = useQueryClient();
   return useMutation({

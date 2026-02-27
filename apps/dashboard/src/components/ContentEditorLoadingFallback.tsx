@@ -2,6 +2,11 @@
  * Loading spinner for MDXEditor
  * Shown while the editor bundle is being loaded
  */
+/**
+ * Placeholder UI shown while content editor bundle/data loads.
+ *
+ * @returns Static skeleton approximating the editor surface.
+ */
 export function ContentEditorLoadingFallback() {
   return (
     <div className="flex-1 flex items-center justify-center">

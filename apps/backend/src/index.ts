@@ -8,6 +8,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env.js";
 import { db } from "./db/index.js";
 import { categories } from "./db/schema.js";
+import { serveApiDocsUi, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
 import { adminRoutes } from "./routes/admin/index.js";
 import { publicRoutes } from "./routes/public.js";
@@ -92,6 +93,9 @@ app.get("/sitemap.xml", async (c) => {
 app.route("/api", publicRoutes);
 app.route("/api/admin", adminRoutes);
 
+app.get("/", serveApiDocsUi);
+app.get("/docs", serveApiDocsUi);
+app.get("/openapi.json", serveOpenApiJson);
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 app.notFound((c) => fail(c, 404, "Not found"));

@@ -14,6 +14,12 @@ interface SidebarFooterProps {
   onEditProfile?: () => void;
 }
 
+/**
+ * Footer section in sidebar with profile/menu actions.
+ *
+ * @param props - Auth/profile and action handlers.
+ * @returns Sidebar footer component.
+ */
 export function SidebarFooter({
   username,
   firstName,

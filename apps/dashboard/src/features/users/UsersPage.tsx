@@ -9,6 +9,11 @@ import { UserAvatar } from "./UserAvatar.tsx";
 import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
 
+/**
+ * User management route for admins/owners.
+ *
+ * @returns Users administration page.
+ */
 export function UsersPage() {
   const { messages } = useI18n();
   const common = messages.common;

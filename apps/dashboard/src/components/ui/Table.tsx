@@ -46,6 +46,11 @@ function Td({ className = "", ...props }: TdHTMLAttributes<HTMLTableCellElement>
 
 // ─── Column-based DataTable ───────────────────────────────────────────────────
 
+/**
+ * Declarative column definition for the generic `DataTable`.
+ *
+ * @typeParam T - Row object shape.
+ */
 export interface ColumnDef<T> {
   id: string;
   header?: ReactNode;
@@ -72,6 +77,15 @@ interface DataTableProps<T> {
   stickyHeader?: boolean;
 }
 
+/**
+ * Generic sortable table component used throughout the dashboard.
+ *
+ * Hidden behavior: clicking a sortable header cycles `asc -> desc -> unsorted`.
+ *
+ * @typeParam T - Row object shape.
+ * @param props - Column config, row data and key extractors.
+ * @returns Rendered data table.
+ */
 export function DataTable<T>({
   columns,
   data,

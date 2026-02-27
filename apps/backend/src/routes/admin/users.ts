@@ -20,6 +20,9 @@ import {
 } from "../../services/admin-users.js";
 import { setupSchema } from "../../services/auth.js";
 
+/**
+ * Admin user management routes (CRUD + avatar handling).
+ */
 export const usersRoutes = new Hono<{ Variables: AuthVariables }>();
 
 const createUserSchema = setupSchema.extend({

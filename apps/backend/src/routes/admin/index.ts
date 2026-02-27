@@ -13,6 +13,9 @@ import { umamiRoutes } from "./umami.js";
 import { unsplashRoutes } from "./unsplash.js";
 import { usersRoutes } from "./users.js";
 
+/**
+ * Root admin route bundle mounted at `/api/admin`.
+ */
 export const adminRoutes = new Hono<{ Variables: AuthVariables }>();
 
 adminRoutes.route("/", authRoutes);

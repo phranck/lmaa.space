@@ -1,6 +1,16 @@
+/**
+ * Publication states supported by CMS-like content pages.
+ */
 export type ContentStatus = "draft" | "published" | "hidden";
+
+/**
+ * Navigation buckets rendered on the website.
+ */
 export type NavId = "header" | "footer";
 
+/**
+ * Full content page model used in editor and public rendering.
+ */
 export interface ContentPage {
   slug: string;
   title: string;
@@ -12,6 +22,9 @@ export interface ContentPage {
   updatedByUsername: string | null;
 }
 
+/**
+ * Lightweight list item for content overview screens.
+ */
 export interface ContentPageSummary {
   slug: string;
   title: string;
@@ -22,8 +35,14 @@ export interface ContentPageSummary {
   updatedByUsername: string | null;
 }
 
+/**
+ * Supported navigation link targets.
+ */
 export type NavTarget = "_self" | "_blank";
 
+/**
+ * Navigation item representation for header/footer editors.
+ */
 export interface NavItem {
   id: number;
   navId: NavId;

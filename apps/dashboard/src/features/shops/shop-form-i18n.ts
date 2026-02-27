@@ -16,10 +16,22 @@ const REGION_NAMES = {
   },
 } as const;
 
+/**
+ * Returns localized region options for the shop editor.
+ *
+ * @param locale - Active dashboard locale.
+ * @returns Region option list for select controls.
+ */
 export function getRegionOptions(locale: DashboardLocale) {
   return createRegionOptions(REGION_NAMES[locale]);
 }
 
+/**
+ * Returns localized copy for the shared shop edit form component.
+ *
+ * @param locale - Active dashboard locale.
+ * @returns Message bundle and region options.
+ */
 export function getShopEditFormI18n(locale: DashboardLocale): {
   messages: ShopEditFormMessages;
   regionOptions: ReturnType<typeof getRegionOptions>;

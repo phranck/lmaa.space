@@ -3,6 +3,9 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { contentPages, navItems } from "../db/schema.js";
 
+/**
+ * Normalized navigation item returned to the dashboard editor.
+ */
 export interface AdminNavItemRow {
   id: number;
   navId: NavId;
@@ -14,6 +17,9 @@ export interface AdminNavItemRow {
   position: number;
 }
 
+/**
+ * Input shape for replacing one navigation set.
+ */
 export interface ReplaceAdminNavItemInput {
   pageSlug: string | null;
   url: string | null;
@@ -21,6 +27,12 @@ export interface ReplaceAdminNavItemInput {
   label: string | null;
 }
 
+/**
+ * Reads all navigation items for one nav area.
+ *
+ * @param navId - Navigation collection (`header` or `footer`).
+ * @returns Items with resolved page titles, ordered by `position`.
+ */
 export async function listAdminNavItems(navId: NavId): Promise<AdminNavItemRow[]> {
   return db
     .select({
@@ -39,6 +51,16 @@ export async function listAdminNavItems(navId: NavId): Promise<AdminNavItemRow[]
     .orderBy(asc(navItems.position));
 }
 
+/**
+ * Replaces all items of a navigation area atomically.
+ *
+ * Hidden behavior: existing items are deleted first, then recreated with
+ * sequential positions based on input order.
+ *
+ * @param navId - Target nav collection.
+ * @param items - Complete replacement set.
+ * @returns Fresh list after replacement.
+ */
 export async function replaceAdminNavItems(
   navId: NavId,
   items: ReplaceAdminNavItemInput[],

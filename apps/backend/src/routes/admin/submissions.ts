@@ -11,6 +11,12 @@ import {
   reviewAdminSubmission,
 } from "../../services/admin-submissions.js";
 
+/**
+ * Admin submission moderation routes.
+ *
+ * Supports listing, reviewing, editing pending submissions and deleting
+ * rejected submissions.
+ */
 export const submissionsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/submissions

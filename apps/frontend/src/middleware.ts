@@ -84,6 +84,12 @@ function buildProxyHeaders(request: Request, requestUrl: URL): Headers {
   return headers;
 }
 
+/**
+ * Astro request middleware that proxies selected routes to backend.
+ *
+ * Hidden behavior: strips hop-by-hop headers, forwards client IP metadata and
+ * guards against self-referential proxy targets.
+ */
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 

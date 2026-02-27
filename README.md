@@ -13,7 +13,7 @@
 
 ---
 
-Eine Community-kuratierte Liste von Online-Shops als Alternativen zu Amazon – für den deutschsprachigen Raum.
+Eine community-kuratierte Liste von Online-Shops als Alternativen zu Amazon für den deutschsprachigen Raum.
 
 **Live:** [https://lmaa.space](https://lmaa.space) · **Ursprungsprojekt:** [Codeberg](https://codeberg.org/phranck/Amazon-Alternativen)
 
@@ -22,10 +22,12 @@ Eine Community-kuratierte Liste von Online-Shops als Alternativen zu Amazon – 
 ```
 apps/
   backend/    @lmaa/backend   – Hono + Node.js + PostgreSQL + Drizzle
-  frontend/   @lmaa/frontend  – React + Vite + Tailwind (öffentliche Seite)
-  dashboard/  @lmaa/dashboard – React + Vite + Tailwind (Admin)
+  frontend/   @lmaa/frontend  – Astro SSR + React Islands (öffentliche Seite)
+  dashboard/  @lmaa/dashboard – React + Vite (Admin)
 packages/
-  shared/     @lmaa/shared    – Geteilte TypeScript-Types
+  shared/     @lmaa/shared    – geteilte Domain-Typen, Konstanten, Utilities
+  contracts/  @lmaa/contracts – geteilte Zod-Verträge für API-Payloads
+  ui/         @lmaa/ui        – geteilte UI-Komponenten
 ```
 
 ## Entwicklung
@@ -39,6 +41,19 @@ npm run dev:backend    # Port 3000
 npm run dev:frontend   # Port 5173
 npm run dev:dashboard  # Port 5174
 ```
+
+## Qualität & Dokumentation
+
+```bash
+# Lint + Typprüfung + Build + Smoke
+npm run ci:quality
+
+# API-/Code-Referenz aus TypeScript-Exports generieren
+npm run docs:code
+```
+
+- Doku-Standard: `docs/CODE-DOCUMENTATION.md`
+- Code-Referenz-Output: `docs/reference/code`
 
 ## Mitmachen
 

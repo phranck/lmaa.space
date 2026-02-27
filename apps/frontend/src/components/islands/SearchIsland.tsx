@@ -3,6 +3,9 @@ import type { Category, Shop } from "@lmaa/shared";
 import Fuse, { type IFuseOptions } from "fuse.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+/**
+ * Props for the client-side search island.
+ */
 interface Props {
   shops: Shop[];
   categories: Category[];
@@ -21,6 +24,15 @@ const FUSE_OPTIONS: IFuseOptions<Shop> = {
   includeScore: true,
 };
 
+/**
+ * Interactive catalog search used on the public search page.
+ *
+ * Hidden behavior: reads/writes the `q` query parameter client-side so links
+ * stay shareable and browser history is preserved.
+ *
+ * @param props - Preloaded shops/categories from Astro server rendering.
+ * @returns Hydrated search UI with category and shop result sections.
+ */
 export default function SearchIsland({ shops, categories }: Props) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");

@@ -2,6 +2,11 @@
  * Loading skeleton for Analytics section
  * Matches the 2x2 grid layout of charts
  */
+/**
+ * Skeleton placeholder displayed while analytics data is loading.
+ *
+ * @returns Card/grid shimmer layout matching final analytics panel.
+ */
 export function AnalyticsLoadingFallback() {
   const skeletonKeys = ["analytics-sk-1", "analytics-sk-2", "analytics-sk-3", "analytics-sk-4"];
   return (

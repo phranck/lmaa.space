@@ -3,13 +3,18 @@ import type { Category, ShopCategory } from "@lmaa/shared";
 import { type ApiRequestError, createApiRequestError } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
-import type React from "react";
 import { useState } from "react";
 
+/**
+ * Props for the public shop suggestion form.
+ */
 interface Props {
   categories: Category[];
 }
 
+/**
+ * API response union for duplicate-url checks.
+ */
 type UrlCheckResult =
   | { exists: false }
   | { exists: true; shop: { id: number; name: string; categories: ShopCategory[] } };
@@ -19,6 +24,12 @@ import { API_BASE } from "@/lib/client-api";
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
+/**
+ * Converts network/API errors into user-facing submit messages.
+ *
+ * @param error - Unknown error from fetch or API helper.
+ * @returns Localized message suitable for inline form feedback.
+ */
 function getSubmissionErrorMessage(error: unknown): string {
   if (error instanceof TypeError) {
     return "Verbindung zum Server fehlgeschlagen. Bitte prüfe deine Verbindung.";
@@ -45,6 +56,11 @@ function getSubmissionErrorMessage(error: unknown): string {
   return "Fehler beim Absenden. Bitte versuche es erneut.";
 }
 
+/**
+ * Encapsulates local state for the suggestion workflow.
+ *
+ * @returns State tuple collection used by `SuggestForm`.
+ */
 function useSuggestFormState() {
   const [submitted, setSubmitted] = useState(false);
   const [shopForm, setShopForm] = useState<ShopEditFormValue>(EMPTY_SHOP_FORM_VALUE);
@@ -80,6 +96,15 @@ function useSuggestFormState() {
   };
 }
 
+/**
+ * Public suggestion form island with live duplicate-url check.
+ *
+ * Hidden behavior: validates basic client-side constraints before posting to
+ * `/api/submissions` and keeps a friendly recoverable error state.
+ *
+ * @param props - Available category options.
+ * @returns Full form UI or success state after submission.
+ */
 export default function SuggestForm({ categories }: Props) {
   const shopFormI18n = getFrontendShopFormI18n("de");
   const {
@@ -117,9 +142,7 @@ export default function SuggestForm({ categories }: Props) {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
+  async function handleSubmit() {
     const errors: typeof shopErrors = {};
     if (!shopForm.name.trim()) errors.name = "Bitte einen Shop-Namen eingeben";
     if (!shopForm.url.trim() || !shopForm.url.startsWith("http"))
@@ -303,7 +326,13 @@ export default function SuggestForm({ categories }: Props) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSubmit();
+        }}
+        className="space-y-6"
+      >
         <ShopEditForm
           value={shopForm}
           onChange={setShopForm}

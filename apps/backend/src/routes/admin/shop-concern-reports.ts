@@ -7,6 +7,9 @@ import {
   getManagedAdminShopConcernReports,
 } from "../../services/admin-shop-concern-reports.js";
 
+/**
+ * Admin routes for user-submitted concern reports.
+ */
 export const shopConcernReportsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/shop-concern-reports

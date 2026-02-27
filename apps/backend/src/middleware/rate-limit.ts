@@ -46,6 +46,20 @@ if (typeof global !== "undefined") {
   }, cleanupIntervalMs);
 }
 
+/**
+ * Creates in-memory IP/path based rate limiting middleware.
+ *
+ * @param options - Rate limit configuration.
+ * @param options.max - Maximum number of requests within the window.
+ * @param options.windowMs - Window duration in milliseconds.
+ * @returns Hono middleware that enforces limits and sets standard rate-limit headers.
+ *
+ * @remarks
+ * Hidden behavior:
+ * - Keying strategy is `"{path}:{clientIp}"`.
+ * - Store is process-local memory (not shared across instances).
+ * - Expired entries are cleaned up by a background interval.
+ */
 export function rateLimit(options: { max: number; windowMs: number }) {
   return createMiddleware(async (c, next) => {
     const ip = resolveClientIp(c.req.raw.headers);

@@ -14,6 +14,16 @@ interface SegmentedControlProps<T extends string> {
   storageKey?: string;
 }
 
+/**
+ * Animated segmented control with keyboard/mouse interaction.
+ *
+ * Hidden behavior: uses a sliding highlight element and supports value
+ * persistence via parent-controlled state.
+ *
+ * @typeParam T - Literal union of option values.
+ * @param props - Options, current value and selection callback.
+ * @returns Segmented toggle component.
+ */
 export function SegmentedControl<T extends string>({
   value,
   onChange,

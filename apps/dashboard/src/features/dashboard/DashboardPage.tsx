@@ -11,6 +11,11 @@ const AnalyticsSection = lazy(() =>
   })),
 );
 
+/**
+ * Landing page for authenticated dashboard users.
+ *
+ * @returns Dashboard route component.
+ */
 export function DashboardPage() {
   const { messages } = useI18n();
   const dashboardMessages = messages.dashboard;

@@ -38,6 +38,11 @@ function mapSummary(
   };
 }
 
+/**
+ * Returns all content page summaries enriched with creator/editor usernames.
+ *
+ * @returns Summary list for admin content overview tables.
+ */
 export async function getManagedContentPages(): Promise<ContentPageSummary[]> {
   const pages = await listContentPageSummaries();
   const ids = [
@@ -51,6 +56,14 @@ export async function getManagedContentPages(): Promise<ContentPageSummary[]> {
   return pages.map((page) => mapSummary(page, usernames));
 }
 
+/**
+ * Creates a new content page after slug conflict check.
+ *
+ * @param input - Page creation payload.
+ * @returns
+ * - `{ ok: false, reason: "slug_conflict" }` if slug already exists.
+ * - `{ ok: true, page }` with normalized summary payload.
+ */
 export async function createManagedContentPage(input: {
   slug: string;
   title: string;
@@ -85,6 +98,12 @@ export async function createManagedContentPage(input: {
   };
 }
 
+/**
+ * Returns one content page by slug, mapped to shared API model.
+ *
+ * @param slug - Page slug.
+ * @returns Full content page or `null`.
+ */
 export async function getManagedContentPage(slug: string) {
   const page = await getContentPageBySlug(slug);
   if (!page) {
@@ -108,6 +127,12 @@ export async function getManagedContentPage(slug: string) {
   return result;
 }
 
+/**
+ * Updates page markdown/content body.
+ *
+ * @param input - Slug/content/admin payload.
+ * @returns Lightweight payload with updated timestamp and editor, or `null` if missing.
+ */
 export async function updateManagedContentPageBody(input: {
   slug: string;
   content: string;
@@ -127,6 +152,12 @@ export async function updateManagedContentPageBody(input: {
   };
 }
 
+/**
+ * Updates metadata (`slug`, `title`, `status`) with slug collision guard.
+ *
+ * @param input - Metadata update payload.
+ * @returns Result union with `ok` flag and reason/page payload.
+ */
 export async function updateManagedContentPageMeta(input: {
   currentSlug: string;
   newSlug?: string;
@@ -161,6 +192,12 @@ export async function updateManagedContentPageMeta(input: {
   };
 }
 
+/**
+ * Deletes a content page by slug.
+ *
+ * @param slug - Page slug.
+ * @returns `true` when a page was deleted, otherwise `false`.
+ */
 export async function deleteManagedContentPage(slug: string): Promise<boolean> {
   return deleteContentPage(slug);
 }

@@ -1,5 +1,8 @@
 import { type ShopEditFormMessages, createRegionOptions } from "@lmaa/ui";
 
+/**
+ * Supported locales for the public suggestion form.
+ */
 type FrontendLocale = "de" | "en";
 
 const REGION_NAMES = {
@@ -17,6 +20,12 @@ const REGION_NAMES = {
   },
 } as const;
 
+/**
+ * Returns localized labels and region options for the public shop form.
+ *
+ * @param locale - Target locale, defaults to German.
+ * @returns Translated message bundle plus computed region options.
+ */
 export function getFrontendShopFormI18n(locale: FrontendLocale = "de"): {
   messages: ShopEditFormMessages;
   regionOptions: ReturnType<typeof createRegionOptions>;

@@ -10,6 +10,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
+/**
+ * Loads submissions by moderation status.
+ *
+ * @param status - Submission status filter.
+ * @returns React Query result with submission rows.
+ */
 export function useAdminSubmissions(status: SubmissionStatus) {
   return useQuery({
     queryKey: ["submissions", status],
@@ -17,6 +23,11 @@ export function useAdminSubmissions(status: SubmissionStatus) {
   });
 }
 
+/**
+ * Sends a moderation decision for one submission.
+ *
+ * @returns React Query mutation for approve/reject/onhold actions.
+ */
 export function useReviewSubmission() {
   const qc = useQueryClient();
   return useMutation({
@@ -40,6 +51,11 @@ export function useReviewSubmission() {
   });
 }
 
+/**
+ * Updates editable fields of a pending submission.
+ *
+ * @returns React Query mutation.
+ */
 export function useEditSubmission() {
   const qc = useQueryClient();
   return useMutation({
@@ -56,6 +72,11 @@ export function useEditSubmission() {
   });
 }
 
+/**
+ * Deletes a rejected submission.
+ *
+ * @returns React Query mutation.
+ */
 export function useDeleteSubmission() {
   const qc = useQueryClient();
   return useMutation({
@@ -64,6 +85,11 @@ export function useDeleteSubmission() {
   });
 }
 
+/**
+ * Loads aggregated dead-link reports.
+ *
+ * @returns React Query result with dead-link report rows.
+ */
 export function useDeadLinkReports() {
   return useQuery({
     queryKey: ["dead-link-reports"],
@@ -71,6 +97,11 @@ export function useDeadLinkReports() {
   });
 }
 
+/**
+ * Dismisses all dead-link reports for a shop.
+ *
+ * @returns React Query mutation.
+ */
 export function useDismissDeadLink() {
   const qc = useQueryClient();
   return useMutation({
@@ -79,6 +110,11 @@ export function useDismissDeadLink() {
   });
 }
 
+/**
+ * Deletes/soft-deletes shops directly from the dead-link report workflow.
+ *
+ * @returns React Query mutation.
+ */
 export function useDeleteShopFromDeadLinks() {
   const qc = useQueryClient();
   return useMutation({
@@ -103,6 +139,11 @@ export function useDeleteShopFromDeadLinks() {
   });
 }
 
+/**
+ * Loads shop concern reports submitted by users.
+ *
+ * @returns React Query result with concern report rows.
+ */
 export function useShopConcernReports() {
   return useQuery({
     queryKey: ["shop-concern-reports"],
@@ -110,6 +151,11 @@ export function useShopConcernReports() {
   });
 }
 
+/**
+ * Dismisses one concern report.
+ *
+ * @returns React Query mutation.
+ */
 export function useDismissShopConcern() {
   const qc = useQueryClient();
   return useMutation({

@@ -1,3 +1,6 @@
+/**
+ * Category entity shared by frontend, dashboard and backend responses.
+ */
 export interface Category {
   id: number;
   name: string;
@@ -13,6 +16,9 @@ export interface Category {
   updatedAt: string;
 }
 
+/**
+ * Category plus resolved shop relations for detail views.
+ */
 export interface CategoryWithShops extends Category {
   shops: import("./shop.js").Shop[];
 }

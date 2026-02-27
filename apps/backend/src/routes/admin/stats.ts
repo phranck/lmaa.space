@@ -3,6 +3,9 @@ import { ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { getManagedAdminStats } from "../../services/admin-stats.js";
 
+/**
+ * Admin statistics routes.
+ */
 export const statsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/stats

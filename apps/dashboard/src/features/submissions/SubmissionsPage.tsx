@@ -567,6 +567,11 @@ function getInitialTab(): Tab {
   return "vorschlaege";
 }
 
+/**
+ * Submissions hub with tabs for suggestions, dead links and concern reports.
+ *
+ * @returns Submissions route component.
+ */
 export function SubmissionsPage() {
   const { messages } = useI18n();
   const { user } = useAuth();

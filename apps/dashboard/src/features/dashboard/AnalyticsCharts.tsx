@@ -29,6 +29,12 @@ interface RealtimeBarsChartProps {
   formatNumber: (value: number) => string;
 }
 
+/**
+ * Compact realtime bar chart (visitors + pageviews).
+ *
+ * @param props - Chart data, labels and theme tokens.
+ * @returns Recharts responsive container.
+ */
 export function RealtimeBarsChart({
   data,
   maxValue,
@@ -90,6 +96,12 @@ interface TrafficAreaChartProps {
   formatNumber: (value: number) => string;
 }
 
+/**
+ * Period traffic area chart used in dashboard overview.
+ *
+ * @param props - Chart data, labels and theme tokens.
+ * @returns Recharts responsive container.
+ */
 export function TrafficAreaChart({
   data,
   maxValue,

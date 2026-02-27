@@ -10,6 +10,9 @@ import {
   submissions,
 } from "../db/schema.js";
 
+/**
+ * Editable fields for a pending submission.
+ */
 export interface SubmissionEditData {
   shopName: string;
   shopUrl: string;
@@ -19,6 +22,9 @@ export interface SubmissionEditData {
   categoryIds: number[];
 }
 
+/**
+ * Moderation decision payload.
+ */
 export interface SubmissionReviewData {
   id: number;
   status: SubmissionReviewStatus;
@@ -26,11 +32,20 @@ export interface SubmissionReviewData {
   adminId: number;
 }
 
+/**
+ * Result of a review transaction including optional newly created shop.
+ */
 export interface SubmissionReviewResult {
   submission: Submission | null;
   newShop: Pick<Shop, "id" | "url"> | null;
 }
 
+/**
+ * Lists submissions and hydrates their category ids.
+ *
+ * @param status - Optional status filter.
+ * @returns Submissions sorted by creation date (newest first).
+ */
 export async function listAdminSubmissions(
   status?: SubmissionStatus,
 ): Promise<Array<Submission & { categoryIds: number[] }>> {
@@ -56,6 +71,15 @@ export async function listAdminSubmissions(
   return rows.map((row) => ({ ...row, categoryIds: categoryMap.get(row.id) ?? [] }));
 }
 
+/**
+ * Applies a moderation decision to a submission.
+ *
+ * Hidden behavior: approving a submission creates a shop and copies category
+ * links inside the same transaction.
+ *
+ * @param data - Review payload containing status and actor id.
+ * @returns Updated submission and optional created shop reference.
+ */
 export async function reviewSubmission(
   data: SubmissionReviewData,
 ): Promise<SubmissionReviewResult> {
@@ -107,6 +131,15 @@ export async function reviewSubmission(
   });
 }
 
+/**
+ * Updates data for a pending submission.
+ *
+ * Hidden behavior: category links are fully replaced.
+ *
+ * @param id - Submission id.
+ * @param data - New submission values.
+ * @returns Updated submission row or `null` when not found.
+ */
 export async function editSubmission(
   id: number,
   data: SubmissionEditData,
@@ -141,6 +174,12 @@ export async function editSubmission(
   });
 }
 
+/**
+ * Reads the moderation status of a submission.
+ *
+ * @param id - Submission id.
+ * @returns Status value or `null` when not found.
+ */
 export async function getSubmissionStatus(id: number): Promise<SubmissionStatus | null> {
   const [submission] = await db
     .select({ status: submissions.status })
@@ -150,14 +189,33 @@ export async function getSubmissionStatus(id: number): Promise<SubmissionStatus 
   return submission?.status ?? null;
 }
 
+/**
+ * Permanently deletes a submission.
+ *
+ * @param id - Submission id.
+ * @returns Resolves when delete is finished.
+ */
 export async function deleteSubmission(id: number): Promise<void> {
   await db.delete(submissions).where(eq(submissions.id, id));
 }
 
+/**
+ * Marks feedback as sent for a submission.
+ *
+ * @param id - Submission id.
+ * @returns Resolves when flag has been persisted.
+ */
 export async function setSubmissionFeedbackSent(id: number): Promise<void> {
   await db.update(submissions).set({ feedbackSent: true }).where(eq(submissions.id, id));
 }
 
+/**
+ * Stores a generated OG image URL for a shop created from a submission.
+ *
+ * @param id - Shop id.
+ * @param ogImage - Absolute image URL.
+ * @returns Resolves after DB update.
+ */
 export async function setShopOgImage(id: number, ogImage: string): Promise<void> {
   await db.update(shops).set({ ogImage }).where(eq(shops.id, id));
 }
