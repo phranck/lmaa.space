@@ -119,7 +119,7 @@ export default function SearchIsland({ shops, categories }: Props) {
             {categoryResults.map((cat) => (
               <a
                 key={cat.id}
-                href={`/kategorie/${cat.slug}`}
+                href={`/category/${cat.slug}`}
                 className="px-4 py-2 bg-white border border-stone-200 rounded-full text-sm font-medium text-stone-700 hover:border-amber-400 hover:text-amber-700 transition-colors"
               >
                 {cat.name}

@@ -68,7 +68,7 @@ app.get("/sitemap.xml", async (c) => {
     ];
 
     const categoryUrls = cats.map((cat) => ({
-      loc: `${BASE}/kategorie/${cat.slug}`,
+      loc: `${BASE}/category/${cat.slug}`,
       changefreq: "weekly",
       priority: "0.8",
       lastmod: new Date(cat.updatedAt).toISOString().split("T")[0],
