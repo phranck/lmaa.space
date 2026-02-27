@@ -21,19 +21,14 @@ function getOpenApiServers() {
 }
 
 /**
- * OpenAPI 3.1 document for public API consumers and internal admin routes.
- *
- * @remarks
- * Admin endpoints are included for completeness, but explicitly tagged as
- * internal and secured via cookie auth.
+ * OpenAPI 3.1 document for public API consumers.
  */
 export const OPEN_API_DOCUMENT = {
   openapi: "3.1.0",
   info: {
     title: "LMAA API",
     version: "1.0.0",
-    description:
-      "Official API for lmaa.space. Public endpoints are stable for integrations. Admin endpoints are internal and require an authenticated dashboard session.",
+    description: "Official API for lmaa.space. Public endpoints are stable for integrations.",
     contact: {
       name: "LMAA",
       url: "https://lmaa.space",
@@ -45,11 +40,6 @@ export const OPEN_API_DOCUMENT = {
     {
       name: "Public",
       description: "Public endpoints intended for website and external consumers.",
-    },
-    {
-      name: "Admin (Internal)",
-      description:
-        "Internal dashboard endpoints. These routes require a valid session cookie and may change without notice.",
     },
     { name: "System", description: "Operational endpoints for health and diagnostics." },
   ],
@@ -404,102 +394,8 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/admin/login": {
-      post: {
-        tags: ["Admin (Internal)"],
-        summary: "Authenticate admin user",
-        description:
-          "Internal endpoint. On success, sets `session` cookie used for subsequent admin calls.",
-        operationId: "adminLogin",
-        requestBody: {
-          required: true,
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  username: { type: "string" },
-                  password: { type: "string" },
-                },
-                required: ["username", "password"],
-              },
-            },
-          },
-        },
-        responses: {
-          "200": {
-            description: "Authenticated admin profile",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/AdminProfileEnvelope" },
-              },
-            },
-          },
-          "401": {
-            description: "Invalid credentials",
-            content: {
-              "application/json": { schema: { $ref: "#/components/schemas/ErrorEnvelope" } },
-            },
-          },
-        },
-      },
-    },
-    "/api/admin/me": {
-      get: {
-        tags: ["Admin (Internal)"],
-        summary: "Get current admin profile",
-        description: "Internal endpoint requiring authenticated dashboard session cookie.",
-        operationId: "adminMe",
-        security: [{ sessionCookie: [] }],
-        responses: {
-          "200": {
-            description: "Current admin profile",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/AdminProfileEnvelope" },
-              },
-            },
-          },
-          "401": {
-            description: "Not authenticated",
-            content: {
-              "application/json": { schema: { $ref: "#/components/schemas/ErrorEnvelope" } },
-            },
-          },
-        },
-      },
-    },
-    "/api/admin/logout": {
-      post: {
-        tags: ["Admin (Internal)"],
-        summary: "Logout current admin session",
-        operationId: "adminLogout",
-        security: [{ sessionCookie: [] }],
-        responses: {
-          "200": {
-            description: "Logout successful",
-            content: {
-              "application/json": { schema: { $ref: "#/components/schemas/MessageEnvelope" } },
-            },
-          },
-          "401": {
-            description: "Not authenticated",
-            content: {
-              "application/json": { schema: { $ref: "#/components/schemas/ErrorEnvelope" } },
-            },
-          },
-        },
-      },
-    },
   },
   components: {
-    securitySchemes: {
-      sessionCookie: {
-        type: "apiKey",
-        in: "cookie",
-        name: "session",
-      },
-    },
     schemas: {
       ErrorEnvelope: {
         type: "object",
@@ -751,29 +647,6 @@ export const OPEN_API_DOCUMENT = {
         },
         required: ["data"],
       },
-      AdminProfile: {
-        type: "object",
-        properties: {
-          id: { type: "integer" },
-          username: { type: "string" },
-          email: { type: "string", format: "email" },
-          role: { type: "string", enum: ["owner", "admin", "moderator"] },
-          firstName: { type: ["string", "null"] },
-          lastName: { type: ["string", "null"] },
-          avatarUrl: { type: ["string", "null"], format: "uri" },
-          createdAt: { type: "string", format: "date-time" },
-          lastLoginAt: { type: ["string", "null"], format: "date-time" },
-          isOwner: { type: "boolean" },
-        },
-        required: ["id", "username", "email", "role", "createdAt", "isOwner"],
-      },
-      AdminProfileEnvelope: {
-        type: "object",
-        properties: {
-          data: { $ref: "#/components/schemas/AdminProfile" },
-        },
-        required: ["data"],
-      },
     },
   },
 } as const;
@@ -810,7 +683,7 @@ function renderApiReferenceHtml() {
     <script
       id="api-reference"
       data-url="/openapi.json"
-      data-configuration='{"theme":"purple","layout":"modern","showSidebar":true}'
+      data-configuration='{"theme":"purple","layout":"modern","showSidebar":true,"hideModels":true}'
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
   </body>
