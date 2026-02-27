@@ -2,9 +2,18 @@
 import SuggestForm from "@/components/islands/SuggestForm";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
+import type { FormConfig } from "@lmaa/contracts";
 import type { Category } from "@lmaa/shared";
 
 const categories = await apiGet<Category[]>("/categories");
+
+let formConfig: FormConfig | null = null;
+try {
+  formConfig = await apiGet<FormConfig>("/form-config/suggestion-form");
+} catch {
+  // Fallback: render the original hardcoded form when the config is not found
+  // (e.g. 404 because no config has been created yet in the admin dashboard).
+}
 ---
 
 <BaseLayout
@@ -12,5 +21,5 @@ const categories = await apiGet<Category[]>("/categories");
   description="Kennst du einen fairen Online-Shop? Schlage ihn für lmaa.space vor und hilf der Community."
   noindex={true}
 >
-  <SuggestForm client:load categories={categories} />
+  <SuggestForm client:load categories={categories} formConfig={formConfig ?? undefined} />
 </BaseLayout>

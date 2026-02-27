@@ -154,6 +154,12 @@ export function Sidebar({
       icon: <SFPerson3Fill className="w-4 h-4" />,
       minRole: "admin",
     },
+    {
+      to: "/formular",
+      label: sidebarMessages.formBuilder,
+      icon: <SFDocumentFill className="w-4 h-4" />,
+      minRole: "admin",
+    },
   ];
   const visibleNavItems = navItems.filter(
     (item) => !item.minRole || (role !== undefined && ROLE_RANK[role] >= ROLE_RANK[item.minRole]),

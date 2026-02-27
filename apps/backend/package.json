@@ -9,12 +9,14 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
     "db:seed": "tsx --env-file=.env.local src/scripts/seed.ts",
+    "db:seed-form-config": "tsx --env-file=.env.local src/scripts/seed-form-config.ts",
     "db:fetch-og": "tsx --env-file=.env.local src/scripts/fetch-og-images.ts",
     "email:preview": "npx react-email dev --dir src/emails --port 3001"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.3",
+    "@lmaa/contracts": "0.1.0",
     "@lmaa/shared": "0.1.0",
     "@react-email/components": "^1.0.8",
     "bcryptjs": "^2.4.3",

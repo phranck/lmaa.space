@@ -32,6 +32,7 @@ export interface DashboardMessages {
       pages: string;
       pagesOverview: string;
       navigations: string;
+      formBuilder: string;
       editProfile: string;
       logout: string;
       roles: {
@@ -346,6 +347,40 @@ export interface DashboardMessages {
       };
     };
   };
+  formBuilder: {
+    title: string;
+    save: string;
+    saved: string;
+    saveError: string;
+    empty: string;
+    fieldTypes: {
+      text: string;
+      email: string;
+      textarea: string;
+      select: string;
+      multiSelect: string;
+      checkbox: string;
+      richtext: string;
+    };
+    panel: {
+      label: string;
+      placeholder: string;
+      required: string;
+      width: string;
+      widthFull: string;
+      widthHalf: string;
+      options: string;
+      optionsHint: string;
+      validationMin: string;
+      validationMax: string;
+      content: string;
+      variant: string;
+      variantDefault: string;
+      variantInfo: string;
+      variantWarning: string;
+      variantHint: string;
+    };
+  };
   errors: {
     boundary: {
       title: string;
@@ -386,6 +421,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         pages: "Seiten",
         pagesOverview: "Übersicht",
         navigations: "Navigationen",
+        formBuilder: "Formular-Builder",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
         roles: {
@@ -704,6 +740,40 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         },
       },
     },
+    formBuilder: {
+      title: "Formular-Builder",
+      save: "Speichern",
+      saved: "Gespeichert",
+      saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
+      empty: "Noch keine Felder vorhanden. Felder aus der Palette ziehen.",
+      fieldTypes: {
+        text: "Text",
+        email: "E-Mail",
+        textarea: "Textbereich",
+        select: "Auswahl",
+        multiSelect: "Mehrfachauswahl",
+        checkbox: "Checkbox",
+        richtext: "Textblock",
+      },
+      panel: {
+        label: "Bezeichnung",
+        placeholder: "Platzhalter",
+        required: "Pflichtfeld",
+        width: "Breite",
+        widthFull: "Ganz",
+        widthHalf: "Halb",
+        options: "Optionen",
+        optionsHint: "Eine Option pro Zeile",
+        validationMin: "Min.",
+        validationMax: "Max.",
+        content: "Inhalt",
+        variant: "Darstellung",
+        variantDefault: "Standard",
+        variantInfo: "Hinweis",
+        variantWarning: "Warnung",
+        variantHint: "Tipp",
+      },
+    },
     errors: {
       boundary: {
         title: "Ein Fehler ist aufgetreten",
@@ -739,6 +809,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         pages: "Pages",
         pagesOverview: "Overview",
         navigations: "Navigations",
+        formBuilder: "Form Builder",
         editProfile: "Edit profile",
         logout: "Log out",
         roles: {
@@ -1053,6 +1124,40 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           suggestShop: "Suggest shop",
           search: "Search",
         },
+      },
+    },
+    formBuilder: {
+      title: "Form Builder",
+      save: "Save",
+      saved: "Saved",
+      saveError: "Error while saving. Please try again.",
+      empty: "No fields yet. Drag fields from the palette.",
+      fieldTypes: {
+        text: "Text",
+        email: "Email",
+        textarea: "Textarea",
+        select: "Select",
+        multiSelect: "Multi-select",
+        checkbox: "Checkbox",
+        richtext: "Text block",
+      },
+      panel: {
+        label: "Label",
+        placeholder: "Placeholder",
+        required: "Required",
+        width: "Width",
+        widthFull: "Full",
+        widthHalf: "Half",
+        options: "Options",
+        optionsHint: "One option per line",
+        validationMin: "Min.",
+        validationMax: "Max.",
+        content: "Content",
+        variant: "Style",
+        variantDefault: "Default",
+        variantInfo: "Info",
+        variantWarning: "Warning",
+        variantHint: "Hint",
       },
     },
     errors: {
