@@ -22,13 +22,6 @@ function resolveApiBase(): string {
 
   const base = normalizeApiBase(value);
 
-  if (process.env.NODE_ENV === "production") {
-    const hostname = new URL(base).hostname.toLowerCase();
-    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-      throw new Error(`Invalid API_URL in production: ${base}`);
-    }
-  }
-
   return base;
 }
 
