@@ -62,8 +62,8 @@ export function RejectedEmail({ shopName, reason }: RejectedEmailProps) {
 
             <Text style={paragraph}>
               Du kannst jederzeit einen neuen Vorschlag auf{" "}
-              <Link href="https://lmaa.space/vorschlagen" style={link}>
-                lmaa.space/vorschlagen
+              <Link href="https://lmaa.space/suggestion" style={link}>
+                lmaa.space/suggestion
               </Link>{" "}
               einreichen. Unsere{" "}
               <Link href="https://lmaa.space/aufnahmekriterien" style={link}>

@@ -23,7 +23,7 @@ const PAGE_LIST_TEXT = {
     fieldTitle: "Titel",
     fieldSlug: "Slug (URL-Pfad)",
     titlePlaceholder: "z.B. Über uns",
-    slugPlaceholder: "ueber-uns",
+    slugPlaceholder: "about",
     create: "Erstellen",
     creating: "Wird erstellt…",
     cancel: "Abbrechen",
