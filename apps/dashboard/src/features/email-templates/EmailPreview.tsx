@@ -1,6 +1,6 @@
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { marked } from "marked";
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 marked.use({ breaks: true, gfm: true });
 
@@ -89,6 +89,7 @@ export function EmailPreview({
   footerText,
 }: EmailPreviewProps) {
   const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const srcDoc = useMemo(() => {
     const headerHtml = headerText ? parseMarkdown(headerText) : null;
@@ -140,6 +141,12 @@ export function EmailPreview({
 </html>`;
   }, [colorScheme, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText]);
 
+  // Browsers don't reliably reload an iframe when React updates its srcdoc prop.
+  // Writing directly to the DOM element is the only cross-browser reliable approach.
+  useLayoutEffect(() => {
+    if (iframeRef.current) iframeRef.current.srcdoc = srcDoc;
+  }, [srcDoc]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-5 py-3 border-b border-[var(--ds-border)] shrink-0 flex items-center justify-between">
@@ -156,7 +163,7 @@ export function EmailPreview({
       </div>
       <div className="flex-1 overflow-hidden">
         <iframe
-          srcDoc={srcDoc}
+          ref={iframeRef}
           className="w-full h-full border-0"
           title="Email Vorschau"
           sandbox="allow-same-origin"
