@@ -1,7 +1,31 @@
 import { marked } from "marked";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 marked.use({ breaks: true, gfm: true });
+
+type ColorScheme = "light" | "dark";
+
+/**
+ * Dark mode CSS used in both the preview (via data-color-scheme attribute)
+ * and in the actual sent email (via @media prefers-color-scheme).
+ * Uses !important to override inline styles — standard practice for email dark mode.
+ */
+const DARK_RULES = `
+  body                        { background: #1c1917 !important; }
+  table.em-container          { background: #292524 !important; border-color: #44403c !important; }
+  h1, h2, h3                  { color: #fafaf9 !important; }
+  p                           { color: #d6d3d1 !important; }
+  a                           { color: #fcd34d !important; }
+  strong                      { color: #fafaf9 !important; }
+  .em-footer-border           { border-top-color: #44403c !important; }
+  .em-footer-text,
+  .em-footer-text p           { color: #78716c !important; }
+`;
+
+const PREVIEW_STYLE = `
+  @media (prefers-color-scheme: dark) { ${DARK_RULES} }
+  html[data-color-scheme="dark"] { ${DARK_RULES} }
+`;
 
 function applyInlineStyles(html: string): string {
   return html
@@ -41,7 +65,8 @@ interface EmailPreviewProps {
 
 /**
  * Live email preview rendered in an isolated iframe.
- * Replicates the same HTML layout as the backend `renderEmailTemplate` function.
+ * Replicates the same HTML layout as the backend `renderEmailTemplate` function,
+ * including dark mode support via CSS media query and a manual theme toggle.
  */
 export function EmailPreview({
   headerBannerUrl,
@@ -50,6 +75,8 @@ export function EmailPreview({
   footerBannerUrl,
   footerText,
 }: EmailPreviewProps) {
+  const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
+
   const srcDoc = useMemo(() => {
     const headerHtml = headerText ? parseMarkdown(headerText) : null;
     const bodyHtml = parseMarkdown(bodyText || "");
@@ -71,7 +98,7 @@ export function EmailPreview({
 
     if (footerHtml) {
       rows.push(
-        `<tr><td style="padding:0 40px 32px;border-top:1px solid #e7e5e4;"><div style="font-size:13px;color:#a8a29e;line-height:1.5;">${footerHtml}</div></td></tr>`,
+        `<tr><td class="em-footer-border" style="padding:0 40px 32px;border-top:1px solid #e7e5e4;"><div class="em-footer-text" style="font-size:13px;color:#a8a29e;line-height:1.5;">${footerHtml}</div></td></tr>`,
       );
     }
 
@@ -82,29 +109,54 @@ export function EmailPreview({
     }
 
     return `<!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-color-scheme="${colorScheme}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>${PREVIEW_STYLE}</style>
 </head>
 <body style="margin:0;padding:0;background:#f5f5f4;font-family:'Inter',system-ui,-apple-system,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr><td align="center" style="padding:40px 16px;">
-      <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#fff;border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;">
+      <table class="em-container" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#fff;border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;">
         ${rows.join("\n        ")}
       </table>
     </td></tr>
   </table>
 </body>
 </html>`;
-  }, [headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText]);
+  }, [colorScheme, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText]);
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 py-3 border-b border-[var(--ds-border)] shrink-0">
+      <div className="px-5 py-3 border-b border-[var(--ds-border)] shrink-0 flex items-center justify-between">
         <span className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
           Vorschau
         </span>
+        <div className="flex items-center rounded-full bg-[var(--ds-surface-hover)] p-0.5">
+          <button
+            type="button"
+            onClick={() => setColorScheme("light")}
+            className={`px-3 py-1 rounded-full text-xs transition-colors ${
+              colorScheme === "light"
+                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+            }`}
+          >
+            Hell
+          </button>
+          <button
+            type="button"
+            onClick={() => setColorScheme("dark")}
+            className={`px-3 py-1 rounded-full text-xs transition-colors ${
+              colorScheme === "dark"
+                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+            }`}
+          >
+            Dunkel
+          </button>
+        </div>
       </div>
       <div className="flex-1 overflow-hidden">
         <iframe
