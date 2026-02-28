@@ -63,6 +63,21 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
     paragraph: "Abs",
   };
 
+  const inputTypeAbbr: Record<string, string> = {
+    text: "Txt",
+    email: "Em",
+    password: "Pw",
+    url: "Url",
+    tel: "Tel",
+    date: "Dat",
+    number: "Nr",
+  };
+
+  const fieldAbbr =
+    field.type === "text"
+      ? (inputTypeAbbr[field.inputType ?? "text"] ?? "Txt")
+      : (typeAbbr[field.type] ?? field.type.slice(0, 3));
+
   return (
     <div
       ref={setNodeRef}
@@ -96,7 +111,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
             title={typeLabels[field.type] ?? field.type}
             className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text)]/60"
           >
-            {typeAbbr[field.type] ?? field.type.slice(0, 3)}
+            {fieldAbbr}
           </span>
         </>
       ) : (
@@ -105,7 +120,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
           title={typeLabels[field.type] ?? field.type}
           className="px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text)]/60"
         >
-          {typeAbbr[field.type] ?? field.type.slice(0, 3)}
+          {fieldAbbr}
         </span>
       )}
 
