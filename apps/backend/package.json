@@ -22,6 +22,7 @@
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.38.4",
     "hono": "^4.7.4",
+    "marked": "^17.0.3",
     "postgres": "^3.4.5",
     "react": "^19.2.4",
     "react-email": "^5.2.8",
