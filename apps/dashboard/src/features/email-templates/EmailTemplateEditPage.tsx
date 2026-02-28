@@ -1,3 +1,4 @@
+import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailPreview } from "@/features/email-templates/EmailPreview.tsx";
@@ -19,15 +20,16 @@ const LazyRichTextEditor = lazy(() =>
 
 interface FieldProps {
   label: string;
+  htmlFor?: string;
   required?: boolean;
   hint?: string;
   children: React.ReactNode;
 }
 
-function Field({ label, required, hint, children }: FieldProps) {
+function Field({ label, htmlFor, required, hint, children }: FieldProps) {
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-[var(--ds-text-muted)]">
+      <label htmlFor={htmlFor} className="block text-xs font-medium text-[var(--ds-text-muted)]">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -38,16 +40,19 @@ function Field({ label, required, hint, children }: FieldProps) {
 }
 
 function TextInput({
+  id,
   value,
   onChange,
   placeholder,
 }: {
+  id?: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
   return (
     <input
+      id={id}
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -172,7 +177,7 @@ export function EmailTemplateEditPage() {
       </PageHeader>
 
       {/* Sub-bar: back link + inline name input */}
-      <div className="px-6 py-3 border-b border-[var(--ds-border)] shrink-0 flex items-center gap-3">
+      <div className="px-6 py-3 shrink-0 flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate("/email-templates")}
@@ -195,80 +200,88 @@ export function EmailTemplateEditPage() {
         )}
       </div>
 
-      {/* Body: two-column split */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left: form */}
-        <div className="w-1/2 overflow-y-auto p-6 space-y-6 border-r border-[var(--ds-border)]">
-          {/* Subject */}
-          <Field label={m.templateSubject} required>
-            <TextInput
-              value={subject}
-              onChange={setSubject}
-              placeholder="Willkommen bei lmaa.space"
+      {/* Body: two-column split — wrapped in a card */}
+      <div className="flex-1 overflow-hidden p-6 pt-2">
+        <Card className="h-full flex overflow-hidden">
+          {/* Left: form */}
+          <div className="w-1/2 overflow-y-auto p-6 space-y-6 border-r border-[var(--ds-border)]">
+            {/* Subject */}
+            <Field label={m.templateSubject} htmlFor="tpl-subject" required>
+              <TextInput
+                id="tpl-subject"
+                value={subject}
+                onChange={setSubject}
+                placeholder="Willkommen bei lmaa.space"
+              />
+            </Field>
+
+            {/* Header */}
+            <SectionCard title="Header">
+              <Field label={m.headerBanner} htmlFor="tpl-header-banner">
+                <TextInput
+                  id="tpl-header-banner"
+                  value={headerBannerUrl}
+                  onChange={setHeaderBannerUrl}
+                  placeholder="https://example.com/header.png"
+                />
+              </Field>
+              <Field label={m.headerText} htmlFor="tpl-header-text">
+                <Suspense
+                  fallback={
+                    <div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />
+                  }
+                >
+                  <LazyRichTextEditor value={headerText} onChange={setHeaderText} rows={4} />
+                </Suspense>
+              </Field>
+            </SectionCard>
+
+            {/* Body */}
+            <SectionCard title="Body">
+              <Field label={m.bodyText} htmlFor="tpl-body-text" required>
+                <Suspense
+                  fallback={
+                    <div className="h-48 rounded-control border border-[var(--ds-border)] animate-pulse" />
+                  }
+                >
+                  <LazyRichTextEditor value={bodyText} onChange={setBodyText} rows={12} />
+                </Suspense>
+              </Field>
+            </SectionCard>
+
+            {/* Footer */}
+            <SectionCard title="Footer">
+              <Field label={m.footerText} htmlFor="tpl-footer-text">
+                <Suspense
+                  fallback={
+                    <div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />
+                  }
+                >
+                  <LazyRichTextEditor value={footerText} onChange={setFooterText} rows={4} />
+                </Suspense>
+              </Field>
+              <Field label={m.footerBanner} htmlFor="tpl-footer-banner">
+                <TextInput
+                  id="tpl-footer-banner"
+                  value={footerBannerUrl}
+                  onChange={setFooterBannerUrl}
+                  placeholder="https://example.com/footer.png"
+                />
+              </Field>
+            </SectionCard>
+          </div>
+
+          {/* Right: live preview */}
+          <div className="w-1/2 overflow-hidden">
+            <EmailPreview
+              headerBannerUrl={headerBannerUrl}
+              headerText={headerText}
+              bodyText={bodyText}
+              footerBannerUrl={footerBannerUrl}
+              footerText={footerText}
             />
-          </Field>
-
-          {/* Header */}
-          <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
-            <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
-              Header
-            </h2>
-            <Field label={m.headerBanner}>
-              <TextInput
-                value={headerBannerUrl}
-                onChange={setHeaderBannerUrl}
-                placeholder="https://example.com/header.png"
-              />
-            </Field>
-            <Field label={m.headerText}>
-              <Suspense fallback={<div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
-                <LazyRichTextEditor value={headerText} onChange={setHeaderText} rows={4} />
-              </Suspense>
-            </Field>
           </div>
-
-          {/* Body */}
-          <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
-            <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
-              Body
-            </h2>
-            <Field label={m.bodyText} required>
-              <Suspense fallback={<div className="h-48 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
-                <LazyRichTextEditor value={bodyText} onChange={setBodyText} rows={12} />
-              </Suspense>
-            </Field>
-          </div>
-
-          {/* Footer */}
-          <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
-            <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
-              Footer
-            </h2>
-            <Field label={m.footerText}>
-              <Suspense fallback={<div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
-                <LazyRichTextEditor value={footerText} onChange={setFooterText} rows={4} />
-              </Suspense>
-            </Field>
-            <Field label={m.footerBanner}>
-              <TextInput
-                value={footerBannerUrl}
-                onChange={setFooterBannerUrl}
-                placeholder="https://example.com/footer.png"
-              />
-            </Field>
-          </div>
-        </div>
-
-        {/* Right: live preview */}
-        <div className="w-1/2 overflow-hidden">
-          <EmailPreview
-            headerBannerUrl={headerBannerUrl}
-            headerText={headerText}
-            bodyText={bodyText}
-            footerBannerUrl={footerBannerUrl}
-            footerText={footerText}
-          />
-        </div>
+        </Card>
       </div>
     </div>
   );

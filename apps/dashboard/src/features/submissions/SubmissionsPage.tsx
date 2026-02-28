@@ -1,3 +1,4 @@
+import { ItemCard } from "@/components/ui/Card.tsx";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
@@ -166,10 +167,7 @@ function VorschlaegeTab() {
       {isLoading && (
         <div className="space-y-3">
           {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
-            <div
-              key={key}
-              className="h-24 bg-[var(--ds-surface)] rounded-xl animate-pulse border border-[var(--ds-border-subtle)]"
-            />
+            <ItemCard key={key} className="h-24 animate-pulse" />
           ))}
         </div>
       )}
@@ -462,10 +460,7 @@ function DefekteLinksTab() {
     return (
       <div className="space-y-3">
         {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
-          <div
-            key={key}
-            className="h-16 bg-[var(--ds-surface)] rounded-xl animate-pulse border border-[var(--ds-border-subtle)]"
-          />
+          <ItemCard key={key} className="h-16 animate-pulse" />
         ))}
       </div>
     );
@@ -482,10 +477,7 @@ function DefekteLinksTab() {
   return (
     <div className="space-y-3">
       {reports.map((r) => (
-        <div
-          key={r.shopId}
-          className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] p-4 flex items-center gap-4"
-        >
+        <ItemCard key={r.shopId} className="p-4 flex items-center gap-4">
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-[var(--ds-text)]">{r.shopName}</p>
             <a
@@ -535,7 +527,7 @@ function DefekteLinksTab() {
               {submissionsMessages.deadLinks.delete}
             </button>
           </div>
-        </div>
+        </ItemCard>
       ))}
 
       {deleteTarget !== null && (
@@ -670,10 +662,7 @@ function ShopMeldungenTab() {
     <>
       <div className="p-6 space-y-3">
         {reports.map((r) => (
-          <div
-            key={r.id}
-            className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] p-4 flex flex-col gap-3"
-          >
+          <ItemCard key={r.id} className="p-4 flex flex-col gap-3">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="font-medium text-sm text-[var(--ds-text)] truncate">{r.shopName}</p>
@@ -727,7 +716,7 @@ function ShopMeldungenTab() {
                 {submissionsMessages.shopReports.delete}
               </button>
             </div>
-          </div>
+          </ItemCard>
         ))}
       </div>
 

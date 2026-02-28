@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -230,7 +231,7 @@ export function FormBuilderListPage() {
       </PageHeader>
 
       <div className="p-6 space-y-6">
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
+        <Card className="overflow-hidden">
           {isLoading ? (
             <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
               {messages.common.loading}
@@ -296,7 +297,7 @@ export function FormBuilderListPage() {
               </tbody>
             </table>
           )}
-        </div>
+        </Card>
       </div>
 
       {showDialog && (

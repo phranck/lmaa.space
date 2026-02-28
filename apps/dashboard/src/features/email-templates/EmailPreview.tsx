@@ -20,7 +20,6 @@ const DARK_RULES_MEDIA = `
   .em-footer-text p           { color: #78716c !important; }
 `;
 
-
 function applyInlineStyles(html: string): string {
   return html
     .replace(
@@ -35,10 +34,7 @@ function applyInlineStyles(html: string): string {
       /<h3>/g,
       '<h3 style="font-size:17px;font-weight:600;color:#292524;margin:0 0 12px 0;line-height:1.3;">',
     )
-    .replace(
-      /<p>/g,
-      '<p style="font-size:15px;line-height:1.6;color:#44403c;margin:0 0 16px 0;">',
-    )
+    .replace(/<p>/g, '<p style="font-size:15px;line-height:1.6;color:#44403c;margin:0 0 16px 0;">')
     .replace(/<a /g, '<a style="color:#b45309;font-weight:600;" ')
     .replace(/<strong>/g, '<strong style="color:#292524;">');
 }
@@ -128,7 +124,7 @@ export function EmailPreview({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 py-3 border-b border-[var(--ds-border)] shrink-0 flex items-center justify-between">
+      <div className="px-5 py-3 shrink-0 flex items-center justify-between">
         <span className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
           Vorschau
         </span>

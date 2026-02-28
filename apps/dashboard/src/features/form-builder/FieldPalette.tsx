@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/Card.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -246,13 +247,13 @@ export function FieldPalette() {
   ];
 
   return (
-    <div className="flex flex-col gap-1.5 p-4 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-44">
+    <Card className="flex flex-col gap-1.5 p-4 min-w-44">
       <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
         Felder
       </p>
       {fieldTypes.map(({ paletteId, iconType, label }) => (
         <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
       ))}
-    </div>
+    </Card>
   );
 }
