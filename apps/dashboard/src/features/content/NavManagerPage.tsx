@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/content/hooks/useAdminNav.ts";
+import { useFormConfigs } from "@/features/form-builder/hooks/useFormConfig.ts";
 import {
   DndContext,
   type DragEndEvent,
@@ -51,12 +52,14 @@ const NAV_TEXT = {
     typePage: "Seite",
     typeUrl: "URL",
     choosePage: "Seite wählen…",
+    choosePageOrForm: "Seite oder Formular wählen…",
     add: "Hinzufügen",
     urlPlaceholder: "https://… oder /pfad",
     labelPlaceholder: "Label",
     newTab: "Neuer Tab",
     sameTab: "Selber Tab",
     errorSaving: "Fehler beim Speichern",
+    forms: "Formulare",
   },
   en: {
     pageTitle: "Navigations",
@@ -79,12 +82,14 @@ const NAV_TEXT = {
     typePage: "Page",
     typeUrl: "URL",
     choosePage: "Select page…",
+    choosePageOrForm: "Select page or form…",
     add: "Add",
     urlPlaceholder: "https://… or /path",
     labelPlaceholder: "Label",
     newTab: "New tab",
     sameTab: "Same tab",
     errorSaving: "Error while saving",
+    forms: "Forms",
   },
 } as const;
 
@@ -187,12 +192,13 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
   const staticRoutes = text.staticRoutes;
   const { data: serverItems = [], isLoading } = useAdminNav(navId);
   const { data: allPages = [] } = useContentPages();
+  const { data: allForms = [] } = useFormConfigs();
   const saveNav = useSaveNav(navId);
 
   const [items, setItems] = useState<NavItemState[]>([]);
   const [dirty, setDirty] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [addType, setAddType] = useState<"page" | "url">("page");
+  const [addType, setAddType] = useState<"page" | "url" | "form">("page");
   const [addPageSlug, setAddPageSlug] = useState("");
   const [addUrl, setAddUrl] = useState("");
   const [addLabel, setAddLabel] = useState("");
@@ -245,6 +251,28 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
 
   function handleAddPage() {
     if (!addPageSlug) return;
+    // Check if it's a form slug (prefixed with "form:")
+    if (addPageSlug.startsWith("form:")) {
+      const formSlug = addPageSlug.slice(5);
+      const form = allForms.find((f) => f.slug === formSlug);
+      if (!form?.slug) return;
+      const url = `/${form.slug}`;
+      if (items.some((i) => i.url === url)) return;
+      setItems((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          pageSlug: null,
+          pageTitle: form.name,
+          url,
+          target: "_self",
+          label: "",
+        },
+      ]);
+      setAddPageSlug("");
+      setDirty(true);
+      return;
+    }
     const page = allPages.find((p) => p.slug === addPageSlug);
     if (!page) return;
     if (items.some((i) => i.pageSlug === addPageSlug)) return;
@@ -325,6 +353,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
   const usedUrls = new Set(items.filter((i) => i.url).map((i) => i.url));
   const availablePages = allPages.filter((p) => !usedPageSlugs.has(p.slug));
   const availableStatics = staticRoutes.filter((r) => !usedUrls.has(r.url));
+  const availableForms = allForms.filter((f) => f.slug && !usedUrls.has(`/${f.slug}`));
 
   return (
     <div className="flex flex-col gap-4">
@@ -404,12 +433,25 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
               onChange={(e) => setAddPageSlug(e.target.value)}
               className="flex-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
             >
-              <option value="">{text.choosePage}</option>
-              {availablePages.map((p) => (
-                <option key={p.slug} value={p.slug}>
-                  {p.title} (/{p.slug})
-                </option>
-              ))}
+              <option value="">{text.choosePageOrForm}</option>
+              {availablePages.length > 0 && (
+                <optgroup label={text.typePage}>
+                  {availablePages.map((p) => (
+                    <option key={p.slug} value={p.slug}>
+                      {p.title} (/{p.slug})
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {availableForms.length > 0 && (
+                <optgroup label={text.forms}>
+                  {availableForms.map((f) => (
+                    <option key={f.name} value={`form:${f.slug}`}>
+                      {f.name} (/{f.slug})
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
             <button
               type="button"

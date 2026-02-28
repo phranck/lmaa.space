@@ -199,6 +199,7 @@ export async function deleteSubmission(id: number): Promise<void> {
   await db.delete(submissions).where(eq(submissions.id, id));
 }
 
+
 /**
  * Marks feedback as sent for a submission.
  *
@@ -207,6 +208,51 @@ export async function deleteSubmission(id: number): Promise<void> {
  */
 export async function setSubmissionFeedbackSent(id: number): Promise<void> {
   await db.update(submissions).set({ feedbackSent: true }).where(eq(submissions.id, id));
+}
+
+
+/**
+ * Creates a new submission row from raw form data.
+ *
+ * Field values are read by variable name from `data`. Missing fields fall back
+ * to sensible empty defaults so the row is always valid.
+ *
+ * @param data - Submitted field values keyed by variable name.
+ * @returns The id of the created submission row.
+ */
+export async function createSubmissionFromFormData(
+  data: Record<string, unknown>,
+): Promise<number> {
+  const str = (key: string) => (data[key] != null ? String(data[key]) : "");
+  const strOrNull = (key: string) => (data[key] != null ? String(data[key]) : null);
+  const region = Array.isArray(data.region) ? (data.region as string[]) : [];
+  const categoryIds = Array.isArray(data.submissionCategories)
+    ? (data.submissionCategories as unknown[]).map(Number).filter((n) => !Number.isNaN(n))
+    : [];
+
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .insert(submissions)
+      .values({
+        shopName: str("shopName"),
+        shopUrl: str("shopUrl"),
+        region,
+        pickup: str("pickup"),
+        shipping: str("shipping"),
+        description: str("description"),
+        submitterEmail: strOrNull("submitterEmail"),
+        submitterNote: strOrNull("submitterNote"),
+      })
+      .returning({ id: submissions.id });
+
+    if (categoryIds.length > 0) {
+      await tx
+        .insert(submissionCategories)
+        .values(categoryIds.map((categoryId) => ({ submissionId: row.id, categoryId })));
+    }
+
+    return row.id;
+  });
 }
 
 /**

@@ -9,7 +9,6 @@ interface BuilderCanvasProps {
   selectedFieldId: string | null;
   onSelectField: (fieldId: string) => void;
   onDeleteField: (rowId: string, fieldId: string) => void;
-  onDeleteRow: (rowId: string) => void;
 }
 
 /**
@@ -23,7 +22,6 @@ export function BuilderCanvas({
   selectedFieldId,
   onSelectField,
   onDeleteField,
-  onDeleteRow,
 }: BuilderCanvasProps) {
   const { messages } = useI18n();
   const { setNodeRef, isOver } = useDroppable({ id: "canvas" });
@@ -55,7 +53,6 @@ export function BuilderCanvas({
                 selectedFieldId={selectedFieldId}
                 onSelectField={onSelectField}
                 onDeleteField={onDeleteField}
-                onDeleteRow={onDeleteRow}
               />
             ))}
           </div>

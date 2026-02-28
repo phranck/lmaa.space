@@ -30,7 +30,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   const typeLabels: Record<string, string> = {
@@ -41,6 +41,26 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
     "multi-select": ft.multiSelect,
     checkbox: ft.checkbox,
     richtext: ft.richtext,
+    button: ft.button,
+    password: ft.password,
+    headline: ft.headline,
+    separator: ft.separator,
+    paragraph: ft.paragraph,
+  };
+
+  const typeAbbr: Record<string, string> = {
+    text: "Txt",
+    email: "Em",
+    textarea: "Ta",
+    select: "Sel",
+    "multi-select": "MSl",
+    checkbox: "Cb",
+    richtext: "Md",
+    button: "Btn",
+    password: "Pw",
+    headline: "H",
+    separator: "—",
+    paragraph: "Abs",
   };
 
   return (
@@ -48,51 +68,49 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
       type="button"
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       onClick={onSelect}
-      className={`relative flex w-full items-center gap-2 px-3 py-2.5 rounded-control border text-sm cursor-pointer transition-colors text-left ${
+      className={`group/field relative flex w-full items-center px-3 py-2.5 rounded-control border text-sm cursor-pointer transition-colors text-left ${
+        (field.span ?? 12) <= 2 ? "justify-center" : "justify-start gap-2"
+      } ${
         isSelected
           ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
           : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] hover:border-[var(--color-primary)]"
       }`}
     >
-      {/* Drag handle */}
-      <button
-        type="button"
-        aria-label="Feld verschieben"
-        {...attributes}
-        {...listeners}
-        onClick={(e) => e.stopPropagation()}
-        className="shrink-0 cursor-grab active:cursor-grabbing text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] p-0.5 rounded"
-      >
-        <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
-          <circle cx="4" cy="3" r="1.5" fill="currentColor" />
-          <circle cx="8" cy="3" r="1.5" fill="currentColor" />
-          <circle cx="4" cy="8" r="1.5" fill="currentColor" />
-          <circle cx="8" cy="8" r="1.5" fill="currentColor" />
-          <circle cx="4" cy="13" r="1.5" fill="currentColor" />
-          <circle cx="8" cy="13" r="1.5" fill="currentColor" />
-        </svg>
-      </button>
-
-      {/* Label */}
-      <span className="flex-1 min-w-0 font-medium text-[var(--ds-text)] truncate">
-        {field.label || <span className="opacity-50 italic">Kein Label</span>}
-        {field.required && field.type !== "richtext" && (
-          <span className="ml-1 text-red-500">*</span>
-        )}
-        {field.type === "richtext" && field.content && (
-          <span className="ml-2 text-xs font-normal opacity-40 truncate">
-            {field.content.slice(0, 40).replace(/[#*_`\n]/g, " ")}…
+      {/* Normal layout: label left, badge right */}
+      {(field.span ?? 12) > 2 ? (
+        <>
+          <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
+            {field.label || <span className="opacity-50 italic">Kein Label</span>}
+            {field.required && field.type !== "richtext" && (
+              <span className="ml-1 text-red-500">*</span>
+            )}
+            {field.type === "richtext" && field.content && (
+              <span className="ml-2 text-xs font-normal opacity-40 truncate">
+                {field.content.slice(0, 40).replace(/[#*_`\n]/g, " ")}…
+              </span>
+            )}
           </span>
-        )}
-      </span>
+          <span
+            title={typeLabels[field.type] ?? field.type}
+            className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text)]/60"
+          >
+            {typeAbbr[field.type] ?? field.type.slice(0, 3)}
+          </span>
+        </>
+      ) : (
+        /* Narrow layout (1–2/12): only centered badge */
+        <span
+          title={typeLabels[field.type] ?? field.type}
+          className="px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text)]/60"
+        >
+          {typeAbbr[field.type] ?? field.type.slice(0, 3)}
+        </span>
+      )}
 
-      {/* Type badge */}
-      <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text-subtle)]">
-        {typeLabels[field.type] ?? field.type}
-      </span>
-
-      {/* Delete button */}
+      {/* Delete button — only visible on hover, positioned at top-right corner */}
       <button
         type="button"
         aria-label="Feld entfernen"
@@ -100,9 +118,14 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
           e.stopPropagation();
           onDelete();
         }}
-        className="shrink-0 w-5 h-5 flex items-center justify-center rounded text-[var(--ds-text-subtle)] hover:text-red-500 hover:bg-red-50 transition-colors"
+        className="absolute -top-3 -right-3 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--ds-surface)] text-[var(--ds-text-subtle)] hover:text-[var(--ds-danger-text)] transition-colors opacity-0 group-hover/field:opacity-100"
       >
-        ✕
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path
+            fillRule="evenodd"
+            d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm2.78-4.22a.75.75 0 0 1-1.06 0L8 9.06l-1.72 1.72a.75.75 0 1 1-1.06-1.06L6.94 8 5.22 6.28a.75.75 0 0 1 1.06-1.06L8 6.94l1.72-1.72a.75.75 0 1 1 1.06 1.06L9.06 8l1.72 1.72a.75.75 0 0 1 0 1.06z"
+          />
+        </svg>
       </button>
     </button>
   );

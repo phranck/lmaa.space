@@ -22,6 +22,7 @@ import {
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
+  rows?: number;
 }
 
 /**
@@ -31,7 +32,8 @@ interface RichTextEditorProps {
  * @param props - Controlled markdown value and change handler.
  * @returns Toolbar + content-editable markdown editor.
  */
-export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, rows }: RichTextEditorProps) {
+  const minHeight = `${(rows ?? 8) * 1.5}rem`;
   return (
     <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] overflow-hidden text-sm">
       <MDXEditor
@@ -64,7 +66,8 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
             ),
           }),
         ]}
-        contentEditableClassName="min-h-32 prose prose-sm max-w-none px-3 py-2 focus:outline-none"
+        contentEditableClassName="prose prose-sm max-w-none px-3 py-2 focus:outline-none"
+        contentEditableStyle={{ minHeight }}
       />
     </div>
   );

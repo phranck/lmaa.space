@@ -4,10 +4,20 @@ import { CSS } from "@dnd-kit/utilities";
 import type { FieldType } from "@lmaa/contracts";
 
 interface PaletteTileProps {
-  type: FieldType;
+  /** dnd-kit drag id suffix — not necessarily a FieldType (e.g. "categories-select") */
+  paletteId: string;
+  /** FieldType used for the icon only */
+  iconType: FieldType;
   label: string;
 }
 
+/**
+ * Renders a small SVG icon that visually represents a form field type.
+ *
+ * @param props      - Component props.
+ * @param props.type - The field type whose icon should be rendered.
+ * @returns An inline SVG icon, or nothing for unknown types.
+ */
 function FieldTypeIcon({ type }: { type: FieldType }) {
   switch (type) {
     case "text":
@@ -114,13 +124,78 @@ function FieldTypeIcon({ type }: { type: FieldType }) {
           />
         </svg>
       );
+    case "password":
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="4" y="7" width="8" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+          <path
+            d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <circle cx="8" cy="10.5" r="1" fill="currentColor" />
+        </svg>
+      );
+    case "headline":
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M2 4h3M2 12h3M3.5 4v8M11 4h3M11 12h3M12.5 4v8M2.5 8h11"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+    case "button":
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="1" y="4" width="14" height="8" rx="2" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M5.5 8h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case "separator":
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M1 8h14"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeDasharray="3 2"
+          />
+        </svg>
+      );
+    case "paragraph":
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path
+            d="M2 4h12M2 7h12M2 10h8"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
   }
 }
 
-function PaletteTile({ type, label }: PaletteTileProps) {
+/**
+ * Draggable palette tile for a single field type.
+ *
+ * Registers itself with dnd-kit under the id `"palette:<type>"` so that
+ * {@link FormBuilderPage} can identify palette drops in `handleDragEnd`.
+ *
+ * @param props       - Component props.
+ * @param props.type  - The field type this tile represents.
+ * @param props.label - Human-readable German label shown inside the tile.
+ * @returns A draggable tile card.
+ */
+function PaletteTile({ paletteId, iconType, label }: PaletteTileProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: `palette:${type}`,
-    data: { type },
+    id: `palette:${paletteId}`,
+    data: { paletteId },
   });
 
   const style = transform
@@ -136,7 +211,7 @@ function PaletteTile({ type, label }: PaletteTileProps) {
       className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm text-[var(--ds-text)] cursor-grab active:cursor-grabbing hover:border-[var(--color-primary)] hover:bg-[var(--ds-nav-hover-bg)] select-none transition-colors"
     >
       <span className="shrink-0 opacity-60 text-[var(--ds-text)]">
-        <FieldTypeIcon type={type} />
+        <FieldTypeIcon type={iconType} />
       </span>
       <span className="font-medium">{label}</span>
     </div>
@@ -152,14 +227,22 @@ export function FieldPalette() {
   const { messages } = useI18n();
   const ft = messages.formBuilder.fieldTypes;
 
-  const fieldTypes: { type: FieldType; label: string }[] = [
-    { type: "text", label: ft.text },
-    { type: "email", label: ft.email },
-    { type: "textarea", label: ft.textarea },
-    { type: "select", label: ft.select },
-    { type: "multi-select", label: ft.multiSelect },
-    { type: "checkbox", label: ft.checkbox },
-    { type: "richtext", label: ft.richtext },
+  // Sorted alphabetically by German label
+  const fieldTypes: { paletteId: string; iconType: FieldType; label: string }[] = [
+    { paletteId: "select", iconType: "select", label: ft.select }, // Auswahl
+    { paletteId: "button", iconType: "button", label: ft.button }, // Button
+    { paletteId: "checkbox", iconType: "checkbox", label: ft.checkbox }, // Checkbox
+    { paletteId: "email", iconType: "email", label: ft.email }, // E-Mail
+    { paletteId: "text", iconType: "text", label: ft.text }, // Input Text
+    { paletteId: "password", iconType: "password", label: ft.password }, // Input Passwort
+    { paletteId: "categories-select", iconType: "multi-select", label: ft.categoriesSelect }, // Kategorien
+    { paletteId: "richtext", iconType: "richtext", label: ft.richtext }, // Markdown Editor
+    { paletteId: "multi-select", iconType: "multi-select", label: ft.multiSelect }, // Mehrfachauswahl
+    { paletteId: "regions-select", iconType: "multi-select", label: ft.regionsSelect }, // Regionen
+    { paletteId: "paragraph", iconType: "paragraph", label: ft.paragraph }, // Textabsatz
+    { paletteId: "textarea", iconType: "textarea", label: ft.textarea }, // Textbereich
+    { paletteId: "separator", iconType: "separator", label: ft.separator }, // Trennlinie
+    { paletteId: "headline", iconType: "headline", label: ft.headline }, // Überschrift
   ];
 
   return (
@@ -167,8 +250,8 @@ export function FieldPalette() {
       <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
         Felder
       </p>
-      {fieldTypes.map(({ type, label }) => (
-        <PaletteTile key={type} type={type} label={label} />
+      {fieldTypes.map(({ paletteId, iconType, label }) => (
+        <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
       ))}
     </div>
   );

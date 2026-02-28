@@ -1,13 +1,14 @@
-import { zValidator } from "@hono/zod-validator";
-import { submissionSchema } from "@lmaa/contracts";
 import { Hono } from "hono";
 import { fail, ok } from "../lib/http.js";
 import { rateLimit } from "../middleware/rate-limit.js";
-import { getManagedPublicFormConfig } from "../services/admin-form-config.js";
+import {
+  getManagedPublicFormConfig,
+  getManagedPublicFormConfigBySlug,
+} from "../services/admin-form-config.js";
+import { executeSubmissionChain } from "../services/form-submission.js";
 import {
   checkManagedPublicShopUrl,
   createManagedDeadLinkReport,
-  createManagedPublicSubmission,
   createManagedShopConcernReport,
   getManagedPublicCacheStats,
   getManagedPublicCategories,
@@ -70,14 +71,20 @@ publicRoutes.get("/check-url", async (c) => {
   return ok(c, result);
 });
 
-// POST /api/submissions
+// POST /api/form/:slug/submit — generic form submission
 publicRoutes.post(
-  "/submissions",
+  "/form/:slug/submit",
   rateLimit({ max: 20, windowMs: 60 * 60 * 1000 }),
-  zValidator("json", submissionSchema),
   async (c) => {
-    const result = await createManagedPublicSubmission(c.req.valid("json"));
-    return ok(c, result, 201);
+    const slug = c.req.param("slug");
+    const data = await c.req.json<Record<string, unknown>>();
+
+    const result = await getManagedPublicFormConfigBySlug(slug);
+    if (!result.ok || !result.data.isActive) return fail(c, 404, "Not found");
+    if (!result.data.submissionConfig) return fail(c, 400, "No submission config");
+
+    await executeSubmissionChain(result.data.submissionConfig, data, result.data);
+    return ok(c, { message: "OK" }, 201);
   },
 );
 
@@ -160,6 +167,14 @@ publicRoutes.post(
 // GET /api/form-config/:name — active form configuration for the frontend
 publicRoutes.get("/form-config/:name", async (c) => {
   const result = await getManagedPublicFormConfig(c.req.param("name"));
+  if (!result.ok) return fail(c, 404, "Form config not found");
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, result.data);
+});
+
+// GET /api/form-config-by-slug/:slug — active form config by frontend URL slug
+publicRoutes.get("/form-config-by-slug/:slug", async (c) => {
+  const result = await getManagedPublicFormConfigBySlug(c.req.param("slug"));
   if (!result.ok) return fail(c, 404, "Form config not found");
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, result.data);
