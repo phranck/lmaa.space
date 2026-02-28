@@ -1,16 +1,14 @@
+import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { marked } from "marked";
 import { useMemo, useState } from "react";
 
 marked.use({ breaks: true, gfm: true });
 
-type ColorScheme = "light" | "dark";
-
 /**
- * Dark mode CSS used in both the preview (via data-color-scheme attribute)
- * and in the actual sent email (via @media prefers-color-scheme).
- * Uses !important to override inline styles — standard practice for email dark mode.
+ * Dark mode CSS rules applied via @media query in real email clients.
+ * Uses !important to override inline styles — standard email dark mode practice.
  */
-const DARK_RULES = `
+const DARK_RULES_MEDIA = `
   body                        { background: #1c1917 !important; }
   table.em-container          { background: #292524 !important; border-color: #44403c !important; }
   h1, h2, h3                  { color: #fafaf9 !important; }
@@ -22,10 +20,25 @@ const DARK_RULES = `
   .em-footer-text p           { color: #78716c !important; }
 `;
 
-const PREVIEW_STYLE = `
-  @media (prefers-color-scheme: dark) { ${DARK_RULES} }
-  html[data-color-scheme="dark"] { ${DARK_RULES} }
+/**
+ * Same rules but prefixed with the data-attribute selector for preview forcing.
+ * Must be flat (no CSS nesting) for broad browser compatibility in the iframe.
+ */
+const DARK_RULES_FORCED = `
+  html[data-color-scheme="dark"] body                     { background: #1c1917 !important; }
+  html[data-color-scheme="dark"] table.em-container       { background: #292524 !important; border-color: #44403c !important; }
+  html[data-color-scheme="dark"] h1,
+  html[data-color-scheme="dark"] h2,
+  html[data-color-scheme="dark"] h3                       { color: #fafaf9 !important; }
+  html[data-color-scheme="dark"] p                        { color: #d6d3d1 !important; }
+  html[data-color-scheme="dark"] a                        { color: #fcd34d !important; }
+  html[data-color-scheme="dark"] strong                   { color: #fafaf9 !important; }
+  html[data-color-scheme="dark"] .em-footer-border        { border-top-color: #44403c !important; }
+  html[data-color-scheme="dark"] .em-footer-text,
+  html[data-color-scheme="dark"] .em-footer-text p        { color: #78716c !important; }
 `;
+
+const PREVIEW_STYLE = `@media (prefers-color-scheme: dark) { ${DARK_RULES_MEDIA} }\n${DARK_RULES_FORCED}`;
 
 function applyInlineStyles(html: string): string {
   return html
@@ -75,7 +88,7 @@ export function EmailPreview({
   footerBannerUrl,
   footerText,
 }: EmailPreviewProps) {
-  const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
+  const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
 
   const srcDoc = useMemo(() => {
     const headerHtml = headerText ? parseMarkdown(headerText) : null;
@@ -133,30 +146,13 @@ export function EmailPreview({
         <span className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
           Vorschau
         </span>
-        <div className="flex items-center rounded-full bg-[var(--ds-surface-hover)] p-0.5">
-          <button
-            type="button"
-            onClick={() => setColorScheme("light")}
-            className={`px-3 py-1 rounded-full text-xs transition-colors ${
-              colorScheme === "light"
-                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            }`}
-          >
-            Hell
-          </button>
-          <button
-            type="button"
-            onClick={() => setColorScheme("dark")}
-            className={`px-3 py-1 rounded-full text-xs transition-colors ${
-              colorScheme === "dark"
-                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            }`}
-          >
-            Dunkel
-          </button>
-        </div>
+        <ThemeSegmentedControl
+          value={colorScheme}
+          onChange={(v) => {
+            if (v !== "system") setColorScheme(v);
+          }}
+          options={["light", "dark"]}
+        />
       </div>
       <div className="flex-1 overflow-hidden">
         <iframe

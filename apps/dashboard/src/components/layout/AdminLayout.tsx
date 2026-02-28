@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
@@ -9,12 +10,7 @@ import type { DashboardLocale } from "@/i18n/messages.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import {
-  SFDesktopcomputer,
-  SFLine3Horizontal,
-  SFMoonFill,
-  SFSunMaxFill,
-} from "sf-symbols-lib/monochrome";
+import { SFLine3Horizontal } from "sf-symbols-lib/monochrome";
 
 const SIDEBAR_DEFAULT = 224;
 const SIDEBAR_MIN = 160;
@@ -77,11 +73,6 @@ function useSidebarWidth() {
   return { width, onMouseDown };
 }
 
-const THEME_OPTIONS = [
-  { value: "light" as const, icon: <SFSunMaxFill className="w-3.5 h-3.5" /> },
-  { value: "dark" as const, icon: <SFMoonFill className="w-3.5 h-3.5" /> },
-  { value: "system" as const, icon: <SFDesktopcomputer className="w-3.5 h-3.5" /> },
-];
 const LANGUAGE_OPTIONS = [
   { value: "de" as const, label: "DE" },
   { value: "en" as const, label: "EN" },
@@ -90,10 +81,9 @@ const LANGUAGE_OPTIONS = [
 function ThemeToggle({ userId }: { userId?: number }) {
   const { theme, setTheme } = useTheme();
   return (
-    <SegmentedControl
+    <ThemeSegmentedControl
       value={theme}
       onChange={setTheme}
-      options={THEME_OPTIONS}
       storageKey={getSegmentedStorageKey(userId, "layout:theme")}
     />
   );
