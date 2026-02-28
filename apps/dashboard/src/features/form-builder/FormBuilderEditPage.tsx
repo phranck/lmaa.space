@@ -1,4 +1,3 @@
-import { SFHandTap } from "sf-symbols-lib/monochrome";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/form-builder/BuilderCanvas.tsx";
@@ -26,6 +25,7 @@ import type {
 } from "@lmaa/contracts";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import { SFHandTap } from "sf-symbols-lib/monochrome";
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -369,94 +369,94 @@ export function FormBuilderEditPage() {
       </div>
 
       <div className="pb-4">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveDrag(null)}
-      >
-        <div className="flex gap-4 items-start">
-          <div className="shrink-0">
-            <FieldPalette />
-          </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveDrag(null)}
+        >
+          <div className="flex gap-4 items-start">
+            <div className="shrink-0">
+              <FieldPalette />
+            </div>
 
-          <div className="flex-1 min-w-0">
-            <BuilderCanvas
-              rows={rows}
-              selectedFieldId={selectedFieldId}
-              onSelectField={handleSelectField}
-              onDeleteField={handleDeleteField}
-            />
-          </div>
-
-          <div className="shrink-0 w-72">
-            {selectedField !== null ? (
-              <FieldConfigPanel
-                field={selectedField}
-                onChange={handleFieldChange}
-                allFields={rows
-                  .flatMap((r) => r.fields)
-                  .filter(
-                    (f) =>
-                      f.id !== selectedField.id &&
-                      f.type !== "button" &&
-                      f.type !== "richtext" &&
-                      f.type !== "headline" &&
-                      f.type !== "separator" &&
-                      f.type !== "paragraph",
-                  )
-                  .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
+            <div className="flex-1 min-w-0">
+              <BuilderCanvas
+                rows={rows}
+                selectedFieldId={selectedFieldId}
+                onSelectField={handleSelectField}
+                onDeleteField={handleDeleteField}
               />
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-3 p-4 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64 h-64 text-center">
-                <SFHandTap
-                  width={52}
-                  height={52}
-                  aria-hidden
-                  className="text-[var(--ds-text-muted)]"
+            </div>
+
+            <div className="shrink-0 w-72">
+              {selectedField !== null ? (
+                <FieldConfigPanel
+                  field={selectedField}
+                  onChange={handleFieldChange}
+                  allFields={rows
+                    .flatMap((r) => r.fields)
+                    .filter(
+                      (f) =>
+                        f.id !== selectedField.id &&
+                        f.type !== "button" &&
+                        f.type !== "richtext" &&
+                        f.type !== "headline" &&
+                        f.type !== "separator" &&
+                        f.type !== "paragraph",
+                    )
+                    .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
                 />
-                <p className="text-base font-bold text-[var(--ds-text)]">
-                  {messages.formBuilder.noFieldSelected}
-                </p>
-                <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
-                  {messages.formBuilder.noFieldSelectedHint}
-                </p>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-3 p-4 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64 h-64 text-center">
+                  <SFHandTap
+                    width={52}
+                    height={52}
+                    aria-hidden
+                    className="text-[var(--ds-text-muted)]"
+                  />
+                  <p className="text-base font-bold text-[var(--ds-text)]">
+                    {messages.formBuilder.noFieldSelected}
+                  </p>
+                  <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
+                    {messages.formBuilder.noFieldSelectedHint}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DragOverlay>
+            {activeDrag?.field && (
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm shadow-xl ring-1 ring-[var(--color-primary)]/30 cursor-grabbing">
+                <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
+                  {activeDrag.field.label}
+                </span>
+                <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text-subtle)]">
+                  {activeDrag.field.type.slice(0, 3)}
+                </span>
               </div>
             )}
-          </div>
-        </div>
-
-        <DragOverlay>
-          {activeDrag?.field && (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm shadow-xl ring-1 ring-[var(--color-primary)]/30 cursor-grabbing">
-              <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
-                {activeDrag.field.label}
-              </span>
-              <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text-subtle)]">
-                {activeDrag.field.type.slice(0, 3)}
-              </span>
-            </div>
-          )}
-          {activeDrag?.row && (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm shadow-xl cursor-grabbing">
-              {activeDrag.row.fields.map((f) => (
-                <span
-                  key={f.id}
-                  className="px-2 py-0.5 rounded bg-[var(--ds-border)] text-xs text-[var(--ds-text)] truncate max-w-32"
-                >
-                  {f.label}
-                </span>
-              ))}
-            </div>
-          )}
-          {activeDrag?.paletteType && (
-            <div className="px-3 py-2 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm font-medium text-[var(--ds-text)] shadow-xl cursor-grabbing">
-              {defaultFieldLabel(activeDrag.paletteType)}
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+            {activeDrag?.row && (
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm shadow-xl cursor-grabbing">
+                {activeDrag.row.fields.map((f) => (
+                  <span
+                    key={f.id}
+                    className="px-2 py-0.5 rounded bg-[var(--ds-border)] text-xs text-[var(--ds-text)] truncate max-w-32"
+                  >
+                    {f.label}
+                  </span>
+                ))}
+              </div>
+            )}
+            {activeDrag?.paletteType && (
+              <div className="px-3 py-2 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm font-medium text-[var(--ds-text)] shadow-xl cursor-grabbing">
+                {defaultFieldLabel(activeDrag.paletteType)}
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
       </div>
 
       <SubmissionConfigPanel

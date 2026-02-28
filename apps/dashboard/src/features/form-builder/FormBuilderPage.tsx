@@ -283,7 +283,8 @@ export function FormBuilderPage() {
           const movedField = { ...field, span: Math.min(field.span ?? 12, free) };
           return prev
             .map((row) => {
-              if (row.id === activeRowId) return { ...row, fields: row.fields.filter((f) => f.id !== activeFieldId) };
+              if (row.id === activeRowId)
+                return { ...row, fields: row.fields.filter((f) => f.id !== activeFieldId) };
               if (row.id === targetRowId) return { ...row, fields: [...row.fields, movedField] };
               return row;
             })
@@ -396,7 +397,10 @@ export function FormBuilderPage() {
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        onDragCancel={() => { setActiveDrag(null); lastOverRowId.current = null; }}
+        onDragCancel={() => {
+          setActiveDrag(null);
+          lastOverRowId.current = null;
+        }}
       >
         <div className="flex gap-4 items-start">
           {/* Palette sidebar */}

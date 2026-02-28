@@ -48,7 +48,8 @@ export function BuilderRow({
   const isDropOver =
     overRowId === row.id &&
     freeSpan > 0 &&
-    (activeId.startsWith("palette:") || (activeId.startsWith("field:") && activeSourceRowId !== row.id));
+    (activeId.startsWith("palette:") ||
+      (activeId.startsWith("field:") && activeSourceRowId !== row.id));
 
   const style = {
     transform: CSS.Transform.toString(transform),

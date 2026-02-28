@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/Card.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BUTTON_ICON_LIST } from "@/features/form-builder/buttonIconMap.tsx";
 import type { ButtonActionType, FormField, RichTextVariant } from "@lmaa/contracts";
@@ -16,6 +17,7 @@ interface IconPickerProps {
 
 function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
   const [variant, setVariant] = useState<"outline" | "filled">("outline");
+  const [query, setQuery] = useState("");
 
   // Sync variant when the selected icon changes (e.g. another field is selected)
   useEffect(() => {
@@ -26,15 +28,14 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
 
   function switchVariant(next: "outline" | "filled") {
     if (value) {
-      const entry = BUTTON_ICON_LIST.find(
-        (e) => e.outlineName === value || e.filledName === value,
-      );
+      const entry = BUTTON_ICON_LIST.find((e) => e.outlineName === value || e.filledName === value);
       if (entry) onChange(next === "outline" ? entry.outlineName : entry.filledName);
     }
     setVariant(next);
   }
 
-  const icons = BUTTON_ICON_LIST.map((e) =>
+  const q = query.toLowerCase();
+  const icons = BUTTON_ICON_LIST.filter((e) => !q || e.label.toLowerCase().includes(q)).map((e) =>
     variant === "outline"
       ? { name: e.outlineName, Icon: e.Outline, label: e.label }
       : { name: e.filledName, Icon: e.Filled, label: e.label },
@@ -63,35 +64,49 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-1 max-h-[284px] overflow-y-auto pr-px">
-        {/* No-icon tile */}
-        <button
-          type="button"
-          title={noneLabel}
-          onClick={() => onChange(undefined)}
-          className={`h-8 flex items-center justify-center rounded-control border text-xs transition-colors ${
-            !value
-              ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-              : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text-subtle)] hover:border-[var(--color-primary)]"
-          }`}
-        >
-          —
-        </button>
-        {icons.map(({ name, Icon, label: iconLabel }) => (
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search icons…"
+        className="w-full px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+      />
+      <div className="grid grid-cols-6 gap-1 max-h-[276px] overflow-y-auto pr-px">
+        {!q && (
           <button
-            key={name}
             type="button"
-            title={iconLabel}
-            onClick={() => onChange(name)}
-            className={`h-12 flex items-center justify-center rounded-control border transition-colors ${
-              value === name
+            title={noneLabel}
+            onClick={() => onChange(undefined)}
+            className={`h-8 flex items-center justify-center rounded-control border text-xs transition-colors ${
+              !value
                 ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
+                : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text-subtle)] hover:border-[var(--color-primary)]"
             }`}
           >
-            <Icon width={22} height={22} />
+            —
           </button>
-        ))}
+        )}
+        {icons.length === 0 ? (
+          <p className="col-span-6 py-4 text-center text-xs text-[var(--ds-text-muted)]">
+            No icons found
+          </p>
+        ) : (
+          icons.map(({ name, Icon, label: iconLabel }) => (
+            <button
+              key={name}
+              type="button"
+              title={iconLabel}
+              onClick={() => onChange(name)}
+              className={`h-9 flex items-center justify-center rounded-control border transition-colors ${
+                value === name
+                  ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                  : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
+              }`}
+            >
+              <Icon width={18} height={18} />
+            </button>
+          ))
+        )}
       </div>
     </div>
   );
@@ -146,7 +161,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64">
+    <Card className="flex flex-col gap-4 p-4 min-w-64">
       {/* Separator: no config except span */}
       {isSeparator && (
         <p className="text-xs text-[var(--ds-text-subtle)] italic">
@@ -619,12 +634,19 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           </div>
           {field.buttonAction && (
             <label className="flex flex-col gap-1 mt-1">
-              <span className="text-xs text-[var(--ds-text-subtle)]">{m.buttonActionSourceField}</span>
+              <span className="text-xs text-[var(--ds-text-subtle)]">
+                {m.buttonActionSourceField}
+              </span>
               <select
                 value={field.buttonAction.sourceFieldId}
-                onChange={(e) =>
-                  set("buttonAction", { ...field.buttonAction!, sourceFieldId: e.target.value })
-                }
+                onChange={(e) => {
+                  if (field.buttonAction) {
+                    set("buttonAction", {
+                      ...field.buttonAction,
+                      sourceFieldId: e.target.value,
+                    });
+                  }
+                }}
                 className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
               >
                 <option value="">—</option>
@@ -673,6 +695,6 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

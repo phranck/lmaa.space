@@ -28,9 +28,7 @@ export function ThemeSegmentedControl({
   options,
   storageKey,
 }: ThemeSegmentedControlProps) {
-  const filtered = options
-    ? ALL_OPTIONS.filter((o) => options.includes(o.value))
-    : ALL_OPTIONS;
+  const filtered = options ? ALL_OPTIONS.filter((o) => options.includes(o.value)) : ALL_OPTIONS;
 
   return (
     <SegmentedControl

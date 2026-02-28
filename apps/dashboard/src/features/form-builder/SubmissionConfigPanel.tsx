@@ -1,14 +1,14 @@
+import { useI18n } from "@/context/I18nContext.tsx";
 import {
   DndContext,
-  DragOverlay,
   type DragEndEvent,
+  DragOverlay,
   type DragStartEvent,
   PointerSensor,
   closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useEffect, useRef, useState } from "react";
 import {
   SortableContext,
   arrayMove,
@@ -16,19 +16,15 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useI18n } from "@/context/I18nContext.tsx";
+import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
+import { useEffect, useRef, useState } from "react";
 import {
   SFArrowRight,
   SFCheckmark,
   SFEnvelope,
-  SFStorefrontFill,
   SFSquareAndArrowDown,
+  SFStorefrontFill,
 } from "sf-symbols-lib/monochrome";
-import type {
-  SubmissionConfig,
-  SubmissionStep,
-  SubmissionStepEmail,
-} from "@lmaa/contracts";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -119,11 +115,19 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
             <span className="block text-xs text-[var(--ds-text-muted)] mb-1">{m.emailTo}</span>
             {/* Mode toggle — reuses segmented-control pattern from FieldConfigPanel */}
             <div className="flex gap-0.5 p-0.5 mb-1.5 bg-[var(--ds-surface-alt)] rounded border border-[var(--ds-border)] w-fit">
-              {([["", m.emailToStatic], ["field", m.emailToFromField]] as const).map(([val, label]) => {
-                const active = val === "field" ? !!(step as SubmissionStepEmail).toFieldId : !(step as SubmissionStepEmail).toFieldId;
+              {(
+                [
+                  ["", m.emailToStatic],
+                  ["field", m.emailToFromField],
+                ] as const
+              ).map(([val, label]) => {
+                const active =
+                  val === "field"
+                    ? !!(step as SubmissionStepEmail).toFieldId
+                    : !(step as SubmissionStepEmail).toFieldId;
                 return (
                   <button
-                    key={val}
+                    key={val || "static"}
                     type="button"
                     onClick={() =>
                       onUpdate({
@@ -192,7 +196,6 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
           </div>
         </>
       )}
-
     </div>
   );
 }
@@ -271,7 +274,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
 
   const [pendingStepType, setPendingStepType] = useState<SubmissionStep["type"]>("store");
   const [activeUid, setActiveUid] = useState<string | null>(null);
-  const activeStep = activeUid !== null ? cfg.steps[uids.indexOf(activeUid)] ?? null : null;
+  const activeStep = activeUid !== null ? (cfg.steps[uids.indexOf(activeUid)] ?? null) : null;
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const sortableIds = uids.slice(0, cfg.steps.length);
@@ -302,9 +305,14 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
   const stepOptions = [
     { type: "store" as const, label: m.stepStore, Icon: SFSquareAndArrowDown },
     { type: "email" as const, label: m.stepEmail, Icon: SFEnvelope },
-    { type: "create-shop-suggestion" as const, label: m.stepCreateShopSuggestion, Icon: SFStorefrontFill },
+    {
+      type: "create-shop-suggestion" as const,
+      label: m.stepCreateShopSuggestion,
+      Icon: SFStorefrontFill,
+    },
   ];
-  const SelectedIcon = stepOptions.find((o) => o.type === pendingStepType)?.Icon ?? SFSquareAndArrowDown;
+  const SelectedIcon =
+    stepOptions.find((o) => o.type === pendingStepType)?.Icon ?? SFSquareAndArrowDown;
 
   return (
     <div className={sectionClass}>
@@ -314,14 +322,21 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
         </h3>
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1.5 h-7 px-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)]">
-            <SelectedIcon width={13} height={13} className="shrink-0 text-[var(--ds-text-subtle)]" aria-hidden />
+            <SelectedIcon
+              width={13}
+              height={13}
+              className="shrink-0 text-[var(--ds-text-subtle)]"
+              aria-hidden
+            />
             <select
               value={pendingStepType}
               onChange={(e) => setPendingStepType(e.target.value as SubmissionStep["type"])}
               className="text-xs text-[var(--ds-text)] bg-transparent focus:outline-none cursor-pointer"
             >
               {stepOptions.map(({ type, label }) => (
-                <option key={type} value={type}>{label}</option>
+                <option key={type} value={type}>
+                  {label}
+                </option>
               ))}
             </select>
           </div>
@@ -362,7 +377,13 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                     {i < cfg.steps.length - 1 && (
                       <div className="flex items-center self-stretch px-1 text-[var(--ds-text-muted)]">
                         <div className="h-px w-2 bg-[var(--ds-border)]" />
-                        <svg width="6" height="10" viewBox="0 0 6 10" fill="currentColor" aria-hidden="true">
+                        <svg
+                          width="6"
+                          height="10"
+                          viewBox="0 0 6 10"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
                           <path d="M6 5 L0 0 L0 10 Z" />
                         </svg>
                       </div>
@@ -376,10 +397,10 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                 <div className="flex flex-col gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-surface)] min-w-48 shadow-xl opacity-95 cursor-grabbing">
                   <span className="text-sm font-medium text-[var(--ds-text)]">
                     {activeStep.type === "store"
-                    ? m.stepStore
-                    : activeStep.type === "create-shop-suggestion"
-                      ? m.stepCreateShopSuggestion
-                      : m.stepEmail}
+                      ? m.stepStore
+                      : activeStep.type === "create-shop-suggestion"
+                        ? m.stepCreateShopSuggestion
+                        : m.stepEmail}
                   </span>
                 </div>
               )}
@@ -392,18 +413,36 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
       <div>
         <span className={labelClass}>{m.successBehaviourLabel}</span>
         <div className="flex gap-0.5 p-0.5 mb-3 bg-[var(--ds-surface-alt)] rounded border border-[var(--ds-border)] w-fit">
-          {([["message", m.successMessage, SFCheckmark], ["redirect", m.successRedirect, SFArrowRight]] as const).map(([mode, label, Icon]) => {
-            const active = mode === "redirect" ? cfg.successRedirectUrl !== undefined : cfg.successRedirectUrl === undefined;
+          {(
+            [
+              ["message", m.successMessage, SFCheckmark],
+              ["redirect", m.successRedirect, SFArrowRight],
+            ] as const
+          ).map(([mode, label, Icon]) => {
+            const active =
+              mode === "redirect"
+                ? cfg.successRedirectUrl !== undefined
+                : cfg.successRedirectUrl === undefined;
             return (
               <button
                 key={mode}
                 type="button"
                 onClick={() => {
                   if (mode === "redirect") {
-                    const next = { ...cfg, successRedirectUrl: cfg.successRedirectUrl ?? "", successMessage: undefined };
-                    onChange(next.steps.length === 0 && !next.successRedirectUrl ? undefined : next);
+                    const next = {
+                      ...cfg,
+                      successRedirectUrl: cfg.successRedirectUrl ?? "",
+                      successMessage: undefined,
+                    };
+                    onChange(
+                      next.steps.length === 0 && !next.successRedirectUrl ? undefined : next,
+                    );
                   } else {
-                    const next = { ...cfg, successMessage: cfg.successMessage ?? "", successRedirectUrl: undefined };
+                    const next = {
+                      ...cfg,
+                      successMessage: cfg.successMessage ?? "",
+                      successRedirectUrl: undefined,
+                    };
                     onChange(next.steps.length === 0 && !next.successMessage ? undefined : next);
                   }
                 }}

@@ -64,8 +64,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
   };
 
   return (
-    <button
-      type="button"
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
@@ -127,6 +126,6 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
           />
         </svg>
       </button>
-    </button>
+    </div>
   );
 }

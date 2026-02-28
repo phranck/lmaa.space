@@ -1,3 +1,4 @@
+import { ItemCard } from "@/components/ui/Card.tsx";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -44,20 +45,14 @@ export function UsersPage() {
       {isLoading && (
         <div className="space-y-2">
           {Array.from({ length: 3 }, (_, i) => `sk-${i}`).map((key) => (
-            <div
-              key={key}
-              className="h-16 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse"
-            />
+            <ItemCard key={key} className="h-16 animate-pulse" />
           ))}
         </div>
       )}
 
       <div className="space-y-2">
         {users.map((user) => (
-          <div
-            key={user.id}
-            className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] px-5 py-4 flex items-center gap-3"
-          >
+          <ItemCard key={user.id} className="px-5 py-4 flex items-center gap-3">
             <UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -106,7 +101,7 @@ export function UsersPage() {
                 </button>
               )}
             </div>
-          </div>
+          </ItemCard>
         ))}
       </div>
 

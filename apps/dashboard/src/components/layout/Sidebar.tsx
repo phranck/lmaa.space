@@ -181,9 +181,7 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
             <SFListBulletRectanglePortraitFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
             <span className="flex flex-col min-w-0">
               <span className="truncate">{form.name}</span>
-              {form.slug && (
-                <span className="truncate text-xs opacity-50">/{form.slug}</span>
-              )}
+              {form.slug && <span className="truncate text-xs opacity-50">/{form.slug}</span>}
             </span>
           </NavLink>
         ))}
