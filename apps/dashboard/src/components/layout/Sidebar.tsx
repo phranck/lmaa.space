@@ -14,6 +14,7 @@ import {
   SFCircle,
   SFDocumentFill,
   SFDocumentOnDocumentFill,
+  SFEnvelopeBadgeFill,
   SFEyeSlashFill,
   SFLink,
   SFListBulletRectanglePortraitFill,
@@ -251,6 +252,14 @@ export function Sidebar({
         ))}
         {showPages && <PagesGroup onItemClick={onItemClick} />}
         {showPages && <FormsGroup onItemClick={onItemClick} />}
+        {showPages && (
+          <SidebarItem
+            to="/email-templates"
+            label={sidebarMessages.emailTemplates}
+            icon={<SFEnvelopeBadgeFill className="w-4 h-4" />}
+            onClick={onItemClick}
+          />
+        )}
         {showPages && (
           <SidebarItem
             to="/seiten/navigationen"

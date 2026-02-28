@@ -34,6 +34,7 @@ export interface DashboardMessages {
       navigations: string;
       formBuilder: string;
       formsOverview: string;
+      emailTemplates: string;
       editProfile: string;
       logout: string;
       roles: {
@@ -450,6 +451,27 @@ export interface DashboardMessages {
       noSteps: string;
     };
   };
+  emailTemplates: {
+    listTitle: string;
+    newTemplate: string;
+    editTemplate: string;
+    templateName: string;
+    templateSubject: string;
+    headerBanner: string;
+    headerText: string;
+    bodyText: string;
+    footerBanner: string;
+    footerText: string;
+    deleteTemplate: string;
+    deleteTemplateConfirm: string;
+    noTemplates: string;
+    backToList: string;
+    save: string;
+    saved: string;
+    saveError: string;
+    nameConflict: string;
+    systemBadge: string;
+  };
   errors: {
     boundary: {
       title: string;
@@ -492,6 +514,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         navigations: "Navigationen",
         formBuilder: "Formular-Builder",
         formsOverview: "Übersicht",
+        emailTemplates: "E-Mail-Templates",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
         roles: {
@@ -912,6 +935,27 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noSteps: "Keine Schritte konfiguriert.",
       },
     },
+    emailTemplates: {
+      listTitle: "E-Mail-Templates",
+      newTemplate: "Neues Template",
+      editTemplate: "Template bearbeiten",
+      templateName: "Name",
+      templateSubject: "Betreff",
+      headerBanner: "Header-Bild (URL)",
+      headerText: "Header-Text (Markdown)",
+      bodyText: "Inhalt (Markdown)",
+      footerBanner: "Footer-Bild (URL)",
+      footerText: "Footer-Text (Markdown)",
+      deleteTemplate: "Template löschen",
+      deleteTemplateConfirm: "Dieses Template wirklich löschen?",
+      noTemplates: "Noch keine Templates vorhanden.",
+      backToList: "← Alle Templates",
+      save: "Speichern",
+      saved: "Gespeichert",
+      saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
+      nameConflict: "Ein Template mit diesem Namen existiert bereits.",
+      systemBadge: "System",
+    },
     errors: {
       boundary: {
         title: "Ein Fehler ist aufgetreten",
@@ -949,6 +993,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         navigations: "Navigations",
         formBuilder: "Form Builder",
         formsOverview: "Overview",
+        emailTemplates: "Email Templates",
         editProfile: "Edit profile",
         logout: "Log out",
         roles: {
@@ -1366,6 +1411,27 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         successRedirect: "Redirect",
         noSteps: "No steps configured.",
       },
+    },
+    emailTemplates: {
+      listTitle: "Email Templates",
+      newTemplate: "New Template",
+      editTemplate: "Edit Template",
+      templateName: "Name",
+      templateSubject: "Subject",
+      headerBanner: "Header image (URL)",
+      headerText: "Header text (Markdown)",
+      bodyText: "Body (Markdown)",
+      footerBanner: "Footer image (URL)",
+      footerText: "Footer text (Markdown)",
+      deleteTemplate: "Delete template",
+      deleteTemplateConfirm: "Really delete this template?",
+      noTemplates: "No templates yet.",
+      backToList: "← All Templates",
+      save: "Save",
+      saved: "Saved",
+      saveError: "Error saving. Please try again.",
+      nameConflict: "A template with this name already exists.",
+      systemBadge: "System",
     },
     errors: {
       boundary: {

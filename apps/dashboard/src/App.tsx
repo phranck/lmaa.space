@@ -43,6 +43,18 @@ const FormBuilderEditPage = lazy(() =>
   })),
 );
 
+const EmailTemplateListPage = lazy(() =>
+  import("@/features/email-templates/EmailTemplateListPage.tsx").then((m) => ({
+    default: m.EmailTemplateListPage,
+  })),
+);
+
+const EmailTemplateEditPage = lazy(() =>
+  import("@/features/email-templates/EmailTemplateEditPage.tsx").then((m) => ({
+    default: m.EmailTemplateEditPage,
+  })),
+);
+
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
 
@@ -81,6 +93,30 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <FormBuilderEditPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="email-templates"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <EmailTemplateListPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="email-templates/new"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <EmailTemplateEditPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="email-templates/:id"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <EmailTemplateEditPage />
                   </Suspense>
                 }
               />
