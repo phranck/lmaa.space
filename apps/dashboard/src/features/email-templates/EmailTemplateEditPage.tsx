@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailPreview } from "@/features/email-templates/EmailPreview.tsx";
 import {
@@ -40,12 +41,10 @@ function TextInput({
   value,
   onChange,
   placeholder,
-  required,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
-  required?: boolean;
 }) {
   return (
     <input
@@ -53,7 +52,6 @@ function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      required={required}
       className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
     />
   );
@@ -111,10 +109,8 @@ export function EmailTemplateEditPage() {
     };
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function handleSave() {
     setError(null);
-
     const payload = buildPayload();
 
     if (isNew) {
@@ -154,26 +150,8 @@ export function EmailTemplateEditPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--ds-border)] shrink-0">
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => navigate("/email-templates")}
-            className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-          >
-            {m.backToList}
-          </button>
-          <h1 className="text-base font-semibold text-[var(--ds-text)]">
-            {isNew ? m.newTemplate : m.editTemplate}
-          </h1>
-          {existing?.isSystemTemplate && (
-            <span className="px-2 py-0.5 rounded text-xs bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]">
-              {m.systemBadge}
-            </span>
-          )}
-        </div>
+    <div className="flex flex-col h-full">
+      <PageHeader title={name || m.newTemplate}>
         <div className="flex items-center gap-3">
           {savedIndicator && (
             <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
@@ -183,38 +161,52 @@ export function EmailTemplateEditPage() {
           )}
           {error && <p className="text-xs text-red-500">{error}</p>}
           <button
-            type="submit"
+            type="button"
+            onClick={handleSave}
             disabled={isPending}
-            className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-60 transition-colors"
+            className="h-9 px-4 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-50 transition-colors"
           >
             {isPending ? messages.common.saving : m.save}
           </button>
         </div>
+      </PageHeader>
+
+      {/* Sub-bar: back link + inline name input */}
+      <div className="px-6 py-3 border-b border-[var(--ds-border)] shrink-0 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate("/email-templates")}
+          className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors shrink-0"
+        >
+          {m.backToList}
+        </button>
+        <span className="text-[var(--ds-border)]">·</span>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={m.newTemplate}
+          className="w-64 px-2 py-1 text-sm font-mono bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+        />
+        {existing?.isSystemTemplate && (
+          <span className="px-2 py-0.5 rounded text-xs bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]">
+            {m.systemBadge}
+          </span>
+        )}
       </div>
 
       {/* Body: two-column split */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: form */}
         <div className="w-1/2 overflow-y-auto p-6 space-y-6 border-r border-[var(--ds-border)]">
-          {/* Name + Subject */}
-          <div className="grid grid-cols-2 gap-4">
-            <Field label={m.templateName} required>
-              <TextInput
-                value={name}
-                onChange={setName}
-                placeholder="welcome-email"
-                required
-              />
-            </Field>
-            <Field label={m.templateSubject} required>
-              <TextInput
-                value={subject}
-                onChange={setSubject}
-                placeholder="Willkommen bei lmaa.space"
-                required
-              />
-            </Field>
-          </div>
+          {/* Subject */}
+          <Field label={m.templateSubject} required>
+            <TextInput
+              value={subject}
+              onChange={setSubject}
+              placeholder="Willkommen bei lmaa.space"
+            />
+          </Field>
 
           {/* Header */}
           <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
@@ -278,6 +270,6 @@ export function EmailTemplateEditPage() {
           />
         </div>
       </div>
-    </form>
+    </div>
   );
 }
