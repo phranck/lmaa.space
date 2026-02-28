@@ -1,6 +1,6 @@
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { marked } from "marked";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 marked.use({ breaks: true, gfm: true });
 
@@ -20,25 +20,6 @@ const DARK_RULES_MEDIA = `
   .em-footer-text p           { color: #78716c !important; }
 `;
 
-/**
- * Same rules but prefixed with the data-attribute selector for preview forcing.
- * Must be flat (no CSS nesting) for broad browser compatibility in the iframe.
- */
-const DARK_RULES_FORCED = `
-  html[data-color-scheme="dark"] body                     { background: #1c1917 !important; }
-  html[data-color-scheme="dark"] table.em-container       { background: #292524 !important; border-color: #44403c !important; }
-  html[data-color-scheme="dark"] h1,
-  html[data-color-scheme="dark"] h2,
-  html[data-color-scheme="dark"] h3                       { color: #fafaf9 !important; }
-  html[data-color-scheme="dark"] p                        { color: #d6d3d1 !important; }
-  html[data-color-scheme="dark"] a                        { color: #fcd34d !important; }
-  html[data-color-scheme="dark"] strong                   { color: #fafaf9 !important; }
-  html[data-color-scheme="dark"] .em-footer-border        { border-top-color: #44403c !important; }
-  html[data-color-scheme="dark"] .em-footer-text,
-  html[data-color-scheme="dark"] .em-footer-text p        { color: #78716c !important; }
-`;
-
-const PREVIEW_STYLE = `@media (prefers-color-scheme: dark) { ${DARK_RULES_MEDIA} }\n${DARK_RULES_FORCED}`;
 
 function applyInlineStyles(html: string): string {
   return html
@@ -89,7 +70,6 @@ export function EmailPreview({
   footerText,
 }: EmailPreviewProps) {
   const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const srcDoc = useMemo(() => {
     const headerHtml = headerText ? parseMarkdown(headerText) : null;
@@ -122,12 +102,17 @@ export function EmailPreview({
       );
     }
 
+    // In the preview we control the theme manually via the toggle — no @media query.
+    // Including @media (prefers-color-scheme: dark) would make both modes look the
+    // same for users whose OS is already in dark mode.
+    const previewCss = colorScheme === "dark" ? DARK_RULES_MEDIA : "";
+
     return `<!DOCTYPE html>
-<html lang="de" data-color-scheme="${colorScheme}">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>${PREVIEW_STYLE}</style>
+  <style>${previewCss}</style>
 </head>
 <body style="margin:0;padding:0;background:#f5f5f4;font-family:'Inter',system-ui,-apple-system,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -140,12 +125,6 @@ export function EmailPreview({
 </body>
 </html>`;
   }, [colorScheme, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText]);
-
-  // Browsers don't reliably reload an iframe when React updates its srcdoc prop.
-  // Writing directly to the DOM element is the only cross-browser reliable approach.
-  useLayoutEffect(() => {
-    if (iframeRef.current) iframeRef.current.srcdoc = srcDoc;
-  }, [srcDoc]);
 
   return (
     <div className="flex flex-col h-full">
@@ -163,7 +142,8 @@ export function EmailPreview({
       </div>
       <div className="flex-1 overflow-hidden">
         <iframe
-          ref={iframeRef}
+          key={colorScheme}
+          srcDoc={srcDoc}
           className="w-full h-full border-0"
           title="Email Vorschau"
           sandbox="allow-same-origin"
