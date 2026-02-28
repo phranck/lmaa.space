@@ -1,6 +1,7 @@
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
+import { useFormConfigs } from "@/features/form-builder/hooks/useFormConfig.ts";
 import { insertMarkdown$, usePublisher } from "@mdxeditor/editor";
 import { useRef, useState } from "react";
 import { SFLink } from "sf-symbols-lib/monochrome";
@@ -26,6 +27,7 @@ export function InternalLinkPicker() {
 
   const { data: pages = [] } = useContentPages();
   const { data: categories = [] } = useAdminCategories();
+  const { data: forms = [] } = useFormConfigs();
   const staticRoutes: LinkEntry[] = [
     {
       label: linkPickerMessages.staticRoutes.homeCategories,
@@ -54,6 +56,13 @@ export function InternalLinkPicker() {
       path: `/kategorien/${c.slug}`,
       group: linkPickerMessages.groups.categories,
     })),
+    ...forms
+      .filter((f) => f.slug != null)
+      .map((f) => ({
+        label: f.name,
+        path: `/${f.slug}`,
+        group: linkPickerMessages.groups.forms,
+      })),
   ];
 
   const filtered = search.trim()

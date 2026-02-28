@@ -1,11 +1,13 @@
+import { BUTTON_ICON_MAP } from "@/lib/buttonIconMap.tsx";
 import { API_BASE } from "@/lib/client-api";
 import { renderMarkdown } from "@/lib/markdown";
 import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import type { ApiRequestError } from "@lmaa/shared";
 import { createApiRequestError } from "@lmaa/shared";
-import type { Category, ShopCategory } from "@lmaa/shared";
+import type { Category } from "@lmaa/shared";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -15,10 +17,6 @@ interface Props {
   formConfig: FormConfig;
   categories: Category[];
 }
-
-type UrlCheckResult =
-  | { exists: false }
-  | { exists: true; shop: { id: number; name: string; categories: ShopCategory[] } };
 
 /**
  * Plain text values managed by react-hook-form.
@@ -30,11 +28,12 @@ type SimpleFields = Record<string, string>;
 // Constants
 // ---------------------------------------------------------------------------
 
-const REGION_OPTIONS: { code: string; label: string }[] = [
-  { code: "DE", label: "Deutschland" },
-  { code: "AT", label: "Österreich" },
-  { code: "CH", label: "Schweiz" },
-  { code: "EU", label: "Rest EU" },
+const REGION_OPTIONS: { code: string; label: string; flag: string }[] = [
+  { code: "DE", label: "Deutschland", flag: "🇩🇪" },
+  { code: "AT", label: "Österreich", flag: "🇦🇹" },
+  { code: "CH", label: "Schweiz", flag: "🇨🇭" },
+  { code: "EU", label: "Europäische Union", flag: "🇪🇺" },
+  { code: "WORLD", label: "Weltweit", flag: "🌍" },
 ];
 
 const inputClass =
@@ -42,7 +41,7 @@ const inputClass =
 
 const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";
 
-const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5";
+const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5 px-[5px]";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -78,6 +77,19 @@ function getSubmissionErrorMessage(error: unknown): string {
   if (status) return `Absenden fehlgeschlagen (HTTP ${status}). Bitte später erneut versuchen.`;
 
   return "Fehler beim Absenden. Bitte versuche es erneut.";
+}
+
+/**
+ * Returns the backend submission key for a field.
+ *
+ * Uses `field.name` when set (configured in the form builder), otherwise falls
+ * back to `field.id` so every field always has a stable payload key.
+ *
+ * @param field - The form field to derive a key for.
+ * @returns The submission key string.
+ */
+function fieldKey(field: FormField): string {
+  return field.name ?? field.id;
 }
 
 /**
@@ -122,9 +134,18 @@ function buildValidationRules(
 
 interface SuccessScreenProps {
   onReset: () => void;
+  message?: string;
 }
 
-function SuccessScreen({ onReset }: SuccessScreenProps) {
+/**
+ * Full-page success confirmation shown after a form is submitted successfully.
+ *
+ * @param props           - Component props.
+ * @param props.onReset   - Callback that resets the parent form back to its initial state.
+ * @param props.message   - Optional custom success message from `submissionConfig`.
+ * @returns Success screen markup.
+ */
+function SuccessScreen({ onReset, message }: SuccessScreenProps) {
   return (
     <div className="max-w-lg mx-auto px-4 py-24 text-center">
       <div className="w-16 h-16 rounded-full bg-[var(--ds-accent-subtle)] flex items-center justify-center mx-auto mb-6">
@@ -145,12 +166,9 @@ function SuccessScreen({ onReset }: SuccessScreenProps) {
         </svg>
       </div>
       <h1 className="font-serif text-2xl font-semibold text-[var(--ds-text)] mb-3">
-        Vielen Dank für deinen Vorschlag!
+        {message ?? "Vielen Dank!"}
       </h1>
-      <p className="text-[var(--ds-text-muted)] mb-10 leading-relaxed">
-        Wir prüfen ihn und nehmen ihn bei Eignung in die Liste auf.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <div className="flex flex-col sm:flex-row gap-3 justify-center mt-10">
         <a
           href="/"
           className="inline-flex items-center justify-center h-9 px-6 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
@@ -162,7 +180,7 @@ function SuccessScreen({ onReset }: SuccessScreenProps) {
           onClick={onReset}
           className="h-9 px-6 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
         >
-          Weiteren Shop vorschlagen
+          Weiteres Formular ausfüllen
         </button>
       </div>
       <p className="mt-10 text-sm text-[var(--ds-text-subtle)]">
@@ -191,31 +209,43 @@ interface TextareaFieldProps {
   error: string | undefined;
 }
 
+/**
+ * Textarea input with optional character counter and validation error.
+ *
+ * @param props               - Component props.
+ * @param props.field         - The field definition (used for label, placeholder, rows, validation).
+ * @param props.currentValue  - Current watched value for the character counter.
+ * @param props.register      - react-hook-form `register` function.
+ * @param props.error         - Validation error message to display below the input.
+ * @returns Textarea field with label and optional counter.
+ */
 function TextareaField({ field, currentValue, register, error }: TextareaFieldProps) {
   const maxLen = field.validation?.max;
+  const key = fieldKey(field);
   return (
     <div>
-      <label htmlFor={field.id} className={labelClass}>
+      <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
       </label>
       <textarea
-        id={field.id}
+        id={key}
         placeholder={field.placeholder}
-        rows={4}
+        rows={field.rows ?? 4}
+        maxLength={maxLen}
         className={`${inputClass} h-auto py-2 resize-none`}
-        {...register(field.id, buildValidationRules(field))}
+        {...register(key, buildValidationRules(field))}
       />
-      <div className="flex justify-between items-start mt-1.5 gap-4">
-        <p className="text-xs text-[var(--ds-text-subtle)] leading-relaxed">
-          Eine gute Beschreibung hilft anderen, den Shop schneller einzuschätzen.
-        </p>
-        {maxLen !== undefined && (
-          <span className="text-xs text-[var(--ds-text-subtle)] shrink-0">
-            {currentValue.length}/{maxLen}
-          </span>
-        )}
-      </div>
+      {(field.subtext || maxLen !== undefined) && (
+        <div className="flex justify-between items-start mt-1.5 gap-4">
+          <p className="text-xs text-[var(--ds-text-subtle)] px-[5px]">{field.subtext ?? ""}</p>
+          {maxLen !== undefined && (
+            <span className="text-xs text-[var(--ds-text-subtle)] shrink-0">
+              {currentValue.length}/{maxLen}
+            </span>
+          )}
+        </div>
+      )}
       {error && <p className={errorClass}>{error}</p>}
     </div>
   );
@@ -227,18 +257,24 @@ interface SelectFieldProps {
   error: string | undefined;
 }
 
+/**
+ * Native `<select>` dropdown populated from `field.options`.
+ *
+ * @param props           - Component props.
+ * @param props.field     - The field definition (label, options, required, validation).
+ * @param props.register  - react-hook-form `register` function.
+ * @param props.error     - Validation error message to display below the select.
+ * @returns Select field with label and error.
+ */
 function SelectField({ field, register, error }: SelectFieldProps) {
+  const key = fieldKey(field);
   return (
     <div>
-      <label htmlFor={field.id} className={labelClass}>
+      <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
       </label>
-      <select
-        id={field.id}
-        className={inputClass}
-        {...register(field.id, buildValidationRules(field))}
-      >
+      <select id={key} className={inputClass} {...register(key, buildValidationRules(field))}>
         <option value="">Bitte wählen…</option>
         {(field.options ?? []).map((opt) => (
           <option key={opt} value={opt}>
@@ -250,6 +286,207 @@ function SelectField({ field, register, error }: SelectFieldProps) {
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Shared multi-select dropdown
+// ---------------------------------------------------------------------------
+
+interface MultiSelectDropdownProps {
+  label: string;
+  required?: boolean;
+  placeholder?: string;
+  options: { value: string; label: string; flag?: string }[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+  error: string | undefined;
+}
+
+function MultiSelectDropdown({
+  label,
+  required,
+  placeholder,
+  options,
+  selected,
+  onChange,
+  error,
+}: MultiSelectDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  function toggle(value: string) {
+    if (selected.includes(value)) {
+      onChange(selected.filter((v) => v !== value));
+    } else {
+      onChange([...selected, value]);
+    }
+  }
+
+  const allSelected = options.length > 0 && options.every((o) => selected.includes(o.value));
+
+  function toggleAll() {
+    if (allSelected) {
+      onChange([]);
+    } else {
+      onChange(options.map((o) => o.value));
+    }
+  }
+
+  function CustomCheckbox({ checked }: { checked: boolean }) {
+    return (
+      <span
+        className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+          checked
+            ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
+            : "bg-white border-[var(--ds-border)]"
+        }`}
+      >
+        {checked && (
+          <svg width="10" height="8" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+            <path
+              d="M1 5l3.5 3.5L11 1"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </span>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <span className={labelClass}>
+        {label}
+        {required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
+      </span>
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: dropdown trigger */}
+      <div
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full flex items-center gap-2 px-3 min-h-10 rounded-control border text-sm cursor-pointer ${
+          error ? "border-[var(--ds-danger-border)]" : "border-[var(--ds-border)]"
+        } bg-[var(--ds-input-bg)] text-[var(--ds-text)]`}
+      >
+        <div className="flex flex-wrap gap-1.5 flex-1 py-1.5">
+          {selected.length === 0 ? (
+            <span className="text-[var(--ds-text-muted)] text-sm leading-6">
+              {placeholder ?? "—"}
+            </span>
+          ) : (
+            options
+              .filter((o) => selected.includes(o.value))
+              .map((o) => (
+                <span
+                  key={o.value}
+                  className="flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] text-xs text-[var(--ds-text)]"
+                >
+                  {o.flag && <span className="leading-none">{o.flag}</span>}
+                  {o.label}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggle(o.value);
+                    }}
+                    className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
+                    aria-label={`${o.label} entfernen`}
+                  >
+                    <SFXmarkCircleFill width={13} height={13} />
+                  </button>
+                </span>
+              ))
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-auto self-stretch py-2">
+          {selected.length > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange([]);
+                }}
+                aria-label="Alle entfernen"
+                className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
+              >
+                <SFXmarkCircleFill width={16} height={16} />
+              </button>
+              <span className="w-px h-4 bg-[var(--ds-border)]" />
+            </>
+          )}
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            aria-hidden="true"
+            className={`shrink-0 transition-transform text-[var(--ds-text-muted)] ${open ? "rotate-180" : ""}`}
+          >
+            <path
+              d="M2 4l4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+      {open && (
+        <div className="absolute z-20 w-full mt-1 bg-white border border-[var(--ds-border)] rounded-xl shadow-lg max-h-64 overflow-y-auto">
+          <label className="flex items-center gap-3 px-4 py-1.5 cursor-pointer hover:bg-[var(--ds-surface-alt)] select-none border-b border-[var(--ds-border)]">
+            <input type="checkbox" checked={allSelected} onChange={toggleAll} className="sr-only" />
+            <CustomCheckbox checked={allSelected} />
+            <span className="text-sm text-[var(--ds-text-muted)]">(Alle auswählen)</span>
+          </label>
+          {options.map(({ value, label: optLabel, flag }) => {
+            const isChecked = selected.includes(value);
+            return (
+              <label
+                key={value}
+                className="flex items-center gap-3 px-4 py-1.5 cursor-pointer hover:bg-[var(--ds-surface-alt)] select-none"
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={() => toggle(value)}
+                  className="sr-only"
+                />
+                <CustomCheckbox checked={isChecked} />
+                {flag && <span className="text-base leading-none">{flag}</span>}
+                <span
+                  className={`text-sm ${
+                    isChecked
+                      ? "font-semibold text-[var(--ds-text)]"
+                      : "text-[var(--ds-text-muted)]"
+                  }`}
+                >
+                  {optLabel}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+      {error && <p className={errorClass}>{error}</p>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Category multi-select
+// ---------------------------------------------------------------------------
 
 interface CategoryMultiSelectProps {
   field: FormField;
@@ -266,38 +503,25 @@ function CategoryMultiSelect({
   onChange,
   error,
 }: CategoryMultiSelectProps) {
-  function toggle(id: number) {
-    if (selected.includes(id)) {
-      onChange(selected.filter((v) => v !== id));
-    } else {
-      onChange([...selected, id]);
-    }
-  }
+  const options = categories.map((cat) => ({ value: String(cat.id), label: cat.name }));
+  const strSelected = selected.map(String);
 
   return (
-    <div>
-      <span className={labelClass}>
-        {field.label}
-        {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
-      </span>
-      <div className="flex flex-col gap-2">
-        {categories.map((cat) => (
-          <label key={cat.id} className="flex items-center gap-2 text-sm text-[var(--ds-text)]">
-            <input
-              type="checkbox"
-              value={String(cat.id)}
-              checked={selected.includes(cat.id)}
-              onChange={() => toggle(cat.id)}
-              className="rounded border-[var(--ds-border)]"
-            />
-            {cat.name}
-          </label>
-        ))}
-      </div>
-      {error && <p className={errorClass}>{error}</p>}
-    </div>
+    <MultiSelectDropdown
+      label={field.label}
+      required={field.required}
+      placeholder={field.placeholder}
+      options={options}
+      selected={strSelected}
+      onChange={(vals) => onChange(vals.map(Number))}
+      error={error}
+    />
   );
 }
+
+// ---------------------------------------------------------------------------
+// Region multi-select
+// ---------------------------------------------------------------------------
 
 interface RegionMultiSelectProps {
   field: FormField;
@@ -307,36 +531,39 @@ interface RegionMultiSelectProps {
 }
 
 function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSelectProps) {
-  function toggle(code: string) {
-    if (selected.includes(code)) {
-      onChange(selected.filter((v) => v !== code));
+  const options = REGION_OPTIONS.map(({ code, label, flag }) => ({ value: code, label, flag }));
+
+  function handleChange(newSelected: string[]) {
+    const added = newSelected.find((v) => !selected.includes(v));
+    if (!added) {
+      // Nur eine Option wurde entfernt → direkt übernehmen
+      onChange(newSelected);
+      return;
+    }
+    if (added === "WORLD") {
+      onChange(["WORLD"]);
+    } else if (added === "EU") {
+      // EU: inkompatibel mit WORLD, DE, AT — CH ist erlaubt (nicht EU-Mitglied)
+      onChange(newSelected.filter((v) => v !== "WORLD" && v !== "DE" && v !== "AT"));
+    } else if (added === "DE" || added === "AT") {
+      // DE/AT: inkompatibel mit WORLD und EU
+      onChange(newSelected.filter((v) => v !== "WORLD" && v !== "EU"));
     } else {
-      onChange([...selected, code]);
+      // CH: inkompatibel nur mit WORLD (kann mit DE, AT, EU kombiniert werden)
+      onChange(newSelected.filter((v) => v !== "WORLD"));
     }
   }
 
   return (
-    <div>
-      <span className={labelClass}>
-        {field.label}
-        {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
-      </span>
-      <div className="flex flex-col gap-2">
-        {REGION_OPTIONS.map(({ code, label }) => (
-          <label key={code} className="flex items-center gap-2 text-sm text-[var(--ds-text)]">
-            <input
-              type="checkbox"
-              value={code}
-              checked={selected.includes(code)}
-              onChange={() => toggle(code)}
-              className="rounded border-[var(--ds-border)]"
-            />
-            {label}
-          </label>
-        ))}
-      </div>
-      {error && <p className={errorClass}>{error}</p>}
-    </div>
+    <MultiSelectDropdown
+      label={field.label}
+      required={field.required}
+      placeholder={field.placeholder}
+      options={options}
+      selected={selected}
+      onChange={handleChange}
+      error={error}
+    />
   );
 }
 
@@ -347,6 +574,19 @@ interface StaticMultiSelectProps {
   error: string | undefined;
 }
 
+/**
+ * Multi-select list of arbitrary string values sourced from `field.options`.
+ *
+ * Used for `multi-select` fields without a dedicated `optionsSource` (i.e.
+ * when the options are configured directly in the form builder).
+ *
+ * @param props           - Component props.
+ * @param props.field     - The field definition (label, options, required).
+ * @param props.selected  - Currently selected string values.
+ * @param props.onChange  - Callback fired with the updated value array on toggle.
+ * @param props.error     - Validation error message.
+ * @returns Checkbox list of static options.
+ */
 function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSelectProps) {
   function toggle(value: string) {
     if (selected.includes(value)) {
@@ -392,6 +632,17 @@ const RICHTEXT_VARIANT_CLASSES: Record<RichTextVariant, string> = {
   hint: "bg-green-50 border border-green-200 text-green-900",
 };
 
+/**
+ * Renders a read-only Markdown block inside the form.
+ *
+ * The Markdown content (`field.content`) is converted to HTML asynchronously
+ * via {@link renderMarkdown} and injected with `innerHTML`. The visual style
+ * is determined by `field.variant`.
+ *
+ * @param props       - Component props.
+ * @param props.field - The richtext field with `content` and optional `variant`.
+ * @returns A styled container with rendered HTML, or `null` when there is no content.
+ */
 function RichTextBlock({ field }: { field: FormField }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -417,49 +668,9 @@ function RichTextBlock({ field }: { field: FormField }) {
   return (
     <div
       ref={containerRef}
-      className={`rounded-xl px-5 py-4 text-sm leading-relaxed prose prose-sm max-w-none ${variantClass}`}
+      className={`rounded-xl p-5 text-sm leading-relaxed prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${variantClass}`}
     />
   );
-}
-
-// ---------------------------------------------------------------------------
-// URL warning widget
-// ---------------------------------------------------------------------------
-
-interface UrlWarningProps {
-  checking: boolean;
-  result: UrlCheckResult | null;
-}
-
-function UrlWarning({ checking, result }: UrlWarningProps) {
-  if (checking) {
-    return (
-      <p className="text-[var(--ds-text-subtle)] text-xs mt-1.5">Prüfe ob Shop bereits bekannt…</p>
-    );
-  }
-
-  if (result?.exists) {
-    return (
-      <div className="mt-2 px-3 py-2.5 bg-[var(--ds-warning-bg)] border border-[var(--ds-warning-text)]/25 rounded-control text-sm text-[var(--ds-warning-text)]">
-        <span className="font-medium">{result.shop.name}</span> ist bereits in unserer Liste
-        {result.shop.categories.length > 0 && (
-          <span>
-            {" "}
-            in{" "}
-            {result.shop.categories.map((c, i) => (
-              <span key={c.id}>
-                {i > 0 && ", "}
-                <span className="font-medium">{c.name}</span>
-              </span>
-            ))}
-          </span>
-        )}
-        .
-      </div>
-    );
-  }
-
-  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -485,18 +696,16 @@ export default function DynamicForm({ formConfig, categories }: Props) {
     handleSubmit,
     watch,
     reset,
+    getValues,
+    setValue,
     formState: { errors },
-  } = useForm<SimpleFields>({ mode: "onBlur" });
+  } = useForm<SimpleFields>({ mode: "onSubmit" });
 
   // --- manual state for multi-select fields ---
   const [categoryIds, setCategoryIds] = useState<number[]>([]);
   const [regionCodes, setRegionCodes] = useState<string[]>([]);
-  // generic multi-select fields with static options (keyed by field.id)
+  // generic multi-select fields with static options (keyed by fieldKey(field))
   const [staticMultiSelects, setStaticMultiSelects] = useState<Record<string, string[]>>({});
-
-  // --- URL duplicate check ---
-  const [urlCheck, setUrlCheck] = useState<UrlCheckResult | null>(null);
-  const [urlChecking, setUrlChecking] = useState(false);
 
   // --- submission state ---
   const [submitting, setSubmitting] = useState(false);
@@ -506,33 +715,37 @@ export default function DynamicForm({ formConfig, categories }: Props) {
   // --- manual validation errors for multi-select fields ---
   const [multiSelectErrors, setMultiSelectErrors] = useState<Record<string, string>>({});
 
-  // Watch shopUrl so we can access the latest value on blur
-  const shopUrlValue = watch("shopUrl") ?? "";
-
   // --- helpers ---
 
-  async function checkUrl(url: string) {
-    if (!url || !url.startsWith("http")) return;
-    setUrlChecking(true);
-    try {
-      const res = await fetch(`${API_BASE}/check-url?url=${encodeURIComponent(url)}`);
-      const json = (await res.json()) as { data: UrlCheckResult };
-      setUrlCheck(json.data);
-    } catch {
-      setUrlCheck(null);
-    } finally {
-      setUrlChecking(false);
-    }
-  }
-
+  /**
+   * Returns the currently selected string values for a static multi-select field.
+   *
+   * @param fieldId - The submission key of the field (see {@link fieldKey}).
+   * @returns Array of selected option strings, empty array when nothing is selected.
+   */
   function getStaticMultiSelected(fieldId: string): string[] {
     return staticMultiSelects[fieldId] ?? [];
   }
 
+  /**
+   * Updates the selected values for a static multi-select field in component state.
+   *
+   * @param fieldId - The submission key of the field.
+   * @param values  - The new array of selected option strings.
+   */
   function setStaticMultiSelected(fieldId: string, values: string[]) {
     setStaticMultiSelects((prev) => ({ ...prev, [fieldId]: values }));
   }
 
+  /**
+   * Validates all multi-select fields that bypass react-hook-form.
+   *
+   * Iterates over every `multi-select` field in the form config and verifies
+   * that required fields have at least one selection. Stores any errors in
+   * `multiSelectErrors` state.
+   *
+   * @returns `true` when all required multi-select fields are satisfied, `false` otherwise.
+   */
   function validateMultiSelects(): boolean {
     const newErrors: Record<string, string> = {};
 
@@ -542,16 +755,16 @@ export default function DynamicForm({ formConfig, categories }: Props) {
 
         if (field.optionsSource === "categories") {
           if (categoryIds.length === 0) {
-            newErrors[field.id] = `${field.label} ist ein Pflichtfeld`;
+            newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
           }
         } else if (field.optionsSource === "regions") {
           if (regionCodes.length === 0) {
-            newErrors[field.id] = `${field.label} ist ein Pflichtfeld`;
+            newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
           }
         } else {
-          const selected = getStaticMultiSelected(field.id);
+          const selected = getStaticMultiSelected(fieldKey(field));
           if (selected.length === 0) {
-            newErrors[field.id] = `${field.label} ist ein Pflichtfeld`;
+            newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
           }
         }
       }
@@ -563,6 +776,14 @@ export default function DynamicForm({ formConfig, categories }: Props) {
 
   // --- submit ---
 
+  /**
+   * Handles form submission after react-hook-form has validated all scalar fields.
+   *
+   * Builds a generic key/value payload from all non-display fields, then POSTs
+   * to `/form/:slug/submit`. On success either redirects or shows the success screen.
+   *
+   * @param data - Validated scalar field values from react-hook-form.
+   */
   async function onSubmit(data: SimpleFields) {
     if (!validateMultiSelects()) return;
 
@@ -570,42 +791,46 @@ export default function DynamicForm({ formConfig, categories }: Props) {
     setSubmitting(true);
 
     try {
-      const payload: Record<string, unknown> = {
-        shopName: data.shopName ?? undefined,
-        shopUrl: data.shopUrl ?? undefined,
-        categoryIds,
-        region: regionCodes,
-      };
+      const payload: Record<string, unknown> = {};
 
-      // Include any other scalar fields from the form config that have values
       for (const row of formConfig.rows) {
         for (const field of row.fields) {
-          if (
-            field.id === "shopName" ||
-            field.id === "shopUrl" ||
-            field.type === "multi-select" ||
-            field.type === "richtext"
-          ) {
+          if (["richtext", "button", "headline", "separator", "paragraph"].includes(field.type)) {
             continue;
           }
-          const value = data[field.id];
-          if (value !== undefined && value !== "") {
-            payload[field.id] = value;
+          const key = fieldKey(field);
+          if (field.type === "multi-select") {
+            if (field.optionsSource === "categories") {
+              payload[key] = categoryIds;
+            } else if (field.optionsSource === "regions") {
+              payload[key] = regionCodes;
+            } else {
+              payload[key] = staticMultiSelects[key] ?? [];
+            }
+          } else {
+            const val = data[key];
+            if (val !== undefined && val !== "") payload[key] = val;
           }
         }
       }
 
-      const res = await fetch(`${API_BASE}/submissions`, {
+      const slug = formConfig.slug ?? formConfig.name;
+      const res = await fetch(`${API_BASE}/form/${slug}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        throw await createApiRequestError(res, "Submission request failed");
+        throw await createApiRequestError(res, "Submit failed");
       }
 
-      setSubmitted(true);
+      const redirect = formConfig.submissionConfig?.successRedirectUrl;
+      if (redirect) {
+        window.location.href = redirect;
+      } else {
+        setSubmitted(true);
+      }
     } catch (error) {
       setSubmitError(getSubmissionErrorMessage(error));
     } finally {
@@ -613,13 +838,18 @@ export default function DynamicForm({ formConfig, categories }: Props) {
     }
   }
 
+  /**
+   * Resets all form state back to the initial empty state.
+   *
+   * Clears react-hook-form values, all multi-select selections, the URL check
+   * result, and the submission error so the user can submit another entry.
+   */
   function handleReset() {
     setSubmitted(false);
     reset();
     setCategoryIds([]);
     setRegionCodes([]);
     setStaticMultiSelects({});
-    setUrlCheck(null);
     setMultiSelectErrors({});
     setSubmitError(null);
   }
@@ -627,52 +857,49 @@ export default function DynamicForm({ formConfig, categories }: Props) {
   // --- success screen ---
 
   if (submitted) {
-    return <SuccessScreen onReset={handleReset} />;
+    return (
+      <SuccessScreen onReset={handleReset} message={formConfig.submissionConfig?.successMessage} />
+    );
   }
 
   // --- field renderer ---
 
+  /**
+   * Renders the appropriate input element for a single {@link FormField}.
+   *
+   * Dispatches to the correct sub-component or inline markup based on
+   * `field.type`. Returns `null` for field types that produce no user-facing
+   * input (e.g. `"button"`).
+   *
+   * @param field - The field definition to render.
+   * @returns The rendered React element, or `null`.
+   */
   function renderField(field: FormField) {
-    const fieldError = errors[field.id]?.message ?? multiSelectErrors[field.id];
+    const key = fieldKey(field);
+    const fieldError = errors[key]?.message ?? multiSelectErrors[key];
 
     switch (field.type) {
       case "text":
       case "email":
-        if (field.id === "shopUrl") {
-          return (
-            <div key={field.id}>
-              <label htmlFor={field.id} className={labelClass}>
-                {field.label}
-                {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
-              </label>
-              <input
-                id={field.id}
-                type={field.type}
-                placeholder={field.placeholder}
-                className={inputClass}
-                {...register(field.id, buildValidationRules(field))}
-                onBlur={() => {
-                  void checkUrl(shopUrlValue);
-                }}
-              />
-              <UrlWarning checking={urlChecking} result={urlCheck} />
-              {fieldError && <p className={errorClass}>{fieldError}</p>}
-            </div>
-          );
-        }
+      case "password":
         return (
           <div key={field.id}>
-            <label htmlFor={field.id} className={labelClass}>
+            <label htmlFor={key} className={labelClass}>
               {field.label}
               {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
             </label>
             <input
-              id={field.id}
+              id={key}
               type={field.type}
               placeholder={field.placeholder}
               className={inputClass}
-              {...register(field.id, buildValidationRules(field))}
+              {...register(key, buildValidationRules(field))}
             />
+            {field.subtext && (
+              <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-[5px]">
+                {field.subtext}
+              </p>
+            )}
             {fieldError && <p className={errorClass}>{fieldError}</p>}
           </div>
         );
@@ -682,7 +909,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           <TextareaField
             key={field.id}
             field={field}
-            currentValue={watch(field.id) ?? ""}
+            currentValue={watch(key) ?? ""}
             register={register}
             error={fieldError}
           />
@@ -719,8 +946,8 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           <StaticMultiSelect
             key={field.id}
             field={field}
-            selected={getStaticMultiSelected(field.id)}
-            onChange={(vals) => setStaticMultiSelected(field.id, vals)}
+            selected={getStaticMultiSelected(key)}
+            onChange={(vals) => setStaticMultiSelected(key, vals)}
             error={fieldError}
           />
         );
@@ -732,7 +959,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               <input
                 type="checkbox"
                 className="rounded border-[var(--ds-border)]"
-                {...register(field.id, buildValidationRules(field))}
+                {...register(key, buildValidationRules(field))}
               />
               {field.label}
               {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
@@ -743,6 +970,95 @@ export default function DynamicForm({ formConfig, categories }: Props) {
 
       case "richtext":
         return <RichTextBlock key={field.id} field={field} />;
+
+      case "headline": {
+        const Tag = field.headlineLevel ?? "h2";
+        const headlineClass: Record<string, string> = {
+          h1: "text-3xl text-[var(--ds-text)]",
+          h2: "text-2xl text-[var(--ds-text)]",
+          h3: "text-xl text-[var(--ds-text)]",
+        };
+        return (
+          <Tag key={field.id} className={headlineClass[Tag]}>
+            {field.label}
+          </Tag>
+        );
+      }
+
+      case "button": {
+        const btnType = field.buttonType ?? "button";
+        const isSubmit = btnType === "submit";
+        const btnWidth = field.buttonWidth ?? "automatic";
+        const btnAlign = field.buttonAlign ?? "left";
+        const alignClass =
+          btnAlign === "center"
+            ? "justify-center"
+            : btnAlign === "right"
+              ? "justify-end"
+              : "justify-start";
+        const ButtonIcon = field.buttonIcon ? BUTTON_ICON_MAP[field.buttonIcon] : null;
+        const displayMode = ButtonIcon ? (field.buttonDisplay ?? "both") : "text";
+
+        function handleButtonAction() {
+          const action = field.buttonAction;
+          if (!action) return;
+          const allFields = formConfig.rows.flatMap((r) => r.fields);
+          const sourceField = allFields.find((f) => f.id === action.sourceFieldId);
+          if (!sourceField) return;
+          const srcKey = fieldKey(sourceField);
+          const val = (getValues(srcKey as keyof SimpleFields) as string) ?? "";
+          switch (action.type) {
+            case "open-url":
+              if (val) window.open(val, "_blank", "noopener,noreferrer");
+              break;
+            case "copy-clipboard":
+              if (val) navigator.clipboard.writeText(val).catch(() => {});
+              break;
+            case "clear-field":
+              setValue(srcKey as keyof SimpleFields, "" as never);
+              break;
+          }
+        }
+
+        return (
+          <div key={field.id} className={`flex items-start pt-[1.625rem] min-w-0 ${alignClass}`}>
+            <button
+              type={btnType}
+              disabled={isSubmit && submitting}
+              title={displayMode === "icon" && field.label ? field.label : undefined}
+              onClick={
+                field.buttonAction && (field.buttonType ?? "button") === "button"
+                  ? handleButtonAction
+                  : undefined
+              }
+              className={`flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors ${
+                btnWidth === "full" ? "w-full justify-center" : ""
+              } ${
+                isSubmit
+                  ? "bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-60"
+                  : "border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)]"
+              }`}
+            >
+              {displayMode !== "text" && ButtonIcon && <ButtonIcon width={15} height={15} />}
+              {displayMode !== "icon" && (
+                <span className="truncate">
+                  {isSubmit && submitting ? "Wird gesendet…" : field.label}
+                </span>
+              )}
+            </button>
+          </div>
+        );
+      }
+
+      case "separator":
+        return <hr key={field.id} className="border-[var(--ds-border)]" />;
+
+      case "paragraph":
+        return (
+          <p key={field.id} className="text-sm text-[var(--ds-text)] leading-relaxed">
+            {field.content}
+          </p>
+        );
 
       default:
         return null;
@@ -760,12 +1076,9 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       className="space-y-6"
     >
       {formConfig.rows.map((row) => (
-        <div key={row.id} className="flex gap-4">
+        <div key={row.id} className="grid grid-cols-12 gap-4">
           {row.fields.map((field) => (
-            <div
-              key={field.id}
-              className={field.type === "richtext" || field.width === "full" ? "flex-1" : "w-1/2"}
-            >
+            <div key={field.id} style={{ gridColumn: `span ${field.span ?? 12}` }}>
               {renderField(field)}
             </div>
           ))}
@@ -775,16 +1088,6 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       {submitError && (
         <p className="text-[var(--ds-danger-text)] text-sm text-center">{submitError}</p>
       )}
-
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="h-9 px-6 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control font-medium text-sm hover:bg-[var(--ds-btn-filled-hover)] transition-colors disabled:opacity-60"
-        >
-          {submitting ? "Wird gesendet…" : "Vorschlag absenden"}
-        </button>
-      </div>
     </form>
   );
 }

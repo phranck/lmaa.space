@@ -1,13 +1,14 @@
+import { SFHandTap } from "sf-symbols-lib/monochrome";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/form-builder/BuilderCanvas.tsx";
 import { FieldConfigPanel } from "@/features/form-builder/FieldConfigPanel.tsx";
 import { FieldPalette } from "@/features/form-builder/FieldPalette.tsx";
+import { SubmissionConfigPanel } from "@/features/form-builder/SubmissionConfigPanel.tsx";
 import { useFormConfig, useSaveFormConfig } from "@/features/form-builder/hooks/useFormConfig.ts";
 import {
   DndContext,
   type DragEndEvent,
-  type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
   PointerSensor,
@@ -16,10 +17,15 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
-import { useEffect, useRef, useState } from "react";
-
-const FORM_NAME = "suggestion-form";
+import type {
+  FieldOptionsSource,
+  FieldType,
+  FormField,
+  FormRow,
+  SubmissionConfig,
+} from "@lmaa/contracts";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router";
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -74,6 +80,26 @@ function makeNewField(type: FieldType, span = 12): FormField {
 }
 
 /**
+ * Resolves a palette drag ID to a field type, label and optional optionsSource.
+ * Special IDs like "categories-select" and "regions-select" map to multi-select
+ * fields with a preset optionsSource.
+ */
+function resolvePaletteId(paletteId: string): {
+  type: FieldType;
+  label: string;
+  optionsSource?: FieldOptionsSource;
+} {
+  if (paletteId === "categories-select") {
+    return { type: "multi-select", label: "Kategorien", optionsSource: "categories" };
+  }
+  if (paletteId === "regions-select") {
+    return { type: "multi-select", label: "Regionen", optionsSource: "regions" };
+  }
+  const type = paletteId as FieldType;
+  return { type, label: defaultFieldLabel(type) };
+}
+
+/**
  * Wraps a single field in a new {@link FormRow} with a random UUID.
  *
  * @param field - The initial field to place in the row.
@@ -84,28 +110,29 @@ function makeNewRow(field: FormField): FormRow {
 }
 
 /**
- * Form builder page combining palette, canvas and config panel.
+ * Form builder edit page — loads a form by name from the URL parameter.
  *
- * Drag from the palette to append a new row. Click a field to configure it.
- * Save commits the current rows to the backend via PUT.
+ * Supports drag-from-palette, row reordering, field config panel, and slug editing.
  *
  * @returns Full-page form builder UI.
  */
-export function FormBuilderPage() {
+export function FormBuilderEditPage() {
+  const { name } = useParams<{ name: string }>();
+  const formName = name ?? "";
+
   const { messages } = useI18n();
   const m = messages.formBuilder;
 
-  const { data: config, isLoading } = useFormConfig(FORM_NAME);
-  const saveMutation = useSaveFormConfig(FORM_NAME);
+  const { data: config, isLoading } = useFormConfig(formName);
+  const saveMutation = useSaveFormConfig(formName);
 
   const [rows, setRows] = useState<FormRow[]>([]);
+  const [slug, setSlug] = useState<string>("");
+  const [submissionConfig, setSubmissionConfig] = useState<SubmissionConfig | undefined>();
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
-  // Tracks the last row we moved the dragged row INTO during onDragOver.
-  // Prevents oscillation: without this, every pointer-move event would swap
-  // the rows back because resolvedOverId stays the same after the first move.
-  const lastOverRowId = useRef<string | null>(null);
-
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error" | "slug_conflict">(
+    "idle",
+  );
   const [activeDrag, setActiveDrag] = useState<{
     id: string;
     field?: FormField;
@@ -113,32 +140,39 @@ export function FormBuilderPage() {
     paletteType?: FieldType;
   } | null>(null);
 
-  // Sync server state into local rows once loaded
+  // Sync server state into local rows, slug and submissionConfig once loaded
   useEffect(() => {
     if (config !== undefined) {
       setRows(config?.rows ?? []);
+      setSlug(config?.slug ?? formName);
+      setSubmissionConfig(config?.submissionConfig);
     }
-  }, [config]);
+  }, [config, formName]);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setSelectedFieldId(null);
+        (document.activeElement as HTMLElement)?.blur();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  // Find the currently selected field across all rows
   const selectedField =
     selectedFieldId !== null
       ? (rows.flatMap((r) => r.fields).find((f) => f.id === selectedFieldId) ?? null)
       : null;
 
-  /**
-   * Captures the active drag item on drag-start so the {@link DragOverlay}
-   * can render a floating preview of the correct element.
-   *
-   * @param event - The dnd-kit drag-start event.
-   */
   function handleDragStart(event: DragStartEvent) {
     const id = String(event.active.id);
 
     if (id.startsWith("palette:")) {
-      setActiveDrag({ id, paletteType: id.replace("palette:", "") as FieldType });
+      const { type } = resolvePaletteId(id.replace("palette:", ""));
+      setActiveDrag({ id, paletteType: type });
       return;
     }
 
@@ -152,84 +186,34 @@ export function FormBuilderPage() {
 
     const row = rows.find((r) => r.id === id);
     setActiveDrag({ id, row });
-    lastOverRowId.current = null;
   }
 
-  /**
-   * Resolves a dnd-kit over-id to a plain row id.
-   * Handles the three possible forms:
-   *   - plain row id (already resolved)
-   *   - "free:{rowId}"  — free-span placeholder inside a row
-   *   - "field:{rowId}:{fieldId}" — field inside a row
-   */
-  function resolveRowId(overId: string): string {
-    if (overId.startsWith("free:")) return overId.slice("free:".length);
-    if (overId.startsWith("field:")) return overId.split(":")[1];
-    return overId;
-  }
-
-  /**
-   * Updates the row order during drag so that the visual position tracks the
-   * pointer in real time. This is the standard dnd-kit pattern for sortable
-   * lists — without onDragOver the DOM positions do not update, making the
-   * final over-id in onDragEnd unreliable.
-   *
-   * Only row-level reordering is handled here; palette drops and field
-   * reordering within a row are handled in onDragEnd.
-   */
-  function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    if (!over) return;
-    const activeId = String(active.id);
-    if (activeId.startsWith("field:") || activeId.startsWith("palette:")) return;
-
-    const resolvedOverId = resolveRowId(String(over.id));
-
-    // Skip if the target row hasn't changed — prevents oscillation where rapid
-    // onDragOver events alternately swap and un-swap the same two rows.
-    if (resolvedOverId === lastOverRowId.current || resolvedOverId === activeId) return;
-
-    setRows((prev) => {
-      const oldIndex = prev.findIndex((r) => r.id === activeId);
-      const newIndex = prev.findIndex((r) => r.id === resolvedOverId);
-      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
-      return arrayMove(prev, oldIndex, newIndex);
-    });
-
-    lastOverRowId.current = resolvedOverId;
-  }
-
-  /**
-   * Handles all drag-end events from the DnD context.
-   *
-   * - Palette → row with free span: appends field to that row.
-   * - Palette → canvas / full row: creates a new row at the bottom.
-   * - Field ID → field ID (same row): reorders fields horizontally.
-   *
-   * Row reordering is handled by onDragOver; nothing to do here for rows.
-   *
-   * @param event - The dnd-kit drag-end event.
-   */
   function handleDragEnd(event: DragEndEvent) {
     setActiveDrag(null);
-    lastOverRowId.current = null;
     const { active, over } = event;
     if (!over) return;
 
     const activeId = String(active.id);
 
-    // Drop from palette
     if (activeId.startsWith("palette:")) {
-      const type = activeId.replace("palette:", "") as FieldType;
+      const { type, label, optionsSource } = resolvePaletteId(activeId.replace("palette:", ""));
       const overId = String(over.id);
 
-      // Drop onto an existing row with free span → append to that row
-      const resolvedId = resolveRowId(overId);
-      const targetRow = rows.find((r) => r.id === resolvedId);
+      // Resolve drop target: row ID directly, free-span droppable, or neighbouring field
+      const targetRowId = overId.startsWith("field:")
+        ? overId.split(":")[1]
+        : overId.startsWith("free:")
+          ? overId.split(":")[1]
+          : overId;
+      const targetRow = rows.find((r) => r.id === targetRowId);
       if (targetRow) {
         const free = rowFreeSpan(targetRow);
         if (free > 0) {
-          const newField = makeNewField(type, free);
+          const newField = {
+            ...makeNewField(type, free),
+            label,
+            ...(optionsSource && { optionsSource }),
+          };
           setRows((prev) =>
             prev.map((r) =>
               r.id === targetRow.id ? { ...r, fields: [...r.fields, newField] } : r,
@@ -240,8 +224,7 @@ export function FormBuilderPage() {
         }
       }
 
-      // Default: create new row at bottom
-      const newField = makeNewField(type);
+      const newField = { ...makeNewField(type), label, ...(optionsSource && { optionsSource }) };
       const newRow = makeNewRow(newField);
       setRows((prev) => [...prev, newRow]);
       setSelectedFieldId(newField.id);
@@ -249,66 +232,37 @@ export function FormBuilderPage() {
     }
 
     const overId = String(over.id);
+    if (!activeId.startsWith("field:") && !overId.startsWith("field:")) {
+      const oldIndex = rows.findIndex((r) => r.id === activeId);
+      const newIndex = rows.findIndex((r) => r.id === overId);
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        setRows((prev) => arrayMove(prev, oldIndex, newIndex));
+      }
+      return;
+    }
 
-    // All field-drag cases
-    if (activeId.startsWith("field:")) {
+    if (activeId.startsWith("field:") && overId.startsWith("field:")) {
       const [, activeRowId, activeFieldId] = activeId.split(":");
-      // Resolve whatever over target (free:rowId, field:rowId:fieldId, plain rowId) to a row ID
-      const targetRowId = resolveRowId(overId);
+      const [, overRowId, overFieldId] = overId.split(":");
 
-      if (activeRowId === targetRowId) {
-        // Same row: horizontal reorder
-        if (overId.startsWith("field:")) {
-          const overFieldId = overId.split(":")[2];
-          setRows((prev) =>
-            prev.map((row) => {
-              if (row.id !== activeRowId) return row;
-              const oldIdx = row.fields.findIndex((f) => f.id === activeFieldId);
-              const newIdx = row.fields.findIndex((f) => f.id === overFieldId);
-              if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return row;
-              return { ...row, fields: arrayMove(row.fields, oldIdx, newIdx) };
-            }),
-          );
-        }
-      } else {
-        // Cross-row: move field to target row
-        setRows((prev) => {
-          const sourceRow = prev.find((r) => r.id === activeRowId);
-          const field = sourceRow?.fields.find((f) => f.id === activeFieldId);
-          if (!field) return prev;
-          const targetRow = prev.find((r) => r.id === targetRowId);
-          if (!targetRow) return prev;
-          const free = rowFreeSpan(targetRow);
-          if (free <= 0) return prev;
-          const movedField = { ...field, span: Math.min(field.span ?? 12, free) };
-          return prev
-            .map((row) => {
-              if (row.id === activeRowId) return { ...row, fields: row.fields.filter((f) => f.id !== activeFieldId) };
-              if (row.id === targetRowId) return { ...row, fields: [...row.fields, movedField] };
-              return row;
-            })
-            .filter((row) => row.fields.length > 0);
-        });
+      if (activeRowId === overRowId) {
+        setRows((prev) =>
+          prev.map((row) => {
+            if (row.id !== activeRowId) return row;
+            const oldIdx = row.fields.findIndex((f) => f.id === activeFieldId);
+            const newIdx = row.fields.findIndex((f) => f.id === overFieldId);
+            if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return row;
+            return { ...row, fields: arrayMove(row.fields, oldIdx, newIdx) };
+          }),
+        );
       }
     }
   }
 
-  /**
-   * Toggles the selected field. Clicking the same field again deselects it.
-   *
-   * @param fieldId - The ID of the field to select or deselect.
-   */
   function handleSelectField(fieldId: string) {
     setSelectedFieldId((prev) => (prev === fieldId ? null : fieldId));
   }
 
-  /**
-   * Removes a field from its row. If the field was selected, the selection is
-   * cleared. Rows that become empty are removed automatically.
-   *
-   * @param rowId   - The ID of the containing row.
-   * @param fieldId - The ID of the field to delete.
-   */
   function handleDeleteField(rowId: string, fieldId: string) {
     if (selectedFieldId === fieldId) setSelectedFieldId(null);
     setRows((prev) =>
@@ -321,11 +275,6 @@ export function FormBuilderPage() {
     );
   }
 
-  /**
-   * Replaces the stale version of a field with the updated one across all rows.
-   *
-   * @param updated - The modified field returned by {@link FieldConfigPanel}.
-   */
   function handleFieldChange(updated: FormField) {
     setRows((prev) =>
       prev.map((row) => ({
@@ -335,24 +284,25 @@ export function FormBuilderPage() {
     );
   }
 
-  /**
-   * Persists the current rows to the backend via {@link useSaveFormConfig}.
-   *
-   * Shows a temporary success or error status message after the request
-   * completes. The success indicator auto-dismisses after 3 seconds.
-   */
   function handleSave() {
     setSaveStatus("idle");
     saveMutation.mutate(
-      { rows },
+      { rows, slug: slug || undefined, submissionConfig },
       {
         onSuccess: () => {
           setSaveStatus("saved");
           setTimeout(() => setSaveStatus("idle"), 3000);
         },
-        onError: (err) => {
-          setSaveStatus("error");
-          console.error("[FormBuilder] Save failed:", err);
+        onError: (err: unknown) => {
+          const status =
+            err && typeof err === "object" && "status" in err
+              ? (err as { status: number }).status
+              : 0;
+          if (status === 409) {
+            setSaveStatus("slug_conflict");
+          } else {
+            setSaveStatus("error");
+          }
         },
       },
     );
@@ -371,13 +321,16 @@ export function FormBuilderPage() {
 
   return (
     <div>
-      <PageHeader title={m.title}>
+      <PageHeader title={`${m.title}: ${formName}`}>
         <div className="flex items-center gap-3">
           {saveStatus === "saved" && (
             <span className="text-sm text-green-600 font-medium">{m.saved}</span>
           )}
           {saveStatus === "error" && (
             <span className="text-sm text-red-600 font-medium">{m.saveError}</span>
+          )}
+          {saveStatus === "slug_conflict" && (
+            <span className="text-sm text-red-600 font-medium">{m.slugConflict}</span>
           )}
           <button
             type="button"
@@ -390,21 +343,44 @@ export function FormBuilderPage() {
         </div>
       </PageHeader>
 
+      {/* Slug editor */}
+      <div className="px-6 pt-2 pb-4 flex items-center gap-3">
+        <Link
+          to="/formular"
+          className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+        >
+          {m.backToList}
+        </Link>
+        <span className="text-[var(--ds-border)]">·</span>
+        <label htmlFor="form-slug" className="text-sm text-[var(--ds-text-muted)] shrink-0">
+          {m.slugLabel}:
+        </label>
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-[var(--ds-text-muted)] font-mono">/</span>
+          <input
+            id="form-slug"
+            type="text"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+            placeholder={m.slugPlaceholder}
+            className="w-48 px-2 py-1 text-sm font-mono bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+          />
+        </div>
+      </div>
+
+      <div className="pb-4">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        onDragCancel={() => { setActiveDrag(null); lastOverRowId.current = null; }}
+        onDragCancel={() => setActiveDrag(null)}
       >
         <div className="flex gap-4 items-start">
-          {/* Palette sidebar */}
           <div className="shrink-0">
             <FieldPalette />
           </div>
 
-          {/* Canvas */}
           <div className="flex-1 min-w-0">
             <BuilderCanvas
               rows={rows}
@@ -414,15 +390,43 @@ export function FormBuilderPage() {
             />
           </div>
 
-          {/* Config panel — only shown when a field is selected */}
-          {selectedField !== null && (
-            <div className="shrink-0 w-72">
-              <FieldConfigPanel field={selectedField} onChange={handleFieldChange} />
-            </div>
-          )}
+          <div className="shrink-0 w-72">
+            {selectedField !== null ? (
+              <FieldConfigPanel
+                field={selectedField}
+                onChange={handleFieldChange}
+                allFields={rows
+                  .flatMap((r) => r.fields)
+                  .filter(
+                    (f) =>
+                      f.id !== selectedField.id &&
+                      f.type !== "button" &&
+                      f.type !== "richtext" &&
+                      f.type !== "headline" &&
+                      f.type !== "separator" &&
+                      f.type !== "paragraph",
+                  )
+                  .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-3 p-4 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64 h-64 text-center">
+                <SFHandTap
+                  width={52}
+                  height={52}
+                  aria-hidden
+                  className="text-[var(--ds-text-muted)]"
+                />
+                <p className="text-base font-bold text-[var(--ds-text)]">
+                  {messages.formBuilder.noFieldSelected}
+                </p>
+                <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
+                  {messages.formBuilder.noFieldSelectedHint}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Floating drag preview rendered above everything */}
         <DragOverlay>
           {activeDrag?.field && (
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm shadow-xl ring-1 ring-[var(--color-primary)]/30 cursor-grabbing">
@@ -453,6 +457,16 @@ export function FormBuilderPage() {
           )}
         </DragOverlay>
       </DndContext>
+      </div>
+
+      <SubmissionConfigPanel
+        config={submissionConfig}
+        onChange={setSubmissionConfig}
+        fields={rows
+          .flatMap((r) => r.fields)
+          .filter((f) => f.type === "email")
+          .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
+      />
     </div>
   );
 }

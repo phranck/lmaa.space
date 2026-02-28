@@ -33,6 +33,7 @@ export interface DashboardMessages {
       pagesOverview: string;
       navigations: string;
       formBuilder: string;
+      formsOverview: string;
       editProfile: string;
       logout: string;
       roles: {
@@ -339,6 +340,7 @@ export interface DashboardMessages {
         static: string;
         pages: string;
         categories: string;
+        forms: string;
       };
       staticRoutes: {
         homeCategories: string;
@@ -349,36 +351,103 @@ export interface DashboardMessages {
   };
   formBuilder: {
     title: string;
+    listTitle: string;
+    newForm: string;
+    formNameLabel: string;
+    formSlugLabel: string;
+    formSlugHint: string;
+    create: string;
+    backToList: string;
+    slugLabel: string;
+    slugPlaceholder: string;
     save: string;
     saved: string;
     saveError: string;
     empty: string;
+    editButton: string;
+    noForms: string;
+    slugConflict: string;
+    nameConflict: string;
+    noFieldSelected: string;
+    noFieldSelectedHint: string;
     fieldTypes: {
       text: string;
       email: string;
       textarea: string;
       select: string;
       multiSelect: string;
+      categoriesSelect: string;
+      regionsSelect: string;
       checkbox: string;
       richtext: string;
+      button: string;
+      password: string;
+      headline: string;
+      separator: string;
+      paragraph: string;
     };
     panel: {
       label: string;
+      fieldName: string;
+      rows: string;
       placeholder: string;
       required: string;
-      width: string;
-      widthFull: string;
-      widthHalf: string;
+      span: string;
       options: string;
       optionsHint: string;
       validationMin: string;
       validationMax: string;
+      maxChars: string;
+      subtext: string;
       content: string;
       variant: string;
       variantDefault: string;
       variantInfo: string;
       variantWarning: string;
       variantHint: string;
+      buttonType: string;
+      buttonTypeButton: string;
+      buttonTypeSubmit: string;
+      buttonTypeReset: string;
+      buttonWidth: string;
+      buttonWidthAutomatic: string;
+      buttonWidthFull: string;
+      buttonAlign: string;
+      buttonAlignLeft: string;
+      buttonAlignCenter: string;
+      buttonAlignRight: string;
+      buttonIcon: string;
+      buttonIconNone: string;
+      buttonDisplay: string;
+      buttonDisplayText: string;
+      buttonDisplayIcon: string;
+      buttonDisplayBoth: string;
+      headlineLevel: string;
+      headlineLevelH1: string;
+      headlineLevelH2: string;
+      headlineLevelH3: string;
+      buttonAction: string;
+      buttonActionNone: string;
+      buttonActionOpenUrl: string;
+      buttonActionCopyClipboard: string;
+      buttonActionClearField: string;
+      buttonActionSourceField: string;
+    };
+    submission: {
+      title: string;
+      addStep: string;
+      addStepButton: string;
+      stepStore: string;
+      stepEmail: string;
+      stepCreateShopSuggestion: string;
+      emailTo: string;
+      emailToStatic: string;
+      emailToFromField: string;
+      emailSubject: string;
+      successBehaviourLabel: string;
+      successMessage: string;
+      successRedirect: string;
+      noSteps: string;
     };
   };
   errors: {
@@ -422,6 +491,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         pagesOverview: "Übersicht",
         navigations: "Navigationen",
         formBuilder: "Formular-Builder",
+        formsOverview: "Übersicht",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
         roles: {
@@ -732,6 +802,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           static: "Statisch",
           pages: "Seiten",
           categories: "Kategorien",
+          forms: "Formulare",
         },
         staticRoutes: {
           homeCategories: "Startseite / Kategorien",
@@ -741,37 +812,104 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
     },
     formBuilder: {
-      title: "Formular-Builder",
+      title: "Formular bearbeiten",
+      listTitle: "Formulare",
+      newForm: "Neues Formular",
+      formNameLabel: "Name (intern, unveränderlich)",
+      formSlugLabel: "URL-Pfad (Slug)",
+      formSlugHint: "Wird auf der Website als Adresse verwendet (z.B. /mein-formular).",
+      create: "Erstellen",
+      backToList: "← Alle Formulare",
+      slugLabel: "URL-Pfad (Slug)",
+      slugPlaceholder: "z.B. mein-formular",
       save: "Speichern",
       saved: "Gespeichert",
       saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
       empty: "Noch keine Felder vorhanden. Felder aus der Palette ziehen.",
+      editButton: "Bearbeiten",
+      noForms: "Noch keine Formulare vorhanden.",
+      slugConflict: "Dieser URL-Pfad wird bereits verwendet.",
+      nameConflict: "Ein Formular mit diesem Namen existiert bereits.",
+      noFieldSelected: "Kein Feld ausgewählt",
+      noFieldSelectedHint: "Tippe auf ein Feld im Canvas, um es zu konfigurieren.",
       fieldTypes: {
-        text: "Text",
+        text: "Input Text",
         email: "E-Mail",
         textarea: "Textbereich",
         select: "Auswahl",
         multiSelect: "Mehrfachauswahl",
+        categoriesSelect: "Kategorien",
+        regionsSelect: "Regionen",
         checkbox: "Checkbox",
-        richtext: "Textblock",
+        richtext: "Markdown Editor",
+        button: "Button",
+        password: "Input Passwort",
+        headline: "Überschrift",
+        separator: "Trennlinie",
+        paragraph: "Textabsatz",
       },
       panel: {
         label: "Bezeichnung",
+        fieldName: "Variablenname",
+        rows: "Höhe (Zeilen)",
         placeholder: "Platzhalter",
         required: "Pflichtfeld",
-        width: "Breite",
-        widthFull: "Ganz",
-        widthHalf: "Halb",
+        span: "Breite",
         options: "Optionen",
         optionsHint: "Eine Option pro Zeile",
         validationMin: "Min.",
         validationMax: "Max.",
+        maxChars: "Maximale Zeichenanzahl",
+        subtext: "Hilfstext",
         content: "Inhalt",
         variant: "Darstellung",
         variantDefault: "Standard",
         variantInfo: "Hinweis",
         variantWarning: "Warnung",
         variantHint: "Tipp",
+        buttonType: "Typ",
+        buttonTypeButton: "Button",
+        buttonTypeSubmit: "Absenden",
+        buttonTypeReset: "Zurücksetzen",
+        buttonWidth: "Breite",
+        buttonWidthAutomatic: "Automatisch",
+        buttonWidthFull: "Volle Breite",
+        buttonAlign: "Ausrichtung",
+        buttonAlignLeft: "Links",
+        buttonAlignCenter: "Mitte",
+        buttonAlignRight: "Rechts",
+        buttonIcon: "Icon",
+        buttonIconNone: "Kein Icon",
+        buttonDisplay: "Darstellung",
+        buttonDisplayText: "Text",
+        buttonDisplayIcon: "Icon",
+        buttonDisplayBoth: "Beides",
+        headlineLevel: "Ebene",
+        headlineLevelH1: "H1 – Titel",
+        headlineLevelH2: "H2 – Abschnitt",
+        headlineLevelH3: "H3 – Unterabschnitt",
+        buttonAction: "Aktion",
+        buttonActionNone: "Keine",
+        buttonActionOpenUrl: "URL öffnen",
+        buttonActionCopyClipboard: "Kopieren",
+        buttonActionClearField: "Feld leeren",
+        buttonActionSourceField: "Quellfeld",
+      },
+      submission: {
+        title: "Übermittlung",
+        addStep: "Schritt auswählen",
+        addStepButton: "Hinzufügen",
+        stepStore: "Speichern",
+        stepEmail: "E-Mail-Benachrichtigung",
+        stepCreateShopSuggestion: "Shop-Vorschlag anlegen",
+        emailTo: "Empfänger",
+        emailToStatic: "Statische Adresse",
+        emailToFromField: "Aus Feld",
+        emailSubject: "Betreff (optional)",
+        successBehaviourLabel: "Nach dem Absenden",
+        successMessage: "Erfolgsmeldung",
+        successRedirect: "Weiterleitung",
+        noSteps: "Keine Schritte konfiguriert.",
       },
     },
     errors: {
@@ -810,6 +948,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         pagesOverview: "Overview",
         navigations: "Navigations",
         formBuilder: "Form Builder",
+        formsOverview: "Overview",
         editProfile: "Edit profile",
         logout: "Log out",
         roles: {
@@ -1118,6 +1257,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           static: "Static",
           pages: "Pages",
           categories: "Categories",
+          forms: "Forms",
         },
         staticRoutes: {
           homeCategories: "Home / Categories",
@@ -1127,37 +1267,104 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
     },
     formBuilder: {
-      title: "Form Builder",
+      title: "Edit Form",
+      listTitle: "Forms",
+      newForm: "New Form",
+      formNameLabel: "Name (internal, immutable)",
+      formSlugLabel: "URL path (slug)",
+      formSlugHint: "Used as the page address on the website (e.g. /my-form).",
+      create: "Create",
+      backToList: "← All forms",
+      slugLabel: "URL path (slug)",
+      slugPlaceholder: "e.g. my-form",
       save: "Save",
       saved: "Saved",
       saveError: "Error while saving. Please try again.",
       empty: "No fields yet. Drag fields from the palette.",
+      editButton: "Edit",
+      noForms: "No forms yet.",
+      slugConflict: "This URL path is already in use.",
+      nameConflict: "A form with this name already exists.",
+      noFieldSelected: "No field selected",
+      noFieldSelectedHint: "Tap a field on the canvas to configure it.",
       fieldTypes: {
-        text: "Text",
+        text: "Input Text",
         email: "Email",
         textarea: "Textarea",
         select: "Select",
         multiSelect: "Multi-select",
+        categoriesSelect: "Categories",
+        regionsSelect: "Regions",
         checkbox: "Checkbox",
-        richtext: "Text block",
+        richtext: "Markdown Editor",
+        button: "Button",
+        password: "Input Password",
+        headline: "Headline",
+        separator: "Separator",
+        paragraph: "Paragraph",
       },
       panel: {
         label: "Label",
+        fieldName: "Variable name",
+        rows: "Height (rows)",
         placeholder: "Placeholder",
         required: "Required",
-        width: "Width",
-        widthFull: "Full",
-        widthHalf: "Half",
+        span: "Width",
         options: "Options",
         optionsHint: "One option per line",
         validationMin: "Min.",
         validationMax: "Max.",
+        maxChars: "Max. characters",
+        subtext: "Help text",
         content: "Content",
         variant: "Style",
         variantDefault: "Default",
         variantInfo: "Info",
         variantWarning: "Warning",
         variantHint: "Hint",
+        buttonType: "Type",
+        buttonTypeButton: "Button",
+        buttonTypeSubmit: "Submit",
+        buttonTypeReset: "Reset",
+        buttonWidth: "Width",
+        buttonWidthAutomatic: "Automatic",
+        buttonWidthFull: "Full width",
+        buttonAlign: "Alignment",
+        buttonAlignLeft: "Left",
+        buttonAlignCenter: "Center",
+        buttonAlignRight: "Right",
+        buttonIcon: "Icon",
+        buttonIconNone: "No icon",
+        buttonDisplay: "Display",
+        buttonDisplayText: "Text",
+        buttonDisplayIcon: "Icon",
+        buttonDisplayBoth: "Both",
+        headlineLevel: "Level",
+        headlineLevelH1: "H1 – Title",
+        headlineLevelH2: "H2 – Section",
+        headlineLevelH3: "H3 – Subsection",
+        buttonAction: "Action",
+        buttonActionNone: "None",
+        buttonActionOpenUrl: "Open URL",
+        buttonActionCopyClipboard: "Copy",
+        buttonActionClearField: "Clear field",
+        buttonActionSourceField: "Source field",
+      },
+      submission: {
+        title: "Submission",
+        addStep: "Select step",
+        addStepButton: "Add",
+        stepStore: "Store",
+        stepEmail: "Email notification",
+        stepCreateShopSuggestion: "Create shop suggestion",
+        emailTo: "Recipient",
+        emailToStatic: "Static address",
+        emailToFromField: "From field",
+        emailSubject: "Subject (optional)",
+        successBehaviourLabel: "After submit",
+        successMessage: "Success message",
+        successRedirect: "Redirect",
+        noSteps: "No steps configured.",
       },
     },
     errors: {

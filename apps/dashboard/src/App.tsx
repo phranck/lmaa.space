@@ -31,9 +31,15 @@ const NavManagerPage = lazy(() =>
   })),
 );
 
-const FormBuilderPage = lazy(() =>
-  import("@/features/form-builder/FormBuilderPage.tsx").then((m) => ({
-    default: m.FormBuilderPage,
+const FormBuilderListPage = lazy(() =>
+  import("@/features/form-builder/FormBuilderListPage.tsx").then((m) => ({
+    default: m.FormBuilderListPage,
+  })),
+);
+
+const FormBuilderEditPage = lazy(() =>
+  import("@/features/form-builder/FormBuilderEditPage.tsx").then((m) => ({
+    default: m.FormBuilderEditPage,
   })),
 );
 
@@ -66,7 +72,15 @@ function AppRoutes() {
                 path="formular"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <FormBuilderPage />
+                    <FormBuilderListPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="formular/:name"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <FormBuilderEditPage />
                   </Suspense>
                 }
               />

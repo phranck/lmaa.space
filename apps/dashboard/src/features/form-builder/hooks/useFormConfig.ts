@@ -2,6 +2,11 @@ import { api } from "@/lib/api.ts";
 import type { FormConfig, FormConfigPayload } from "@lmaa/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+interface CreateFormConfigInput {
+  name: string;
+  slug?: string;
+}
+
 /**
  * Loads the full list of form configurations.
  *
@@ -58,6 +63,37 @@ export function useSaveFormConfig(name: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["form-configs"] });
       void qc.invalidateQueries({ queryKey: ["form-config", name] });
+    },
+  });
+}
+
+/**
+ * Creates a new empty form configuration via POST.
+ *
+ * @returns React Query mutation for creating a new form config.
+ */
+export function useCreateFormConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateFormConfigInput) =>
+      api.post<FormConfig>("/admin/form-configs", input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["form-configs"] });
+    },
+  });
+}
+
+/**
+ * Deletes a form configuration by name via DELETE.
+ *
+ * @returns React Query mutation for deleting a form config.
+ */
+export function useDeleteFormConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => api.delete(`/admin/form-configs/${name}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["form-configs"] });
     },
   });
 }

@@ -1,7 +1,10 @@
 ---
+import DynamicForm from "@/components/islands/DynamicForm";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
+import type { FormConfig } from "@lmaa/contracts";
+import type { Category } from "@lmaa/shared";
 
 interface ContentPageView {
   title: string;
@@ -42,33 +45,58 @@ try {
   const remote = await apiGet<{ title: string; content: string }>(`/content/${slug}`);
   page = { title: remote.title, content: remote.content };
 } catch (err) {
-  console.error("[SSR] /about fetch failed:", err);
+  console.error("[SSR] content fetch failed:", err);
   page = fallbackPages[slug] ?? null;
 }
 
+// If no content page found, try to resolve as a form config slug
+let formConfig: FormConfig | null = null;
+let categories: Category[] = [];
+
 if (!page) {
+  try {
+    formConfig = await apiGet<FormConfig>(`/form-config-by-slug/${slug}`);
+    categories = await apiGet<Category[]>("/categories");
+  } catch {
+    // Not a form either — fall through to 404
+  }
+}
+
+if (!page && !formConfig) {
   return Astro.redirect("/404");
 }
 
-const html = await renderMarkdown(page.content);
+let html = "";
+let description = "";
 
-const description = page.content
-  .replace(/#{1,6}\s+/g, "")
-  .replace(/\*\*(.+?)\*\*/g, "$1")
-  .replace(/\*(.+?)\*/g, "$1")
-  .replace(/\[(.+?)\]\(.+?\)/g, "$1")
-  .replace(/`(.+?)`/g, "$1")
-  .replace(/\n+/g, " ")
-  .trim()
-  .slice(0, 160);
+if (page) {
+  html = await renderMarkdown(page.content);
+  description = page.content
+    .replace(/#{1,6}\s+/g, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1")
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/\n+/g, " ")
+    .trim()
+    .slice(0, 160);
+}
 ---
 
-<BaseLayout title={page.title} description={description}>
-  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
-    <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
-    <article
-      class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
-      set:html={html}
-    />
-  </div>
-</BaseLayout>
+{page ? (
+  <BaseLayout title={page.title} description={description}>
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+      <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
+      <article
+        class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
+        set:html={html}
+      />
+    </div>
+  </BaseLayout>
+) : (
+  <BaseLayout title={formConfig!.name}>
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+      <DynamicForm client:only="react" formConfig={formConfig!} categories={categories} />
+    </div>
+  </BaseLayout>
+)}
