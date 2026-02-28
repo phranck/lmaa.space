@@ -433,6 +433,14 @@ export interface DashboardMessages {
       buttonActionCopyClipboard: string;
       buttonActionClearField: string;
       buttonActionSourceField: string;
+      inputType: string;
+      inputTypeText: string;
+      inputTypeEmail: string;
+      inputTypePassword: string;
+      inputTypeUrl: string;
+      inputTypeTel: string;
+      inputTypeDate: string;
+      inputTypeNumber: string;
     };
     submission: {
       title: string;
@@ -856,7 +864,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       noFieldSelected: "Kein Feld ausgewählt",
       noFieldSelectedHint: "Tippe auf ein Feld im Canvas, um es zu konfigurieren.",
       fieldTypes: {
-        text: "Input Text",
+        text: "Input",
         email: "E-Mail",
         textarea: "Textbereich",
         select: "Auswahl",
@@ -917,6 +925,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         buttonActionCopyClipboard: "Kopieren",
         buttonActionClearField: "Feld leeren",
         buttonActionSourceField: "Quellfeld",
+        inputType: "Input-Typ",
+        inputTypeText: "Text",
+        inputTypeEmail: "E-Mail",
+        inputTypePassword: "Passwort",
+        inputTypeUrl: "URL",
+        inputTypeTel: "Telefon",
+        inputTypeDate: "Datum",
+        inputTypeNumber: "Zahl",
       },
       submission: {
         title: "Übermittlung",
@@ -1333,7 +1349,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       noFieldSelected: "No field selected",
       noFieldSelectedHint: "Tap a field on the canvas to configure it.",
       fieldTypes: {
-        text: "Input Text",
+        text: "Input",
         email: "Email",
         textarea: "Textarea",
         select: "Select",
@@ -1394,6 +1410,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         buttonActionCopyClipboard: "Copy",
         buttonActionClearField: "Clear field",
         buttonActionSourceField: "Source field",
+        inputType: "Input type",
+        inputTypeText: "Text",
+        inputTypeEmail: "Email",
+        inputTypePassword: "Password",
+        inputTypeUrl: "URL",
+        inputTypeTel: "Phone",
+        inputTypeDate: "Date",
+        inputTypeNumber: "Number",
       },
       submission: {
         title: "Submission",

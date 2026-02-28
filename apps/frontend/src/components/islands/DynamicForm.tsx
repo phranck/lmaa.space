@@ -125,6 +125,15 @@ function buildValidationRules(
     };
   }
 
+  // Auto email pattern when no custom pattern is set
+  const effectiveType = field.inputType ?? field.type;
+  if (effectiveType === "email" && !rules.pattern) {
+    rules.pattern = {
+      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: "Bitte eine gültige E-Mail-Adresse eingeben",
+    };
+  }
+
   return rules;
 }
 
@@ -890,7 +899,14 @@ export default function DynamicForm({ formConfig, categories }: Props) {
             </label>
             <input
               id={key}
-              type={field.type}
+              type={
+                field.inputType ??
+                (field.type === "email"
+                  ? "email"
+                  : field.type === "password"
+                    ? "password"
+                    : "text")
+              }
               placeholder={field.placeholder}
               className={inputClass}
               {...register(key, buildValidationRules(field))}

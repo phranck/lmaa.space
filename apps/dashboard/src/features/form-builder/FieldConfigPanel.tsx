@@ -1,12 +1,26 @@
 import { Card } from "@/components/ui/Card.tsx";
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BUTTON_ICON_LIST } from "@/features/form-builder/buttonIconMap.tsx";
-import type { ButtonActionType, FormField, RichTextVariant } from "@lmaa/contracts";
+import type { ButtonActionType, FormField, InputType, RichTextVariant } from "@lmaa/contracts";
 import { Suspense, lazy, useEffect, useState } from "react";
+import {
+  SFCalendar,
+  SFEnvelopeFill,
+  SFIphone,
+  SFLink,
+  SFLockFill,
+  SFNumbersign,
+  SFTextformat,
+} from "sf-symbols-lib/monochrome";
 
 const RichTextEditor = lazy(() =>
   import("@/features/form-builder/RichTextEditor.tsx").then((m) => ({ default: m.RichTextEditor })),
 );
+
+// ---------------------------------------------------------------------------
+// Icon picker
+// ---------------------------------------------------------------------------
 
 interface IconPickerProps {
   value: string | undefined;
@@ -133,14 +147,25 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
   const isHeadline = field.type === "headline";
   const isSeparator = field.type === "separator";
   const isParagraph = field.type === "paragraph";
+  const isTextInput = field.type === "text" || field.type === "email" || field.type === "password";
+  const effectiveInputType: InputType =
+    field.inputType ??
+    (field.type === "email" ? "email" : field.type === "password" ? "password" : "text");
+
+  const inputTypeOptions: DropdownOption<InputType>[] = [
+    { value: "text", label: m.inputTypeText, icon: <SFTextformat size={15} /> },
+    { value: "email", label: m.inputTypeEmail, icon: <SFEnvelopeFill size={15} /> },
+    { value: "password", label: m.inputTypePassword, icon: <SFLockFill size={15} /> },
+    { value: "url", label: m.inputTypeUrl, icon: <SFLink size={15} /> },
+    { value: "tel", label: m.inputTypeTel, icon: <SFIphone size={15} /> },
+    { value: "date", label: m.inputTypeDate, icon: <SFCalendar size={15} /> },
+    { value: "number", label: m.inputTypeNumber, icon: <SFNumbersign size={15} /> },
+  ];
   const hasOptions = field.type === "select" || field.type === "multi-select";
-  const hasValidationMinMax = field.type === "text" || field.type === "password";
+  const hasValidationMinMax =
+    isTextInput && effectiveInputType !== "date" && effectiveInputType !== "number";
   const hasMaxChars = field.type === "textarea";
-  const hasSubtext =
-    field.type === "text" ||
-    field.type === "email" ||
-    field.type === "password" ||
-    field.type === "textarea";
+  const hasSubtext = isTextInput || field.type === "textarea";
   const hasRows = field.type === "textarea" || isRichText;
   const hasPlaceholder =
     field.type !== "checkbox" &&
@@ -197,6 +222,16 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
             className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
           />
         </label>
+      )}
+
+      {/* Input type — for text/email/password fields */}
+      {isTextInput && (
+        <Dropdown
+          value={effectiveInputType}
+          onChange={(v) => onChange({ ...field, type: "text", inputType: v })}
+          options={inputTypeOptions}
+          label={m.inputType}
+        />
       )}
 
       {/* Headline level — only for headline fields */}

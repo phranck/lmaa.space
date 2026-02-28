@@ -1,4 +1,10 @@
 /**
+ * HTML `type` attribute values for text input fields.
+ * Used with `FormField.inputType` to control the rendered `<input type="...">` on the frontend.
+ */
+export type InputType = "text" | "password" | "email" | "url" | "tel" | "date" | "number";
+
+/**
  * Supported form field input types.
  * `richtext` is a display-only block (not a form input) — renders stored markdown as styled HTML.
  */
@@ -145,6 +151,13 @@ export interface FormField {
    * Reads or modifies the value of another field in the same form.
    */
   buttonAction?: ButtonAction;
+  /**
+   * HTML `type` attribute for text input fields.
+   * Only meaningful when `type === "text"`.
+   * Backward-compatible: old `type === "email"` / `type === "password"` fields without this prop
+   * are treated as `inputType === "email"` / `inputType === "password"` by the renderer.
+   */
+  inputType?: InputType;
 }
 
 /**

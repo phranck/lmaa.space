@@ -233,9 +233,7 @@ export function FieldPalette() {
     { paletteId: "select", iconType: "select", label: ft.select }, // Auswahl
     { paletteId: "button", iconType: "button", label: ft.button }, // Button
     { paletteId: "checkbox", iconType: "checkbox", label: ft.checkbox }, // Checkbox
-    { paletteId: "email", iconType: "email", label: ft.email }, // E-Mail
-    { paletteId: "text", iconType: "text", label: ft.text }, // Input Text
-    { paletteId: "password", iconType: "password", label: ft.password }, // Input Passwort
+    { paletteId: "text", iconType: "text", label: ft.text }, // Input
     { paletteId: "categories-select", iconType: "multi-select", label: ft.categoriesSelect }, // Kategorien
     { paletteId: "richtext", iconType: "richtext", label: ft.richtext }, // Markdown Editor
     { paletteId: "multi-select", iconType: "multi-select", label: ft.multiSelect }, // Mehrfachauswahl
