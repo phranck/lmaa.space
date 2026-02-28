@@ -6,6 +6,25 @@ marked.use({ breaks: true, gfm: true });
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
 
 /**
+ * CSS block injected into every rendered email.
+ * Uses `!important` to override inline styles in dark mode,
+ * which is the standard approach for email client compatibility.
+ */
+const DARK_MODE_CSS = `
+  @media (prefers-color-scheme: dark) {
+    body                        { background: #1c1917 !important; }
+    table.em-container          { background: #292524 !important; border-color: #44403c !important; }
+    h1, h2, h3                  { color: #fafaf9 !important; }
+    p                           { color: #d6d3d1 !important; }
+    a                           { color: #fcd34d !important; }
+    strong                      { color: #fafaf9 !important; }
+    .em-footer-border           { border-top-color: #44403c !important; }
+    .em-footer-text,
+    .em-footer-text p           { color: #78716c !important; }
+  }
+`;
+
+/**
  * Scans all text fields of a template and returns deduplicated variable names
  * in order of first occurrence.
  */
@@ -65,6 +84,8 @@ function parseMarkdown(text: string): string {
  * HTML email string and an interpolated subject line.
  *
  * Unknown `{{varName}}` placeholders are replaced with an empty string.
+ * The generated HTML includes a `@media (prefers-color-scheme: dark)` block
+ * so recipients automatically receive a dark-mode adapted version.
  */
 export async function renderEmailTemplate(
   template: EmailTemplate,
@@ -106,7 +127,7 @@ export async function renderEmailTemplate(
   // Footer text (conditional)
   if (footerHtml) {
     rows.push(
-      `<tr><td style="padding:0 40px 32px;border-top:1px solid #e7e5e4;"><div style="font-size:13px;color:#a8a29e;line-height:1.5;">${footerHtml}</div></td></tr>`,
+      `<tr><td class="em-footer-border" style="padding:0 40px 32px;border-top:1px solid #e7e5e4;"><div class="em-footer-text" style="font-size:13px;color:#a8a29e;line-height:1.5;">${footerHtml}</div></td></tr>`,
     );
   }
 
@@ -122,11 +143,12 @@ export async function renderEmailTemplate(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>${DARK_MODE_CSS}</style>
 </head>
 <body style="margin:0;padding:0;background:#f5f5f4;font-family:'Inter',system-ui,-apple-system,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr><td align="center" style="padding:40px 16px;">
-      <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#fff;border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;">
+      <table class="em-container" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#fff;border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;">
         ${rows.join("\n        ")}
       </table>
     </td></tr>
