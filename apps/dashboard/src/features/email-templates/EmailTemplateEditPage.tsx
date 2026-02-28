@@ -1,4 +1,5 @@
 import { useI18n } from "@/context/I18nContext.tsx";
+import { EmailPreview } from "@/features/email-templates/EmailPreview.tsx";
 import {
   useCreateEmailTemplate,
   useEmailTemplate,
@@ -191,76 +192,90 @@ export function EmailTemplateEditPage() {
         </div>
       </div>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Name + Subject */}
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={m.templateName} required>
-            <TextInput
-              value={name}
-              onChange={setName}
-              placeholder="welcome-email"
-              required
-            />
-          </Field>
-          <Field label={m.templateSubject} required>
-            <TextInput
-              value={subject}
-              onChange={setSubject}
-              placeholder="Willkommen bei lmaa.space"
-              required
-            />
-          </Field>
+      {/* Body: two-column split */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: form */}
+        <div className="w-1/2 overflow-y-auto p-6 space-y-6 border-r border-[var(--ds-border)]">
+          {/* Name + Subject */}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label={m.templateName} required>
+              <TextInput
+                value={name}
+                onChange={setName}
+                placeholder="welcome-email"
+                required
+              />
+            </Field>
+            <Field label={m.templateSubject} required>
+              <TextInput
+                value={subject}
+                onChange={setSubject}
+                placeholder="Willkommen bei lmaa.space"
+                required
+              />
+            </Field>
+          </div>
+
+          {/* Header */}
+          <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
+            <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
+              Header
+            </h2>
+            <Field label={m.headerBanner}>
+              <TextInput
+                value={headerBannerUrl}
+                onChange={setHeaderBannerUrl}
+                placeholder="https://example.com/header.png"
+              />
+            </Field>
+            <Field label={m.headerText}>
+              <Suspense fallback={<div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
+                <LazyRichTextEditor value={headerText} onChange={setHeaderText} rows={4} />
+              </Suspense>
+            </Field>
+          </div>
+
+          {/* Body */}
+          <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
+            <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
+              Body
+            </h2>
+            <Field label={m.bodyText} required>
+              <Suspense fallback={<div className="h-48 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
+                <LazyRichTextEditor value={bodyText} onChange={setBodyText} rows={12} />
+              </Suspense>
+            </Field>
+          </div>
+
+          {/* Footer */}
+          <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
+            <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
+              Footer
+            </h2>
+            <Field label={m.footerText}>
+              <Suspense fallback={<div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
+                <LazyRichTextEditor value={footerText} onChange={setFooterText} rows={4} />
+              </Suspense>
+            </Field>
+            <Field label={m.footerBanner}>
+              <TextInput
+                value={footerBannerUrl}
+                onChange={setFooterBannerUrl}
+                placeholder="https://example.com/footer.png"
+              />
+            </Field>
+          </div>
         </div>
 
-        {/* Header */}
-        <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
-          <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
-            Header
-          </h2>
-          <Field label={m.headerBanner}>
-            <TextInput
-              value={headerBannerUrl}
-              onChange={setHeaderBannerUrl}
-              placeholder="https://example.com/header.png"
-            />
-          </Field>
-          <Field label={m.headerText}>
-            <Suspense fallback={<div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
-              <LazyRichTextEditor value={headerText} onChange={setHeaderText} rows={4} />
-            </Suspense>
-          </Field>
-        </div>
-
-        {/* Body */}
-        <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
-          <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
-            Body
-          </h2>
-          <Field label={m.bodyText} required>
-            <Suspense fallback={<div className="h-48 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
-              <LazyRichTextEditor value={bodyText} onChange={setBodyText} rows={12} />
-            </Suspense>
-          </Field>
-        </div>
-
-        {/* Footer */}
-        <div className="space-y-4 p-4 rounded-control border border-[var(--ds-border)]">
-          <h2 className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
-            Footer
-          </h2>
-          <Field label={m.footerText}>
-            <Suspense fallback={<div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />}>
-              <LazyRichTextEditor value={footerText} onChange={setFooterText} rows={4} />
-            </Suspense>
-          </Field>
-          <Field label={m.footerBanner}>
-            <TextInput
-              value={footerBannerUrl}
-              onChange={setFooterBannerUrl}
-              placeholder="https://example.com/footer.png"
-            />
-          </Field>
+        {/* Right: live preview */}
+        <div className="w-1/2 overflow-hidden">
+          <EmailPreview
+            headerBannerUrl={headerBannerUrl}
+            headerText={headerText}
+            bodyText={bodyText}
+            footerBannerUrl={footerBannerUrl}
+            footerText={footerText}
+          />
         </div>
       </div>
     </form>
