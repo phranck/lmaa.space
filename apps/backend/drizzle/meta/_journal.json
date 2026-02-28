@@ -15,6 +15,27 @@
       "when": 1772198426257,
       "tag": "0001_stiff_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772282503465,
+      "tag": "0002_fancy_magneto",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772302178458,
+      "tag": "0003_drop_category_suggestion",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772303916933,
+      "tag": "0004_add_email_templates",
+      "breakpoints": true
     }
   ]
 }

@@ -8,3 +8,5 @@ export * from "./admin-shops";
 export * from "./admin-submissions";
 /** Form builder type definitions. */
 export * from "./form-builder";
+/** Admin email template schemas. */
+export * from "./admin-email-templates";

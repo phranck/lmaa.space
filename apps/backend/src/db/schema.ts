@@ -102,7 +102,6 @@ export const submissions = pgTable(
     id: serial("id").primaryKey(),
     shopName: text("shop_name").notNull(),
     shopUrl: text("shop_url").notNull(),
-    categorySuggestion: text("category_suggestion"),
     region: jsonb("region").$type<string[]>().notNull().default([]),
     pickup: text("pickup").notNull().default(""),
     shipping: text("shipping").notNull().default(""),
@@ -290,6 +289,7 @@ export type ShopConcernReport = typeof shopConcernReports.$inferSelect;
 export const formConfigs = pgTable("form_configs", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  slug: text("slug").unique(),
   config: jsonb("config").$type<FormConfigPayload>().notNull(),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -300,3 +300,46 @@ export const formConfigs = pgTable("form_configs", {
  * Inferred select type for `form_configs`.
  */
 export type FormConfigRow = typeof formConfigs.$inferSelect;
+
+/**
+ * Generic form submission records stored by the submission chain.
+ */
+export const formSubmissions = pgTable("form_submissions", {
+  id: serial("id").primaryKey(),
+  formConfigId: integer("form_config_id")
+    .notNull()
+    .references(() => formConfigs.id, { onDelete: "cascade" }),
+  data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+/**
+ * Inferred select type for `form_submissions`.
+ */
+export type FormSubmissionRow = typeof formSubmissions.$inferSelect;
+
+/**
+ * Email templates used for transactional and system notifications.
+ */
+export const emailTemplates = pgTable("email_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  subject: text("subject").notNull().default(""),
+  headerBannerUrl: text("header_banner_url"),
+  headerText: text("header_text"),
+  bodyText: text("body_text").notNull().default(""),
+  footerBannerUrl: text("footer_banner_url"),
+  footerText: text("footer_text"),
+  isSystemTemplate: boolean("is_system_template").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+/**
+ * Inferred select type for `email_templates`.
+ */
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+/**
+ * Inferred insert type for `email_templates`.
+ */
+export type EmailTemplateInsert = typeof emailTemplates.$inferInsert;
