@@ -153,18 +153,34 @@ function buildValidationRules(
 
 interface SuccessScreenProps {
   onReset: () => void;
+  headline?: string;
   message?: string;
 }
 
 /**
  * Full-page success confirmation shown after a form is submitted successfully.
  *
- * @param props           - Component props.
- * @param props.onReset   - Callback that resets the parent form back to its initial state.
- * @param props.message   - Optional custom success message from `submissionConfig`.
+ * @param props            - Component props.
+ * @param props.onReset    - Callback that resets the parent form back to its initial state.
+ * @param props.headline   - Optional custom headline from `submissionConfig`.
+ * @param props.message    - Optional custom success message (Markdown) from `submissionConfig`.
  * @returns Success screen markup.
  */
-function SuccessScreen({ onReset, message }: SuccessScreenProps) {
+function SuccessScreen({ onReset, headline, message }: SuccessScreenProps) {
+  const messageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = messageRef.current;
+    if (!el) return;
+    if (!message) {
+      el.innerHTML = "";
+      return;
+    }
+    void renderMarkdown(message).then((html) => {
+      if (messageRef.current) messageRef.current.innerHTML = html;
+    });
+  }, [message]);
+
   return (
     <div className="max-w-lg mx-auto px-4 py-24 text-center">
       <div className="w-16 h-16 rounded-full bg-[var(--ds-accent-subtle)] flex items-center justify-center mx-auto mb-6">
@@ -185,8 +201,14 @@ function SuccessScreen({ onReset, message }: SuccessScreenProps) {
         </svg>
       </div>
       <h1 className="font-serif text-2xl font-semibold text-[var(--ds-text)] mb-3">
-        {message ?? "Vielen Dank!"}
+        {headline ?? "Vielen Dank!"}
       </h1>
+      {message && (
+        <div
+          ref={messageRef}
+          className="text-sm text-[var(--ds-text-muted)] prose prose-sm max-w-none"
+        />
+      )}
       <div className="flex flex-col sm:flex-row gap-3 justify-center mt-10">
         <a
           href="/"
@@ -1033,7 +1055,11 @@ export default function DynamicForm({ formConfig, categories }: Props) {
 
   if (submitted) {
     return (
-      <SuccessScreen onReset={handleReset} message={formConfig.submissionConfig?.successMessage} />
+      <SuccessScreen
+        onReset={handleReset}
+        headline={formConfig.submissionConfig?.successHeadline}
+        message={formConfig.submissionConfig?.successMessage}
+      />
     );
   }
 

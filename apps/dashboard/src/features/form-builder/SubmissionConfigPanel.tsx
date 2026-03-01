@@ -27,6 +27,7 @@ import {
   SFPlusCircleFill,
   SFSquareAndArrowDown,
   SFStorefrontFill,
+  SFTrashFill,
 } from "sf-symbols-lib/monochrome";
 
 // ---------------------------------------------------------------------------
@@ -106,10 +107,10 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
         <button
           type="button"
           onClick={onRemove}
-          className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-danger-text)] transition-colors text-xs"
+          className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-danger-text)] transition-colors"
           aria-label={m.stepRemoveAria}
         >
-          ✕
+          <SFTrashFill className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -414,17 +415,8 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                       templates={templates ?? []}
                     />
                     {i < cfg.steps.length - 1 && (
-                      <div className="flex items-center self-stretch px-1 text-[var(--ds-text-muted)]">
-                        <div className="h-px w-2 bg-[var(--ds-border)]" />
-                        <svg
-                          width="6"
-                          height="10"
-                          viewBox="0 0 6 10"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path d="M6 5 L0 0 L0 10 Z" />
-                        </svg>
+                      <div className="flex items-center self-stretch px-4 text-[var(--ds-text)]">
+                        <SFArrowRight className="w-4 h-4" />
                       </div>
                     )}
                   </div>
