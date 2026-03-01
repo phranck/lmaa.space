@@ -146,6 +146,9 @@ export async function listAllPublicShopsWithCategories() {
  * @returns Ranked result rows limited to top matches.
  */
 export async function searchPublicShops(query: string) {
+  const escaped = query.replace(/[%_\\]/g, "\\$&");
+  const pattern = `%${escaped}%`;
+
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.is_active as "isActive",
@@ -155,15 +158,27 @@ export async function searchPublicShops(query: string) {
              FILTER (WHERE c.id IS NOT NULL),
              '[]'::json
            ) as categories,
-           ts_rank(s.search_vector, websearch_to_tsquery('german', ${query})) as rank
+           CASE
+             WHEN s.name ILIKE ${pattern} THEN 1
+             WHEN s.description ILIKE ${pattern} THEN 2
+             ELSE 3
+           END as rank
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
-    WHERE s.search_vector @@ websearch_to_tsquery('german', ${query})
-      AND s.is_active = true AND s.visibility = 'public'
+    WHERE s.is_active = true AND s.visibility = 'public'
+      AND (
+        s.name ILIKE ${pattern}
+        OR s.description ILIKE ${pattern}
+        OR EXISTS (
+          SELECT 1 FROM shop_categories sc2
+          JOIN categories c2 ON c2.id = sc2.category_id
+          WHERE sc2.shop_id = s.id AND c2.name ILIKE ${pattern}
+        )
+      )
     GROUP BY s.id
-    ORDER BY rank DESC
-    LIMIT 20
+    ORDER BY rank, s.name
+    LIMIT 40
   `);
 }
 
