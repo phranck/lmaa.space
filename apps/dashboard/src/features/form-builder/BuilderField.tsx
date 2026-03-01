@@ -2,6 +2,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { FormField } from "@lmaa/contracts";
+import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
 
 interface BuilderFieldProps {
   field: FormField;
@@ -99,7 +100,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
           <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
             {field.label || <span className="opacity-50 italic">Kein Label</span>}
             {field.required && field.type !== "richtext" && (
-              <span className="ml-1 text-red-500">*</span>
+              <SFExclamationmarkSquareFill className="inline-block ml-1 w-3 h-3 text-red-500 align-middle" />
             )}
             {field.type === "richtext" && field.content && (
               <span className="ml-2 text-xs font-normal opacity-40 truncate">

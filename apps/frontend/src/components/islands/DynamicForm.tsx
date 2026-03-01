@@ -7,6 +7,7 @@ import { createApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
 import { SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
 
 // ---------------------------------------------------------------------------
@@ -235,7 +236,9 @@ function TextareaField({ field, currentValue, register, error }: TextareaFieldPr
     <div>
       <label htmlFor={key} className={labelClass}>
         {field.label}
-        {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
+        {field.required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+        )}
       </label>
       <textarea
         id={key}
@@ -281,7 +284,9 @@ function SelectField({ field, register, error }: SelectFieldProps) {
     <div>
       <label htmlFor={key} className={labelClass}>
         {field.label}
-        {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
+        {field.required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+        )}
       </label>
       <select id={key} className={inputClass} {...register(key, buildValidationRules(field))}>
         <option value="">Bitte wählen…</option>
@@ -378,7 +383,9 @@ function MultiSelectDropdown({
     <div ref={containerRef} className="relative">
       <span className={labelClass}>
         {label}
-        {required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
+        {required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+        )}
       </span>
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: dropdown trigger */}
       <div
@@ -609,7 +616,9 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
     <div>
       <span className={labelClass}>
         {field.label}
-        {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
+        {field.required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+        )}
       </span>
       <div className="flex flex-col gap-2">
         {(field.options ?? []).map((opt) => (
@@ -895,7 +904,9 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           <div key={field.id}>
             <label htmlFor={key} className={labelClass}>
               {field.label}
-              {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
+              {field.required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+        )}
             </label>
             <input
               id={key}
@@ -974,7 +985,9 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                 {...register(key, buildValidationRules(field))}
               />
               {field.label}
-              {field.required && <span className="text-[var(--ds-danger-text)] ml-0.5">*</span>}
+              {field.required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+        )}
             </label>
             {fieldError && <p className={errorClass}>{fieldError}</p>}
           </div>
@@ -1087,15 +1100,39 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       }}
       className="space-y-6"
     >
-      {formConfig.rows.map((row) => (
-        <div key={row.id} className="grid grid-cols-12 gap-4">
-          {row.fields.map((field) => (
-            <div key={field.id} style={{ gridColumn: `span ${field.span ?? 12}` }}>
-              {renderField(field)}
+      {(() => {
+        const hasRequiredFields = formConfig.rows.some((row) =>
+          row.fields.some((f) => f.required),
+        );
+        let legendRendered = false;
+
+        return formConfig.rows.map((row) => {
+          const isSubmitRow = row.fields.some(
+            (f) => f.type === "button" && f.buttonType === "submit",
+          );
+          const showLegend = isSubmitRow && hasRequiredFields && !legendRendered;
+          if (showLegend) legendRendered = true;
+
+          return (
+            <div key={row.id}>
+              {showLegend && (
+                <p className="flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)] mb-6 px-[5px]">
+                  <SFExclamationmarkSquareFill className="shrink-0 w-3.5 h-3.5 text-red-500" />
+                  Mit diesem Symbol gekennzeichnete Felder sind Pflichtfelder und müssen ausgefüllt
+                  werden.
+                </p>
+              )}
+              <div className="grid grid-cols-12 gap-4">
+                {row.fields.map((field) => (
+                  <div key={field.id} style={{ gridColumn: `span ${field.span ?? 12}` }}>
+                    {renderField(field)}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      ))}
+          );
+        });
+      })()}
 
       {submitError && (
         <p className="text-[var(--ds-danger-text)] text-sm text-center">{submitError}</p>
