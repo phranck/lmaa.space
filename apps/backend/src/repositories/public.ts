@@ -160,8 +160,9 @@ export async function searchPublicShops(query: string) {
            ) as categories,
            CASE
              WHEN s.name ILIKE ${pattern} THEN 1
-             WHEN s.description ILIKE ${pattern} THEN 2
-             ELSE 3
+             WHEN s.url ILIKE ${pattern} THEN 2
+             WHEN s.description ILIKE ${pattern} THEN 3
+             ELSE 4
            END as rank
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
@@ -169,6 +170,7 @@ export async function searchPublicShops(query: string) {
     WHERE s.is_active = true AND s.visibility = 'public'
       AND (
         s.name ILIKE ${pattern}
+        OR s.url ILIKE ${pattern}
         OR s.description ILIKE ${pattern}
         OR EXISTS (
           SELECT 1 FROM shop_categories sc2
