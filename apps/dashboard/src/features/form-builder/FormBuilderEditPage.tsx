@@ -490,7 +490,7 @@ export function FormBuilderEditPage() {
             )}
             {activeDrag?.paletteType && (
               <div className="px-3 py-2 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm font-medium text-[var(--ds-text)] shadow-xl cursor-grabbing">
-                {defaultFieldLabel(activeDrag.paletteType)}
+                {defaultFieldLabel(activeDrag.paletteType, m.fieldTypes)}
               </div>
             )}
           </DragOverlay>
