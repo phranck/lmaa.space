@@ -304,6 +304,8 @@ export interface DashboardMessages {
       email: string;
       tempPassword: string;
       minLengthHint: string;
+      welcomeTemplate: string;
+      welcomeTemplateNone: string;
       errorCreating: string;
       creating: string;
       create: string;
@@ -529,6 +531,8 @@ export interface DashboardMessages {
       emailTemplateNone: string;
       successBehaviourLabel: string;
       successMessage: string;
+      successHeadline: string;
+      successHeadlinePlaceholder: string;
       successMessagePlaceholder: string;
       successRedirect: string;
       noSteps: string;
@@ -904,6 +908,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         email: "E-Mail",
         tempPassword: "Temporäres Passwort",
         minLengthHint: "Mindestens 8 Zeichen.",
+        welcomeTemplate: "Willkommens-E-Mail",
+        welcomeTemplateNone: "Keine E-Mail senden",
         errorCreating: "Fehler beim Erstellen.",
         creating: "Wird erstellt…",
         create: "Benutzer erstellen",
@@ -1129,6 +1135,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplateNone: "Kein Template (einfache Tabelle)",
         successBehaviourLabel: "Nach dem Absenden",
         successMessage: "Erfolgsmeldung",
+        successHeadline: "Headline",
+        successHeadlinePlaceholder: "Vielen Dank!",
         successMessagePlaceholder: "Vielen Dank für deine Nachricht!",
         successRedirect: "Weiterleitung",
         noSteps: "Keine Schritte konfiguriert.",
@@ -1497,6 +1505,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         email: "Email",
         tempPassword: "Temporary password",
         minLengthHint: "At least 8 characters.",
+        welcomeTemplate: "Welcome email",
+        welcomeTemplateNone: "Don't send email",
         errorCreating: "Error while creating user.",
         creating: "Creating…",
         create: "Create user",
@@ -1722,6 +1732,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplateNone: "No template (plain table)",
         successBehaviourLabel: "After submit",
         successMessage: "Success message",
+        successHeadline: "Headline",
+        successHeadlinePlaceholder: "Thank you!",
         successMessagePlaceholder: "Thank you for your message!",
         successRedirect: "Redirect",
         noSteps: "No steps configured.",

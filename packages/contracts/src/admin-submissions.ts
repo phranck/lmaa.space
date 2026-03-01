@@ -11,7 +11,6 @@ import {
 export const reviewSchema = z.object({
   status: submissionReviewStatusSchema,
   adminNote: z.string().max(500).optional(),
-  sendFeedback: z.boolean().optional(),
 });
 
 /**

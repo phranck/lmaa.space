@@ -1,3 +1,4 @@
+import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import {
@@ -321,7 +322,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
     reorderSteps(event);
   }
 
-  function updateField(key: "successMessage" | "successRedirectUrl", value: string) {
+  function updateField(key: "successHeadline" | "successMessage" | "successRedirectUrl", value: string) {
     const next = { ...cfg, [key]: value || undefined };
     if (next.steps.length === 0 && !next.successMessage && !next.successRedirectUrl) {
       onChange(undefined);
@@ -467,6 +468,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                     const next = {
                       ...cfg,
                       successRedirectUrl: cfg.successRedirectUrl ?? "",
+                      successHeadline: undefined,
                       successMessage: undefined,
                     };
                     onChange(
@@ -504,14 +506,39 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
             placeholder="https://example.com/danke"
           />
         ) : (
-          <input
-            id="submission-success-message"
-            type="text"
-            value={cfg.successMessage ?? ""}
-            onChange={(e) => updateField("successMessage", e.target.value)}
-            className={inputClass}
-            placeholder={m.successMessagePlaceholder}
-          />
+          <div className="flex flex-col gap-2">
+            <div>
+              <label
+                htmlFor="submission-success-headline"
+                className="block text-xs text-[var(--ds-text-muted)] mb-1"
+              >
+                {m.successHeadline}
+              </label>
+              <input
+                id="submission-success-headline"
+                type="text"
+                value={cfg.successHeadline ?? ""}
+                onChange={(e) => updateField("successHeadline", e.target.value)}
+                className={inputClass}
+                placeholder={m.successHeadlinePlaceholder}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="submission-success-message"
+                className="block text-xs text-[var(--ds-text-muted)] mb-1"
+              >
+                Text
+              </label>
+              <MarkdownTextarea
+                id="submission-success-message"
+                value={cfg.successMessage ?? ""}
+                onChange={(value) => updateField("successMessage", value)}
+                placeholder={m.successMessagePlaceholder}
+                rows={4}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -7,9 +7,7 @@ import {
   listAdminSubmissions,
   reviewSubmission,
   setShopOgImage,
-  setSubmissionFeedbackSent,
 } from "../repositories/admin-submissions.js";
-import { sendSubmissionFeedbackEmail } from "./notifications.js";
 import { hydrateShopOgImageInBackground } from "./preview-images.js";
 
 /**
@@ -29,7 +27,6 @@ export interface ReviewAdminSubmissionInput {
   id: number;
   status: SubmissionReviewStatus;
   adminNote?: string;
-  sendFeedback?: boolean;
   adminId: number;
 }
 
@@ -63,18 +60,6 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     hydrateShopOgImageInBackground(newShop.url, async (imageUrl) => {
       await setShopOgImage(newShop.id, imageUrl);
     });
-  }
-
-  if (input.sendFeedback && submission.submitterEmail) {
-    const sent = await sendSubmissionFeedbackEmail({
-      to: submission.submitterEmail,
-      shopName: submission.shopName,
-      status: input.status,
-      reason: input.adminNote,
-    });
-    if (sent) {
-      await setSubmissionFeedbackSent(input.id);
-    }
   }
 
   return { ok: true as const, submission };

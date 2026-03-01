@@ -3,11 +3,14 @@ import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
-import { useEmailTemplates } from "@/features/email-templates/hooks/useEmailTemplates.ts";
+import {
+  useCreateEmailTemplate,
+  useEmailTemplates,
+} from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/form-builder/hooks/useFormConfig.ts";
 import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
-import { NavLink, useMatch } from "react-router";
+import { NavLink, useMatch, useNavigate } from "react-router";
 import {
   SFBookPagesFill,
   SFCheckmarkCircleFill,
@@ -196,6 +199,8 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
   const sidebarMessages = messages.layout.sidebar;
   const isGroupActive = !!useMatch("/email-templates/*");
   const { data: templates } = useEmailTemplates();
+  const createTemplate = useCreateEmailTemplate();
+  const navigate = useNavigate();
   const [localOpen, setLocalOpen] = useState(
     () => localStorage.getItem("sidebar-email-templates-open") === "true",
   );
@@ -234,21 +239,48 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
           {sidebarMessages.emailTemplatesOverview}
         </NavLink>
         {(templates ?? []).map((tpl) => (
-          <NavLink
-            key={tpl.id}
-            to={`/email-templates/${tpl.id}`}
-            onClick={onItemClick}
-            className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
-                isActive
-                  ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                  : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-              }`
-            }
-          >
-            <SFEnvelopeBadgeFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
-            <span className="truncate">{tpl.name}</span>
-          </NavLink>
+          <div key={tpl.id} className="group/item flex items-center">
+            <NavLink
+              to={`/email-templates/${tpl.id}`}
+              onClick={onItemClick}
+              className={({ isActive }) =>
+                `flex-1 flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium min-w-0 ${
+                  isActive
+                    ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                    : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
+                }`
+              }
+            >
+              <SFEnvelopeBadgeFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+              <span className="truncate">{tpl.name}</span>
+            </NavLink>
+            <button
+              type="button"
+              title="Duplizieren"
+              onClick={async (e) => {
+                e.preventDefault();
+                try {
+                  const { id: _id, createdAt: _c, updatedAt: _u, isSystemTemplate: _s, ...fields } =
+                    tpl;
+                  const created = await createTemplate.mutateAsync({
+                    name: `${tpl.name} (Kopie)`,
+                    subject: fields.subject,
+                    bodyText: fields.bodyText,
+                    headerBannerUrl: fields.headerBannerUrl ?? undefined,
+                    headerText: fields.headerText ?? undefined,
+                    footerBannerUrl: fields.footerBannerUrl ?? undefined,
+                    footerText: fields.footerText ?? undefined,
+                  });
+                  void navigate(`/email-templates/${created.id}`);
+                } catch (err) {
+                  console.error("[duplicate template]", err);
+                }
+              }}
+              className="opacity-0 pointer-events-none group-hover/item:opacity-100 group-hover/item:pointer-events-auto shrink-0 p-1 mr-1 rounded text-[var(--ds-nav-text)] hover:text-[var(--ds-nav-hover-text)] hover:bg-[var(--ds-nav-hover-bg)]"
+            >
+              <SFDocumentOnDocumentFill className="w-3.5 h-3.5" />
+            </button>
+          </div>
         ))}
       </div>
     </details>

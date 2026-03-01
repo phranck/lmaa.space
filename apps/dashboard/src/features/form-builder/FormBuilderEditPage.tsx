@@ -502,7 +502,7 @@ export function FormBuilderEditPage() {
         fields={rows
           .flatMap((r) => r.fields)
           .filter((f) => !["button", "headline", "separator", "paragraph"].includes(f.type))
-          .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
+          .map((f) => ({ id: f.name || f.id, label: f.label || f.name || f.id }))}
       />
     </div>
   );

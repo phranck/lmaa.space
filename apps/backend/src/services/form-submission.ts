@@ -1,11 +1,9 @@
 import type { SubmissionConfig } from "@lmaa/contracts";
-import { env } from "../config/env.js";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
 import { insertFormSubmission } from "../repositories/form-submission.js";
+import { sendMail } from "./email.js";
 import { renderEmailTemplate } from "./email-renderer.js";
-
-const FROM = env.EMAIL_FROM;
 
 /**
  * Executes the submission chain defined in `config.steps`.
@@ -35,6 +33,11 @@ export async function executeSubmissionChain(
           step.toFieldId && typeof data[step.toFieldId] === "string"
             ? (data[step.toFieldId] as string)
             : step.to;
+        console.log("[email] step resolve:", {
+          toFieldId: step.toFieldId,
+          resolvedTo: to,
+          dataKeys: Object.keys(data),
+        });
         await handleEmail(
           to,
           step.subject,
@@ -75,12 +78,6 @@ async function handleEmail(
   formName: string,
   templateId?: number,
 ): Promise<void> {
-  // Resend is loaded lazily to avoid startup failure when not configured
-  const { Resend } = await import("resend");
-  if (!env.RESEND_API_KEY) return;
-
-  const resend = new Resend(env.RESEND_API_KEY);
-
   const replyTo =
     replyToFieldId && typeof data[replyToFieldId] === "string"
       ? (data[replyToFieldId] as string)
@@ -104,11 +101,5 @@ async function handleEmail(
     html = buildPlainTable(data);
   }
 
-  await resend.emails.send({
-    from: FROM,
-    to,
-    subject: resolvedSubject,
-    ...(replyTo ? { replyTo } : {}),
-    html,
-  });
+  await sendMail(to, resolvedSubject, html, { replyTo });
 }

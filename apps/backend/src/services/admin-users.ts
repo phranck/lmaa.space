@@ -1,6 +1,8 @@
 import type { AdminUser } from "@lmaa/shared";
 import sharp from "sharp";
+import { env } from "../config/env.js";
 import { detectImageType } from "../lib/validate.js";
+import { getEmailTemplateById } from "../repositories/email-templates.js";
 import {
   type AdminUserRow,
   createAdminUser,
@@ -10,7 +12,8 @@ import {
   updateAdminUser,
 } from "../repositories/admin-users.js";
 import { hashPassword } from "./auth.js";
-import { sendWelcomeEmailInBackground } from "./notifications.js";
+import { sendMail } from "./email.js";
+import { renderEmailTemplate } from "./email-renderer.js";
 
 const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -41,6 +44,7 @@ export interface CreateManagedAdminUserInput {
   email: string;
   password: string;
   role?: "admin" | "moderator";
+  welcomeTemplateId?: number;
 }
 
 /**
@@ -90,7 +94,20 @@ export async function createManagedAdminUser(
     role: input.role ?? "admin",
   });
 
-  sendWelcomeEmailInBackground(input.email, input.username, input.password);
+  if (input.welcomeTemplateId) {
+    const template = await getEmailTemplateById(input.welcomeTemplateId);
+    if (template) {
+      const { html, subject } = await renderEmailTemplate(template, {
+        username: input.username,
+        password: input.password,
+        loginUrl: env.DASHBOARD_URL,
+        email: input.email,
+      });
+      sendMail(input.email, subject, html).catch((err) => {
+        console.error("[email] Failed to send welcome email:", err);
+      });
+    }
+  }
 
   return toAdminUser(created);
 }

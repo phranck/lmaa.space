@@ -209,6 +209,8 @@ export type SubmissionStep =
 
 export interface SubmissionConfig {
   steps: SubmissionStep[];
+  /** Optional headline shown above the success message. */
+  successHeadline?: string;
   /** Overrides the default "Vielen Dank" success message. */
   successMessage?: string;
   /** Redirect to this URL after submit instead of showing the success screen. */
