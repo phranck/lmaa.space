@@ -1,3 +1,4 @@
+import { Dialog, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useState } from "react";
 
@@ -26,20 +27,15 @@ export function EmailTemplateImportConflictDialog({
   const [newName, setNewName] = useState(`${templateName}-copy`);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/30"
-        onClick={onCancel}
-        aria-label={messages.common.cancel}
-      />
-      <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full overlay-card-enter">
-        <h3 className="font-bold text-[var(--ds-text)] mb-1">
-          {m.importConflictTitle.replace("{name}", templateName)}
-        </h3>
-        <p className="text-sm text-[var(--ds-text-muted)] mb-5">{m.importConflictHint}</p>
+    <Dialog
+      open={true}
+      title={m.importConflictTitle.replace("{name}", templateName)}
+      onClose={onCancel}
+    >
+      <div className="px-6 py-3">
+        <p className="text-sm text-[var(--ds-text-muted)] mb-4">{m.importConflictHint}</p>
 
-        {showRename ? (
+        {showRename && (
           <div className="mb-4">
             <label
               htmlFor="import-new-name"
@@ -55,45 +51,39 @@ export function EmailTemplateImportConflictDialog({
               className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)]"
             />
           </div>
-        ) : null}
-
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={onOverwrite}
-            className="w-full py-2.5 bg-[var(--ds-accent)] text-white rounded-control text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            {m.importOverwrite}
-          </button>
-
-          {showRename ? (
-            <button
-              type="button"
-              disabled={!newName.trim()}
-              onClick={() => onRename(newName.trim())}
-              className="w-full py-2.5 bg-[var(--ds-surface-raised)] border border-[var(--ds-border)] rounded-control text-sm font-semibold text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-50"
-            >
-              {m.importRename}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowRename(true)}
-              className="w-full py-2.5 bg-[var(--ds-surface-raised)] border border-[var(--ds-border)] rounded-control text-sm font-semibold text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
-            >
-              {m.importRename}
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={onCancel}
-            className="w-full py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-          >
-            {m.importSkip}
-          </button>
-        </div>
+        )}
       </div>
-    </div>
+
+      <Dialog.Footer className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={onOverwrite}
+          className="h-9 px-4 bg-[var(--ds-accent)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          {m.importOverwrite}
+        </button>
+        {showRename ? (
+          <button
+            type="button"
+            disabled={!newName.trim()}
+            onClick={() => onRename(newName.trim())}
+            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-50"
+          >
+            {m.importRename}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowRename(true)}
+            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
+          >
+            {m.importRename}
+          </button>
+        )}
+        <button type="button" onClick={onCancel} className={dialogBtnSecondary}>
+          {m.importSkip}
+        </button>
+      </Dialog.Footer>
+    </Dialog>
   );
 }

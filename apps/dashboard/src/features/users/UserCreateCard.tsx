@@ -73,14 +73,9 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
 
   return (
     <div
-      className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
+      className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
     >
-      <button
-        type="button"
-        aria-label={usersMessages.createCard.closeAria}
-        className="absolute inset-0"
-        onClick={close}
-      />
+      <div className="absolute inset-0" />
       <div
         className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-md overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >

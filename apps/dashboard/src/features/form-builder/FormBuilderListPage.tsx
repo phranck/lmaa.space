@@ -1,6 +1,10 @@
-import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import {
+  Dialog,
+  dialogBtnDestructive,
+  dialogBtnPrimary,
+  dialogBtnSecondary,
+} from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { ImportConflictDialog } from "@/features/form-builder/ImportConflictDialog.tsx";
@@ -76,9 +80,11 @@ function ActiveBadge({
  * Dialog for creating a new form configuration.
  */
 function NewFormDialog({
+  open,
   onClose,
   onCreated,
 }: {
+  open: boolean;
   onClose: () => void;
   onCreated: (name: string) => void;
 }) {
@@ -144,79 +150,62 @@ function NewFormDialog({
   }
 
   return (
-    <>
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label={messages.common.close}
-        className="fixed inset-0 z-40 bg-black/30"
-        onClick={onClose}
-      />
-      {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control shadow-xl p-6">
-          <h2 className="text-base font-semibold text-[var(--ds-text)] mb-4">{m.newForm}</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="new-form-name"
-                className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                {m.formNameLabel}
-              </label>
+    <Dialog open={open} title={m.newForm} onClose={onClose} maxWidth="md">
+      <form onSubmit={handleSubmit}>
+        <div className="px-6 py-3 space-y-4">
+          <div>
+            <label
+              htmlFor="new-form-name"
+              className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+            >
+              {m.formNameLabel}
+            </label>
+            <input
+              id="new-form-name"
+              ref={nameInputRef}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+              placeholder="suggestion-form"
+              className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="new-form-slug"
+              className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+            >
+              {m.formSlugLabel}
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[var(--ds-text-muted)] shrink-0">/</span>
               <input
-                id="new-form-name"
-                ref={nameInputRef}
+                id="new-form-slug"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                placeholder="suggestion-form"
-                className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
+                value={slug}
+                onChange={(e) => handleSlugChange(e.target.value)}
+                placeholder={m.slugPlaceholder}
+                className="flex-1 px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
               />
             </div>
-            <div>
-              <label
-                htmlFor="new-form-slug"
-                className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                {m.formSlugLabel}
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-[var(--ds-text-muted)] shrink-0">/</span>
-                <input
-                  id="new-form-slug"
-                  type="text"
-                  value={slug}
-                  onChange={(e) => handleSlugChange(e.target.value)}
-                  placeholder={m.slugPlaceholder}
-                  className="flex-1 px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
-                />
-              </div>
-              <p className="text-xs text-[var(--ds-text-muted)] mt-1">{m.formSlugHint}</p>
-            </div>
-
-            {error && <p className="text-xs text-red-500">{error}</p>}
-
-            <div className="flex items-center justify-end gap-3 pt-1">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-              >
-                {messages.common.cancel}
-              </button>
-              <button
-                type="submit"
-                disabled={createMutation.isPending || !slug || !name}
-                className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-60 transition-colors"
-              >
-                {createMutation.isPending ? messages.common.saving : m.create}
-              </button>
-            </div>
-          </form>
+            <p className="text-xs text-[var(--ds-text-muted)] mt-1">{m.formSlugHint}</p>
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
-      </div>
-    </>
+        <Dialog.Footer>
+          <button type="button" onClick={onClose} className={dialogBtnSecondary}>
+            {messages.common.cancel}
+          </button>
+          <button
+            type="submit"
+            disabled={createMutation.isPending || !slug || !name}
+            className={dialogBtnPrimary}
+          >
+            {createMutation.isPending ? messages.common.saving : m.create}
+          </button>
+        </Dialog.Footer>
+      </form>
+    </Dialog>
   );
 }
 
@@ -499,9 +488,11 @@ export function FormBuilderListPage() {
         onChange={handleFileChange}
       />
 
-      {showDialog && (
-        <NewFormDialog onClose={() => setShowDialog(false)} onCreated={handleCreated} />
-      )}
+      <NewFormDialog
+        open={showDialog}
+        onClose={() => setShowDialog(false)}
+        onCreated={handleCreated}
+      />
 
       {importConflict && (
         <ImportConflictDialog
@@ -512,20 +503,48 @@ export function FormBuilderListPage() {
         />
       )}
 
-      <ConfirmDialog
+      <Dialog
         open={deleteTarget !== null}
         title={`${m.deleteConfirmPrefix}${deleteTarget}${m.deleteConfirmSuffix}`}
-        description={m.deleteConfirmDescription}
-        isPending={deleteForm.isPending}
-        onConfirm={() => void confirmDelete()}
-        onCancel={() => setDeleteTarget(null)}
-      />
+        onClose={() => setDeleteTarget(null)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">{m.deleteConfirmDescription}</p>
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setDeleteTarget(null)}
+            className={dialogBtnSecondary}
+          >
+            {messages.common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteForm.isPending}
+            onClick={() => void confirmDelete()}
+            className={dialogBtnDestructive}
+          >
+            {deleteForm.isPending ? "…" : messages.common.delete}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
 
-      <AlertDialog
+      <Dialog
         open={alertMessage !== null}
         title={alertMessage ?? ""}
         onClose={() => setAlertMessage(null)}
-      />
+      >
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setAlertMessage(null)}
+            className={dialogBtnSecondary}
+          >
+            {messages.common.close}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
     </>
   );
 }

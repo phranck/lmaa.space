@@ -1,5 +1,5 @@
 import { ItemCard } from "@/components/ui/Card.tsx";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
+import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -106,23 +106,34 @@ export function UsersPage() {
         ))}
       </div>
 
-      <ConfirmDialog
+      <Dialog
         open={deleteId !== null && !!deleteTarget}
         title={usersMessages.removeConfirmTitle}
-        description={
-          <>
+        onClose={() => setDeleteId(null)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">
             <span className="font-medium">{deleteTarget?.username}</span>{" "}
             {usersMessages.removeConfirmDescription}
-          </>
-        }
-        confirmLabel={common.remove}
-        isPending={deleteMutation.isPending}
-        onConfirm={() => {
-          if (deleteId !== null)
-            deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
-        }}
-        onCancel={() => setDeleteId(null)}
-      />
+          </p>
+        </div>
+        <Dialog.Footer>
+          <button type="button" onClick={() => setDeleteId(null)} className={dialogBtnSecondary}>
+            {common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteMutation.isPending}
+            onClick={() => {
+              if (deleteId !== null)
+                deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
+            }}
+            className={dialogBtnDestructive}
+          >
+            {deleteMutation.isPending ? "…" : common.remove}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
 
       {showCreate && (
         <UserCreateCard
