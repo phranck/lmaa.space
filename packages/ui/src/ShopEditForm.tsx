@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { LuExternalLink } from "react-icons/lu";
-import { SiMarkdown } from "react-icons/si";
+import { MarkdownTextarea } from "./MarkdownTextarea.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
 import {
   RegionSelect,
@@ -156,16 +156,14 @@ export function ShopEditForm({
             <span className="text-[var(--ds-text-subtle)] font-normal">
               {messages.optionalLabel}
             </span>
-            <SiMarkdown className="w-5 h-5 opacity-40" title={messages.markdownSupportedLabel} />
           </span>
         </label>
-        <textarea
+        <MarkdownTextarea
           id="sef-description"
           value={value.description}
-          onChange={(e) => set("description", e.target.value)}
-          rows={3}
-          maxLength={2000}
-          className={`${inputClass} resize-none${errors?.description ? " border-red-400" : ""}`}
+          onChange={(v) => set("description", v)}
+          rows={6}
+          className={errors?.description ? "border-red-400" : ""}
         />
         {errors?.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
         {descriptionHint}
