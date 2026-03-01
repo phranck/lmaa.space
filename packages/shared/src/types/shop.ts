@@ -21,7 +21,10 @@ export interface ShopSummary {
   visibility: ShopVisibility;
   deleteReason?: string | null;
   deletedWasReported?: boolean;
+  deletedAt?: string | null;
   deletedByUsername?: string | null;
+  deletedByFirstName?: string | null;
+  deletedByLastName?: string | null;
 }
 
 /**

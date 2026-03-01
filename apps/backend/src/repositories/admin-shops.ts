@@ -49,7 +49,10 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<ShopS
            s.visibility,
            s.delete_reason as "deleteReason",
            s.deleted_was_reported as "deletedWasReported",
+           s.updated_at as "deletedAt",
            u.username as "deletedByUsername",
+           u.first_name as "deletedByFirstName",
+           u.last_name as "deletedByLastName",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -60,7 +63,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<ShopS
     LEFT JOIN categories c ON c.id = sc.category_id
     LEFT JOIN admin_users u ON u.id = s.deleted_by
     ${visibility ? sql`WHERE s.visibility = ${visibility}` : sql``}
-    GROUP BY s.id, u.username
+    GROUP BY s.id, u.username, u.first_name, u.last_name
     ORDER BY s.name
   `);
 }
@@ -251,4 +254,21 @@ export async function getAdminShopUrl(id: number): Promise<string | null> {
  */
 export async function setAdminShopOgImage(id: number, ogImage: string | null): Promise<void> {
   await db.update(shops).set({ ogImage }).where(eq(shops.id, id));
+}
+
+/**
+ * Updates the delete reason for a soft-deleted shop.
+ *
+ * @param id - Shop id.
+ * @param reason - New reason text or `null` to clear.
+ * @returns Resolves when update has been written.
+ */
+export async function updateAdminShopDeleteReason(
+  id: number,
+  reason: string | null,
+): Promise<void> {
+  await db
+    .update(shops)
+    .set({ deleteReason: reason, updatedAt: new Date() })
+    .where(eq(shops.id, id));
 }
