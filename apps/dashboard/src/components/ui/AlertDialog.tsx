@@ -15,13 +15,7 @@ interface AlertDialogProps {
  * @param props - Dialog state, copy and close callback.
  * @returns Modal dialog element.
  */
-export function AlertDialog({
-  open,
-  title,
-  description,
-  closeLabel,
-  onClose,
-}: AlertDialogProps) {
+export function AlertDialog({ open, title, description, closeLabel, onClose }: AlertDialogProps) {
   const { messages } = useI18n();
   const common = messages.common;
   const resolvedCloseLabel = closeLabel ?? common.close;

@@ -45,6 +45,14 @@ const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";
 const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5 px-[5px]";
 
 // ---------------------------------------------------------------------------
+// Shared sub-components
+// ---------------------------------------------------------------------------
+
+function DynamicFormSubtext({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-[5px]">{children}</p>;
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -249,10 +257,14 @@ function TextareaField({ field, currentValue, register, error }: TextareaFieldPr
         {...register(key, buildValidationRules(field))}
       />
       {(field.subtext || maxLen !== undefined) && (
-        <div className="flex justify-between items-start mt-1.5 gap-4">
-          <p className="text-xs text-[var(--ds-text-subtle)] px-[5px]">{field.subtext ?? ""}</p>
+        <div className="flex justify-between items-start gap-4">
+          {field.subtext ? (
+            <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>
+          ) : (
+            <span className="mt-1.5" />
+          )}
           {maxLen !== undefined && (
-            <span className="text-xs text-[var(--ds-text-subtle)] shrink-0">
+            <span className="text-xs text-[var(--ds-text-subtle)] shrink-0 mt-1.5 pr-[5px]">
               {currentValue.length}/{maxLen}
             </span>
           )}
@@ -309,6 +321,7 @@ interface MultiSelectDropdownProps {
   label: string;
   required?: boolean;
   placeholder?: string;
+  subtext?: string;
   options: { value: string; label: string; flag?: string }[];
   selected: string[];
   onChange: (values: string[]) => void;
@@ -319,6 +332,7 @@ function MultiSelectDropdown({
   label,
   required,
   placeholder,
+  subtext,
   options,
   selected,
   onChange,
@@ -496,6 +510,7 @@ function MultiSelectDropdown({
         </div>
       )}
       {error && <p className={errorClass}>{error}</p>}
+      {subtext && <DynamicFormSubtext>{subtext}</DynamicFormSubtext>}
     </div>
   );
 }
@@ -527,6 +542,7 @@ function CategoryMultiSelect({
       label={field.label}
       required={field.required}
       placeholder={field.placeholder}
+      subtext={field.subtext}
       options={options}
       selected={strSelected}
       onChange={(vals) => onChange(vals.map(Number))}
@@ -575,6 +591,7 @@ function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSele
       label={field.label}
       required={field.required}
       placeholder={field.placeholder}
+      subtext={field.subtext}
       options={options}
       selected={selected}
       onChange={handleChange}
@@ -635,6 +652,7 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
         ))}
       </div>
       {error && <p className={errorClass}>{error}</p>}
+      {field.subtext && <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>}
     </div>
   );
 }
@@ -905,8 +923,8 @@ export default function DynamicForm({ formConfig, categories }: Props) {
             <label htmlFor={key} className={labelClass}>
               {field.label}
               {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
-        )}
+                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+              )}
             </label>
             <input
               id={key}
@@ -918,11 +936,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               className={inputClass}
               {...register(key, buildValidationRules(field))}
             />
-            {field.subtext && (
-              <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-[5px]">
-                {field.subtext}
-              </p>
-            )}
+            {field.subtext && <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>}
             {fieldError && <p className={errorClass}>{fieldError}</p>}
           </div>
         );
@@ -986,8 +1000,8 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               />
               {field.label}
               {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
-        )}
+                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+              )}
             </label>
             {fieldError && <p className={errorClass}>{fieldError}</p>}
           </div>
@@ -1101,9 +1115,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       className="space-y-6"
     >
       {(() => {
-        const hasRequiredFields = formConfig.rows.some((row) =>
-          row.fields.some((f) => f.required),
-        );
+        const hasRequiredFields = formConfig.rows.some((row) => row.fields.some((f) => f.required));
         let legendRendered = false;
 
         return formConfig.rows.map((row) => {

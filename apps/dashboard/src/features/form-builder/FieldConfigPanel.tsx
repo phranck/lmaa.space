@@ -1,9 +1,15 @@
 import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { BUTTON_ICON_LIST } from "@/features/form-builder/buttonIconMap.tsx";
 import { FieldTypeIcon } from "@/features/form-builder/FieldPalette.tsx";
-import type { ButtonActionType, FieldType, FormField, InputType, RichTextVariant } from "@lmaa/contracts";
+import { BUTTON_ICON_LIST } from "@/features/form-builder/buttonIconMap.tsx";
+import type {
+  ButtonActionType,
+  FieldType,
+  FormField,
+  InputType,
+  RichTextVariant,
+} from "@lmaa/contracts";
 import { Suspense, lazy, useEffect, useState } from "react";
 import {
   SFCalendar,
@@ -23,10 +29,7 @@ const RichTextEditor = lazy(() =>
 // Field type label helper
 // ---------------------------------------------------------------------------
 
-function fieldTypeLabel(
-  type: FieldType,
-  ft: Record<string, string>,
-): string {
+function fieldTypeLabel(type: FieldType, ft: Record<string, string>): string {
   // FieldType uses kebab-case ("multi-select") but i18n keys use camelCase
   const key = type.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
   return ft[key] ?? ft[type] ?? type;
@@ -182,7 +185,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
   const hasValidationMinMax =
     isTextInput && effectiveInputType !== "date" && effectiveInputType !== "number";
   const hasMaxChars = field.type === "textarea";
-  const hasSubtext = isTextInput || field.type === "textarea";
+  const hasSubtext = isTextInput || field.type === "textarea" || field.type === "multi-select";
   const hasRows = field.type === "textarea" || isRichText;
   const hasPlaceholder =
     field.type !== "checkbox" &&

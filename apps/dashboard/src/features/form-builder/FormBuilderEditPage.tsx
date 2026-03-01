@@ -116,7 +116,6 @@ function makeNewRow(field: FormField): FormRow {
   return { id: crypto.randomUUID(), fields: [field] };
 }
 
-
 /**
  * Form builder edit page — loads a form by name from the URL parameter.
  *
