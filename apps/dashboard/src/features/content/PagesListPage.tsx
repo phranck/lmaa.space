@@ -1,3 +1,4 @@
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -10,73 +11,11 @@ import { useNavigate } from "react-router";
 import {
   SFCheckmarkCircleFill,
   SFCircle,
+  SFDocumentFill,
   SFEyeSlashFill,
   SFPlusCircleFill,
   SFTrashFill,
 } from "sf-symbols-lib/monochrome";
-
-const PAGE_LIST_TEXT = {
-  de: {
-    title: "Seiten",
-    newPage: "Neue Seite",
-    createTitle: "Neue Seite erstellen",
-    fieldTitle: "Titel",
-    fieldSlug: "Slug (URL-Pfad)",
-    titlePlaceholder: "z.B. Über uns",
-    slugPlaceholder: "about",
-    create: "Erstellen",
-    creating: "Wird erstellt…",
-    cancel: "Abbrechen",
-    createError: "Fehler beim Erstellen",
-    confirmDelete: "Seite",
-    confirmDeleteSuffix: "wirklich löschen?",
-    loadPages: "Lade Seiten…",
-    emptyPages: "Noch keine Seiten vorhanden.",
-    table: {
-      title: "Titel",
-      slug: "Slug",
-      status: "Status",
-      createdBy: "Erstellt von",
-      updatedBy: "Geändert von",
-    },
-    deletePageTitle: "Seite löschen",
-    status: {
-      published: "Veröffentlicht",
-      hidden: "Versteckt",
-      draft: "Entwurf",
-    },
-  },
-  en: {
-    title: "Pages",
-    newPage: "New page",
-    createTitle: "Create new page",
-    fieldTitle: "Title",
-    fieldSlug: "Slug (URL path)",
-    titlePlaceholder: "e.g. About us",
-    slugPlaceholder: "about-us",
-    create: "Create",
-    creating: "Creating…",
-    cancel: "Cancel",
-    createError: "Error while creating",
-    confirmDelete: "Delete page",
-    confirmDeleteSuffix: "for sure?",
-    loadPages: "Loading pages…",
-    emptyPages: "No pages available yet.",
-    table: {
-      title: "Title",
-      slug: "Slug",
-      status: "Status",
-      createdBy: "Created by",
-      updatedBy: "Updated by",
-    },
-    deletePageTitle: "Delete page",
-    status: {
-      published: "Published",
-      hidden: "Hidden",
-      draft: "Draft",
-    },
-  },
-} as const;
 
 function slugify(str: string): string {
   return str
@@ -90,13 +29,13 @@ function slugify(str: string): string {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const { locale } = useI18n();
-  const text = PAGE_LIST_TEXT[locale];
+  const { messages } = useI18n();
+  const s = messages.content.pages.status;
   if (status === "published") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
         <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
-        {text.status.published}
+        {s.published}
       </span>
     );
   }
@@ -104,14 +43,14 @@ function StatusBadge({ status }: { status: string }) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
         <SFEyeSlashFill className="w-3.5 h-3.5" />
-        {text.status.hidden}
+        {s.hidden}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
       <SFCircle className="w-3.5 h-3.5" />
-      {text.status.draft}
+      {s.draft}
     </span>
   );
 }
@@ -122,8 +61,9 @@ function StatusBadge({ status }: { status: string }) {
  * @returns Content list route component.
  */
 export function PagesListPage() {
-  const { locale } = useI18n();
-  const text = PAGE_LIST_TEXT[locale];
+  const { messages } = useI18n();
+  const text = messages.content.pages;
+  const cancel = messages.common.cancel;
   const { data: pages = [], isLoading } = useContentPages();
   const createPage = useCreateContentPage();
   const deletePage = useDeleteContentPage();
@@ -158,7 +98,7 @@ export function PagesListPage() {
       setSlugManual(false);
       navigate(`/seiten/${page.slug}`);
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : text.createError);
+      setCreateError(err instanceof Error ? err.message : (text.createError ?? ""));
     }
   }
 
@@ -171,7 +111,7 @@ export function PagesListPage() {
   }
 
   async function handleDelete(slug: string, title: string) {
-    if (!confirm(`${text.confirmDelete} "${title}" ${text.confirmDeleteSuffix}`)) return;
+    if (!confirm(`${text.confirmDeletePrefix}${title}${text.confirmDeleteSuffix}`)) return;
     await deletePage.mutateAsync(slug);
   }
 
@@ -251,7 +191,7 @@ export function PagesListPage() {
                 onClick={handleCancelCreate}
                 className="px-4 py-2 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
               >
-                {text.cancel}
+                {cancel}
               </button>
             </div>
           </form>
@@ -263,9 +203,11 @@ export function PagesListPage() {
               {text.loadPages}
             </div>
           ) : pages.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
-              {text.emptyPages}
-            </div>
+            <ContentUnavailableView
+              icon={<SFDocumentFill aria-hidden />}
+              title={text.emptyPages}
+              subtitle={text.emptyPagesHint}
+            />
           ) : (
             <table className="w-full text-sm">
               <thead>
@@ -310,10 +252,10 @@ export function PagesListPage() {
                         type="button"
                         onClick={() => handleDelete(page.slug, page.title)}
                         disabled={deletePage.isPending}
-                        className="p-1.5 text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
-                        title={text.deletePageTitle}
+                        className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
                       >
                         <SFTrashFill className="w-3.5 h-3.5" />
+                        {text.deletePageTitle}
                       </button>
                     </td>
                   </tr>

@@ -5,7 +5,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminUsers, useDeleteUser } from "@/features/users/hooks/useAdminUsers.ts";
 import { useState } from "react";
-import { SFSquareAndPencil } from "sf-symbols-lib/monochrome";
+import { SFLongTextPageAndPencilFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 import { UserAvatar } from "./UserAvatar.tsx";
 import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
@@ -85,18 +85,19 @@ export function UsersPage() {
                 <button
                   type="button"
                   onClick={() => setEditingUserId(user.id)}
-                  className="w-8 h-8 flex items-center justify-center rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
-                  title={usersMessages.editCard.editTooltip}
+                  className="h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
                 >
-                  <SFSquareAndPencil className="w-3.5 h-3.5" />
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {usersMessages.editCard.editTooltip}
                 </button>
               )}
               {me?.isOwner && user.id !== me?.id && (
                 <button
                   type="button"
                   onClick={() => setDeleteId(user.id)}
-                  className="px-3 py-1.5 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  className="h-9 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                 >
+                  <SFTrashFill className="w-3.5 h-3.5" />
                   {usersMessages.remove}
                 </button>
               )}

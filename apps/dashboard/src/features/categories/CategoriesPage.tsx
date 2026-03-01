@@ -1,4 +1,5 @@
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -12,7 +13,7 @@ import {
 } from "@/features/categories/hooks/useAdminCategories.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useState } from "react";
-import { SFListBullet, SFSquareGrid2x2Fill } from "sf-symbols-lib/monochrome";
+import { SFListBullet, SFSquareGrid2x2Fill, SFTagFill } from "sf-symbols-lib/monochrome";
 
 type ViewMode = "list" | "grid";
 
@@ -75,7 +76,11 @@ export function CategoriesPage() {
       )}
 
       {!isLoading && categories.length === 0 && (
-        <p className="text-center py-12 text-[var(--ds-text-subtle)]">{categoriesMessages.empty}</p>
+        <ContentUnavailableView
+          icon={<SFTagFill aria-hidden />}
+          title={categoriesMessages.empty}
+          subtitle={categoriesMessages.emptyHint}
+        />
       )}
 
       {/* List View */}

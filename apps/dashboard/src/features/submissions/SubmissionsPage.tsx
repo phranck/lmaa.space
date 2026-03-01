@@ -1,5 +1,6 @@
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -23,12 +24,19 @@ import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { Checkbox } from "@lmaa/ui";
 import { useState } from "react";
 import {
+  SFArrowCounterclockwise,
   SFArrowDownCircleFill,
   SFArrowUpCircleFill,
   SFArrowUpRightSquareFill,
+  SFCheckmark,
   SFCheckmarkCircleFill,
   SFClockFill,
+  SFLink,
+  SFLongTextPageAndPencilFill,
   SFPauseCircleFill,
+  SFStorefrontFill,
+  SFTrashFill,
+  SFTrayFill,
   SFXmarkCircleFill,
 } from "sf-symbols-lib/monochrome";
 
@@ -173,10 +181,11 @@ function VorschlaegeTab() {
       )}
 
       {!isLoading && submissions.length === 0 && (
-        <div className="text-center py-16 text-[var(--ds-text-subtle)]">
-          {submissionsMessages.suggestions.nonePrefix} {statusLabels[filter].toLowerCase()}{" "}
-          {submissionsMessages.tabs.suggestions.toLowerCase()}.
-        </div>
+        <ContentUnavailableView
+          icon={<SFTrayFill aria-hidden />}
+          title={`${submissionsMessages.suggestions.nonePrefix} ${statusLabels[filter].toLowerCase()} ${submissionsMessages.tabs.suggestions.toLowerCase()}.`}
+          subtitle={submissionsMessages.suggestions.noneHint}
+        />
       )}
 
       <div className="space-y-3">
@@ -248,8 +257,9 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
                 >
+                  <SFXmarkCircleFill className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.reject}
                 </button>
                 <button
@@ -262,15 +272,17 @@ function VorschlaegeTab() {
                       sendFeedback: false,
                     })
                   }
-                  className="h-9 px-3 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
                 >
+                  <SFPauseCircleFill className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.onhold}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditSubmission(sub)}
-                  className="h-9 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.edit}
                 </button>
                 <button
@@ -280,8 +292,9 @@ function VorschlaegeTab() {
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-9 px-3 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                 >
+                  <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.approve}
                 </button>
               </div>
@@ -291,8 +304,9 @@ function VorschlaegeTab() {
                 <button
                   type="button"
                   onClick={() => setDeleteSubmissionId(sub.id)}
-                  className="h-9 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                 >
+                  <SFTrashFill className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.delete}
                 </button>
               </div>
@@ -468,9 +482,11 @@ function DefekteLinksTab() {
 
   if (reports.length === 0) {
     return (
-      <div className="text-center py-16 text-[var(--ds-text-subtle)]">
-        {submissionsMessages.deadLinks.none}
-      </div>
+      <ContentUnavailableView
+        icon={<SFLink aria-hidden />}
+        title={submissionsMessages.deadLinks.none}
+        subtitle={submissionsMessages.deadLinks.noneHint}
+      />
     );
   }
 
@@ -514,16 +530,18 @@ function DefekteLinksTab() {
               type="button"
               onClick={() => dismissMutation.mutate(r.shopId)}
               disabled={dismissMutation.isPending || deleteMutation.isPending}
-              className="px-3 py-1.5 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] text-sm rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] text-sm rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
             >
+              <SFCheckmark className="w-3.5 h-3.5" />
               {submissionsMessages.deadLinks.keep}
             </button>
             <button
               type="button"
               onClick={() => setDeleteTarget({ shopId: r.shopId, shopName: r.shopName })}
               disabled={dismissMutation.isPending || deleteMutation.isPending}
-              className="px-3 py-1.5 bg-[var(--ds-badge-danger-bg)] border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm rounded-control hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 flex items-center gap-2 bg-[var(--ds-badge-danger-bg)] border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm rounded-control hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors disabled:opacity-50"
             >
+              <SFTrashFill className="w-3.5 h-3.5" />
               {submissionsMessages.deadLinks.delete}
             </button>
           </div>
@@ -652,9 +670,11 @@ function ShopMeldungenTab() {
 
   if (reports.length === 0) {
     return (
-      <div className="text-center py-16 text-[var(--ds-text-subtle)]">
-        {submissionsMessages.shopReports.none}
-      </div>
+      <ContentUnavailableView
+        icon={<SFStorefrontFill aria-hidden />}
+        title={submissionsMessages.shopReports.none}
+        subtitle={submissionsMessages.shopReports.noneHint}
+      />
     );
   }
 
@@ -695,15 +715,17 @@ function ShopMeldungenTab() {
                 type="button"
                 onClick={() => dismiss.mutate(r.id)}
                 disabled={dismiss.isPending}
-                className="text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
               >
+                <SFArrowCounterclockwise className="w-3 h-3" />
                 {submissionsMessages.shopReports.doneOrDecline}
               </button>
               <button
                 type="button"
                 onClick={() => setEditShopId(r.shopId)}
-                className="h-7 px-3 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
               >
+                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.edit}
               </button>
               <button
@@ -711,8 +733,9 @@ function ShopMeldungenTab() {
                 onClick={() =>
                   setDeleteTarget({ reportId: r.id, shopId: r.shopId, shopName: r.shopName })
                 }
-                className="h-7 px-3 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
               >
+                <SFTrashFill className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.delete}
               </button>
             </div>
