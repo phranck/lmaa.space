@@ -1,4 +1,5 @@
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useEmailTemplates } from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import {
   DndContext,
   type DragEndEvent,
@@ -57,9 +58,10 @@ interface StepRowProps {
   onUpdate: (updated: SubmissionStep) => void;
   onRemove: () => void;
   fields: { id: string; label: string }[];
+  templates: { id: number; name: string }[];
 }
 
-function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRowProps) {
+function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, templates }: StepRowProps) {
   const { messages } = useI18n();
   const m = messages.formBuilder.submission;
 
@@ -177,25 +179,53 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
           </div>
           <div>
             <label
-              htmlFor={`step-${index}-email-subject`}
+              htmlFor={`step-${index}-email-template`}
               className="block text-xs text-[var(--ds-text-muted)] mb-1"
             >
-              {m.emailSubject}
+              {m.emailTemplate}
             </label>
-            <input
-              id={`step-${index}-email-subject`}
-              type="text"
-              value={(step as SubmissionStepEmail).subject ?? ""}
+            <select
+              id={`step-${index}-email-template`}
+              value={(step as SubmissionStepEmail).templateId ?? ""}
               onChange={(e) =>
                 onUpdate({
                   ...step,
-                  subject: e.target.value || undefined,
+                  templateId: e.target.value ? Number(e.target.value) : undefined,
                 } as SubmissionStepEmail)
               }
-              className={inputClass}
-              placeholder={m.emailSubjectPlaceholder}
-            />
+              className="h-9 w-full px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
+            >
+              <option value="">{m.emailTemplateNone}</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
           </div>
+          {!(step as SubmissionStepEmail).templateId && (
+            <div>
+              <label
+                htmlFor={`step-${index}-email-subject`}
+                className="block text-xs text-[var(--ds-text-muted)] mb-1"
+              >
+                {m.emailSubject}
+              </label>
+              <input
+                id={`step-${index}-email-subject`}
+                type="text"
+                value={(step as SubmissionStepEmail).subject ?? ""}
+                onChange={(e) =>
+                  onUpdate({
+                    ...step,
+                    subject: e.target.value || undefined,
+                  } as SubmissionStepEmail)
+                }
+                className={inputClass}
+                placeholder={m.emailSubjectPlaceholder}
+              />
+            </div>
+          )}
         </>
       )}
     </div>
@@ -214,6 +244,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
 export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionConfigPanelProps) {
   const { messages } = useI18n();
   const m = messages.formBuilder.submission;
+  const { data: templates } = useEmailTemplates();
 
   const cfg = ensureConfig(config);
 
@@ -376,6 +407,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                       onUpdate={(updated) => updateStep(i, updated)}
                       onRemove={() => removeStep(i)}
                       fields={fields}
+                      templates={templates ?? []}
                     />
                     {i < cfg.steps.length - 1 && (
                       <div className="flex items-center self-stretch px-1 text-[var(--ds-text-muted)]">

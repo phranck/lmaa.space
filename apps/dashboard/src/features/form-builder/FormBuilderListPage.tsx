@@ -46,7 +46,6 @@ function deriveSlug(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-
 function ActiveBadge({
   isActive,
   activeLabel,

@@ -525,6 +525,8 @@ export interface DashboardMessages {
       emailToFromField: string;
       emailSubject: string;
       emailSubjectPlaceholder: string;
+      emailTemplate: string;
+      emailTemplateNone: string;
       successBehaviourLabel: string;
       successMessage: string;
       successMessagePlaceholder: string;
@@ -1111,6 +1113,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailToFromField: "Aus Feld",
         emailSubject: "Betreff (optional)",
         emailSubjectPlaceholder: "Neue Formular-Übermittlung",
+        emailTemplate: "E-Mail-Template",
+        emailTemplateNone: "Kein Template (einfache Tabelle)",
         successBehaviourLabel: "Nach dem Absenden",
         successMessage: "Erfolgsmeldung",
         successMessagePlaceholder: "Vielen Dank für deine Nachricht!",
@@ -1690,6 +1694,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailToFromField: "From field",
         emailSubject: "Subject (optional)",
         emailSubjectPlaceholder: "New form submission",
+        emailTemplate: "Email template",
+        emailTemplateNone: "No template (plain table)",
         successBehaviourLabel: "After submit",
         successMessage: "Success message",
         successMessagePlaceholder: "Thank you for your message!",

@@ -110,7 +110,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
           </span>
           <span
             title={typeLabels[field.type] ?? field.type}
-            className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text)]/60"
+            className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60"
           >
             {fieldAbbr}
           </span>
@@ -119,7 +119,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
         /* Narrow layout (1–2/12): only centered badge */
         <span
           title={typeLabels[field.type] ?? field.type}
-          className="px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text)]/60"
+          className="px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60"
         >
           {fieldAbbr}
         </span>

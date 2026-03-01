@@ -8,7 +8,6 @@ import {
   useFormConfig,
   useSaveFormConfig,
 } from "@/features/form-builder/hooks/useFormConfig.ts";
-import { SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
 import {
   DndContext,
   type DragEndEvent,
@@ -23,9 +22,9 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
+import { SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
 
 const FORM_NAME = "suggestion-form";
-
 
 /**
  * Returns the default human-readable label for a given field type.

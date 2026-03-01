@@ -1,7 +1,9 @@
 import type { SubmissionConfig } from "@lmaa/contracts";
 import { env } from "../config/env.js";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
+import { getEmailTemplateById } from "../repositories/email-templates.js";
 import { insertFormSubmission } from "../repositories/form-submission.js";
+import { renderEmailTemplate } from "./email-renderer.js";
 
 const FROM = env.EMAIL_FROM;
 
@@ -33,7 +35,14 @@ export async function executeSubmissionChain(
           step.toFieldId && typeof data[step.toFieldId] === "string"
             ? (data[step.toFieldId] as string)
             : step.to;
-        await handleEmail(to, step.subject, step.replyToFieldId, data, formConfig.name);
+        await handleEmail(
+          to,
+          step.subject,
+          step.replyToFieldId,
+          data,
+          formConfig.name,
+          step.templateId,
+        );
         break;
       }
     }
@@ -48,12 +57,23 @@ async function handleStore(formConfigId: number, data: Record<string, unknown>):
   await insertFormSubmission(formConfigId, data);
 }
 
+function buildPlainTable(data: Record<string, unknown>): string {
+  const rows = Object.entries(data)
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:4px 8px;font-weight:600">${k}</td><td style="padding:4px 8px">${String(v ?? "")}</td></tr>`,
+    )
+    .join("");
+  return `<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">${rows}</table>`;
+}
+
 async function handleEmail(
   to: string,
   subject: string | undefined,
   replyToFieldId: string | undefined,
   data: Record<string, unknown>,
   formName: string,
+  templateId?: number,
 ): Promise<void> {
   // Resend is loaded lazily to avoid startup failure when not configured
   const { Resend } = await import("resend");
@@ -66,19 +86,28 @@ async function handleEmail(
       ? (data[replyToFieldId] as string)
       : undefined;
 
-  const rows = Object.entries(data)
-    .map(
-      ([k, v]) =>
-        `<tr><td style="padding:4px 8px;font-weight:600">${k}</td><td style="padding:4px 8px">${String(v ?? "")}</td></tr>`,
-    )
-    .join("");
+  const variables = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v ?? "")]));
 
-  const html = `<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">${rows}</table>`;
+  let html: string;
+  let resolvedSubject = subject ?? `Neue Formular-Übermittlung: ${formName}`;
+
+  if (templateId) {
+    const template = await getEmailTemplateById(templateId);
+    if (template) {
+      const rendered = await renderEmailTemplate(template, variables);
+      html = rendered.html;
+      resolvedSubject = rendered.subject;
+    } else {
+      html = buildPlainTable(data);
+    }
+  } else {
+    html = buildPlainTable(data);
+  }
 
   await resend.emails.send({
     from: FROM,
     to,
-    subject: subject ?? `Neue Formular-Übermittlung: ${formName}`,
+    subject: resolvedSubject,
     ...(replyTo ? { replyTo } : {}),
     html,
   });

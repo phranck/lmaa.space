@@ -189,6 +189,8 @@ export interface SubmissionStepEmail {
   subject?: string;
   /** ID of a form field whose value is used as Reply-To header. */
   replyToFieldId?: string;
+  /** ID of an email template to render instead of the plain key-value table. */
+  templateId?: number;
 }
 
 /**
