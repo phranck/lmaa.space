@@ -287,6 +287,14 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
+function SidebarSection({ label }: { label: string }) {
+  return (
+    <p className="-mx-3 px-3 py-1.5 mt-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--ds-text-muted)] bg-[var(--ds-surface-hover)] select-none">
+      {label}
+    </p>
+  );
+}
+
 /**
  * Collapsible dashboard sidebar including navigation and footer actions.
  *
@@ -304,57 +312,49 @@ export function Sidebar({
   onEditProfile,
 }: SidebarProps) {
   const { messages } = useI18n();
-  const sidebarMessages = messages.layout.sidebar;
-  const navItems: NavItem[] = [
-    { to: "/", label: sidebarMessages.overview, icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },
-    {
-      to: "/meldungen",
-      label: sidebarMessages.submissions,
-      icon: <SFTrayFill className="w-4 h-4" />,
-    },
-    { to: "/shops", label: sidebarMessages.shops, icon: <SFStorefrontFill className="w-4 h-4" /> },
-    {
-      to: "/kategorien",
-      label: sidebarMessages.categories,
-      icon: <SFTagFill className="w-4 h-4" />,
-    },
-    {
-      to: "/benutzer",
-      label: sidebarMessages.users,
-      icon: <SFPerson3Fill className="w-4 h-4" />,
-      minRole: "admin",
-    },
-  ];
-  const visibleNavItems = navItems.filter(
-    (item) => !item.minRole || (role !== undefined && ROLE_RANK[role] >= ROLE_RANK[item.minRole]),
-  );
-  const showPages = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
+  const s = messages.layout.sidebar;
+  const isAdmin = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
 
   return (
     <>
       <SidebarHeader />
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
-        {visibleNavItems.map((item) => (
-          <SidebarItem
-            key={item.to}
-            to={item.to}
-            label={item.label}
-            icon={item.icon}
-            end={item.to === "/"}
-            onClick={onItemClick}
-          />
-        ))}
-        {showPages && <PagesGroup onItemClick={onItemClick} />}
-        {showPages && <FormsGroup onItemClick={onItemClick} />}
-        {showPages && <EmailTemplatesGroup onItemClick={onItemClick} />}
-        {showPages && (
-          <SidebarItem
-            to="/seiten/navigationen"
-            label={sidebarMessages.navigations}
-            icon={<SFLink className="w-4 h-4" />}
-            onClick={onItemClick}
-          />
+      <nav className="flex-1 overflow-y-auto py-2 px-3">
+        {/* Allgemein */}
+        <SidebarSection label={s.sectionGeneral} />
+        <div className="space-y-0.5">
+          <SidebarItem to="/" label={s.overview} icon={<SFSquareGrid2x2Fill className="w-4 h-4" />} end onClick={onItemClick} />
+          <SidebarItem to="/meldungen" label={s.submissions} icon={<SFTrayFill className="w-4 h-4" />} onClick={onItemClick} />
+        </div>
+
+        {/* Content */}
+        <SidebarSection label={s.sectionContent} />
+        <div className="space-y-0.5">
+          <SidebarItem to="/shops" label={s.shops} icon={<SFStorefrontFill className="w-4 h-4" />} onClick={onItemClick} />
+          <SidebarItem to="/kategorien" label={s.categories} icon={<SFTagFill className="w-4 h-4" />} onClick={onItemClick} />
+          {isAdmin && <PagesGroup onItemClick={onItemClick} />}
+        </div>
+
+        {/* Templates */}
+        {isAdmin && (
+          <>
+            <SidebarSection label={s.sectionTemplates} />
+            <div className="space-y-0.5">
+              <FormsGroup onItemClick={onItemClick} />
+              <EmailTemplatesGroup onItemClick={onItemClick} />
+            </div>
+          </>
+        )}
+
+        {/* System */}
+        {isAdmin && (
+          <>
+            <SidebarSection label={s.sectionSystem} />
+            <div className="space-y-0.5">
+              <SidebarItem to="/benutzer" label={s.users} icon={<SFPerson3Fill className="w-4 h-4" />} onClick={onItemClick} />
+              <SidebarItem to="/seiten/navigationen" label={s.navigations} icon={<SFLink className="w-4 h-4" />} onClick={onItemClick} />
+            </div>
+          </>
         )}
       </nav>
 
