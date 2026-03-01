@@ -215,8 +215,7 @@ export async function findPublicShopByHostname(hostname: string) {
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
-    WHERE s.is_active = true AND s.visibility = 'public'
-      AND replace(split_part(split_part(s.url, '://', 2), '/', 1), 'www.', '') = ${hostname}
+    WHERE replace(split_part(split_part(s.url, '://', 2), '/', 1), 'www.', '') = ${hostname}
     GROUP BY s.id
     LIMIT 1
   `);
