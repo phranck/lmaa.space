@@ -575,6 +575,18 @@ export interface DashboardMessages {
     sectionHeader: string;
     sectionBody: string;
     sectionFooter: string;
+    importTemplate: string;
+    exportTemplate: string;
+    exportAll: string;
+    importSuccess: string;
+    importError: string;
+    importInvalidFile: string;
+    importConflictTitle: string;
+    importConflictHint: string;
+    importOverwrite: string;
+    importRename: string;
+    importSkip: string;
+    importNewNameLabel: string;
   };
   errors: {
     boundary: {
@@ -1163,6 +1175,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       sectionHeader: "Header",
       sectionBody: "Body",
       sectionFooter: "Footer",
+      importTemplate: "Template importieren",
+      exportTemplate: "Exportieren",
+      exportAll: "Alle exportieren",
+      importSuccess: "{n} Template(s) erfolgreich importiert.",
+      importError: "Fehler beim Import.",
+      importInvalidFile: "Ungültige Datei.",
+      importConflictTitle: "Konflikt: {name}",
+      importConflictHint: "Ein Template mit diesem Namen existiert bereits.",
+      importOverwrite: "Überschreiben",
+      importRename: "Umbenennen",
+      importSkip: "Überspringen",
+      importNewNameLabel: "Neuer Name",
     },
     errors: {
       boundary: {
@@ -1744,6 +1768,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       sectionHeader: "Header",
       sectionBody: "Body",
       sectionFooter: "Footer",
+      importTemplate: "Import Template",
+      exportTemplate: "Export",
+      exportAll: "Export All",
+      importSuccess: "{n} template(s) imported successfully.",
+      importError: "Import error.",
+      importInvalidFile: "Invalid file.",
+      importConflictTitle: "Conflict: {name}",
+      importConflictHint: "A template with this name already exists.",
+      importOverwrite: "Overwrite",
+      importRename: "Rename",
+      importSkip: "Skip",
+      importNewNameLabel: "New name",
     },
     errors: {
       boundary: {

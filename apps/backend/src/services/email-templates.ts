@@ -89,6 +89,30 @@ export async function updateManagedEmailTemplate(
 }
 
 /**
+ * Imports an email template by name.
+ *
+ * If `overwrite` is false and a template with the given name already exists,
+ * returns `{ ok: false, reason: "name_taken" }`.
+ * If `overwrite` is true and a template with the given name already exists,
+ * updates it in place.
+ *
+ * @returns `{ ok: true, data }` or `{ ok: false, reason }`.
+ */
+export async function importManagedEmailTemplate(
+  data: Omit<EmailTemplateInsert, "isSystemTemplate"> & { isSystemTemplate?: boolean },
+  overwrite: boolean,
+): Promise<{ ok: true; data: EmailTemplate } | { ok: false; reason: "name_taken" }> {
+  const existing = await getEmailTemplateByName(data.name);
+  if (existing) {
+    if (!overwrite) return { ok: false, reason: "name_taken" };
+    const row = await updateEmailTemplate(existing.id, data);
+    return { ok: true, data: rowToEmailTemplate(row!) };
+  }
+  const row = await insertEmailTemplate(data);
+  return { ok: true, data: rowToEmailTemplate(row) };
+}
+
+/**
  * Deletes an email template by ID.
  *
  * @returns `{ ok: true }` or `{ ok: false, reason: "not_found" }`.
