@@ -32,7 +32,8 @@ export type PublicNavId = "header" | "footer";
 
 function normalizeShopHostname(url: string): string | null {
   try {
-    return new URL(url).hostname.replace(/^www\./, "");
+    const parsed = url.includes("://") ? new URL(url) : new URL(`https://${url}`);
+    return parsed.hostname.replace(/^www\./, "");
   } catch {
     return null;
   }

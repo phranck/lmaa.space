@@ -366,8 +366,11 @@ function UrlField({ field, control, error }: UrlFieldProps) {
   }, []);
 
   function extractDomain(val: string): string {
+    const trimmed = val.trim();
+    if (!trimmed) return "";
     try {
-      return new URL(val.trim()).hostname.replace(/^www\./, "").toLowerCase();
+      const withProtocol = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
+      return new URL(withProtocol).hostname.replace(/^www\./, "").toLowerCase();
     } catch {
       return "";
     }
@@ -392,13 +395,16 @@ function UrlField({ field, control, error }: UrlFieldProps) {
       lastCheckedDomainRef.current = domain;
       void fetch(`${API_BASE}/check-url?url=${encodeURIComponent(domain)}`)
         .then((res) => (res.ok ? res.json() : null))
-        .then((data: { exists: boolean; shop?: { id: number; name: string } } | null) => {
-          if (data?.exists && data.shop) {
-            setUrlCheck({ status: "found", shop: data.shop });
-          } else {
-            setUrlCheck({ status: "notFound" });
-          }
-        })
+        .then(
+          (envelope: { data: { exists: boolean; shop?: { id: number; name: string } } } | null) => {
+            const result = envelope?.data;
+            if (result?.exists && result.shop) {
+              setUrlCheck({ status: "found", shop: result.shop });
+            } else {
+              setUrlCheck({ status: "notFound" });
+            }
+          },
+        )
         .catch(() => setUrlCheck({ status: "idle" }));
     }, 600);
   }
