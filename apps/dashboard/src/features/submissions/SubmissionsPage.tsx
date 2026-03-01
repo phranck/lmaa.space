@@ -1,6 +1,7 @@
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -22,7 +23,7 @@ import {
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { Checkbox } from "@lmaa/ui";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   SFArrowCounterclockwise,
   SFArrowDownCircleFill,
@@ -116,6 +117,15 @@ function VorschlaegeTab() {
 
   // reviewId > 0 = approve, reviewId < 0 = reject
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
+
+  useEffect(() => {
+    if (reviewId === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setReviewId(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [reviewId]);
 
   const sorted = [...submissions].sort((a, b) => {
     const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -336,68 +346,67 @@ function VorschlaegeTab() {
       {/* Review Modal */}
       {reviewId !== null && reviewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setReviewId(null)}
-            aria-label={common.cancel}
-          />
-          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-md w-full">
-            <h3 className="font-bold text-[var(--ds-text)] mb-1">
-              {reviewId > 0
-                ? submissionsMessages.suggestions.reviewApproveTitle
-                : submissionsMessages.suggestions.reviewRejectTitle}
-            </h3>
-            <p className="text-sm text-[var(--ds-text-muted)] mb-4">{reviewing.shopName}</p>
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-md w-full">
+            <div className="px-6 pt-6 pb-3">
+              <h3 className="font-bold text-[var(--ds-text)]">
+                {reviewId > 0
+                  ? submissionsMessages.suggestions.reviewApproveTitle
+                  : submissionsMessages.suggestions.reviewRejectTitle}
+              </h3>
+              <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
+            </div>
 
-            <label
-              htmlFor="admin-note"
-              className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-            >
-              {submissionsMessages.suggestions.comment}{" "}
-              <span className="text-[var(--ds-text-subtle)] font-normal">
-                {submissionsMessages.suggestions.optional}
-              </span>
-            </label>
-            <textarea
-              id="admin-note"
-              value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
-              rows={3}
-              placeholder={
-                reviewId < 0
-                  ? submissionsMessages.suggestions.rejectReasonPlaceholder
-                  : submissionsMessages.suggestions.commentPlaceholder
-              }
-              className="w-full px-4 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] text-sm text-[var(--ds-text)] resize-none mb-3"
-            />
+            <div className="px-6 py-3 flex flex-col gap-3">
+              <div>
+                <label
+                  htmlFor="admin-note"
+                  className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+                >
+                  {submissionsMessages.suggestions.comment}{" "}
+                  <span className="text-[var(--ds-text-subtle)] font-normal">
+                    {submissionsMessages.suggestions.optional}
+                  </span>
+                </label>
+                <MarkdownTextarea
+                  id="admin-note"
+                  value={adminNote}
+                  onChange={setAdminNote}
+                  rows={3}
+                  placeholder={
+                    reviewId < 0
+                      ? submissionsMessages.suggestions.rejectReasonPlaceholder
+                      : submissionsMessages.suggestions.commentPlaceholder
+                  }
+                />
+              </div>
 
-            {reviewing.submitterEmail && (
-              <Checkbox
-                checked={sendFeedback}
-                onChange={setSendFeedback}
-                label={
-                  <>
-                    {submissionsMessages.suggestions.feedbackToPrefix}{" "}
-                    <span className="font-medium">{reviewing.submitterEmail}</span>
-                  </>
-                }
-                className="mb-4"
-              />
-            )}
+              {reviewing.submitterEmail && (
+                <Checkbox
+                  checked={sendFeedback}
+                  onChange={setSendFeedback}
+                  label={
+                    <>
+                      {submissionsMessages.suggestions.feedbackToPrefix}{" "}
+                      <span className="font-medium">{reviewing.submitterEmail}</span>
+                    </>
+                  }
+                />
+              )}
 
-            {reviewMutation.isError && (
-              <p className="text-sm text-red-600 mb-3">
-                {submissionsMessages.suggestions.reviewErrorPrefix}{" "}
-                {reviewMutation.error?.message ?? common.unknownError}
-              </p>
-            )}
+              {reviewMutation.isError && (
+                <p className="text-sm text-red-600">
+                  {submissionsMessages.suggestions.reviewErrorPrefix}{" "}
+                  {reviewMutation.error?.message ?? common.unknownError}
+                </p>
+              )}
+            </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="border-t border-[var(--ds-border)] px-6 py-4 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setReviewId(null)}
-                className="px-4 py-2.5 border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+                className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 {common.cancel}
               </button>
@@ -421,9 +430,9 @@ function VorschlaegeTab() {
                     },
                   )
                 }
-                className={`px-4 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
+                className={`h-9 px-4 rounded-control text-sm font-medium text-white transition-colors disabled:opacity-60 ${
                   reviewId > 0
-                    ? "bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
+                    ? "bg-[var(--ds-btn-primary-bg)] hover:bg-[var(--ds-btn-primary-hover)]"
                     : "bg-red-500 hover:bg-red-600"
                 }`}
               >

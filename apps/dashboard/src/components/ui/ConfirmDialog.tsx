@@ -42,12 +42,7 @@ export function ConfirmDialog({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/30"
-        onClick={onCancel}
-        aria-label={common.cancel}
-      />
+      <div className="absolute inset-0 bg-black/30" />
       <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-sm w-full overlay-card-enter">
         <div className="px-6 pt-6 pb-3">
           <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
@@ -55,11 +50,11 @@ export function ConfirmDialog({
         <div className="px-6 py-3">
           <p className="text-sm text-[var(--ds-text-muted)]">{description}</p>
         </div>
-        <div className="px-6 pt-3 pb-6 flex justify-end gap-3">
+        <div className="border-t border-[var(--ds-border)] px-6 py-4 flex justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
           >
             {common.cancel}
           </button>
@@ -67,9 +62,9 @@ export function ConfirmDialog({
             type="button"
             disabled={isPending}
             onClick={onConfirm}
-            className="px-4 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+            className="h-9 px-4 bg-red-500 text-white rounded-control text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-60"
           >
-            {isPending ? "..." : resolvedConfirmLabel}
+            {isPending ? "…" : resolvedConfirmLabel}
           </button>
         </div>
       </div>
