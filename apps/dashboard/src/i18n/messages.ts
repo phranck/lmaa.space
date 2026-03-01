@@ -273,6 +273,10 @@ export interface DashboardMessages {
       accept: string;
       decline: string;
       doneOrDecline: string;
+      restore: string;
+      info: string;
+      infoTitle: string;
+      noReason: string;
     };
     deadLinks: {
       none: string;
@@ -872,21 +876,25 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         reject: "Ablehnen",
         onhold: "Zurückstellen",
         edit: "Bearbeiten",
-        approve: "Annehmen",
+        approve: "Freischalten",
         delete: "Löschen",
-        confirmDeleteTitle: "Abgelehnten Vorschlag löschen?",
+        confirmDeleteTitle: "Vorschlag löschen?",
         confirmDeleteDescription: "wird dauerhaft entfernt.",
         feedbackToPrefix: "E-Mail-Feedback senden an",
-        reviewApproveTitle: "Vorschlag annehmen",
+        reviewApproveTitle: "Vorschlag freischalten",
         reviewRejectTitle: "Vorschlag ablehnen",
         comment: "Kommentar",
         optional: "(optional)",
         rejectReasonPlaceholder: "Grund für Ablehnung…",
         commentPlaceholder: "Optionaler Kommentar…",
         reviewErrorPrefix: "Fehler:",
-        accept: "Annehmen",
+        accept: "Freischalten",
         decline: "Ablehnen",
         doneOrDecline: "Erledigt / Ablehnen",
+        restore: "Wiederherstellen",
+        info: "Info",
+        infoTitle: "Ablehnungsgrund",
+        noReason: "Kein Ablehnungsgrund hinterlegt.",
       },
       deadLinks: {
         none: "Keine gemeldeten defekten Links.",
@@ -1482,21 +1490,25 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         reject: "Reject",
         onhold: "Put on hold",
         edit: "Edit",
-        approve: "Approve",
+        approve: "Activate",
         delete: "Delete",
-        confirmDeleteTitle: "Delete rejected suggestion?",
+        confirmDeleteTitle: "Delete suggestion?",
         confirmDeleteDescription: "will be permanently removed.",
         feedbackToPrefix: "Send email feedback to",
-        reviewApproveTitle: "Approve suggestion",
+        reviewApproveTitle: "Activate suggestion",
         reviewRejectTitle: "Reject suggestion",
         comment: "Comment",
         optional: "(optional)",
         rejectReasonPlaceholder: "Reason for rejection…",
         commentPlaceholder: "Optional comment…",
         reviewErrorPrefix: "Error:",
-        accept: "Approve",
+        accept: "Activate",
         decline: "Reject",
         doneOrDecline: "Done / Reject",
+        restore: "Restore",
+        info: "Info",
+        infoTitle: "Rejection reason",
+        noReason: "No rejection reason provided.",
       },
       deadLinks: {
         none: "No reported dead links.",
