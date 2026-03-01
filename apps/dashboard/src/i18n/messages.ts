@@ -25,6 +25,10 @@ export interface DashboardMessages {
     menuClose: string;
     pageFallbackTitle: string;
     sidebar: {
+      sectionGeneral: string;
+      sectionContent: string;
+      sectionTemplates: string;
+      sectionSystem: string;
       overview: string;
       submissions: string;
       shops: string;
@@ -625,6 +629,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       menuClose: "Menü schließen",
       pageFallbackTitle: "lmaa.space",
       sidebar: {
+        sectionGeneral: "Allgemein",
+        sectionContent: "Content",
+        sectionTemplates: "Templates",
+        sectionSystem: "System",
         overview: "Übersicht",
         submissions: "Meldungen",
         shops: "Shops",
@@ -1224,6 +1232,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       menuClose: "Close menu",
       pageFallbackTitle: "lmaa.space",
       sidebar: {
+        sectionGeneral: "General",
+        sectionContent: "Content",
+        sectionTemplates: "Templates",
+        sectionSystem: "System",
         overview: "Overview",
         submissions: "Reports",
         shops: "Shops",
