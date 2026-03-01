@@ -60,7 +60,13 @@ usersRoutes.post(
   zValidator("json", createUserSchema),
   async (c) => {
     const { username, email, password, role, welcomeTemplateId } = c.req.valid("json");
-    const user = await createManagedAdminUser({ username, email, password, role, welcomeTemplateId });
+    const user = await createManagedAdminUser({
+      username,
+      email,
+      password,
+      role,
+      welcomeTemplateId,
+    });
     return ok(c, user, 201);
   },
 );

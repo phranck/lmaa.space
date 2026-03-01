@@ -261,7 +261,7 @@ export function FormBuilderListPage() {
   }
 
   function handleExportSingle(form: FormConfig) {
-    exportFormConfigSingle(form.name, form.slug, form.rows, form.submissionConfig);
+    exportFormConfigSingle(form.name, form.slug ?? undefined, form.rows, form.submissionConfig);
   }
 
   function processImportQueue(queue: ImportFormData[], imported: number) {

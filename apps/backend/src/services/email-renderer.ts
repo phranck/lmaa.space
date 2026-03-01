@@ -161,10 +161,7 @@ export async function renderEmailTemplate(
  * the color scheme is applied directly so the iframe preview reflects
  * the manually selected theme, independent of the user's OS setting.
  */
-export function renderEmailPreview(
-  fields: TemplateFields,
-  colorScheme: "light" | "dark",
-): string {
+export function renderEmailPreview(fields: TemplateFields, colorScheme: "light" | "dark"): string {
   const rows = buildRows(fields, {});
   return buildEmailHtml(rows, colorScheme === "dark" ? DARK_RULES : "");
 }

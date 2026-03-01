@@ -35,7 +35,10 @@ interface RichTextEditorProps {
 export function RichTextEditor({ value, onChange, rows }: RichTextEditorProps) {
   const minHeight = `${(rows ?? 8) * 1.5}rem`;
   return (
-    <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] overflow-hidden text-sm">
+    <div
+      className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] overflow-hidden text-sm"
+      style={{ minHeight }}
+    >
       <MDXEditor
         key={value === "" ? "empty" : undefined}
         markdown={value}
@@ -67,7 +70,6 @@ export function RichTextEditor({ value, onChange, rows }: RichTextEditorProps) {
           }),
         ]}
         contentEditableClassName="prose prose-sm max-w-none px-3 py-2 focus:outline-none"
-        contentEditableStyle={{ minHeight }}
       />
     </div>
   );

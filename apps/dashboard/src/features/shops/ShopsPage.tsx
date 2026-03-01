@@ -161,7 +161,9 @@ export function ShopsPage() {
             }
             onUpdateReason={
               canModify
-                ? (id, reason) => updateReasonMutation.mutateAsync({ id, reason })
+                ? async (id, reason) => {
+                    await updateReasonMutation.mutateAsync({ id, reason });
+                  }
                 : undefined
             }
           />

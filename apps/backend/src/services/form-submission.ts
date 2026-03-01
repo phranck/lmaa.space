@@ -2,8 +2,8 @@ import type { SubmissionConfig } from "@lmaa/contracts";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
 import { insertFormSubmission } from "../repositories/form-submission.js";
-import { sendMail } from "./email.js";
 import { renderEmailTemplate } from "./email-renderer.js";
+import { sendMail } from "./email.js";
 
 /**
  * Executes the submission chain defined in `config.steps`.
