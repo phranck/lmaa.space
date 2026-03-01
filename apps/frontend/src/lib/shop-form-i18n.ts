@@ -55,10 +55,6 @@ export function getFrontendShopFormI18n(locale: FrontendLocale = "de"): {
         regionSelect: {
           label: "Region",
           placeholder: "Select region…",
-          infoAriaLabel: "Info about region selection",
-          infoTitle: "What does region mean?",
-          infoDescription:
-            "Indicates whether this shop has a dedicated website for a specific region. Germany, Austria, and Switzerland are often indicated by the TLD (.de, .at, .ch). Europe can also use .com, .biz, or other international domains.",
         },
       },
       regionOptions,
@@ -87,10 +83,6 @@ export function getFrontendShopFormI18n(locale: FrontendLocale = "de"): {
       regionSelect: {
         label: "Region",
         placeholder: "Region wählen…",
-        infoAriaLabel: "Info zur Regionauswahl",
-        infoTitle: "Was bedeutet Region?",
-        infoDescription:
-          "Gibt an, ob dieser Shop eine eigene Website für die jeweilige Region hat. Bei Deutschland, Österreich und der Schweiz ist das meist an der TLD erkennbar (.de, .at, .ch). Bei Europa können auch .com, .biz oder andere internationale Domains genutzt werden.",
       },
     },
     regionOptions,

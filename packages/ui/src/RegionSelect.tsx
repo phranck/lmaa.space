@@ -1,8 +1,7 @@
 import { REGION_CODES, type RegionCode } from "@lmaa/shared";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LuCheck, LuChevronDown, LuInfo } from "react-icons/lu";
+import { LuCheck, LuChevronDown } from "react-icons/lu";
 
 /**
  * Display option used by region select inputs.
@@ -19,9 +18,6 @@ export interface RegionSelectOption {
 export interface RegionSelectMessages {
   label: string;
   placeholder: string;
-  infoAriaLabel: string;
-  infoTitle: string;
-  infoDescription: string;
 }
 
 /**
@@ -198,74 +194,29 @@ export function RegionSelect({
     <div>
       <span className={labelClass}>{messages.label}</span>
 
-      {/* Trigger button + Info button */}
-      <div className="flex gap-2">
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleToggle}
-          className={`flex-1 flex items-center justify-between px-3 py-2 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
-            open
-              ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
-              : error
-                ? "border-red-400"
-                : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
-          }`}
+      {/* Trigger button */}
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={handleToggle}
+        className={`w-full flex items-center justify-between px-3 py-2 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
+          open
+            ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
+            : error
+              ? "border-red-400"
+              : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
+        }`}
+      >
+        <span
+          className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
         >
-          <span
-            className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
-          >
-            {label ?? messages.placeholder}
-          </span>
-          <LuChevronDown
-            size={14}
-            className={`shrink-0 ml-2 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        <PopoverPrimitive.Root>
-          <PopoverPrimitive.Trigger asChild>
-            <button
-              type="button"
-              className="shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
-              aria-label={messages.infoAriaLabel}
-            >
-              <LuInfo size={14} />
-            </button>
-          </PopoverPrimitive.Trigger>
-
-          <PopoverPrimitive.Portal>
-            <PopoverPrimitive.Content
-              side="top"
-              align="center"
-              sideOffset={6}
-              style={{ zIndex: 9999 }}
-              className="w-[276px] rounded-control border border-black/[.175] bg-[var(--ds-surface)] shadow-md outline-none dark:border-white/[.15] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150"
-              onEscapeKeyDown={(e) => e.stopPropagation()}
-            >
-              {/* Popover header */}
-              <div className="flex items-center justify-between px-4 py-2 bg-black/[.1] border-b border-black/[.15] rounded-t-lg dark:bg-white/[.1] dark:border-white/[.15]">
-                <span className="font-semibold text-sm text-[var(--ds-text)]">
-                  {messages.infoTitle}
-                </span>
-              </div>
-
-              {/* Popover body */}
-              <div className="px-4 py-4 text-xs text-[var(--ds-text-muted)] leading-relaxed">
-                {messages.infoDescription}
-              </div>
-
-              {/* Arrow */}
-              <PopoverPrimitive.Arrow
-                width={16}
-                height={8}
-                className="fill-[var(--ds-surface)]"
-                style={{ filter: "drop-shadow(0 1px 0 rgba(0,0,0,0.175))" }}
-              />
-            </PopoverPrimitive.Content>
-          </PopoverPrimitive.Portal>
-        </PopoverPrimitive.Root>
-      </div>
+          {label ?? messages.placeholder}
+        </span>
+        <LuChevronDown
+          size={14}
+          className={`shrink-0 ml-2 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
 
       {dropdown}
 

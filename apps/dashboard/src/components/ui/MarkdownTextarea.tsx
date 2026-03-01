@@ -1,31 +1,3 @@
-import { SiMarkdown } from "react-icons/si";
-
-interface MarkdownTextareaProps {
-  id?: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  rows?: number;
-}
-
-export function MarkdownTextarea({
-  id,
-  value,
-  onChange,
-  placeholder,
-  rows = 6,
-}: MarkdownTextareaProps) {
-  return (
-    <div className="relative">
-      <textarea
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        rows={rows}
-        placeholder={placeholder}
-        className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
-      />
-      <SiMarkdown className="absolute bottom-2 right-2 w-5 h-5 text-[var(--ds-text-subtle)] opacity-40 pointer-events-none" />
-    </div>
-  );
-}
+// Re-export from shared UI package so existing imports keep working.
+export { MarkdownTextarea } from "@lmaa/ui";
+export type { MarkdownTextareaProps } from "@lmaa/ui";

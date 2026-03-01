@@ -1,5 +1,9 @@
 /** Shared checkbox component and props. */
 export { Checkbox } from "./Checkbox.tsx";
+/** Shared Markdown textarea component. */
+export { MarkdownTextarea } from "./MarkdownTextarea.tsx";
+/** Re-exported props for `MarkdownTextarea`. */
+export type { MarkdownTextareaProps } from "./MarkdownTextarea.tsx";
 /** Re-exported props for `Checkbox`. */
 export type { CheckboxProps } from "./Checkbox.tsx";
 /** Shared multi-select component and related contracts. */
