@@ -1,7 +1,14 @@
 import { defineConfig, presetTypography, presetWind4, transformerDirectives } from "unocss";
 
 export default defineConfig({
-  presets: [presetWind4({ dark: "class" }), presetTypography()],
+  presets: [
+    presetWind4({ dark: "class" }),
+    presetTypography({
+      cssExtend: {
+        h2: { "font-weight": "500", "margin-bottom": "0.3em" },
+      },
+    }),
+  ],
   transformers: [transformerDirectives()],
   theme: {
     radius: {
