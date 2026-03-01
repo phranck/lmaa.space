@@ -158,6 +158,11 @@ export interface FormField {
    * are treated as `inputType === "email"` / `inputType === "password"` by the renderer.
    */
   inputType?: InputType;
+  /**
+   * When `true`, the frontend renders a `MarkdownTextarea` instead of a plain `<textarea>`.
+   * Only meaningful when `type === "textarea"`.
+   */
+  allowMarkdown?: boolean;
 }
 
 /**

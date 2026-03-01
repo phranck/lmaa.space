@@ -89,6 +89,8 @@ const formFieldSchema = z.object({
   name: z.string().max(200).optional(),
   subtext: z.string().max(500).optional(),
   buttonAction: buttonActionSchema.optional(),
+  inputType: z.enum(["text", "password", "email", "url", "tel", "date", "number"]).optional(),
+  allowMarkdown: z.boolean().optional(),
 });
 
 const formRowSchema = z.object({
