@@ -130,7 +130,7 @@ export function PagesListPage() {
         )}
       </PageHeader>
 
-      <div className="p-3 space-y-6">
+      <div className="space-y-6">
         {showCreate && (
           <form
             onSubmit={handleCreate}

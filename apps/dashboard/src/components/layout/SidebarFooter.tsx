@@ -85,12 +85,7 @@ export function SidebarFooter({
               <SFSquareAndPencil className="w-3.5 h-3.5" />
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleLogoutClick}
-            title={s.logout}
-            className={btnClass}
-          >
+          <button type="button" onClick={handleLogoutClick} title={s.logout} className={btnClass}>
             <SFRectanglePortraitAndArrowRightFill className="w-3.5 h-3.5" />
           </button>
         </div>
