@@ -107,13 +107,11 @@ function SortableNavItem({
   item,
   onRemove,
   onLabelChange,
-  onTargetChange,
   text,
 }: {
   item: NavItemState;
   onRemove: (id: number) => void;
   onLabelChange: (id: number, label: string) => void;
-  onTargetChange: (id: number, target: "_self" | "_blank") => void;
   text: NavText;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -227,11 +225,6 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
 
   function handleLabelChange(id: number, label: string) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, label } : i)));
-    setDirty(true);
-  }
-
-  function handleTargetChange(id: number, target: "_self" | "_blank") {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, target } : i)));
     setDirty(true);
   }
 
@@ -375,7 +368,6 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                   item={item}
                   onRemove={handleRemove}
                   onLabelChange={handleLabelChange}
-                  onTargetChange={handleTargetChange}
                   text={text}
                 />
               ))}
