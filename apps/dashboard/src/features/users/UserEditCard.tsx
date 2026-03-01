@@ -9,7 +9,7 @@ import {
   SFPencil,
   SFPerson,
   SFPersonCropCircle,
-  SFTrash,
+  SFTrashFill,
 } from "sf-symbols-lib/monochrome";
 import {
   useAdminUsers,
@@ -246,7 +246,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                     onClick={handleRemoveAvatar}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
                   >
-                    <SFTrash className="w-3.5 h-3.5 shrink-0" />
+                    <SFTrashFill className="w-3.5 h-3.5 shrink-0" />
                     {usersMessages.editCard.removeAvatar}
                   </button>
                 )}
