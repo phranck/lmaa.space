@@ -79,31 +79,38 @@ export function EmailTemplateListPage() {
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
     e.target.value = "";
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const json = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
-        let queue: ImportTemplateData[];
+    const readFile = (file: File): Promise<ImportTemplateData[]> =>
+      new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const json = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
+            if (Array.isArray(json.templates)) {
+              resolve(json.templates as ImportTemplateData[]);
+            } else if (typeof json.name === "string" && typeof json.bodyText === "string") {
+              resolve([json as ImportTemplateData]);
+            } else {
+              resolve([]);
+            }
+          } catch {
+            resolve([]);
+          }
+        };
+        reader.readAsText(file);
+      });
 
-        if (Array.isArray(json.templates)) {
-          queue = json.templates as ImportTemplateData[];
-        } else if (typeof json.name === "string" && typeof json.bodyText === "string") {
-          queue = [json as ImportTemplateData];
-        } else {
-          setAlertMessage(m.importInvalidFile);
-          return;
-        }
-
-        processImportQueue(queue, 0);
-      } catch {
+    void Promise.all(files.map(readFile)).then((results) => {
+      const queue = results.flat();
+      if (queue.length === 0) {
         setAlertMessage(m.importInvalidFile);
+        return;
       }
-    };
-    reader.readAsText(file);
+      processImportQueue(queue, 0);
+    });
   }
 
   function handleConflictOverwrite() {
@@ -149,7 +156,7 @@ export function EmailTemplateListPage() {
         </button>
         <button
           type="button"
-          onClick={() => exportEmailTemplateAll(templates)}
+          onClick={() => void exportEmailTemplateAll()}
           disabled={templates.length === 0}
           className="flex items-center gap-2 px-4 py-2 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
         >
@@ -264,6 +271,7 @@ export function EmailTemplateListPage() {
         ref={fileInputRef}
         type="file"
         accept=".json"
+        multiple
         className="hidden"
         onChange={handleFileChange}
       />

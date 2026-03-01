@@ -1,4 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
+import { strToU8, zipSync } from "fflate";
 import { Hono } from "hono";
 import { z } from "zod";
 import { fail, ok } from "../../lib/http.js";
@@ -37,6 +38,25 @@ export const emailTemplateRoutes = new Hono<{ Variables: AuthVariables }>();
 emailTemplateRoutes.get("/email-templates", requireAuth, async (c) => {
   const templates = await getManagedEmailTemplates();
   return ok(c, templates);
+});
+
+// GET /api/admin/email-templates/export — download all as ZIP
+emailTemplateRoutes.get("/email-templates/export", requireAuth, async (c) => {
+  const templates = await getManagedEmailTemplates();
+  const exportedAt = new Date().toISOString();
+
+  const files: Record<string, Uint8Array> = {};
+  for (const { id: _id, createdAt: _c, updatedAt: _u, ...fields } of templates) {
+    const json = JSON.stringify({ version: 1, exportedAt, ...fields }, null, 2);
+    files[`${fields.name}.json`] = strToU8(json);
+  }
+
+  const zip = zipSync(files);
+
+  return c.body(zip.buffer as ArrayBuffer, 200, {
+    "Content-Type": "application/zip",
+    "Content-Disposition": 'attachment; filename="email-templates.zip"',
+  });
 });
 
 // GET /api/admin/email-templates/:id — get one
