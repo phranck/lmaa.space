@@ -382,7 +382,7 @@ export function FormBuilderPage() {
       setTimeout(() => setShowExportWarning(false), 3000);
       return;
     }
-    exportFormConfigSingle(config.name, config.slug, rows, config.submissionConfig);
+    exportFormConfigSingle(config.name, config.slug ?? undefined, rows, config.submissionConfig);
   }
 
   if (isLoading) {
@@ -459,7 +459,11 @@ export function FormBuilderPage() {
           {/* Config panel — only shown when a field is selected */}
           {selectedField !== null && (
             <div className="shrink-0 w-72">
-              <FieldConfigPanel field={selectedField} onChange={handleFieldChange} />
+              <FieldConfigPanel
+                field={selectedField}
+                onChange={handleFieldChange}
+                allFields={rows.flatMap((r) => r.fields).map((f) => ({ id: f.id, label: f.label }))}
+              />
             </div>
           )}
         </div>

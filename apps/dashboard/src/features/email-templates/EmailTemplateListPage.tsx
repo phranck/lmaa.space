@@ -11,7 +11,7 @@ import {
   useEmailTemplates,
   useImportEmailTemplate,
 } from "@/features/email-templates/hooks/useEmailTemplates.ts";
-import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
+import type { EmailTemplateInput } from "@lmaa/contracts";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -227,7 +227,11 @@ export function EmailTemplateListPage() {
                       {tpl.subject || "—"}
                     </td>
                     <td className="px-4 py-1.5 text-[var(--ds-text-muted)] text-xs whitespace-nowrap">
-                      {new Date(tpl.createdAt).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" })}
+                      {new Date(tpl.createdAt).toLocaleDateString(locale, {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
                     </td>
                     <td className="px-4 py-1.5 text-right">
                       <div className="flex items-center justify-end gap-2">

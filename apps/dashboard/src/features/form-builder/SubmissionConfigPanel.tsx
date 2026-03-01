@@ -322,7 +322,10 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
     reorderSteps(event);
   }
 
-  function updateField(key: "successHeadline" | "successMessage" | "successRedirectUrl", value: string) {
+  function updateField(
+    key: "successHeadline" | "successMessage" | "successRedirectUrl",
+    value: string,
+  ) {
     const next = { ...cfg, [key]: value || undefined };
     if (next.steps.length === 0 && !next.successMessage && !next.successRedirectUrl) {
       onChange(undefined);

@@ -2,7 +2,6 @@ import type { AdminUser } from "@lmaa/shared";
 import sharp from "sharp";
 import { env } from "../config/env.js";
 import { detectImageType } from "../lib/validate.js";
-import { getEmailTemplateById } from "../repositories/email-templates.js";
 import {
   type AdminUserRow,
   createAdminUser,
@@ -11,9 +10,10 @@ import {
   listAdminUsers,
   updateAdminUser,
 } from "../repositories/admin-users.js";
+import { getEmailTemplateById } from "../repositories/email-templates.js";
 import { hashPassword } from "./auth.js";
-import { sendMail } from "./email.js";
 import { renderEmailTemplate } from "./email-renderer.js";
+import { sendMail } from "./email.js";
 
 const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
