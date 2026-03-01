@@ -2,12 +2,20 @@ import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import {
   useCreateEmailTemplate,
   useEmailTemplates,
 } from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/form-builder/hooks/useFormConfig.ts";
+import { useAdminShops } from "@/features/shops/hooks/useAdminShops.ts";
+import {
+  useAdminSubmissions,
+  useDeadLinkReports,
+  useShopConcernReports,
+} from "@/features/submissions/hooks/useAdminSubmissions.ts";
+import { useAdminUsers } from "@/features/users/hooks/useAdminUsers.ts";
 import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
 import { NavLink, useMatch, useNavigate } from "react-router";
@@ -31,11 +39,13 @@ import {
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 
-interface NavItem {
-  to: string;
-  label: string;
-  icon: React.ReactNode;
-  minRole?: AdminRole;
+function SidebarBadge({ count }: { count: number }) {
+  if (count === 0) return null;
+  return (
+    <span className="h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-[11px] font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+      {count}
+    </span>
+  );
 }
 
 function StatusIcon({ status }: { status: string }) {
@@ -84,6 +94,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
           <SFDocumentOnDocumentFill className="w-4 h-4" />
         </span>
         <span className="flex-1">{sidebarMessages.pages}</span>
+        <SidebarBadge count={pages?.length ?? 0} />
         <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
@@ -152,6 +163,7 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
           <SFBookPagesFill className="w-4 h-4" />
         </span>
         <span className="flex-1">{sidebarMessages.formBuilder}</span>
+        <SidebarBadge count={forms?.length ?? 0} />
         <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
@@ -221,6 +233,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
           <SFEnvelopeBadgeFill className="w-4 h-4" />
         </span>
         <span className="flex-1">{sidebarMessages.emailTemplates}</span>
+        <SidebarBadge count={templates?.length ?? 0} />
         <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
@@ -315,6 +328,14 @@ export function Sidebar({
   const s = messages.layout.sidebar;
   const isAdmin = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
 
+  const { data: shops = [] } = useAdminShops();
+  const { data: categories = [] } = useAdminCategories();
+  const { data: users = [] } = useAdminUsers();
+  const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
+  const { data: deadLinks = [] } = useDeadLinkReports();
+  const { data: shopConcerns = [] } = useShopConcernReports();
+  const meldungenCount = pendingSubmissions.length + deadLinks.length + shopConcerns.length;
+
   return (
     <>
       <SidebarHeader />
@@ -324,14 +345,14 @@ export function Sidebar({
         <SidebarSection label={s.sectionGeneral} />
         <div className="space-y-0.5">
           <SidebarItem to="/" label={s.overview} icon={<SFSquareGrid2x2Fill className="w-4 h-4" />} end onClick={onItemClick} />
-          <SidebarItem to="/meldungen" label={s.submissions} icon={<SFTrayFill className="w-4 h-4" />} onClick={onItemClick} />
+          <SidebarItem to="/meldungen" label={s.submissions} icon={<SFTrayFill className="w-4 h-4" />} badge={meldungenCount} onClick={onItemClick} />
         </div>
 
         {/* Content */}
         <SidebarSection label={s.sectionContent} />
         <div className="space-y-0.5">
-          <SidebarItem to="/shops" label={s.shops} icon={<SFStorefrontFill className="w-4 h-4" />} onClick={onItemClick} />
-          <SidebarItem to="/kategorien" label={s.categories} icon={<SFTagFill className="w-4 h-4" />} onClick={onItemClick} />
+          <SidebarItem to="/shops" label={s.shops} icon={<SFStorefrontFill className="w-4 h-4" />} badge={shops.length} onClick={onItemClick} />
+          <SidebarItem to="/kategorien" label={s.categories} icon={<SFTagFill className="w-4 h-4" />} badge={categories.length} onClick={onItemClick} />
           {isAdmin && <PagesGroup onItemClick={onItemClick} />}
         </div>
 
@@ -351,7 +372,7 @@ export function Sidebar({
           <>
             <SidebarSection label={s.sectionSystem} />
             <div className="space-y-0.5">
-              <SidebarItem to="/benutzer" label={s.users} icon={<SFPerson3Fill className="w-4 h-4" />} onClick={onItemClick} />
+              <SidebarItem to="/benutzer" label={s.users} icon={<SFPerson3Fill className="w-4 h-4" />} badge={users.length} onClick={onItemClick} />
               <SidebarItem to="/seiten/navigationen" label={s.navigations} icon={<SFLink className="w-4 h-4" />} onClick={onItemClick} />
             </div>
           </>

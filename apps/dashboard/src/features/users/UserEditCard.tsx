@@ -58,6 +58,9 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const [role, setRole] = useState<"admin" | "moderator">("admin");
   const [avatar, setAvatar] = useState<AvatarState>(EMPTY_AVATAR_STATE);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [logoutConfirm, setLogoutConfirm] = useState(
+    () => localStorage.getItem("logout-skip-confirm") !== "true",
+  );
 
   const { data: users = [] } = useAdminUsers();
   const user = users.find((u) => u.id === userId);
@@ -154,11 +157,20 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       await deleteAvatar.mutateAsync(userId);
     }
 
+    if (me?.id === userId) {
+      if (logoutConfirm) {
+        localStorage.removeItem("logout-skip-confirm");
+      } else {
+        localStorage.setItem("logout-skip-confirm", "true");
+      }
+    }
+
     onSaved();
   }
 
   const currentAvatarUrl = avatar.previewUrl;
   const displayUsername = username || (user?.username ?? "");
+  const savedLogoutConfirm = localStorage.getItem("logout-skip-confirm") !== "true";
   const hasChanges =
     username !== (user?.username ?? "") ||
     email !== (user?.email ?? "") ||
@@ -168,7 +180,8 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     roleChanged ||
     avatar.pendingFile !== null ||
     avatar.pendingGravatarUrl !== null ||
-    avatar.deleted;
+    avatar.deleted ||
+    (me?.id === userId && logoutConfirm !== savedLogoutConfirm);
 
   const canSave = hasChanges && username.trim() !== "" && email.trim() !== "" && !isPending;
 
@@ -361,6 +374,21 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
                 />
               </div>
+
+              {/* Logout confirmation (own profile only) */}
+              {me?.id === userId && (
+                <label className="flex items-center gap-2 cursor-pointer select-none pt-1">
+                  <input
+                    type="checkbox"
+                    checked={logoutConfirm}
+                    onChange={(e) => setLogoutConfirm(e.target.checked)}
+                    className="w-4 h-4 rounded accent-[var(--color-primary)]"
+                  />
+                  <span className="text-xs text-[var(--ds-text-muted)]">
+                    {messages.layout.sidebar.logoutConfirmLabel}
+                  </span>
+                </label>
+              )}
             </div>
           </div>
 
