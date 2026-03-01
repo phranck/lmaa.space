@@ -7,7 +7,14 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["**/dist/**", "**/node_modules/**", "**/.astro/**", "**/*.d.ts", "**/tsconfig*.json"]
+    "ignore": [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/.astro/**",
+      "**/*.d.ts",
+      "**/tsconfig*.json",
+      "**/drizzle/meta/**"
+    ]
   },
   "formatter": {
     "enabled": true,

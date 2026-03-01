@@ -1,6 +1,8 @@
 import type { FormConfigPayload } from "@lmaa/contracts";
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -54,7 +56,10 @@ export const shops = pgTable(
     deleteReason: text("delete_reason"),
     deletedWasReported: boolean("deleted_was_reported").notNull().default(false),
   },
-  (table) => [index("idx_shops_active").on(table.isActive)],
+  (table) => [
+    index("idx_shops_active").on(table.isActive),
+    check("shops_visibility_check", sql`${table.visibility} IN ('public', 'onhold', 'deleted')`),
+  ],
 );
 
 /**
