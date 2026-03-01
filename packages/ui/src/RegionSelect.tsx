@@ -115,8 +115,18 @@ export function RegionSelect({
   function toggle(code: RegionCode) {
     if (value.includes(code)) {
       onChange(value.filter((v) => v !== code));
+      return;
+    }
+    const next = [...value, code];
+    if (code === "EU") {
+      // EU: incompatible with DE and AT (CH is not an EU member, so it's allowed)
+      onChange(next.filter((v) => v !== "DE" && v !== "AT"));
+    } else if (code === "DE" || code === "AT") {
+      // DE / AT: incompatible with EU
+      onChange(next.filter((v) => v !== "EU"));
     } else {
-      onChange([...value, code]);
+      // CH: no exclusions
+      onChange(next);
     }
   }
 
