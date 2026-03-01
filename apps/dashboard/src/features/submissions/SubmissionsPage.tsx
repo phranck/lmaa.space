@@ -182,6 +182,7 @@ function VorschlaegeTab() {
 
       {!isLoading && submissions.length === 0 && (
         <ContentUnavailableView
+          className="flex-1"
           icon={<SFTrayFill aria-hidden />}
           title={`${submissionsMessages.suggestions.nonePrefix} ${statusLabels[filter].toLowerCase()} ${submissionsMessages.tabs.suggestions.toLowerCase()}.`}
           subtitle={submissionsMessages.suggestions.noneHint}
@@ -483,6 +484,7 @@ function DefekteLinksTab() {
   if (reports.length === 0) {
     return (
       <ContentUnavailableView
+        className="flex-1"
         icon={<SFLink aria-hidden />}
         title={submissionsMessages.deadLinks.none}
         subtitle={submissionsMessages.deadLinks.noneHint}
@@ -597,7 +599,7 @@ export function SubmissionsPage() {
   const concernCount = shopConcerns.length;
 
   return (
-    <div>
+    <div className="flex flex-col flex-1">
       <PageHeader title={submissionsMessages.title}>
         <SegmentedControl
           value={tab}
@@ -671,6 +673,7 @@ function ShopMeldungenTab() {
   if (reports.length === 0) {
     return (
       <ContentUnavailableView
+        className="flex-1"
         icon={<SFStorefrontFill aria-hidden />}
         title={submissionsMessages.shopReports.none}
         subtitle={submissionsMessages.shopReports.noneHint}

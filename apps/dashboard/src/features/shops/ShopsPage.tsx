@@ -136,6 +136,7 @@ export function ShopsPage() {
 
       {!isLoading && shops.length > 0 && filtered.length === 0 && (
         <ContentUnavailableView
+          className="flex-1"
           icon={<SFMagnifyingglass aria-hidden />}
           title={`${shopsMessages.noResultsPrefix} „${search}".`}
           subtitle={shopsMessages.noResultsHint}
