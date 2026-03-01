@@ -43,19 +43,24 @@ export function EmailTemplateListPage() {
         </button>
       </PageHeader>
 
-      <div className="p-6">
-        <Card className="overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
-              {messages.common.loading}
-            </div>
-          ) : templates.length === 0 ? (
-            <ContentUnavailableView
-              icon={<SFEnvelopeFill aria-hidden />}
-              title={m.noTemplates}
-              subtitle={m.noTemplatesHint}
-            />
-          ) : (
+      {isLoading && (
+        <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
+          {messages.common.loading}
+        </div>
+      )}
+
+      {!isLoading && templates.length === 0 && (
+        <ContentUnavailableView
+          className="flex-1"
+          icon={<SFEnvelopeFill aria-hidden />}
+          title={m.noTemplates}
+          subtitle={m.noTemplatesHint}
+        />
+      )}
+
+      {!isLoading && templates.length > 0 && (
+        <div className="p-3">
+          <Card className="overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
@@ -119,9 +124,9 @@ export function EmailTemplateListPage() {
                 ))}
               </tbody>
             </table>
-          )}
-        </Card>
-      </div>
+          </Card>
+        </div>
+      )}
     </>
   );
 }

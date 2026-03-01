@@ -127,6 +127,7 @@ export function ShopsPage() {
 
       {!isLoading && shops.length === 0 && (
         <ContentUnavailableView
+          className="flex-1"
           icon={<SFStorefrontFill aria-hidden />}
           title={shopsMessages.noShops}
           subtitle={shopsMessages.noShopsHint}

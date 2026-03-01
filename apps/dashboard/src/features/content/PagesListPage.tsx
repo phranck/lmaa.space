@@ -197,18 +197,23 @@ export function PagesListPage() {
           </form>
         )}
 
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
-              {text.loadPages}
-            </div>
-          ) : pages.length === 0 ? (
-            <ContentUnavailableView
-              icon={<SFDocumentFill aria-hidden />}
-              title={text.emptyPages}
-              subtitle={text.emptyPagesHint}
-            />
-          ) : (
+        {isLoading && (
+          <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
+            {text.loadPages}
+          </div>
+        )}
+
+        {!isLoading && pages.length === 0 && (
+          <ContentUnavailableView
+            className="flex-1"
+            icon={<SFDocumentFill aria-hidden />}
+            title={text.emptyPages}
+            subtitle={text.emptyPagesHint}
+          />
+        )}
+
+        {!isLoading && pages.length > 0 && (
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
@@ -262,8 +267,8 @@ export function PagesListPage() {
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </>
   );
