@@ -90,6 +90,20 @@ export function useDeleteShop() {
 }
 
 /**
+ * Updates the delete reason of a soft-deleted shop.
+ *
+ * @returns React Query mutation.
+ */
+export function useUpdateDeleteReason() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string | null }) =>
+      api.patch(`/admin/shops/${id}/delete-reason`, { reason }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
+  });
+}
+
+/**
  * Requests a preview OG image URL for an arbitrary shop URL.
  *
  * @returns React Query mutation returning preview image data.
