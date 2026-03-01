@@ -1,6 +1,6 @@
-import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { Card } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { Dialog, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailTemplateImportConflictDialog } from "@/features/email-templates/EmailTemplateImportConflictDialog.tsx";
@@ -278,11 +278,21 @@ export function EmailTemplateListPage() {
         onChange={handleFileChange}
       />
 
-      <AlertDialog
+      <Dialog
         open={alertMessage !== null}
         title={alertMessage ?? ""}
         onClose={() => setAlertMessage(null)}
-      />
+      >
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setAlertMessage(null)}
+            className={dialogBtnSecondary}
+          >
+            {messages.common.close}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
 
       {importConflict && (
         <EmailTemplateImportConflictDialog

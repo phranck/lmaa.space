@@ -187,7 +187,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
   return (
     <div
-      className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
+      className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
       onAnimationEnd={(e) => {
         if (closing && e.target === e.currentTarget) onClose();
       }}
@@ -404,7 +404,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
           <button
             type="button"
             onClick={() => setClosing(true)}
-            className="px-4 py-2 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+            className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
           >
             {common.cancel}
           </button>
@@ -412,7 +412,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
             type="button"
             onClick={handleSave}
             disabled={!canSave}
-            className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
+            className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
           >
             {isPending ? common.saving : common.save}
           </button>

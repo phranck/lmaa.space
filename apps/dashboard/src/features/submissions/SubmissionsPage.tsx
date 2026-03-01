@@ -1,6 +1,6 @@
 import { ItemCard } from "@/components/ui/Card.tsx";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
@@ -447,24 +447,40 @@ function VorschlaegeTab() {
         </div>
       )}
 
-      <ConfirmDialog
+      <Dialog
         open={deleteSubmissionId !== null && deleteSubmissionTarget !== null}
         title={submissionsMessages.suggestions.confirmDeleteTitle}
-        description={
-          <>
+        onClose={() => setDeleteSubmissionId(null)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">
             <span className="font-medium">{deleteSubmissionTarget?.shopName}</span>{" "}
             {submissionsMessages.suggestions.confirmDeleteDescription}
-          </>
-        }
-        isPending={deleteSubmissionMutation.isPending}
-        onConfirm={() => {
-          if (deleteSubmissionId === null) return;
-          deleteSubmissionMutation.mutate(deleteSubmissionId, {
-            onSuccess: () => setDeleteSubmissionId(null),
-          });
-        }}
-        onCancel={() => setDeleteSubmissionId(null)}
-      />
+          </p>
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setDeleteSubmissionId(null)}
+            className={dialogBtnSecondary}
+          >
+            {common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteSubmissionMutation.isPending}
+            onClick={() => {
+              if (deleteSubmissionId === null) return;
+              deleteSubmissionMutation.mutate(deleteSubmissionId, {
+                onSuccess: () => setDeleteSubmissionId(null),
+              });
+            }}
+            className={dialogBtnDestructive}
+          >
+            {deleteSubmissionMutation.isPending ? "…" : common.delete}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
     </>
   );
 }

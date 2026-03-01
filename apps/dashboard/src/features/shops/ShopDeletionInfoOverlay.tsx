@@ -125,7 +125,7 @@ export function ShopDeletionInfoOverlay({
       <button
         type="button"
         aria-label={messages.common.close}
-        className="fixed inset-0 z-40 bg-black/30 overlay-backdrop-enter"
+        className="fixed inset-0 z-40 bg-black/50 overlay-backdrop-enter"
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">

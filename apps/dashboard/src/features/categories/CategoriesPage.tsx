@@ -1,5 +1,5 @@
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -118,22 +118,34 @@ export function CategoriesPage() {
         />
       )}
 
-      <ConfirmDialog
+      <Dialog
         open={deleteId !== null && !!deleteTarget}
         title={categoriesMessages.deleteTitle}
-        description={
-          <>
+        onClose={() => setDeleteId(null)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">
             <span className="font-medium">{deleteTarget?.name}</span>{" "}
             {categoriesMessages.deleteDescriptionSuffix}
-          </>
-        }
-        isPending={deleteMutation.isPending}
-        onConfirm={() => {
-          if (deleteId !== null)
-            deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
-        }}
-        onCancel={() => setDeleteId(null)}
-      />
+          </p>
+        </div>
+        <Dialog.Footer>
+          <button type="button" onClick={() => setDeleteId(null)} className={dialogBtnSecondary}>
+            {common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteMutation.isPending}
+            onClick={() => {
+              if (deleteId !== null)
+                deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
+            }}
+            className={dialogBtnDestructive}
+          >
+            {deleteMutation.isPending ? "…" : common.delete}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
     </div>
   );
 }

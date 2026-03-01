@@ -1,4 +1,4 @@
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
+import { Dialog, dialogBtnPrimary, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UserAvatar } from "@/features/users/UserAvatar.tsx";
 import type { AdminRole } from "@lmaa/shared";
@@ -91,27 +91,32 @@ export function SidebarFooter({
         </div>
       </div>
 
-      <ConfirmDialog
-        open={confirmOpen}
-        title={s.logoutConfirmTitle}
-        description={
-          <div className="space-y-3">
-            <p>{s.logoutConfirmDescription}</p>
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={skipNext}
-                onChange={(e) => setSkipNext(e.target.checked)}
-                className="w-4 h-4 rounded accent-[var(--color-primary)]"
-              />
-              <span className="text-xs text-[var(--ds-text-muted)]">{s.logoutSkipConfirm}</span>
-            </label>
-          </div>
-        }
-        confirmLabel={s.logoutConfirmAction}
-        onConfirm={handleConfirm}
-        onCancel={() => setConfirmOpen(false)}
-      />
+      <Dialog open={confirmOpen} title={s.logoutConfirmTitle} onClose={() => setConfirmOpen(false)}>
+        <div className="px-6 py-3 space-y-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">{s.logoutConfirmDescription}</p>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={skipNext}
+              onChange={(e) => setSkipNext(e.target.checked)}
+              className="w-4 h-4 rounded accent-[var(--color-primary)]"
+            />
+            <span className="text-xs text-[var(--ds-text-muted)]">{s.logoutSkipConfirm}</span>
+          </label>
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setConfirmOpen(false)}
+            className={dialogBtnSecondary}
+          >
+            {messages.common.cancel}
+          </button>
+          <button type="button" onClick={handleConfirm} className={dialogBtnPrimary}>
+            {s.logoutConfirmAction}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
     </>
   );
 }
