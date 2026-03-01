@@ -2,7 +2,8 @@ import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BUTTON_ICON_LIST } from "@/features/form-builder/buttonIconMap.tsx";
-import type { ButtonActionType, FormField, InputType, RichTextVariant } from "@lmaa/contracts";
+import { FieldTypeIcon } from "@/features/form-builder/FieldPalette.tsx";
+import type { ButtonActionType, FieldType, FormField, InputType, RichTextVariant } from "@lmaa/contracts";
 import { Suspense, lazy, useEffect, useState } from "react";
 import {
   SFCalendar,
@@ -17,6 +18,19 @@ import {
 const RichTextEditor = lazy(() =>
   import("@/features/form-builder/RichTextEditor.tsx").then((m) => ({ default: m.RichTextEditor })),
 );
+
+// ---------------------------------------------------------------------------
+// Field type label helper
+// ---------------------------------------------------------------------------
+
+function fieldTypeLabel(
+  type: FieldType,
+  ft: Record<string, string>,
+): string {
+  // FieldType uses kebab-case ("multi-select") but i18n keys use camelCase
+  const key = type.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+  return ft[key] ?? ft[type] ?? type;
+}
 
 // ---------------------------------------------------------------------------
 // Icon picker
@@ -143,6 +157,7 @@ interface FieldConfigPanelProps {
 export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPanelProps) {
   const { messages } = useI18n();
   const m = messages.formBuilder.panel;
+  const ft = messages.formBuilder.fieldTypes as unknown as Record<string, string>;
 
   const isRichText = field.type === "richtext";
   const isButton = field.type === "button";
@@ -189,6 +204,16 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
 
   return (
     <Card className="flex flex-col gap-4 p-4 min-w-64">
+      {/* Header: field type icon + label */}
+      <div className="flex items-center gap-2 pb-3 border-b border-[var(--ds-border)]">
+        <span className="text-[var(--ds-text-subtle)]">
+          <FieldTypeIcon type={field.type} />
+        </span>
+        <span className="text-sm font-semibold text-[var(--ds-text)]">
+          {fieldTypeLabel(field.type, ft)}
+        </span>
+      </div>
+
       {/* Separator: no config except span */}
       {isSeparator && (
         <p className="text-xs text-[var(--ds-text-subtle)] italic">{m.separatorNoSettings}</p>

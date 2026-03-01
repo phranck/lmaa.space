@@ -19,7 +19,7 @@ interface PaletteTileProps {
  * @param props.type - The field type whose icon should be rendered.
  * @returns An inline SVG icon, or nothing for unknown types.
  */
-function FieldTypeIcon({ type }: { type: FieldType }) {
+export function FieldTypeIcon({ type }: { type: FieldType }) {
   switch (type) {
     case "text":
       return (
