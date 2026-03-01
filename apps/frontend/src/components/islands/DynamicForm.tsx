@@ -275,14 +275,18 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
           {...rhfField}
         />
       )}
-      {(field.subtext || maxLen !== undefined) && (
+      {(field.allowMarkdown || field.subtext || maxLen !== undefined) && (
         <div className="flex justify-between items-start gap-4">
-          {field.subtext ? (
-            <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>
-          ) : (
-            <span className="mt-1.5" />
-          )}
-          {maxLen !== undefined && !field.allowMarkdown && (
+          <DynamicFormSubtext>
+            {field.allowMarkdown && (
+              <>
+                Markdown ist erlaubt.
+                {field.subtext && <br />}
+              </>
+            )}
+            {field.subtext}
+          </DynamicFormSubtext>
+          {maxLen !== undefined && (
             <span className="text-xs text-[var(--ds-text-subtle)] shrink-0 mt-1.5 pr-[5px]">
               {rhfField.value.length}/{maxLen}
             </span>
