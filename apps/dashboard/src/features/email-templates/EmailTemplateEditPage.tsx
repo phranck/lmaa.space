@@ -1,4 +1,5 @@
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
+import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailPreview } from "@/features/email-templates/EmailPreview.tsx";
@@ -8,15 +9,10 @@ import {
   useUpdateEmailTemplate,
 } from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import type { EmailTemplateInput } from "@lmaa/contracts";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
 import { SFCheckmarkCircleFill } from "sf-symbols-lib/monochrome";
-
-const LazyRichTextEditor = lazy(() =>
-  import("@/features/form-builder/RichTextEditor.tsx").then((m) => ({
-    default: m.RichTextEditor,
-  })),
-);
 
 interface FieldProps {
   label: string;
@@ -31,7 +27,9 @@ function Field({ label, htmlFor, required, hint, children }: FieldProps) {
     <div className="space-y-1">
       <label htmlFor={htmlFor} className="block text-xs font-medium text-[var(--ds-text-muted)]">
         {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
+        {required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3 h-3 text-red-500 align-middle" />
+        )}
       </label>
       {children}
       {hint && <p className="text-xs text-[var(--ds-text-muted)]">{hint}</p>}
@@ -226,39 +224,36 @@ export function EmailTemplateEditPage() {
                 />
               </Field>
               <Field label={m.headerText} htmlFor="tpl-header-text">
-                <Suspense
-                  fallback={
-                    <div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />
-                  }
-                >
-                  <LazyRichTextEditor value={headerText} onChange={setHeaderText} rows={4} />
-                </Suspense>
+                <MarkdownTextarea
+                  id="tpl-header-text"
+                  value={headerText}
+                  onChange={setHeaderText}
+                  rows={4}
+                />
               </Field>
             </SectionCard>
 
             {/* Body */}
             <SectionCard title={m.sectionBody}>
               <Field label={m.bodyText} htmlFor="tpl-body-text" required>
-                <Suspense
-                  fallback={
-                    <div className="h-48 rounded-control border border-[var(--ds-border)] animate-pulse" />
-                  }
-                >
-                  <LazyRichTextEditor value={bodyText} onChange={setBodyText} rows={12} />
-                </Suspense>
+                <MarkdownTextarea
+                  id="tpl-body-text"
+                  value={bodyText}
+                  onChange={setBodyText}
+                  rows={12}
+                />
               </Field>
             </SectionCard>
 
             {/* Footer */}
             <SectionCard title={m.sectionFooter}>
               <Field label={m.footerText} htmlFor="tpl-footer-text">
-                <Suspense
-                  fallback={
-                    <div className="h-24 rounded-control border border-[var(--ds-border)] animate-pulse" />
-                  }
-                >
-                  <LazyRichTextEditor value={footerText} onChange={setFooterText} rows={4} />
-                </Suspense>
+                <MarkdownTextarea
+                  id="tpl-footer-text"
+                  value={footerText}
+                  onChange={setFooterText}
+                  rows={4}
+                />
               </Field>
               <Field label={m.footerBanner} htmlFor="tpl-footer-banner">
                 <TextInput
