@@ -30,6 +30,8 @@ interface IconPickerProps {
 }
 
 function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
+  const { messages } = useI18n();
+  const mp = messages.formBuilder.panel;
   const [variant, setVariant] = useState<"outline" | "filled">("outline");
   const [query, setQuery] = useState("");
 
@@ -73,7 +75,7 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
                   : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
               }`}
             >
-              {v === "outline" ? "Outline" : "Filled"}
+              {v === "outline" ? mp.iconPickerVariantOutline : mp.iconPickerVariantFilled}
             </button>
           ))}
         </div>
@@ -82,7 +84,7 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search icons…"
+        placeholder={mp.iconPickerSearch}
         className="w-full px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
       />
       <div className="grid grid-cols-6 gap-1 max-h-[276px] overflow-y-auto pr-px">
@@ -102,7 +104,7 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
         )}
         {icons.length === 0 ? (
           <p className="col-span-6 py-4 text-center text-xs text-[var(--ds-text-muted)]">
-            No icons found
+            {mp.iconPickerEmpty}
           </p>
         ) : (
           icons.map(({ name, Icon, label: iconLabel }) => (
@@ -189,9 +191,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
     <Card className="flex flex-col gap-4 p-4 min-w-64">
       {/* Separator: no config except span */}
       {isSeparator && (
-        <p className="text-xs text-[var(--ds-text-subtle)] italic">
-          Trennlinie hat keine weiteren Einstellungen.
-        </p>
+        <p className="text-xs text-[var(--ds-text-subtle)] italic">{m.separatorNoSettings}</p>
       )}
 
       {/* Paragraph: plain text content */}
@@ -290,7 +290,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <Suspense
             fallback={
               <div className="h-32 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] flex items-center justify-center text-xs text-[var(--ds-text-subtle)]">
-                Lade Editor…
+                {m.loadingEditor}
               </div>
             }
           >
@@ -442,7 +442,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
               <button
                 key={n}
                 type="button"
-                aria-label={`${n} von 12`}
+                aria-label={`${n} ${m.spanAriaOf} 12`}
                 onClick={() => set("span", n)}
                 className={`h-4 rounded-sm transition-colors ${
                   n <= (field.span ?? 12)
@@ -700,7 +700,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {hasValidationMinMax && (
         <div className="flex flex-col gap-2">
           <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
-            Validierung
+            {m.validation}
           </span>
           <div className="flex gap-2">
             <label className="flex-1 min-w-0 flex flex-col gap-1">

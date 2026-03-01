@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/Card.tsx";
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -11,6 +12,7 @@ import { useNavigate } from "react-router";
 import {
   SFCheckmarkCircleFill,
   SFCircle,
+  SFDocumentFill,
   SFNewspaperFill,
   SFPlusCircleFill,
   SFTrashFill,
@@ -29,19 +31,27 @@ function deriveSlug(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function ActiveBadge({ isActive }: { isActive: boolean }) {
+function ActiveBadge({
+  isActive,
+  activeLabel,
+  inactiveLabel,
+}: {
+  isActive: boolean;
+  activeLabel: string;
+  inactiveLabel: string;
+}) {
   if (isActive) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
         <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
-        Aktiv
+        {activeLabel}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
       <SFCircle className="w-3.5 h-3.5" />
-      Inaktiv
+      {inactiveLabel}
     </span>
   );
 }
@@ -208,7 +218,7 @@ export function FormBuilderListPage() {
   const [showDialog, setShowDialog] = useState(false);
 
   async function handleDelete(name: string) {
-    if (!confirm(`Formular "${name}" wirklich löschen?`)) return;
+    if (!confirm(`${m.deleteConfirmPrefix}${name}${m.deleteConfirmSuffix}`)) return;
     await deleteForm.mutateAsync(name);
   }
 
@@ -237,16 +247,18 @@ export function FormBuilderListPage() {
               {messages.common.loading}
             </div>
           ) : forms.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
-              {m.noForms}
-            </div>
+            <ContentUnavailableView
+              icon={<SFDocumentFill aria-hidden />}
+              title={m.noForms}
+              subtitle={m.noFormsHint}
+            />
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
-                  <th className="text-left px-4 py-3">Name</th>
+                  <th className="text-left px-4 py-3">{m.tableColumns.name}</th>
                   <th className="text-left px-4 py-3">{m.slugLabel}</th>
-                  <th className="text-left px-4 py-3">Status</th>
+                  <th className="text-left px-4 py-3">{m.tableColumns.status}</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -269,26 +281,30 @@ export function FormBuilderListPage() {
                       {form.slug ? `/${form.slug}` : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <ActiveBadge isActive={form.isActive} />
+                      <ActiveBadge
+                        isActive={form.isActive}
+                        activeLabel={m.status.active}
+                        inactiveLabel={m.status.inactive}
+                      />
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
                           onClick={() => navigate(`/formular/${form.name}`)}
-                          className="p-1.5 text-[var(--ds-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--ds-surface-hover)] rounded transition-colors"
-                          title={m.editButton}
+                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--ds-surface-hover)] rounded transition-colors"
                         >
                           <SFNewspaperFill className="w-3.5 h-3.5" />
+                          {m.editButton}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(form.name)}
                           disabled={deleteForm.isPending}
-                          className="p-1.5 text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
-                          title={messages.common.delete}
+                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
                         >
                           <SFTrashFill className="w-3.5 h-3.5" />
+                          {messages.common.delete}
                         </button>
                       </div>
                     </td>

@@ -87,7 +87,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
             {...attributes}
             {...listeners}
             className="shrink-0 text-[var(--ds-text-muted)] cursor-grab active:cursor-grabbing touch-none"
-            aria-label="Schritt verschieben"
+            aria-label={m.stepMoveAria}
           >
             ⠿
           </span>
@@ -103,7 +103,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
           type="button"
           onClick={onRemove}
           className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-danger-text)] transition-colors text-xs"
-          aria-label="Schritt entfernen"
+          aria-label={m.stepRemoveAria}
         >
           ✕
         </button>
@@ -191,7 +191,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
                 } as SubmissionStepEmail)
               }
               className={inputClass}
-              placeholder="Neue Formular-Übermittlung"
+              placeholder={m.emailSubjectPlaceholder}
             />
           </div>
         </>
@@ -475,7 +475,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
             value={cfg.successMessage ?? ""}
             onChange={(e) => updateField("successMessage", e.target.value)}
             className={inputClass}
-            placeholder="Vielen Dank für deine Nachricht!"
+            placeholder={m.successMessagePlaceholder}
           />
         )}
       </div>

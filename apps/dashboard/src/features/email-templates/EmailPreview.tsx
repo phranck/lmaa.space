@@ -1,8 +1,9 @@
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
-import { marked } from "marked";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { Marked } from "marked";
 import { useMemo, useState } from "react";
 
-marked.use({ breaks: true, gfm: true });
+const md = new Marked({ breaks: true, gfm: true });
 
 /**
  * Dark mode CSS rules applied via @media query in real email clients.
@@ -40,9 +41,7 @@ function applyInlineStyles(html: string): string {
 }
 
 function parseMarkdown(text: string): string {
-  const result = marked.parse(text);
-  const html = typeof result === "string" ? result : "";
-  return applyInlineStyles(html);
+  return applyInlineStyles(md.parse(text, { async: false }));
 }
 
 interface EmailPreviewProps {
@@ -65,6 +64,8 @@ export function EmailPreview({
   footerBannerUrl,
   footerText,
 }: EmailPreviewProps) {
+  const { messages } = useI18n();
+  const m = messages.emailTemplates;
   const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
 
   const srcDoc = useMemo(() => {
@@ -126,7 +127,7 @@ export function EmailPreview({
     <div className="flex flex-col h-full">
       <div className="px-5 py-3 shrink-0 flex items-center justify-between">
         <span className="text-xs font-semibold text-[var(--ds-text-muted)] uppercase tracking-wide">
-          Vorschau
+          {m.preview}
         </span>
         <ThemeSegmentedControl
           value={colorScheme}
@@ -141,7 +142,7 @@ export function EmailPreview({
           key={colorScheme}
           srcDoc={srcDoc}
           className="w-full h-full border-0"
-          title="Email Vorschau"
+          title={m.previewTitle}
           sandbox="allow-same-origin"
         />
       </div>
