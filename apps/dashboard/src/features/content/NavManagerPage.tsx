@@ -536,7 +536,7 @@ export function NavManagerPage() {
   return (
     <>
       <PageHeader title={text.pageTitle} />
-      <div className="p-6">
+      <div className="p-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control p-5">
             <NavColumn navId="header" label={text.headerNav} />
