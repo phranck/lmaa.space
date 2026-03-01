@@ -41,11 +41,11 @@ export function ConfirmDialog({
       <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl p-6 max-w-sm w-full overlay-card-enter">
         <h3 className="font-bold text-[var(--ds-text)] mb-2">{title}</h3>
         <p className="text-sm text-[var(--ds-text-muted)] mb-5">{description}</p>
-        <div className="flex gap-3">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+            className="px-4 py-2.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
           >
             {common.cancel}
           </button>
@@ -53,7 +53,7 @@ export function ConfirmDialog({
             type="button"
             disabled={isPending}
             onClick={onConfirm}
-            className="flex-1 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+            className="px-4 py-2.5 bg-red-500 text-white rounded-control text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
           >
             {isPending ? "..." : resolvedConfirmLabel}
           </button>

@@ -195,20 +195,20 @@ function NewFormDialog({
 
             {error && <p className="text-xs text-red-500">{error}</p>}
 
-            <div className="flex items-center gap-3 pt-1">
-              <button
-                type="submit"
-                disabled={createMutation.isPending || !slug || !name}
-                className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-60 transition-colors"
-              >
-                {createMutation.isPending ? messages.common.saving : m.create}
-              </button>
+            <div className="flex items-center justify-end gap-3 pt-1">
               <button
                 type="button"
                 onClick={onClose}
                 className="px-4 py-2 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
               >
                 {messages.common.cancel}
+              </button>
+              <button
+                type="submit"
+                disabled={createMutation.isPending || !slug || !name}
+                className="px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-60 transition-colors"
+              >
+                {createMutation.isPending ? messages.common.saving : m.create}
               </button>
             </div>
           </form>
