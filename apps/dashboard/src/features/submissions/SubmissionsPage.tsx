@@ -392,11 +392,11 @@ function VorschlaegeTab() {
               </p>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setReviewId(null)}
-                className="flex-1 py-2.5 border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+                className="px-4 py-2.5 border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 {common.cancel}
               </button>
@@ -420,7 +420,7 @@ function VorschlaegeTab() {
                     },
                   )
                 }
-                className={`flex-1 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
+                className={`px-4 py-2.5 rounded-control text-sm font-semibold text-white transition-colors disabled:opacity-60 ${
                   reviewId > 0
                     ? "bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
                     : "bg-red-500 hover:bg-red-600"
