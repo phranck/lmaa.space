@@ -43,6 +43,11 @@ export interface DashboardMessages {
       emailTemplatesOverview: string;
       editProfile: string;
       logout: string;
+      logoutConfirmTitle: string;
+      logoutConfirmDescription: string;
+      logoutConfirmAction: string;
+      logoutSkipConfirm: string;
+      logoutConfirmLabel: string;
       roles: {
         owner: string;
         admin: string;
@@ -647,6 +652,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Übersicht",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
+        logoutConfirmTitle: "Abmelden?",
+        logoutConfirmDescription: "Wirklich vom Dashboard abmelden?",
+        logoutConfirmAction: "Abmelden",
+        logoutSkipConfirm: "Beim nächsten Mal nicht mehr fragen",
+        logoutConfirmLabel: "Logout-Bestätigung",
         roles: {
           owner: "Owner",
           admin: "Admin",
@@ -1250,6 +1260,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Overview",
         editProfile: "Edit profile",
         logout: "Log out",
+        logoutConfirmTitle: "Log out?",
+        logoutConfirmDescription: "Really log out of the dashboard?",
+        logoutConfirmAction: "Log out",
+        logoutSkipConfirm: "Don't ask next time",
+        logoutConfirmLabel: "Logout confirmation",
         roles: {
           owner: "Owner",
           admin: "Admin",
