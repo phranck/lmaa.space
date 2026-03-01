@@ -1,41 +1,46 @@
+import { API_BASE } from "@/lib/client-api";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
-import type { Category, Shop } from "@lmaa/shared";
-import Fuse, { type IFuseOptions } from "fuse.js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-/**
- * Props for the client-side search island.
- */
-interface Props {
-  shops: Shop[];
-  categories: Category[];
+interface CategoryRef {
+  id: number;
+  slug: string;
+  name: string;
 }
 
-const FUSE_OPTIONS: IFuseOptions<Shop> = {
-  keys: [
-    { name: "name", weight: 0.4 },
-    { name: "description", weight: 0.3 },
-    { name: "categories.name", weight: 0.2 },
-    { name: "region", weight: 0.05 },
-    { name: "shipping", weight: 0.05 },
-  ],
-  threshold: 0.35,
-  minMatchCharLength: 2,
-  includeScore: true,
-};
+interface ShopResult {
+  id: number;
+  name: string;
+  url: string;
+  ogImage: string | null;
+  description: string;
+  categories: CategoryRef[];
+}
+
+interface CategoryResult {
+  id: number;
+  slug: string;
+  name: string;
+  shopCount?: number;
+}
+
+interface SearchResults {
+  shops: ShopResult[];
+  categories: CategoryResult[];
+  total: number;
+}
 
 /**
- * Interactive catalog search used on the public search page.
+ * Interactive catalog search backed by PostgreSQL full-text search.
  *
- * Hidden behavior: reads/writes the `q` query parameter client-side so links
- * stay shareable and browser history is preserved.
- *
- * @param props - Preloaded shops/categories from Astro server rendering.
- * @returns Hydrated search UI with category and shop result sections.
+ * Fetches results from GET /api/search?q=... on each debounced keystroke.
+ * Reads/writes the `q` query parameter so search links stay shareable.
  */
-export default function SearchIsland({ shops, categories }: Props) {
+export default function SearchIsland() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [results, setResults] = useState<SearchResults | null>(null);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Read ?q= URL param after hydration
@@ -48,29 +53,47 @@ export default function SearchIsland({ shops, categories }: Props) {
     }
   }, []);
 
-  // Debounce: update debouncedQuery 200ms after last keystroke
+  // Debounce: update debouncedQuery 350ms after last keystroke
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), 350);
     return () => clearTimeout(timer);
   }, [query]);
 
-  const fuse = useMemo(() => new Fuse(shops, FUSE_OPTIONS), [shops]);
+  // Fetch from backend whenever debouncedQuery changes
+  useEffect(() => {
+    if (!debouncedQuery.trim() || debouncedQuery.length < 2) {
+      setResults(null);
+      return;
+    }
 
-  const shopResults = useMemo(() => {
-    if (!debouncedQuery.trim() || debouncedQuery.length < 2) return [];
-    return fuse.search(debouncedQuery).map((r) => r.item);
-  }, [fuse, debouncedQuery]);
+    let cancelled = false;
+    setLoading(true);
 
-  const categoryResults = useMemo(() => {
-    if (!debouncedQuery.trim()) return [];
-    return categories.filter((c) => c.name.toLowerCase().includes(debouncedQuery.toLowerCase()));
-  }, [categories, debouncedQuery]);
+    fetch(`${API_BASE}/search?q=${encodeURIComponent(debouncedQuery)}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!cancelled) {
+          setResults(json.data as SearchResults);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  const total = shopResults.length + categoryResults.length;
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery]);
+
+  const shopResults = results?.shops ?? [];
+  const categoryResults = results?.categories ?? [];
+  const total = results?.total ?? 0;
+  const hasQuery = debouncedQuery.length >= 2;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Search input – centered */}
+      {/* Search input */}
       <div className="flex flex-col items-center mb-10">
         <input
           ref={inputRef}
@@ -89,13 +112,21 @@ export default function SearchIsland({ shops, categories }: Props) {
         />
       </div>
 
-      {debouncedQuery.length >= 2 && (
-        <output aria-live="polite" className="text-sm text-stone-400 mb-6 search-section-enter">
+      {/* Status line */}
+      {hasQuery && !loading && (
+        <output
+          aria-live="polite"
+          className="block text-sm text-stone-400 mb-6 search-section-enter"
+        >
           {total} {total === 1 ? "Treffer" : "Treffer gefunden"}
         </output>
       )}
 
-      {total === 0 && debouncedQuery.length >= 2 && (
+      {/* Loading */}
+      {loading && <p className="text-sm text-stone-400 mb-6">Suche…</p>}
+
+      {/* No results */}
+      {!loading && hasQuery && total === 0 && (
         <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100 search-section-enter">
           <p className="text-stone-600 mb-2 font-medium">Keine Ergebnisse für „{debouncedQuery}"</p>
           <p className="text-sm text-stone-400 mb-6">
@@ -110,6 +141,7 @@ export default function SearchIsland({ shops, categories }: Props) {
         </div>
       )}
 
+      {/* Category results */}
       {categoryResults.length > 0 && (
         <section className="mb-10 search-section-enter">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
@@ -132,6 +164,7 @@ export default function SearchIsland({ shops, categories }: Props) {
         </section>
       )}
 
+      {/* Shop results */}
       {shopResults.length > 0 && (
         <section className="search-section-enter">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
@@ -167,6 +200,19 @@ export default function SearchIsland({ shops, categories }: Props) {
                         {shop.name}
                       </h3>
                       <p className="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
+                      {shop.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {shop.categories.map((cat) => (
+                            <a
+                              key={cat.id}
+                              href={`/category/${cat.slug}`}
+                              className="px-2 py-0.5 bg-stone-100 rounded-full text-xs text-stone-500 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                            >
+                              {cat.name}
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <a
                       href={shopUrl}

@@ -1,13 +1,6 @@
 ---
 import SearchIsland from "@/components/islands/SearchIsland";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { apiGet } from "@/lib/api";
-import type { Category, Shop } from "@lmaa/shared";
-
-const [shops, categories] = await Promise.all([
-  apiGet<Shop[]>("/shops"),
-  apiGet<Category[]>("/categories"),
-]);
 ---
 
 <BaseLayout
@@ -15,5 +8,5 @@ const [shops, categories] = await Promise.all([
   description="Shops und Kategorien durchsuchen – faire Amazon-Alternativen auf lmaa.space."
   noindex={true}
 >
-  <SearchIsland client:load shops={shops} categories={categories} />
+  <SearchIsland client:load />
 </BaseLayout>
