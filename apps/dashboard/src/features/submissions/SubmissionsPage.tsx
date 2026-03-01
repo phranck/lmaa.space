@@ -32,6 +32,7 @@ import {
   SFCheckmark,
   SFCheckmarkCircleFill,
   SFClockFill,
+  SFInfoCircleFill,
   SFLink,
   SFLongTextPageAndPencilFill,
   SFPauseCircleFill,
@@ -107,6 +108,7 @@ function VorschlaegeTab() {
   const [sendFeedback, setSendFeedback] = useState(false);
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
   const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
+  const [infoSubmission, setInfoSubmission] = useState<Submission | null>(null);
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
   const { data: categories = [] } = useAdminCategories();
@@ -150,11 +152,6 @@ function VorschlaegeTab() {
               value: "onhold" as SubmissionStatus,
               label: statusLabels.onhold,
               icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
-            },
-            {
-              value: "approved" as SubmissionStatus,
-              label: statusLabels.approved,
-              icon: <SFCheckmarkCircleFill className="w-3.5 h-3.5" />,
             },
             {
               value: "rejected" as SubmissionStatus,
@@ -310,15 +307,67 @@ function VorschlaegeTab() {
                 </button>
               </div>
             )}
+            {filter === "onhold" && (
+              <div className="flex flex-row items-end gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setDeleteSubmissionId(sub.id)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
+                >
+                  <SFTrashFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.delete}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    reviewMutation.mutate({
+                      id: sub.id,
+                      status: "pending",
+                      adminNote: "",
+                      sendFeedback: false,
+                    })
+                  }
+                  disabled={reviewMutation.isPending}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+                >
+                  <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.restore}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditSubmission(sub)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.edit}
+                </button>
+              </div>
+            )}
             {filter === "rejected" && (
               <div className="flex flex-row items-end gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setDeleteSubmissionId(sub.id)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
                 >
                   <SFTrashFill className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.delete}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInfoSubmission(sub)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFInfoCircleFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.info}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditSubmission(sub)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.edit}
                 </button>
               </div>
             )}
@@ -478,6 +527,33 @@ function VorschlaegeTab() {
             className={dialogBtnDestructive}
           >
             {deleteSubmissionMutation.isPending ? "…" : common.delete}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
+
+      <Dialog
+        open={infoSubmission !== null}
+        title={submissionsMessages.suggestions.infoTitle}
+        onClose={() => setInfoSubmission(null)}
+      >
+        <div className="px-6 py-3">
+          {infoSubmission?.adminNote ? (
+            <p className="text-sm text-[var(--ds-text)] whitespace-pre-wrap">
+              {infoSubmission.adminNote}
+            </p>
+          ) : (
+            <p className="text-sm text-[var(--ds-text-muted)] italic">
+              {submissionsMessages.suggestions.noReason}
+            </p>
+          )}
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setInfoSubmission(null)}
+            className={dialogBtnSecondary}
+          >
+            {common.close}
           </button>
         </Dialog.Footer>
       </Dialog>

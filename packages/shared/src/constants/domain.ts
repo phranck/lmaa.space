@@ -31,7 +31,7 @@ export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 /**
  * Allowed review outcomes when moderation is performed.
  */
-export const SUBMISSION_REVIEW_STATUSES = ["approved", "rejected", "onhold"] as const;
+export const SUBMISSION_REVIEW_STATUSES = ["approved", "rejected", "onhold", "pending"] as const;
 
 /**
  * Union type for submission review outcomes.

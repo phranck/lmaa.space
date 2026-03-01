@@ -38,7 +38,7 @@ export function useReviewSubmission() {
       sendFeedback,
     }: {
       id: number;
-      status: "approved" | "rejected" | "onhold";
+      status: "approved" | "rejected" | "onhold" | "pending";
       adminNote?: string;
       sendFeedback: boolean;
     }) =>
