@@ -130,13 +130,14 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields }: StepRo
                   <button
                     key={val || "static"}
                     type="button"
+                    disabled={val === "field" && fields.length === 0}
                     onClick={() =>
                       onUpdate({
                         ...step,
                         toFieldId: val === "field" ? (fields[0]?.id ?? "") : undefined,
                       } as SubmissionStepEmail)
                     }
-                    className={`px-2 h-6 rounded text-xs font-medium transition-colors ${
+                    className={`px-2 h-6 rounded text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                       active
                         ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
                         : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
