@@ -298,6 +298,122 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// URL field with live duplicate-domain check
+// ---------------------------------------------------------------------------
+
+type UrlCheckState =
+  | { status: "idle" }
+  | { status: "checking" }
+  | { status: "found"; shop: { id: number; name: string } }
+  | { status: "notFound" };
+
+interface UrlFieldProps {
+  field: FormField;
+  control: ReturnType<typeof useForm<SimpleFields>>["control"];
+  error: string | undefined;
+}
+
+/**
+ * Text input for URL fields that runs a debounced duplicate-domain check
+ * against the public `/api/check-url` endpoint. Shows an amber warning when
+ * the entered domain already exists in the shop catalog.
+ *
+ * @param props         - Component props.
+ * @param props.field   - The field definition.
+ * @param props.control - react-hook-form `control` object.
+ * @param props.error   - Validation error message.
+ * @returns URL input with inline duplicate warning.
+ */
+function UrlField({ field, control, error }: UrlFieldProps) {
+  const key = fieldKey(field);
+  const { field: rhfField } = useController({
+    name: key,
+    control,
+    rules: buildValidationRules(field),
+    defaultValue: "",
+  });
+  const [urlCheck, setUrlCheck] = useState<UrlCheckState>({ status: "idle" });
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCheckedDomainRef = useRef<string>("");
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  function extractDomain(val: string): string {
+    try {
+      return new URL(val.trim()).hostname.replace(/^www\./, "").toLowerCase();
+    } catch {
+      return "";
+    }
+  }
+
+  function scheduleCheck(val: string) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    const domain = extractDomain(val);
+
+    if (!domain) {
+      lastCheckedDomainRef.current = "";
+      setUrlCheck({ status: "idle" });
+      return;
+    }
+
+    // Only re-check when the domain portion actually changed
+    if (domain === lastCheckedDomainRef.current) return;
+
+    setUrlCheck({ status: "checking" });
+    timerRef.current = setTimeout(() => {
+      lastCheckedDomainRef.current = domain;
+      void fetch(`${API_BASE}/check-url?url=${encodeURIComponent(domain)}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { exists: boolean; shop?: { id: number; name: string } } | null) => {
+          if (data?.exists && data.shop) {
+            setUrlCheck({ status: "found", shop: data.shop });
+          } else {
+            setUrlCheck({ status: "notFound" });
+          }
+        })
+        .catch(() => setUrlCheck({ status: "idle" }));
+    }, 600);
+  }
+
+  return (
+    <div>
+      <label htmlFor={key} className={labelClass}>
+        {field.label}
+        {field.required && (
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+        )}
+      </label>
+      <input
+        id={key}
+        type="url"
+        placeholder={field.placeholder}
+        className={inputClass}
+        {...rhfField}
+        onChange={(e) => {
+          rhfField.onChange(e);
+          scheduleCheck(e.target.value);
+        }}
+      />
+      {field.subtext && <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>}
+      {urlCheck.status === "checking" && (
+        <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-[5px]">Wird geprüft…</p>
+      )}
+      {urlCheck.status === "found" && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-1.5">
+          Ein Shop mit dieser Domain ist bereits eingetragen: <strong>{urlCheck.shop.name}</strong>
+        </p>
+      )}
+      {error && <p className={errorClass}>{error}</p>}
+    </div>
+  );
+}
+
 interface SelectFieldProps {
   field: FormField;
   register: ReturnType<typeof useForm<SimpleFields>>["register"];
@@ -941,6 +1057,9 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       case "text":
       case "email":
       case "password":
+        if (field.inputType === "url") {
+          return <UrlField key={field.id} field={field} control={control} error={fieldError} />;
+        }
         return (
           <div key={field.id}>
             <label htmlFor={key} className={labelClass}>
