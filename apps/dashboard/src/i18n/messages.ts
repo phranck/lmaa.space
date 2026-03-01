@@ -9,6 +9,7 @@ export type DashboardLocale = "de" | "en";
 export interface DashboardMessages {
   languageName: string;
   common: {
+    ok: string;
     cancel: string;
     save: string;
     saving: string;
@@ -131,7 +132,9 @@ export interface DashboardMessages {
     newShop: string;
     searchPlaceholder: string;
     noShops: string;
+    noShopsHint: string;
     noResultsPrefix: string;
+    noResultsHint: string;
     filters: {
       all: string;
       public: string;
@@ -148,6 +151,12 @@ export interface DashboardMessages {
       putOnHold: string;
       restore: string;
       delete: string;
+      deletionInfo: string;
+      deletedBy: string;
+      deletedAt: string;
+      deletionReason: string;
+      noReason: string;
+      wasReported: string;
     };
     editCard: {
       titleSubmissionEdit: string;
@@ -180,6 +189,7 @@ export interface DashboardMessages {
     title: string;
     newCategory: string;
     empty: string;
+    emptyHint: string;
     deleteTitle: string;
     deleteDescriptionSuffix: string;
     table: {
@@ -234,6 +244,7 @@ export interface DashboardMessages {
     };
     suggestions: {
       nonePrefix: string;
+      noneHint: string;
       reject: string;
       onhold: string;
       edit: string;
@@ -255,6 +266,7 @@ export interface DashboardMessages {
     };
     deadLinks: {
       none: string;
+      noneHint: string;
       reportedSuffix: string;
       keep: string;
       delete: string;
@@ -264,6 +276,7 @@ export interface DashboardMessages {
     shopReports: {
       loading: string;
       none: string;
+      noneHint: string;
       doneOrDecline: string;
       edit: string;
       delete: string;
@@ -349,6 +362,37 @@ export interface DashboardMessages {
         search: string;
       };
     };
+    loadingFallback: string;
+    pages: {
+      title: string;
+      newPage: string;
+      createTitle: string;
+      fieldTitle: string;
+      fieldSlug: string;
+      titlePlaceholder: string;
+      slugPlaceholder: string;
+      create: string;
+      creating: string;
+      createError: string;
+      confirmDeletePrefix: string;
+      confirmDeleteSuffix: string;
+      loadPages: string;
+      emptyPages: string;
+      emptyPagesHint: string;
+      deletePageTitle: string;
+      table: {
+        title: string;
+        slug: string;
+        status: string;
+        createdBy: string;
+        updatedBy: string;
+      };
+      status: {
+        published: string;
+        hidden: string;
+        draft: string;
+      };
+    };
   };
   formBuilder: {
     title: string;
@@ -367,10 +411,25 @@ export interface DashboardMessages {
     empty: string;
     editButton: string;
     noForms: string;
+    noFormsHint: string;
     slugConflict: string;
     nameConflict: string;
     noFieldSelected: string;
     noFieldSelectedHint: string;
+    deleteConfirmPrefix: string;
+    deleteConfirmSuffix: string;
+    tableColumns: {
+      name: string;
+      status: string;
+    };
+    status: {
+      active: string;
+      inactive: string;
+    };
+    paletteGroups: {
+      standard: string;
+      special: string;
+    };
     fieldTypes: {
       text: string;
       email: string;
@@ -441,6 +500,14 @@ export interface DashboardMessages {
       inputTypeTel: string;
       inputTypeDate: string;
       inputTypeNumber: string;
+      separatorNoSettings: string;
+      loadingEditor: string;
+      validation: string;
+      spanAriaOf: string;
+      iconPickerVariantOutline: string;
+      iconPickerVariantFilled: string;
+      iconPickerSearch: string;
+      iconPickerEmpty: string;
     };
     submission: {
       title: string;
@@ -449,12 +516,16 @@ export interface DashboardMessages {
       stepStore: string;
       stepEmail: string;
       stepCreateShopSuggestion: string;
+      stepMoveAria: string;
+      stepRemoveAria: string;
       emailTo: string;
       emailToStatic: string;
       emailToFromField: string;
       emailSubject: string;
+      emailSubjectPlaceholder: string;
       successBehaviourLabel: string;
       successMessage: string;
+      successMessagePlaceholder: string;
       successRedirect: string;
       noSteps: string;
     };
@@ -465,6 +536,7 @@ export interface DashboardMessages {
     editTemplate: string;
     templateName: string;
     templateSubject: string;
+    subjectPlaceholder: string;
     headerBanner: string;
     headerText: string;
     bodyText: string;
@@ -473,12 +545,19 @@ export interface DashboardMessages {
     deleteTemplate: string;
     deleteTemplateConfirm: string;
     noTemplates: string;
+    noTemplatesHint: string;
     backToList: string;
     save: string;
     saved: string;
     saveError: string;
     nameConflict: string;
     systemBadge: string;
+    tableCreated: string;
+    preview: string;
+    previewTitle: string;
+    sectionHeader: string;
+    sectionBody: string;
+    sectionFooter: string;
   };
   errors: {
     boundary: {
@@ -497,6 +576,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
   de: {
     languageName: "Deutsch",
     common: {
+      ok: "OK",
       cancel: "Abbrechen",
       save: "Speichern",
       saving: "Wird gespeichert…",
@@ -620,7 +700,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       newShop: "Neuer Shop",
       searchPlaceholder: "Suchen…",
       noShops: "Keine Shops gefunden.",
+      noShopsHint: "Füge deinen ersten Shop über den +-Button hinzu.",
       noResultsPrefix: "Keine Treffer für",
+      noResultsHint: "Versuche einen anderen Suchbegriff.",
       filters: {
         all: "Alle",
         public: "Öffentlich",
@@ -637,6 +719,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         putOnHold: "Zurückstellen",
         restore: "Wiederherstellen",
         delete: "Löschen",
+        deletionInfo: "Löschdetails",
+        deletedBy: "Gelöscht von",
+        deletedAt: "Gelöscht am",
+        deletionReason: "Begründung",
+        noReason: "Kein Grund angegeben",
+        wasReported: "Shop wurde gemeldet",
       },
       editCard: {
         titleSubmissionEdit: "Vorschlag bearbeiten",
@@ -669,6 +757,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Kategorien",
       newCategory: "Neue Kategorie",
       empty: "Noch keine Kategorien vorhanden.",
+      emptyHint: "Erstelle deine erste Kategorie über den +-Button.",
       deleteTitle: "Kategorie löschen?",
       deleteDescriptionSuffix:
         "wird dauerhaft gelöscht. Alle zugeordneten Shops verlieren ihre Kategorie.",
@@ -724,6 +813,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       suggestions: {
         nonePrefix: "Keine",
+        noneHint: "Sobald neue Vorschläge eingehen, erscheinen sie hier.",
         reject: "Ablehnen",
         onhold: "Zurückstellen",
         edit: "Bearbeiten",
@@ -745,6 +835,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       deadLinks: {
         none: "Keine gemeldeten defekten Links.",
+        noneHint: "Alle gemeldeten Links sind erreichbar.",
         reportedSuffix: "× gemeldet",
         keep: "Belassen",
         delete: "Löschen",
@@ -755,6 +846,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       shopReports: {
         loading: "Lade…",
         none: "Keine Shop-Meldungen.",
+        noneHint: "Es liegen keine neuen Shop-Meldungen vor.",
         doneOrDecline: "Erledigt / Ablehnen",
         edit: "Bearbeiten",
         delete: "Löschen",
@@ -841,6 +933,37 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           search: "Suche",
         },
       },
+      loadingFallback: "Inhaltseditor wird geladen...",
+      pages: {
+        title: "Seiten",
+        newPage: "Neue Seite",
+        createTitle: "Neue Seite erstellen",
+        fieldTitle: "Titel",
+        fieldSlug: "Slug (URL-Pfad)",
+        titlePlaceholder: "z.B. Über uns",
+        slugPlaceholder: "about",
+        create: "Erstellen",
+        creating: "Wird erstellt…",
+        createError: "Fehler beim Erstellen",
+        confirmDeletePrefix: "Seite „",
+        confirmDeleteSuffix: '" wirklich löschen?',
+        loadPages: "Lade Seiten…",
+        emptyPages: "Noch keine Seiten vorhanden.",
+        emptyPagesHint: "Erstelle deine erste Seite über den +-Button.",
+        deletePageTitle: "Seite löschen",
+        table: {
+          title: "Titel",
+          slug: "Slug",
+          status: "Status",
+          createdBy: "Erstellt von",
+          updatedBy: "Geändert von",
+        },
+        status: {
+          published: "Veröffentlicht",
+          hidden: "Versteckt",
+          draft: "Entwurf",
+        },
+      },
     },
     formBuilder: {
       title: "Formular bearbeiten",
@@ -859,10 +982,25 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       empty: "Noch keine Felder vorhanden. Felder aus der Palette ziehen.",
       editButton: "Bearbeiten",
       noForms: "Noch keine Formulare vorhanden.",
+      noFormsHint: "Erstelle dein erstes Formular über den +-Button.",
       slugConflict: "Dieser URL-Pfad wird bereits verwendet.",
       nameConflict: "Ein Formular mit diesem Namen existiert bereits.",
       noFieldSelected: "Kein Feld ausgewählt",
       noFieldSelectedHint: "Tippe auf ein Feld im Canvas, um es zu konfigurieren.",
+      deleteConfirmPrefix: "Formular „",
+      deleteConfirmSuffix: '" wirklich löschen?',
+      tableColumns: {
+        name: "Name",
+        status: "Status",
+      },
+      status: {
+        active: "Aktiv",
+        inactive: "Inaktiv",
+      },
+      paletteGroups: {
+        standard: "Felder",
+        special: "Spezial",
+      },
       fieldTypes: {
         text: "Input",
         email: "E-Mail",
@@ -933,6 +1071,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         inputTypeTel: "Telefon",
         inputTypeDate: "Datum",
         inputTypeNumber: "Zahl",
+        separatorNoSettings: "Trennlinie hat keine weiteren Einstellungen.",
+        loadingEditor: "Lade Editor…",
+        validation: "Validierung",
+        spanAriaOf: "von",
+        iconPickerVariantOutline: "Outline",
+        iconPickerVariantFilled: "Filled",
+        iconPickerSearch: "Icons suchen…",
+        iconPickerEmpty: "Keine Icons gefunden",
       },
       submission: {
         title: "Übermittlung",
@@ -941,12 +1087,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         stepStore: "Speichern",
         stepEmail: "E-Mail-Benachrichtigung",
         stepCreateShopSuggestion: "Shop-Vorschlag anlegen",
+        stepMoveAria: "Schritt verschieben",
+        stepRemoveAria: "Schritt entfernen",
         emailTo: "Empfänger",
         emailToStatic: "Statische Adresse",
         emailToFromField: "Aus Feld",
         emailSubject: "Betreff (optional)",
+        emailSubjectPlaceholder: "Neue Formular-Übermittlung",
         successBehaviourLabel: "Nach dem Absenden",
         successMessage: "Erfolgsmeldung",
+        successMessagePlaceholder: "Vielen Dank für deine Nachricht!",
         successRedirect: "Weiterleitung",
         noSteps: "Keine Schritte konfiguriert.",
       },
@@ -957,6 +1107,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       editTemplate: "Template bearbeiten",
       templateName: "Name",
       templateSubject: "Betreff",
+      subjectPlaceholder: "Willkommen bei lmaa.space",
       headerBanner: "Header-Bild (URL)",
       headerText: "Header-Text (Markdown)",
       bodyText: "Inhalt (Markdown)",
@@ -965,12 +1116,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       deleteTemplate: "Template löschen",
       deleteTemplateConfirm: "Dieses Template wirklich löschen?",
       noTemplates: "Noch keine Templates vorhanden.",
+      noTemplatesHint: "Erstelle dein erstes Template über den +-Button.",
       backToList: "← Alle Templates",
       save: "Speichern",
       saved: "Gespeichert",
       saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
       nameConflict: "Ein Template mit diesem Namen existiert bereits.",
       systemBadge: "System",
+      tableCreated: "Erstellt",
+      preview: "Vorschau",
+      previewTitle: "E-Mail-Vorschau",
+      sectionHeader: "Header",
+      sectionBody: "Body",
+      sectionFooter: "Footer",
     },
     errors: {
       boundary: {
@@ -984,6 +1142,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
   en: {
     languageName: "English",
     common: {
+      ok: "OK",
       cancel: "Cancel",
       save: "Save",
       saving: "Saving…",
@@ -1107,7 +1266,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       newShop: "New shop",
       searchPlaceholder: "Search…",
       noShops: "No shops found.",
+      noShopsHint: "Add your first shop using the + button.",
       noResultsPrefix: "No results for",
+      noResultsHint: "Try a different search term.",
       filters: {
         all: "All",
         public: "Public",
@@ -1124,6 +1285,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         putOnHold: "Put on hold",
         restore: "Restore",
         delete: "Delete",
+        deletionInfo: "Deletion details",
+        deletedBy: "Deleted by",
+        deletedAt: "Deleted at",
+        deletionReason: "Reason",
+        noReason: "No reason provided",
+        wasReported: "Shop was reported",
       },
       editCard: {
         titleSubmissionEdit: "Edit suggestion",
@@ -1156,6 +1323,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Categories",
       newCategory: "New category",
       empty: "No categories available yet.",
+      emptyHint: "Create your first category using the + button.",
       deleteTitle: "Delete category?",
       deleteDescriptionSuffix: "will be permanently deleted. Assigned shops lose this category.",
       table: {
@@ -1210,6 +1378,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       suggestions: {
         nonePrefix: "No",
+        noneHint: "New suggestions will appear here once submitted.",
         reject: "Reject",
         onhold: "Put on hold",
         edit: "Edit",
@@ -1231,6 +1400,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       deadLinks: {
         none: "No reported dead links.",
+        noneHint: "All reported links are reachable.",
         reportedSuffix: "× reported",
         keep: "Keep",
         delete: "Delete",
@@ -1241,6 +1411,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       shopReports: {
         loading: "Loading…",
         none: "No shop reports.",
+        noneHint: "No new shop reports available.",
         doneOrDecline: "Done / Reject",
         edit: "Edit",
         delete: "Delete",
@@ -1326,6 +1497,37 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           search: "Search",
         },
       },
+      loadingFallback: "Loading content editor...",
+      pages: {
+        title: "Pages",
+        newPage: "New page",
+        createTitle: "Create new page",
+        fieldTitle: "Title",
+        fieldSlug: "Slug (URL path)",
+        titlePlaceholder: "e.g. About us",
+        slugPlaceholder: "about-us",
+        create: "Create",
+        creating: "Creating…",
+        createError: "Error while creating",
+        confirmDeletePrefix: 'Delete page "',
+        confirmDeleteSuffix: '" for sure?',
+        loadPages: "Loading pages…",
+        emptyPages: "No pages available yet.",
+        emptyPagesHint: "Create your first page using the + button.",
+        deletePageTitle: "Delete page",
+        table: {
+          title: "Title",
+          slug: "Slug",
+          status: "Status",
+          createdBy: "Created by",
+          updatedBy: "Updated by",
+        },
+        status: {
+          published: "Published",
+          hidden: "Hidden",
+          draft: "Draft",
+        },
+      },
     },
     formBuilder: {
       title: "Edit Form",
@@ -1344,10 +1546,25 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       empty: "No fields yet. Drag fields from the palette.",
       editButton: "Edit",
       noForms: "No forms yet.",
+      noFormsHint: "Create your first form using the + button.",
       slugConflict: "This URL path is already in use.",
       nameConflict: "A form with this name already exists.",
       noFieldSelected: "No field selected",
       noFieldSelectedHint: "Tap a field on the canvas to configure it.",
+      deleteConfirmPrefix: 'Delete form "',
+      deleteConfirmSuffix: '"?',
+      tableColumns: {
+        name: "Name",
+        status: "Status",
+      },
+      status: {
+        active: "Active",
+        inactive: "Inactive",
+      },
+      paletteGroups: {
+        standard: "Fields",
+        special: "Special",
+      },
       fieldTypes: {
         text: "Input",
         email: "Email",
@@ -1418,6 +1635,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         inputTypeTel: "Phone",
         inputTypeDate: "Date",
         inputTypeNumber: "Number",
+        separatorNoSettings: "Separator has no further settings.",
+        loadingEditor: "Loading editor…",
+        validation: "Validation",
+        spanAriaOf: "of",
+        iconPickerVariantOutline: "Outline",
+        iconPickerVariantFilled: "Filled",
+        iconPickerSearch: "Search icons…",
+        iconPickerEmpty: "No icons found",
       },
       submission: {
         title: "Submission",
@@ -1426,12 +1651,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         stepStore: "Store",
         stepEmail: "Email notification",
         stepCreateShopSuggestion: "Create shop suggestion",
+        stepMoveAria: "Move step",
+        stepRemoveAria: "Remove step",
         emailTo: "Recipient",
         emailToStatic: "Static address",
         emailToFromField: "From field",
         emailSubject: "Subject (optional)",
+        emailSubjectPlaceholder: "New form submission",
         successBehaviourLabel: "After submit",
         successMessage: "Success message",
+        successMessagePlaceholder: "Thank you for your message!",
         successRedirect: "Redirect",
         noSteps: "No steps configured.",
       },
@@ -1442,6 +1671,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       editTemplate: "Edit Template",
       templateName: "Name",
       templateSubject: "Subject",
+      subjectPlaceholder: "Welcome to lmaa.space",
       headerBanner: "Header image (URL)",
       headerText: "Header text (Markdown)",
       bodyText: "Body (Markdown)",
@@ -1450,12 +1680,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       deleteTemplate: "Delete template",
       deleteTemplateConfirm: "Really delete this template?",
       noTemplates: "No templates yet.",
+      noTemplatesHint: "Create your first template using the + button.",
       backToList: "← All Templates",
       save: "Save",
       saved: "Saved",
       saveError: "Error saving. Please try again.",
       nameConflict: "A template with this name already exists.",
       systemBadge: "System",
+      tableCreated: "Created",
+      preview: "Preview",
+      previewTitle: "Email Preview",
+      sectionHeader: "Header",
+      sectionBody: "Body",
+      sectionFooter: "Footer",
     },
     errors: {
       boundary: {
