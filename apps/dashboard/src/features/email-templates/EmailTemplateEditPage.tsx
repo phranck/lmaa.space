@@ -211,12 +211,12 @@ export function EmailTemplateEditPage() {
                 id="tpl-subject"
                 value={subject}
                 onChange={setSubject}
-                placeholder="Willkommen bei lmaa.space"
+                placeholder={m.subjectPlaceholder}
               />
             </Field>
 
             {/* Header */}
-            <SectionCard title="Header">
+            <SectionCard title={m.sectionHeader}>
               <Field label={m.headerBanner} htmlFor="tpl-header-banner">
                 <TextInput
                   id="tpl-header-banner"
@@ -237,7 +237,7 @@ export function EmailTemplateEditPage() {
             </SectionCard>
 
             {/* Body */}
-            <SectionCard title="Body">
+            <SectionCard title={m.sectionBody}>
               <Field label={m.bodyText} htmlFor="tpl-body-text" required>
                 <Suspense
                   fallback={
@@ -250,7 +250,7 @@ export function EmailTemplateEditPage() {
             </SectionCard>
 
             {/* Footer */}
-            <SectionCard title="Footer">
+            <SectionCard title={m.sectionFooter}>
               <Field label={m.footerText} htmlFor="tpl-footer-text">
                 <Suspense
                   fallback={

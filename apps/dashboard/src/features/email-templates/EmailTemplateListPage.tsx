@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/Card.tsx";
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -7,6 +8,7 @@ import {
 } from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import { useNavigate } from "react-router";
 import {
+  SFEnvelopeFill,
   SFLockFill,
   SFNewspaperFill,
   SFPlusCircleFill,
@@ -48,16 +50,18 @@ export function EmailTemplateListPage() {
               {messages.common.loading}
             </div>
           ) : templates.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
-              {m.noTemplates}
-            </div>
+            <ContentUnavailableView
+              icon={<SFEnvelopeFill aria-hidden />}
+              title={m.noTemplates}
+              subtitle={m.noTemplatesHint}
+            />
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
                   <th className="text-left px-4 py-3">{m.templateName}</th>
                   <th className="text-left px-4 py-3">{m.templateSubject}</th>
-                  <th className="text-left px-4 py-3">Erstellt</th>
+                  <th className="text-left px-4 py-3">{m.tableCreated}</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -95,19 +99,19 @@ export function EmailTemplateListPage() {
                         <button
                           type="button"
                           onClick={() => navigate(`/email-templates/${tpl.id}`)}
-                          className="p-1.5 text-[var(--ds-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--ds-surface-hover)] rounded transition-colors"
-                          title={messages.common.edit}
+                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--ds-surface-hover)] rounded transition-colors"
                         >
                           <SFNewspaperFill className="w-3.5 h-3.5" />
+                          {messages.common.edit}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(tpl.id, tpl.name)}
                           disabled={deleteMutation.isPending || tpl.isSystemTemplate}
-                          className="p-1.5 text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
-                          title={m.deleteTemplate}
+                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
                         >
                           <SFTrashFill className="w-3.5 h-3.5" />
+                          {m.deleteTemplate}
                         </button>
                       </div>
                     </td>

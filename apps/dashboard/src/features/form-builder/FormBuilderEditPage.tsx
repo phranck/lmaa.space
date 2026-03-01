@@ -1,3 +1,4 @@
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/form-builder/BuilderCanvas.tsx";
@@ -30,25 +31,12 @@ import { SFHandTap } from "sf-symbols-lib/monochrome";
 /**
  * Returns the default human-readable label for a given field type.
  *
- * @param type - The field type.
- * @returns The German display label used when a new field is created.
+ * @param type       - The field type.
+ * @param fieldTypes - Localized fieldType labels from i18n messages.
+ * @returns The display label used when a new field is created.
  */
-function defaultFieldLabel(type: FieldType): string {
-  const labels: Record<FieldType, string> = {
-    text: "Input Text",
-    email: "E-Mail",
-    textarea: "Textbereich",
-    select: "Auswahl",
-    "multi-select": "Mehrfachauswahl",
-    checkbox: "Checkbox",
-    richtext: "Markdown Editor",
-    button: "Button",
-    password: "Input Passwort",
-    headline: "Überschrift",
-    separator: "Trennlinie",
-    paragraph: "Textabsatz",
-  };
-  return labels[type];
+function defaultFieldLabel(type: FieldType, fieldTypes: Record<string, string>): string {
+  return fieldTypes[type] ?? type;
 }
 
 /**
@@ -65,15 +53,16 @@ function rowFreeSpan(row: FormRow): number {
 /**
  * Creates a new {@link FormField} with a random UUID and sensible defaults.
  *
- * @param type - The field type to create.
- * @param span - Column span in the 12-column grid. Defaults to 12 (full width).
+ * @param type       - The field type to create.
+ * @param fieldTypes - Localized fieldType labels from i18n messages.
+ * @param span       - Column span in the 12-column grid. Defaults to 12 (full width).
  * @returns A ready-to-use FormField instance.
  */
-function makeNewField(type: FieldType, span = 12): FormField {
+function makeNewField(type: FieldType, fieldTypes: Record<string, string>, span = 12): FormField {
   return {
     id: crypto.randomUUID(),
     type,
-    label: defaultFieldLabel(type),
+    label: defaultFieldLabel(type, fieldTypes),
     required: false,
     span,
   };
@@ -83,20 +72,34 @@ function makeNewField(type: FieldType, span = 12): FormField {
  * Resolves a palette drag ID to a field type, label and optional optionsSource.
  * Special IDs like "categories-select" and "regions-select" map to multi-select
  * fields with a preset optionsSource.
+ *
+ * @param paletteId  - The palette drag ID.
+ * @param fieldTypes - Localized fieldType labels from i18n messages.
  */
-function resolvePaletteId(paletteId: string): {
+function resolvePaletteId(
+  paletteId: string,
+  fieldTypes: Record<string, string>,
+): {
   type: FieldType;
   label: string;
   optionsSource?: FieldOptionsSource;
 } {
   if (paletteId === "categories-select") {
-    return { type: "multi-select", label: "Kategorien", optionsSource: "categories" };
+    return {
+      type: "multi-select",
+      label: fieldTypes.categoriesSelect ?? "Kategorien",
+      optionsSource: "categories",
+    };
   }
   if (paletteId === "regions-select") {
-    return { type: "multi-select", label: "Regionen", optionsSource: "regions" };
+    return {
+      type: "multi-select",
+      label: fieldTypes.regionsSelect ?? "Regionen",
+      optionsSource: "regions",
+    };
   }
   const type = paletteId as FieldType;
-  return { type, label: defaultFieldLabel(type) };
+  return { type, label: defaultFieldLabel(type, fieldTypes) };
 }
 
 /**
@@ -171,7 +174,7 @@ export function FormBuilderEditPage() {
     const id = String(event.active.id);
 
     if (id.startsWith("palette:")) {
-      const { type } = resolvePaletteId(id.replace("palette:", ""));
+      const { type } = resolvePaletteId(id.replace("palette:", ""), m.fieldTypes);
       setActiveDrag({ id, paletteType: type });
       return;
     }
@@ -196,7 +199,10 @@ export function FormBuilderEditPage() {
     const activeId = String(active.id);
 
     if (activeId.startsWith("palette:")) {
-      const { type, label, optionsSource } = resolvePaletteId(activeId.replace("palette:", ""));
+      const { type, label, optionsSource } = resolvePaletteId(
+        activeId.replace("palette:", ""),
+        m.fieldTypes,
+      );
       const overId = String(over.id);
 
       // Resolve drop target: row ID directly, free-span droppable, or neighbouring field
@@ -210,7 +216,7 @@ export function FormBuilderEditPage() {
         const free = rowFreeSpan(targetRow);
         if (free > 0) {
           const newField = {
-            ...makeNewField(type, free),
+            ...makeNewField(type, m.fieldTypes, free),
             label,
             ...(optionsSource && { optionsSource }),
           };
@@ -224,7 +230,11 @@ export function FormBuilderEditPage() {
         }
       }
 
-      const newField = { ...makeNewField(type), label, ...(optionsSource && { optionsSource }) };
+      const newField = {
+        ...makeNewField(type, m.fieldTypes),
+        label,
+        ...(optionsSource && { optionsSource }),
+      };
       const newRow = makeNewRow(newField);
       setRows((prev) => [...prev, newRow]);
       setSelectedFieldId(newField.id);
@@ -409,19 +419,13 @@ export function FormBuilderEditPage() {
                     .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center gap-3 p-4 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64 h-64 text-center">
-                  <SFHandTap
-                    width={52}
-                    height={52}
-                    aria-hidden
-                    className="text-[var(--ds-text-muted)]"
+                <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64">
+                  <ContentUnavailableView
+                    className="h-64"
+                    icon={<SFHandTap aria-hidden />}
+                    title={messages.formBuilder.noFieldSelected}
+                    subtitle={messages.formBuilder.noFieldSelectedHint}
                   />
-                  <p className="text-base font-bold text-[var(--ds-text)]">
-                    {messages.formBuilder.noFieldSelected}
-                  </p>
-                  <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
-                    {messages.formBuilder.noFieldSelectedHint}
-                  </p>
                 </div>
               )}
             </div>

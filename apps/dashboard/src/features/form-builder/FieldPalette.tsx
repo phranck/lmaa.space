@@ -228,30 +228,44 @@ export function FieldPalette() {
   const { messages } = useI18n();
   const ft = messages.formBuilder.fieldTypes;
 
-  // Sorted alphabetically by German label
-  const fieldTypes: { paletteId: string; iconType: FieldType; label: string }[] = [
+  // Standard fields — sorted alphabetically by German label
+  const standardFields: { paletteId: string; iconType: FieldType; label: string }[] = [
     { paletteId: "select", iconType: "select", label: ft.select }, // Auswahl
     { paletteId: "button", iconType: "button", label: ft.button }, // Button
     { paletteId: "checkbox", iconType: "checkbox", label: ft.checkbox }, // Checkbox
     { paletteId: "text", iconType: "text", label: ft.text }, // Input
-    { paletteId: "categories-select", iconType: "multi-select", label: ft.categoriesSelect }, // Kategorien
     { paletteId: "richtext", iconType: "richtext", label: ft.richtext }, // Markdown Editor
     { paletteId: "multi-select", iconType: "multi-select", label: ft.multiSelect }, // Mehrfachauswahl
-    { paletteId: "regions-select", iconType: "multi-select", label: ft.regionsSelect }, // Regionen
     { paletteId: "paragraph", iconType: "paragraph", label: ft.paragraph }, // Textabsatz
     { paletteId: "textarea", iconType: "textarea", label: ft.textarea }, // Textbereich
     { paletteId: "separator", iconType: "separator", label: ft.separator }, // Trennlinie
     { paletteId: "headline", iconType: "headline", label: ft.headline }, // Überschrift
   ];
 
+  // Special data-source fields — sorted alphabetically
+  const specialFields: { paletteId: string; iconType: FieldType; label: string }[] = [
+    { paletteId: "categories-select", iconType: "multi-select", label: ft.categoriesSelect }, // Kategorien
+    { paletteId: "regions-select", iconType: "multi-select", label: ft.regionsSelect }, // Regionen
+  ];
+
   return (
-    <Card className="flex flex-col gap-1.5 p-4 min-w-44">
-      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
-        Felder
-      </p>
-      {fieldTypes.map(({ paletteId, iconType, label }) => (
-        <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
-      ))}
+    <Card className="flex flex-col gap-4 p-4 min-w-44">
+      <div className="flex flex-col gap-1.5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
+          {messages.formBuilder.paletteGroups.standard}
+        </p>
+        {standardFields.map(({ paletteId, iconType, label }) => (
+          <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
+        ))}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
+          {messages.formBuilder.paletteGroups.special}
+        </p>
+        {specialFields.map(({ paletteId, iconType, label }) => (
+          <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
+        ))}
+      </div>
     </Card>
   );
 }

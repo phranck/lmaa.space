@@ -80,7 +80,7 @@ export function Dropdown<T extends string = string>({
           </svg>
         </button>
         {open && (
-          <div className="absolute z-20 left-0 right-0 mt-1 py-1 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden">
+          <div className="absolute z-20 right-0 mt-1 py-1 min-w-full bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden">
             {options.map(({ value: v, label: l, icon }) => (
               <button
                 key={v}
