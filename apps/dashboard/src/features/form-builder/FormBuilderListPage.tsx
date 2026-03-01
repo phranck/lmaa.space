@@ -391,18 +391,23 @@ export function FormBuilderListPage() {
       </PageHeader>
 
       <div className="p-3 space-y-6">
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
-              {messages.common.loading}
-            </div>
-          ) : forms.length === 0 ? (
-            <ContentUnavailableView
-              icon={<SFDocumentFill aria-hidden />}
-              title={m.noForms}
-              subtitle={m.noFormsHint}
-            />
-          ) : (
+        {isLoading && (
+          <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
+            {messages.common.loading}
+          </div>
+        )}
+
+        {!isLoading && forms.length === 0 && (
+          <ContentUnavailableView
+            className="flex-1"
+            icon={<SFDocumentFill aria-hidden />}
+            title={m.noForms}
+            subtitle={m.noFormsHint}
+          />
+        )}
+
+        {!isLoading && forms.length > 0 && (
+          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
@@ -470,8 +475,8 @@ export function FormBuilderListPage() {
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Hidden file input for import */}

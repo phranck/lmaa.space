@@ -3,6 +3,7 @@ import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
+import { useEmailTemplates } from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/form-builder/hooks/useFormConfig.ts";
 import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
@@ -190,6 +191,70 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
+function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
+  const { messages } = useI18n();
+  const sidebarMessages = messages.layout.sidebar;
+  const isGroupActive = !!useMatch("/email-templates/*");
+  const { data: templates } = useEmailTemplates();
+  const [localOpen, setLocalOpen] = useState(
+    () => localStorage.getItem("sidebar-email-templates-open") === "true",
+  );
+  const isOpen = isGroupActive || localOpen;
+
+  return (
+    <details
+      open={isOpen}
+      className="group"
+      onToggle={(e) => {
+        const next = e.currentTarget.open;
+        setLocalOpen(next);
+        localStorage.setItem("sidebar-email-templates-open", String(next));
+      }}
+    >
+      <summary className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]">
+        <span className="shrink-0 opacity-70">
+          <SFEnvelopeBadgeFill className="w-4 h-4" />
+        </span>
+        <span className="flex-1">{sidebarMessages.emailTemplates}</span>
+        <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
+      </summary>
+      <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
+        <NavLink
+          to="/email-templates"
+          end
+          onClick={onItemClick}
+          className={({ isActive }) =>
+            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
+              isActive
+                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
+            }`
+          }
+        >
+          {sidebarMessages.emailTemplatesOverview}
+        </NavLink>
+        {(templates ?? []).map((tpl) => (
+          <NavLink
+            key={tpl.id}
+            to={`/email-templates/${tpl.id}`}
+            onClick={onItemClick}
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
+                isActive
+                  ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                  : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
+              }`
+            }
+          >
+            <SFEnvelopeBadgeFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+            <span className="truncate">{tpl.name}</span>
+          </NavLink>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 /**
  * Collapsible dashboard sidebar including navigation and footer actions.
  *
@@ -250,14 +315,7 @@ export function Sidebar({
         ))}
         {showPages && <PagesGroup onItemClick={onItemClick} />}
         {showPages && <FormsGroup onItemClick={onItemClick} />}
-        {showPages && (
-          <SidebarItem
-            to="/email-templates"
-            label={sidebarMessages.emailTemplates}
-            icon={<SFEnvelopeBadgeFill className="w-4 h-4" />}
-            onClick={onItemClick}
-          />
-        )}
+        {showPages && <EmailTemplatesGroup onItemClick={onItemClick} />}
         {showPages && (
           <SidebarItem
             to="/seiten/navigationen"

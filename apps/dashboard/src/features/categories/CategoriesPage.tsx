@@ -77,6 +77,7 @@ export function CategoriesPage() {
 
       {!isLoading && categories.length === 0 && (
         <ContentUnavailableView
+          className="flex-1"
           icon={<SFTagFill aria-hidden />}
           title={categoriesMessages.empty}
           subtitle={categoriesMessages.emptyHint}

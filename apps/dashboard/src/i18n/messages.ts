@@ -36,6 +36,7 @@ export interface DashboardMessages {
       formBuilder: string;
       formsOverview: string;
       emailTemplates: string;
+      emailTemplatesOverview: string;
       editProfile: string;
       logout: string;
       roles: {
@@ -617,6 +618,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formBuilder: "Formular-Builder",
         formsOverview: "Übersicht",
         emailTemplates: "E-Mail-Templates",
+        emailTemplatesOverview: "Übersicht",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
         roles: {
@@ -1197,6 +1199,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formBuilder: "Form Builder",
         formsOverview: "Overview",
         emailTemplates: "Email Templates",
+        emailTemplatesOverview: "Overview",
         editProfile: "Edit profile",
         logout: "Log out",
         roles: {
