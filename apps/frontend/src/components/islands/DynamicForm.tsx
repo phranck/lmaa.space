@@ -5,8 +5,9 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import type { ApiRequestError } from "@lmaa/shared";
 import { createApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
+import { MarkdownTextarea } from "@lmaa/ui";
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useController, useForm } from "react-hook-form";
 import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
 import { SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
 
@@ -222,24 +223,32 @@ function SuccessScreen({ onReset, message }: SuccessScreenProps) {
 
 interface TextareaFieldProps {
   field: FormField;
-  currentValue: string;
-  register: ReturnType<typeof useForm<SimpleFields>>["register"];
+  control: ReturnType<typeof useForm<SimpleFields>>["control"];
   error: string | undefined;
 }
 
 /**
  * Textarea input with optional character counter and validation error.
+ * Uses `useController` so both the plain textarea and `MarkdownTextarea` share
+ * the same controlled `value`/`onChange` API.
+ * When `field.allowMarkdown` is true, renders a `MarkdownTextarea`.
  *
- * @param props               - Component props.
- * @param props.field         - The field definition (used for label, placeholder, rows, validation).
- * @param props.currentValue  - Current watched value for the character counter.
- * @param props.register      - react-hook-form `register` function.
- * @param props.error         - Validation error message to display below the input.
+ * @param props          - Component props.
+ * @param props.field    - The field definition (label, placeholder, rows, validation).
+ * @param props.control  - react-hook-form `control` object.
+ * @param props.error    - Validation error message to display below the input.
  * @returns Textarea field with label and optional counter.
  */
-function TextareaField({ field, currentValue, register, error }: TextareaFieldProps) {
+function TextareaField({ field, control, error }: TextareaFieldProps) {
   const maxLen = field.validation?.max;
   const key = fieldKey(field);
+  const { field: rhfField } = useController({
+    name: key,
+    control,
+    rules: buildValidationRules(field),
+    defaultValue: "",
+  });
+
   return (
     <div>
       <label htmlFor={key} className={labelClass}>
@@ -248,14 +257,24 @@ function TextareaField({ field, currentValue, register, error }: TextareaFieldPr
           <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
         )}
       </label>
-      <textarea
-        id={key}
-        placeholder={field.placeholder}
-        rows={field.rows ?? 4}
-        maxLength={maxLen}
-        className={`${inputClass} h-auto py-2 resize-none`}
-        {...register(key, buildValidationRules(field))}
-      />
+      {field.allowMarkdown ? (
+        <MarkdownTextarea
+          id={key}
+          value={rhfField.value}
+          onChange={(val) => rhfField.onChange(val)}
+          placeholder={field.placeholder}
+          rows={field.rows ?? 4}
+        />
+      ) : (
+        <textarea
+          id={key}
+          placeholder={field.placeholder}
+          rows={field.rows ?? 4}
+          maxLength={maxLen}
+          className={`${inputClass} h-auto py-2 resize-none`}
+          {...rhfField}
+        />
+      )}
       {(field.subtext || maxLen !== undefined) && (
         <div className="flex justify-between items-start gap-4">
           {field.subtext ? (
@@ -263,9 +282,9 @@ function TextareaField({ field, currentValue, register, error }: TextareaFieldPr
           ) : (
             <span className="mt-1.5" />
           )}
-          {maxLen !== undefined && (
+          {maxLen !== undefined && !field.allowMarkdown && (
             <span className="text-xs text-[var(--ds-text-subtle)] shrink-0 mt-1.5 pr-[5px]">
-              {currentValue.length}/{maxLen}
+              {rhfField.value.length}/{maxLen}
             </span>
           )}
         </div>
@@ -729,8 +748,8 @@ export default function DynamicForm({ formConfig, categories }: Props) {
   // --- react-hook-form for simple scalar fields ---
   const {
     register,
+    control,
     handleSubmit,
-    watch,
     reset,
     getValues,
     setValue,
@@ -942,15 +961,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         );
 
       case "textarea":
-        return (
-          <TextareaField
-            key={field.id}
-            field={field}
-            currentValue={watch(key) ?? ""}
-            register={register}
-            error={fieldError}
-          />
-        );
+        return <TextareaField key={field.id} field={field} control={control} error={fieldError} />;
 
       case "select":
         return <SelectField key={field.id} field={field} register={register} error={fieldError} />;

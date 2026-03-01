@@ -523,6 +523,7 @@ export interface DashboardMessages {
       iconPickerVariantFilled: string;
       iconPickerSearch: string;
       iconPickerEmpty: string;
+      allowMarkdown: string;
     };
     submission: {
       title: string;
@@ -1138,6 +1139,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         iconPickerVariantFilled: "Filled",
         iconPickerSearch: "Icons suchen…",
         iconPickerEmpty: "Keine Icons gefunden",
+        allowMarkdown: "Markdown erlaubt",
       },
       submission: {
         title: "Übermittlung",
@@ -1746,6 +1748,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         iconPickerVariantFilled: "Filled",
         iconPickerSearch: "Search icons…",
         iconPickerEmpty: "No icons found",
+        allowMarkdown: "Markdown allowed",
       },
       submission: {
         title: "Submission",

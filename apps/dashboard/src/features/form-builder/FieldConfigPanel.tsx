@@ -454,6 +454,19 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
         </label>
       )}
 
+      {/* Allow Markdown — only for textarea */}
+      {field.type === "textarea" && (
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={field.allowMarkdown ?? false}
+            onChange={(e) => set("allowMarkdown", e.target.checked || undefined)}
+            className="w-4 h-4 accent-[var(--color-primary)]"
+          />
+          <span className="text-sm text-[var(--ds-text)]">{m.allowMarkdown}</span>
+        </label>
+      )}
+
       {/* Span — hidden for richtext, button and separator */}
       {!isRichText && !isButton && !isSeparator && (
         <div className="flex flex-col gap-2">
