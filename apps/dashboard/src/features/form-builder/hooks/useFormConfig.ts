@@ -1,5 +1,46 @@
 import { api } from "@/lib/api.ts";
 import type { FormConfig, FormConfigPayload } from "@lmaa/contracts";
+
+// ─── Export utilities ──────────────────────────────────────────────────────────
+
+function downloadJson(filename: string, data: unknown) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function exportFormConfigSingle(
+  name: string,
+  slug: string | undefined,
+  rows: FormConfig["rows"],
+  submissionConfig: FormConfig["submissionConfig"],
+) {
+  downloadJson(`${name}.json`, {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    name,
+    slug,
+    rows,
+    submissionConfig,
+  });
+}
+
+export function exportFormConfigAll(forms: FormConfig[]) {
+  downloadJson("forms-export.json", {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    forms: forms.map((f) => ({
+      name: f.name,
+      slug: f.slug,
+      rows: f.rows,
+      submissionConfig: f.submissionConfig,
+    })),
+  });
+}
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface CreateFormConfigInput {
@@ -92,6 +133,33 @@ export function useDeleteFormConfig() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (name: string) => api.delete(`/admin/form-configs/${name}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["form-configs"] });
+    },
+  });
+}
+
+interface ImportFormConfigInput {
+  name: string;
+  slug?: string;
+  rows: FormConfig["rows"];
+  submissionConfig?: FormConfig["submissionConfig"];
+  overwrite?: boolean;
+}
+
+/**
+ * Imports a form config from an export payload via POST.
+ *
+ * Returns 409 on name conflict (when overwrite is false).
+ * Invalidates the form-configs list on success.
+ *
+ * @returns React Query mutation for importing a form config.
+ */
+export function useImportFormConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ImportFormConfigInput) =>
+      api.post<FormConfig>("/admin/form-configs/import", input),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["form-configs"] });
     },

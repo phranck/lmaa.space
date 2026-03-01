@@ -22,6 +22,7 @@ import {
   SFArrowRight,
   SFCheckmark,
   SFEnvelope,
+  SFPlusCircleFill,
   SFSquareAndArrowDown,
   SFStorefrontFill,
 } from "sf-symbols-lib/monochrome";
@@ -343,8 +344,9 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
           <button
             type="button"
             onClick={() => addStep(pendingStepType)}
-            className="h-7 px-3 text-xs font-medium bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
+            className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
           >
+            <SFPlusCircleFill className="w-3 h-3" />
             {m.addStepButton}
           </button>
         </div>
