@@ -23,6 +23,7 @@
     "@react-email/components": "^1.0.8",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.38.4",
+    "fflate": "^0.8.2",
     "hono": "^4.7.4",
     "marked": "^17.0.3",
     "postgres": "^3.4.5",
