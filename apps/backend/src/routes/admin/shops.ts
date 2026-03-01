@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import {
+  deleteReasonUpdateSchema,
   previewImageSchema,
   shopBodySchema,
   shopUpdateSchema,
@@ -19,6 +20,7 @@ import {
   previewAdminShopImage,
   refetchAdminShopImage,
   updateManagedAdminShop,
+  updateManagedAdminShopDeleteReason,
 } from "../../services/admin-shops.js";
 
 /**
@@ -104,6 +106,19 @@ shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) 
 
   const result = await changeManagedAdminShopVisibility(id, visibility);
   return ok(c, result);
+});
+
+// PATCH /admin/shops/:id/delete-reason — update reason text for a soft-deleted shop
+shopsRoutes.patch("/shops/:id/delete-reason", requireAuth, requireAdmin, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+
+  const parsedBody = deleteReasonUpdateSchema.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsedBody.success) return fail(c, 400, "Invalid body");
+
+  const result = await updateManagedAdminShopDeleteReason(id, parsedBody.data.reason);
+  if (!result.ok) return fail(c, 404, "Shop not found");
+  return ok(c, { message: "Delete reason updated" });
 });
 
 shopsRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {

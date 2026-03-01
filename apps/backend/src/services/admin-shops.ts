@@ -13,6 +13,7 @@ import {
   setAdminShopVisibility,
   shopExists,
   updateAdminShop,
+  updateAdminShopDeleteReason,
 } from "../repositories/admin-shops.js";
 import {
   fetchShopPreviewImageFromHomepage,
@@ -170,4 +171,18 @@ export async function refetchAdminShopImage(id: number) {
 export async function previewAdminShopImage(url: string) {
   const result = await fetchShopPreviewImageFromHomepage(url);
   return { ogImage: result?.url ?? null };
+}
+
+/**
+ * Updates the delete reason for a soft-deleted shop.
+ *
+ * @param id - Shop id.
+ * @param reason - New reason text or `null` to clear.
+ * @returns `{ ok: true }` or `{ ok: false }` if the shop does not exist.
+ */
+export async function updateManagedAdminShopDeleteReason(id: number, reason: string | null) {
+  if (!(await shopExists(id))) return { ok: false } as const;
+  await updateAdminShopDeleteReason(id, reason);
+  invalidateCache(SHOPS_CACHE_KEY);
+  return { ok: true } as const;
 }

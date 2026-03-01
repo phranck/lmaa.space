@@ -47,3 +47,10 @@ export const visibilityFilterSchema = shopVisibilitySchema;
  * Visibility update payload contract for mutable visibility transitions.
  */
 export const visibilityUpdateSchema = z.object({ visibility: shopMutableVisibilitySchema });
+
+/**
+ * Delete reason update payload contract.
+ */
+export const deleteReasonUpdateSchema = z.object({
+  reason: z.string().max(2000).nullable(),
+});
