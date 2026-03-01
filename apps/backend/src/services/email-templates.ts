@@ -106,7 +106,8 @@ export async function importManagedEmailTemplate(
   if (existing) {
     if (!overwrite) return { ok: false, reason: "name_taken" };
     const row = await updateEmailTemplate(existing.id, data);
-    return { ok: true, data: rowToEmailTemplate(row!) };
+    if (!row) throw new Error(`Failed to update email template "${data.name}"`);
+    return { ok: true, data: rowToEmailTemplate(row) };
   }
   const row = await insertEmailTemplate(data);
   return { ok: true, data: rowToEmailTemplate(row) };

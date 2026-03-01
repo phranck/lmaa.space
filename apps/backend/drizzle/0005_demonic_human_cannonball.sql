@@ -1,0 +1,1 @@
+ALTER TABLE "shops" ADD CONSTRAINT "shops_visibility_check" CHECK ("shops"."visibility" IN ('public', 'onhold', 'deleted'));
