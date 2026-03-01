@@ -23,7 +23,6 @@ import { CSS } from "@dnd-kit/utilities";
 import type { NavId } from "@lmaa/shared";
 import { useEffect, useState } from "react";
 import {
-  SFArrowUpRightSquare,
   SFLine3Horizontal,
   SFPlusCircle,
   SFSquareAndArrowDownFill,
@@ -160,19 +159,6 @@ function SortableNavItem({
         className="w-32 px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
         title={text.labelOverrideTitle}
       />
-
-      <button
-        type="button"
-        onClick={() => onTargetChange(item.id, item.target === "_blank" ? "_self" : "_blank")}
-        className={`p-1.5 rounded transition-colors ${
-          item.target === "_blank"
-            ? "text-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
-            : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-        }`}
-        title={item.target === "_blank" ? text.openNewTab : text.openSameTab}
-      >
-        <SFArrowUpRightSquare className="w-3.5 h-3.5" />
-      </button>
 
       <button
         type="button"
@@ -495,18 +481,6 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                 placeholder={text.labelPlaceholder}
                 className="w-24 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
               />
-              <button
-                type="button"
-                onClick={() => setAddTarget(addTarget === "_blank" ? "_self" : "_blank")}
-                className={`p-1.5 rounded transition-colors ${
-                  addTarget === "_blank"
-                    ? "text-[var(--color-primary)]"
-                    : "text-[var(--ds-text-muted)]"
-                }`}
-                title={addTarget === "_blank" ? text.newTab : text.sameTab}
-              >
-                <SFArrowUpRightSquare className="w-3.5 h-3.5" />
-              </button>
               <button
                 type="button"
                 onClick={handleAddUrl}
