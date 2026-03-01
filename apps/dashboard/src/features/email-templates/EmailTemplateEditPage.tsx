@@ -175,7 +175,7 @@ export function EmailTemplateEditPage() {
       </PageHeader>
 
       {/* Sub-bar: back link + inline name input */}
-      <div className="px-3 py-2 shrink-0 flex items-center gap-3">
+      <div className="px-3 py-1.5 shrink-0 flex items-center gap-3">
         <button
           type="button"
           onClick={() => navigate("/email-templates")}
@@ -199,10 +199,10 @@ export function EmailTemplateEditPage() {
       </div>
 
       {/* Body: two-column split — wrapped in a card */}
-      <div className="flex-1 overflow-hidden p-3 pt-1">
+      <div className="flex-1 overflow-hidden">
         <Card className="h-full flex overflow-hidden">
           {/* Left: form */}
-          <div className="w-1/2 overflow-y-auto p-4 space-y-4 border-r border-[var(--ds-border)]">
+          <div className="w-1/2 overflow-y-auto p-3 space-y-3 border-r border-[var(--ds-border)]">
             {/* Subject */}
             <Field label={m.templateSubject} htmlFor="tpl-subject" required>
               <TextInput

@@ -389,7 +389,7 @@ export function FormBuilderListPage() {
         </button>
       </PageHeader>
 
-      <div className="p-3 space-y-6">
+      <div className="space-y-6">
         {isLoading && (
           <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
             {messages.common.loading}

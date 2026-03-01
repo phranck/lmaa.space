@@ -273,8 +273,13 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
               onClick={async (e) => {
                 e.preventDefault();
                 try {
-                  const { id: _id, createdAt: _c, updatedAt: _u, isSystemTemplate: _s, ...fields } =
-                    tpl;
+                  const {
+                    id: _id,
+                    createdAt: _c,
+                    updatedAt: _u,
+                    isSystemTemplate: _s,
+                    ...fields
+                  } = tpl;
                   const created = await createTemplate.mutateAsync({
                     name: `${tpl.name} (Kopie)`,
                     subject: fields.subject,
@@ -344,15 +349,39 @@ export function Sidebar({
         {/* Allgemein */}
         <SidebarSection label={s.sectionGeneral} />
         <div className="space-y-0.5">
-          <SidebarItem to="/" label={s.overview} icon={<SFSquareGrid2x2Fill className="w-4 h-4" />} end onClick={onItemClick} />
-          <SidebarItem to="/meldungen" label={s.submissions} icon={<SFTrayFill className="w-4 h-4" />} badge={meldungenCount} onClick={onItemClick} />
+          <SidebarItem
+            to="/"
+            label={s.overview}
+            icon={<SFSquareGrid2x2Fill className="w-4 h-4" />}
+            end
+            onClick={onItemClick}
+          />
+          <SidebarItem
+            to="/meldungen"
+            label={s.submissions}
+            icon={<SFTrayFill className="w-4 h-4" />}
+            badge={meldungenCount}
+            onClick={onItemClick}
+          />
         </div>
 
         {/* Content */}
         <SidebarSection label={s.sectionContent} />
         <div className="space-y-0.5">
-          <SidebarItem to="/shops" label={s.shops} icon={<SFStorefrontFill className="w-4 h-4" />} badge={shops.length} onClick={onItemClick} />
-          <SidebarItem to="/kategorien" label={s.categories} icon={<SFTagFill className="w-4 h-4" />} badge={categories.length} onClick={onItemClick} />
+          <SidebarItem
+            to="/shops"
+            label={s.shops}
+            icon={<SFStorefrontFill className="w-4 h-4" />}
+            badge={shops.length}
+            onClick={onItemClick}
+          />
+          <SidebarItem
+            to="/kategorien"
+            label={s.categories}
+            icon={<SFTagFill className="w-4 h-4" />}
+            badge={categories.length}
+            onClick={onItemClick}
+          />
           {isAdmin && <PagesGroup onItemClick={onItemClick} />}
         </div>
 
@@ -372,8 +401,19 @@ export function Sidebar({
           <>
             <SidebarSection label={s.sectionSystem} />
             <div className="space-y-0.5">
-              <SidebarItem to="/benutzer" label={s.users} icon={<SFPerson3Fill className="w-4 h-4" />} badge={users.length} onClick={onItemClick} />
-              <SidebarItem to="/seiten/navigationen" label={s.navigations} icon={<SFLink className="w-4 h-4" />} onClick={onItemClick} />
+              <SidebarItem
+                to="/benutzer"
+                label={s.users}
+                icon={<SFPerson3Fill className="w-4 h-4" />}
+                badge={users.length}
+                onClick={onItemClick}
+              />
+              <SidebarItem
+                to="/seiten/navigationen"
+                label={s.navigations}
+                icon={<SFLink className="w-4 h-4" />}
+                onClick={onItemClick}
+              />
             </div>
           </>
         )}
