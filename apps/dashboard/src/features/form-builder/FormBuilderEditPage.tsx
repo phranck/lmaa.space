@@ -9,6 +9,7 @@ import {
   exportFormConfigSingle,
   useFormConfig,
   useSaveFormConfig,
+  useSetFormConfigActive,
 } from "@/features/form-builder/hooks/useFormConfig.ts";
 import {
   DndContext,
@@ -30,7 +31,12 @@ import type {
 } from "@lmaa/contracts";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { SFCheckmarkCircleFill, SFHandTap, SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
+import {
+  SFCheckmarkCircleFill,
+  SFCircle,
+  SFHandTap,
+  SFSquareAndArrowUp,
+} from "sf-symbols-lib/monochrome";
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -132,6 +138,7 @@ export function FormBuilderEditPage() {
 
   const { data: config, isLoading } = useFormConfig(formName);
   const saveMutation = useSaveFormConfig(formName);
+  const setActive = useSetFormConfigActive();
 
   const [rows, setRows] = useState<FormRow[]>([]);
   const [slug, setSlug] = useState<string>("");
@@ -409,6 +416,30 @@ export function FormBuilderEditPage() {
             className="w-48 px-2 py-1 text-sm font-mono bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
           />
         </div>
+        {config && (
+          <>
+            <span className="text-[var(--ds-border)]">·</span>
+            <button
+              type="button"
+              title={config.isActive ? m.status.deactivate : m.status.activate}
+              disabled={setActive.isPending}
+              onClick={() => setActive.mutate({ name: formName, isActive: !config.isActive })}
+              className="disabled:opacity-40 transition-opacity"
+            >
+              {config.isActive ? (
+                <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                  <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+                  {m.status.active}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
+                  <SFCircle className="w-3.5 h-3.5" />
+                  {m.status.inactive}
+                </span>
+              )}
+            </button>
+          </>
+        )}
       </div>
 
       <div className="pb-4">

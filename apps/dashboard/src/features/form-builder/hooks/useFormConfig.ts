@@ -176,8 +176,9 @@ export function useSetFormConfigActive() {
   return useMutation({
     mutationFn: ({ name, isActive }: { name: string; isActive: boolean }) =>
       api.patch<FormConfig>(`/admin/form-configs/${name}/active`, { isActive }),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       void qc.invalidateQueries({ queryKey: ["form-configs"] });
+      void qc.invalidateQueries({ queryKey: ["form-config", variables.name] });
     },
   });
 }
