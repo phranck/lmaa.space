@@ -438,6 +438,8 @@ export interface DashboardMessages {
     status: {
       active: string;
       inactive: string;
+      activate: string;
+      deactivate: string;
     };
     paletteGroups: {
       standard: string;
@@ -1051,6 +1053,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       status: {
         active: "Aktiv",
         inactive: "Inaktiv",
+        activate: "Aktivieren",
+        deactivate: "Deaktivieren",
       },
       paletteGroups: {
         standard: "Felder",
@@ -1657,6 +1661,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       status: {
         active: "Active",
         inactive: "Inactive",
+        activate: "Activate",
+        deactivate: "Deactivate",
       },
       paletteGroups: {
         standard: "Fields",

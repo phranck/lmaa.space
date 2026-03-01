@@ -105,6 +105,25 @@ export async function deleteFormConfig(name: string): Promise<boolean> {
 }
 
 /**
+ * Sets the `isActive` flag on a form config by name.
+ *
+ * @param name     - Form config name.
+ * @param isActive - New active state.
+ * @returns The updated row, or `null` if not found.
+ */
+export async function setFormConfigActive(
+  name: string,
+  isActive: boolean,
+): Promise<FormConfigRow | null> {
+  const [updated] = await db
+    .update(formConfigs)
+    .set({ isActive, updatedAt: new Date() })
+    .where(eq(formConfigs.name, name))
+    .returning();
+  return updated ?? null;
+}
+
+/**
  * Imports a form config from an export payload.
  *
  * - If `name` already exists and `overwrite` is `false`, returns `null` (caller handles conflict).

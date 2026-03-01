@@ -8,6 +8,7 @@ import {
   getFormConfigBySlug,
   importFormConfig,
   listFormConfigs,
+  setFormConfigActive,
   upsertFormConfig,
 } from "../repositories/admin-form-config.js";
 
@@ -105,6 +106,22 @@ export async function deleteManagedAdminFormConfig(
 ): Promise<{ ok: true } | { ok: false }> {
   const deleted = await deleteFormConfig(name);
   return deleted ? { ok: true } : { ok: false };
+}
+
+/**
+ * Sets the active state of a form config.
+ *
+ * @param name     - Form config identifier.
+ * @param isActive - New active state.
+ * @returns `{ ok: true, data }` or `{ ok: false }` if not found.
+ */
+export async function setManagedAdminFormConfigActive(
+  name: string,
+  isActive: boolean,
+): Promise<{ ok: true; data: FormConfig } | { ok: false }> {
+  const row = await setFormConfigActive(name, isActive);
+  if (!row) return { ok: false };
+  return { ok: true, data: rowToFormConfig(row) };
 }
 
 /**

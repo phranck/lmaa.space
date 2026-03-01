@@ -11,6 +11,7 @@ import {
   useDeleteFormConfig,
   useFormConfigs,
   useImportFormConfig,
+  useSetFormConfigActive,
 } from "@/features/form-builder/hooks/useFormConfig.ts";
 import type { FormConfig } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
@@ -231,6 +232,7 @@ export function FormBuilderListPage() {
   const { data: forms = [], isLoading } = useFormConfigs();
   const deleteForm = useDeleteFormConfig();
   const importForm = useImportFormConfig();
+  const setActive = useSetFormConfigActive();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -435,11 +437,21 @@ export function FormBuilderListPage() {
                       {form.slug ? `/${form.slug}` : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <ActiveBadge
-                        isActive={form.isActive}
-                        activeLabel={m.status.active}
-                        inactiveLabel={m.status.inactive}
-                      />
+                      <button
+                        type="button"
+                        title={form.isActive ? m.status.deactivate : m.status.activate}
+                        disabled={setActive.isPending}
+                        onClick={() =>
+                          setActive.mutate({ name: form.name, isActive: !form.isActive })
+                        }
+                        className="disabled:opacity-40 transition-opacity"
+                      >
+                        <ActiveBadge
+                          isActive={form.isActive}
+                          activeLabel={m.status.active}
+                          inactiveLabel={m.status.inactive}
+                        />
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">

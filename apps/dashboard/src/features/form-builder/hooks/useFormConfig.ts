@@ -165,3 +165,19 @@ export function useImportFormConfig() {
     },
   });
 }
+
+/**
+ * Sets the active state of a form config via PATCH.
+ *
+ * @returns React Query mutation for toggling the active flag.
+ */
+export function useSetFormConfigActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ name, isActive }: { name: string; isActive: boolean }) =>
+      api.patch<FormConfig>(`/admin/form-configs/${name}/active`, { isActive }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["form-configs"] });
+    },
+  });
+}

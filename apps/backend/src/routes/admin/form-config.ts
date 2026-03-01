@@ -10,6 +10,7 @@ import {
   getManagedAdminFormConfigs,
   importManagedFormConfig,
   saveManagedAdminFormConfig,
+  setManagedAdminFormConfigActive,
 } from "../../services/admin-form-config.js";
 
 const slugSchema = z
@@ -196,5 +197,19 @@ formConfigRoutes.put(
       if (result.reason === "slug_taken") return fail(c, 409, "Slug already in use");
     }
     return ok(c, result.ok ? result.data : null);
+  },
+);
+
+// PATCH /api/admin/form-configs/:name/active — set active state
+formConfigRoutes.patch(
+  "/form-configs/:name/active",
+  requireAuth,
+  zValidator("json", z.object({ isActive: z.boolean() })),
+  async (c) => {
+    const name = c.req.param("name");
+    const { isActive } = c.req.valid("json");
+    const result = await setManagedAdminFormConfigActive(name, isActive);
+    if (!result.ok) return fail(c, 404, "Form config not found");
+    return ok(c, result.data);
   },
 );
