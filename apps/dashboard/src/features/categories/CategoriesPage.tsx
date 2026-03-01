@@ -86,7 +86,7 @@ export function CategoriesPage() {
 
       {/* List View */}
       {!isLoading && viewMode === "list" && (
-        <div className="-mx-6 -mt-6">
+        <div className="-mx-3 -mt-3">
           <CategoryTable
             categories={categories}
             onEdit={setEditTarget}

@@ -664,7 +664,7 @@ function ShopMeldungenTab() {
 
   if (isLoading) {
     return (
-      <div className="p-6 text-center text-[var(--ds-text-subtle)] text-sm">
+      <div className="p-3 text-center text-[var(--ds-text-subtle)] text-sm">
         {submissionsMessages.shopReports.loading}
       </div>
     );
@@ -683,7 +683,7 @@ function ShopMeldungenTab() {
 
   return (
     <>
-      <div className="p-6 space-y-3">
+      <div className="p-3 space-y-3">
         {reports.map((r) => (
           <ItemCard key={r.id} className="p-4 flex flex-col gap-3">
             <div className="flex items-start justify-between gap-4">

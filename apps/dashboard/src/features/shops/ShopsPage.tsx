@@ -144,7 +144,7 @@ export function ShopsPage() {
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <div className="-mx-6 -mt-6">
+        <div className="-mx-3 -mt-3">
           <ShopTable
             shops={filtered}
             onEdit={setEditTarget}

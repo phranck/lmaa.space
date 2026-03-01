@@ -194,7 +194,7 @@ function AdminLayoutInner() {
 
       {/* Main — full width on mobile, offset by sidebar on desktop */}
       <div className="sidebar-aware-main flex flex-col min-h-screen">
-        <main className="flex-1 p-6 flex flex-col">
+        <main className="flex-1 p-3 flex flex-col">
           <Outlet />
         </main>
       </div>
