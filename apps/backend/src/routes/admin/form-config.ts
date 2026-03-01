@@ -41,11 +41,13 @@ const submissionStepSchema = z.discriminatedUnion("type", [
     toFieldId: z.string().max(100).optional(),
     subject: z.string().max(500).optional(),
     replyToFieldId: z.string().max(100).optional(),
+    templateId: z.number().int().positive().optional(),
   }),
 ]);
 
 const submissionConfigSchema = z.object({
   steps: z.array(submissionStepSchema),
+  successHeadline: z.string().max(200).optional(),
   successMessage: z.string().max(1000).optional(),
   successRedirectUrl: z.string().max(2000).optional(),
 });

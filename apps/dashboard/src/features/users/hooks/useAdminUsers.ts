@@ -10,6 +10,7 @@ export interface CreateUserFormData {
   email: string;
   password: string;
   role?: "admin" | "moderator";
+  welcomeTemplateId?: number;
 }
 
 /**

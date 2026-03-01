@@ -1,6 +1,7 @@
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useEmailTemplates } from "@/features/email-templates/hooks/useEmailTemplates.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useEffect, useState } from "react";
 import { SFPersonBadgePlus, SFPersonFill, SFPersonFillCheckmark } from "sf-symbols-lib/monochrome";
@@ -45,6 +46,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
   });
 
   const createMutation = useCreateUser();
+  const { data: emailTemplates = [] } = useEmailTemplates();
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -157,6 +159,34 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">
               {usersMessages.createCard.minLengthHint}
             </p>
+          </div>
+
+          {/* Welcome-Template */}
+          <div>
+            <label
+              htmlFor="uc-welcome-template"
+              className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+            >
+              {usersMessages.createCard.welcomeTemplate}
+            </label>
+            <select
+              id="uc-welcome-template"
+              value={form.welcomeTemplateId ?? ""}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  welcomeTemplateId: e.target.value ? Number(e.target.value) : undefined,
+                }))
+              }
+              className="w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+              <option value="">{usersMessages.createCard.welcomeTemplateNone}</option>
+              {emailTemplates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {createMutation.isError && (

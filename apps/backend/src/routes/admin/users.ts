@@ -27,6 +27,7 @@ export const usersRoutes = new Hono<{ Variables: AuthVariables }>();
 
 const createUserSchema = setupSchema.extend({
   role: z.enum(["admin", "moderator"]).optional(),
+  welcomeTemplateId: z.number().int().positive().optional(),
 });
 
 const updateUserSchema = z.object({
@@ -58,8 +59,8 @@ usersRoutes.post(
   requireOwner,
   zValidator("json", createUserSchema),
   async (c) => {
-    const { username, email, password, role } = c.req.valid("json");
-    const user = await createManagedAdminUser({ username, email, password, role });
+    const { username, email, password, role, welcomeTemplateId } = c.req.valid("json");
+    const user = await createManagedAdminUser({ username, email, password, role, welcomeTemplateId });
     return ok(c, user, 201);
   },
 );
