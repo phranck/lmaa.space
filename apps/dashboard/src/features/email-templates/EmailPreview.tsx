@@ -1,48 +1,7 @@
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { Marked } from "marked";
-import { useMemo, useState } from "react";
-
-const md = new Marked({ breaks: true, gfm: true });
-
-/**
- * Dark mode CSS rules applied via @media query in real email clients.
- * Uses !important to override inline styles — standard email dark mode practice.
- */
-const DARK_RULES_MEDIA = `
-  body                        { background: #1c1917 !important; }
-  table.em-container          { background: #292524 !important; border-color: #44403c !important; }
-  h1, h2, h3                  { color: #fafaf9 !important; }
-  p                           { color: #d6d3d1 !important; }
-  a                           { color: #fcd34d !important; }
-  strong                      { color: #fafaf9 !important; }
-  .em-footer-border           { border-top-color: #44403c !important; }
-  .em-footer-text,
-  .em-footer-text p           { color: #78716c !important; }
-`;
-
-function applyInlineStyles(html: string): string {
-  return html
-    .replace(
-      /<h1>/g,
-      '<h1 style="font-size:22px;font-weight:600;color:#292524;margin:0 0 16px 0;line-height:1.3;">',
-    )
-    .replace(
-      /<h2>/g,
-      '<h2 style="font-size:22px;font-weight:600;color:#292524;margin:0 0 16px 0;line-height:1.3;">',
-    )
-    .replace(
-      /<h3>/g,
-      '<h3 style="font-size:17px;font-weight:600;color:#292524;margin:0 0 12px 0;line-height:1.3;">',
-    )
-    .replace(/<p>/g, '<p style="font-size:15px;line-height:1.6;color:#44403c;margin:0 0 16px 0;">')
-    .replace(/<a /g, '<a style="color:#b45309;font-weight:600;" ')
-    .replace(/<strong>/g, '<strong style="color:#292524;">');
-}
-
-function parseMarkdown(text: string): string {
-  return applyInlineStyles(md.parse(text, { async: false }));
-}
+import { api } from "@/lib/api.ts";
+import { useEffect, useRef, useState } from "react";
 
 interface EmailPreviewProps {
   headerBannerUrl: string;
@@ -54,8 +13,8 @@ interface EmailPreviewProps {
 
 /**
  * Live email preview rendered in an isolated iframe.
- * Replicates the same HTML layout as the backend `renderEmailTemplate` function,
- * including dark mode support via CSS media query and a manual theme toggle.
+ * Fetches rendered HTML from the backend preview endpoint so the output is
+ * always identical to what recipients receive.
  */
 export function EmailPreview({
   headerBannerUrl,
@@ -67,61 +26,28 @@ export function EmailPreview({
   const { messages } = useI18n();
   const m = messages.emailTemplates;
   const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
+  const [srcDoc, setSrcDoc] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const srcDoc = useMemo(() => {
-    const headerHtml = headerText ? parseMarkdown(headerText) : null;
-    const bodyHtml = parseMarkdown(bodyText || "");
-    const footerHtml = footerText ? parseMarkdown(footerText) : null;
-
-    const rows: string[] = [];
-
-    if (headerBannerUrl.trim()) {
-      rows.push(
-        `<tr><td><img src="${headerBannerUrl}" width="560" alt="" style="display:block;width:100%;border-radius:8px 8px 0 0;"></td></tr>`,
-      );
-    }
-
-    if (headerHtml) {
-      rows.push(`<tr><td style="padding:32px 40px 0;">${headerHtml}</td></tr>`);
-    }
-
-    rows.push(`<tr><td style="padding:32px 40px;">${bodyHtml}</td></tr>`);
-
-    if (footerHtml) {
-      rows.push(
-        `<tr><td class="em-footer-border" style="padding:0 40px 32px;border-top:1px solid #e7e5e4;"><div class="em-footer-text" style="font-size:13px;color:#a8a29e;line-height:1.5;">${footerHtml}</div></td></tr>`,
-      );
-    }
-
-    if (footerBannerUrl.trim()) {
-      rows.push(
-        `<tr><td><img src="${footerBannerUrl}" width="560" alt="" style="display:block;width:100%;border-radius:0 0 8px 8px;"></td></tr>`,
-      );
-    }
-
-    // In the preview we control the theme manually via the toggle — no @media query.
-    // Including @media (prefers-color-scheme: dark) would make both modes look the
-    // same for users whose OS is already in dark mode.
-    const previewCss = colorScheme === "dark" ? DARK_RULES_MEDIA : "";
-
-    return `<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>${previewCss}</style>
-</head>
-<body style="margin:0;padding:0;background:#f5f5f4;font-family:'Inter',system-ui,-apple-system,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td align="center" style="padding:40px 16px;">
-      <table class="em-container" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#fff;border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;">
-        ${rows.join("\n        ")}
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-  }, [colorScheme, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText]);
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      api
+        .post<{ html: string }>("/admin/email-templates/preview", {
+          headerBannerUrl: headerBannerUrl || null,
+          headerText: headerText || null,
+          bodyText,
+          footerText: footerText || null,
+          footerBannerUrl: footerBannerUrl || null,
+          colorScheme,
+        })
+        .then(({ html }) => setSrcDoc(html))
+        .catch(() => {});
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [headerBannerUrl, headerText, bodyText, footerText, footerBannerUrl, colorScheme]);
 
   return (
     <div className="flex flex-col h-full">
@@ -139,7 +65,6 @@ export function EmailPreview({
       </div>
       <div className="flex-1 overflow-hidden">
         <iframe
-          key={colorScheme}
           srcDoc={srcDoc}
           className="w-full h-full border-0"
           title={m.previewTitle}

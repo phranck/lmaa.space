@@ -3,11 +3,13 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import { renderEmailPreview } from "../../services/email-renderer.js";
 import {
   createManagedEmailTemplate,
   deleteManagedEmailTemplate,
   getManagedEmailTemplateById,
   getManagedEmailTemplates,
+  importManagedEmailTemplate,
   updateManagedEmailTemplate,
 } from "../../services/email-templates.js";
 
@@ -73,6 +75,52 @@ emailTemplateRoutes.put(
     const result = await updateManagedEmailTemplate(id, data);
     if (!result.ok) return fail(c, 404, "Email template not found");
     return ok(c, result.data);
+  },
+);
+
+const emailTemplatePreviewSchema = z.object({
+  headerBannerUrl: z.string().nullish(),
+  headerText: z.string().nullish(),
+  bodyText: z.string().default(""),
+  footerText: z.string().nullish(),
+  footerBannerUrl: z.string().nullish(),
+  colorScheme: z.enum(["light", "dark"]).default("light"),
+});
+
+const emailTemplateImportSchema = z.object({
+  name: z.string().min(1).max(100),
+  subject: z.string().min(1).max(500),
+  headerBannerUrl: z.string().url().or(z.literal("")).nullish(),
+  headerText: z.string().max(50000).nullish(),
+  bodyText: z.string().max(50000),
+  footerBannerUrl: z.string().url().or(z.literal("")).nullish(),
+  footerText: z.string().max(50000).nullish(),
+  isSystemTemplate: z.boolean().optional(),
+  overwrite: z.boolean().default(false),
+});
+
+// POST /api/admin/email-templates/preview — render preview HTML
+emailTemplateRoutes.post(
+  "/email-templates/preview",
+  requireAuth,
+  zValidator("json", emailTemplatePreviewSchema),
+  (c) => {
+    const { colorScheme, ...fields } = c.req.valid("json");
+    const html = renderEmailPreview(fields, colorScheme);
+    return ok(c, { html });
+  },
+);
+
+// POST /api/admin/email-templates/import — import single template (create or overwrite)
+emailTemplateRoutes.post(
+  "/email-templates/import",
+  requireAuth,
+  zValidator("json", emailTemplateImportSchema),
+  async (c) => {
+    const { overwrite, ...data } = c.req.valid("json");
+    const result = await importManagedEmailTemplate(data, overwrite);
+    if (!result.ok) return fail(c, 409, "Template name already exists");
+    return ok(c, result.data, 201);
   },
 );
 

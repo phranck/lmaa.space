@@ -1,38 +1,161 @@
+import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { Card } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { EmailTemplateImportConflictDialog } from "@/features/email-templates/EmailTemplateImportConflictDialog.tsx";
 import {
+  exportEmailTemplateAll,
+  exportEmailTemplateSingle,
   useDeleteEmailTemplate,
   useEmailTemplates,
+  useImportEmailTemplate,
 } from "@/features/email-templates/hooks/useEmailTemplates.ts";
+import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   SFEnvelopeFill,
   SFLockFill,
   SFNewspaperFill,
   SFPlusCircleFill,
+  SFSquareAndArrowDown,
+  SFSquareAndArrowUp,
   SFTrashFill,
 } from "sf-symbols-lib/monochrome";
 
+type ImportTemplateData = EmailTemplateInput;
+
 /**
- * List page showing all email templates with create and delete actions.
+ * List page showing all email templates with create, delete, import and export actions.
  */
 export function EmailTemplateListPage() {
-  const { messages } = useI18n();
+  const { messages, locale } = useI18n();
   const m = messages.emailTemplates;
   const navigate = useNavigate();
   const { data: templates = [], isLoading } = useEmailTemplates();
   const deleteMutation = useDeleteEmailTemplate();
+  const importMutation = useImportEmailTemplate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [importConflict, setImportConflict] = useState<{
+    template: ImportTemplateData;
+    remaining: ImportTemplateData[];
+    imported: number;
+  } | null>(null);
 
   async function handleDelete(id: number, name: string) {
     if (!confirm(`${m.deleteTemplateConfirm} (${name})`)) return;
     await deleteMutation.mutateAsync(id);
   }
 
+  function processImportQueue(queue: ImportTemplateData[], imported: number) {
+    if (queue.length === 0) {
+      if (imported > 0) {
+        setAlertMessage(m.importSuccess.replace("{n}", String(imported)));
+      }
+      return;
+    }
+
+    const [current, ...remaining] = queue;
+    importMutation.mutate(
+      { ...current, overwrite: false },
+      {
+        onSuccess: () => processImportQueue(remaining, imported + 1),
+        onError: (err: unknown) => {
+          const status =
+            err && typeof err === "object" && "status" in err
+              ? (err as { status: number }).status
+              : 0;
+          if (status === 409) {
+            setImportConflict({ template: current, remaining, imported });
+          } else {
+            setAlertMessage(m.importError);
+            processImportQueue(remaining, imported);
+          }
+        },
+      },
+    );
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const json = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
+        let queue: ImportTemplateData[];
+
+        if (Array.isArray(json.templates)) {
+          queue = json.templates as ImportTemplateData[];
+        } else if (typeof json.name === "string" && typeof json.bodyText === "string") {
+          queue = [json as ImportTemplateData];
+        } else {
+          setAlertMessage(m.importInvalidFile);
+          return;
+        }
+
+        processImportQueue(queue, 0);
+      } catch {
+        setAlertMessage(m.importInvalidFile);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function handleConflictOverwrite() {
+    if (!importConflict) return;
+    const { template, remaining, imported } = importConflict;
+    setImportConflict(null);
+    importMutation.mutate(
+      { ...template, overwrite: true },
+      {
+        onSuccess: () => processImportQueue(remaining, imported + 1),
+        onError: () => {
+          setAlertMessage(m.importError);
+          processImportQueue(remaining, imported);
+        },
+      },
+    );
+  }
+
+  function handleConflictRename(newName: string) {
+    if (!importConflict) return;
+    const { template, remaining, imported } = importConflict;
+    setImportConflict(null);
+    processImportQueue([{ ...template, name: newName }, ...remaining], imported);
+  }
+
+  function handleConflictSkip() {
+    if (!importConflict) return;
+    const { remaining, imported } = importConflict;
+    setImportConflict(null);
+    processImportQueue(remaining, imported);
+  }
+
   return (
     <>
       <PageHeader title={m.listTitle}>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-2 px-4 py-2 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+        >
+          <SFSquareAndArrowDown className="w-3.5 h-3.5" />
+          {m.importTemplate}
+        </button>
+        <button
+          type="button"
+          onClick={() => exportEmailTemplateAll(templates)}
+          disabled={templates.length === 0}
+          className="flex items-center gap-2 px-4 py-2 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
+        >
+          <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+          {m.exportAll}
+        </button>
         <button
           type="button"
           onClick={() => navigate("/email-templates/new")}
@@ -59,15 +182,15 @@ export function EmailTemplateListPage() {
       )}
 
       {!isLoading && templates.length > 0 && (
-        <div className="p-3">
-          <Card className="overflow-hidden">
+        <div className="p-1.5">
+          <Card className="overflow-hidden rounded-control">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
-                  <th className="text-left px-4 py-3">{m.templateName}</th>
-                  <th className="text-left px-4 py-3">{m.templateSubject}</th>
-                  <th className="text-left px-4 py-3">{m.tableCreated}</th>
-                  <th className="px-4 py-3" />
+                  <th className="text-left px-4 py-1.5">{m.templateName}</th>
+                  <th className="text-left px-4 py-1.5">{m.templateSubject}</th>
+                  <th className="text-left px-4 py-1.5">{m.tableCreated}</th>
+                  <th className="px-4 py-1.5" />
                 </tr>
               </thead>
               <tbody>
@@ -76,7 +199,7 @@ export function EmailTemplateListPage() {
                     key={tpl.id}
                     className="border-b border-[var(--ds-border)] last:border-0 hover:bg-[var(--ds-surface-hover)] transition-colors"
                   >
-                    <td className="px-4 py-3 font-medium text-[var(--ds-text)]">
+                    <td className="px-4 py-1.5 font-medium text-[var(--ds-text)]">
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
@@ -93,18 +216,26 @@ export function EmailTemplateListPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[var(--ds-text-muted)] truncate max-w-xs">
+                    <td className="px-4 py-1.5 text-[var(--ds-text-muted)] truncate max-w-xs">
                       {tpl.subject || "—"}
                     </td>
-                    <td className="px-4 py-3 text-[var(--ds-text-muted)] text-xs whitespace-nowrap">
-                      {new Date(tpl.createdAt).toLocaleDateString()}
+                    <td className="px-4 py-1.5 text-[var(--ds-text-muted)] text-xs whitespace-nowrap">
+                      {new Date(tpl.createdAt).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" })}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-4 py-1.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => exportEmailTemplateSingle(tpl)}
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                        >
+                          <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+                          {m.exportTemplate}
+                        </button>
                         <button
                           type="button"
                           onClick={() => navigate(`/email-templates/${tpl.id}`)}
-                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--ds-surface-hover)] rounded transition-colors"
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                         >
                           <SFNewspaperFill className="w-3.5 h-3.5" />
                           {messages.common.edit}
@@ -113,7 +244,7 @@ export function EmailTemplateListPage() {
                           type="button"
                           onClick={() => handleDelete(tpl.id, tpl.name)}
                           disabled={deleteMutation.isPending || tpl.isSystemTemplate}
-                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
                         >
                           <SFTrashFill className="w-3.5 h-3.5" />
                           {m.deleteTemplate}
@@ -126,6 +257,30 @@ export function EmailTemplateListPage() {
             </table>
           </Card>
         </div>
+      )}
+
+      {/* Hidden file input for import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      <AlertDialog
+        open={alertMessage !== null}
+        title={alertMessage ?? ""}
+        onClose={() => setAlertMessage(null)}
+      />
+
+      {importConflict && (
+        <EmailTemplateImportConflictDialog
+          templateName={importConflict.template.name}
+          onOverwrite={handleConflictOverwrite}
+          onRename={handleConflictRename}
+          onCancel={handleConflictSkip}
+        />
       )}
     </>
   );
