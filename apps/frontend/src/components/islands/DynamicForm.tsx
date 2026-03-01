@@ -901,11 +901,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               id={key}
               type={
                 field.inputType ??
-                (field.type === "email"
-                  ? "email"
-                  : field.type === "password"
-                    ? "password"
-                    : "text")
+                (field.type === "email" ? "email" : field.type === "password" ? "password" : "text")
               }
               placeholder={field.placeholder}
               className={inputClass}

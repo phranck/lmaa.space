@@ -3,7 +3,12 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/form-builder/BuilderCanvas.tsx";
 import { FieldConfigPanel } from "@/features/form-builder/FieldConfigPanel.tsx";
 import { FieldPalette } from "@/features/form-builder/FieldPalette.tsx";
-import { useFormConfig, useSaveFormConfig } from "@/features/form-builder/hooks/useFormConfig.ts";
+import {
+  exportFormConfigSingle,
+  useFormConfig,
+  useSaveFormConfig,
+} from "@/features/form-builder/hooks/useFormConfig.ts";
+import { SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
 import {
   DndContext,
   type DragEndEvent,
@@ -20,6 +25,7 @@ import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
 
 const FORM_NAME = "suggestion-form";
+
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -101,6 +107,8 @@ export function FormBuilderPage() {
   const [rows, setRows] = useState<FormRow[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [isDirty, setIsDirty] = useState(false);
+  const [showExportWarning, setShowExportWarning] = useState(false);
   // Tracks the last row we moved the dragged row INTO during onDragOver.
   // Prevents oscillation: without this, every pointer-move event would swap
   // the rows back because resolvedOverId stays the same after the first move.
@@ -117,6 +125,7 @@ export function FormBuilderPage() {
   useEffect(() => {
     if (config !== undefined) {
       setRows(config?.rows ?? []);
+      setIsDirty(false);
     }
   }, [config]);
 
@@ -195,6 +204,7 @@ export function FormBuilderPage() {
       if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
       return arrayMove(prev, oldIndex, newIndex);
     });
+    setIsDirty(true);
 
     lastOverRowId.current = resolvedOverId;
   }
@@ -235,6 +245,7 @@ export function FormBuilderPage() {
               r.id === targetRow.id ? { ...r, fields: [...r.fields, newField] } : r,
             ),
           );
+          setIsDirty(true);
           setSelectedFieldId(newField.id);
           return;
         }
@@ -244,6 +255,7 @@ export function FormBuilderPage() {
       const newField = makeNewField(type);
       const newRow = makeNewRow(newField);
       setRows((prev) => [...prev, newRow]);
+      setIsDirty(true);
       setSelectedFieldId(newField.id);
       return;
     }
@@ -269,6 +281,7 @@ export function FormBuilderPage() {
               return { ...row, fields: arrayMove(row.fields, oldIdx, newIdx) };
             }),
           );
+          setIsDirty(true);
         }
       } else {
         // Cross-row: move field to target row
@@ -290,6 +303,7 @@ export function FormBuilderPage() {
             })
             .filter((row) => row.fields.length > 0);
         });
+        setIsDirty(true);
       }
     }
   }
@@ -320,6 +334,7 @@ export function FormBuilderPage() {
         })
         .filter((row) => row.fields.length > 0),
     );
+    setIsDirty(true);
   }
 
   /**
@@ -334,6 +349,7 @@ export function FormBuilderPage() {
         fields: row.fields.map((f) => (f.id === updated.id ? updated : f)),
       })),
     );
+    setIsDirty(true);
   }
 
   /**
@@ -349,6 +365,7 @@ export function FormBuilderPage() {
       {
         onSuccess: () => {
           setSaveStatus("saved");
+          setIsDirty(false);
           setTimeout(() => setSaveStatus("idle"), 3000);
         },
         onError: (err) => {
@@ -357,6 +374,16 @@ export function FormBuilderPage() {
         },
       },
     );
+  }
+
+  function handleExport() {
+    if (!config) return;
+    if (isDirty) {
+      setShowExportWarning(true);
+      setTimeout(() => setShowExportWarning(false), 3000);
+      return;
+    }
+    exportFormConfigSingle(config.name, config.slug, rows, config.submissionConfig);
   }
 
   if (isLoading) {
@@ -374,6 +401,18 @@ export function FormBuilderPage() {
     <div>
       <PageHeader title={m.title}>
         <div className="flex items-center gap-3">
+          {showExportWarning && (
+            <span className="text-sm text-amber-600 font-medium">{m.exportUnsavedWarning}</span>
+          )}
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={!config}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
+          >
+            <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+            {m.exportForm}
+          </button>
           {saveStatus === "saved" && (
             <span className="text-sm text-green-600 font-medium">{m.saved}</span>
           )}

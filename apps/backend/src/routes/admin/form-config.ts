@@ -8,6 +8,7 @@ import {
   deleteManagedAdminFormConfig,
   getManagedAdminFormConfigByName,
   getManagedAdminFormConfigs,
+  importManagedFormConfig,
   saveManagedAdminFormConfig,
 } from "../../services/admin-form-config.js";
 
@@ -112,6 +113,18 @@ const createFormConfigSchema = z.object({
     .optional(),
 });
 
+const importFormConfigSchema = z.object({
+  name: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Name must be lowercase letters, digits and hyphens only"),
+  slug: slugSchema,
+  rows: z.array(formRowSchema),
+  submissionConfig: submissionConfigSchema.optional(),
+  overwrite: z.boolean().optional(),
+});
+
 /**
  * Admin form configuration CRUD routes.
  */
@@ -129,6 +142,21 @@ formConfigRoutes.get("/form-configs", requireAuth, async (c) => {
   const configs = await getManagedAdminFormConfigs();
   return ok(c, configs);
 });
+
+// POST /api/admin/form-configs/import — import a form config (must be before /:name)
+formConfigRoutes.post(
+  "/form-configs/import",
+  requireAuth,
+  zValidator("json", importFormConfigSchema),
+  async (c) => {
+    const { name, overwrite, ...payload } = c.req.valid("json");
+    const result = await importManagedFormConfig(name, payload, overwrite ?? false);
+    if (!result.ok) {
+      if (result.reason === "name_taken") return fail(c, 409, "Form name already exists");
+    }
+    return ok(c, result.ok ? result.data : null);
+  },
+);
 
 // GET /api/admin/form-configs/:name — get by name
 formConfigRoutes.get("/form-configs/:name", requireAuth, async (c) => {

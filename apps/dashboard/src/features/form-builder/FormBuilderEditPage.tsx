@@ -5,7 +5,11 @@ import { BuilderCanvas } from "@/features/form-builder/BuilderCanvas.tsx";
 import { FieldConfigPanel } from "@/features/form-builder/FieldConfigPanel.tsx";
 import { FieldPalette } from "@/features/form-builder/FieldPalette.tsx";
 import { SubmissionConfigPanel } from "@/features/form-builder/SubmissionConfigPanel.tsx";
-import { useFormConfig, useSaveFormConfig } from "@/features/form-builder/hooks/useFormConfig.ts";
+import {
+  exportFormConfigSingle,
+  useFormConfig,
+  useSaveFormConfig,
+} from "@/features/form-builder/hooks/useFormConfig.ts";
 import {
   DndContext,
   type DragEndEvent,
@@ -26,7 +30,7 @@ import type {
 } from "@lmaa/contracts";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { SFHandTap } from "sf-symbols-lib/monochrome";
+import { SFCheckmarkCircleFill, SFHandTap, SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -112,6 +116,7 @@ function makeNewRow(field: FormField): FormRow {
   return { id: crypto.randomUUID(), fields: [field] };
 }
 
+
 /**
  * Form builder edit page — loads a form by name from the URL parameter.
  *
@@ -136,6 +141,8 @@ export function FormBuilderEditPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error" | "slug_conflict">(
     "idle",
   );
+  const [isDirty, setIsDirty] = useState(false);
+  const [showExportWarning, setShowExportWarning] = useState(false);
   const [activeDrag, setActiveDrag] = useState<{
     id: string;
     field?: FormField;
@@ -149,6 +156,7 @@ export function FormBuilderEditPage() {
       setRows(config?.rows ?? []);
       setSlug(config?.slug ?? formName);
       setSubmissionConfig(config?.submissionConfig);
+      setIsDirty(false);
     }
   }, [config, formName]);
 
@@ -283,6 +291,7 @@ export function FormBuilderEditPage() {
         })
         .filter((row) => row.fields.length > 0),
     );
+    setIsDirty(true);
   }
 
   function handleFieldChange(updated: FormField) {
@@ -292,6 +301,7 @@ export function FormBuilderEditPage() {
         fields: row.fields.map((f) => (f.id === updated.id ? updated : f)),
       })),
     );
+    setIsDirty(true);
   }
 
   function handleSave() {
@@ -301,6 +311,7 @@ export function FormBuilderEditPage() {
       {
         onSuccess: () => {
           setSaveStatus("saved");
+          setIsDirty(false);
           setTimeout(() => setSaveStatus("idle"), 3000);
         },
         onError: (err: unknown) => {
@@ -318,6 +329,16 @@ export function FormBuilderEditPage() {
     );
   }
 
+  function handleExport() {
+    if (!config) return;
+    if (isDirty) {
+      setShowExportWarning(true);
+      setTimeout(() => setShowExportWarning(false), 3000);
+      return;
+    }
+    exportFormConfigSingle(config.name, slug, rows, submissionConfig);
+  }
+
   if (isLoading) {
     return (
       <div>
@@ -333,6 +354,18 @@ export function FormBuilderEditPage() {
     <div>
       <PageHeader title={`${m.title}: ${formName}`}>
         <div className="flex items-center gap-3">
+          {showExportWarning && (
+            <span className="text-sm text-amber-600 font-medium">{m.exportUnsavedWarning}</span>
+          )}
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={!config}
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
+          >
+            <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+            {m.exportForm}
+          </button>
           {saveStatus === "saved" && (
             <span className="text-sm text-green-600 font-medium">{m.saved}</span>
           )}
@@ -346,8 +379,9 @@ export function FormBuilderEditPage() {
             type="button"
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className="h-9 px-4 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-50 transition-colors"
           >
+            <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
             {saveMutation.isPending ? messages.common.saving : m.save}
           </button>
         </div>

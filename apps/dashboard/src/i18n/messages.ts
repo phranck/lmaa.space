@@ -529,6 +529,19 @@ export interface DashboardMessages {
       successRedirect: string;
       noSteps: string;
     };
+    exportForm: string;
+    exportAll: string;
+    importForm: string;
+    importSuccess: string;
+    importError: string;
+    importInvalidFile: string;
+    importConflictTitle: string;
+    importConflictHint: string;
+    importOverwrite: string;
+    importRename: string;
+    importNewNameLabel: string;
+    importSkip: string;
+    exportUnsavedWarning: string;
   };
   emailTemplates: {
     listTitle: string;
@@ -1100,6 +1113,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         successRedirect: "Weiterleitung",
         noSteps: "Keine Schritte konfiguriert.",
       },
+      exportForm: "Exportieren",
+      exportAll: "Alle exportieren",
+      importForm: "Importieren",
+      importSuccess: "{n} Formular(e) erfolgreich importiert",
+      importError: "Fehler beim Importieren",
+      importInvalidFile: "Ungültige Datei",
+      importConflictTitle: "Namenskonflikt: {name}",
+      importConflictHint: "Ein Formular mit diesem Namen existiert bereits.",
+      importOverwrite: "Überschreiben",
+      importRename: "Neuer Name",
+      importNewNameLabel: "Neuer Name",
+      importSkip: "Überspringen",
+      exportUnsavedWarning: "Bitte zuerst speichern, bevor du exportierst.",
     },
     emailTemplates: {
       listTitle: "E-Mail-Templates",
@@ -1664,6 +1690,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         successRedirect: "Redirect",
         noSteps: "No steps configured.",
       },
+      exportForm: "Export",
+      exportAll: "Export all",
+      importForm: "Import",
+      importSuccess: "{n} form(s) imported successfully",
+      importError: "Error while importing",
+      importInvalidFile: "Invalid file",
+      importConflictTitle: "Name conflict: {name}",
+      importConflictHint: "A form with this name already exists.",
+      importOverwrite: "Overwrite",
+      importRename: "New name",
+      importNewNameLabel: "New name",
+      importSkip: "Skip",
+      exportUnsavedWarning: "Please save before exporting.",
     },
     emailTemplates: {
       listTitle: "Email Templates",

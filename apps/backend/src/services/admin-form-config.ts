@@ -6,6 +6,7 @@ import {
   getActiveFormConfigBySlug,
   getFormConfigByName,
   getFormConfigBySlug,
+  importFormConfig,
   listFormConfigs,
   upsertFormConfig,
 } from "../repositories/admin-form-config.js";
@@ -131,5 +132,25 @@ export async function getManagedPublicFormConfigBySlug(
 ): Promise<{ ok: true; data: FormConfig } | { ok: false }> {
   const row = await getActiveFormConfigBySlug(slug);
   if (!row) return { ok: false };
+  return { ok: true, data: rowToFormConfig(row) };
+}
+
+/**
+ * Imports a form config from an export payload.
+ *
+ * - Returns `{ ok: false, reason: 'name_taken' }` if the name exists and `overwrite` is `false`.
+ * - Returns `{ ok: true, data }` on successful insert or overwrite.
+ *
+ * @param name     - Target form config name.
+ * @param payload  - Export payload containing rows, slug, and submissionConfig.
+ * @param overwrite - Whether to overwrite an existing form with the same name.
+ */
+export async function importManagedFormConfig(
+  name: string,
+  payload: FormConfigPayload,
+  overwrite = false,
+): Promise<{ ok: true; data: FormConfig } | { ok: false; reason: "name_taken" }> {
+  const row = await importFormConfig(name, payload, overwrite);
+  if (!row) return { ok: false, reason: "name_taken" };
   return { ok: true, data: rowToFormConfig(row) };
 }

@@ -199,7 +199,6 @@ export async function deleteSubmission(id: number): Promise<void> {
   await db.delete(submissions).where(eq(submissions.id, id));
 }
 
-
 /**
  * Marks feedback as sent for a submission.
  *
@@ -210,7 +209,6 @@ export async function setSubmissionFeedbackSent(id: number): Promise<void> {
   await db.update(submissions).set({ feedbackSent: true }).where(eq(submissions.id, id));
 }
 
-
 /**
  * Creates a new submission row from raw form data.
  *
@@ -220,9 +218,7 @@ export async function setSubmissionFeedbackSent(id: number): Promise<void> {
  * @param data - Submitted field values keyed by variable name.
  * @returns The id of the created submission row.
  */
-export async function createSubmissionFromFormData(
-  data: Record<string, unknown>,
-): Promise<number> {
+export async function createSubmissionFromFormData(data: Record<string, unknown>): Promise<number> {
   const str = (key: string) => (data[key] != null ? String(data[key]) : "");
   const strOrNull = (key: string) => (data[key] != null ? String(data[key]) : null);
   const region = Array.isArray(data.region) ? (data.region as string[]) : [];

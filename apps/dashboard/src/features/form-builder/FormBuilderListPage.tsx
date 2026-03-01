@@ -1,12 +1,16 @@
-import { Card } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { ImportConflictDialog } from "@/features/form-builder/ImportConflictDialog.tsx";
 import {
+  exportFormConfigAll,
+  exportFormConfigSingle,
   useCreateFormConfig,
   useDeleteFormConfig,
   useFormConfigs,
+  useImportFormConfig,
 } from "@/features/form-builder/hooks/useFormConfig.ts";
+import type { FormConfig } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -15,8 +19,17 @@ import {
   SFDocumentFill,
   SFNewspaperFill,
   SFPlusCircleFill,
+  SFSquareAndArrowDown,
+  SFSquareAndArrowUp,
   SFTrashFill,
 } from "sf-symbols-lib/monochrome";
+
+type ImportFormData = {
+  name: string;
+  slug?: string;
+  rows: FormConfig["rows"];
+  submissionConfig?: FormConfig["submissionConfig"];
+};
 
 /**
  * Derives a slug from a name: lowercase, replace spaces/underscores with hyphens,
@@ -30,6 +43,7 @@ function deriveSlug(name: string): string {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
+
 
 function ActiveBadge({
   isActive,
@@ -215,7 +229,14 @@ export function FormBuilderListPage() {
   const navigate = useNavigate();
   const { data: forms = [], isLoading } = useFormConfigs();
   const deleteForm = useDeleteFormConfig();
+  const importForm = useImportFormConfig();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDialog, setShowDialog] = useState(false);
+  const [importConflict, setImportConflict] = useState<{
+    form: ImportFormData;
+    remaining: ImportFormData[];
+    imported: number;
+  } | null>(null);
 
   async function handleDelete(name: string) {
     if (!confirm(`${m.deleteConfirmPrefix}${name}${m.deleteConfirmSuffix}`)) return;
@@ -227,9 +248,129 @@ export function FormBuilderListPage() {
     void navigate(`/formular/${name}`);
   }
 
+  function handleExportAll() {
+    exportFormConfigAll(forms);
+  }
+
+  function handleExportSingle(form: FormConfig) {
+    exportFormConfigSingle(form.name, form.slug, form.rows, form.submissionConfig);
+  }
+
+  function processImportQueue(queue: ImportFormData[], imported: number) {
+    if (queue.length === 0) {
+      if (imported > 0) {
+        alert(m.importSuccess.replace("{n}", String(imported)));
+      }
+      return;
+    }
+
+    const [current, ...remaining] = queue;
+    importForm.mutate(
+      { ...current, overwrite: false },
+      {
+        onSuccess: () => processImportQueue(remaining, imported + 1),
+        onError: (err: unknown) => {
+          const status =
+            err && typeof err === "object" && "status" in err
+              ? (err as { status: number }).status
+              : 0;
+          if (status === 409) {
+            setImportConflict({ form: current, remaining, imported });
+          } else {
+            alert(m.importError);
+            processImportQueue(remaining, imported);
+          }
+        },
+      },
+    );
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so the same file can be re-imported
+    e.target.value = "";
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const json = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
+        let queue: ImportFormData[];
+
+        if (Array.isArray(json.forms)) {
+          queue = json.forms as ImportFormData[];
+        } else if (typeof json.name === "string" && Array.isArray(json.rows)) {
+          queue = [
+            {
+              name: json.name,
+              slug: typeof json.slug === "string" ? json.slug : undefined,
+              rows: json.rows as FormConfig["rows"],
+              submissionConfig: json.submissionConfig as FormConfig["submissionConfig"],
+            },
+          ];
+        } else {
+          alert(m.importInvalidFile);
+          return;
+        }
+
+        processImportQueue(queue, 0);
+      } catch {
+        alert(m.importInvalidFile);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function handleConflictOverwrite() {
+    if (!importConflict) return;
+    const { form, remaining, imported } = importConflict;
+    setImportConflict(null);
+    importForm.mutate(
+      { ...form, overwrite: true },
+      {
+        onSuccess: () => processImportQueue(remaining, imported + 1),
+        onError: () => {
+          alert(m.importError);
+          processImportQueue(remaining, imported);
+        },
+      },
+    );
+  }
+
+  function handleConflictRename(newName: string) {
+    if (!importConflict) return;
+    const { form, remaining, imported } = importConflict;
+    setImportConflict(null);
+    processImportQueue([{ ...form, name: newName }, ...remaining], imported);
+  }
+
+  function handleConflictSkip() {
+    if (!importConflict) return;
+    const { remaining, imported } = importConflict;
+    setImportConflict(null);
+    processImportQueue(remaining, imported);
+  }
+
   return (
     <>
       <PageHeader title={m.listTitle}>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-2 px-4 py-2 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+        >
+          <SFSquareAndArrowDown className="w-3.5 h-3.5" />
+          {m.importForm}
+        </button>
+        <button
+          type="button"
+          onClick={handleExportAll}
+          disabled={forms.length === 0}
+          className="flex items-center gap-2 px-4 py-2 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
+        >
+          <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+          {m.exportAll}
+        </button>
         <button
           type="button"
           onClick={() => setShowDialog(true)}
@@ -240,8 +381,8 @@ export function FormBuilderListPage() {
         </button>
       </PageHeader>
 
-      <div className="p-6 space-y-6">
-        <Card className="overflow-hidden">
+      <div className="p-3 space-y-6">
+        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
           {isLoading ? (
             <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
               {messages.common.loading}
@@ -288,11 +429,19 @@ export function FormBuilderListPage() {
                       />
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleExportSingle(form)}
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                        >
+                          <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+                          {m.exportForm}
+                        </button>
                         <button
                           type="button"
                           onClick={() => navigate(`/formular/${form.name}`)}
-                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--ds-surface-hover)] rounded transition-colors"
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                         >
                           <SFNewspaperFill className="w-3.5 h-3.5" />
                           {m.editButton}
@@ -301,7 +450,7 @@ export function FormBuilderListPage() {
                           type="button"
                           onClick={() => handleDelete(form.name)}
                           disabled={deleteForm.isPending}
-                          className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
                         >
                           <SFTrashFill className="w-3.5 h-3.5" />
                           {messages.common.delete}
@@ -313,11 +462,29 @@ export function FormBuilderListPage() {
               </tbody>
             </table>
           )}
-        </Card>
+        </div>
       </div>
+
+      {/* Hidden file input for import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
       {showDialog && (
         <NewFormDialog onClose={() => setShowDialog(false)} onCreated={handleCreated} />
+      )}
+
+      {importConflict && (
+        <ImportConflictDialog
+          formName={importConflict.form.name}
+          onOverwrite={handleConflictOverwrite}
+          onRename={handleConflictRename}
+          onCancel={handleConflictSkip}
+        />
       )}
     </>
   );

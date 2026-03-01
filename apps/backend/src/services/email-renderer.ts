@@ -64,10 +64,7 @@ function applyInlineStyles(html: string): string {
       /<h2>/g,
       '<h2 style="font-size:18px;font-weight:600;color:#292524;margin:0 0 12px 0;line-height:1.3;">',
     )
-    .replace(
-      /<p>/g,
-      '<p style="font-size:15px;line-height:1.6;color:#44403c;margin:0 0 16px 0;">',
-    )
+    .replace(/<p>/g, '<p style="font-size:15px;line-height:1.6;color:#44403c;margin:0 0 16px 0;">')
     .replace(/<a /g, '<a style="color:#b45309;font-weight:600;" ')
     .replace(/<strong>/g, '<strong style="color:#292524;">');
 }
@@ -114,15 +111,11 @@ export async function renderEmailTemplate(
 
   // Header text (conditional)
   if (headerHtml) {
-    rows.push(
-      `<tr><td style="padding:32px 40px 0;">${headerHtml}</td></tr>`,
-    );
+    rows.push(`<tr><td style="padding:32px 40px 0;">${headerHtml}</td></tr>`);
   }
 
   // Body (always present)
-  rows.push(
-    `<tr><td style="padding:32px 40px;">${bodyHtml}</td></tr>`,
-  );
+  rows.push(`<tr><td style="padding:32px 40px;">${bodyHtml}</td></tr>`);
 
   // Footer text (conditional)
   if (footerHtml) {

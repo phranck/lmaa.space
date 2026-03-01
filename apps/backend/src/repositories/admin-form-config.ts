@@ -103,3 +103,46 @@ export async function deleteFormConfig(name: string): Promise<boolean> {
   const result = await db.delete(formConfigs).where(eq(formConfigs.name, name)).returning();
   return result.length > 0;
 }
+
+/**
+ * Imports a form config from an export payload.
+ *
+ * - If `name` already exists and `overwrite` is `false`, returns `null` (caller handles conflict).
+ * - If `name` already exists and `overwrite` is `true`, updates the existing record with `isActive: false`.
+ * - If `name` does not exist, inserts a new record with `isActive: false`.
+ * - Slug conflicts with another form are resolved silently by falling back to `name` as slug.
+ *
+ * @param name     - Target form config name.
+ * @param payload  - Export payload containing rows, slug, and submissionConfig.
+ * @param overwrite - Whether to overwrite an existing form with the same name.
+ * @returns The saved form config row, or `null` on name conflict.
+ */
+export async function importFormConfig(
+  name: string,
+  payload: FormConfigPayload,
+  overwrite = false,
+): Promise<FormConfigRow | null> {
+  const existing = await getFormConfigByName(name);
+
+  // Slug conflict: if desired slug is already owned by a different form, fall back to `name`
+  const desiredSlug = payload.slug ?? name;
+  const slugOwner = await getFormConfigBySlug(desiredSlug);
+  const slug = slugOwner && slugOwner.name !== name ? name : desiredSlug;
+
+  if (existing) {
+    if (!overwrite) return null;
+
+    const [updated] = await db
+      .update(formConfigs)
+      .set({ config: payload, slug, isActive: false, updatedAt: new Date() })
+      .where(eq(formConfigs.name, name))
+      .returning();
+    return updated;
+  }
+
+  const [created] = await db
+    .insert(formConfigs)
+    .values({ name, config: payload, slug, isActive: false })
+    .returning();
+  return created;
+}
