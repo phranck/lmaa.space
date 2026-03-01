@@ -1,5 +1,6 @@
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { ShopDeleteReasonCard } from "@/features/shops/ShopDeleteReasonCard.tsx";
@@ -9,11 +10,19 @@ import {
   useAdminShops,
   useDeleteShop,
   useSetShopVisibility,
+  useUpdateDeleteReason,
 } from "@/features/shops/hooks/useAdminShops.ts";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import type { ShopVisibility } from "@lmaa/shared";
 import { useState } from "react";
-import { SFEyeFill, SFPauseCircleFill, SFTrashFill, SFXmark } from "sf-symbols-lib/monochrome";
+import {
+  SFEyeFill,
+  SFMagnifyingglass,
+  SFPauseCircleFill,
+  SFSquareGrid2x2Fill,
+  SFStorefrontFill,
+  SFTrashFill,
+  SFXmark,
+} from "sf-symbols-lib/monochrome";
 
 type VisibilityFilter = "all" | ShopVisibility;
 
@@ -36,6 +45,7 @@ export function ShopsPage() {
   );
   const deleteMutation = useDeleteShop();
   const visibilityMutation = useSetShopVisibility();
+  const updateReasonMutation = useUpdateDeleteReason();
 
   const filtered = shops.filter(
     (s) =>
@@ -47,24 +57,28 @@ export function ShopsPage() {
 
   const canModify = me?.role !== "moderator";
 
-  const filterOptions = [
-    { value: "all" as VisibilityFilter, label: shopsMessages.filters.all },
+  const filterOptions: DropdownOption<VisibilityFilter>[] = [
     {
-      value: "public" as VisibilityFilter,
+      value: "all",
+      label: shopsMessages.filters.all,
+      icon: <SFSquareGrid2x2Fill className="w-3.5 h-3.5" />,
+    },
+    {
+      value: "public",
       label: shopsMessages.filters.public,
       icon: <SFEyeFill className="w-3.5 h-3.5" />,
     },
     {
-      value: "onhold" as VisibilityFilter,
+      value: "onhold",
       label: shopsMessages.filters.onhold,
       icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
     },
     {
-      value: "deleted" as VisibilityFilter,
+      value: "deleted",
       label: shopsMessages.filters.deleted,
       icon: <SFTrashFill className="w-3.5 h-3.5" />,
     },
-  ] as const;
+  ];
 
   return (
     <div>
@@ -88,12 +102,7 @@ export function ShopsPage() {
           )}
         </div>
 
-        <SegmentedControl
-          value={visibilityFilter}
-          onChange={setVisibilityFilter}
-          storageKey={getSegmentedStorageKey(me?.id, "shops:visibility")}
-          options={filterOptions}
-        />
+        <Dropdown value={visibilityFilter} onChange={setVisibilityFilter} options={filterOptions} />
 
         <button
           type="button"
@@ -117,13 +126,19 @@ export function ShopsPage() {
       )}
 
       {!isLoading && shops.length === 0 && (
-        <p className="text-center py-16 text-[var(--ds-text-subtle)]">{shopsMessages.noShops}</p>
+        <ContentUnavailableView
+          icon={<SFStorefrontFill aria-hidden />}
+          title={shopsMessages.noShops}
+          subtitle={shopsMessages.noShopsHint}
+        />
       )}
 
       {!isLoading && shops.length > 0 && filtered.length === 0 && (
-        <p className="text-center py-16 text-[var(--ds-text-subtle)]">
-          {shopsMessages.noResultsPrefix} „{search}".
-        </p>
+        <ContentUnavailableView
+          icon={<SFMagnifyingglass aria-hidden />}
+          title={`${shopsMessages.noResultsPrefix} „${search}".`}
+          subtitle={shopsMessages.noResultsHint}
+        />
       )}
 
       {!isLoading && filtered.length > 0 && (
@@ -140,6 +155,11 @@ export function ShopsPage() {
             onRestore={
               canModify
                 ? (id) => visibilityMutation.mutate({ id, visibility: "public" })
+                : undefined
+            }
+            onUpdateReason={
+              canModify
+                ? (id, reason) => updateReasonMutation.mutateAsync({ id, reason })
                 : undefined
             }
           />
