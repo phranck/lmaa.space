@@ -43,6 +43,13 @@
       "when": 1772380226583,
       "tag": "0005_demonic_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772388478256,
+      "tag": "0006_remove_suggestion_content_page",
+      "breakpoints": true
     }
   ]
 }
