@@ -25,6 +25,7 @@ type ViewMode = "list" | "grid";
 export function CategoriesPage() {
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;
+  const common = messages.common;
   const { user: me } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
