@@ -418,6 +418,7 @@ export interface DashboardMessages {
     noFieldSelectedHint: string;
     deleteConfirmPrefix: string;
     deleteConfirmSuffix: string;
+    deleteConfirmDescription: string;
     tableColumns: {
       name: string;
       status: string;
@@ -1002,6 +1003,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       noFieldSelectedHint: "Tippe auf ein Feld im Canvas, um es zu konfigurieren.",
       deleteConfirmPrefix: "Formular „",
       deleteConfirmSuffix: '" wirklich löschen?',
+      deleteConfirmDescription: "Diese Aktion kann nicht rückgängig gemacht werden.",
       tableColumns: {
         name: "Name",
         status: "Status",
@@ -1579,6 +1581,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       noFieldSelectedHint: "Tap a field on the canvas to configure it.",
       deleteConfirmPrefix: 'Delete form "',
       deleteConfirmSuffix: '"?',
+      deleteConfirmDescription: "This action cannot be undone.",
       tableColumns: {
         name: "Name",
         status: "Status",

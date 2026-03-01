@@ -1,3 +1,5 @@
+import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -232,15 +234,22 @@ export function FormBuilderListPage() {
   const importForm = useImportFormConfig();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDialog, setShowDialog] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [importConflict, setImportConflict] = useState<{
     form: ImportFormData;
     remaining: ImportFormData[];
     imported: number;
   } | null>(null);
 
-  async function handleDelete(name: string) {
-    if (!confirm(`${m.deleteConfirmPrefix}${name}${m.deleteConfirmSuffix}`)) return;
-    await deleteForm.mutateAsync(name);
+  function handleDelete(name: string) {
+    setDeleteTarget(name);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    await deleteForm.mutateAsync(deleteTarget);
+    setDeleteTarget(null);
   }
 
   function handleCreated(name: string) {
@@ -259,7 +268,7 @@ export function FormBuilderListPage() {
   function processImportQueue(queue: ImportFormData[], imported: number) {
     if (queue.length === 0) {
       if (imported > 0) {
-        alert(m.importSuccess.replace("{n}", String(imported)));
+        setAlertMessage(m.importSuccess.replace("{n}", String(imported)));
       }
       return;
     }
@@ -277,7 +286,7 @@ export function FormBuilderListPage() {
           if (status === 409) {
             setImportConflict({ form: current, remaining, imported });
           } else {
-            alert(m.importError);
+            setAlertMessage(m.importError);
             processImportQueue(remaining, imported);
           }
         },
@@ -309,7 +318,7 @@ export function FormBuilderListPage() {
             },
           ];
         } else {
-          alert(m.importInvalidFile);
+          setAlertMessage(m.importInvalidFile);
           return;
         }
 
@@ -486,6 +495,21 @@ export function FormBuilderListPage() {
           onCancel={handleConflictSkip}
         />
       )}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={`${m.deleteConfirmPrefix}${deleteTarget}${m.deleteConfirmSuffix}`}
+        description={m.deleteConfirmDescription}
+        isPending={deleteForm.isPending}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      <AlertDialog
+        open={alertMessage !== null}
+        title={alertMessage ?? ""}
+        onClose={() => setAlertMessage(null)}
+      />
     </>
   );
 }
