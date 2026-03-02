@@ -13,7 +13,7 @@ function Table({ className = "", ...props }: HTMLAttributes<HTMLTableElement>) {
 }
 
 function TableHead({ className = "", ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={`bg-[var(--ds-border)] text-left ${className}`} {...props} />;
+  return <thead className={`text-left ${className}`} {...props} />;
 }
 
 function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTableSectionElement>) {
@@ -34,7 +34,7 @@ function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowEleme
 function Th({ className = "", ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-text-muted)] ${className}`}
+      className={`section-header px-4 ${className}`}
       {...props}
     />
   );
