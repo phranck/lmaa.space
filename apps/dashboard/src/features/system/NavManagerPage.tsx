@@ -37,7 +37,7 @@ const NAV_TEXT = {
     staticRoutes: [
       { label: "Startseite", url: "/" },
       { label: "Shop vorschlagen", url: "/suggestion" },
-      { label: "Suche", url: "/suche" },
+      { label: "Suche", url: "/search" },
     ],
     dragTitle: "Verschieben",
     labelOverrideTitle: "Label-Override (leer = Standard)",
@@ -67,7 +67,7 @@ const NAV_TEXT = {
     staticRoutes: [
       { label: "Home", url: "/" },
       { label: "Suggest shop", url: "/suggestion" },
-      { label: "Search", url: "/suche" },
+      { label: "Search", url: "/search" },
     ],
     dragTitle: "Drag",
     labelOverrideTitle: "Label override (empty = default)",

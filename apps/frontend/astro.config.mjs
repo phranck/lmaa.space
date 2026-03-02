@@ -13,12 +13,9 @@ export default defineConfig({
     UnoCSS({ injectReset: false }),
     react(),
     sitemap({
-      filter: (page) => !page.includes("/suche") && !page.includes("/suggestion"),
+      filter: (page) => !page.includes("/search") && !page.includes("/suggestion"),
     }),
   ],
-  redirects: {
-    "/kriterien": "/aufnahmekriterien",
-  },
   vite: {
     resolve: {
       alias: {

@@ -71,7 +71,7 @@ interface SidebarProps {
 function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   const { messages } = useI18n();
   const sidebarMessages = messages.layout.sidebar;
-  const isGroupActive = !!useMatch("/seiten/*");
+  const isGroupActive = !!useMatch("/pages/*");
   const { data: pages } = useContentPages();
   const [localOpen, setLocalOpen] = useState(
     () => localStorage.getItem("sidebar-pages-open") === "true",
@@ -98,7 +98,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
         <NavLink
-          to="/seiten"
+          to="/pages"
           end
           onClick={onItemClick}
           className={({ isActive }) =>
@@ -114,7 +114,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
         {(pages ?? []).map((page) => (
           <NavLink
             key={page.slug}
-            to={`/seiten/${page.slug}`}
+            to={`/pages/${page.slug}`}
             onClick={onItemClick}
             className={({ isActive }) =>
               `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
@@ -140,7 +140,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
 function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
   const { messages } = useI18n();
   const sidebarMessages = messages.layout.sidebar;
-  const isGroupActive = !!useMatch("/formular/*");
+  const isGroupActive = !!useMatch("/forms/*");
   const { data: forms } = useFormConfigs();
   const [localOpen, setLocalOpen] = useState(
     () => localStorage.getItem("sidebar-forms-open") === "true",
@@ -167,7 +167,7 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
       </summary>
       <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
         <NavLink
-          to="/formular"
+          to="/forms"
           end
           onClick={onItemClick}
           className={({ isActive }) =>
@@ -183,7 +183,7 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
         {(forms ?? []).map((form) => (
           <NavLink
             key={form.name}
-            to={`/formular/${form.name}`}
+            to={`/forms/${form.name}`}
             onClick={onItemClick}
             className={({ isActive }) =>
               `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
@@ -268,7 +268,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
             </NavLink>
             <button
               type="button"
-              title="Duplizieren"
+              title="Duplicate"
               onClick={async (e) => {
                 e.preventDefault();
                 try {
@@ -280,7 +280,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
                     ...fields
                   } = tpl;
                   const created = await createTemplate.mutateAsync({
-                    name: `${tpl.name} (Kopie)`,
+                    name: `${tpl.name} (Copy)`,
                     subject: fields.subject,
                     bodyText: fields.bodyText,
                     headerBannerUrl: fields.headerBannerUrl ?? undefined,
@@ -334,7 +334,7 @@ export function Sidebar({
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
-  const meldungenCount = pendingSubmissions.length + deadLinks.length + shopConcerns.length;
+  const submissionsCount = pendingSubmissions.length + deadLinks.length + shopConcerns.length;
 
   return (
     <>
@@ -352,10 +352,10 @@ export function Sidebar({
             onClick={onItemClick}
           />
           <SidebarItem
-            to="/meldungen"
+            to="/reports"
             label={s.submissions}
             icon={<SFTrayFill className="w-4 h-4" />}
-            badge={meldungenCount}
+            badge={submissionsCount}
             onClick={onItemClick}
           />
         </div>
@@ -371,7 +371,7 @@ export function Sidebar({
             onClick={onItemClick}
           />
           <SidebarItem
-            to="/kategorien"
+            to="/categories"
             label={s.categories}
             icon={<SFTagFill className="w-4 h-4" />}
             badge={categories.length}
@@ -412,14 +412,14 @@ export function Sidebar({
             <SidebarSection label={s.sectionSystem} />
             <div className="space-y-0.5">
               <SidebarItem
-                to="/benutzer"
+                to="/users"
                 label={s.users}
                 icon={<SFPerson3Fill className="w-4 h-4" />}
                 badge={users.length}
                 onClick={onItemClick}
               />
               <SidebarItem
-                to="/seiten/navigationen"
+                to="/pages/navigations"
                 label={s.navigations}
                 icon={<SFLink className="w-4 h-4" />}
                 onClick={onItemClick}

@@ -1,9 +1,0 @@
----
-const { slug } = Astro.params;
-
-if (!slug) {
-  return Astro.redirect("/404");
-}
-
-return Astro.redirect(`/category/${slug}`, 301);
----

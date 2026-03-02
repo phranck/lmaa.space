@@ -99,7 +99,7 @@ function ShopImage({ url, name }: { url: string; name: string }) {
 
 // ─── Sub-views ────────────────────────────────────────────────────────────────
 
-function VorschlaegeTab() {
+function SuggestionsTab() {
   const { locale, messages } = useI18n();
   const { user } = useAuth();
   const statusLabels = useStatusLabels();
@@ -217,7 +217,7 @@ function VorschlaegeTab() {
         <ContentUnavailableView
           className="flex-1"
           icon={<SFTrayFill aria-hidden />}
-          title={`${submissionsMessages.suggestions.nonePrefix} ${statusLabels[filter].toLowerCase()} ${submissionsMessages.tabs.suggestions.toLowerCase()}.`}
+          title={`${submissionsMessages.suggestions.nonePrefix} ${statusLabels[filter].toLowerCase()} ${submissionsMessages.tabs.suggestions}.`}
           subtitle={submissionsMessages.suggestions.noneHint}
         />
       )}
@@ -624,7 +624,7 @@ function VorschlaegeTab() {
   );
 }
 
-function DefekteLinksTab() {
+function DeadLinksTab() {
   const { locale, messages } = useI18n();
   const submissionsMessages = messages.submissions;
   const [deleteTarget, setDeleteTarget] = useState<{ shopId: number; shopName: string } | null>(
@@ -734,13 +734,13 @@ function DefekteLinksTab() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = "vorschlaege" | "defekte-links" | "shop-meldungen";
+type Tab = "suggestions" | "dead-links" | "shop-reports";
 
 function getInitialTab(): Tab {
   const params = new URLSearchParams(window.location.search);
   const t = params.get("tab");
-  if (t === "defekte-links" || t === "shop-meldungen") return t;
-  return "vorschlaege";
+  if (t === "dead-links" || t === "shop-reports") return t;
+  return "suggestions";
 }
 
 /**
@@ -771,7 +771,7 @@ export function SubmissionsPage() {
           storageKey={getSegmentedStorageKey(user?.id, "submissions:tab")}
           options={[
             {
-              value: "vorschlaege" as const,
+              value: "suggestions" as const,
               label: submissionsMessages.tabs.suggestions,
               badge:
                 pendingCount > 0 ? (
@@ -781,7 +781,7 @@ export function SubmissionsPage() {
                 ) : undefined,
             },
             {
-              value: "defekte-links" as const,
+              value: "dead-links" as const,
               label: submissionsMessages.tabs.deadLinks,
               badge:
                 deadLinkCount > 0 ? (
@@ -791,7 +791,7 @@ export function SubmissionsPage() {
                 ) : undefined,
             },
             {
-              value: "shop-meldungen" as const,
+              value: "shop-reports" as const,
               label: submissionsMessages.tabs.shopReports,
               badge:
                 concernCount > 0 ? (
@@ -804,16 +804,16 @@ export function SubmissionsPage() {
         />
       </PageHeader>
 
-      {tab === "vorschlaege" && <VorschlaegeTab />}
-      {tab === "defekte-links" && <DefekteLinksTab />}
-      {tab === "shop-meldungen" && <ShopMeldungenTab />}
+      {tab === "suggestions" && <SuggestionsTab />}
+      {tab === "dead-links" && <DeadLinksTab />}
+      {tab === "shop-reports" && <ShopReportsTab />}
     </div>
   );
 }
 
-// ─── Shop-Meldungen Tab ───────────────────────────────────────────────────────
+// ─── Shop Reports Tab ─────────────────────────────────────────────────────────
 
-function ShopMeldungenTab() {
+function ShopReportsTab() {
   const { locale, messages } = useI18n();
   const submissionsMessages = messages.submissions;
   const { data: reports = [], isLoading } = useShopConcernReports();

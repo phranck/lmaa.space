@@ -396,7 +396,7 @@ export function FormBuilderEditPage() {
       {/* Slug editor */}
       <div className="px-6 pt-2 pb-4 flex items-center gap-3">
         <Link
-          to="/formular"
+          to="/forms"
           className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
         >
           {m.backToList}
