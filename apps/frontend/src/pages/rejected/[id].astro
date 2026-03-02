@@ -1,0 +1,45 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import { renderMarkdown } from "@/lib/markdown";
+
+interface RejectionPage {
+  shopName: string;
+  shopUrl: string;
+  rejectionLongText: string | null;
+}
+
+const { id } = Astro.params;
+
+if (!id || !/^\d+$/.test(id)) {
+  return Astro.redirect("/404");
+}
+
+let page: RejectionPage | null = null;
+try {
+  page = await apiGet<RejectionPage>(`/rejected/${id}`);
+} catch {
+  // Not found or not rejected
+}
+
+if (!page || !page.rejectionLongText) {
+  return Astro.redirect("/404");
+}
+
+const html = await renderMarkdown(page.rejectionLongText);
+---
+
+<BaseLayout
+  title={`Ablehnung: ${page.shopName}`}
+  description={`Begründung für die Ablehnung von ${page.shopName} im lmaa.space-Verzeichnis.`}
+>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+    <p class="text-sm text-stone-500 mb-2">Ablehnungsbegründung</p>
+    <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-1">{page.shopName}</h1>
+    <p class="text-sm text-stone-400 mb-10 break-all">{page.shopUrl}</p>
+    <article
+      class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
+      set:html={html}
+    />
+  </div>
+</BaseLayout>

@@ -14,6 +14,7 @@ import {
   getManagedPublicCategories,
   getManagedPublicCategoryBySlug,
   getManagedPublicNav,
+  getManagedPublicRejectionPage,
   getManagedPublicShops,
   getManagedPublicStats,
   getManagedPublishedContentList,
@@ -178,6 +179,22 @@ publicRoutes.get("/form-config-by-slug/:slug", async (c) => {
   if (!result.ok) return fail(c, 404, "Form config not found");
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, result.data);
+});
+
+// GET /api/rejected/:id – public rejection reason page
+publicRoutes.get("/rejected/:id", async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id) || id <= 0) {
+    return fail(c, 400, "Invalid id");
+  }
+
+  const page = await getManagedPublicRejectionPage(id);
+  if (!page) {
+    return fail(c, 404, "Not found");
+  }
+
+  c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  return ok(c, page);
 });
 
 // Debug endpoint: cache stats (dev only)

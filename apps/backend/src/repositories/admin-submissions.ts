@@ -29,6 +29,7 @@ export interface SubmissionReviewData {
   id: number;
   status: SubmissionReviewStatus;
   adminNote?: string;
+  rejectionLongText?: string;
   adminId: number;
 }
 
@@ -89,6 +90,7 @@ export async function reviewSubmission(
       .set({
         status: data.status,
         adminNote: data.adminNote ?? null,
+        rejectionLongText: data.status === "rejected" ? (data.rejectionLongText ?? null) : null,
         reviewedBy: data.adminId,
         reviewedAt: new Date(),
         updatedAt: new Date(),

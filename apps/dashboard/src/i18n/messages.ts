@@ -279,6 +279,8 @@ export interface DashboardMessages {
       info: string;
       infoTitle: string;
       noReason: string;
+      rejectionLongLabel: string;
+      rejectionLongPlaceholder: string;
     };
     deadLinks: {
       none: string;
@@ -899,6 +901,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         info: "Info",
         infoTitle: "Ablehnungsgrund",
         noReason: "Kein Ablehnungsgrund hinterlegt.",
+        rejectionLongLabel: "Langbegründung (öffentliche Seite)",
+        rejectionLongPlaceholder: "Ausführliche Begründung für die Ablehnungsseite…",
       },
       deadLinks: {
         none: "Keine gemeldeten defekten Links.",
@@ -1515,6 +1519,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         info: "Info",
         infoTitle: "Rejection reason",
         noReason: "No rejection reason provided.",
+        rejectionLongLabel: "Long reason (public page)",
+        rejectionLongPlaceholder: "Detailed reason for the rejection page…",
       },
       deadLinks: {
         none: "No reported dead links.",

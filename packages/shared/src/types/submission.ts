@@ -22,6 +22,7 @@ export interface Submission {
   submitterNote: string | null;
   status: SubmissionStatus;
   adminNote: string | null;
+  rejectionLongText: string | null;
   feedbackSent: boolean;
   reviewedBy: number | null;
   reviewedAt: string | null;
@@ -74,5 +75,6 @@ export interface ShopConcernReportEntry {
 export interface SubmissionReview {
   status: SubmissionReviewStatus;
   adminNote?: string;
+  rejectionLongText?: string;
   sendFeedback?: boolean;
 }

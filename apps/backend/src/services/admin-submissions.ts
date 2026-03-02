@@ -27,6 +27,7 @@ export interface ReviewAdminSubmissionInput {
   id: number;
   status: SubmissionReviewStatus;
   adminNote?: string;
+  rejectionLongText?: string;
   adminId: number;
 }
 
@@ -49,6 +50,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     id: input.id,
     status: input.status,
     adminNote: input.adminNote,
+    rejectionLongText: input.rejectionLongText,
     adminId: input.adminId,
   });
 

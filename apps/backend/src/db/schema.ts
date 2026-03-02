@@ -118,6 +118,7 @@ export const submissions = pgTable(
       .notNull()
       .default("pending"),
     adminNote: text("admin_note"),
+    rejectionLongText: text("rejection_long_text"),
     feedbackSent: boolean("feedback_sent").notNull().default(false),
     reviewedBy: integer("reviewed_by").references(() => adminUsers.id),
     reviewedAt: timestamp("reviewed_at"),

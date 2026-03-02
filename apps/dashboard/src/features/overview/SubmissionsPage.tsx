@@ -109,6 +109,7 @@ function VorschlaegeTab() {
   const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
+  const [rejectionLongText, setRejectionLongText] = useState("");
   const [sendFeedback, setSendFeedback] = useState(false);
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
   const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
@@ -434,6 +435,27 @@ function VorschlaegeTab() {
                 />
               </div>
 
+              {reviewId < 0 && (
+                <div>
+                  <label
+                    htmlFor="rejection-long"
+                    className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+                  >
+                    {submissionsMessages.suggestions.rejectionLongLabel}{" "}
+                    <span className="text-[var(--ds-text-subtle)] font-normal">
+                      {submissionsMessages.suggestions.optional}
+                    </span>
+                  </label>
+                  <MarkdownTextarea
+                    id="rejection-long"
+                    value={rejectionLongText}
+                    onChange={setRejectionLongText}
+                    rows={6}
+                    placeholder={submissionsMessages.suggestions.rejectionLongPlaceholder}
+                  />
+                </div>
+              )}
+
               {reviewing.submitterEmail && (
                 <Checkbox
                   checked={sendFeedback}
@@ -472,12 +494,14 @@ function VorschlaegeTab() {
                       id: Math.abs(reviewId),
                       status: reviewId > 0 ? "approved" : "rejected",
                       adminNote,
+                      rejectionLongText: reviewId < 0 ? rejectionLongText : undefined,
                       sendFeedback,
                     },
                     {
                       onSuccess: () => {
                         setReviewId(null);
                         setAdminNote("");
+                        setRejectionLongText("");
                         setSendFeedback(false);
                       },
                     },
