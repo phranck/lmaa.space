@@ -28,16 +28,19 @@ export function useReviewSubmission() {
       id,
       status,
       adminNote,
+      rejectionLongText,
       sendFeedback,
     }: {
       id: number;
       status: "approved" | "rejected" | "onhold" | "pending";
       adminNote?: string;
+      rejectionLongText?: string;
       sendFeedback: boolean;
     }) =>
       api.patch(`/admin/submissions/${id}`, {
         status,
         adminNote: adminNote || undefined,
+        rejectionLongText: rejectionLongText || undefined,
         sendFeedback,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),

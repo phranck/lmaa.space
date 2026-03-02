@@ -50,6 +50,13 @@
       "when": 1772388478256,
       "tag": "0006_remove_suggestion_content_page",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1740916800000,
+      "tag": "0007_add_rejection_texts",
+      "breakpoints": true
     }
   ]
 }

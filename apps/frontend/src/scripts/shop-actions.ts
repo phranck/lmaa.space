@@ -77,12 +77,33 @@ document.addEventListener("click", (e) => {
   dialog.showModal();
 });
 
+function closeDialog(dialog: HTMLDialogElement) {
+  if (!("animated" in dialog.dataset)) {
+    dialog.close();
+    return;
+  }
+  dialog.classList.add("is-closing");
+  setTimeout(() => {
+    dialog.classList.remove("is-closing");
+    dialog.close();
+  }, 500);
+}
+
 // Dismiss (close) a dialog
 document.addEventListener("click", (e) => {
   const btn = (e.target as Element).closest<HTMLElement>("[data-dismiss]");
   if (!btn) return;
   const dialog = btn.closest("dialog");
-  dialog?.close();
+  if (!dialog) return;
+  closeDialog(dialog);
+});
+
+// Intercept Escape key for animated dialogs so the exit animation can play
+document.addEventListener("cancel", (e) => {
+  const dialog = e.target as HTMLDialogElement;
+  if (!("animated" in dialog.dataset)) return;
+  e.preventDefault();
+  closeDialog(dialog);
 });
 
 // Handle confirmations

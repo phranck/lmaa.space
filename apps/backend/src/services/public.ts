@@ -11,6 +11,7 @@ import {
   getPublicCategoryBySlug,
   getPublicShopById,
   getPublishedContentPageBySlug,
+  getRejectionPageById,
   insertDeadLinkReport,
   insertShopConcernReport,
   listAllPublicShopsWithCategories,
@@ -224,6 +225,16 @@ export async function getManagedPublishedContentList() {
  */
 export async function getManagedPublishedContentPage(slug: string) {
   return getPublishedContentPageBySlug(slug);
+}
+
+/**
+ * Returns public rejection page data for a rejected submission.
+ *
+ * @param id - Submission id.
+ * @returns Page data or `null` when not found or not rejected.
+ */
+export async function getManagedPublicRejectionPage(id: number) {
+  return getRejectionPageById(id);
 }
 
 /**

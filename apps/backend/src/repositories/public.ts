@@ -331,6 +331,26 @@ export async function getPublishedContentPageBySlug(slug: string) {
 }
 
 /**
+ * Returns rejection page data for a rejected submission.
+ *
+ * @param id - Submission id.
+ * @returns `{ shopName, shopUrl, rejectionLongText }` or `null` if not found / not rejected.
+ */
+export async function getRejectionPageById(id: number) {
+  const [row] = await db
+    .select({
+      shopName: submissions.shopName,
+      shopUrl: submissions.shopUrl,
+      rejectionLongText: submissions.rejectionLongText,
+    })
+    .from(submissions)
+    .where(and(eq(submissions.id, id), eq(submissions.status, "rejected")))
+    .limit(1);
+
+  return row ?? null;
+}
+
+/**
  * Resolves a minimal public shop record by id.
  *
  * @param id - Shop id.

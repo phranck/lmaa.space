@@ -40,13 +40,14 @@ submissionsRoutes.patch(
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
-    const { status, adminNote } = c.req.valid("json");
+    const { status, adminNote, rejectionLongText } = c.req.valid("json");
     const adminId = c.get("adminId");
 
     const result = await reviewAdminSubmission({
       id,
       status,
       adminNote,
+      rejectionLongText,
       adminId,
     });
 
