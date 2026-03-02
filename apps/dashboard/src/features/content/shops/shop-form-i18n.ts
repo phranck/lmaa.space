@@ -7,12 +7,14 @@ const REGION_NAMES = {
     AT: "Österreich",
     CH: "Schweiz",
     EU: "Europa",
+    WORLD: "Weltweit",
   },
   en: {
     DE: "Germany",
     AT: "Austria",
     CH: "Switzerland",
     EU: "Europe",
+    WORLD: "Worldwide",
   },
 } as const;
 

@@ -28,6 +28,7 @@ export const REGION_FLAGS: Readonly<Record<RegionCode, string>> = {
   AT: "🇦🇹",
   CH: "🇨🇭",
   EU: "🇪🇺",
+  WORLD: "🌍",
 };
 
 /**
@@ -114,15 +115,18 @@ export function RegionSelect({
       return;
     }
     const next = [...value, code];
-    if (code === "EU") {
-      // EU: incompatible with DE and AT (CH is not an EU member, so it's allowed)
-      onChange(next.filter((v) => v !== "DE" && v !== "AT"));
+    if (code === "WORLD") {
+      // WORLD: exclusive – deselects all other regions
+      onChange(["WORLD"]);
+    } else if (code === "EU") {
+      // EU: incompatible with WORLD, DE, AT (CH is not an EU member, so it's allowed)
+      onChange(next.filter((v) => v !== "WORLD" && v !== "DE" && v !== "AT"));
     } else if (code === "DE" || code === "AT") {
-      // DE / AT: incompatible with EU
-      onChange(next.filter((v) => v !== "EU"));
+      // DE / AT: incompatible with WORLD and EU
+      onChange(next.filter((v) => v !== "WORLD" && v !== "EU"));
     } else {
-      // CH: no exclusions
-      onChange(next);
+      // CH: incompatible with WORLD only
+      onChange(next.filter((v) => v !== "WORLD"));
     }
   }
 
