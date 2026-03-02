@@ -26,7 +26,7 @@ import {
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
-import { Checkbox } from "@lmaa/ui";
+import { CharCounter, Checkbox } from "@lmaa/ui";
 import { type ClipboardEvent, useEffect, useState } from "react";
 import {
   SFArrowCounterclockwise,
@@ -467,6 +467,7 @@ function SuggestionsTab() {
                       : submissionsMessages.suggestions.commentPlaceholder
                   }
                 />
+                <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
               </div>
 
               {reviewId < 0 && (
