@@ -7,6 +7,7 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env.js";
 import { db } from "./db/index.js";
+import { runMigrations } from "./db/run-migrations.js";
 import { categories } from "./db/schema.js";
 import { serveApiDocsUi, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
@@ -106,11 +107,16 @@ app.onError((err, c) => {
   return c.json({ error });
 });
 
-// Start background jobs
-startSessionCleanupJob();
+async function startServer() {
+  await runMigrations();
+  startSessionCleanupJob();
+  const port = env.PORT;
+  console.log(`Backend running on port ${port}`);
+  serve({ fetch: app.fetch, port });
+}
 
-const port = env.PORT;
-console.log(`Backend running on port ${port}`);
-
-serve({ fetch: app.fetch, port });
+startServer().catch((err) => {
+  console.error("[fatal] Server startup failed:", err);
+  process.exit(1);
+});
 // lmaa.space
