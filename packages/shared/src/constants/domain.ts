@@ -1,7 +1,7 @@
 /**
  * All supported region codes used across frontend forms, backend validation and filters.
  */
-export const REGION_CODES = ["DE", "AT", "CH", "EU"] as const;
+export const REGION_CODES = ["DE", "AT", "CH", "EU", "WORLD"] as const;
 
 /**
  * Union type of all supported region codes.

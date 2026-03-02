@@ -424,7 +424,7 @@ export const OPEN_API_DOCUMENT = {
       },
       RegionCode: {
         type: "string",
-        enum: ["DE", "AT", "CH", "EU"],
+        enum: ["DE", "AT", "CH", "EU", "WORLD"],
       },
       ShopCategory: {
         type: "object",

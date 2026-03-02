@@ -5,7 +5,7 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import type { ApiRequestError } from "@lmaa/shared";
 import { createApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
-import { MarkdownTextarea } from "@lmaa/ui";
+import { MarkdownTextarea, RegionSelect, createRegionOptions } from "@lmaa/ui";
 import { useEffect, useRef, useState } from "react";
 import { useController, useForm } from "react-hook-form";
 import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
@@ -30,13 +30,13 @@ type SimpleFields = Record<string, string>;
 // Constants
 // ---------------------------------------------------------------------------
 
-const REGION_OPTIONS: { code: string; label: string; flag: string }[] = [
-  { code: "DE", label: "Deutschland", flag: "🇩🇪" },
-  { code: "AT", label: "Österreich", flag: "🇦🇹" },
-  { code: "CH", label: "Schweiz", flag: "🇨🇭" },
-  { code: "EU", label: "Europäische Union", flag: "🇪🇺" },
-  { code: "WORLD", label: "Weltweit", flag: "🌍" },
-];
+const REGION_OPTIONS = createRegionOptions({
+  DE: "Deutschland",
+  AT: "Österreich",
+  CH: "Schweiz",
+  EU: "Europäische Union",
+  WORLD: "Weltweit",
+});
 
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
@@ -730,39 +730,17 @@ interface RegionMultiSelectProps {
 }
 
 function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSelectProps) {
-  const options = REGION_OPTIONS.map(({ code, label, flag }) => ({ value: code, label, flag }));
-
-  function handleChange(newSelected: string[]) {
-    const added = newSelected.find((v) => !selected.includes(v));
-    if (!added) {
-      // Nur eine Option wurde entfernt → direkt übernehmen
-      onChange(newSelected);
-      return;
-    }
-    if (added === "WORLD") {
-      onChange(["WORLD"]);
-    } else if (added === "EU") {
-      // EU: inkompatibel mit WORLD, DE, AT — CH ist erlaubt (nicht EU-Mitglied)
-      onChange(newSelected.filter((v) => v !== "WORLD" && v !== "DE" && v !== "AT"));
-    } else if (added === "DE" || added === "AT") {
-      // DE/AT: inkompatibel mit WORLD und EU
-      onChange(newSelected.filter((v) => v !== "WORLD" && v !== "EU"));
-    } else {
-      // CH: inkompatibel nur mit WORLD (kann mit DE, AT, EU kombiniert werden)
-      onChange(newSelected.filter((v) => v !== "WORLD"));
-    }
-  }
-
   return (
-    <MultiSelectDropdown
-      label={field.label}
-      required={field.required}
-      placeholder={field.placeholder}
-      subtext={field.subtext}
-      options={options}
-      selected={selected}
-      onChange={handleChange}
+    <RegionSelect
+      value={selected}
+      onChange={onChange}
+      options={REGION_OPTIONS}
+      messages={{
+        label: field.label,
+        placeholder: field.placeholder ?? "Region wählen…",
+      }}
       error={error}
+      variant="frontend"
     />
   );
 }
