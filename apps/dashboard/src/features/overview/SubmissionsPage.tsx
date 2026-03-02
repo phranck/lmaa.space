@@ -27,7 +27,7 @@ import {
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { Checkbox } from "@lmaa/ui";
-import { useEffect, useState } from "react";
+import { type ClipboardEvent, useEffect, useState } from "react";
 import {
   SFArrowCounterclockwise,
   SFArrowDownCircleFill,
@@ -110,6 +110,7 @@ function VorschlaegeTab() {
   const [reviewId, setReviewId] = useState<number | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [rejectionLongText, setRejectionLongText] = useState("");
+  const [rejectionToken, setRejectionToken] = useState<string | null>(null);
   const [sendFeedback, setSendFeedback] = useState(false);
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
   const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
@@ -124,6 +125,26 @@ function VorschlaegeTab() {
 
   // reviewId > 0 = approve, reviewId < 0 = reject
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
+
+  useEffect(() => {
+    if (reviewId !== null && reviewId < 0) {
+      setRejectionToken(crypto.randomUUID().replace(/-/g, ""));
+    } else {
+      setRejectionToken(null);
+    }
+  }, [reviewId]);
+
+  const handleCommentPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData("text");
+    if (!pastedText.includes("[SUBMISSION_ID]")) return;
+    e.preventDefault();
+    const token = rejectionToken ?? "";
+    const replaced = pastedText.replace(/\[SUBMISSION_ID\]/g, token);
+    const ta = e.currentTarget;
+    const newValue =
+      adminNote.slice(0, ta.selectionStart) + replaced + adminNote.slice(ta.selectionEnd);
+    setAdminNote(newValue);
+  };
 
   useEffect(() => {
     if (reviewId === null) return;
@@ -266,14 +287,22 @@ function VorschlaegeTab() {
                 <button
                   type="button"
                   onClick={() => {
-                    setReviewId(-sub.id);
+                    setReviewId(sub.id);
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
                 >
-                  <SFXmarkCircleFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.reject}
+                  <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.approve}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditSubmission(sub)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.edit}
                 </button>
                 <button
                   type="button"
@@ -292,36 +321,20 @@ function VorschlaegeTab() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEditSubmission(sub)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.edit}
-                </button>
-                <button
-                  type="button"
                   onClick={() => {
-                    setReviewId(sub.id);
+                    setReviewId(-sub.id);
                     setAdminNote("");
                     setSendFeedback(!!sub.submitterEmail);
                   }}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
                 >
-                  <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.approve}
+                  <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.reject}
                 </button>
               </div>
             )}
             {filter === "onhold" && (
               <div className="flex flex-row items-end gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setDeleteSubmissionId(sub.id)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
-                >
-                  <SFTrashFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.delete}
-                </button>
                 <button
                   type="button"
                   onClick={() =>
@@ -333,7 +346,7 @@ function VorschlaegeTab() {
                     })
                   }
                   disabled={reviewMutation.isPending}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
                 >
                   <SFArrowCounterclockwise className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.restore}
@@ -346,17 +359,37 @@ function VorschlaegeTab() {
                   <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.edit}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReviewId(-sub.id);
+                    setAdminNote("");
+                    setSendFeedback(!!sub.submitterEmail);
+                  }}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
+                >
+                  <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.reject}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteSubmissionId(sub.id)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                >
+                  <SFTrashFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.delete}
+                </button>
               </div>
             )}
             {filter === "rejected" && (
               <div className="flex flex-row items-end gap-1.5 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setDeleteSubmissionId(sub.id)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors mr-6"
+                  onClick={() => setEditSubmission(sub)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
-                  <SFTrashFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.delete}
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.edit}
                 </button>
                 <button
                   type="button"
@@ -368,11 +401,11 @@ function VorschlaegeTab() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEditSubmission(sub)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  onClick={() => setDeleteSubmissionId(sub.id)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                 >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.edit}
+                  <SFTrashFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.delete}
                 </button>
               </div>
             )}
@@ -426,6 +459,7 @@ function VorschlaegeTab() {
                   id="admin-note"
                   value={adminNote}
                   onChange={setAdminNote}
+                  onPaste={handleCommentPaste}
                   rows={3}
                   placeholder={
                     reviewId < 0
@@ -495,6 +529,7 @@ function VorschlaegeTab() {
                       status: reviewId > 0 ? "approved" : "rejected",
                       adminNote,
                       rejectionLongText: reviewId < 0 ? rejectionLongText : undefined,
+                      rejectionToken: reviewId < 0 ? (rejectionToken ?? undefined) : undefined,
                       sendFeedback,
                     },
                     {
