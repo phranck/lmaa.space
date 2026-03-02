@@ -189,9 +189,9 @@
   --ds-btn-filled-hover: var(--ds-color-neutral-800);
   --ds-btn-filled-fg: #ffffff;
 
-  /* Primary CTA button (brand green) */
-  --ds-btn-primary-bg: #5ea349;
-  --ds-btn-primary-hover: #4e8f3c;
+  /* Primary CTA button */
+  --ds-btn-primary-bg: #00aef1;
+  --ds-btn-primary-hover: #0099d4;
   --ds-btn-primary-fg: #ffffff;
 
   /* Segment controls */
