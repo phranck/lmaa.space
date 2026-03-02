@@ -5,52 +5,58 @@ import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
 import { SetupPage } from "@/features/auth/SetupPage.tsx";
-import { CategoriesPage } from "@/features/categories/CategoriesPage.tsx";
-import { DashboardPage } from "@/features/dashboard/DashboardPage.tsx";
-import { ShopsPage } from "@/features/shops/ShopsPage.tsx";
-import { SubmissionsPage } from "@/features/submissions/SubmissionsPage.tsx";
-import { UsersPage } from "@/features/users/UsersPage.tsx";
+import { CategoriesPage } from "@/features/content/categories/CategoriesPage.tsx";
+import { ShopsPage } from "@/features/content/shops/ShopsPage.tsx";
+import { DashboardPage } from "@/features/overview/DashboardPage.tsx";
+import { SubmissionsPage } from "@/features/overview/SubmissionsPage.tsx";
+import { UsersPage } from "@/features/system/UsersPage.tsx";
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router";
 
 const ContentEditorPage = lazy(() =>
-  import("@/features/content/ContentEditorPage.tsx").then((m) => ({
+  import("@/features/content/pages/ContentEditorPage.tsx").then((m) => ({
     default: m.ContentEditorPage,
   })),
 );
 
 const PagesListPage = lazy(() =>
-  import("@/features/content/PagesListPage.tsx").then((m) => ({
+  import("@/features/content/pages/PagesListPage.tsx").then((m) => ({
     default: m.PagesListPage,
   })),
 );
 
 const NavManagerPage = lazy(() =>
-  import("@/features/content/NavManagerPage.tsx").then((m) => ({
+  import("@/features/system/NavManagerPage.tsx").then((m) => ({
     default: m.NavManagerPage,
   })),
 );
 
+const AnalyticsPage = lazy(() =>
+  import("@/features/analytics/AnalyticsPage.tsx").then((m) => ({
+    default: m.AnalyticsPage,
+  })),
+);
+
 const FormBuilderListPage = lazy(() =>
-  import("@/features/form-builder/FormBuilderListPage.tsx").then((m) => ({
+  import("@/features/templates/form-builder/FormBuilderListPage.tsx").then((m) => ({
     default: m.FormBuilderListPage,
   })),
 );
 
 const FormBuilderEditPage = lazy(() =>
-  import("@/features/form-builder/FormBuilderEditPage.tsx").then((m) => ({
+  import("@/features/templates/form-builder/FormBuilderEditPage.tsx").then((m) => ({
     default: m.FormBuilderEditPage,
   })),
 );
 
 const EmailTemplateListPage = lazy(() =>
-  import("@/features/email-templates/EmailTemplateListPage.tsx").then((m) => ({
+  import("@/features/templates/email-templates/EmailTemplateListPage.tsx").then((m) => ({
     default: m.EmailTemplateListPage,
   })),
 );
 
 const EmailTemplateEditPage = lazy(() =>
-  import("@/features/email-templates/EmailTemplateEditPage.tsx").then((m) => ({
+  import("@/features/templates/email-templates/EmailTemplateEditPage.tsx").then((m) => ({
     default: m.EmailTemplateEditPage,
   })),
 );
@@ -80,6 +86,14 @@ function AppRoutes() {
           {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
           {user.role !== "moderator" && (
             <>
+              <Route
+                path="analytics"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <AnalyticsPage />
+                  </Suspense>
+                }
+              />
               <Route
                 path="formular"
                 element={

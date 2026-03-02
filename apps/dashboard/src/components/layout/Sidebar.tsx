@@ -2,25 +2,24 @@ import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useAdminCategories } from "@/features/categories/hooks/useAdminCategories.ts";
+import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
+import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
+import { useDeadLinkReports } from "@/features/overview/hooks/useDeadLinks.ts";
+import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
+import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
+import { useAdminUsers } from "@/features/system/hooks/useAdminUsers.ts";
 import {
   useCreateEmailTemplate,
   useEmailTemplates,
-} from "@/features/email-templates/hooks/useEmailTemplates.ts";
-import { useFormConfigs } from "@/features/form-builder/hooks/useFormConfig.ts";
-import { useAdminShops } from "@/features/shops/hooks/useAdminShops.ts";
-import {
-  useAdminSubmissions,
-  useDeadLinkReports,
-  useShopConcernReports,
-} from "@/features/submissions/hooks/useAdminSubmissions.ts";
-import { useAdminUsers } from "@/features/users/hooks/useAdminUsers.ts";
+} from "@/features/templates/hooks/useEmailTemplates.ts";
+import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
 import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
 import { NavLink, useMatch, useNavigate } from "react-router";
 import {
   SFBookPagesFill,
+  SFChartBarFill,
   SFCheckmarkCircleFill,
   SFChevronDown,
   SFCircle,
@@ -392,6 +391,21 @@ export function Sidebar({
             <div className="space-y-0.5">
               <FormsGroup onItemClick={onItemClick} />
               <EmailTemplatesGroup onItemClick={onItemClick} />
+            </div>
+          </>
+        )}
+
+        {/* Analytics */}
+        {isAdmin && (
+          <>
+            <SidebarSection label={s.sectionAnalytics} />
+            <div className="space-y-0.5">
+              <SidebarItem
+                to="/analytics"
+                label={s.analytics}
+                icon={<SFChartBarFill className="w-4 h-4" />}
+                onClick={onItemClick}
+              />
             </div>
           </>
         )}

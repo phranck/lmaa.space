@@ -28,6 +28,8 @@ export interface DashboardMessages {
       sectionGeneral: string;
       sectionContent: string;
       sectionTemplates: string;
+      sectionAnalytics: string;
+      analytics: string;
       sectionSystem: string;
       overview: string;
       submissions: string;
@@ -644,6 +646,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         sectionGeneral: "Allgemein",
         sectionContent: "Content",
         sectionTemplates: "Templates",
+        sectionAnalytics: "Analytics",
+        analytics: "Analytics",
         sectionSystem: "System",
         overview: "Übersicht",
         submissions: "Meldungen",
@@ -1259,6 +1263,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         sectionGeneral: "General",
         sectionContent: "Content",
         sectionTemplates: "Templates",
+        sectionAnalytics: "Analytics",
+        analytics: "Analytics",
         sectionSystem: "System",
         overview: "Overview",
         submissions: "Reports",
