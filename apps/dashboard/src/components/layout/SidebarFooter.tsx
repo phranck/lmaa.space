@@ -1,6 +1,6 @@
 import { Dialog, dialogBtnPrimary, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { UserAvatar } from "@/features/users/UserAvatar.tsx";
+import { UserAvatar } from "@/features/system/UserAvatar.tsx";
 import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
 import { SFRectanglePortraitAndArrowRightFill, SFSquareAndPencil } from "sf-symbols-lib/monochrome";
