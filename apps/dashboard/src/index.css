@@ -6,7 +6,7 @@
   --radius-card: calc(var(--radius-control) + 0.75rem); /* 22px */
 
   /* Nav: active state */
-  --ds-nav-active-bg: rgba(175, 184, 193, 0.2);
+  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 10%, transparent);
   --ds-nav-active-text: #1f2328;
   --ds-nav-active-border: #0969da;
 
@@ -24,6 +24,9 @@
   /* Subtle surface hover (icon buttons, section headers, inline notes) */
   --ds-surface-hover: rgba(175, 184, 193, 0.12);
 
+  /* Section headers: sidebar sections + table headers */
+  --ds-section-header-bg: #edf0f3;
+
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
   --color-primary-light: var(--ds-btn-primary-hover);
@@ -34,7 +37,7 @@
 }
 
 .dark {
-  --ds-nav-active-bg: #2d3d52;
+  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
   --ds-nav-active-text: #f0f6fc;
   --ds-nav-active-border: #478be6;
   --ds-nav-text: #9198a1;
@@ -43,6 +46,7 @@
   --ds-brand-text: #f0f6fc;
   --ds-row-hover: #2a313c;
   --ds-surface-hover: #2f3742;
+  --ds-section-header-bg: #2f3742;
 }
 
 /* Dark mode: MDXEditor toolbar and popups */
@@ -133,6 +137,23 @@
 .dark .mdxeditor .cm-activeLineGutter,
 .dark .mdxeditor .cm-activeLine {
   background-color: #212830;
+}
+
+/* Section headers: shared style for sidebar sections and table headers */
+.section-header {
+  background-color: var(--ds-section-header-bg);
+  color: var(--ds-text-muted);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-block: 0.625rem;
+  user-select: none;
+}
+
+.section-header button {
+  text-transform: inherit;
 }
 
 /* Button hover states */
