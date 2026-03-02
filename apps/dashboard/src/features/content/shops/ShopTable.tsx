@@ -181,14 +181,6 @@ export function ShopTable({
             )}
             {shop.visibility === "onhold" && (
               <>
-                <button
-                  type="button"
-                  onClick={() => onEdit(shop.id)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {shopsMessages.table.edit}
-                </button>
                 {onRestore && (
                   <button
                     type="button"
@@ -199,6 +191,14 @@ export function ShopTable({
                     {shopsMessages.table.restore}
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => onEdit(shop.id)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {shopsMessages.table.edit}
+                </button>
                 {onDelete && (
                   <button
                     type="button"
@@ -213,14 +213,6 @@ export function ShopTable({
             )}
             {shop.visibility === "deleted" && (
               <>
-                <button
-                  type="button"
-                  onClick={() => setInfoShop(shop)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] text-sm hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
-                >
-                  <SFInfoCircleFill className="w-3.5 h-3.5" />
-                  {shopsMessages.table.deletionInfo}
-                </button>
                 {onRestore && (
                   <button
                     type="button"
@@ -231,6 +223,14 @@ export function ShopTable({
                     {shopsMessages.table.restore}
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setInfoShop(shop)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] text-sm hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
+                >
+                  <SFInfoCircleFill className="w-3.5 h-3.5" />
+                  {shopsMessages.table.deletionInfo}
+                </button>
               </>
             )}
           </div>
