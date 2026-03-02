@@ -1,6 +1,6 @@
 import { API_BASE } from "@/lib/client-api";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 
 interface CategoryRef {
   id: number;
@@ -30,6 +30,55 @@ interface SearchResults {
   total: number;
 }
 
+type SearchState = { results: SearchResults | null; loading: boolean };
+type SearchAction =
+  | { type: "reset" }
+  | { type: "start" }
+  | { type: "done"; results: SearchResults }
+  | { type: "error" };
+
+function searchReducer(_state: SearchState, action: SearchAction): SearchState {
+  switch (action.type) {
+    case "reset":
+      return { results: null, loading: false };
+    case "start":
+      return { results: null, loading: true };
+    case "done":
+      return { results: action.results, loading: false };
+    case "error":
+      return { results: null, loading: false };
+  }
+}
+
+function useSearch(debouncedQuery: string) {
+  const [state, dispatch] = useReducer(searchReducer, { results: null, loading: false });
+
+  useEffect(() => {
+    if (!debouncedQuery.trim() || debouncedQuery.length < 2) {
+      dispatch({ type: "reset" });
+      return;
+    }
+
+    let cancelled = false;
+    dispatch({ type: "start" });
+
+    fetch(`${API_BASE}/search?q=${encodeURIComponent(debouncedQuery)}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!cancelled) dispatch({ type: "done", results: json.data as SearchResults });
+      })
+      .catch(() => {
+        if (!cancelled) dispatch({ type: "error" });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery]);
+
+  return state;
+}
+
 /**
  * Interactive catalog search backed by PostgreSQL full-text search.
  *
@@ -39,9 +88,8 @@ interface SearchResults {
 export default function SearchIsland() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [results, setResults] = useState<SearchResults | null>(null);
-  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { results, loading } = useSearch(debouncedQuery);
 
   // Read ?q= URL param after hydration
   useEffect(() => {
@@ -58,33 +106,6 @@ export default function SearchIsland() {
     const timer = setTimeout(() => setDebouncedQuery(query), 350);
     return () => clearTimeout(timer);
   }, [query]);
-
-  // Fetch from backend whenever debouncedQuery changes
-  useEffect(() => {
-    if (!debouncedQuery.trim() || debouncedQuery.length < 2) {
-      setResults(null);
-      return;
-    }
-
-    let cancelled = false;
-    setLoading(true);
-
-    fetch(`${API_BASE}/search?q=${encodeURIComponent(debouncedQuery)}`)
-      .then((r) => r.json())
-      .then((json) => {
-        if (!cancelled) {
-          setResults(json.data as SearchResults);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedQuery]);
 
   const shopResults = results?.shops ?? [];
   const categoryResults = results?.categories ?? [];

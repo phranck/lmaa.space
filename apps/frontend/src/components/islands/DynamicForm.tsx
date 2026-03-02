@@ -493,6 +493,30 @@ interface MultiSelectDropdownProps {
   error: string | undefined;
 }
 
+function CustomCheckbox({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+        checked
+          ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
+          : "bg-white border-[var(--ds-border)]"
+      }`}
+    >
+      {checked && (
+        <svg width="10" height="8" viewBox="0 0 12 10" fill="none" aria-hidden="true">
+          <path
+            d="M1 5l3.5 3.5L11 1"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </span>
+  );
+}
+
 function MultiSelectDropdown({
   label,
   required,
@@ -532,30 +556,6 @@ function MultiSelectDropdown({
     } else {
       onChange(options.map((o) => o.value));
     }
-  }
-
-  function CustomCheckbox({ checked }: { checked: boolean }) {
-    return (
-      <span
-        className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-          checked
-            ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-            : "bg-white border-[var(--ds-border)]"
-        }`}
-      >
-        {checked && (
-          <svg width="10" height="8" viewBox="0 0 12 10" fill="none" aria-hidden="true">
-            <path
-              d="M1 5l3.5 3.5L11 1"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-      </span>
-    );
   }
 
   return (
