@@ -246,7 +246,7 @@ export function FormBuilderListPage() {
 
   function handleCreated(name: string) {
     setShowDialog(false);
-    void navigate(`/formular/${name}`);
+    void navigate(`/forms/${name}`);
   }
 
   function handleExportAll() {
@@ -418,7 +418,7 @@ export function FormBuilderListPage() {
                     <td className="px-4 py-3 font-medium text-[var(--ds-text)]">
                       <button
                         type="button"
-                        onClick={() => navigate(`/formular/${form.name}`)}
+                        onClick={() => navigate(`/forms/${form.name}`)}
                         className="hover:underline text-left font-mono"
                       >
                         {form.name}
@@ -456,7 +456,7 @@ export function FormBuilderListPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => navigate(`/formular/${form.name}`)}
+                          onClick={() => navigate(`/forms/${form.name}`)}
                           className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                         >
                           <SFNewspaperFill className="w-3.5 h-3.5" />

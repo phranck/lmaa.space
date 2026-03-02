@@ -96,7 +96,7 @@ export function PagesListPage() {
       setTitle("");
       setSlug("");
       setSlugManual(false);
-      navigate(`/seiten/${page.slug}`);
+      navigate(`/pages/${page.slug}`);
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : (text.createError ?? ""));
     }
@@ -234,7 +234,7 @@ export function PagesListPage() {
                     <td className="px-4 py-3 font-medium text-[var(--ds-text)]">
                       <button
                         type="button"
-                        onClick={() => navigate(`/seiten/${page.slug}`)}
+                        onClick={() => navigate(`/pages/${page.slug}`)}
                         className="hover:underline text-left"
                       >
                         {page.title}

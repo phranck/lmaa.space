@@ -7,7 +7,6 @@ import {
   usePatchContentPage,
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
-import { InternalLinkPicker } from "@/features/content/pages/InternalLinkPicker.tsx";
 import { sourceKeymap } from "@/features/content/pages/sourceKeymap.ts";
 import type { ContentPage } from "@lmaa/shared";
 import {
@@ -489,7 +488,7 @@ export function ContentEditorPage() {
     try {
       const updated = await patch.mutateAsync(data);
       if (data.slug && data.slug !== slug) {
-        navigate(`/seiten/${updated.slug}`, { replace: true });
+        navigate(`/pages/${updated.slug}`, { replace: true });
       }
     } catch (err) {
       dispatch({
@@ -554,8 +553,6 @@ export function ContentEditorPage() {
             <InsertThematicBreak />
             <InsertCodeBlock />
             <InsertAdmonition />
-            <Separator />
-            <InternalLinkPicker />
           </DiffSourceToggleWrapper>
         ),
       }),
@@ -584,7 +581,7 @@ export function ContentEditorPage() {
           onCancelDelete={() => dispatch({ type: "setConfirmDelete", value: false })}
           onConfirmDelete={() => {
             deletePage.mutate(slug, {
-              onSuccess: () => navigate("/seiten"),
+              onSuccess: () => navigate("/pages"),
             });
           }}
           onSave={handleSave}

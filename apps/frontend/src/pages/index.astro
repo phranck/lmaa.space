@@ -17,7 +17,7 @@ const jsonLd = {
   description: "Community-kuratiertes Verzeichnis von Amazon-Alternativen für den DACH-Raum",
   potentialAction: {
     "@type": "SearchAction",
-    target: `${site}/suche?q={search_term_string}`,
+    target: `${site}/search?q={search_term_string}`,
     "query-input": "required name=search_term_string",
   },
 };
@@ -47,7 +47,7 @@ const jsonLd = {
         Alternative <span style="color: var(--amazon-color); font-weight: bold;">Anbieter</span>.
       </h1>
 
-      <form action="/suche" method="get" class="max-w-lg mx-auto">
+      <form action="/search" method="get" class="max-w-lg mx-auto">
         <div class="flex gap-2 bg-white/10 backdrop-blur-sm rounded-2xl p-2 border border-white/10">
           <input
             name="q"

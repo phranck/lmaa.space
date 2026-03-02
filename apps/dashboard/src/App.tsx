@@ -83,10 +83,10 @@ function AppRoutes() {
       {user ? (
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="meldungen" element={<SubmissionsPage />} />
+          <Route path="reports" element={<SubmissionsPage />} />
           <Route path="shops" element={<ShopsPage />} />
-          <Route path="kategorien" element={<CategoriesPage />} />
-          {user.isOwner && <Route path="benutzer" element={<UsersPage />} />}
+          <Route path="categories" element={<CategoriesPage />} />
+          {user.isOwner && <Route path="users" element={<UsersPage />} />}
           {user.role !== "moderator" && (
             <>
               <Route
@@ -98,7 +98,7 @@ function AppRoutes() {
                 }
               />
               <Route
-                path="formular"
+                path="forms"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <FormBuilderListPage />
@@ -106,7 +106,7 @@ function AppRoutes() {
                 }
               />
               <Route
-                path="formular/:name"
+                path="forms/:name"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <FormBuilderEditPage />
@@ -138,7 +138,7 @@ function AppRoutes() {
                 }
               />
               <Route
-                path="seiten"
+                path="pages"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <PagesListPage />
@@ -146,7 +146,7 @@ function AppRoutes() {
                 }
               />
               <Route
-                path="seiten/navigationen"
+                path="pages/navigations"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <NavManagerPage />
@@ -154,7 +154,7 @@ function AppRoutes() {
                 }
               />
               <Route
-                path="seiten/:slug"
+                path="pages/:slug"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <ContentEditorPage />
