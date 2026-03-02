@@ -12,6 +12,10 @@ export const reviewSchema = z.object({
   status: submissionReviewStatusSchema,
   adminNote: z.string().max(500).optional(),
   rejectionLongText: z.string().max(10000).optional(),
+  rejectionToken: z
+    .string()
+    .regex(/^[0-9a-f]{32}$/)
+    .optional(),
 });
 
 /**

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { SiMarkdown } from "react-icons/si";
 
 /**
@@ -7,6 +8,7 @@ export interface MarkdownTextareaProps {
   id?: string;
   value: string;
   onChange: (value: string) => void;
+  onPaste?: React.ClipboardEventHandler<HTMLTextAreaElement>;
   placeholder?: string;
   rows?: number;
   className?: string;
@@ -19,6 +21,7 @@ export function MarkdownTextarea({
   id,
   value,
   onChange,
+  onPaste,
   placeholder,
   rows = 6,
   className = "",
@@ -29,6 +32,7 @@ export function MarkdownTextarea({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onPaste={onPaste}
         rows={rows}
         placeholder={placeholder}
         className={`w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y ${className}`}
