@@ -12,7 +12,7 @@
 
   /* Nav: default / hover */
   --ds-nav-text: #656d76;
-  --ds-nav-hover-bg: rgba(175, 184, 193, 0.12);
+  --ds-nav-hover-bg: var(--ds-nav-active-bg);
   --ds-nav-hover-text: #1f2328;
 
   /* Brand name in sidebar */
@@ -41,7 +41,7 @@
   --ds-nav-active-text: #f0f6fc;
   --ds-nav-active-border: #478be6;
   --ds-nav-text: #9198a1;
-  --ds-nav-hover-bg: #2f3742;
+  --ds-nav-hover-bg: var(--ds-nav-active-bg);
   --ds-nav-hover-text: #f0f6fc;
   --ds-brand-text: #f0f6fc;
   --ds-row-hover: #2a313c;
