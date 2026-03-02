@@ -305,11 +305,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
 }
 
 function SidebarSection({ label }: { label: string }) {
-  return (
-    <p className="section-header -mx-3 px-3 mt-3 first:mt-0">
-      {label}
-    </p>
-  );
+  return <p className="section-header -mx-3 px-3 mt-3 first:mt-0">{label}</p>;
 }
 
 /**

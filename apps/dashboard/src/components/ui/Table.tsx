@@ -32,12 +32,7 @@ function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowEleme
 }
 
 function Th({ className = "", ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
-  return (
-    <th
-      className={`section-header px-4 ${className}`}
-      {...props}
-    />
-  );
+  return <th className={`section-header px-4 ${className}`} {...props} />;
 }
 
 function Td({ className = "", ...props }: TdHTMLAttributes<HTMLTableCellElement>) {

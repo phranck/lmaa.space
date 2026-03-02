@@ -29,7 +29,7 @@ const rawDescription = shop.description;
 const isLongDescription = rawDescription.length > MAX_DESC_CHARS;
 const descriptionPreview = rawDescription
   ? isLongDescription
-    ? rawDescription.slice(0, MAX_DESC_CHARS).trimEnd() + "\u2026"
+    ? `${rawDescription.slice(0, MAX_DESC_CHARS).trimEnd()}\u2026`
     : rawDescription
   : null;
 
