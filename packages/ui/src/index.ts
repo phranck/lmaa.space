@@ -1,3 +1,7 @@
+/** Shared character counter component. */
+export { CharCounter } from "./CharCounter.tsx";
+/** Re-exported props for `CharCounter`. */
+export type { CharCounterProps } from "./CharCounter.tsx";
 /** Shared checkbox component and props. */
 export { Checkbox } from "./Checkbox.tsx";
 /** Shared Markdown textarea component. */

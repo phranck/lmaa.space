@@ -5,7 +5,7 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import type { ApiRequestError } from "@lmaa/shared";
 import { createApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
-import { MarkdownTextarea, RegionSelect, createRegionOptions } from "@lmaa/ui";
+import { CharCounter, MarkdownTextarea, RegionSelect, createRegionOptions } from "@lmaa/ui";
 import { useEffect, useRef, useState } from "react";
 import { useController, useForm } from "react-hook-form";
 import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
@@ -309,9 +309,7 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
             {field.subtext}
           </DynamicFormSubtext>
           {maxLen !== undefined && (
-            <span className="text-xs text-[var(--ds-text-subtle)] shrink-0 mt-1.5 pr-[5px]">
-              {rhfField.value.length}/{maxLen}
-            </span>
+            <CharCounter value={rhfField.value} max={maxLen} className="shrink-0 mt-1.5" />
           )}
         </div>
       )}
