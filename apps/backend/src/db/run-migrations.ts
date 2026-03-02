@@ -7,6 +7,12 @@ import { env } from "../config/env.js";
 
 function resolveMigrationsFolder(): string {
   const candidates = [
+    // __dirname-based: robust regardless of cwd (CJS bundle).
+    // dist/index.js      → __dirname = dist/    → ../drizzle
+    path.resolve(__dirname, "..", "drizzle"),
+    // dist/db/migrate.js → __dirname = dist/db/ → ../../drizzle
+    path.resolve(__dirname, "..", "..", "drizzle"),
+    // cwd-based fallbacks (local dev / monorepo root)
     path.resolve(process.cwd(), "apps/backend/drizzle"),
     path.resolve(process.cwd(), "drizzle"),
   ];
@@ -17,7 +23,9 @@ function resolveMigrationsFolder(): string {
     }
   }
 
-  throw new Error(`Could not find Drizzle migrations folder. Checked: ${candidates.join(", ")}`);
+  throw new Error(
+    `Drizzle migrations folder not found. Checked:\n${candidates.map((c) => `  ${c}`).join("\n")}`,
+  );
 }
 
 /**
@@ -29,12 +37,16 @@ function resolveMigrationsFolder(): string {
  * Opens a dedicated short-lived connection that is closed after migration.
  */
 export async function runMigrations(): Promise<void> {
+  const migrationsFolder = resolveMigrationsFolder();
+  console.log(`[migrations] Using folder: ${migrationsFolder}`);
+
   const sql = postgres(env.DATABASE_URL);
   const db = drizzle(sql);
 
-  const migrationsFolder = resolveMigrationsFolder();
-  console.log(`Running Drizzle migrations from ${migrationsFolder}...`);
-  await migrate(db, { migrationsFolder });
-  console.log("Migrations complete.");
-  await sql.end();
+  try {
+    await migrate(db, { migrationsFolder });
+    console.log("[migrations] All migrations applied successfully.");
+  } finally {
+    await sql.end();
+  }
 }
