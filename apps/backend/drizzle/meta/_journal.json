@@ -57,6 +57,13 @@
       "when": 1740916800000,
       "tag": "0007_add_rejection_texts",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1740960000000,
+      "tag": "0008_add_rejection_token",
+      "breakpoints": true
     }
   ]
 }

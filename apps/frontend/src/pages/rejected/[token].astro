@@ -9,15 +9,15 @@ interface RejectionPage {
   rejectionLongText: string | null;
 }
 
-const { id } = Astro.params;
+const { token } = Astro.params;
 
-if (!id || !/^\d+$/.test(id)) {
+if (!token || !/^[0-9a-f]{32}$/.test(token)) {
   return Astro.redirect("/404");
 }
 
 let page: RejectionPage | null = null;
 try {
-  page = await apiGet<RejectionPage>(`/rejected/${id}`);
+  page = await apiGet<RejectionPage>(`/rejected/${token}`);
 } catch {
   // Not found or not rejected
 }

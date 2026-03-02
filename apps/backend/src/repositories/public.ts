@@ -336,7 +336,7 @@ export async function getPublishedContentPageBySlug(slug: string) {
  * @param id - Submission id.
  * @returns `{ shopName, shopUrl, rejectionLongText }` or `null` if not found / not rejected.
  */
-export async function getRejectionPageById(id: number) {
+export async function getRejectionPageByToken(token: string) {
   const [row] = await db
     .select({
       shopName: submissions.shopName,
@@ -344,7 +344,7 @@ export async function getRejectionPageById(id: number) {
       rejectionLongText: submissions.rejectionLongText,
     })
     .from(submissions)
-    .where(and(eq(submissions.id, id), eq(submissions.status, "rejected")))
+    .where(and(eq(submissions.rejectionToken, token), eq(submissions.status, "rejected")))
     .limit(1);
 
   return row ?? null;

@@ -181,14 +181,14 @@ publicRoutes.get("/form-config-by-slug/:slug", async (c) => {
   return ok(c, result.data);
 });
 
-// GET /api/rejected/:id – public rejection reason page
-publicRoutes.get("/rejected/:id", async (c) => {
-  const id = Number(c.req.param("id"));
-  if (!Number.isInteger(id) || id <= 0) {
-    return fail(c, 400, "Invalid id");
+// GET /api/rejected/:token – public rejection reason page
+publicRoutes.get("/rejected/:token", async (c) => {
+  const token = c.req.param("token");
+  if (!/^[0-9a-f]{32}$/.test(token)) {
+    return fail(c, 400, "Invalid token");
   }
 
-  const page = await getManagedPublicRejectionPage(id);
+  const page = await getManagedPublicRejectionPage(token);
   if (!page) {
     return fail(c, 404, "Not found");
   }
