@@ -74,7 +74,10 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/setup" element={<SetupPage />} />
+      <Route
+        path="/setup"
+        element={needsSetup ? <SetupPage /> : <Navigate to={user ? "/" : "/login"} replace />}
+      />
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
 
       {user ? (
