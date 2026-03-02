@@ -306,7 +306,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
 
 function SidebarSection({ label }: { label: string }) {
   return (
-    <p className="-mx-3 px-3 py-1.5 mt-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--ds-text-muted)] bg-[var(--ds-surface-hover)] select-none">
+    <p className="section-header -mx-3 px-3 mt-3 first:mt-0">
       {label}
     </p>
   );
@@ -344,7 +344,7 @@ export function Sidebar({
     <>
       <SidebarHeader />
 
-      <nav className="flex-1 overflow-y-auto py-2 px-3">
+      <nav className="flex-1 overflow-y-auto px-3">
         {/* Allgemein */}
         <SidebarSection label={s.sectionGeneral} />
         <div className="space-y-0.5">
