@@ -1,7 +1,7 @@
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { SFArrowClockwise, SFMagnifyingglass, SFXmark } from "sf-symbols-lib/monochrome";
+import { SFArrowClockwise, SFMagnifyingglass, SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
 
 interface UnsplashPhoto {
   id: string;
@@ -212,7 +212,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
             className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors rounded-control hover:bg-[var(--ds-bg-elevated)]"
             aria-label={categoriesMessages.unsplash.closeAria}
           >
-            <SFXmark className="w-4 h-4" />
+            <SFXmarkCircleFill className="w-5 h-5" />
           </button>
         </div>
 

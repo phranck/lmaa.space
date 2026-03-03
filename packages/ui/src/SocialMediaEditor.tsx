@@ -1,36 +1,8 @@
 import { normalizeSocialMediaValue } from "@lmaa/shared";
-import { type ComponentType, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FaTwitter } from "react-icons/fa6";
-import {
-  SiBluesky,
-  SiInstagram,
-  SiLinkedin,
-  SiMastodon,
-  SiTiktok,
-  SiTwitch,
-  SiYoutube,
-} from "react-icons/si";
 import { SFGlobe, SFMinus, SFPlus } from "sf-symbols-lib/monochrome";
-
-interface PlatformDef {
-  key: string;
-  label: string;
-  icon: ComponentType<{ size?: number }>;
-}
-
-const PLATFORMS: PlatformDef[] = [
-  { key: "mastodon", label: "Mastodon", icon: SiMastodon },
-  { key: "bluesky", label: "Bluesky", icon: SiBluesky },
-  { key: "instagram", label: "Instagram", icon: SiInstagram },
-  { key: "tiktok", label: "TikTok", icon: SiTiktok },
-  { key: "x", label: "Twitter", icon: FaTwitter },
-  { key: "youtube", label: "YouTube", icon: SiYoutube },
-  { key: "twitch", label: "Twitch", icon: SiTwitch },
-  { key: "linkedin", label: "LinkedIn", icon: SiLinkedin },
-];
-
-const PLATFORM_MAP = new Map(PLATFORMS.map((p) => [p.key, p]));
+import { PLATFORMS, PLATFORM_MAP } from "./social-media-platforms";
 
 interface Entry {
   id: string;

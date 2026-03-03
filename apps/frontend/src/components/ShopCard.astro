@@ -2,6 +2,8 @@
 import { renderMarkdown, stripMarkdown } from "@/lib/markdown";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { REGION_CODES, type Shop } from "@lmaa/shared";
+import { SocialMediaIcons } from "@lmaa/ui";
+import { SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
 
 interface Props {
   shop: Shop;
@@ -68,6 +70,7 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
           {shop.name}
         </h3>
         <p class="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
+        <SocialMediaIcons socialMedia={shop.socialMedia} />
       </div>
       {sortedRegions.length > 0 && (
         <div class="flex flex-wrap gap-1 shrink-0 justify-end">
@@ -245,7 +248,7 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
 <div class="flex flex-col gap-4">
   <!-- Header: logo + name + domain + region badges + close -->
   <div class="flex items-start gap-4">
-    <div class="shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
+    <div class="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
       {shop.ogImage ? (
         <img
           src={shop.ogImage}
@@ -255,11 +258,11 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
           class="w-full h-full object-cover"
           data-img-fallback
         />
-        <span class="text-xl font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
+        <span class="text-2xl font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
           {shop.name.charAt(0).toUpperCase()}
         </span>
       ) : (
-        <span class="text-xl font-bold text-stone-300 select-none">
+        <span class="text-2xl font-bold text-stone-300 select-none">
           {shop.name.charAt(0).toUpperCase()}
         </span>
       )}
@@ -274,6 +277,7 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
           {shop.name}
         </h2>
         <p class="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
+        <SocialMediaIcons socialMedia={shop.socialMedia} />
       </div>
       {sortedRegions.length > 0 && (
         <div class="flex flex-wrap gap-1 shrink-0 justify-end">
@@ -289,10 +293,10 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
     <button
       type="button"
       data-dismiss
-      class="shrink-0 ml-1 text-stone-400 hover:text-stone-700 transition-colors text-base leading-none"
+      class="shrink-0 ml-1 text-stone-300 hover:text-stone-500 transition-colors"
       aria-label="Details schließen"
     >
-      ✕
+      <SFXmarkCircleFill className="w-5 h-5" />
     </button>
   </div>
 
