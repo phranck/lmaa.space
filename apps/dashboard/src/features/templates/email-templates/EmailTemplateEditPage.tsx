@@ -167,7 +167,7 @@ export function EmailTemplateEditPage() {
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-60 transition-colors"
+            className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
           >
             {isPending ? messages.common.saving : m.save}
           </button>

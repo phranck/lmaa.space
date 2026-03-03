@@ -342,7 +342,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           type="button"
           onClick={handleSave}
           disabled={!dirty || saveNav.isPending}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-50 transition-colors"
+          className="flex items-center gap-1.5 h-7 px-3 text-xs border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
         >
           <SFSquareAndArrowDownFill className="w-3 h-3" />
           {saveNav.isPending ? text.saving : text.save}

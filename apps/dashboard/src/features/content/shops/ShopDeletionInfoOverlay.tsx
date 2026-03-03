@@ -203,7 +203,7 @@ export function ShopDeletionInfoOverlay({
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-50"
+                    className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
                   >
                     {isSaving ? messages.common.saving : messages.common.save}
                   </button>
@@ -223,7 +223,7 @@ export function ShopDeletionInfoOverlay({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
+                    className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
                   >
                     {messages.common.ok}
                   </button>

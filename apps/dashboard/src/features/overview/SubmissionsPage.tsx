@@ -567,10 +567,10 @@ function SuggestionsTab() {
                     },
                   )
                 }
-                className={`h-9 px-4 rounded-control text-sm font-medium text-white transition-colors disabled:opacity-60 ${
+                className={`h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
                   reviewId > 0
-                    ? "bg-[var(--ds-btn-primary-bg)] hover:bg-[var(--ds-btn-primary-hover)]"
-                    : "bg-red-500 hover:bg-red-600"
+                    ? "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
+                    : "border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                 }`}
               >
                 {reviewMutation.isPending

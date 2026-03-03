@@ -194,6 +194,12 @@
   --ds-btn-primary-hover: #0099d4;
   --ds-btn-primary-fg: #ffffff;
 
+  /* Outline action button: primary */
+  --ds-btn-primary-border: rgba(0, 174, 241, 0.4);
+  --ds-btn-primary-text: #0099d4;
+  --ds-btn-primary-hover-border: rgba(0, 174, 241, 0.7);
+  --ds-btn-primary-hover-bg: rgba(0, 174, 241, 0.08);
+
   /* Segment controls */
   --ds-segment-bg: #eff1f3; /* neutral-muted track */
   --ds-segment-active-bg: #ffffff; /* active button */
@@ -236,6 +242,12 @@
   /* Filled button — lighter on dark surfaces */
   --ds-btn-filled-bg: var(--ds-color-neutral-700);
   --ds-btn-filled-hover: var(--ds-color-neutral-600);
+
+  /* Outline action button: primary */
+  --ds-btn-primary-border: rgba(0, 174, 241, 0.4);
+  --ds-btn-primary-text: #39bff3;
+  --ds-btn-primary-hover-border: rgba(0, 174, 241, 0.7);
+  --ds-btn-primary-hover-bg: rgba(0, 174, 241, 0.1);
 
   /* Segment controls */
   --ds-segment-bg: #2a313c; /* control-bgColor-rest */

@@ -168,7 +168,7 @@ export function EmailTemplateListPage() {
         <button
           type="button"
           onClick={() => navigate("/email-templates/new")}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
           <SFPlusCircleFill className="w-3.5 h-3.5" />
           {m.newTemplate}

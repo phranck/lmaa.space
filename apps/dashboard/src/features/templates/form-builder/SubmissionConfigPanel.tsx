@@ -21,7 +21,9 @@ import { CSS } from "@dnd-kit/utilities";
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
 import {
+  SFArrowDownCircle,
   SFArrowRight,
+  SFArrowRightCircle,
   SFCheckmark,
   SFEnvelope,
   SFPlusCircleFill,
@@ -144,7 +146,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
                     className={`px-2 h-6 rounded text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                       active
                         ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                        : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
+                        : "text-[var(--ds-color-neutral-400)] hover:text-[var(--ds-text)]"
                     }`}
                   >
                     {label}
@@ -335,7 +337,8 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
     }
   }
 
-  const sectionClass = "px-6 py-4 border-t border-[var(--ds-border)]";
+  const sectionClass = "px-6 pb-6";
+  const cardClass = "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card p-5";
   const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5";
   const inputClass =
     "w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]";
@@ -354,187 +357,211 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
 
   return (
     <div className={sectionClass}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-          {m.title}
-        </h3>
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-1.5 h-7 px-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)]">
-            <SelectedIcon
-              width={13}
-              height={13}
-              className="shrink-0 text-[var(--ds-text-subtle)]"
-              aria-hidden
-            />
-            <select
-              value={pendingStepType}
-              onChange={(e) => setPendingStepType(e.target.value as SubmissionStep["type"])}
-              className="text-xs text-[var(--ds-text)] bg-transparent focus:outline-none cursor-pointer"
-            >
-              {stepOptions.map(({ type, label }) => (
-                <option key={type} value={type}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="button"
-            onClick={() => addStep(pendingStepType)}
-            className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control hover:bg-[var(--ds-btn-primary-hover)] transition-colors"
-          >
-            <SFPlusCircleFill className="w-3 h-3" />
-            {m.addStepButton}
-          </button>
-        </div>
-      </div>
-
-      {/* Step chain */}
-      <div className="mb-3">
-        {cfg.steps.length === 0 ? (
-          <p className="text-sm text-[var(--ds-text-muted)]">{m.noSteps}</p>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDragCancel={() => setActiveUid(null)}
-          >
-            <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
-              <div className="flex flex-row flex-wrap items-start gap-y-2">
-                {cfg.steps.map((step, i) => (
-                  <div key={uids[i]} className="flex items-start">
-                    <StepRow
-                      sortableId={uids[i]}
-                      index={i}
-                      step={step}
-                      onUpdate={(updated) => updateStep(i, updated)}
-                      onRemove={() => removeStep(i)}
-                      fields={fields}
-                      templates={templates ?? []}
-                    />
-                    {i < cfg.steps.length - 1 && (
-                      <div className="flex items-center self-stretch px-4 text-[var(--ds-text)]">
-                        <SFArrowRight className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
+      {/* ── Übermittlung card ── */}
+      <div className={cardClass}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
+            {m.title}
+          </h3>
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 h-7 px-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)]">
+              <SelectedIcon
+                width={13}
+                height={13}
+                className="shrink-0 text-[var(--ds-color-neutral-400)]"
+                aria-hidden
+              />
+              <select
+                value={pendingStepType}
+                onChange={(e) => setPendingStepType(e.target.value as SubmissionStep["type"])}
+                className="text-xs text-[var(--ds-text)] bg-transparent focus:outline-none cursor-pointer"
+              >
+                {stepOptions.map(({ type, label }) => (
+                  <option key={type} value={type}>
+                    {label}
+                  </option>
                 ))}
-              </div>
-            </SortableContext>
-            <DragOverlay>
-              {activeStep && (
-                <div className="flex flex-col gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-surface)] min-w-48 shadow-xl opacity-95 cursor-grabbing">
-                  <span className="text-sm font-medium text-[var(--ds-text)]">
-                    {activeStep.type === "store"
-                      ? m.stepStore
-                      : activeStep.type === "create-shop-suggestion"
-                        ? m.stepCreateShopSuggestion
-                        : m.stepEmail}
-                  </span>
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
-        )}
-      </div>
-
-      {/* Success behaviour — mutually exclusive: message or redirect */}
-      <div>
-        <span className={labelClass}>{m.successBehaviourLabel}</span>
-        <div className="flex gap-0.5 p-0.5 mb-3 bg-[var(--ds-surface-alt)] rounded border border-[var(--ds-border)] w-fit">
-          {(
-            [
-              ["message", m.successMessage, SFCheckmark],
-              ["redirect", m.successRedirect, SFArrowRight],
-            ] as const
-          ).map(([mode, label, Icon]) => {
-            const active =
-              mode === "redirect"
-                ? cfg.successRedirectUrl !== undefined
-                : cfg.successRedirectUrl === undefined;
-            return (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => {
-                  if (mode === "redirect") {
-                    const next = {
-                      ...cfg,
-                      successRedirectUrl: cfg.successRedirectUrl ?? "",
-                      successHeadline: undefined,
-                      successMessage: undefined,
-                    };
-                    onChange(
-                      next.steps.length === 0 && !next.successRedirectUrl ? undefined : next,
-                    );
-                  } else {
-                    const next = {
-                      ...cfg,
-                      successMessage: cfg.successMessage ?? "",
-                      successRedirectUrl: undefined,
-                    };
-                    onChange(next.steps.length === 0 && !next.successMessage ? undefined : next);
-                  }
-                }}
-                className={`inline-flex items-center gap-1 px-2 h-6 rounded text-xs font-medium transition-colors ${
-                  active
-                    ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                    : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
-                }`}
-              >
-                <Icon width={13} height={13} aria-hidden />
-                {label}
-              </button>
-            );
-          })}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={() => addStep(pendingStepType)}
+              className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+            >
+              <SFPlusCircleFill className="w-3 h-3" />
+              {m.addStepButton}
+            </button>
+          </div>
         </div>
 
-        {cfg.successRedirectUrl !== undefined ? (
-          <input
-            id="submission-success-redirect"
-            type="url"
-            value={cfg.successRedirectUrl}
-            onChange={(e) => updateField("successRedirectUrl", e.target.value)}
-            className={inputClass}
-            placeholder="https://example.com/danke"
-          />
-        ) : (
-          <div className="flex flex-col gap-2">
-            <div>
-              <label
-                htmlFor="submission-success-headline"
-                className="block text-xs text-[var(--ds-text-muted)] mb-1"
-              >
-                {m.successHeadline}
-              </label>
-              <input
-                id="submission-success-headline"
-                type="text"
-                value={cfg.successHeadline ?? ""}
-                onChange={(e) => updateField("successHeadline", e.target.value)}
-                className={inputClass}
-                placeholder={m.successHeadlinePlaceholder}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="submission-success-message"
-                className="block text-xs text-[var(--ds-text-muted)] mb-1"
-              >
-                Text
-              </label>
-              <MarkdownTextarea
-                id="submission-success-message"
-                value={cfg.successMessage ?? ""}
-                onChange={(value) => updateField("successMessage", value)}
-                placeholder={m.successMessagePlaceholder}
-                rows={4}
-              />
-            </div>
+        {/* Step chain */}
+        <div>
+          {cfg.steps.length === 0 ? (
+            <p className="text-sm text-[var(--ds-text-muted)]">{m.noSteps}</p>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDragCancel={() => setActiveUid(null)}
+            >
+              <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
+                <div className="flex flex-row flex-wrap items-start gap-y-2">
+                  {cfg.steps.map((step, i) => (
+                    <div key={uids[i]} className="flex items-start">
+                      <StepRow
+                        sortableId={uids[i]}
+                        index={i}
+                        step={step}
+                        onUpdate={(updated) => updateStep(i, updated)}
+                        onRemove={() => removeStep(i)}
+                        fields={fields}
+                        templates={templates ?? []}
+                      />
+                      {i < cfg.steps.length - 1 && (
+                        <div className="relative flex items-center self-stretch w-14 -mx-px">
+                          <div
+                            className="absolute inset-x-0 top-1/2 h-px"
+                            style={{
+                              background:
+                                "linear-gradient(to right, var(--ds-border), var(--ds-color-neutral-400) 32%, var(--ds-color-neutral-400) 68%, var(--ds-border))",
+                            }}
+                          />
+                          <SFArrowRightCircle className="relative z-10 w-5 h-5 mx-auto text-[var(--ds-color-neutral-400)] bg-[var(--ds-surface)] rounded-full" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </SortableContext>
+              <DragOverlay>
+                {activeStep && (
+                  <div className="flex flex-col gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-surface)] min-w-48 shadow-xl opacity-95 cursor-grabbing">
+                    <span className="text-sm font-medium text-[var(--ds-text)]">
+                      {activeStep.type === "store"
+                        ? m.stepStore
+                        : activeStep.type === "create-shop-suggestion"
+                          ? m.stepCreateShopSuggestion
+                          : m.stepEmail}
+                    </span>
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
+          )}
+        </div>
+      </div>
+
+      {/* Arrow connector: line behind icon */}
+      <div className="relative flex justify-center h-14 -my-px">
+        <div
+          className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
+          style={{
+            background:
+              "linear-gradient(to bottom, var(--ds-border), var(--ds-color-neutral-400) 32%, var(--ds-color-neutral-400) 68%, var(--ds-border))",
+          }}
+        />
+        <SFArrowDownCircle className="relative z-10 w-5 h-5 my-auto text-[var(--ds-color-neutral-400)] bg-[var(--ds-bg)] rounded-full" />
+      </div>
+
+      {/* ── Nach dem Absenden card ── */}
+      <div className={cardClass}>
+        <div>
+          <span className={labelClass}>{m.successBehaviourLabel}</span>
+          <div className="flex gap-0.5 p-0.5 mb-3 bg-[var(--ds-surface-alt)] rounded border border-[var(--ds-border)] w-fit">
+            {(
+              [
+                ["message", m.successMessage, SFCheckmark],
+                ["redirect", m.successRedirect, SFArrowRight],
+              ] as const
+            ).map(([mode, label, Icon]) => {
+              const active =
+                mode === "redirect"
+                  ? cfg.successRedirectUrl !== undefined
+                  : cfg.successRedirectUrl === undefined;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    if (mode === "redirect") {
+                      const next = {
+                        ...cfg,
+                        successRedirectUrl: cfg.successRedirectUrl ?? "",
+                        successHeadline: undefined,
+                        successMessage: undefined,
+                      };
+                      onChange(
+                        next.steps.length === 0 && !next.successRedirectUrl ? undefined : next,
+                      );
+                    } else {
+                      const next = {
+                        ...cfg,
+                        successMessage: cfg.successMessage ?? "",
+                        successRedirectUrl: undefined,
+                      };
+                      onChange(next.steps.length === 0 && !next.successMessage ? undefined : next);
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1 px-2 h-6 rounded text-xs font-medium transition-colors ${
+                    active
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
+                      : "text-[var(--ds-color-neutral-400)] hover:text-[var(--ds-text)]"
+                  }`}
+                >
+                  <Icon width={13} height={13} aria-hidden />
+                  {label}
+                </button>
+              );
+            })}
           </div>
-        )}
+
+          {cfg.successRedirectUrl !== undefined ? (
+            <input
+              id="submission-success-redirect"
+              type="url"
+              value={cfg.successRedirectUrl}
+              onChange={(e) => updateField("successRedirectUrl", e.target.value)}
+              className={inputClass}
+              placeholder="https://example.com/danke"
+            />
+          ) : (
+            <div className="flex flex-col gap-2">
+              <div>
+                <label
+                  htmlFor="submission-success-headline"
+                  className="block text-xs text-[var(--ds-text-muted)] mb-1"
+                >
+                  {m.successHeadline}
+                </label>
+                <input
+                  id="submission-success-headline"
+                  type="text"
+                  value={cfg.successHeadline ?? ""}
+                  onChange={(e) => updateField("successHeadline", e.target.value)}
+                  className={inputClass}
+                  placeholder={m.successHeadlinePlaceholder}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="submission-success-message"
+                  className="block text-xs text-[var(--ds-text-muted)] mb-1"
+                >
+                  Text
+                </label>
+                <MarkdownTextarea
+                  id="submission-success-message"
+                  value={cfg.successMessage ?? ""}
+                  onChange={(value) => updateField("successMessage", value)}
+                  placeholder={m.successMessagePlaceholder}
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
