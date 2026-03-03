@@ -30,3 +30,54 @@ const markedSafe = new Marked({
 export async function renderMarkdown(content: string): Promise<string> {
   return markedSafe.parse(content) as Promise<string>;
 }
+
+const markedPlainText = new Marked({
+  renderer: {
+    heading({ text }) {
+      return `${text} `;
+    },
+    paragraph({ text }) {
+      return `${text} `;
+    },
+    link({ text }) {
+      return text;
+    },
+    image() {
+      return "";
+    },
+    strong({ text }) {
+      return text;
+    },
+    em({ text }) {
+      return text;
+    },
+    codespan({ text }) {
+      return text;
+    },
+    code({ text }) {
+      return `${text} `;
+    },
+    blockquote({ text }) {
+      return text;
+    },
+    list({ items }) {
+      return items.map((i) => i.text).join(" ");
+    },
+    listitem({ text }) {
+      return text;
+    },
+    hr() {
+      return " ";
+    },
+    html() {
+      return "";
+    },
+  },
+});
+
+/**
+ * Strips Markdown syntax via marked, returning plain text.
+ */
+export function stripMarkdown(content: string): string {
+  return (markedPlainText.parse(content) as string).replace(/\s+/g, " ").trim();
+}

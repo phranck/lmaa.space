@@ -1,5 +1,5 @@
 ---
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdown, stripMarkdown } from "@/lib/markdown";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { REGION_CODES, type Shop } from "@lmaa/shared";
 
@@ -25,12 +25,12 @@ const reportTitleId = `${reportDialogId}-title`;
 const reportDescId = `${reportDialogId}-desc`;
 
 const MAX_DESC_CHARS = 60;
-const rawDescription = shop.description;
-const isLongDescription = rawDescription.length > MAX_DESC_CHARS;
-const descriptionPreview = rawDescription
+const plainDescription = stripMarkdown(shop.description);
+const isLongDescription = plainDescription.length > MAX_DESC_CHARS;
+const descriptionPreview = plainDescription
   ? isLongDescription
-    ? `${rawDescription.slice(0, MAX_DESC_CHARS).trimEnd()}\u2026`
-    : rawDescription
+    ? `${plainDescription.slice(0, MAX_DESC_CHARS).trimEnd()}\u2026`
+    : plainDescription
   : null;
 
 const fullDescriptionHtml = rawDescription ? await renderMarkdown(rawDescription) : null;
