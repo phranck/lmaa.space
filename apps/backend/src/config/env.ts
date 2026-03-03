@@ -26,6 +26,10 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(10 * 60 * 1000),
+  IP_HASH_SALT: z
+    .string()
+    .min(16, "IP_HASH_SALT must be at least 16 characters")
+    .default("local-dev-salt-not-for-production"),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default("hallo@lmaa.space"),
   DASHBOARD_URL: z.string().url().default("https://dashboard.lmaa.space"),

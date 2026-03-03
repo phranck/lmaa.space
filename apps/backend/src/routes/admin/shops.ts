@@ -3,6 +3,7 @@ import {
   deleteReasonUpdateSchema,
   previewImageSchema,
   shopBodySchema,
+  shopDeleteBodySchema,
   shopUpdateSchema,
   visibilityFilterSchema,
   visibilityUpdateSchema,
@@ -74,24 +75,27 @@ for (const method of ["put", "patch"] as const) {
   );
 }
 
-shopsRoutes.delete("/shops/:id", requireAuth, requireAdmin, async (c) => {
-  const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid id");
+shopsRoutes.delete(
+  "/shops/:id",
+  requireAuth,
+  requireAdmin,
+  zValidator("json", shopDeleteBodySchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
 
-  const body = await c.req.json().catch(() => ({}));
-  const reason = typeof body?.reason === "string" ? body.reason.trim() || null : null;
-  const wasReported = typeof body?.wasReported === "boolean" ? body.wasReported : false;
-  const mode = body?.mode === "delete" ? "delete" : "mark_deleted";
+    const { reason, wasReported, mode } = c.req.valid("json");
 
-  const result = await deleteManagedAdminShop(id, {
-    mode,
-    reason,
-    wasReported,
-    adminId: c.get("adminId") ?? null,
-  });
-  if (!result.ok) return fail(c, 404, "Shop not found");
-  return ok(c, { message: result.message });
-});
+    const result = await deleteManagedAdminShop(id, {
+      mode,
+      reason: reason?.trim() || null,
+      wasReported,
+      adminId: c.get("adminId") ?? null,
+    });
+    if (!result.ok) return fail(c, 404, "Shop not found");
+    return ok(c, { message: result.message });
+  },
+);
 
 // PATCH /admin/shops/:id/visibility — set public or onhold (use DELETE for deleted)
 shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) => {
@@ -105,7 +109,8 @@ shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) 
   const { visibility } = parsedBody.data;
 
   const result = await changeManagedAdminShopVisibility(id, visibility);
-  return ok(c, result);
+  if (!result.ok) return fail(c, 404, "Shop not found");
+  return ok(c, { message: result.message });
 });
 
 // PATCH /admin/shops/:id/delete-reason — update reason text for a soft-deleted shop

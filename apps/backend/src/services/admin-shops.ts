@@ -1,5 +1,6 @@
 import type { ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
-import { invalidateCache } from "../middleware/cache.js";
+import { failure, success } from "../lib/result.js";
+import { SHOPS_CACHE_KEY, invalidateCache } from "../middleware/cache.js";
 import {
   type CreateAdminShopData,
   type UpdateAdminShopData,
@@ -20,12 +21,10 @@ import {
   hydrateShopOgImageInBackground,
 } from "./preview-images.js";
 
-const SHOPS_CACHE_KEY = "shops:all";
-
 /**
  * Delete operation payload for admin shop removal workflow.
  */
-export interface DeleteAdminShopData {
+interface DeleteAdminShopData {
   mode: "delete" | "mark_deleted";
   reason: string | null;
   wasReported: boolean;
@@ -108,7 +107,7 @@ export async function updateManagedAdminShop(id: number, data: UpdateAdminShopDa
 export async function deleteManagedAdminShop(id: number, data: DeleteAdminShopData) {
   const exists = await shopExists(id);
   if (!exists) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   if (data.mode === "delete") {
@@ -119,10 +118,9 @@ export async function deleteManagedAdminShop(id: number, data: DeleteAdminShopDa
 
   invalidateCache(SHOPS_CACHE_KEY);
 
-  return {
-    ok: true as const,
+  return success({
     message: data.mode === "delete" ? "Shop permanently deleted" : "Shop marked deleted",
-  };
+  });
 }
 
 /**
@@ -136,9 +134,14 @@ export async function changeManagedAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
 ) {
+  const exists = await shopExists(id);
+  if (!exists) {
+    return failure("not_found");
+  }
+
   await setAdminShopVisibility(id, visibility);
   invalidateCache(SHOPS_CACHE_KEY);
-  return { message: `Shop visibility set to ${visibility}` };
+  return success({ message: `Shop visibility set to ${visibility}` });
 }
 
 /**
@@ -152,14 +155,14 @@ export async function changeManagedAdminShopVisibility(
 export async function refetchAdminShopImage(id: number) {
   const url = await getAdminShopUrl(id);
   if (!url) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   const result = await fetchShopPreviewImageFromHomepage(url);
   const ogImage = result?.url ?? null;
   await setAdminShopOgImage(id, ogImage);
 
-  return { ok: true as const, ogImage };
+  return success({ ogImage });
 }
 
 /**
@@ -181,8 +184,8 @@ export async function previewAdminShopImage(url: string) {
  * @returns `{ ok: true }` or `{ ok: false }` if the shop does not exist.
  */
 export async function updateManagedAdminShopDeleteReason(id: number, reason: string | null) {
-  if (!(await shopExists(id))) return { ok: false } as const;
+  if (!(await shopExists(id))) return failure("not_found");
   await updateAdminShopDeleteReason(id, reason);
   invalidateCache(SHOPS_CACHE_KEY);
-  return { ok: true } as const;
+  return success();
 }

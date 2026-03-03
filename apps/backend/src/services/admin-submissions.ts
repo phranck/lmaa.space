@@ -1,4 +1,6 @@
 import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
+import { failure, success } from "../lib/result.js";
+import { setAdminShopOgImage } from "../repositories/admin-shops.js";
 import {
   type SubmissionEditData,
   deleteSubmission,
@@ -6,7 +8,6 @@ import {
   getSubmissionStatus,
   listAdminSubmissions,
   reviewSubmission,
-  setShopOgImage,
 } from "../repositories/admin-submissions.js";
 import { hydrateShopOgImageInBackground } from "./preview-images.js";
 
@@ -23,7 +24,7 @@ export async function getAdminSubmissions(status?: SubmissionStatus) {
 /**
  * Input contract for submission moderation action.
  */
-export interface ReviewAdminSubmissionInput {
+interface ReviewAdminSubmissionInput {
   id: number;
   status: SubmissionReviewStatus;
   adminNote?: string;
@@ -57,16 +58,16 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
   });
 
   if (!submission) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   if (newShop) {
     hydrateShopOgImageInBackground(newShop.url, async (imageUrl) => {
-      await setShopOgImage(newShop.id, imageUrl);
+      await setAdminShopOgImage(newShop.id, imageUrl);
     });
   }
 
-  return { ok: true as const, submission };
+  return success({ submission });
 }
 
 /**
@@ -90,13 +91,13 @@ export async function deleteRejectedAdminSubmission(id: number) {
   const status = await getSubmissionStatus(id);
 
   if (!status) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   if (status !== "rejected") {
-    return { ok: false as const, reason: "invalid_status" as const };
+    return failure("invalid_status");
   }
 
   await deleteSubmission(id);
-  return { ok: true as const };
+  return success();
 }

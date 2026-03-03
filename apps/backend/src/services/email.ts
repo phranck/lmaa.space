@@ -12,31 +12,22 @@ console.log("[email] init:", {
 });
 
 /**
- * Indicates whether outbound mail is configured.
- *
- * @returns `true` when Resend client is configured and usable.
- */
-export function isEmailConfigured(): boolean {
-  return resend !== null;
-}
-
-/**
  * Sends a plain email via Resend.
  *
  * @param to - Recipient address.
  * @param subject - Email subject.
  * @param html - Rendered HTML body.
- * @returns Resolves when provider accepted the message (or immediately if mail is disabled).
+ * @returns `true` if the provider accepted the message, `false` on error or when mail is disabled.
  */
 export async function sendMail(
   to: string,
   subject: string,
   html: string,
   options?: { replyTo?: string },
-): Promise<void> {
+): Promise<boolean> {
   if (!resend) {
     console.warn("[email] skipped – RESEND_API_KEY not set");
-    return;
+    return false;
   }
 
   console.log("[email] sending:", { to, subject, from: FROM });
@@ -51,10 +42,12 @@ export async function sendMail(
     });
     if (error) {
       console.error("[email] resend error:", error);
-    } else {
-      console.log("[email] sent ok, id:", data?.id);
+      return false;
     }
+    console.log("[email] sent ok, id:", data?.id);
+    return true;
   } catch (err) {
     console.error("[email] unexpected error:", err);
+    return false;
   }
 }

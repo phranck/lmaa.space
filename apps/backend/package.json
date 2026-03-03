@@ -13,6 +13,8 @@
     "db:seed": "tsx --env-file=.env.local src/scripts/seed.ts",
     "db:seed-form-config": "tsx --env-file=.env.local src/scripts/seed-form-config.ts",
     "db:fetch-og": "tsx --env-file=.env.local src/scripts/fetch-og-images.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "email:preview": "npx react-email dev --dir src/emails --port 3001"
   },
   "dependencies": {
@@ -20,27 +22,27 @@
     "@hono/zod-validator": "^0.4.3",
     "@lmaa/contracts": "0.1.0",
     "@lmaa/shared": "0.1.0",
-    "@react-email/components": "^1.0.8",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.38.4",
     "fflate": "^0.8.2",
     "hono": "^4.7.4",
     "marked": "^17.0.3",
     "postgres": "^3.4.5",
-    "react": "^19.2.4",
-    "react-email": "^5.2.8",
     "resend": "^4.2.0",
     "sharp": "^0.34.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@react-email/components": "^1.0.8",
     "@react-email/preview-server": "^5.2.8",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.0.0",
-    "@types/sharp": "^0.31.1",
     "drizzle-kit": "^0.30.4",
+    "react": "^19.2.4",
+    "react-email": "^5.2.8",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18"
   }
 }
