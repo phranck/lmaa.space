@@ -1,3 +1,4 @@
+import { socialMediaSchema } from "@lmaa/shared";
 import { z } from "zod";
 import {
   defaultRegionArraySchema,
@@ -28,6 +29,7 @@ export const submissionEditSchema = z.object({
   region: defaultRegionArraySchema,
   shipping: z.string().max(200).optional(),
   categoryIds: z.array(z.number().int().positive()),
+  socialMedia: socialMediaSchema,
 });
 
 /**

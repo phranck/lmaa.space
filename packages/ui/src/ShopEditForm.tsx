@@ -7,6 +7,7 @@ import {
   type RegionSelectMessages,
   type RegionSelectOption,
 } from "./RegionSelect.tsx";
+import { SocialMediaEditor, type SocialMediaEditorMessages } from "./SocialMediaEditor.tsx";
 
 /**
  * Canonical value model used by the shared shop edit form.
@@ -18,6 +19,7 @@ export interface ShopEditFormValue {
   categoryIds: number[];
   region: string[];
   shipping: string;
+  socialMedia: Record<string, string>;
 }
 
 /**
@@ -30,6 +32,7 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   categoryIds: [],
   region: [],
   shipping: "",
+  socialMedia: {},
 };
 
 /**
@@ -49,6 +52,8 @@ export interface ShopEditFormMessages {
   shippingPlaceholder: string;
   regionSelect: RegionSelectMessages;
   categorySelect: MultiSelectMessages;
+  socialMediaLabel?: string;
+  socialMedia?: SocialMediaEditorMessages;
 }
 
 /**
@@ -207,6 +212,26 @@ export function ShopEditForm({
         />
         {errors?.shipping && <p className="text-red-500 text-xs mt-1">{errors.shipping}</p>}
       </div>
+
+      {/* Social Media */}
+      {messages.socialMediaLabel && messages.socialMedia && (
+        <div>
+          <p className={labelClass}>
+            <span className="flex items-center gap-1.5">
+              {messages.socialMediaLabel}{" "}
+              <span className="text-[var(--ds-text-subtle)] font-normal">
+                {messages.optionalLabel}
+              </span>
+            </span>
+          </p>
+          <SocialMediaEditor
+            value={value.socialMedia}
+            onChange={(v) => set("socialMedia", v)}
+            messages={messages.socialMedia}
+          />
+          {errors?.socialMedia && <p className="text-red-500 text-xs mt-1">{errors.socialMedia}</p>}
+        </div>
+      )}
     </div>
   );
 }

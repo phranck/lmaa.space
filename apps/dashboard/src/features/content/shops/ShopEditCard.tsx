@@ -65,6 +65,7 @@ export function ShopEditCard({
         categoryIds: shopData.categories.map((c) => c.id),
         region: shopData.region ?? [],
         shipping: shopData.shipping ?? "",
+        socialMedia: shopData.socialMedia ?? {},
       });
     }
   }, [shopData]);
@@ -114,23 +115,6 @@ export function ShopEditCard({
 
         {/* Form */}
         <div className="p-5 max-h-[calc(100vh-14rem)] overflow-y-auto">
-          {isLoadingShop ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((k) => (
-                <div key={k} className="h-10 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <ShopEditForm
-              value={form}
-              onChange={setForm}
-              categories={categories}
-              regionOptions={shopFormI18n.regionOptions}
-              messages={shopFormI18n.messages}
-              variant="dashboard"
-            />
-          )}
-
           {!isNew &&
             (() => {
               const displayImage = isSubmissionMode ? previewImage : (shopData?.ogImage ?? null);
@@ -149,7 +133,7 @@ export function ShopEditCard({
               }
 
               return (
-                <div className="mt-4 pt-4 border-t border-[var(--ds-border-subtle)] flex items-center gap-3">
+                <div className="mb-4 pb-4 border-b border-[var(--ds-border-subtle)] flex items-center gap-3">
                   <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
                     {displayImage ? (
                       <img src={displayImage} alt="" className="w-full h-full object-cover" />
@@ -179,6 +163,23 @@ export function ShopEditCard({
                 </div>
               );
             })()}
+
+          {isLoadingShop ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((k) => (
+                <div key={k} className="h-10 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <ShopEditForm
+              value={form}
+              onChange={setForm}
+              categories={categories}
+              regionOptions={shopFormI18n.regionOptions}
+              messages={shopFormI18n.messages}
+              variant="dashboard"
+            />
+          )}
 
           {isError && (
             <p className="text-red-500 text-sm mt-4">

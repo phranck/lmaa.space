@@ -1,3 +1,4 @@
+import { socialMediaSchema } from "@lmaa/shared";
 import { z } from "zod";
 import {
   defaultRegionArraySchema,
@@ -17,6 +18,7 @@ export const shopBodySchema = z.object({
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(2000).optional(),
+  socialMedia: socialMediaSchema,
 });
 
 /**
@@ -30,6 +32,7 @@ export const shopUpdateSchema = z.object({
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(2000).optional(),
+  socialMedia: socialMediaSchema,
   isActive: z.boolean().optional(),
 });
 

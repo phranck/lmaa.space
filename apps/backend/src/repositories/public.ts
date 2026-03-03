@@ -18,7 +18,15 @@ import {
  */
 export type CategoryShopRow = Pick<
   Shop,
-  "id" | "name" | "url" | "region" | "pickup" | "shipping" | "description" | "ogImage"
+  | "id"
+  | "name"
+  | "url"
+  | "region"
+  | "pickup"
+  | "shipping"
+  | "description"
+  | "ogImage"
+  | "socialMedia"
 >;
 /**
  * Public shop row with hydrated categories.
@@ -108,7 +116,8 @@ export async function getPublicCategoryBySlug(slug: string) {
 export async function listPublicShopsByCategoryId(categoryId: number) {
   return db.execute<CategoryShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage"
+           s.og_image as "ogImage",
+           s.social_media as "socialMedia"
     FROM shops s
     INNER JOIN shop_categories sc ON sc.shop_id = s.id AND sc.category_id = ${categoryId}
     WHERE s.is_active = true AND s.visibility = 'public'
@@ -125,6 +134,7 @@ export async function listAllPublicShopsWithCategories() {
   return db.execute<PublicShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
+           s.social_media as "socialMedia",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -146,12 +156,13 @@ export async function listAllPublicShopsWithCategories() {
  * @returns Ranked result rows limited to top matches.
  */
 export async function searchPublicShops(query: string) {
-  const escaped = query.replace(/[%_\\]/g, "\\$&");
+  const escaped = query.replace(/[%_\\\\]/g, "\\\\$&");
   const pattern = `%${escaped}%`;
 
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.is_active as "isActive",
+           s.social_media as "socialMedia",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))

@@ -1,0 +1,1 @@
+ALTER TABLE "shops" ADD COLUMN "social_media" jsonb DEFAULT '{}'::jsonb NOT NULL;

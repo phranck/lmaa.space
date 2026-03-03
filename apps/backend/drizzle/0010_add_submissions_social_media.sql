@@ -1,0 +1,1 @@
+ALTER TABLE "submissions" ADD COLUMN "social_media" jsonb DEFAULT '{}'::jsonb NOT NULL;
