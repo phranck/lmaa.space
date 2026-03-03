@@ -9,7 +9,8 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
-function resolveClientIp(headers: Headers): string {
+/** Extracts the client IP from request headers (CF > X-Real-IP > XFF). */
+export function resolveClientIp(headers: Headers): string {
   const cfIp = headers.get("CF-Connecting-IP");
   if (cfIp) return cfIp.trim();
 
@@ -25,11 +26,11 @@ function resolveClientIp(headers: Headers): string {
   return "unknown";
 }
 
-// Start periodic cleanup of expired entries (every 5 minutes by default)
-if (typeof global !== "undefined") {
-  const cleanupIntervalMs = env.RATE_LIMIT_CLEANUP_INTERVAL_MS;
+/** Starts periodic cleanup of expired rate-limit entries. Returns the timer for shutdown. */
+export function startRateLimitCleanupJob(): NodeJS.Timeout {
+  const intervalMs = env.RATE_LIMIT_CLEANUP_INTERVAL_MS;
 
-  setInterval(() => {
+  const timer = setInterval(() => {
     const now = Date.now();
     let purged = 0;
 
@@ -43,7 +44,10 @@ if (typeof global !== "undefined") {
     if (purged > 0) {
       console.log(`[Rate Limit] Purged ${purged} expired entries`);
     }
-  }, cleanupIntervalMs);
+  }, intervalMs);
+
+  console.log(`[Rate Limit] Cleanup job started (interval: ${intervalMs}ms)`);
+  return timer;
 }
 
 /**

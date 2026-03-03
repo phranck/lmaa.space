@@ -1,12 +1,15 @@
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { env } from "../config/env.js";
-import { getCacheEntry, getCacheStats, setCacheEntry } from "../middleware/cache.js";
+import { failure, success } from "../lib/result.js";
+import {
+  SHOPS_CACHE_KEY,
+  getCacheEntry,
+  getCacheStats,
+  setCacheEntry,
+} from "../middleware/cache.js";
 import {
   type PublicShopRow,
-  addSubmissionCategoryLinks,
-  countDeadLinkReportsForShop,
   countPublicShops,
-  createPublicSubmission,
   findPublicShopByHostname,
   getPublicCategoryBySlug,
   getPublicShopById,
@@ -23,13 +26,12 @@ import {
   searchPublicShops,
 } from "../repositories/public.js";
 
-const SHOPS_CACHE_KEY = "shops:all";
 const SHOPS_CACHE_TTL_MS = 60 * 1000;
 
 /**
  * Public navigation buckets rendered on the website.
  */
-export type PublicNavId = "header" | "footer";
+type PublicNavId = "header" | "footer";
 
 function normalizeShopHostname(url: string): string | null {
   try {
@@ -41,7 +43,7 @@ function normalizeShopHostname(url: string): string | null {
 }
 
 function hashIp(ip: string): string {
-  return createHash("sha256").update(ip).digest("hex");
+  return createHmac("sha256", env.IP_HASH_SALT).update(ip).digest("hex");
 }
 
 /**
@@ -74,11 +76,11 @@ export async function getManagedPublicStats() {
 export async function getManagedPublicCategoryBySlug(slug: string) {
   const category = await getPublicCategoryBySlug(slug);
   if (!category) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   const categoryShops = await listPublicShopsByCategoryId(category.id);
-  return { ok: true as const, data: { ...category, shops: categoryShops } };
+  return success({ data: { ...category, shops: categoryShops } });
 }
 
 /**
@@ -156,49 +158,6 @@ export async function checkManagedPublicShopUrl(urlRaw: string | undefined) {
 }
 
 /**
- * Input contract for creating a public shop submission.
- */
-export interface CreateManagedPublicSubmissionInput {
-  shopName: string;
-  shopUrl: string;
-  categoryIds: number[];
-  categorySuggestion?: string;
-  region: string[];
-  shipping?: string;
-  description?: string;
-  submitterEmail?: string;
-  submitterNote?: string;
-}
-
-/**
- * Persists a public submission and linked categories.
- *
- * @param input - Validated submission payload.
- * @returns Success message for user-facing confirmation.
- *
- * @remarks
- * Side effects:
- * - Creates one submission row.
- * - Creates submission-category relation rows.
- */
-export async function createManagedPublicSubmission(input: CreateManagedPublicSubmissionInput) {
-  const submissionId = await createPublicSubmission({
-    shopName: input.shopName,
-    shopUrl: input.shopUrl,
-    categorySuggestion: input.categorySuggestion ?? null,
-    region: input.region,
-    shipping: input.shipping ?? "",
-    description: input.description ?? "",
-    submitterEmail: input.submitterEmail ?? null,
-    submitterNote: input.submitterNote ?? null,
-  });
-
-  await addSubmissionCategoryLinks(submissionId, input.categoryIds);
-
-  return { message: "Vorschlag eingereicht" };
-}
-
-/**
  * Returns navigation items for one public navigation bucket.
  *
  * @param navId - `"header"` or `"footer"`.
@@ -254,13 +213,12 @@ export async function getManagedPublicRejectionPage(token: string) {
 export async function createManagedDeadLinkReport(shopId: number, ip: string) {
   const shop = await getPublicShopById(shopId);
   if (!shop) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   await insertDeadLinkReport(shopId, hashIp(ip));
-  await countDeadLinkReportsForShop(shopId);
 
-  return { ok: true as const, message: "Danke für deinen Hinweis!" };
+  return success({ message: "Danke für deinen Hinweis!" });
 }
 
 /**
@@ -281,29 +239,29 @@ export async function createManagedShopConcernReport(
 ) {
   const reason = reasonRaw.trim();
   if (reason.length < 10) {
-    return { ok: false as const, reason: "invalid_reason" as const };
+    return failure("invalid_reason");
   }
 
   const shop = await getPublicShopById(shopId);
   if (!shop) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   await insertShopConcernReport(shopId, reason, hashIp(ip));
-  return { ok: true as const, message: "Danke für dein Feedback!" };
+  return success({ message: "Danke für dein Feedback!" });
 }
 
 /**
  * Returns cache diagnostics in development mode.
  *
  * @returns
- * - `{ ok: false }` outside development.
+ * - `{ ok: false, reason: "not_available" }` outside development.
  * - `{ ok: true, data }` with cache internals in development.
  */
 export function getManagedPublicCacheStats() {
   if (env.NODE_ENV !== "development") {
-    return { ok: false as const };
+    return failure("not_available");
   }
 
-  return { ok: true as const, data: getCacheStats() };
+  return success({ data: getCacheStats() });
 }

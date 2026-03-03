@@ -1,4 +1,5 @@
 import type { ContentPage, ContentPageSummary, ContentStatus } from "@lmaa/shared";
+import { failure, success } from "../lib/result.js";
 import {
   contentPageSlugExists,
   createContentPage,
@@ -72,7 +73,7 @@ export async function createManagedContentPage(input: {
 }) {
   const exists = await contentPageSlugExists(input.slug);
   if (exists) {
-    return { ok: false as const, reason: "slug_conflict" as const };
+    return failure("slug_conflict");
   }
 
   const page = await createContentPage({
@@ -84,8 +85,7 @@ export async function createManagedContentPage(input: {
 
   const creatorUsername = await getAdminUsernameById(input.adminId);
 
-  return {
-    ok: true as const,
+  return success({
     page: {
       slug: page.slug,
       title: page.title,
@@ -95,7 +95,7 @@ export async function createManagedContentPage(input: {
       updatedAt: null,
       updatedByUsername: null,
     },
-  };
+  });
 }
 
 /**
@@ -168,7 +168,7 @@ export async function updateManagedContentPageMeta(input: {
   if (input.newSlug && input.newSlug !== input.currentSlug) {
     const exists = await contentPageSlugExists(input.newSlug);
     if (exists) {
-      return { ok: false as const, reason: "slug_conflict" as const };
+      return failure("slug_conflict");
     }
   }
 
@@ -178,18 +178,17 @@ export async function updateManagedContentPageMeta(input: {
     input.adminId,
   );
   if (!updated) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  return {
-    ok: true as const,
+  return success({
     page: {
       slug: updated.slug,
       title: updated.title,
       status: updated.status,
       updatedAt: toIso(updated.updatedAt),
     },
-  };
+  });
 }
 
 /**

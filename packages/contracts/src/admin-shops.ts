@@ -57,3 +57,12 @@ export const visibilityUpdateSchema = z.object({ visibility: shopMutableVisibili
 export const deleteReasonUpdateSchema = z.object({
   reason: z.string().max(2000).nullable(),
 });
+
+/**
+ * Shop delete payload contract for admin DELETE routes.
+ */
+export const shopDeleteBodySchema = z.object({
+  reason: z.string().max(2000).optional().nullable(),
+  wasReported: z.boolean().optional().default(false),
+  mode: z.enum(["delete", "mark_deleted"]).optional().default("mark_deleted"),
+});

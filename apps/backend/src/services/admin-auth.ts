@@ -1,17 +1,18 @@
-import { createOwnerAdmin, getAdminProfileById } from "../repositories/admin-auth.js";
+import { failure, success } from "../lib/result.js";
 import {
+  createOwnerAdmin,
   createSession,
   deleteSession,
   findAdminByUsername,
   getAdminCount,
-  hashPassword,
-  verifyPassword,
-} from "./auth.js";
+  getAdminProfileById,
+} from "../repositories/admin-auth.js";
+import { hashPassword, verifyPassword } from "./auth.js";
 
 /**
  * Input payload for initial owner setup.
  */
-export interface SetupAdminInput {
+interface SetupAdminInput {
   username: string;
   email: string;
   password: string;
@@ -20,7 +21,7 @@ export interface SetupAdminInput {
 /**
  * Input payload for admin login.
  */
-export interface LoginAdminInput {
+interface LoginAdminInput {
   username: string;
   password: string;
 }
@@ -52,7 +53,7 @@ export async function getAdminSetupState() {
 export async function setupOwnerAdmin(input: SetupAdminInput) {
   const adminCount = await getAdminCount();
   if (adminCount > 0) {
-    return { ok: false as const, reason: "already_setup" as const };
+    return failure("already_setup");
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -64,8 +65,7 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
 
   const sessionId = await createSession(admin.id);
 
-  return {
-    ok: true as const,
+  return success({
     sessionId,
     admin: {
       id: admin.id,
@@ -73,7 +73,7 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
       role: admin.role,
       isOwner: admin.role === "owner",
     },
-  };
+  });
 }
 
 /**
@@ -92,13 +92,12 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
 export async function loginAdmin(input: LoginAdminInput) {
   const admin = await findAdminByUsername(input.username);
   if (!admin || !(await verifyPassword(input.password, admin.passwordHash))) {
-    return { ok: false as const, reason: "invalid_credentials" as const };
+    return failure("invalid_credentials");
   }
 
   const sessionId = await createSession(admin.id);
 
-  return {
-    ok: true as const,
+  return success({
     sessionId,
     admin: {
       id: admin.id,
@@ -106,7 +105,7 @@ export async function loginAdmin(input: LoginAdminInput) {
       role: admin.role,
       isOwner: admin.role === "owner",
     },
-  };
+  });
 }
 
 /**

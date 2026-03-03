@@ -1,5 +1,5 @@
-import sharp from "sharp";
-import { detectImageType } from "../lib/validate.js";
+import { processImageUpload } from "../lib/image-upload.js";
+import { failure, success } from "../lib/result.js";
 import {
   type CreateAdminCategoryData,
   type UpdateAdminCategoryData,
@@ -11,8 +11,6 @@ import {
   setAdminCategoryImage,
   updateAdminCategory,
 } from "../repositories/admin-categories.js";
-
-const CATEGORY_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 
 /**
  * Lists categories for admin management.
@@ -70,32 +68,21 @@ export async function deleteManagedAdminCategory(id: number) {
 export async function uploadManagedAdminCategoryImage(id: number, file: unknown) {
   const exists = await categoryExists(id);
   if (!exists) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  if (!(file instanceof File)) {
-    return { ok: false as const, reason: "missing_file" as const };
+  const result = await processImageUpload(file, 1200, 675);
+  if (!result.ok) {
+    return result;
   }
 
-  if (file.size > CATEGORY_IMAGE_MAX_BYTES) {
-    return { ok: false as const, reason: "too_large" as const };
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const detectedType = detectImageType(buffer);
-  if (!detectedType) {
-    return { ok: false as const, reason: "invalid_image" as const };
-  }
-
-  const resized = await sharp(buffer).resize(1200, 675, { fit: "cover" }).webp().toBuffer();
-  const imageUrl = `data:image/webp;base64,${resized.toString("base64")}`;
-  const category = await setAdminCategoryImage(id, imageUrl);
+  const category = await setAdminCategoryImage(id, result.dataUrl);
 
   if (!category) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  return { ok: true as const, category };
+  return success({ category });
 }
 
 /**
@@ -107,13 +94,13 @@ export async function uploadManagedAdminCategoryImage(id: number, file: unknown)
 export async function removeManagedAdminCategoryImage(id: number) {
   const exists = await categoryExists(id);
   if (!exists) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   const category = await clearAdminCategoryImage(id);
   if (!category) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  return { ok: true as const, category };
+  return success({ category });
 }

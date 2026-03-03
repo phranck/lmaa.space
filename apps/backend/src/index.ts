@@ -6,13 +6,15 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env.js";
-import { db } from "./db/index.js";
+import { client } from "./db/index.js";
 import { runMigrations } from "./db/run-migrations.js";
-import { categories } from "./db/schema.js";
 import { serveApiDocsUi, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
+import { startCacheCleanupJob } from "./middleware/cache.js";
+import { startRateLimitCleanupJob } from "./middleware/rate-limit.js";
 import { adminRoutes } from "./routes/admin/index.js";
 import { publicRoutes } from "./routes/public.js";
+import { sitemapRoutes } from "./routes/sitemap.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 
 const app = new Hono();
@@ -48,49 +50,7 @@ app.get("/uploads/:filename{[^/]+}", async (c) => {
   }
 });
 
-// Sitemap (proxied via nginx: location = /sitemap.xml { proxy_pass http://backend:3000; })
-app.get("/sitemap.xml", async (c) => {
-  try {
-    const cats = await db
-      .select({ slug: categories.slug, updatedAt: categories.updatedAt })
-      .from(categories)
-      .orderBy(categories.sortOrder);
-
-    const BASE = "https://lmaa.space";
-    const today = new Date().toISOString().split("T")[0];
-
-    const staticUrls = [
-      { loc: `${BASE}/`, changefreq: "daily", priority: "1.0", lastmod: today },
-      { loc: `${BASE}/search`, changefreq: "weekly", priority: "0.5", lastmod: today },
-      { loc: `${BASE}/suggestion`, changefreq: "monthly", priority: "0.4", lastmod: today },
-      { loc: `${BASE}/about`, changefreq: "monthly", priority: "0.3", lastmod: today },
-      { loc: `${BASE}/impressum`, changefreq: "yearly", priority: "0.1", lastmod: today },
-      { loc: `${BASE}/datenschutz`, changefreq: "yearly", priority: "0.1", lastmod: today },
-    ];
-
-    const categoryUrls = cats.map((cat) => ({
-      loc: `${BASE}/category/${cat.slug}`,
-      changefreq: "weekly",
-      priority: "0.8",
-      lastmod: new Date(cat.updatedAt).toISOString().split("T")[0],
-    }));
-
-    const entries = [...staticUrls, ...categoryUrls]
-      .map(
-        (u) =>
-          `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`,
-      )
-      .join("\n");
-
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>`;
-
-    return c.body(xml, 200, { "Content-Type": "application/xml; charset=utf-8" });
-  } catch (err) {
-    console.error("Sitemap generation failed:", err);
-    return c.body("", 500);
-  }
-});
-
+app.route("/", sitemapRoutes);
 app.route("/api/v1", publicRoutes);
 app.route("/api/v1/admin", adminRoutes);
 
@@ -109,14 +69,41 @@ app.onError((err, c) => {
 
 async function startServer() {
   await runMigrations();
-  startSessionCleanupJob();
+
+  const timers = [startSessionCleanupJob(), startRateLimitCleanupJob(), startCacheCleanupJob()];
+
   const port = env.PORT;
+  const server = serve({ fetch: app.fetch, port });
   console.log(`Backend running on port ${port}`);
-  serve({ fetch: app.fetch, port });
+
+  let shuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+
+    console.log(`[shutdown] ${signal} received, shutting down gracefully...`);
+
+    for (const timer of timers) clearInterval(timer);
+
+    server.close(() => {
+      console.log("[shutdown] HTTP server closed");
+    });
+
+    try {
+      await client.end({ timeout: 5 });
+      console.log("[shutdown] Database connections closed");
+    } catch (err) {
+      console.error("[shutdown] Error closing database:", err);
+    }
+
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
 
 startServer().catch((err) => {
   console.error("[fatal] Server startup failed:", err);
   process.exit(1);
 });
-// lmaa.space

@@ -1,7 +1,7 @@
 import type { AdminUser } from "@lmaa/shared";
-import sharp from "sharp";
 import { env } from "../config/env.js";
-import { detectImageType } from "../lib/validate.js";
+import { processImageUpload } from "../lib/image-upload.js";
+import { failure, success } from "../lib/result.js";
 import {
   type AdminUserRow,
   createAdminUser,
@@ -14,8 +14,6 @@ import { getEmailTemplateById } from "../repositories/email-templates.js";
 import { hashPassword } from "./auth.js";
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
-
-const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
 function canModifyAdminUser(adminId: number, isOwner: boolean, targetId: number): boolean {
   return isOwner || adminId === targetId;
@@ -39,7 +37,7 @@ function toAdminUser(row: AdminUserRow): AdminUser {
 /**
  * Input contract for creating an admin/moderator account.
  */
-export interface CreateManagedAdminUserInput {
+interface CreateManagedAdminUserInput {
   username: string;
   email: string;
   password: string;
@@ -50,7 +48,7 @@ export interface CreateManagedAdminUserInput {
 /**
  * Input contract for updating admin/moderator profile/account fields.
  */
-export interface UpdateManagedAdminUserInput {
+interface UpdateManagedAdminUserInput {
   id: number;
   actorAdminId: number;
   actorIsOwner: boolean;
@@ -126,7 +124,7 @@ export async function createManagedAdminUser(
  */
 export async function updateManagedAdminUser(input: UpdateManagedAdminUserInput) {
   if (!canModifyAdminUser(input.actorAdminId, input.actorIsOwner, input.id)) {
-    return { ok: false as const, reason: "forbidden" as const };
+    return failure("forbidden");
   }
 
   const updates: Parameters<typeof updateAdminUser>[1] = {};
@@ -138,21 +136,21 @@ export async function updateManagedAdminUser(input: UpdateManagedAdminUserInput)
 
   if (input.role !== undefined) {
     if (!input.actorIsOwner || input.actorAdminId === input.id) {
-      return { ok: false as const, reason: "forbidden" as const };
+      return failure("forbidden");
     }
     updates.role = input.role;
   }
 
   if (Object.keys(updates).length === 0) {
-    return { ok: false as const, reason: "nothing_to_update" as const };
+    return failure("nothing_to_update");
   }
 
   const updated = await updateAdminUser(input.id, updates);
   if (!updated) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  return { ok: true as const, user: toAdminUser(updated) };
+  return success({ user: toAdminUser(updated) });
 }
 
 /**
@@ -174,37 +172,25 @@ export async function uploadManagedAdminUserAvatar(input: {
   file: unknown;
 }) {
   if (!canModifyAdminUser(input.actorAdminId, input.actorIsOwner, input.id)) {
-    return { ok: false as const, reason: "forbidden" as const };
+    return failure("forbidden");
   }
 
   const user = await getAdminUserById(input.id);
   if (!user) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  if (!(input.file instanceof File)) {
-    return { ok: false as const, reason: "missing_file" as const };
+  const result = await processImageUpload(input.file, 256, 256);
+  if (!result.ok) {
+    return result;
   }
 
-  if (input.file.size > MAX_AVATAR_SIZE_BYTES) {
-    return { ok: false as const, reason: "too_large" as const };
-  }
-
-  const rawBuffer = Buffer.from(await input.file.arrayBuffer());
-  const detectedType = detectImageType(rawBuffer);
-  if (!detectedType) {
-    return { ok: false as const, reason: "invalid_image" as const };
-  }
-
-  const resized = await sharp(rawBuffer).resize(256, 256, { fit: "cover" }).webp().toBuffer();
-  const avatarUrl = `data:image/webp;base64,${resized.toString("base64")}`;
-
-  const updated = await updateAdminUser(input.id, { avatarUrl });
+  const updated = await updateAdminUser(input.id, { avatarUrl: result.dataUrl });
   if (!updated) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  return { ok: true as const, user: toAdminUser(updated) };
+  return success({ user: toAdminUser(updated) });
 }
 
 /**
@@ -220,15 +206,15 @@ export async function setManagedAdminUserGravatar(input: {
   gravatarUrl: string;
 }) {
   if (!canModifyAdminUser(input.actorAdminId, input.actorIsOwner, input.id)) {
-    return { ok: false as const, reason: "forbidden" as const };
+    return failure("forbidden");
   }
 
   const updated = await updateAdminUser(input.id, { avatarUrl: input.gravatarUrl });
   if (!updated) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  return { ok: true as const, user: toAdminUser(updated) };
+  return success({ user: toAdminUser(updated) });
 }
 
 /**
@@ -243,20 +229,20 @@ export async function deleteManagedAdminUserAvatar(input: {
   actorIsOwner: boolean;
 }) {
   if (!canModifyAdminUser(input.actorAdminId, input.actorIsOwner, input.id)) {
-    return { ok: false as const, reason: "forbidden" as const };
+    return failure("forbidden");
   }
 
   const user = await getAdminUserById(input.id);
   if (!user) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
   const updated = await updateAdminUser(input.id, { avatarUrl: null });
   if (!updated) {
-    return { ok: false as const, reason: "not_found" as const };
+    return failure("not_found");
   }
 
-  return { ok: true as const, user: toAdminUser(updated) };
+  return success({ user: toAdminUser(updated) });
 }
 
 /**
@@ -268,11 +254,18 @@ export async function deleteManagedAdminUserAvatar(input: {
  * @remarks
  * Self-deletion is explicitly disallowed to prevent accidental lock-out.
  */
-export async function deleteManagedAdminUser(input: { id: number; actorAdminId: number }) {
+export async function deleteManagedAdminUser(input: {
+  id: number;
+  actorAdminId: number;
+  actorIsOwner: boolean;
+}) {
+  if (!input.actorIsOwner) {
+    return failure("forbidden");
+  }
   if (input.id === input.actorAdminId) {
-    return { ok: false as const, reason: "cannot_delete_self" as const };
+    return failure("cannot_delete_self");
   }
 
   await deleteAdminUserAndSessions(input.id);
-  return { ok: true as const };
+  return success();
 }

@@ -7,7 +7,7 @@ import { sessions } from "../db/schema.js";
  * Delete expired sessions from the database.
  * Runs periodically to prevent session table bloat.
  */
-export async function cleanupExpiredSessions(): Promise<{ purged: number }> {
+async function cleanupExpiredSessions(): Promise<{ purged: number }> {
   const now = new Date();
 
   const result = await db
@@ -22,10 +22,10 @@ export async function cleanupExpiredSessions(): Promise<{ purged: number }> {
  * Start automatic session cleanup job.
  * Runs every 1 hour (configurable via env var).
  */
-export function startSessionCleanupJob(): void {
+export function startSessionCleanupJob(): NodeJS.Timeout {
   const intervalMs = env.SESSION_CLEANUP_INTERVAL_MS;
 
-  setInterval(async () => {
+  const timer = setInterval(async () => {
     try {
       const { purged } = await cleanupExpiredSessions();
       if (purged > 0) {
@@ -37,4 +37,5 @@ export function startSessionCleanupJob(): void {
   }, intervalMs);
 
   console.log(`[SessionCleanup] Job started (interval: ${intervalMs}ms)`);
+  return timer;
 }

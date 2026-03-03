@@ -3,9 +3,7 @@
  * Caches responses for configurable TTL
  */
 
-import type { Context, Next } from "hono";
 import { env } from "../config/env.js";
-import { ok } from "../lib/http.js";
 
 interface CacheEntry<T> {
   data: T;
@@ -15,29 +13,8 @@ interface CacheEntry<T> {
 
 const cache = new Map<string, CacheEntry<unknown>>();
 
-/**
- * Create a cache middleware for a specific route/resource
- * @param options Configuration for caching behavior
- * @returns Hono middleware function
- */
-export function createCacheMiddleware<T>(options: {
-  ttlMs: number;
-  key: (c: Context) => string;
-}) {
-  return async (c: Context, next: Next) => {
-    const cacheKey = options.key(c);
-    const cached = cache.get(cacheKey);
-
-    // Check if cached entry is still valid
-    if (cached && Date.now() - cached.cachedAt < cached.ttlMs) {
-      c.header("X-Cache", "HIT");
-      return ok(c, cached.data as T);
-    }
-
-    // Proceed to next middleware
-    await next();
-  };
-}
+/** Shared cache key for the public shops listing. */
+export const SHOPS_CACHE_KEY = "shops:all";
 
 /**
  * Cache a response in memory
@@ -90,16 +67,15 @@ export function getCacheStats() {
   };
 }
 
-// Start periodic cleanup of expired cache entries (every 10 minutes)
-if (typeof global !== "undefined") {
-  const cleanupIntervalMs = env.CACHE_CLEANUP_INTERVAL_MS;
+/** Starts periodic cleanup of expired cache entries. Returns the timer for shutdown. */
+export function startCacheCleanupJob(): NodeJS.Timeout {
+  const intervalMs = env.CACHE_CLEANUP_INTERVAL_MS;
 
-  setInterval(() => {
+  const timer = setInterval(() => {
     const now = Date.now();
     let purged = 0;
 
     for (const [key, entry] of cache.entries()) {
-      // Keep entries for 2x their TTL to avoid aggressive cleanup
       if (now - entry.cachedAt > entry.ttlMs * 2) {
         cache.delete(key);
         purged++;
@@ -109,5 +85,8 @@ if (typeof global !== "undefined") {
     if (purged > 0) {
       console.log(`[Cache] Purged ${purged} expired entries`);
     }
-  }, cleanupIntervalMs);
+  }, intervalMs);
+
+  console.log(`[Cache] Cleanup job started (interval: ${intervalMs}ms)`);
+  return timer;
 }
