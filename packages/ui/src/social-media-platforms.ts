@@ -1,10 +1,11 @@
 import type { ComponentType } from "react";
-import { FaTwitter } from "react-icons/fa6";
+import { FaFacebook, FaTwitter } from "react-icons/fa6";
 import {
   SiBluesky,
   SiInstagram,
   SiLinkedin,
   SiMastodon,
+  SiThreads,
   SiTiktok,
   SiTwitch,
   SiYoutube,
@@ -20,6 +21,8 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "mastodon", label: "Mastodon", icon: SiMastodon },
   { key: "bluesky", label: "Bluesky", icon: SiBluesky },
   { key: "instagram", label: "Instagram", icon: SiInstagram },
+  { key: "facebook", label: "Facebook", icon: FaFacebook },
+  { key: "threads", label: "Threads", icon: SiThreads },
   { key: "tiktok", label: "TikTok", icon: SiTiktok },
   { key: "x", label: "Twitter", icon: FaTwitter },
   { key: "youtube", label: "YouTube", icon: SiYoutube },

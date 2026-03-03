@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const SOCIAL_PLATFORM_KEYS = [
   "instagram",
+  "facebook",
+  "threads",
   "tiktok",
   "youtube",
   "twitch",
@@ -209,8 +211,46 @@ function normalizeLinkedin(input: string): string | null {
   return `https://linkedin.com/in/${handle}`;
 }
 
+function normalizeFacebook(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "facebook.com" && host !== "fb.com") return null;
+    const user = extractPathUser(url);
+    if (!user) return null;
+    return `https://facebook.com/${user}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://facebook.com/${handle}`;
+}
+
+function normalizeThreads(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "threads.net") return null;
+    const user = stripLeadingAt(extractPathUser(url));
+    if (!user) return null;
+    return `https://threads.net/@${user}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://threads.net/@${handle}`;
+}
+
 const normalizers: Record<SocialPlatformKey, (input: string) => string | null> = {
   instagram: normalizeInstagram,
+  facebook: normalizeFacebook,
+  threads: normalizeThreads,
   tiktok: normalizeTiktok,
   youtube: normalizeYoutube,
   twitch: normalizeTwitch,
