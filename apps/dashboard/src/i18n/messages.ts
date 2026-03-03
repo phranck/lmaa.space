@@ -279,6 +279,7 @@ export interface DashboardMessages {
       info: string;
       infoTitle: string;
       noReason: string;
+      setToOpen: string;
       rejectionLongLabel: string;
       rejectionLongPlaceholder: string;
     };
@@ -898,9 +899,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         decline: "Ablehnen",
         doneOrDecline: "Erledigt / Ablehnen",
         restore: "Wiederherstellen",
-        info: "Info",
+        info: "Ablehnungs-Info",
         infoTitle: "Ablehnungsgrund",
         noReason: "Kein Ablehnungsgrund hinterlegt.",
+        setToOpen: "Auf Neu setzen",
         rejectionLongLabel: "Langbegründung (öffentliche Seite)",
         rejectionLongPlaceholder: "Ausführliche Begründung für die Ablehnungsseite…",
       },
@@ -1516,9 +1518,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         decline: "Reject",
         doneOrDecline: "Done / Reject",
         restore: "Restore",
-        info: "Info",
+        info: "Rejection info",
         infoTitle: "Rejection reason",
         noReason: "No rejection reason provided.",
+        setToOpen: "Set to new",
         rejectionLongLabel: "Long reason (public page)",
         rejectionLongPlaceholder: "Detailed reason for the rejection page…",
       },

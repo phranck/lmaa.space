@@ -23,6 +23,7 @@ export interface Submission {
   status: SubmissionStatus;
   adminNote: string | null;
   rejectionLongText: string | null;
+  rejectionToken: string | null;
   feedbackSent: boolean;
   reviewedBy: number | null;
   reviewedAt: string | null;
