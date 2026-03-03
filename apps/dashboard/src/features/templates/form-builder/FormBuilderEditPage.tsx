@@ -1,4 +1,5 @@
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
@@ -32,7 +33,6 @@ import type {
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
-  SFArrowDownCircle,
   SFCheckmarkCircleFill,
   SFCircle,
   SFHandTap,
@@ -528,17 +528,7 @@ export function FormBuilderEditPage() {
         </DndContext>
       </div>
 
-      {/* Arrow connector: Form Builder → Übermittlung */}
-      <div className="relative flex justify-center h-14 -my-px">
-        <div
-          className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
-          style={{
-            background:
-              "linear-gradient(to bottom, var(--ds-border), var(--ds-color-neutral-400) 32%, var(--ds-color-neutral-400) 68%, var(--ds-border))",
-          }}
-        />
-        <SFArrowDownCircle className="relative z-10 w-5 h-5 my-auto text-[var(--ds-color-neutral-400)] bg-[var(--ds-bg)] rounded-full" />
-      </div>
+      <FlowConnector />
 
       <SubmissionConfigPanel
         config={submissionConfig}

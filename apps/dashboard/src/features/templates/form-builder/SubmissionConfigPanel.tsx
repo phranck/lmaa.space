@@ -1,3 +1,4 @@
+import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -22,9 +23,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
 import {
-  SFArrowDownCircle,
   SFArrowRight,
-  SFArrowRightCircle,
   SFCheckmark,
   SFEnvelope,
   SFPlusCircleFill,
@@ -403,18 +402,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                         fields={fields}
                         templates={templates ?? []}
                       />
-                      {i < cfg.steps.length - 1 && (
-                        <div className="relative flex items-center self-stretch w-14 -mx-px">
-                          <div
-                            className="absolute inset-x-0 top-1/2 h-px"
-                            style={{
-                              background:
-                                "linear-gradient(to right, var(--ds-border), var(--ds-color-neutral-400) 32%, var(--ds-color-neutral-400) 68%, var(--ds-border))",
-                            }}
-                          />
-                          <SFArrowRightCircle className="relative z-10 w-5 h-5 mx-auto text-[var(--ds-color-neutral-400)] bg-[var(--ds-surface)] rounded-full" />
-                        </div>
-                      )}
+                      {i < cfg.steps.length - 1 && <FlowConnector direction="horizontal" />}
                     </div>
                   ))}
                 </div>
@@ -437,17 +425,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
         </div>
       </div>
 
-      {/* Arrow connector: line behind icon */}
-      <div className="relative flex justify-center h-14 -my-px">
-        <div
-          className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
-          style={{
-            background:
-              "linear-gradient(to bottom, var(--ds-border), var(--ds-color-neutral-400) 32%, var(--ds-color-neutral-400) 68%, var(--ds-border))",
-          }}
-        />
-        <SFArrowDownCircle className="relative z-10 w-5 h-5 my-auto text-[var(--ds-color-neutral-400)] bg-[var(--ds-bg)] rounded-full" />
-      </div>
+      <FlowConnector />
 
       {/* ── Nach dem Absenden card ── */}
       <div className={`${cardClass} pb-4`}>
