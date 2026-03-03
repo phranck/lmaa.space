@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
+import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { BUTTON_ICON_LIST } from "@/features/templates/form-builder/buttonIconMap.tsx";
@@ -82,22 +83,14 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
         <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
           {label}
         </span>
-        <div className="flex gap-0.5 p-0.5 bg-[var(--ds-surface-alt)] rounded border border-[var(--ds-border)]">
-          {(["outline", "filled"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => switchVariant(v)}
-              className={`px-2 h-6 rounded text-xs font-medium transition-colors ${
-                variant === v
-                  ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                  : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
-              }`}
-            >
-              {v === "outline" ? mp.iconPickerVariantOutline : mp.iconPickerVariantFilled}
-            </button>
-          ))}
-        </div>
+        <SegmentSwitch
+          value={variant}
+          onChange={switchVariant}
+          options={[
+            { value: "outline" as const, label: mp.iconPickerVariantOutline },
+            { value: "filled" as const, label: mp.iconPickerVariantFilled },
+          ]}
+        />
       </div>
       <input
         type="search"

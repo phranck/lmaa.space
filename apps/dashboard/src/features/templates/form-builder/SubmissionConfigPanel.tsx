@@ -1,4 +1,5 @@
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
+import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import {
@@ -120,40 +121,24 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
         <>
           <div>
             <span className="block text-xs text-[var(--ds-text-muted)] mb-1">{m.emailTo}</span>
-            {/* Mode toggle — reuses segmented-control pattern from FieldConfigPanel */}
-            <div className="flex gap-0.5 p-0.5 mb-1.5 bg-[var(--ds-surface-alt)] rounded border border-[var(--ds-border)] w-fit">
-              {(
-                [
-                  ["", m.emailToStatic],
-                  ["field", m.emailToFromField],
-                ] as const
-              ).map(([val, label]) => {
-                const active =
-                  val === "field"
-                    ? !!(step as SubmissionStepEmail).toFieldId
-                    : !(step as SubmissionStepEmail).toFieldId;
-                return (
-                  <button
-                    key={val || "static"}
-                    type="button"
-                    disabled={val === "field" && fields.length === 0}
-                    onClick={() =>
-                      onUpdate({
-                        ...step,
-                        toFieldId: val === "field" ? (fields[0]?.id ?? "") : undefined,
-                      } as SubmissionStepEmail)
-                    }
-                    className={`px-2 h-6 rounded text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                      active
-                        ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                        : "text-[var(--ds-color-neutral-400)] hover:text-[var(--ds-text)]"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+            <SegmentSwitch
+              className="mb-1.5"
+              value={(step as SubmissionStepEmail).toFieldId ? "field" : "static"}
+              onChange={(val) =>
+                onUpdate({
+                  ...step,
+                  toFieldId: val === "field" ? (fields[0]?.id ?? "") : undefined,
+                } as SubmissionStepEmail)
+              }
+              options={[
+                { value: "static" as const, label: m.emailToStatic },
+                {
+                  value: "field" as const,
+                  label: m.emailToFromField,
+                  disabled: fields.length === 0,
+                },
+              ]}
+            />
             {(step as SubmissionStepEmail).toFieldId ? (
               <select
                 id={`step-${index}-email-to-field`}
@@ -338,7 +323,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
   }
 
   const sectionClass = "px-6 pb-6";
-  const cardClass = "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card p-5";
+  const cardClass = "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card p-6";
   const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5";
   const inputClass =
     "w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]";
@@ -466,55 +451,45 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
       </div>
 
       {/* ── Nach dem Absenden card ── */}
-      <div className={cardClass}>
+      <div className={`${cardClass} pb-4`}>
         <div>
-          <span className={labelClass}>{m.successBehaviourLabel}</span>
-          <div className="flex gap-0.5 p-0.5 mb-3 bg-[var(--ds-surface-alt)] rounded border border-[var(--ds-border)] w-fit">
-            {(
-              [
-                ["message", m.successMessage, SFCheckmark],
-                ["redirect", m.successRedirect, SFArrowRight],
-              ] as const
-            ).map(([mode, label, Icon]) => {
-              const active =
-                mode === "redirect"
-                  ? cfg.successRedirectUrl !== undefined
-                  : cfg.successRedirectUrl === undefined;
-              return (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => {
-                    if (mode === "redirect") {
-                      const next = {
-                        ...cfg,
-                        successRedirectUrl: cfg.successRedirectUrl ?? "",
-                        successHeadline: undefined,
-                        successMessage: undefined,
-                      };
-                      onChange(
-                        next.steps.length === 0 && !next.successRedirectUrl ? undefined : next,
-                      );
-                    } else {
-                      const next = {
-                        ...cfg,
-                        successMessage: cfg.successMessage ?? "",
-                        successRedirectUrl: undefined,
-                      };
-                      onChange(next.steps.length === 0 && !next.successMessage ? undefined : next);
-                    }
-                  }}
-                  className={`inline-flex items-center gap-1 px-2 h-6 rounded text-xs font-medium transition-colors ${
-                    active
-                      ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                      : "text-[var(--ds-color-neutral-400)] hover:text-[var(--ds-text)]"
-                  }`}
-                >
-                  <Icon width={13} height={13} aria-hidden />
-                  {label}
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
+              {m.successBehaviourLabel}
+            </h3>
+            <SegmentSwitch
+              value={cfg.successRedirectUrl !== undefined ? "redirect" : "message"}
+              onChange={(mode) => {
+                if (mode === "redirect") {
+                  const next = {
+                    ...cfg,
+                    successRedirectUrl: cfg.successRedirectUrl ?? "",
+                    successHeadline: undefined,
+                    successMessage: undefined,
+                  };
+                  onChange(next.steps.length === 0 && !next.successRedirectUrl ? undefined : next);
+                } else {
+                  const next = {
+                    ...cfg,
+                    successMessage: cfg.successMessage ?? "",
+                    successRedirectUrl: undefined,
+                  };
+                  onChange(next.steps.length === 0 && !next.successMessage ? undefined : next);
+                }
+              }}
+              options={[
+                {
+                  value: "message" as const,
+                  label: m.successMessage,
+                  icon: <SFCheckmark width={13} height={13} aria-hidden />,
+                },
+                {
+                  value: "redirect" as const,
+                  label: m.successRedirect,
+                  icon: <SFArrowRight width={13} height={13} aria-hidden />,
+                },
+              ]}
+            />
           </div>
 
           {cfg.successRedirectUrl !== undefined ? (
