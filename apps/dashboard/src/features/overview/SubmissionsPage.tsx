@@ -36,6 +36,7 @@ import {
   SFCheckmark,
   SFCheckmarkCircleFill,
   SFClockFill,
+  SFDocumentOnDocumentFill,
   SFInfoCircleFill,
   SFLink,
   SFLongTextPageAndPencilFill,
@@ -114,7 +115,6 @@ function SuggestionsTab() {
   const [sendFeedback, setSendFeedback] = useState(false);
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
   const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
-  const [infoSubmission, setInfoSubmission] = useState<Submission | null>(null);
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
   const { data: categories = [] } = useAdminCategories();
@@ -383,22 +383,35 @@ function SuggestionsTab() {
             )}
             {filter === "rejected" && (
               <div className="flex flex-row items-end gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setEditSubmission(sub)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.edit}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setInfoSubmission(sub)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFInfoCircleFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.info}
-                </button>
+                {sub.rejectionToken ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.open(`https://lmaa.space/rejected/${sub.rejectionToken}`, "_blank")
+                    }
+                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  >
+                    <SFInfoCircleFill className="w-3.5 h-3.5" />
+                    {submissionsMessages.suggestions.info}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      reviewMutation.mutate({
+                        id: sub.id,
+                        status: "pending",
+                        adminNote: "",
+                        sendFeedback: false,
+                      })
+                    }
+                    disabled={reviewMutation.isPending}
+                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
+                  >
+                    <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+                    {submissionsMessages.suggestions.setToOpen}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setDeleteSubmissionId(sub.id)}
@@ -442,6 +455,17 @@ function SuggestionsTab() {
                   : submissionsMessages.suggestions.reviewRejectTitle}
               </h3>
               <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <p className="text-xs text-[var(--ds-text-subtle)] truncate">{reviewing.shopUrl}</p>
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(reviewing.shopUrl)}
+                  className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
+                  aria-label="Copy URL"
+                >
+                  <SFDocumentOnDocumentFill className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="px-6 py-3 flex flex-col gap-3">
@@ -591,33 +615,6 @@ function SuggestionsTab() {
             className={dialogBtnDestructive}
           >
             {deleteSubmissionMutation.isPending ? "…" : common.delete}
-          </button>
-        </Dialog.Footer>
-      </Dialog>
-
-      <Dialog
-        open={infoSubmission !== null}
-        title={submissionsMessages.suggestions.infoTitle}
-        onClose={() => setInfoSubmission(null)}
-      >
-        <div className="px-6 py-3">
-          {infoSubmission?.adminNote ? (
-            <p className="text-sm text-[var(--ds-text)] whitespace-pre-wrap">
-              {infoSubmission.adminNote}
-            </p>
-          ) : (
-            <p className="text-sm text-[var(--ds-text-muted)] italic">
-              {submissionsMessages.suggestions.noReason}
-            </p>
-          )}
-        </div>
-        <Dialog.Footer>
-          <button
-            type="button"
-            onClick={() => setInfoSubmission(null)}
-            className={dialogBtnSecondary}
-          >
-            {common.close}
           </button>
         </Dialog.Footer>
       </Dialog>
