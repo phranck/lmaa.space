@@ -8,6 +8,10 @@
   --amazon-color: #ffb900;
 }
 
+*:focus {
+  outline: none;
+}
+
 a,
 a:hover {
   text-decoration: none;

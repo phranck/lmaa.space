@@ -27,6 +27,9 @@ export type {
 export { SocialMediaEditor } from "./SocialMediaEditor.tsx";
 /** Re-exported contracts for `SocialMediaEditor`. */
 export type { SocialMediaEditorMessages, SocialMediaEditorProps } from "./SocialMediaEditor.tsx";
+/** Read-only social media icon links (server-renderable). */
+export { SocialMediaIcons } from "./SocialMediaIcons.tsx";
+export type { SocialMediaIconsProps } from "./SocialMediaIcons.tsx";
 /** Shared shop edit form and value contracts. */
 export { ShopEditForm, EMPTY_SHOP_FORM_VALUE } from "./ShopEditForm.tsx";
 /** Re-exported contracts for `ShopEditForm`. */
