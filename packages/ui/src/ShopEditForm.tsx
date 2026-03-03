@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LuExternalLink } from "react-icons/lu";
+import { SFArrowUpRight } from "sf-symbols-lib/monochrome";
 import { MarkdownTextarea } from "./MarkdownTextarea.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
 import {
@@ -139,6 +139,7 @@ export function ShopEditForm({
             target="_blank"
             rel="noopener noreferrer"
             aria-label={messages.openUrlAriaLabel}
+            title={messages.openUrlAriaLabel}
             tabIndex={value.url ? 0 : -1}
             className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
               value.url
@@ -146,7 +147,7 @@ export function ShopEditForm({
                 : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
             }`}
           >
-            <LuExternalLink size={14} />
+            <SFArrowUpRight className="w-3 h-3" />
           </a>
         </div>
         {errors?.url && <p className="text-red-500 text-xs mt-1">{errors.url}</p>}

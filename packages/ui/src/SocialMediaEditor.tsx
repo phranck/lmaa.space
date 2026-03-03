@@ -1,7 +1,7 @@
 import { normalizeSocialMediaValue } from "@lmaa/shared";
 import { type ComponentType, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LuGlobe, LuMinus, LuPlus } from "react-icons/lu";
+import { FaTwitter } from "react-icons/fa6";
 import {
   SiBluesky,
   SiInstagram,
@@ -9,9 +9,9 @@ import {
   SiMastodon,
   SiTiktok,
   SiTwitch,
-  SiX,
   SiYoutube,
 } from "react-icons/si";
+import { SFGlobe, SFMinus, SFPlus } from "sf-symbols-lib/monochrome";
 
 interface PlatformDef {
   key: string;
@@ -20,13 +20,13 @@ interface PlatformDef {
 }
 
 const PLATFORMS: PlatformDef[] = [
+  { key: "mastodon", label: "Mastodon", icon: SiMastodon },
+  { key: "bluesky", label: "Bluesky", icon: SiBluesky },
   { key: "instagram", label: "Instagram", icon: SiInstagram },
   { key: "tiktok", label: "TikTok", icon: SiTiktok },
+  { key: "x", label: "Twitter", icon: FaTwitter },
   { key: "youtube", label: "YouTube", icon: SiYoutube },
   { key: "twitch", label: "Twitch", icon: SiTwitch },
-  { key: "x", label: "X", icon: SiX },
-  { key: "bluesky", label: "Bluesky", icon: SiBluesky },
-  { key: "mastodon", label: "Mastodon", icon: SiMastodon },
   { key: "linkedin", label: "LinkedIn", icon: SiLinkedin },
 ];
 
@@ -202,8 +202,8 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
                     onClick={() => selectPlatform(openDropdownId, p.key)}
                     className={`flex items-center gap-2.5 w-full px-3 py-1.5 text-sm transition-colors ${
                       isSelected
-                        ? "text-[var(--ds-text)] bg-[var(--ds-bg-elevated)]"
-                        : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
+                        ? "text-[var(--ds-text)] bg-black/5 dark:bg-white/8"
+                        : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-black/5 dark:hover:bg-white/8"
                     }`}
                   >
                     <p.icon size={14} />
@@ -221,7 +221,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
     <div className="flex flex-col gap-2">
       {entries.map((entry) => {
         const def = PLATFORM_MAP.get(entry.platform);
-        const Icon = def?.icon ?? LuGlobe;
+        const Icon = def?.icon ?? SFGlobe;
 
         return (
           <div key={entry.id} className="flex gap-2">
@@ -257,7 +257,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
               aria-label={messages.removeAriaLabel}
               className={`${btnClass} text-[var(--ds-text-muted)] hover:border-red-400 hover:text-red-500`}
             >
-              <LuMinus size={14} />
+              <SFMinus className="w-3.5 h-3.5" />
             </button>
 
             {/* Add entry */}
@@ -267,7 +267,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
               aria-label={messages.addAriaLabel}
               className={`${btnClass} text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]`}
             >
-              <LuPlus size={14} />
+              <SFPlus className="w-3.5 h-3.5" />
             </button>
           </div>
         );
@@ -279,7 +279,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
           onClick={addEntry}
           className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors self-start"
         >
-          <LuPlus size={12} />
+          <SFPlus className="w-3 h-3" />
           {messages.addAriaLabel}
         </button>
       )}
