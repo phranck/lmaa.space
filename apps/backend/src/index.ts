@@ -91,8 +91,8 @@ app.get("/sitemap.xml", async (c) => {
   }
 });
 
-app.route("/api", publicRoutes);
-app.route("/api/admin", adminRoutes);
+app.route("/api/v1", publicRoutes);
+app.route("/api/v1/admin", adminRoutes);
 
 app.get("/", serveApiDocsUi);
 app.get("/docs", serveApiDocsUi);

@@ -4,7 +4,7 @@ server {
     server_name _;
     root {{.DocumentRoot}};
 
-    location /api/ {
+    location /api/v1/ {
         proxy_pass http://backend:3000;
         proxy_request_buffering off;
     }

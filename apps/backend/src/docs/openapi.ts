@@ -11,8 +11,7 @@ function getOpenApiServers() {
 
   if (env.NODE_ENV === "production") {
     return [
-      { url: "https://api.lmaa.space", description: "Production API" },
-      { url: "https://backend.lmaa.space", description: "Backend service domain" },
+      { url: "https://lmaa.space", description: "Production (same-origin proxy)" },
       localServer,
     ];
   }
@@ -65,7 +64,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/categories": {
+    "/api/v1/categories": {
       get: {
         tags: ["Public"],
         summary: "List categories",
@@ -84,7 +83,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/categories/{slug}": {
+    "/api/v1/categories/{slug}": {
       get: {
         tags: ["Public"],
         summary: "Get category details",
@@ -118,7 +117,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/stats": {
+    "/api/v1/stats": {
       get: {
         tags: ["Public"],
         summary: "Get public counters",
@@ -135,7 +134,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/shops": {
+    "/api/v1/shops": {
       get: {
         tags: ["Public"],
         summary: "List all public shops",
@@ -152,7 +151,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/search": {
+    "/api/v1/search": {
       get: {
         tags: ["Public"],
         summary: "Search shops and categories",
@@ -178,7 +177,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/check-url": {
+    "/api/v1/check-url": {
       get: {
         tags: ["Public"],
         summary: "Check if a shop URL already exists",
@@ -204,7 +203,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/submissions": {
+    "/api/v1/submissions": {
       post: {
         tags: ["Public"],
         summary: "Create a new shop submission",
@@ -241,7 +240,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/nav/{navId}": {
+    "/api/v1/nav/{navId}": {
       get: {
         tags: ["Public"],
         summary: "List public navigation items",
@@ -272,7 +271,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/content": {
+    "/api/v1/content": {
       get: {
         tags: ["Public"],
         summary: "List published content pages",
@@ -289,7 +288,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/content/{slug}": {
+    "/api/v1/content/{slug}": {
       get: {
         tags: ["Public"],
         summary: "Get one published content page",
@@ -320,7 +319,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/shops/{id}/report": {
+    "/api/v1/shops/{id}/report": {
       post: {
         tags: ["Public"],
         summary: "Report a dead shop link",
@@ -350,7 +349,7 @@ export const OPEN_API_DOCUMENT = {
         },
       },
     },
-    "/api/shops/{id}/concern": {
+    "/api/v1/shops/{id}/concern": {
       post: {
         tags: ["Public"],
         summary: "Submit a moderation concern for a shop",

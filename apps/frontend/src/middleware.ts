@@ -1,16 +1,18 @@
 /**
- * Astro middleware for the single remaining backend passthrough endpoint.
+ * Astro middleware that proxies backend routes through the website origin.
  *
- * We intentionally do NOT proxy `/api/*` or `/uploads/*` here anymore.
- * Browser API calls must target `api.lmaa.space` directly.
+ * Proxied prefixes:
+ *   /api/v1/*  – versioned API (same-origin, avoids CORS)
+ *   /uploads/* – uploaded category images
+ *   /sitemap.xml – generated sitemap
  */
 import { defineMiddleware } from "astro:middleware";
 
-const DEV_DEFAULT_API_URL = "http://localhost:3000/api";
+const DEV_DEFAULT_API_URL = "http://localhost:3000/api/v1";
 
 function normalizeApiBase(input: string): string {
   const trimmed = input.trim().replace(/\/+$/, "");
-  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+  return trimmed.endsWith("/api/v1") ? trimmed : `${trimmed}/api/v1`;
 }
 
 function isLoopbackHost(hostname: string): boolean {
@@ -39,23 +41,41 @@ function resolveBackendOrigin(): string {
 
 const BACKEND_ORIGIN = resolveBackendOrigin();
 
+function shouldProxy(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api/v1/") ||
+    pathname === "/api/v1" ||
+    pathname.startsWith("/uploads/") ||
+    pathname === "/sitemap.xml"
+  );
+}
+
 /**
- * Astro request middleware that proxies only `/sitemap.xml` to backend.
+ * Astro request middleware that proxies API, uploads and sitemap to backend.
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
-  if (pathname !== "/sitemap.xml") {
+  if (!shouldProxy(pathname)) {
     return next();
   }
 
   const target = new URL(`${pathname}${context.url.search}`, BACKEND_ORIGIN);
   if (target.origin === context.url.origin) {
-    return new Response("Sitemap proxy misconfigured (self-referential target).", { status: 503 });
+    return new Response("Proxy misconfigured (self-referential target).", { status: 503 });
   }
 
+  const headers = new Headers(context.request.headers);
+  headers.delete("host");
+
   try {
-    const res = await fetch(target);
+    const res = await fetch(target, {
+      method: context.request.method,
+      headers,
+      body: context.request.body,
+      // @ts-expect-error -- Node fetch supports duplex for streaming request bodies
+      duplex: "half",
+    });
     return new Response(res.body, {
       status: res.status,
       statusText: res.statusText,

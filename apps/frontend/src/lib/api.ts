@@ -1,14 +1,14 @@
 /**
  * Server-side API client for Astro frontmatter/SSR only.
- * Runtime browser calls use PUBLIC_API_URL (api.lmaa.space) directly.
+ * Runtime browser calls use PUBLIC_API_URL (/api/v1 via same-origin proxy).
  */
-const DEV_DEFAULT_API_URL = "http://localhost:3000/api";
+const DEV_DEFAULT_API_URL = "http://localhost:3000/api/v1";
 const PROD_FETCH_TIMEOUT_MS = 8_000;
 const DEV_FETCH_TIMEOUT_MS = 5_000;
 
 function normalizeApiBase(input: string): string {
   const trimmed = input.trim().replace(/\/+$/, "");
-  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+  return trimmed.endsWith("/api/v1") ? trimmed : `${trimmed}/api/v1`;
 }
 
 function resolveApiBase(): string {
@@ -26,20 +26,18 @@ function resolveApiBase(): string {
 }
 
 const API_BASE = resolveApiBase();
-const BACKEND_ORIGIN = API_BASE.slice(0, -4);
 
 /**
  * Resolves backend-hosted upload URLs for frontend rendering.
  *
- * Hidden behavior: relative `/uploads/*` paths are rewritten to the configured
- * backend origin while absolute URLs stay unchanged.
+ * Relative `/uploads/*` paths stay relative (served via same-origin proxy).
+ * Absolute URLs stay unchanged.
  *
  * @param url - Raw image URL from API responses.
- * @returns Absolute image URL or `null` when input is empty.
+ * @returns Image URL or `null` when input is empty.
  */
 export function resolveImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
-  if (url.startsWith("/uploads/")) return `${BACKEND_ORIGIN}${url}`;
   return url;
 }
 

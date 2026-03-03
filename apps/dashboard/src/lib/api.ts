@@ -1,6 +1,6 @@
 import { createApiRequestError } from "@lmaa/shared";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
+const API_BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
 
 /**
  * Normalizes API responses and throws typed request errors on failure.
