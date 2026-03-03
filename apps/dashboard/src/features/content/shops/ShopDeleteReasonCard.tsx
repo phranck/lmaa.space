@@ -52,7 +52,7 @@ export function ShopDeleteReasonCard({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-[var(--ds-surface)] rounded-2xl shadow-xl w-full max-w-lg border border-[var(--ds-border)] overflow-hidden overlay-card-enter">
-        <div className="px-6 py-5 border-b border-[var(--ds-border)]">
+        <div className="px-6 py-5 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border)]">
           <h2 className="text-base font-semibold text-[var(--ds-text)]">
             {shopsMessages.deleteCard.title}
           </h2>
@@ -115,7 +115,7 @@ export function ShopDeleteReasonCard({
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-[var(--ds-border)] flex justify-end gap-2">
+        <div className="px-6 py-4 bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border)] flex justify-end gap-2">
           <button
             type="button"
             onClick={onCancel}

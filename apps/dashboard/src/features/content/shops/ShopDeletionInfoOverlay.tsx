@@ -178,7 +178,7 @@ export function ShopDeletionInfoOverlay({
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3 border-t border-[var(--ds-border)] flex items-center justify-between gap-4">
+          <div className="px-5 py-3 bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border)] flex items-center justify-between gap-4">
             {shop.deletedWasReported ? (
               <span className="flex items-center gap-1.5 text-xs text-red-400">
                 <SFTrashFill className="w-3 h-3 shrink-0" />

@@ -80,7 +80,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
         className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-md overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-[var(--ds-border-subtle)]">
+        <div className="flex items-center gap-3 px-6 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
           <SFPersonBadgePlus className="w-5 h-5 text-[var(--ds-text-muted)]" />
           <h2 className="font-semibold text-[var(--ds-text)]">{usersMessages.createCard.title}</h2>
         </div>
@@ -194,7 +194,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-[var(--ds-border-subtle)]">
+        <div className="flex justify-end gap-2 px-6 py-4 bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border-subtle)]">
           <button
             type="button"
             onClick={close}
