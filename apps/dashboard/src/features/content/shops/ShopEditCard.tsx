@@ -109,7 +109,7 @@ export function ShopEditCard({
         className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-lg overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
-        <div className="flex items-center px-5 py-4 border-b border-[var(--ds-border-subtle)]">
+        <div className="flex items-center px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
           <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
         </div>
 
@@ -189,7 +189,7 @@ export function ShopEditCard({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-[var(--ds-border-subtle)]">
+        <div className="flex justify-end gap-2 px-5 py-4 bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border-subtle)]">
           <button
             type="button"
             onClick={() => setClosing(true)}

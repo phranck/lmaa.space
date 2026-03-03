@@ -66,6 +66,7 @@
   --ds-bg-elevated: #eff1f3; /* neutral-muted chip/badge bg (rgba(175,184,193,.2) on #fff) */
   --ds-surface: #ffffff; /* bgColor-default / canvas-default */
   --ds-surface-alt: #f6f8fa; /* bgColor-muted */
+  --ds-surface-inset: #f6f8fa; /* dialog header/footer bg */
   --ds-input-bg: #ffffff; /* bgColor-default */
 
   /* Borders */
@@ -144,6 +145,7 @@
   --ds-bg-elevated: #2a313c; /* bgColor-overlay / control-bgColor */
   --ds-surface: #262c36; /* card-bgColor */
   --ds-surface-alt: #151b23; /* bgColor-inset / dashboard-bgColor */
+  --ds-surface-inset: #1b2129; /* dialog header/footer bg */
   --ds-input-bg: #2a313c; /* control-bgColor-rest */
 
   /* Borders — borderColor-default #3d444d · muted rgba · emphasis #656c76 */

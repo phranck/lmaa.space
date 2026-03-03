@@ -16,7 +16,7 @@ interface DialogFooterProps {
 function DialogFooter({ children, className }: DialogFooterProps) {
   return (
     <div
-      className={`border-t border-[var(--ds-border)] px-6 py-4 ${className ?? "flex justify-end gap-3"}`}
+      className={`bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border)] px-6 py-4 ${className ?? "flex justify-end gap-3"}`}
     >
       {children}
     </div>
@@ -57,7 +57,7 @@ export function Dialog({ open, title, onClose, children, maxWidth = "sm" }: Dial
       <div
         className={`relative bg-[var(--ds-surface)] rounded-2xl shadow-xl ${maxWidthClass} w-full overlay-card-enter`}
       >
-        <div className="px-6 pt-6 pb-3">
+        <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3">
           <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
         </div>
         {children}
