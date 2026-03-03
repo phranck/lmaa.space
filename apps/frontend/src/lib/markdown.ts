@@ -1,4 +1,5 @@
 import { Marked } from "marked";
+import markedFootnote from "marked-footnote";
 
 /**
  * Renders Markdown to HTML with raw HTML blocks stripped.
@@ -18,7 +19,7 @@ const markedSafe = new Marked({
       return `<a href="${href}"${titleAttr} rel="noopener noreferrer" target="_blank">${text}</a>`;
     },
   },
-});
+}).use(markedFootnote());
 
 /**
  * Renders Markdown into sanitized HTML.
