@@ -294,7 +294,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 type="button"
                 onClick={() => saveMutation.mutate({ form, image }, { onSuccess: onSaved })}
                 disabled={!canSave}
-                className="h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-40"
+                className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
               >
                 {saveMutation.isPending ? common.saving : common.save}
               </button>

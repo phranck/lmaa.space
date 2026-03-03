@@ -73,10 +73,10 @@ Dialog.Footer = DialogFooter;
 // ---------------------------------------------------------------------------
 
 export const dialogBtnPrimary =
-  "h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-white rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] transition-colors disabled:opacity-60";
+  "h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60";
 
 export const dialogBtnSecondary =
   "h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors";
 
 export const dialogBtnDestructive =
-  "h-9 px-4 bg-red-500 text-white rounded-control text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-60";
+  "h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-60";

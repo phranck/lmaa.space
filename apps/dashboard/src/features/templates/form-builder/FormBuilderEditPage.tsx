@@ -32,6 +32,7 @@ import type {
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import {
+  SFArrowDownCircle,
   SFCheckmarkCircleFill,
   SFCircle,
   SFHandTap,
@@ -385,7 +386,7 @@ export function FormBuilderEditPage() {
             type="button"
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className="flex items-center gap-2 h-9 px-4 bg-[var(--ds-btn-primary-bg)] text-[var(--ds-btn-primary-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-primary-hover)] disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
           >
             <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
             {saveMutation.isPending ? messages.common.saving : m.save}
@@ -401,7 +402,7 @@ export function FormBuilderEditPage() {
         >
           {m.backToList}
         </Link>
-        <span className="text-[var(--ds-border)]">·</span>
+        <span className="text-[var(--ds-color-neutral-400)]">·</span>
         <label htmlFor="form-slug" className="text-sm text-[var(--ds-text-muted)] shrink-0">
           {m.slugLabel}:
         </label>
@@ -418,7 +419,7 @@ export function FormBuilderEditPage() {
         </div>
         {config && (
           <>
-            <span className="text-[var(--ds-border)]">·</span>
+            <span className="text-[var(--ds-color-neutral-400)]">·</span>
             <button
               type="button"
               title={config.isActive ? m.status.deactivate : m.status.activate}
@@ -442,7 +443,7 @@ export function FormBuilderEditPage() {
         )}
       </div>
 
-      <div className="pb-4">
+      <div>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -501,7 +502,7 @@ export function FormBuilderEditPage() {
                 <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
                   {activeDrag.field.label}
                 </span>
-                <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border)] text-[var(--ds-text-subtle)]">
+                <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-color-neutral-400)] text-[var(--ds-color-neutral-400)]">
                   {activeDrag.field.type.slice(0, 3)}
                 </span>
               </div>
@@ -511,7 +512,7 @@ export function FormBuilderEditPage() {
                 {activeDrag.row.fields.map((f) => (
                   <span
                     key={f.id}
-                    className="px-2 py-0.5 rounded bg-[var(--ds-border)] text-xs text-[var(--ds-text)] truncate max-w-32"
+                    className="px-2 py-0.5 rounded bg-[var(--ds-color-neutral-400)] text-xs text-[var(--ds-text)] truncate max-w-32"
                   >
                     {f.label}
                   </span>
@@ -525,6 +526,18 @@ export function FormBuilderEditPage() {
             )}
           </DragOverlay>
         </DndContext>
+      </div>
+
+      {/* Arrow connector: Form Builder → Übermittlung */}
+      <div className="relative flex justify-center h-14 -my-px">
+        <div
+          className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
+          style={{
+            background:
+              "linear-gradient(to bottom, var(--ds-border), var(--ds-color-neutral-400) 32%, var(--ds-color-neutral-400) 68%, var(--ds-border))",
+          }}
+        />
+        <SFArrowDownCircle className="relative z-10 w-5 h-5 my-auto text-[var(--ds-color-neutral-400)] bg-[var(--ds-bg)] rounded-full" />
       </div>
 
       <SubmissionConfigPanel
