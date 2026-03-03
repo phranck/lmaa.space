@@ -74,6 +74,15 @@ export function ShopEditCard({
     if (!shopData) setForm({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
   }, [initialData, shopData]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch for submission preview image
+  useEffect(() => {
+    if (isSubmissionMode && form.url) {
+      fetchPreviewMutation.mutate(form.url, {
+        onSuccess: (data) => setPreviewImage(data.ogImage),
+      });
+    }
+  }, [isSubmissionMode]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setClosing(true);
