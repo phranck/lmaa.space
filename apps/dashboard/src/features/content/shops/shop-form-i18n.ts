@@ -54,6 +54,13 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         categoriesPlaceholder: "Select categories…",
         shippingLabel: "Shipping",
         shippingPlaceholder: "e.g. Free shipping from €50",
+        socialMediaLabel: "Social Media",
+        socialMedia: {
+          handlePlaceholder: "Handle or profile URL",
+          addAriaLabel: "Add link",
+          removeAriaLabel: "Remove link",
+          selectPlatformAriaLabel: "Select platform",
+        },
         categorySelect: {
           selectAll: "(Select all)",
           clearAllAriaLabel: "Clear all selected categories",
@@ -82,6 +89,13 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       categoriesPlaceholder: "Kategorie wählen…",
       shippingLabel: "Versand",
       shippingPlaceholder: "z.B. Kostenlos ab 50 €",
+      socialMediaLabel: "Social Media",
+      socialMedia: {
+        handlePlaceholder: "Handle oder Profil-URL",
+        addAriaLabel: "Link hinzufügen",
+        removeAriaLabel: "Link entfernen",
+        selectPlatformAriaLabel: "Plattform wählen",
+      },
       categorySelect: {
         selectAll: "(Alle auswählen)",
         clearAllAriaLabel: "Alle ausgewählten Kategorien entfernen",

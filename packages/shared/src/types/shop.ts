@@ -40,6 +40,7 @@ export interface Shop {
   shipping: string;
   description: string;
   ogImage?: string | null;
+  socialMedia: Record<string, string>;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

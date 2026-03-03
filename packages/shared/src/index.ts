@@ -14,3 +14,5 @@ export * from "./types/api.js";
 export * from "./types/content.js";
 /** API error parsing and normalization helpers. */
 export * from "./utils/api-error.js";
+/** Social media validation and normalization. */
+export * from "./utils/social-media.js";

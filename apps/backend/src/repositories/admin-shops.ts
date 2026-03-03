@@ -21,6 +21,7 @@ export interface CreateAdminShopData {
   pickup?: string;
   shipping?: string;
   description?: string;
+  socialMedia?: Record<string, string>;
 }
 
 /**
@@ -34,6 +35,7 @@ export interface UpdateAdminShopData {
   pickup?: string;
   shipping?: string;
   description?: string;
+  socialMedia?: Record<string, string>;
   isActive?: boolean;
 }
 
@@ -78,6 +80,7 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
   const [shop] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.is_active as "isActive",
+           s.social_media as "socialMedia",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))

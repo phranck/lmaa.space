@@ -20,6 +20,7 @@ export interface SubmissionEditData {
   region: string[];
   shipping?: string;
   categoryIds: number[];
+  socialMedia?: Record<string, string>;
 }
 
 /**
@@ -122,6 +123,7 @@ export async function reviewSubmission(
         pickup: submission.pickup,
         shipping: submission.shipping,
         description: submission.description,
+        socialMedia: submission.socialMedia,
       })
       .returning({ id: shops.id, url: shops.url });
 
@@ -157,6 +159,7 @@ export async function editSubmission(
         description: data.description ?? "",
         region: data.region,
         shipping: data.shipping ?? "",
+        socialMedia: data.socialMedia ?? {},
         updatedAt: new Date(),
       })
       .where(eq(submissions.id, id))
