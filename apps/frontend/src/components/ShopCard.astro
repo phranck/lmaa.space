@@ -33,7 +33,7 @@ const descriptionPreview = plainDescription
     : plainDescription
   : null;
 
-const fullDescriptionHtml = rawDescription ? await renderMarkdown(rawDescription) : null;
+const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
 ---
 
 <div
@@ -299,7 +299,7 @@ const fullDescriptionHtml = rawDescription ? await renderMarkdown(rawDescription
   <!-- Full markdown description -->
   {fullDescriptionHtml && (
     <div
-      class="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-3 prose-a:text-amber-700"
+      class="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-4 prose-a:text-amber-700"
       set:html={fullDescriptionHtml}
     />
   )}
