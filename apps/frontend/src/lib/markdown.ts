@@ -16,7 +16,9 @@ const markedSafe = new Marked({
     link({ href, title, text }) {
       if (!href || UNSAFE_HREF.test(href)) return text;
       const titleAttr = title ? ` title="${title}"` : "";
-      return `<a href="${href}"${titleAttr} rel="noopener noreferrer" target="_blank">${text}</a>`;
+      const isExternal = /^https?:\/\//i.test(href) && !href.startsWith("https://lmaa.space");
+      const extAttrs = isExternal ? ' rel="noopener noreferrer" target="_blank"' : "";
+      return `<a href="${href}"${titleAttr}${extAttrs}>${text}</a>`;
     },
   },
 }).use(markedFootnote());
