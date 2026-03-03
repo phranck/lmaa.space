@@ -65,17 +65,24 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return new Response("Proxy misconfigured (self-referential target).", { status: 503 });
   }
 
-  const headers = new Headers(context.request.headers);
-  headers.delete("host");
+  const headers = new Headers();
+  const fwd = context.request.headers;
+  for (const name of ["accept", "accept-language", "content-type", "cookie", "authorization"]) {
+    const value = fwd.get(name);
+    if (value) headers.set(name, value);
+  }
+
+  const method = context.request.method;
+  const hasBody = method !== "GET" && method !== "HEAD";
 
   try {
-    const res = await fetch(target, {
-      method: context.request.method,
-      headers,
-      body: context.request.body,
+    const init: RequestInit = { method, headers };
+    if (hasBody) {
+      init.body = context.request.body;
       // @ts-expect-error -- Node fetch supports duplex for streaming request bodies
-      duplex: "half",
-    });
+      init.duplex = "half";
+    }
+    const res = await fetch(target, init);
     return new Response(res.body, {
       status: res.status,
       statusText: res.statusText,
