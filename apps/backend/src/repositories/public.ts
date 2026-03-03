@@ -342,6 +342,7 @@ export async function getRejectionPageByToken(token: string) {
       shopName: submissions.shopName,
       shopUrl: submissions.shopUrl,
       rejectionLongText: submissions.rejectionLongText,
+      reviewedAt: submissions.reviewedAt,
     })
     .from(submissions)
     .where(and(eq(submissions.rejectionToken, token), eq(submissions.status, "rejected")))

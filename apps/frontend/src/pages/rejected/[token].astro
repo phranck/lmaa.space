@@ -7,6 +7,7 @@ interface RejectionPage {
   shopName: string;
   shopUrl: string;
   rejectionLongText: string | null;
+  reviewedAt: string | null;
 }
 
 const { token } = Astro.params;
@@ -27,6 +28,15 @@ if (!page || !page.rejectionLongText) {
 }
 
 const html = await renderMarkdown(page.rejectionLongText);
+const rejectedAt = page.reviewedAt
+  ? new Date(page.reviewedAt).toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  : null;
 ---
 
 <BaseLayout
@@ -36,7 +46,9 @@ const html = await renderMarkdown(page.rejectionLongText);
   <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
     <p class="text-sm text-stone-500 mb-2">Ablehnungsbegründung</p>
     <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-1">{page.shopName}</h1>
-    <p class="text-sm text-stone-400 mb-10 break-all">{page.shopUrl}</p>
+    <p class="text-sm text-stone-400 break-all">{page.shopUrl}</p>
+    {rejectedAt && <p class="text-sm text-stone-400 mt-1 mb-10">Abgelehnt am {rejectedAt}</p>}
+    {!rejectedAt && <div class="mb-10" />}
     <article
       class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
       set:html={html}
