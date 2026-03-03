@@ -18,6 +18,7 @@ export interface Submission {
   pickup: string;
   shipping: string;
   description: string;
+  socialMedia: Record<string, string>;
   submitterEmail: string | null;
   submitterNote: string | null;
   status: SubmissionStatus;
