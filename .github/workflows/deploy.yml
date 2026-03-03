@@ -15,8 +15,8 @@ jobs:
       - run: npm install
       - run: npm run ci:quality
         env:
-          API_URL: http://localhost:3000/api
-          PUBLIC_API_URL: /api
+          API_URL: http://localhost:3000/api/v1
+          PUBLIC_API_URL: /api/v1
 
   detect-changes:
     needs: quality-gate
