@@ -1,7 +1,7 @@
 import { REGION_CODES, type RegionCode } from "@lmaa/shared";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LuCheck, LuChevronDown } from "react-icons/lu";
+import { SFCheckmark, SFChevronDown } from "sf-symbols-lib/monochrome";
 
 /**
  * Display option used by region select inputs.
@@ -176,7 +176,7 @@ export function RegionSelect({
                           : "border-[var(--ds-border-strong)]"
                       }`}
                     >
-                      {checked && <LuCheck size={10} className="text-white" strokeWidth={3} />}
+                      {checked && <SFCheckmark className="w-2.5 h-2.5 text-white" />}
                     </span>
                     <span className="mr-1.5">{flag}</span>
                     <span>{name}</span>
@@ -216,9 +216,8 @@ export function RegionSelect({
         >
           {label ?? messages.placeholder}
         </span>
-        <LuChevronDown
-          size={14}
-          className={`shrink-0 ml-2 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
+        <SFChevronDown
+          className={`shrink-0 ml-2 w-3.5 h-3.5 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 

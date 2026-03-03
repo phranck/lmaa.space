@@ -447,9 +447,9 @@ function SuggestionsTab() {
       {/* Review Modal */}
       {reviewId !== null && reviewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-md w-full">
-            <div className="px-6 pt-6 pb-3">
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3 border-b border-[var(--ds-border-subtle)]">
               <h3 className="font-bold text-[var(--ds-text)]">
                 {reviewId > 0
                   ? submissionsMessages.suggestions.reviewApproveTitle
@@ -537,7 +537,7 @@ function SuggestionsTab() {
               )}
             </div>
 
-            <div className="border-t border-[var(--ds-border)] px-6 py-4 flex justify-end gap-3">
+            <div className="bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border)] px-6 py-4 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setReviewId(null)}
