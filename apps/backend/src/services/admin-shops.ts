@@ -1,18 +1,15 @@
-import type { ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
+import type { ShopMutableVisibility } from "@lmaa/shared";
 import { failure, success } from "../lib/result.js";
 import { SHOPS_CACHE_KEY, invalidateCache } from "../middleware/cache.js";
 import {
   type CreateAdminShopData,
   type UpdateAdminShopData,
   createAdminShop,
-  getAdminShopById,
   getAdminShopUrl,
-  listAdminShops,
   markAdminShopDeleted,
   permanentlyDeleteAdminShop,
   setAdminShopOgImage,
   setAdminShopVisibility,
-  shopExists,
   updateAdminShop,
   updateAdminShopDeleteReason,
 } from "../repositories/admin-shops.js";
@@ -29,26 +26,6 @@ interface DeleteAdminShopData {
   reason: string | null;
   wasReported: boolean;
   adminId: number | null;
-}
-
-/**
- * Lists shops for admin dashboard with optional visibility filter.
- *
- * @param visibility - Optional visibility filter (`public`/`onhold`/`deleted`).
- * @returns Shop list with mapped categories.
- */
-export async function getAdminShops(visibility?: ShopVisibility) {
-  return listAdminShops(visibility);
-}
-
-/**
- * Returns one admin shop by id.
- *
- * @param id - Shop id.
- * @returns Shop payload or `null`.
- */
-export async function getAdminShop(id: number) {
-  return getAdminShopById(id);
 }
 
 /**
@@ -84,11 +61,11 @@ export async function createManagedAdminShop(data: CreateAdminShopData) {
 export async function updateManagedAdminShop(id: number, data: UpdateAdminShopData) {
   const shop = await updateAdminShop(id, data);
   if (!shop) {
-    return null;
+    return failure("not_found");
   }
 
   invalidateCache(SHOPS_CACHE_KEY);
-  return { ...shop, categories: [] };
+  return success({ shop: { ...shop, categories: [] } });
 }
 
 /**
@@ -105,15 +82,16 @@ export async function updateManagedAdminShop(id: number, data: UpdateAdminShopDa
  * - Always invalidates shared public shop cache key.
  */
 export async function deleteManagedAdminShop(id: number, data: DeleteAdminShopData) {
-  const exists = await shopExists(id);
-  if (!exists) {
-    return failure("not_found");
-  }
+  let found: boolean;
 
   if (data.mode === "delete") {
-    await permanentlyDeleteAdminShop(id);
+    found = await permanentlyDeleteAdminShop(id);
   } else {
-    await markAdminShopDeleted(id, data.adminId, data.reason, data.wasReported);
+    found = await markAdminShopDeleted(id, data.adminId, data.reason, data.wasReported);
+  }
+
+  if (!found) {
+    return failure("not_found");
   }
 
   invalidateCache(SHOPS_CACHE_KEY);
@@ -134,12 +112,11 @@ export async function changeManagedAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
 ) {
-  const exists = await shopExists(id);
-  if (!exists) {
+  const found = await setAdminShopVisibility(id, visibility);
+  if (!found) {
     return failure("not_found");
   }
 
-  await setAdminShopVisibility(id, visibility);
   invalidateCache(SHOPS_CACHE_KEY);
   return success({ message: `Shop visibility set to ${visibility}` });
 }
@@ -184,8 +161,8 @@ export async function previewAdminShopImage(url: string) {
  * @returns `{ ok: true }` or `{ ok: false }` if the shop does not exist.
  */
 export async function updateManagedAdminShopDeleteReason(id: number, reason: string | null) {
-  if (!(await shopExists(id))) return failure("not_found");
-  await updateAdminShopDeleteReason(id, reason);
+  const found = await updateAdminShopDeleteReason(id, reason);
+  if (!found) return failure("not_found");
   invalidateCache(SHOPS_CACHE_KEY);
   return success();
 }

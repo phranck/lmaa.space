@@ -93,7 +93,7 @@ type UmamiKpiMetric = {
 /**
  * Normalized KPI payload shape consumed by dashboard.
  */
-export type NormalizedUmamiStats = {
+type NormalizedUmamiStats = {
   pageviews: UmamiKpiMetric;
   visitors: UmamiKpiMetric;
   visits: UmamiKpiMetric;

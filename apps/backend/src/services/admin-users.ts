@@ -1,6 +1,7 @@
 import type { AdminUser } from "@lmaa/shared";
 import { env } from "../config/env.js";
 import { processImageUpload } from "../lib/image-upload.js";
+import { logger } from "../lib/logger.js";
 import { failure, success } from "../lib/result.js";
 import {
   type AdminUserRow,
@@ -102,7 +103,7 @@ export async function createManagedAdminUser(
         email: input.email,
       });
       sendMail(input.email, subject, html).catch((err) => {
-        console.error("[email] Failed to send welcome email:", err);
+        logger.error({ err }, "failed to send welcome email");
       });
     }
   }
