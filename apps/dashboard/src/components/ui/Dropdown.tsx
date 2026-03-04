@@ -122,7 +122,7 @@ export function Dropdown<T extends string = string>({
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={label}
-          className="w-full h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] hover:border-[var(--color-primary)] transition-colors"
+          className="w-full h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
         >
           {current?.icon && <span className="shrink-0">{current.icon}</span>}
           <span className="flex-1 text-left">{current?.label}</span>

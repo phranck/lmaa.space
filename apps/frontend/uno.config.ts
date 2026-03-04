@@ -26,8 +26,8 @@ export default defineConfig({
           "font-weight": "600",
         },
         p: {
-          "margin-top": "0.8em",
-          "margin-bottom": "0.8em",
+          "margin-top": "1.25em",
+          "margin-bottom": "1.25em",
         },
         li: {
           "margin-top": "0.25em",
