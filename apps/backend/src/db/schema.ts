@@ -192,6 +192,7 @@ export const contentPages = pgTable("content_pages", {
   title: text("title").notNull(),
   content: text("content").notNull().default(""),
   status: text("status").$type<"draft" | "published" | "hidden">().notNull().default("draft"),
+  showTitle: boolean("show_title").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at").defaultNow(),

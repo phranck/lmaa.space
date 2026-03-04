@@ -21,6 +21,7 @@ export const contentMetaSchema = z.object({
     .regex(slugPattern, "Nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt")
     .optional(),
   status: z.enum(["draft", "published", "hidden"]).optional(),
+  showTitle: z.boolean().optional(),
 });
 
 /**

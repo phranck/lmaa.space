@@ -1,0 +1,1 @@
+ALTER TABLE "content_pages" ADD COLUMN "show_title" boolean DEFAULT true NOT NULL;

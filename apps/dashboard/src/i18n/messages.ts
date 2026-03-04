@@ -364,6 +364,7 @@ export interface DashboardMessages {
       statusDraft: string;
       statusPublished: string;
       statusHidden: string;
+      showTitleLabel: string;
       createdBy: string;
       updatedBy: string;
       loadingContent: string;
@@ -992,6 +993,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         statusDraft: "Entwurf",
         statusPublished: "Veröffentlicht",
         statusHidden: "Versteckt",
+        showTitleLabel: "Titel anzeigen",
         createdBy: "Erstellt von",
         updatedBy: "Geändert von",
         loadingContent: "Lade Inhalt…",
@@ -1613,6 +1615,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         statusDraft: "Draft",
         statusPublished: "Published",
         statusHidden: "Hidden",
+        showTitleLabel: "Show title",
         createdBy: "Created by",
         updatedBy: "Updated by",
         loadingContent: "Loading content…",

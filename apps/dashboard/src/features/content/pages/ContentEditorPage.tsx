@@ -261,7 +261,7 @@ function EditorHeaderActions({
         className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
       >
         <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-        {isSaving ? common.saving : saved ? editorMessages.saved : common.save}
+        {saved ? editorMessages.saved : common.save}
       </button>
     </div>
   );
@@ -278,6 +278,7 @@ interface EditorMetadataBarProps {
     titleLabel: string;
     slugLabel: string;
     statusLabel: string;
+    showTitleLabel: string;
     ok: string;
     statusDraft: string;
     statusPublished: string;
@@ -298,6 +299,7 @@ interface EditorMetadataBarProps {
   onSaveSlug: () => void;
   onCancelSlug: () => void;
   onStatusChange: (value: string) => void;
+  onShowTitleChange: (value: boolean) => void;
 }
 
 function EditorMetadataBar({
@@ -319,6 +321,7 @@ function EditorMetadataBar({
   onSaveSlug,
   onCancelSlug,
   onStatusChange,
+  onShowTitleChange,
 }: EditorMetadataBarProps) {
   return (
     <div className="border-b border-[var(--ds-border)] px-6 py-3 flex flex-wrap items-center gap-6 text-xs text-[var(--ds-text-muted)] bg-[var(--ds-surface)]">
@@ -408,6 +411,16 @@ function EditorMetadataBar({
         </select>
       </div>
 
+      <label className="flex items-center gap-1.5 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={page.showTitle}
+          onChange={(e) => onShowTitleChange(e.target.checked)}
+          className="accent-[var(--color-primary)] cursor-pointer"
+        />
+        <span className="font-medium">{editorMessages.showTitleLabel}</span>
+      </label>
+
       {page.createdByUsername && (
         <div className="ml-auto">
           {editorMessages.createdBy}{" "}
@@ -466,13 +479,24 @@ export function ContentEditorPage() {
 
   useKeyboardSave(handleSave);
 
+  useEffect(() => {
+    if (!state.saved) return;
+    const timer = setTimeout(() => dispatch({ type: "setSaved", value: false }), 2000);
+    return () => clearTimeout(timer);
+  }, [state.saved]);
+
   const changeFontSize = (delta: number) => {
     const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, state.sourceFontSize + delta));
     localStorage.setItem(FONT_SIZE_KEY, String(next));
     dispatch({ type: "setSourceFontSize", value: next });
   };
 
-  async function handlePatch(data: { title?: string; slug?: string; status?: string }) {
+  async function handlePatch(data: {
+    title?: string;
+    slug?: string;
+    status?: string;
+    showTitle?: boolean;
+  }) {
     dispatch({ type: "setPatchError", value: null });
     try {
       const updated = await patch.mutateAsync(data);
@@ -603,6 +627,7 @@ export function ContentEditorPage() {
           onSaveSlug={handleSlugSave}
           onCancelSlug={() => dispatch({ type: "setEditingSlug", value: false })}
           onStatusChange={(value) => void handlePatch({ status: value })}
+          onShowTitleChange={(value) => void handlePatch({ showTitle: value })}
         />
       )}
 

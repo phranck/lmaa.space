@@ -16,6 +16,7 @@ export interface ContentPage {
   title: string;
   content: string;
   status: ContentStatus;
+  showTitle: boolean;
   createdAt: string;
   createdByUsername: string | null;
   updatedAt: string | null;
@@ -29,6 +30,7 @@ export interface ContentPageSummary {
   slug: string;
   title: string;
   status: ContentStatus;
+  showTitle: boolean;
   createdAt: string;
   createdByUsername: string | null;
   updatedAt: string | null;
