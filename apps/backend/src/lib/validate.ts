@@ -29,21 +29,20 @@ export function isExternalUrl(url: string): boolean {
   try {
     const { hostname, protocol } = new URL(url);
     if (protocol !== "http:" && protocol !== "https:") return false;
-    if (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "[::1]" ||
-      hostname === "0.0.0.0"
-    )
+    const bare = hostname.replace(/^\[|]$/g, "");
+    if (bare === "localhost" || bare === "127.0.0.1" || bare === "::1" || bare === "0.0.0.0")
       return false;
-    // Private IP ranges
-    if (/^10\./.test(hostname)) return false;
-    if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return false;
-    if (/^192\.168\./.test(hostname)) return false;
+    // Private IPv4 ranges
+    if (/^10\./.test(bare)) return false;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(bare)) return false;
+    if (/^192\.168\./.test(bare)) return false;
     // Link-local + cloud metadata
-    if (/^169\.254\./.test(hostname)) return false;
+    if (/^169\.254\./.test(bare)) return false;
+    // Private IPv6 ranges (ULA fc00::/7, link-local fe80::/10)
+    if (/^f[cd]/i.test(bare)) return false;
+    if (/^fe[89ab]/i.test(bare)) return false;
     // Internal hostnames
-    if (hostname.endsWith(".internal") || hostname.endsWith(".local")) return false;
+    if (bare.endsWith(".internal") || bare.endsWith(".local")) return false;
     return true;
   } catch {
     return false;

@@ -3,13 +3,13 @@ import path from "node:path";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env.js";
 import { client } from "./db/index.js";
 import { runMigrations } from "./db/run-migrations.js";
 import { serveApiDocsUi, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
+import { logger } from "./lib/logger.js";
 import { startCacheCleanupJob } from "./middleware/cache.js";
 import { startRateLimitCleanupJob } from "./middleware/rate-limit.js";
 import { adminRoutes } from "./routes/admin/index.js";
@@ -33,7 +33,14 @@ app.use(
   }),
 );
 app.use("*", secureHeaders());
-app.use("*", logger());
+app.use("*", async (c, next) => {
+  const start = Date.now();
+  await next();
+  logger.info(
+    { method: c.req.method, path: c.req.path, status: c.res.status, ms: Date.now() - start },
+    "request",
+  );
+});
 
 // Serve uploaded category images
 app.get("/uploads/:filename{[^/]+}", async (c) => {
@@ -61,7 +68,7 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 
 app.notFound((c) => fail(c, 404, "Not found"));
 app.onError((err, c) => {
-  console.error("[error]", err);
+  logger.error({ err }, "unhandled error");
   const { status, error } = getErrorResponse(err);
   c.status(status);
   return c.json({ error });
@@ -74,26 +81,26 @@ async function startServer() {
 
   const port = env.PORT;
   const server = serve({ fetch: app.fetch, port });
-  console.log(`Backend running on port ${port}`);
+  logger.info({ port }, "backend running");
 
   let shuttingDown = false;
   const shutdown = async (signal: string) => {
     if (shuttingDown) return;
     shuttingDown = true;
 
-    console.log(`[shutdown] ${signal} received, shutting down gracefully...`);
+    logger.info({ signal }, "shutting down gracefully");
 
     for (const timer of timers) clearInterval(timer);
 
     server.close(() => {
-      console.log("[shutdown] HTTP server closed");
+      logger.info("HTTP server closed");
     });
 
     try {
       await client.end({ timeout: 5 });
-      console.log("[shutdown] Database connections closed");
+      logger.info("database connections closed");
     } catch (err) {
-      console.error("[shutdown] Error closing database:", err);
+      logger.error({ err }, "error closing database");
     }
 
     process.exit(0);
@@ -104,6 +111,6 @@ async function startServer() {
 }
 
 startServer().catch((err) => {
-  console.error("[fatal] Server startup failed:", err);
+  logger.fatal({ err }, "server startup failed");
   process.exit(1);
 });

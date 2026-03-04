@@ -22,7 +22,7 @@ function getOpenApiServers() {
 /**
  * OpenAPI 3.1 document for public API consumers.
  */
-export const OPEN_API_DOCUMENT = {
+const OPEN_API_DOCUMENT = {
   openapi: "3.1.0",
   info: {
     title: "LMAA API",

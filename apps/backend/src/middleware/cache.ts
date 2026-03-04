@@ -4,6 +4,7 @@
  */
 
 import { env } from "../config/env.js";
+import { logger } from "../lib/logger.js";
 
 interface CacheEntry<T> {
   data: T;
@@ -83,10 +84,10 @@ export function startCacheCleanupJob(): NodeJS.Timeout {
     }
 
     if (purged > 0) {
-      console.log(`[Cache] Purged ${purged} expired entries`);
+      logger.info({ purged }, "cache cleanup: purged expired entries");
     }
   }, intervalMs);
 
-  console.log(`[Cache] Cleanup job started (interval: ${intervalMs}ms)`);
+  logger.info({ intervalMs }, "cache cleanup job started");
   return timer;
 }
