@@ -11,13 +11,12 @@ import {
 import { Hono } from "hono";
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { getAdminShopById, listAdminShops } from "../../repositories/admin-shops.js";
 import {
   changeManagedAdminShopVisibility,
   createManagedAdminShop,
   deleteManagedAdminShop,
-  getAdminShop,
-  getAdminShops,
   previewAdminShopImage,
   refetchAdminShopImage,
   updateManagedAdminShop,
@@ -29,7 +28,7 @@ import {
  */
 export const shopsRoutes = new Hono<{ Variables: AuthVariables }>();
 
-shopsRoutes.get("/shops", requireAuth, async (c) => {
+shopsRoutes.get("/shops", async (c) => {
   const visibilityFilter = c.req.query("visibility");
   const parsedVisibility = visibilityFilter
     ? visibilityFilterSchema.safeParse(visibilityFilter)
@@ -40,44 +39,46 @@ shopsRoutes.get("/shops", requireAuth, async (c) => {
   }
 
   const visibilityValue = parsedVisibility?.success ? parsedVisibility.data : undefined;
-  const rows = await getAdminShops(visibilityValue);
+  const rows = await listAdminShops(visibilityValue);
   return ok(c, rows);
 });
 
-shopsRoutes.get("/shops/:id", requireAuth, async (c) => {
+shopsRoutes.get("/shops/:id", async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
-  const row = await getAdminShop(id);
+  const row = await getAdminShopById(id);
   if (!row) return fail(c, 404, "Shop not found");
   return ok(c, row);
 });
 
-shopsRoutes.post("/shops", requireAuth, zValidator("json", shopBodySchema), async (c) => {
+shopsRoutes.post("/shops", zValidator("json", shopBodySchema), async (c) => {
   const body = c.req.valid("json");
   const shop = await createManagedAdminShop(body);
   return ok(c, shop, 201);
 });
 
-for (const method of ["put", "patch"] as const) {
-  shopsRoutes[method](
-    "/shops/:id",
-    requireAuth,
-    zValidator("json", shopUpdateSchema),
-    async (c) => {
-      const id = parseId(c.req.param("id"));
-      if (!id) return fail(c, 400, "Invalid id");
-      const body = c.req.valid("json");
-      const shop = await updateManagedAdminShop(id, body);
+const updateShopHandler = zValidator("json", shopUpdateSchema);
 
-      if (!shop) return fail(c, 404, "Shop not found");
-      return ok(c, shop);
-    },
-  );
-}
+shopsRoutes.put("/shops/:id", updateShopHandler, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+  const body = c.req.valid("json");
+  const result = await updateManagedAdminShop(id, body);
+  if (!result.ok) return fail(c, 404, "Shop not found");
+  return ok(c, result.shop);
+});
+
+shopsRoutes.patch("/shops/:id", updateShopHandler, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+  const body = c.req.valid("json");
+  const result = await updateManagedAdminShop(id, body);
+  if (!result.ok) return fail(c, 404, "Shop not found");
+  return ok(c, result.shop);
+});
 
 shopsRoutes.delete(
   "/shops/:id",
-  requireAuth,
   requireAdmin,
   zValidator("json", shopDeleteBodySchema),
   async (c) => {
@@ -98,7 +99,7 @@ shopsRoutes.delete(
 );
 
 // PATCH /admin/shops/:id/visibility — set public or onhold (use DELETE for deleted)
-shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) => {
+shopsRoutes.patch("/shops/:id/visibility", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
@@ -114,7 +115,7 @@ shopsRoutes.patch("/shops/:id/visibility", requireAuth, requireAdmin, async (c) 
 });
 
 // PATCH /admin/shops/:id/delete-reason — update reason text for a soft-deleted shop
-shopsRoutes.patch("/shops/:id/delete-reason", requireAuth, requireAdmin, async (c) => {
+shopsRoutes.patch("/shops/:id/delete-reason", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
@@ -126,7 +127,7 @@ shopsRoutes.patch("/shops/:id/delete-reason", requireAuth, requireAdmin, async (
   return ok(c, { message: "Delete reason updated" });
 });
 
-shopsRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {
+shopsRoutes.post("/shops/:id/refetch-image", async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
@@ -135,13 +136,8 @@ shopsRoutes.post("/shops/:id/refetch-image", requireAuth, async (c) => {
   return ok(c, { ogImage: result.ogImage });
 });
 
-shopsRoutes.post(
-  "/preview-image",
-  requireAuth,
-  zValidator("json", previewImageSchema),
-  async (c) => {
-    const { url } = c.req.valid("json");
-    const result = await previewAdminShopImage(url);
-    return ok(c, result);
-  },
-);
+shopsRoutes.post("/preview-image", zValidator("json", previewImageSchema), async (c) => {
+  const { url } = c.req.valid("json");
+  const result = await previewAdminShopImage(url);
+  return ok(c, result);
+});
