@@ -70,7 +70,7 @@ export function ShopsPage() {
     [visibilityMutation],
   );
   const onUpdateReason = useCallback(
-    async (id: number, reason: string) => {
+    async (id: number, reason: string | null) => {
       await updateReasonMutation.mutateAsync({ id, reason });
     },
     [updateReasonMutation],
