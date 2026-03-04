@@ -97,6 +97,7 @@ export function SuggestionsTab() {
   const [rejectionLongText, setRejectionLongText] = useState("");
   const [rejectionToken, setRejectionToken] = useState<string | null>(null);
   const [sendFeedback, setSendFeedback] = useState(false);
+  const [editingRejection, setEditingRejection] = useState(false);
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
   const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
 
@@ -111,12 +112,13 @@ export function SuggestionsTab() {
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
 
   useEffect(() => {
+    if (editingRejection) return;
     if (reviewId !== null && reviewId < 0) {
       setRejectionToken(crypto.randomUUID().replace(/-/g, ""));
     } else {
       setRejectionToken(null);
     }
-  }, [reviewId]);
+  }, [reviewId, editingRejection]);
 
   const handleCommentPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const pastedText = e.clipboardData.getData("text");
@@ -133,7 +135,10 @@ export function SuggestionsTab() {
   useEffect(() => {
     if (reviewId === null) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setReviewId(null);
+      if (e.key === "Escape") {
+        setReviewId(null);
+        setEditingRejection(false);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -404,6 +409,21 @@ export function SuggestionsTab() {
                 )}
                 <button
                   type="button"
+                  onClick={() => {
+                    setReviewId(-sub.id);
+                    setAdminNote(sub.adminNote ?? "");
+                    setRejectionLongText(sub.rejectionLongText ?? "");
+                    setRejectionToken(sub.rejectionToken ?? null);
+                    setSendFeedback(false);
+                    setEditingRejection(true);
+                  }}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.editRejectionInfo}
+                </button>
+                <button
+                  type="button"
                   onClick={() => setDeleteSubmissionId(sub.id)}
                   className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                 >
@@ -441,9 +461,11 @@ export function SuggestionsTab() {
           <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
             <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3 border-b border-[var(--ds-border-subtle)]">
               <h3 className="font-bold text-[var(--ds-text)]">
-                {reviewId > 0
-                  ? submissionsMessages.suggestions.reviewApproveTitle
-                  : submissionsMessages.suggestions.reviewRejectTitle}
+                {editingRejection
+                  ? submissionsMessages.suggestions.reviewEditRejectionTitle
+                  : reviewId > 0
+                    ? submissionsMessages.suggestions.reviewApproveTitle
+                    : submissionsMessages.suggestions.reviewRejectTitle}
               </h3>
               <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
               <div className="flex items-center gap-1.5 mt-1">
@@ -506,7 +528,7 @@ export function SuggestionsTab() {
                 </div>
               )}
 
-              {reviewing.submitterEmail && (
+              {!editingRejection && reviewing.submitterEmail && (
                 <Checkbox
                   checked={sendFeedback}
                   onChange={setSendFeedback}
@@ -530,7 +552,10 @@ export function SuggestionsTab() {
             <div className="bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border)] px-6 py-4 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setReviewId(null)}
+                onClick={() => {
+                  setReviewId(null);
+                  setEditingRejection(false);
+                }}
                 className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 {common.cancel}
@@ -554,21 +579,24 @@ export function SuggestionsTab() {
                         setAdminNote("");
                         setRejectionLongText("");
                         setSendFeedback(false);
+                        setEditingRejection(false);
                       },
                     },
                   )
                 }
                 className={`h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
-                  reviewId > 0
+                  editingRejection || reviewId > 0
                     ? "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
                     : "border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                 }`}
               >
                 {reviewMutation.isPending
                   ? "…"
-                  : reviewId > 0
-                    ? submissionsMessages.suggestions.accept
-                    : submissionsMessages.suggestions.decline}
+                  : editingRejection
+                    ? common.save
+                    : reviewId > 0
+                      ? submissionsMessages.suggestions.accept
+                      : submissionsMessages.suggestions.decline}
               </button>
             </div>
           </div>
