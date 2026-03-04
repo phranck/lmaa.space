@@ -1,3 +1,4 @@
+import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/features/content/hooks/useAdminShops.ts";
 import { getShopEditFormI18n } from "@/features/content/shops/shop-form-i18n.ts";
 import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useEffect, useState } from "react";
@@ -91,6 +93,8 @@ export function ShopEditCard({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  usePersistedTextareaHeight("sef-description", "shops:textarea:description", !isLoadingShop);
+
   const canSave = form.name.trim() !== "" && form.url.trim() !== "" && !isPending;
 
   function handleSave() {
@@ -115,11 +119,13 @@ export function ShopEditCard({
       }}
     >
       {/* biome-ignore lint/a11y/useSemanticElements: custom overlay with animation */}
-      <div
+      <ResizableDialogCard
         role="dialog"
         aria-modal="true"
         aria-labelledby="shop-edit-title"
-        className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-lg overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
+        storageKey="shops:edit-card-size"
+        defaultWidth={512}
+        className={`flex flex-col rounded-[var(--radius-card)] shadow-2xl ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
         <div className="flex items-center px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
@@ -129,7 +135,7 @@ export function ShopEditCard({
         </div>
 
         {/* Form */}
-        <div className="p-5 max-h-[calc(100vh-14rem)] overflow-y-auto">
+        <div className="p-5 flex-1 overflow-y-auto">
           {!isNew &&
             (() => {
               const displayImage = isSubmissionMode ? previewImage : (shopData?.ogImage ?? null);
@@ -221,7 +227,7 @@ export function ShopEditCard({
             {isPending ? common.saving : common.save}
           </button>
         </div>
-      </div>
+      </ResizableDialogCard>
     </div>
   );
 }

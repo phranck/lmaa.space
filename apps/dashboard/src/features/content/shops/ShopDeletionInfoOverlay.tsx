@@ -1,5 +1,6 @@
-import { Card } from "@/components/ui/Card.tsx";
+import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import type { ShopSummary } from "@lmaa/shared";
 import { Marked } from "marked";
 import { useEffect, useMemo, useState } from "react";
@@ -67,6 +68,8 @@ export function ShopDeletionInfoOverlay({
   const [editedReason, setEditedReason] = useState(shop.deleteReason ?? "");
   const [isSaving, setIsSaving] = useState(false);
 
+  usePersistedTextareaHeight("shop-deletion-reason", "shops:textarea:deletion-reason", isEditing);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -129,8 +132,12 @@ export function ShopDeletionInfoOverlay({
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <Card className="pointer-events-auto w-full max-w-2xl shadow-2xl overlay-card-enter">
-          <div className="p-5 space-y-4">
+        <ResizableDialogCard
+          storageKey="shops:deletion-info-size"
+          defaultWidth={672}
+          className="flex flex-col pointer-events-auto rounded-card border border-[var(--ds-border)] shadow-2xl overlay-card-enter"
+        >
+          <div className="p-5 space-y-4 flex-1 overflow-y-auto">
             <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
 
             <p className="text-sm font-medium text-[var(--ds-text)]">{shop.name}</p>
@@ -156,10 +163,11 @@ export function ShopDeletionInfoOverlay({
                   {isEditing ? (
                     <div className="relative">
                       <textarea
+                        id="shop-deletion-reason"
                         value={editedReason}
                         onChange={(e) => setEditedReason(e.target.value)}
                         rows={6}
-                        className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+                        className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
                       />
                       <SiMarkdown className="absolute bottom-2 right-2 w-6 h-6 text-[var(--ds-text-subtle)] opacity-40 pointer-events-none" />
                     </div>
@@ -231,7 +239,7 @@ export function ShopDeletionInfoOverlay({
               )}
             </div>
           </div>
-        </Card>
+        </ResizableDialogCard>
       </div>
     </>
   );
