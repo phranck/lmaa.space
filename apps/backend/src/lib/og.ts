@@ -1,3 +1,4 @@
+import { logger } from "./logger.js";
 import { isExternalUrl } from "./validate.js";
 
 const HEADERS = {
@@ -133,7 +134,7 @@ async function fetchHtml(url: string): Promise<string | null> {
     if (!res.ok) return null;
     return await res.text();
   } catch (err) {
-    console.error("[og]", err);
+    logger.error({ err }, "OG image fetch failed");
     return null;
   }
 }

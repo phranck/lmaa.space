@@ -1,6 +1,7 @@
 import { createMiddleware } from "hono/factory";
 import { env } from "../config/env.js";
 import { fail } from "../lib/http.js";
+import { logger } from "../lib/logger.js";
 
 interface RateLimitEntry {
   count: number;
@@ -42,11 +43,11 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
     }
 
     if (purged > 0) {
-      console.log(`[Rate Limit] Purged ${purged} expired entries`);
+      logger.info({ purged }, "rate-limit cleanup: purged expired entries");
     }
   }, intervalMs);
 
-  console.log(`[Rate Limit] Cleanup job started (interval: ${intervalMs}ms)`);
+  logger.info({ intervalMs }, "rate-limit cleanup job started");
   return timer;
 }
 

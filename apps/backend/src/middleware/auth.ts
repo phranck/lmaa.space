@@ -1,5 +1,5 @@
 import type { AdminRole } from "@lmaa/shared";
-import { eq, gt } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { db } from "../db/index.js";
@@ -31,15 +31,14 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
   const [session] = await db
     .select({
       adminId: sessions.adminUserId,
-      expiresAt: sessions.expiresAt,
       role: adminUsers.role,
     })
     .from(sessions)
     .innerJoin(adminUsers, eq(sessions.adminUserId, adminUsers.id))
-    .where(eq(sessions.id, sessionId))
+    .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, now)))
     .limit(1);
 
-  if (!session || session.expiresAt < now) {
+  if (!session) {
     return fail(c, 401, "Session expired");
   }
 
@@ -56,6 +55,7 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
  * @returns Hono middleware rejecting non-owner users with `403`.
  */
 export const requireOwner = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
+  if (!c.get("role")) return fail(c, 401, "Unauthorized");
   if (!c.get("isOwner")) {
     return fail(c, 403, "Forbidden");
   }
@@ -68,6 +68,7 @@ export const requireOwner = createMiddleware<{ Variables: AuthVariables }>(async
  * @returns Hono middleware rejecting moderator users with `403`.
  */
 export const requireAdmin = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
+  if (!c.get("role")) return fail(c, 401, "Unauthorized");
   if (c.get("role") === "moderator") {
     return fail(c, 403, "Forbidden");
   }
