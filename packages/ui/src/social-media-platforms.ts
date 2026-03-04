@@ -5,6 +5,8 @@ import {
   SiInstagram,
   SiLinkedin,
   SiMastodon,
+  SiPatreon,
+  SiPinterest,
   SiThreads,
   SiTiktok,
   SiTwitch,
@@ -28,6 +30,8 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "youtube", label: "YouTube", icon: SiYoutube },
   { key: "twitch", label: "Twitch", icon: SiTwitch },
   { key: "linkedin", label: "LinkedIn", icon: SiLinkedin },
+  { key: "pinterest", label: "Pinterest", icon: SiPinterest },
+  { key: "patreon", label: "Patreon", icon: SiPatreon },
 ];
 
 export const PLATFORM_MAP = new Map(PLATFORMS.map((p) => [p.key, p]));
