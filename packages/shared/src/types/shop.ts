@@ -41,6 +41,7 @@ export interface Shop {
   description: string;
   ogImage?: string | null;
   socialMedia: Record<string, string>;
+  /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -62,4 +63,4 @@ export interface ShopCreate {
 /**
  * Partial update payload for editing a shop.
  */
-export type ShopUpdate = Partial<ShopCreate> & { isActive?: boolean };
+export type ShopUpdate = Partial<ShopCreate>;
