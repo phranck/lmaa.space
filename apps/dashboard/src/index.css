@@ -251,6 +251,34 @@ button {
   animation: card-out 280ms ease forwards;
 }
 
+/* Save notification animations */
+@keyframes save-notification-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes save-notification-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.save-notification-enter {
+  animation: save-notification-in 250ms ease forwards;
+}
+.save-notification-exit {
+  animation: save-notification-out 250ms ease forwards;
+}
+
 html {
   font-size: 17px;
 }

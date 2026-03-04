@@ -1,6 +1,8 @@
 import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import md5 from "blueimp-md5";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -50,6 +52,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const common = messages.common;
   const usersMessages = messages.users;
   const { user: me } = useAuth();
+  const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const [closing, setClosing] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -126,7 +129,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const canChangeRole = me?.isOwner && userId !== me?.id && user?.role !== "owner";
   const roleChanged = canChangeRole && role !== (user?.role ?? "admin");
 
-  async function handleSave() {
+  async function handleSave(close = true) {
     if (!user) return;
 
     // 1. Update profile fields if changed
@@ -166,8 +169,16 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       }
     }
 
-    onSaved();
+    if (close) {
+      onSaved();
+    } else {
+      showSaved();
+    }
   }
+
+  useKeyboardSave(() => {
+    if (hasChanges) handleSave(false);
+  });
 
   const currentAvatarUrl = avatar.previewUrl;
   const displayUsername = username || (user?.username ?? "");
@@ -203,10 +214,11 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
         className={`flex flex-col rounded-[var(--radius-card)] shadow-2xl ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
-        <div className="flex items-center px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
+        <div className="flex items-center justify-between px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
           <h2 id="user-edit-title" className="text-base font-semibold text-[var(--ds-text)]">
             {usersMessages.editCard.title}
           </h2>
+          <SaveNotification phase={savedPhase} label={common.saved} />
         </div>
 
         {/* Body */}

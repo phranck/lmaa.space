@@ -8,6 +8,7 @@ import {
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
 import { sourceKeymap } from "@/features/content/pages/sourceKeymap.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import type { ContentPage } from "@lmaa/shared";
 import {
   AdmonitionDirectiveDescriptor,
@@ -43,7 +44,7 @@ import {
   toolbarPlugin,
   viewMode$,
 } from "@mdxeditor/editor";
-import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 import { SFMinus, SFPlus, SFSquareAndArrowDownFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 
@@ -463,19 +464,7 @@ export function ContentEditorPage() {
     });
   };
 
-  const handleSaveRef = useRef(handleSave);
-  handleSaveRef.current = handleSave;
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault();
-        handleSaveRef.current();
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  useKeyboardSave(handleSave);
 
   const changeFontSize = (delta: number) => {
     const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, state.sourceFontSize + delta));

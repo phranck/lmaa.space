@@ -13,6 +13,7 @@ export interface DashboardMessages {
     cancel: string;
     save: string;
     saving: string;
+    saved: string;
     edit: string;
     delete: string;
     remove: string;
@@ -636,6 +637,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       cancel: "Abbrechen",
       save: "Speichern",
       saving: "Wird gespeichert…",
+      saved: "Gespeichert",
       edit: "Bearbeiten",
       delete: "Löschen",
       remove: "Entfernen",
@@ -1258,6 +1260,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       cancel: "Cancel",
       save: "Save",
       saving: "Saving…",
+      saved: "Saved",
       edit: "Edit",
       delete: "Delete",
       remove: "Remove",
