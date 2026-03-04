@@ -23,6 +23,7 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
         <img
           src={category.imageUrl ?? `/images/${category.slug}.jpg`}
           alt=""
+          loading="lazy"
           className="w-full h-full object-cover bg-[var(--ds-bg-elevated)]"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";

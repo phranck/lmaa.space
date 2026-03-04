@@ -22,7 +22,6 @@
     "@lmaa/ui": "0.1.0",
     "@unocss/astro": "^66.6.1",
     "astro": "^5.7.0",
-    "fuse.js": "^7.1.0",
     "marked": "^17.0.3",
     "marked-footnote": "^1.4.0",
     "react": "^19.0.0",

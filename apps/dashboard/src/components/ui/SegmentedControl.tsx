@@ -126,7 +126,9 @@ export function SegmentedControl<T extends string>({
   const px = iconOnly ? "" : "px-3.5";
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: not a fieldset, role="group" is correct for segmented control
     <div
+      role="group"
       ref={containerRef}
       className="relative flex items-center bg-[var(--ds-segment-bg)] rounded-control p-1"
     >
@@ -155,7 +157,8 @@ export function SegmentedControl<T extends string>({
             key={opt.value}
             type="button"
             onClick={() => onChange(opt.value)}
-            title={iconOnly ? (opt.label ?? String(opt.value)) : undefined}
+            aria-pressed={isActive}
+            aria-label={iconOnly ? (opt.label ?? String(opt.value)) : undefined}
             className={[
               "relative z-10 flex items-center justify-center gap-1.5 rounded-[4px] text-sm font-medium transition-colors",
               h,

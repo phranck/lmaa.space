@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface DropdownOption<T extends string = string> {
   value: T;
@@ -33,7 +33,9 @@ export function Dropdown<T extends string = string>({
   className,
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
   const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -45,7 +47,65 @@ export function Dropdown<T extends string = string>({
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
+  useEffect(() => {
+    if (open) {
+      setHighlightIndex(options.findIndex((o) => o.value === value));
+    }
+  }, [open, options, value]);
+
+  const selectOption = useCallback(
+    (v: T) => {
+      onChange(v);
+      setOpen(false);
+    },
+    [onChange],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!open) {
+        if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setOpen(true);
+        }
+        return;
+      }
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setHighlightIndex((i) => (i + 1) % options.length);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setHighlightIndex((i) => (i - 1 + options.length) % options.length);
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          if (highlightIndex >= 0 && highlightIndex < options.length) {
+            selectOption(options[highlightIndex].value);
+          }
+          break;
+        case "Escape":
+          e.preventDefault();
+          setOpen(false);
+          break;
+        case "Home":
+          e.preventDefault();
+          setHighlightIndex(0);
+          break;
+        case "End":
+          e.preventDefault();
+          setHighlightIndex(options.length - 1);
+          break;
+      }
+    },
+    [open, options, highlightIndex, selectOption],
+  );
+
   const current = options.find((o) => o.value === value);
+  const listboxId = "dropdown-listbox";
 
   return (
     <div className={`flex flex-col gap-1${className ? ` ${className}` : ""}`}>
@@ -58,6 +118,10 @@ export function Dropdown<T extends string = string>({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
+          onKeyDown={handleKeyDown}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-label={label}
           className="w-full h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] hover:border-[var(--color-primary)] transition-colors"
         >
           {current?.icon && <span className="shrink-0">{current.icon}</span>}
@@ -80,19 +144,30 @@ export function Dropdown<T extends string = string>({
           </svg>
         </button>
         {open && (
-          <div className="absolute z-20 right-0 mt-1 py-1 min-w-full bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden">
-            {options.map(({ value: v, label: l, icon }) => (
+          // biome-ignore lint/a11y/useSemanticElements: custom dropdown, not a native select
+          <div
+            role="listbox"
+            ref={listRef}
+            tabIndex={-1}
+            id={listboxId}
+            className="absolute z-20 right-0 mt-1 py-1 min-w-full bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden"
+          >
+            {options.map(({ value: v, label: l, icon }, index) => (
+              // biome-ignore lint/a11y/useSemanticElements: option role on button is intentional
               <button
+                role="option"
                 key={v}
+                id={`dropdown-option-${index}`}
+                aria-selected={value === v}
                 type="button"
-                onClick={() => {
-                  onChange(v);
-                  setOpen(false);
-                }}
+                onClick={() => selectOption(v)}
+                onMouseEnter={() => setHighlightIndex(index)}
                 className={`w-full h-8 flex items-center gap-2 px-3 text-sm transition-colors ${
                   value === v
                     ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] font-medium"
-                    : "text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)]"
+                    : index === highlightIndex
+                      ? "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]"
+                      : "text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)]"
                 }`}
               >
                 {icon && <span className="shrink-0">{icon}</span>}

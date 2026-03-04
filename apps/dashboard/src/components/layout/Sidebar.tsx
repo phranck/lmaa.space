@@ -1,3 +1,7 @@
+import {
+  CollapsibleSidebarGroup,
+  sidebarGroupItemClass,
+} from "@/components/layout/CollapsibleSidebarGroup.tsx";
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
@@ -15,13 +19,11 @@ import {
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
 import type { AdminRole } from "@lmaa/shared";
-import { useState } from "react";
-import { NavLink, useMatch, useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import {
   SFBookPagesFill,
   SFChartBarFill,
   SFCheckmarkCircleFill,
-  SFChevronDown,
   SFCircle,
   SFDocumentFill,
   SFDocumentOnDocumentFill,
@@ -37,15 +39,6 @@ import {
 } from "sf-symbols-lib/monochrome";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
-
-function SidebarBadge({ count }: { count: number }) {
-  if (count === 0) return null;
-  return (
-    <span className="h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-[11px] font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
-      {count}
-    </span>
-  );
-}
 
 function StatusIcon({ status }: { status: string }) {
   if (status === "published") {
@@ -70,237 +63,141 @@ interface SidebarProps {
 
 function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   const { messages } = useI18n();
-  const sidebarMessages = messages.layout.sidebar;
-  const isGroupActive = !!useMatch("/pages/*");
+  const s = messages.layout.sidebar;
   const { data: pages } = useContentPages();
-  const [localOpen, setLocalOpen] = useState(
-    () => localStorage.getItem("sidebar-pages-open") === "true",
-  );
-  const isOpen = isGroupActive || localOpen;
 
   return (
-    <details
-      open={isOpen}
-      className="group"
-      onToggle={(e) => {
-        const next = e.currentTarget.open;
-        setLocalOpen(next);
-        localStorage.setItem("sidebar-pages-open", String(next));
-      }}
+    <CollapsibleSidebarGroup
+      routeMatch="/pages/*"
+      storageKey="sidebar-pages-open"
+      icon={<SFDocumentOnDocumentFill className="w-4 h-4" />}
+      label={s.pages}
+      badge={pages?.length ?? 0}
     >
-      <summary className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]">
-        <span className="shrink-0 opacity-70">
-          <SFDocumentOnDocumentFill className="w-4 h-4" />
-        </span>
-        <span className="flex-1">{sidebarMessages.pages}</span>
-        <SidebarBadge count={pages?.length ?? 0} />
-        <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
-      </summary>
-      <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
+      <NavLink to="/pages" end onClick={onItemClick} className={sidebarGroupItemClass}>
+        {s.pagesOverview}
+      </NavLink>
+      {(pages ?? []).map((page) => (
         <NavLink
-          to="/pages"
-          end
+          key={page.slug}
+          to={`/pages/${page.slug}`}
           onClick={onItemClick}
-          className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
-              isActive
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-            }`
-          }
+          className={sidebarGroupItemClass}
         >
-          {sidebarMessages.pagesOverview}
+          <SFDocumentFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+          <StatusIcon status={page.status} />
+          <span className="flex flex-col min-w-0">
+            <span className="truncate">{page.title}</span>
+            <span className="truncate text-xs opacity-50">/{page.slug}</span>
+          </span>
         </NavLink>
-        {(pages ?? []).map((page) => (
-          <NavLink
-            key={page.slug}
-            to={`/pages/${page.slug}`}
-            onClick={onItemClick}
-            className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
-                isActive
-                  ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                  : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-              }`
-            }
-          >
-            <SFDocumentFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
-            <StatusIcon status={page.status} />
-            <span className="flex flex-col min-w-0">
-              <span className="truncate">{page.title}</span>
-              <span className="truncate text-xs opacity-50">/{page.slug}</span>
-            </span>
-          </NavLink>
-        ))}
-      </div>
-    </details>
+      ))}
+    </CollapsibleSidebarGroup>
   );
 }
 
 function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
   const { messages } = useI18n();
-  const sidebarMessages = messages.layout.sidebar;
-  const isGroupActive = !!useMatch("/forms/*");
+  const s = messages.layout.sidebar;
   const { data: forms } = useFormConfigs();
-  const [localOpen, setLocalOpen] = useState(
-    () => localStorage.getItem("sidebar-forms-open") === "true",
-  );
-  const isOpen = isGroupActive || localOpen;
 
   return (
-    <details
-      open={isOpen}
-      className="group"
-      onToggle={(e) => {
-        const next = e.currentTarget.open;
-        setLocalOpen(next);
-        localStorage.setItem("sidebar-forms-open", String(next));
-      }}
+    <CollapsibleSidebarGroup
+      routeMatch="/forms/*"
+      storageKey="sidebar-forms-open"
+      icon={<SFBookPagesFill className="w-4 h-4" />}
+      label={s.formBuilder}
+      badge={forms?.length ?? 0}
     >
-      <summary className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]">
-        <span className="shrink-0 opacity-70">
-          <SFBookPagesFill className="w-4 h-4" />
-        </span>
-        <span className="flex-1">{sidebarMessages.formBuilder}</span>
-        <SidebarBadge count={forms?.length ?? 0} />
-        <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
-      </summary>
-      <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
+      <NavLink to="/forms" end onClick={onItemClick} className={sidebarGroupItemClass}>
+        {s.formsOverview}
+      </NavLink>
+      {(forms ?? []).map((form) => (
         <NavLink
-          to="/forms"
-          end
+          key={form.name}
+          to={`/forms/${form.name}`}
           onClick={onItemClick}
-          className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
-              isActive
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-            }`
-          }
+          className={sidebarGroupItemClass}
         >
-          {sidebarMessages.formsOverview}
+          <SFListBulletRectanglePortraitFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+          <span className="flex flex-col min-w-0">
+            <span className="truncate">{form.name}</span>
+            {form.slug && <span className="truncate text-xs opacity-50">/{form.slug}</span>}
+          </span>
         </NavLink>
-        {(forms ?? []).map((form) => (
+      ))}
+    </CollapsibleSidebarGroup>
+  );
+}
+
+function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
+  const { messages } = useI18n();
+  const s = messages.layout.sidebar;
+  const { data: templates } = useEmailTemplates();
+  const createTemplate = useCreateEmailTemplate();
+  const navigate = useNavigate();
+
+  return (
+    <CollapsibleSidebarGroup
+      routeMatch="/email-templates/*"
+      storageKey="sidebar-email-templates-open"
+      icon={<SFEnvelopeBadgeFill className="w-4 h-4" />}
+      label={s.emailTemplates}
+      badge={templates?.length ?? 0}
+    >
+      <NavLink to="/email-templates" end onClick={onItemClick} className={sidebarGroupItemClass}>
+        {s.emailTemplatesOverview}
+      </NavLink>
+      {(templates ?? []).map((tpl) => (
+        <div key={tpl.id} className="group/item flex items-center">
           <NavLink
-            key={form.name}
-            to={`/forms/${form.name}`}
+            to={`/email-templates/${tpl.id}`}
             onClick={onItemClick}
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
+              `flex-1 flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium min-w-0 ${
                 isActive
                   ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                   : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
               }`
             }
           >
-            <SFListBulletRectanglePortraitFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
-            <span className="flex flex-col min-w-0">
-              <span className="truncate">{form.name}</span>
-              {form.slug && <span className="truncate text-xs opacity-50">/{form.slug}</span>}
-            </span>
+            <SFEnvelopeBadgeFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+            <span className="truncate">{tpl.name}</span>
           </NavLink>
-        ))}
-      </div>
-    </details>
-  );
-}
-
-function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
-  const { messages } = useI18n();
-  const sidebarMessages = messages.layout.sidebar;
-  const isGroupActive = !!useMatch("/email-templates/*");
-  const { data: templates } = useEmailTemplates();
-  const createTemplate = useCreateEmailTemplate();
-  const navigate = useNavigate();
-  const [localOpen, setLocalOpen] = useState(
-    () => localStorage.getItem("sidebar-email-templates-open") === "true",
-  );
-  const isOpen = isGroupActive || localOpen;
-
-  return (
-    <details
-      open={isOpen}
-      className="group"
-      onToggle={(e) => {
-        const next = e.currentTarget.open;
-        setLocalOpen(next);
-        localStorage.setItem("sidebar-email-templates-open", String(next));
-      }}
-    >
-      <summary className="flex items-center gap-3 px-3 py-2 rounded-control text-sm font-medium cursor-pointer list-none select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]">
-        <span className="shrink-0 opacity-70">
-          <SFEnvelopeBadgeFill className="w-4 h-4" />
-        </span>
-        <span className="flex-1">{sidebarMessages.emailTemplates}</span>
-        <SidebarBadge count={templates?.length ?? 0} />
-        <SFChevronDown className="w-3.5 h-3.5 opacity-50 group-open:rotate-180" />
-      </summary>
-      <div className="mt-0.5 ml-3 pl-3 border-l border-[var(--ds-border)] space-y-0.5">
-        <NavLink
-          to="/email-templates"
-          end
-          onClick={onItemClick}
-          className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium ${
-              isActive
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-            }`
-          }
-        >
-          {sidebarMessages.emailTemplatesOverview}
-        </NavLink>
-        {(templates ?? []).map((tpl) => (
-          <div key={tpl.id} className="group/item flex items-center">
-            <NavLink
-              to={`/email-templates/${tpl.id}`}
-              onClick={onItemClick}
-              className={({ isActive }) =>
-                `flex-1 flex items-center gap-2 px-3 py-1.5 rounded-control text-sm font-medium min-w-0 ${
-                  isActive
-                    ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                    : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-                }`
+          <button
+            type="button"
+            title="Duplicate"
+            onClick={async (e) => {
+              e.preventDefault();
+              try {
+                const {
+                  id: _id,
+                  createdAt: _c,
+                  updatedAt: _u,
+                  isSystemTemplate: _s,
+                  ...fields
+                } = tpl;
+                const created = await createTemplate.mutateAsync({
+                  name: `${tpl.name} (Copy)`,
+                  subject: fields.subject,
+                  bodyText: fields.bodyText,
+                  headerBannerUrl: fields.headerBannerUrl ?? undefined,
+                  headerText: fields.headerText ?? undefined,
+                  footerBannerUrl: fields.footerBannerUrl ?? undefined,
+                  footerText: fields.footerText ?? undefined,
+                });
+                void navigate(`/email-templates/${created.id}`);
+              } catch (err) {
+                console.error("[duplicate template]", err);
               }
-            >
-              <SFEnvelopeBadgeFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
-              <span className="truncate">{tpl.name}</span>
-            </NavLink>
-            <button
-              type="button"
-              title="Duplicate"
-              onClick={async (e) => {
-                e.preventDefault();
-                try {
-                  const {
-                    id: _id,
-                    createdAt: _c,
-                    updatedAt: _u,
-                    isSystemTemplate: _s,
-                    ...fields
-                  } = tpl;
-                  const created = await createTemplate.mutateAsync({
-                    name: `${tpl.name} (Copy)`,
-                    subject: fields.subject,
-                    bodyText: fields.bodyText,
-                    headerBannerUrl: fields.headerBannerUrl ?? undefined,
-                    headerText: fields.headerText ?? undefined,
-                    footerBannerUrl: fields.footerBannerUrl ?? undefined,
-                    footerText: fields.footerText ?? undefined,
-                  });
-                  void navigate(`/email-templates/${created.id}`);
-                } catch (err) {
-                  console.error("[duplicate template]", err);
-                }
-              }}
-              className="opacity-0 pointer-events-none group-hover/item:opacity-100 group-hover/item:pointer-events-auto shrink-0 p-1 mr-1 rounded text-[var(--ds-nav-text)] hover:text-[var(--ds-nav-hover-text)] hover:bg-[var(--ds-nav-hover-bg)]"
-            >
-              <SFDocumentOnDocumentFill className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ))}
-      </div>
-    </details>
+            }}
+            className="opacity-0 pointer-events-none group-hover/item:opacity-100 group-hover/item:pointer-events-auto shrink-0 p-1 mr-1 rounded text-[var(--ds-nav-text)] hover:text-[var(--ds-nav-hover-text)] hover:bg-[var(--ds-nav-hover-bg)]"
+          >
+            <SFDocumentOnDocumentFill className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ))}
+    </CollapsibleSidebarGroup>
   );
 }
 

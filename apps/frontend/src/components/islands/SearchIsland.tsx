@@ -119,6 +119,7 @@ export default function SearchIsland() {
         <input
           ref={inputRef}
           type="search"
+          aria-label="Shop oder Kategorie suchen"
           value={query}
           onChange={(e) => {
             const v = e.target.value;

@@ -160,7 +160,11 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
           if (closing && e.target === e.currentTarget) onClose();
         }}
       >
+        {/* biome-ignore lint/a11y/useSemanticElements: custom overlay with animation */}
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="category-edit-title"
           className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-3xl grid grid-cols-2 overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
         >
           {/* Image Panel – 50 % */}
@@ -219,7 +223,10 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
           {/* Form Panel – 50 % */}
           <div className="flex flex-col p-3 min-w-0">
-            <h2 className="text-lg font-semibold text-[var(--ds-text)] mb-4">
+            <h2
+              id="category-edit-title"
+              className="text-lg font-semibold text-[var(--ds-text)] mb-4"
+            >
               {isNew ? categoriesMessages.editCard.titleNew : categoriesMessages.editCard.titleEdit}
             </h2>
 
@@ -274,7 +281,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             </div>
 
             {saveMutation.isError && (
-              <p className="text-red-500 text-sm mt-3">
+              <p role="alert" className="text-red-500 text-sm mt-3">
                 {saveMutation.error instanceof Error
                   ? saveMutation.error.message
                   : categoriesMessages.editCard.errorSaving}

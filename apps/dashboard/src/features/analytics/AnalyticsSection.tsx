@@ -13,7 +13,7 @@ import {
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import type { DashboardLocale } from "@/i18n/messages.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import { type ReactNode, Suspense, lazy, useState } from "react";
+import { type ReactNode, Suspense, lazy, useCallback, useMemo, useState } from "react";
 import type { IconType } from "react-icons";
 import {
   FaAndroid,
@@ -385,7 +385,7 @@ function RealtimeCard() {
   const { data: realtime, isLoading: rtLoading } = useUmamiRealtime();
   const { data: active } = useUmamiActive();
 
-  const chartData = (() => {
+  const chartData = useMemo(() => {
     const now = Date.now();
     const slots = Array.from({ length: 30 }, (_, i) => {
       const ts = Math.floor((now - (29 - i) * 60_000) / 60_000) * 60_000;
@@ -410,7 +410,7 @@ function RealtimeCard() {
     }
 
     return slots.map(({ time, visitors, pageviews }) => ({ time, visitors, pageviews }));
-  })();
+  }, [realtime, locale]);
 
   const topUrls = realtime?.urls
     ? Object.entries(realtime.urls)
@@ -561,7 +561,7 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
               ? renderLabel(rowText)
               : rowText || analyticsMessages.unknown;
             return (
-              <li key={`${type}-${rowText}-${row.y}`} className="flex items-center gap-2 text-sm">
+              <li key={`${type}-${rowText}`} className="flex items-center gap-2 text-sm">
                 <span className="shrink-0 w-5 text-base leading-none">
                   {type === "country" && rowText ? countryFlag(rowText) : null}
                 </span>
@@ -660,7 +660,7 @@ function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardP
 
             return (
               <li
-                key={`${activeType}-${rowText}-${row.y}`}
+                key={`${activeType}-${rowText}`}
                 className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5"
               >
                 <span
@@ -705,47 +705,59 @@ export function AnalyticsSection() {
 
   const [period, setPeriod] = useState<UmamiPeriod>(() => loadPeriod(periodStorageKey));
 
-  function handlePeriodChange(p: UmamiPeriod) {
+  const handlePeriodChange = useCallback((p: UmamiPeriod) => {
     setPeriod(p);
-  }
-  const periodOptions: { label: string; value: UmamiPeriod }[] = [
-    { value: "today", label: analyticsMessages.periods.today },
-    { value: "7d", label: analyticsMessages.periods.d7 },
-    { value: "30d", label: analyticsMessages.periods.d30 },
-    { value: "60d", label: analyticsMessages.periods.d60 },
-    { value: "90d", label: analyticsMessages.periods.d90 },
-  ];
-  const environmentTabs: readonly MetricTabConfig[] = [
-    {
-      label: analyticsMessages.browser,
-      value: "browser",
-      columnLabel: analyticsMessages.browser,
-    },
-    { label: analyticsMessages.os, value: "os", columnLabel: analyticsMessages.os },
-    {
-      label: analyticsMessages.devices,
-      value: "device",
-      columnLabel: analyticsMessages.device,
-    },
-  ];
-  const locationTabs: readonly MetricTabConfig[] = [
-    {
-      label: analyticsMessages.countries,
-      value: "country",
-      columnLabel: analyticsMessages.country,
-    },
-    { label: analyticsMessages.regions, value: "region", columnLabel: analyticsMessages.region },
-    { label: analyticsMessages.cities, value: "city", columnLabel: analyticsMessages.city },
-  ];
+  }, []);
+  const periodOptions = useMemo<{ label: string; value: UmamiPeriod }[]>(
+    () => [
+      { value: "today", label: analyticsMessages.periods.today },
+      { value: "7d", label: analyticsMessages.periods.d7 },
+      { value: "30d", label: analyticsMessages.periods.d30 },
+      { value: "60d", label: analyticsMessages.periods.d60 },
+      { value: "90d", label: analyticsMessages.periods.d90 },
+    ],
+    [analyticsMessages],
+  );
+  const environmentTabs = useMemo<readonly MetricTabConfig[]>(
+    () => [
+      {
+        label: analyticsMessages.browser,
+        value: "browser",
+        columnLabel: analyticsMessages.browser,
+      },
+      { label: analyticsMessages.os, value: "os", columnLabel: analyticsMessages.os },
+      {
+        label: analyticsMessages.devices,
+        value: "device",
+        columnLabel: analyticsMessages.device,
+      },
+    ],
+    [analyticsMessages],
+  );
+  const locationTabs = useMemo<readonly MetricTabConfig[]>(
+    () => [
+      {
+        label: analyticsMessages.countries,
+        value: "country",
+        columnLabel: analyticsMessages.country,
+      },
+      { label: analyticsMessages.regions, value: "region", columnLabel: analyticsMessages.region },
+      { label: analyticsMessages.cities, value: "city", columnLabel: analyticsMessages.city },
+    ],
+    [analyticsMessages],
+  );
   const { data: stats, isLoading: statsLoading } = useUmamiStats(period);
   const { data: pageviews, isLoading: pvLoading } = useUmamiPageviews(period);
 
-  const chartData =
-    pageviews?.pageviews.map((pv) => ({
-      label: formatLabel(pv.x, period, locale),
-      pageviews: pv.y,
-      visitors: pageviews.sessions.find((s) => s.x === pv.x)?.y ?? 0,
-    })) ?? [];
+  const chartData = useMemo(
+    () =>
+      pageviews?.pageviews.map((pv) => ({
+        label: formatLabel(pv.x, period, locale),
+        pageviews: pv.y,
+        visitors: pageviews.sessions.find((s) => s.x === pv.x)?.y ?? 0,
+      })) ?? [],
+    [pageviews, period, locale],
+  );
 
   const pvMaxVal = Math.max(...chartData.map((d) => Math.max(d.visitors, d.pageviews)), 1);
 

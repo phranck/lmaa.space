@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SFChevronDown, SFChevronUp, SFChevronUpChevronDown } from "sf-symbols-lib/monochrome";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
@@ -99,19 +99,23 @@ export function DataTable<T>({
     });
   }
 
-  const sorted = sort
-    ? [...data].sort((a, b) => {
-        const col = columns.find((c) => c.id === sort.id);
-        if (!col?.sortKey) return 0;
-        const av = col.sortKey(a);
-        const bv = col.sortKey(b);
-        const cmp =
-          typeof av === "number" && typeof bv === "number"
-            ? av - bv
-            : String(av).localeCompare(String(bv), "de");
-        return sort.dir === "asc" ? cmp : -cmp;
-      })
-    : data;
+  const sorted = useMemo(
+    () =>
+      sort
+        ? [...data].sort((a, b) => {
+            const col = columns.find((c) => c.id === sort.id);
+            if (!col?.sortKey) return 0;
+            const av = col.sortKey(a);
+            const bv = col.sortKey(b);
+            const cmp =
+              typeof av === "number" && typeof bv === "number"
+                ? av - bv
+                : String(av).localeCompare(String(bv), "de");
+            return sort.dir === "asc" ? cmp : -cmp;
+          })
+        : data,
+    [data, sort, columns],
+  );
 
   return (
     <Table>
@@ -122,6 +126,15 @@ export function DataTable<T>({
           {columns.map((col) => (
             <Th
               key={col.id}
+              aria-sort={
+                col.sortKey
+                  ? sort?.id === col.id
+                    ? sort.dir === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                  : undefined
+              }
               className={`${col.headerClassName ?? col.className ?? ""} ${col.sortKey ? "select-none" : ""}`}
             >
               {col.sortKey ? (

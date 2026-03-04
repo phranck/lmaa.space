@@ -2,8 +2,8 @@
 import { renderMarkdown, stripMarkdown } from "@/lib/markdown";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { REGION_CODES, type Shop } from "@lmaa/shared";
-import { SocialMediaIcons } from "@lmaa/ui";
 import { SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
+import ShopCardHeader from "./ShopCardHeader.astro";
 
 interface Props {
   shop: Shop;
@@ -43,46 +43,7 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
   data-shop-id={shop.id}
 >
   <!-- Top row: og:image + name + domain + region badges -->
-  <div class="flex items-start gap-4">
-    <div class="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
-      {shop.ogImage ? (
-        <img
-          src={shop.ogImage}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          class="w-full h-full object-cover"
-          data-img-fallback
-        />
-        <span class="text-2xl font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
-          {shop.name.charAt(0).toUpperCase()}
-        </span>
-      ) : (
-        <span class="text-2xl font-bold text-stone-300 select-none">
-          {shop.name.charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
-
-    <div class="flex-1 min-w-0 flex items-start justify-between gap-2">
-      <div class="min-w-0">
-        <h3 class="font-serif font-semibold text-stone-900 text-lg leading-snug">
-          {shop.name}
-        </h3>
-        <p class="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
-        <SocialMediaIcons socialMedia={shop.socialMedia} />
-      </div>
-      {sortedRegions.length > 0 && (
-        <div class="flex flex-wrap gap-1 shrink-0 justify-end">
-          {sortedRegions.map((r) => (
-            <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
-              {r}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
+  <ShopCardHeader shop={shop} domain={domain} sortedRegions={sortedRegions} />
 
   {descriptionPreview && (
     <p class="text-sm text-stone-600 leading-relaxed">{descriptionPreview}</p>
@@ -247,49 +208,7 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
 >
 <div class="flex flex-col gap-4">
   <!-- Header: logo + name + domain + region badges + close -->
-  <div class="flex items-start gap-4">
-    <div class="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
-      {shop.ogImage ? (
-        <img
-          src={shop.ogImage}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          class="w-full h-full object-cover"
-          data-img-fallback
-        />
-        <span class="text-2xl font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
-          {shop.name.charAt(0).toUpperCase()}
-        </span>
-      ) : (
-        <span class="text-2xl font-bold text-stone-300 select-none">
-          {shop.name.charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
-
-    <div class="flex-1 min-w-0 flex items-start justify-between gap-2">
-      <div class="min-w-0">
-        <h2
-          id={`${detailsDialogId}-title`}
-          class="font-serif font-semibold text-stone-900 text-lg leading-snug"
-        >
-          {shop.name}
-        </h2>
-        <p class="text-sm text-stone-400 mt-0.5 truncate">{domain}</p>
-        <SocialMediaIcons socialMedia={shop.socialMedia} />
-      </div>
-      {sortedRegions.length > 0 && (
-        <div class="flex flex-wrap gap-1 shrink-0 justify-end">
-          {sortedRegions.map((r) => (
-            <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
-              {r}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-
+  <ShopCardHeader shop={shop} domain={domain} sortedRegions={sortedRegions} headingId={`${detailsDialogId}-title`}>
     <button
       type="button"
       data-dismiss
@@ -298,7 +217,7 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
     >
       <SFXmarkCircleFill className="w-5 h-5" />
     </button>
-  </div>
+  </ShopCardHeader>
 
   <!-- Full markdown description -->
   {fullDescriptionHtml && (
