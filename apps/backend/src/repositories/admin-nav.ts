@@ -6,7 +6,7 @@ import { contentPages, navItems } from "../db/schema.js";
 /**
  * Normalized navigation item returned to the dashboard editor.
  */
-export interface AdminNavItemRow {
+interface AdminNavItemRow {
   id: number;
   navId: NavId;
   pageSlug: string | null;

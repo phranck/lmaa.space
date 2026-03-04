@@ -35,11 +35,11 @@ export type PublicShopRow = CategoryShopRow & { categories: ShopCategory[] };
 /**
  * Full-text search result including ranking score.
  */
-export type SearchShopRow = Shop & { categories: ShopCategory[]; rank: number };
+type SearchShopRow = Shop & { categories: ShopCategory[]; rank: number };
 /**
  * Minimal shape returned by duplicate URL checks.
  */
-export interface CheckUrlRow {
+interface CheckUrlRow {
   id: number;
   name: string;
   categories: ShopCategory[];
@@ -237,7 +237,7 @@ export async function findPublicShopByHostname(hostname: string) {
 /**
  * Submission payload accepted from the public website.
  */
-export interface CreatePublicSubmissionInput {
+interface CreatePublicSubmissionInput {
   shopName: string;
   shopUrl: string;
   categorySuggestion: string | null;

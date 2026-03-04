@@ -5,7 +5,7 @@ import { type Category, categories, shopCategories, shops } from "../db/schema.j
 /**
  * Category row enriched with the number of linked shops.
  */
-export type AdminCategorySummary = Category & { shopCount: number };
+type AdminCategorySummary = Category & { shopCount: number };
 
 /**
  * Mutable attributes accepted when creating a category.
@@ -92,7 +92,8 @@ export async function categoryExists(id: number): Promise<boolean> {
   const [category] = await db
     .select({ id: categories.id })
     .from(categories)
-    .where(eq(categories.id, id));
+    .where(eq(categories.id, id))
+    .limit(1);
   return Boolean(category);
 }
 

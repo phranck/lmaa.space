@@ -13,7 +13,7 @@ export async function listEmailTemplates(): Promise<EmailTemplate[]> {
  * Returns a single email template by ID, or `null` if not found.
  */
 export async function getEmailTemplateById(id: number): Promise<EmailTemplate | null> {
-  const [row] = await db.select().from(emailTemplates).where(eq(emailTemplates.id, id));
+  const [row] = await db.select().from(emailTemplates).where(eq(emailTemplates.id, id)).limit(1);
   return row ?? null;
 }
 
@@ -21,7 +21,11 @@ export async function getEmailTemplateById(id: number): Promise<EmailTemplate | 
  * Returns a single email template by name, or `null` if not found.
  */
 export async function getEmailTemplateByName(name: string): Promise<EmailTemplate | null> {
-  const [row] = await db.select().from(emailTemplates).where(eq(emailTemplates.name, name));
+  const [row] = await db
+    .select()
+    .from(emailTemplates)
+    .where(eq(emailTemplates.name, name))
+    .limit(1);
   return row ?? null;
 }
 
