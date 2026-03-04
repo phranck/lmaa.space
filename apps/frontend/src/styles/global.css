@@ -1,5 +1,9 @@
 @import "@lmaa/shared/styles/tokens.css";
 
+html {
+  font-size: 18px;
+}
+
 :root {
   --accent-base: var(--ds-accent);
   --accent-hover: var(--ds-accent-hover);

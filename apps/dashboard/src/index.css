@@ -7,25 +7,25 @@
 
   /* Nav: active state */
   --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  --ds-nav-active-text: #1f2328;
+  --ds-nav-active-text: var(--ds-text);
   --ds-nav-active-border: #0969da;
 
   /* Nav: default / hover */
-  --ds-nav-text: #656d76;
+  --ds-nav-text: var(--ds-text-muted);
   --ds-nav-hover-bg: var(--ds-nav-active-bg);
-  --ds-nav-hover-text: #1f2328;
+  --ds-nav-hover-text: var(--ds-text);
 
   /* Brand name in sidebar */
-  --ds-brand-text: #1f2328;
+  --ds-brand-text: var(--ds-text);
 
   /* Table row hover */
-  --ds-row-hover: rgba(175, 184, 193, 0.12);
+  --ds-row-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
   /* Subtle surface hover (icon buttons, section headers, inline notes) */
-  --ds-surface-hover: rgba(175, 184, 193, 0.12);
+  --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
   /* Section headers: sidebar sections + table headers */
-  --ds-section-header-bg: #edf0f3;
+  --ds-section-header-bg: var(--ds-bg-elevated);
 
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
@@ -38,78 +38,76 @@
 
 .dark {
   --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  --ds-nav-active-text: #f0f6fc;
+  --ds-nav-active-text: var(--ds-text);
   --ds-nav-active-border: #478be6;
-  --ds-nav-text: #9198a1;
+  --ds-nav-text: var(--ds-text-muted);
   --ds-nav-hover-bg: var(--ds-nav-active-bg);
-  --ds-nav-hover-text: #f0f6fc;
-  --ds-brand-text: #f0f6fc;
-  --ds-row-hover: #2a313c;
-  --ds-surface-hover: #2f3742;
-  --ds-section-header-bg: #2f3742;
+  --ds-nav-hover-text: var(--ds-text);
+  --ds-brand-text: var(--ds-text);
+  --ds-section-header-bg: var(--ds-bg-elevated);
 }
 
 /* Dark mode: MDXEditor toolbar and popups */
 .dark .mdxeditor {
-  --baseBg: #262c36;
-  --basePageBg: #151b23;
-  --baseBgSubtle: #151b23;
-  --baseBgHover: #2f3742;
-  --baseBgActive: #3d444d;
-  --baseBorder: #3d444d;
-  --baseBorderHover: #656c76;
-  --baseBase: #2a313c;
-  --baseLine: #3d444d;
-  --baseSolid: #9198a1;
-  --baseSolidHover: #b7bdc8;
-  --baseText: #9198a1;
-  --baseTextContrast: #f0f6fc;
+  --baseBg: var(--ds-surface);
+  --basePageBg: var(--ds-surface-alt);
+  --baseBgSubtle: var(--ds-surface-alt);
+  --baseBgHover: var(--ds-bg-elevated);
+  --baseBgActive: var(--ds-border);
+  --baseBorder: var(--ds-border);
+  --baseBorderHover: var(--ds-border-strong);
+  --baseBase: var(--ds-bg-elevated);
+  --baseLine: var(--ds-border);
+  --baseSolid: var(--ds-text-muted);
+  --baseSolidHover: #b7bdc8; /* kein Token-Match (L≈0.78) */
+  --baseText: var(--ds-text-muted);
+  --baseTextContrast: var(--ds-text);
   color-scheme: dark;
 }
 
 .dark .mdxeditor-popup-container [role="dialog"],
 .dark .mdxeditor-popup-container [role="tooltip"],
 .dark .mdxeditor-popup-container [data-radix-popper-content-wrapper] > * {
-  background-color: #262c36 !important;
-  border-color: #3d444d !important;
-  color: #f0f6fc !important;
+  background-color: var(--ds-surface) !important;
+  border-color: var(--ds-border) !important;
+  color: var(--ds-text) !important;
 }
 
 .dark .mdxeditor input,
 .dark .mdxeditor select {
-  background-color: #2a313c;
-  border-color: #3d444d;
-  color: #f0f6fc;
+  background-color: var(--ds-bg-elevated);
+  border-color: var(--ds-border);
+  color: var(--ds-text);
 }
 
 .dark .mdxeditor-popup-container input,
 .dark .mdxeditor-popup-container select,
 .dark .mdxeditor-popup-container textarea {
-  background-color: #2a313c !important;
-  border-color: #3d444d !important;
-  color: #f0f6fc !important;
+  background-color: var(--ds-bg-elevated) !important;
+  border-color: var(--ds-border) !important;
+  color: var(--ds-text) !important;
 }
 
 .dark .mdxeditor-popup-container input::placeholder,
 .dark .mdxeditor-popup-container textarea::placeholder {
-  color: #9198a1 !important;
+  color: var(--ds-text-muted) !important;
 }
 
 .dark .mdxeditor-popup-container label,
 .dark .mdxeditor-popup-container p,
 .dark .mdxeditor-popup-container span {
-  color: #f0f6fc !important;
+  color: var(--ds-text) !important;
 }
 
 .dark .mdxeditor-popup-container [role="dialog"] button {
-  background-color: #2a313c !important;
-  border: 1px solid #3d444d !important;
-  color: #f0f6fc !important;
+  background-color: var(--ds-bg-elevated) !important;
+  border: 1px solid var(--ds-border) !important;
+  color: var(--ds-text) !important;
 }
 
 .dark .mdxeditor-popup-container [role="dialog"] button:hover {
-  background-color: #2f3742 !important;
-  border-color: #656c76 !important;
+  background-color: var(--ds-bg-elevated) !important;
+  border-color: var(--ds-border-strong) !important;
 }
 
 .dark .mdxeditor-popup-container [role="dialog"] button[type="submit"],
@@ -126,17 +124,17 @@
 }
 
 .dark .mdxeditor .cm-editor {
-  background-color: #151b23;
-  color: #f0f6fc;
+  background-color: var(--ds-surface-alt);
+  color: var(--ds-text);
 }
 .dark .mdxeditor .cm-gutters {
-  background-color: #151b23;
-  border-color: #3d444d;
-  color: #9198a1;
+  background-color: var(--ds-surface-alt);
+  border-color: var(--ds-border);
+  color: var(--ds-text-muted);
 }
 .dark .mdxeditor .cm-activeLineGutter,
 .dark .mdxeditor .cm-activeLine {
-  background-color: #212830;
+  background-color: var(--ds-bg);
 }
 
 /* Section headers: shared style for sidebar sections and table headers */
@@ -280,7 +278,7 @@ button {
 }
 
 html {
-  font-size: 17px;
+  font-size: 18px;
 }
 
 body {
