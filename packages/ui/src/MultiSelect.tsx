@@ -170,7 +170,7 @@ export function MultiSelect({
               left: dropdownRect.left,
               width: dropdownRect.width,
               zIndex: 9999,
-              backgroundColor: "var(--ds-input-bg, #ffffff)",
+              backgroundColor: "var(--ds-surface)",
             }}
             className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
@@ -246,11 +246,11 @@ export function MultiSelect({
           isOpen
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error
-              ? "border-red-400"
+              ? "border-[var(--ds-btn-danger-border)]"
               : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]",
           className,
         )}
-        style={{ backgroundColor: "var(--ds-input-bg, #ffffff)" }}
+        style={{ backgroundColor: "var(--ds-surface)" }}
       >
         {value.length > 0 ? (
           <div className="flex flex-wrap items-center gap-1 flex-1 min-w-0">
@@ -309,7 +309,7 @@ export function MultiSelect({
 
       {dropdown}
 
-      {error && <p className="text-red-500 text-xs mt-1.5">{error}</p>}
+      {error && <p className="text-[var(--ds-danger-text)] text-xs mt-1.5">{error}</p>}
     </div>
   );
 }

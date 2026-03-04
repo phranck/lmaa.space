@@ -39,18 +39,18 @@ const REGION_OPTIONS = createRegionOptions({
 });
 
 const inputClass =
-  "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
+  "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
 
 const errorClass = "text-[var(--ds-danger-text)] text-xs mt-1";
 
-const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5 px-[5px]";
+const labelClass = "block text-sm font-medium text-[var(--ds-text)] mb-1.5 px-1";
 
 // ---------------------------------------------------------------------------
 // Shared sub-components
 // ---------------------------------------------------------------------------
 
 function DynamicFormSubtext({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-[5px]">{children}</p>;
+  return <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-1">{children}</p>;
 }
 
 // ---------------------------------------------------------------------------
@@ -280,7 +280,7 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
       <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
         )}
       </label>
       {field.allowMarkdown ? (
@@ -416,7 +416,7 @@ function UrlField({ field, control, error }: UrlFieldProps) {
       <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
         )}
       </label>
       <input
@@ -432,10 +432,10 @@ function UrlField({ field, control, error }: UrlFieldProps) {
       />
       {field.subtext && <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>}
       {urlCheck.status === "checking" && (
-        <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-[5px]">Wird geprüft…</p>
+        <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-1">Wird geprüft…</p>
       )}
       {urlCheck.status === "found" && (
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-1.5">
+        <p className="text-xs text-[var(--ds-warning-text)] bg-[var(--ds-warning-bg)] border border-[var(--ds-warning-border)] rounded-lg px-3 py-2 mt-1.5">
           Ein Shop mit dieser Domain ist bereits eingetragen: <strong>{urlCheck.shop.name}</strong>
         </p>
       )}
@@ -466,7 +466,7 @@ function SelectField({ field, register, error }: SelectFieldProps) {
       <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
         )}
       </label>
       <select id={key} className={inputClass} {...register(key, buildValidationRules(field))}>
@@ -567,7 +567,7 @@ function MultiSelectDropdown({
       <span className={labelClass}>
         {label}
         {required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
         )}
       </span>
       <button
@@ -781,7 +781,7 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
       <span className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
         )}
       </span>
       <div className="flex flex-col gap-2">
@@ -810,9 +810,10 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
 
 const RICHTEXT_VARIANT_CLASSES: Record<RichTextVariant, string> = {
   default: "bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text)]",
-  info: "bg-blue-50 border border-blue-200 text-blue-900",
-  warning: "bg-amber-50 border border-amber-200 text-amber-900",
-  hint: "bg-green-50 border border-green-200 text-green-900",
+  info: "bg-[var(--ds-info-bg)] border border-[var(--ds-info-border)] text-[var(--ds-info-text)]",
+  warning:
+    "bg-[var(--ds-warning-bg)] border border-[var(--ds-warning-border)] text-[var(--ds-warning-text)]",
+  hint: "bg-[var(--ds-success-bg)] border border-[var(--ds-success-border)] text-[var(--ds-success-text)]",
 };
 
 /**
@@ -1079,7 +1080,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
             <label htmlFor={key} className={labelClass}>
               {field.label}
               {field.required && (
-                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
               )}
             </label>
             <input
@@ -1148,7 +1149,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               />
               {field.label}
               {field.required && (
-                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
+                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
               )}
             </label>
             {fieldError && <p className={errorClass}>{fieldError}</p>}
@@ -1276,8 +1277,8 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           return (
             <div key={row.id}>
               {showLegend && (
-                <p className="flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)] mb-6 px-[5px]">
-                  <SFExclamationmarkSquareFill className="shrink-0 w-3.5 h-3.5 text-red-500" />
+                <p className="flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)] mb-6 px-1">
+                  <SFExclamationmarkSquareFill className="shrink-0 w-3.5 h-3.5 text-[var(--ds-danger-text)]" />
                   Mit diesem Symbol gekennzeichnete Felder sind Pflichtfelder und müssen ausgefüllt
                   werden.
                 </p>

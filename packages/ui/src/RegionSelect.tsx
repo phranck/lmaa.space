@@ -151,7 +151,7 @@ export function RegionSelect({
               left: dropdownRect.left,
               width: dropdownRect.width,
               zIndex: 9999,
-              backgroundColor: "var(--ds-input-bg, #ffffff)",
+              backgroundColor: "var(--ds-surface)",
             }}
             className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
@@ -191,7 +191,7 @@ export function RegionSelect({
 
   const labelClass =
     variant === "frontend"
-      ? "block text-sm font-medium text-stone-700 mb-1.5"
+      ? "block text-sm font-medium text-[var(--ds-text-muted)] mb-1.5"
       : "block text-xs font-medium text-[var(--ds-text-muted)] mb-1";
 
   return (
@@ -207,7 +207,7 @@ export function RegionSelect({
           open
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error
-              ? "border-red-400"
+              ? "border-[var(--ds-btn-danger-border)]"
               : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
         }`}
       >
@@ -223,7 +223,7 @@ export function RegionSelect({
 
       {dropdown}
 
-      {error && <p className="text-red-500 text-xs mt-1.5">{error}</p>}
+      {error && <p className="text-[var(--ds-danger-text)] text-xs mt-1.5">{error}</p>}
     </div>
   );
 }

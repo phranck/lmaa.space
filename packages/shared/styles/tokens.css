@@ -110,11 +110,17 @@
 
   /* Status — exact GitHub Light primer values */
   --ds-success-bg: #dafbe1; /* bgColor-success-muted */
+  --ds-success-border: rgba(74, 194, 107, 0.4); /* borderColor-success */
   --ds-success-text: #1a7f37; /* fgColor-success */
   --ds-danger-bg: #ffebe9; /* bgColor-danger-muted */
+  --ds-danger-border: rgba(255, 129, 130, 0.4); /* borderColor-danger */
   --ds-danger-text: #d1242f; /* fgColor-danger */
   --ds-warning-bg: #fff8c5; /* bgColor-attention-muted */
+  --ds-warning-border: rgba(212, 167, 44, 0.4); /* borderColor-attention */
   --ds-warning-text: #9a6700; /* fgColor-attention */
+  --ds-info-bg: #ddf4ff; /* bgColor-accent-muted */
+  --ds-info-border: rgba(84, 174, 255, 0.4); /* borderColor-accent */
+  --ds-info-text: #0969da; /* fgColor-accent */
 
   /* Typography — font families */
   --ds-font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -229,11 +235,17 @@
 
   /* Status — exact Primer dark_dimmed values */
   --ds-success-bg: rgba(70, 149, 74, 0.15); /* bgColor-success-muted */
+  --ds-success-border: rgba(87, 171, 90, 0.4); /* borderColor-success */
   --ds-success-text: #57ab5a; /* fgColor-success */
   --ds-danger-bg: rgba(229, 83, 75, 0.1); /* bgColor-danger-muted */
+  --ds-danger-border: rgba(229, 83, 75, 0.4); /* borderColor-danger */
   --ds-danger-text: #e5534b; /* fgColor-danger */
   --ds-warning-bg: rgba(174, 124, 20, 0.15); /* bgColor-attention-muted */
+  --ds-warning-border: rgba(198, 144, 38, 0.4); /* borderColor-attention */
   --ds-warning-text: #c69026; /* fgColor-attention */
+  --ds-info-bg: rgba(56, 139, 253, 0.1); /* bgColor-accent-muted */
+  --ds-info-border: rgba(56, 139, 253, 0.4); /* borderColor-accent */
+  --ds-info-text: #539bf5; /* fgColor-accent */
 
   /* Shadows — stronger for very dark surfaces */
   --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
