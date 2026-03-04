@@ -96,7 +96,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
   const { query, photos, total, status, error } = state;
 
-  // Ref to avoid stale closures in IntersectionObserver
+  // Refs to avoid stale closures in IntersectionObserver
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -130,6 +130,11 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
     [categoriesMessages.unsplash.searchError],
   );
 
+  const searchRef = useRef(search);
+  useEffect(() => {
+    searchRef.current = search;
+  }, [search]);
+
   // First run: search immediately (no debounce). Subsequent changes: debounced + reset page.
   useEffect(() => {
     if (isFirstRun.current) {
@@ -145,8 +150,11 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
     };
   }, [query, search]);
 
-  // Infinite scroll: observe sentinel div at the bottom of the list
+  // Infinite scroll: observe sentinel div at the bottom of the list.
+  // photos.length in deps ensures re-observation after appending results,
+  // so the observer fires again even if the sentinel stays in view.
   const hasMore = photos.length > 0 && photos.length < total;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: photos.length triggers re-observe after append
   useEffect(() => {
     const sentinel = sentinelRef.current;
     const container = scrollContainerRef.current;
@@ -158,7 +166,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
         if (entries[0].isIntersecting && s !== "loading-more") {
           const nextPage = p + 1;
           dispatch({ type: "next-page" });
-          search(q, nextPage, true);
+          searchRef.current(q, nextPage, true);
         }
       },
       { root: container, threshold: 0.1 },
@@ -166,7 +174,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, search]);
+  }, [hasMore, photos.length]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
