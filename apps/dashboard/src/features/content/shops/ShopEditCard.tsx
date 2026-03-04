@@ -15,7 +15,7 @@ import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts"
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 import { useEffect, useState } from "react";
-import { SFArrowClockwise } from "sf-symbols-lib/monochrome";
+import { SFArrowClockwise, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
 
 type ShopEditCardProps = {
   initialData?: Partial<ShopEditFormValue>;
@@ -231,8 +231,9 @@ export function ShopEditCard({
             type="button"
             onClick={() => handleSave()}
             disabled={!canSave}
-            className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
           >
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
             {isPending ? common.saving : common.save}
           </button>
         </div>

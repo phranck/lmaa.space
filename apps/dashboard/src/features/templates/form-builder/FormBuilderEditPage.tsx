@@ -36,6 +36,7 @@ import {
   SFCheckmarkCircleFill,
   SFCircle,
   SFHandTap,
+  SFSquareAndArrowDownFill,
   SFSquareAndArrowUp,
 } from "sf-symbols-lib/monochrome";
 
@@ -388,7 +389,7 @@ export function FormBuilderEditPage() {
             disabled={saveMutation.isPending}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
           >
-            <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
             {saveMutation.isPending ? messages.common.saving : m.save}
           </button>
         </div>

@@ -13,7 +13,12 @@ import type {
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import { useEffect, useRef, useState } from "react";
-import { SFMagnifyingglass, SFSquareAndArrowUpFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+import {
+  SFMagnifyingglass,
+  SFSquareAndArrowDownFill,
+  SFTrashFill,
+  SFTrayAndArrowUpFill,
+} from "sf-symbols-lib/monochrome";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";
@@ -216,7 +221,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
               >
-                <SFSquareAndArrowUpFill className="w-3 h-3" />
+                <SFTrayAndArrowUpFill className="w-3 h-3" />
                 {categoriesMessages.editCard.upload}
               </button>
               <button
@@ -320,8 +325,9 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 type="button"
                 onClick={() => handleSave()}
                 disabled={!canSave}
-                className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+                className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
               >
+                <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
                 {saveMutation.isPending ? common.saving : common.save}
               </button>
             </div>

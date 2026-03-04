@@ -5,7 +5,11 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminUsers, useDeleteUser } from "@/features/system/hooks/useAdminUsers.ts";
 import { useState } from "react";
-import { SFLongTextPageAndPencilFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+import {
+  SFLongTextPageAndPencilFill,
+  SFPlusCircleFill,
+  SFTrashFill,
+} from "sf-symbols-lib/monochrome";
 import { UserAvatar } from "./UserAvatar.tsx";
 import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
@@ -35,8 +39,9 @@ export function UsersPage() {
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
+          <SFPlusCircleFill className="w-3.5 h-3.5" />
           {usersMessages.inviteUser}
         </button>
       </PageHeader>
