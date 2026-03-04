@@ -11,6 +11,8 @@ export const SOCIAL_PLATFORM_KEYS = [
   "bluesky",
   "mastodon",
   "linkedin",
+  "pinterest",
+  "patreon",
 ] as const;
 
 export type SocialPlatformKey = (typeof SOCIAL_PLATFORM_KEYS)[number];
@@ -247,6 +249,42 @@ function normalizeThreads(input: string): string | null {
   return `https://threads.net/@${handle}`;
 }
 
+function normalizePinterest(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (!host.startsWith("pinterest.") && host !== "pin.it") return null;
+    const user = extractPathUser(url);
+    if (!user) return null;
+    return `https://pinterest.com/${user}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://pinterest.com/${handle}`;
+}
+
+function normalizePatreon(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "patreon.com") return null;
+    const user = extractPathUser(url);
+    if (!user) return null;
+    return `https://patreon.com/${user}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://patreon.com/${handle}`;
+}
+
 const normalizers: Record<SocialPlatformKey, (input: string) => string | null> = {
   instagram: normalizeInstagram,
   facebook: normalizeFacebook,
@@ -258,6 +296,8 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   bluesky: normalizeBluesky,
   mastodon: normalizeMastodon,
   linkedin: normalizeLinkedin,
+  pinterest: normalizePinterest,
+  patreon: normalizePatreon,
 };
 
 export function normalizeSocialMediaValue(platform: string, input: string): string | null {
