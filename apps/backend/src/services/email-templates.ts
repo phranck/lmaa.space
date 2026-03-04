@@ -81,8 +81,6 @@ export async function updateManagedEmailTemplate(
   id: number,
   data: Partial<Omit<EmailTemplateInsert, "isSystemTemplate">>,
 ): Promise<{ ok: true; data: EmailTemplate } | { ok: false; reason: "not_found" }> {
-  const existing = await getEmailTemplateById(id);
-  if (!existing) return { ok: false, reason: "not_found" };
   const row = await updateEmailTemplate(id, data);
   if (!row) return { ok: false, reason: "not_found" };
   return { ok: true, data: rowToEmailTemplate(row) };

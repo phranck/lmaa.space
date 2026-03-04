@@ -13,27 +13,17 @@ import {
   findPublicShopByHostname,
   getPublicCategoryBySlug,
   getPublicShopById,
-  getPublishedContentPageBySlug,
-  getRejectionPageByToken,
   insertDeadLinkReport,
   insertShopConcernReport,
   listAllPublicShopsWithCategories,
-  listPublicCategoriesWithShopCount,
-  listPublicNavItems,
   listPublicShopsByCategoryId,
-  listPublishedContentPages,
   searchPublicCategoriesByEscapedQuery,
   searchPublicShops,
 } from "../repositories/public.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000;
 
-/**
- * Public navigation buckets rendered on the website.
- */
-type PublicNavId = "header" | "footer";
-
-function normalizeShopHostname(url: string): string | null {
+export function normalizeShopHostname(url: string): string | null {
   try {
     const parsed = url.includes("://") ? new URL(url) : new URL(`https://${url}`);
     return parsed.hostname.replace(/^www\./, "");
@@ -42,17 +32,8 @@ function normalizeShopHostname(url: string): string | null {
   }
 }
 
-function hashIp(ip: string): string {
+export function hashIp(ip: string): string {
   return createHmac("sha256", env.IP_HASH_SALT).update(ip).digest("hex");
-}
-
-/**
- * Returns all public categories with computed shop counts.
- *
- * @returns Category list for public catalog navigation.
- */
-export async function getManagedPublicCategories() {
-  return listPublicCategoriesWithShopCount();
 }
 
 /**
@@ -158,57 +139,13 @@ export async function checkManagedPublicShopUrl(urlRaw: string | undefined) {
 }
 
 /**
- * Returns navigation items for one public navigation bucket.
- *
- * @param navId - `"header"` or `"footer"`.
- * @returns Ordered list of navigation items.
- */
-export async function getManagedPublicNav(navId: PublicNavId) {
-  return listPublicNavItems(navId);
-}
-
-/**
- * Returns metadata list of all published content pages.
- *
- * @returns Published content list used for page index/SSG selection.
- */
-export async function getManagedPublishedContentList() {
-  return listPublishedContentPages();
-}
-
-/**
- * Returns one published content page by slug.
- *
- * @param slug - Content page slug.
- * @returns Published page payload or `null`.
- */
-export async function getManagedPublishedContentPage(slug: string) {
-  return getPublishedContentPageBySlug(slug);
-}
-
-/**
- * Returns public rejection page data for a rejected submission.
- *
- * @param id - Submission id.
- * @returns Page data or `null` when not found or not rejected.
- */
-export async function getManagedPublicRejectionPage(token: string) {
-  return getRejectionPageByToken(token);
-}
-
-/**
  * Creates a dead-link report for a shop.
  *
  * @param shopId - Public shop id.
  * @param ip - Request IP (hashed before persistence).
  * @returns
  * - `{ ok: false, reason: "not_found" }` when shop does not exist.
- * - `{ ok: true, message }` when report is stored.
- *
- * @remarks
- * Side effects:
- * - Stores hashed reporter IP.
- * - Increments/updates dead-link counters.
+ * - `{ ok: true }` when report is stored.
  */
 export async function createManagedDeadLinkReport(shopId: number, ip: string) {
   const shop = await getPublicShopById(shopId);
@@ -217,8 +154,7 @@ export async function createManagedDeadLinkReport(shopId: number, ip: string) {
   }
 
   await insertDeadLinkReport(shopId, hashIp(ip));
-
-  return success({ message: "Danke für deinen Hinweis!" });
+  return success();
 }
 
 /**
@@ -230,7 +166,7 @@ export async function createManagedDeadLinkReport(shopId: number, ip: string) {
  * @returns
  * - `{ ok: false, reason: "invalid_reason" }` if reason is too short.
  * - `{ ok: false, reason: "not_found" }` if shop does not exist.
- * - `{ ok: true, message }` when concern is stored.
+ * - `{ ok: true }` when concern is stored.
  */
 export async function createManagedShopConcernReport(
   shopId: number,
@@ -248,7 +184,7 @@ export async function createManagedShopConcernReport(
   }
 
   await insertShopConcernReport(shopId, reason, hashIp(ip));
-  return success({ message: "Danke für dein Feedback!" });
+  return success();
 }
 
 /**

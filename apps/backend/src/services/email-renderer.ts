@@ -1,5 +1,6 @@
 import { marked } from "marked";
 import type { EmailTemplate } from "../db/schema.js";
+import { escapeHtml } from "../lib/html.js";
 
 marked.use({ breaks: true, gfm: true });
 
@@ -24,31 +25,10 @@ const DARK_RULES = `
  */
 const DARK_MODE_CSS = `@media (prefers-color-scheme: dark) {${DARK_RULES}}`;
 
-/**
- * Scans all text fields of a template and returns deduplicated variable names
- * in order of first occurrence.
- */
-export function extractTemplateVariables(template: EmailTemplate): string[] {
-  const fields = [template.subject, template.headerText, template.bodyText, template.footerText];
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  for (const field of fields) {
-    if (!field) continue;
-    for (const match of field.matchAll(new RegExp(VAR_REGEX.source, "g"))) {
-      const name = match[1];
-      if (!seen.has(name)) {
-        seen.add(name);
-        result.push(name);
-      }
-    }
-  }
-
-  return result;
-}
-
 function interpolate(text: string, variables: Record<string, string>): string {
-  return text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) => variables[name] ?? "");
+  return text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) =>
+    escapeHtml(variables[name] ?? ""),
+  );
 }
 
 /**

@@ -2,6 +2,7 @@ import { lt } from "drizzle-orm";
 import { env } from "../config/env.js";
 import { db } from "../db/index.js";
 import { sessions } from "../db/schema.js";
+import { logger } from "../lib/logger.js";
 
 /**
  * Delete expired sessions from the database.
@@ -29,13 +30,13 @@ export function startSessionCleanupJob(): NodeJS.Timeout {
     try {
       const { purged } = await cleanupExpiredSessions();
       if (purged > 0) {
-        console.log(`[SessionCleanup] Purged ${purged} expired sessions`);
+        logger.info({ purged }, "session cleanup: purged expired sessions");
       }
     } catch (error) {
-      console.error("[SessionCleanup] Error:", error);
+      logger.error({ err: error }, "session cleanup error");
     }
   }, intervalMs);
 
-  console.log(`[SessionCleanup] Job started (interval: ${intervalMs}ms)`);
+  logger.info({ intervalMs }, "session cleanup job started");
   return timer;
 }

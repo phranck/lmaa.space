@@ -1,25 +1,12 @@
-import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
+import type { SubmissionReviewStatus } from "@lmaa/shared";
 import { failure, success } from "../lib/result.js";
 import { setAdminShopOgImage } from "../repositories/admin-shops.js";
 import {
-  type SubmissionEditData,
   deleteSubmission,
-  editSubmission,
   getSubmissionStatus,
-  listAdminSubmissions,
   reviewSubmission,
 } from "../repositories/admin-submissions.js";
 import { hydrateShopOgImageInBackground } from "./preview-images.js";
-
-/**
- * Lists submissions for moderation with optional status filter.
- *
- * @param status - Optional moderation status filter.
- * @returns Submission list for admin tables.
- */
-export async function getAdminSubmissions(status?: SubmissionStatus) {
-  return listAdminSubmissions(status);
-}
 
 /**
  * Input contract for submission moderation action.
@@ -68,17 +55,6 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
   }
 
   return success({ submission });
-}
-
-/**
- * Edits persisted submission fields.
- *
- * @param id - Submission id.
- * @param data - Validated editable fields.
- * @returns Updated submission payload or `null`.
- */
-export async function editAdminSubmission(id: number, data: SubmissionEditData) {
-  return editSubmission(id, data);
 }
 
 /**

@@ -5,7 +5,6 @@ import {
   deleteSession,
   findAdminByUsername,
   getAdminCount,
-  getAdminProfileById,
 } from "../repositories/admin-auth.js";
 import { hashPassword, verifyPassword } from "./auth.js";
 
@@ -118,14 +117,4 @@ export async function logoutAdmin(sessionId: string | undefined) {
   if (sessionId) {
     await deleteSession(sessionId);
   }
-}
-
-/**
- * Loads profile data for the authenticated admin.
- *
- * @param adminId - Authenticated admin id from middleware context.
- * @returns Admin profile payload or `null` when not found.
- */
-export async function getAdminProfile(adminId: number) {
-  return getAdminProfileById(adminId);
 }

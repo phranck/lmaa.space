@@ -1,9 +1,13 @@
 import type { SubmissionConfig } from "@lmaa/contracts";
+import { escapeHtml } from "../lib/html.js";
+import { logger } from "../lib/logger.js";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
 import { insertFormSubmission } from "../repositories/form-submission.js";
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
+
+const DEFAULT_SUBMISSION_SUBJECT = "Neue Formular-Übermittlung";
 
 /**
  * Executes the submission chain defined in `config.steps`.
@@ -33,11 +37,7 @@ export async function executeSubmissionChain(
           step.toFieldId && typeof data[step.toFieldId] === "string"
             ? (data[step.toFieldId] as string)
             : step.to;
-        console.log("[email] step resolve:", {
-          toFieldId: step.toFieldId,
-          resolvedTo: to,
-          dataKeys: Object.keys(data),
-        });
+        logger.debug({ toFieldId: step.toFieldId, resolvedTo: to }, "email step resolve");
         await handleEmail(
           to,
           step.subject,
@@ -64,7 +64,7 @@ function buildPlainTable(data: Record<string, unknown>): string {
   const rows = Object.entries(data)
     .map(
       ([k, v]) =>
-        `<tr><td style="padding:4px 8px;font-weight:600">${k}</td><td style="padding:4px 8px">${String(v ?? "")}</td></tr>`,
+        `<tr><td style="padding:4px 8px;font-weight:600">${escapeHtml(k)}</td><td style="padding:4px 8px">${escapeHtml(String(v ?? ""))}</td></tr>`,
     )
     .join("");
   return `<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">${rows}</table>`;
@@ -86,7 +86,7 @@ async function handleEmail(
   const variables = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v ?? "")]));
 
   let html: string;
-  let resolvedSubject = subject ?? `Neue Formular-Übermittlung: ${formName}`;
+  let resolvedSubject = subject ?? `${DEFAULT_SUBMISSION_SUBJECT}: ${formName}`;
 
   if (templateId) {
     const template = await getEmailTemplateById(templateId);

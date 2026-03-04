@@ -1,15 +1,14 @@
 import { Resend } from "resend";
 import { env } from "../config/env.js";
+import { logger } from "../lib/logger.js";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 const FROM = env.EMAIL_FROM;
 
-console.log("[email] init:", {
-  configured: resend !== null,
-  from: FROM,
-  ownerEmail: env.OWNER_EMAIL ?? "(not set)",
-  dashboardUrl: env.DASHBOARD_URL,
-});
+logger.info(
+  { configured: resend !== null, from: FROM, ownerEmail: env.OWNER_EMAIL ?? "(not set)" },
+  "email service initialized",
+);
 
 /**
  * Sends a plain email via Resend.
@@ -26,11 +25,11 @@ export async function sendMail(
   options?: { replyTo?: string },
 ): Promise<boolean> {
   if (!resend) {
-    console.warn("[email] skipped – RESEND_API_KEY not set");
+    logger.warn("email skipped: RESEND_API_KEY not set");
     return false;
   }
 
-  console.log("[email] sending:", { to, subject, from: FROM });
+  logger.info({ to, subject, from: FROM }, "sending email");
 
   try {
     const { data, error } = await resend.emails.send({
@@ -41,13 +40,13 @@ export async function sendMail(
       ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
     });
     if (error) {
-      console.error("[email] resend error:", error);
+      logger.error({ err: error }, "resend API error");
       return false;
     }
-    console.log("[email] sent ok, id:", data?.id);
+    logger.info({ emailId: data?.id }, "email sent");
     return true;
   } catch (err) {
-    console.error("[email] unexpected error:", err);
+    logger.error({ err }, "email send failed");
     return false;
   }
 }

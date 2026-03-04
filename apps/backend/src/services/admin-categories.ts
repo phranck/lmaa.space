@@ -1,56 +1,10 @@
 import { processImageUpload } from "../lib/image-upload.js";
 import { failure, success } from "../lib/result.js";
 import {
-  type CreateAdminCategoryData,
-  type UpdateAdminCategoryData,
   categoryExists,
   clearAdminCategoryImage,
-  createAdminCategory,
-  deleteAdminCategory,
-  listAdminCategories,
   setAdminCategoryImage,
-  updateAdminCategory,
 } from "../repositories/admin-categories.js";
-
-/**
- * Lists categories for admin management.
- *
- * @returns Category rows with computed metadata used in dashboard.
- */
-export async function getAdminCategories() {
-  return listAdminCategories();
-}
-
-/**
- * Creates a new category.
- *
- * @param data - Validated category creation payload.
- * @returns Newly created category row.
- */
-export async function createManagedAdminCategory(data: CreateAdminCategoryData) {
-  return createAdminCategory(data);
-}
-
-/**
- * Updates an existing category.
- *
- * @param id - Category id.
- * @param data - Partial category update payload.
- * @returns Updated category row or `null`.
- */
-export async function updateManagedAdminCategory(id: number, data: UpdateAdminCategoryData) {
-  return updateAdminCategory(id, data);
-}
-
-/**
- * Deletes a category by id.
- *
- * @param id - Category id.
- * @returns Resolves when deletion completes.
- */
-export async function deleteManagedAdminCategory(id: number) {
-  await deleteAdminCategory(id);
-}
 
 /**
  * Uploads and normalizes a category hero image.

@@ -1,3 +1,4 @@
+import { logger } from "../lib/logger.js";
 import {
   UMAMI_WEBSITE_ID,
   type UmamiPeriod,
@@ -40,7 +41,8 @@ export async function getManagedUmamiStats(periodRaw: string | undefined) {
       `/websites/${UMAMI_WEBSITE_ID}/stats?startAt=${startAt}&endAt=${endAt}`,
     );
     return normalizeUmamiStats(rawData);
-  } catch {
+  } catch (error) {
+    logger.error({ err: error }, "umami request failed");
     return null;
   }
 }
@@ -62,7 +64,8 @@ export async function getManagedUmamiPageviews(periodRaw: string | undefined) {
     return await umamiGet(
       `/websites/${UMAMI_WEBSITE_ID}/pageviews?startAt=${startAt}&endAt=${endAt}&unit=${unit}`,
     );
-  } catch {
+  } catch (error) {
+    logger.error({ err: error }, "umami request failed");
     return null;
   }
 }
@@ -88,7 +91,8 @@ export async function getManagedUmamiMetrics(
     return await umamiGet(
       `/websites/${UMAMI_WEBSITE_ID}/metrics?type=${type}&startAt=${startAt}&endAt=${endAt}&limit=10`,
     );
-  } catch {
+  } catch (error) {
+    logger.error({ err: error }, "umami request failed");
     return null;
   }
 }
@@ -103,7 +107,8 @@ export async function getManagedUmamiActive() {
 
   try {
     return await umamiGet(`/websites/${UMAMI_WEBSITE_ID}/active`);
-  } catch {
+  } catch (error) {
+    logger.error({ err: error }, "umami request failed");
     return null;
   }
 }
@@ -118,7 +123,8 @@ export async function getManagedUmamiRealtime() {
 
   try {
     return await umamiGet(`/realtime/${UMAMI_WEBSITE_ID}`);
-  } catch {
+  } catch (error) {
+    logger.error({ err: error }, "umami request failed");
     return null;
   }
 }
