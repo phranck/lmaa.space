@@ -1,5 +1,6 @@
 import { useI18n } from "@/context/I18nContext.tsx";
 import type { Category } from "@lmaa/shared";
+import { SFLongTextPageAndPencilFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 
 interface CategoryGridItemProps {
   category: Category;
@@ -46,16 +47,18 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
           <button
             type="button"
             onClick={() => onEdit(category.id)}
-            className="btn-edit flex-1 py-1.5 text-xs border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+            className="btn-edit flex-1 py-1.5 text-xs border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors flex items-center gap-1 justify-center"
           >
+            <SFLongTextPageAndPencilFill className="w-3 h-3" />
             {categoriesMessages.card.edit}
           </button>
           {onDelete && (
             <button
               type="button"
               onClick={() => onDelete(category.id)}
-              className="btn-delete flex-1 py-1.5 text-xs border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+              className="btn-delete flex-1 py-1.5 text-xs border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors flex items-center gap-1 justify-center"
             >
+              <SFTrashFill className="w-3 h-3" />
               {categoriesMessages.card.delete}
             </button>
           )}

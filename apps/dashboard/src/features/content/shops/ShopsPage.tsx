@@ -18,6 +18,7 @@ import {
   SFEyeFill,
   SFMagnifyingglass,
   SFPauseCircleFill,
+  SFPlusCircleFill,
   SFSquareGrid2x2Fill,
   SFStorefrontFill,
   SFTrashFill,
@@ -129,8 +130,9 @@ export function ShopsPage() {
         <button
           type="button"
           onClick={() => setEditTarget("new")}
-          className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
+          <SFPlusCircleFill className="w-3.5 h-3.5" />
           {shopsMessages.newShop}
         </button>
       </PageHeader>

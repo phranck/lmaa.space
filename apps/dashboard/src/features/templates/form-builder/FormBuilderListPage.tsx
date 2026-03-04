@@ -26,7 +26,7 @@ import {
   SFCheckmarkCircleFill,
   SFCircle,
   SFDocumentFill,
-  SFNewspaperFill,
+  SFLongTextPageAndPencilFill,
   SFPlusCircleFill,
   SFSquareAndArrowDown,
   SFSquareAndArrowUp,
@@ -459,7 +459,7 @@ export function FormBuilderListPage() {
                           onClick={() => navigate(`/forms/${form.name}`)}
                           className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                         >
-                          <SFNewspaperFill className="w-3.5 h-3.5" />
+                          <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
                           {m.editButton}
                         </button>
                         <button

@@ -7,7 +7,11 @@ import type { ShopSummary } from "@lmaa/shared";
 import { Marked } from "marked";
 import { useEffect, useMemo, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
-import { SFSquareAndPencilCircleFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+import {
+  SFLongTextPageAndPencilFill,
+  SFSquareAndArrowDownFill,
+  SFTrashFill,
+} from "sf-symbols-lib/monochrome";
 
 /**
  * Local marked instance for rendering deletion reasons.
@@ -225,8 +229,9 @@ export function ShopDeletionInfoOverlay({
                     type="button"
                     onClick={() => handleSave()}
                     disabled={isSaving}
-                    className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
                   >
+                    <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
                     {isSaving ? messages.common.saving : messages.common.save}
                   </button>
                 </>
@@ -238,7 +243,7 @@ export function ShopDeletionInfoOverlay({
                       onClick={() => setIsEditing(true)}
                       className="h-9 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                     >
-                      <SFSquareAndPencilCircleFill className="w-3.5 h-3.5" />
+                      <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
                       {messages.common.edit}
                     </button>
                   )}

@@ -7,12 +7,13 @@ import md5 from "blueimp-md5";
 import { useEffect, useRef, useState } from "react";
 import {
   SFAt,
-  SFCamera,
   SFKey,
   SFPencil,
   SFPerson,
   SFPersonCropCircle,
+  SFSquareAndArrowDownFill,
   SFTrashFill,
+  SFTrayAndArrowUpFill,
 } from "sf-symbols-lib/monochrome";
 import {
   useAdminUsers,
@@ -248,7 +249,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
                   onClick={() => fileInputRef.current?.click()}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
                 >
-                  <SFCamera className="w-3.5 h-3.5 shrink-0" />
+                  <SFTrayAndArrowUpFill className="w-3.5 h-3.5 shrink-0" />
                   {usersMessages.editCard.uploadImage}
                 </button>
                 <button
@@ -431,8 +432,9 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
             type="button"
             onClick={() => handleSave()}
             disabled={!canSave}
-            className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
           >
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
             {isPending ? common.saving : common.save}
           </button>
         </div>

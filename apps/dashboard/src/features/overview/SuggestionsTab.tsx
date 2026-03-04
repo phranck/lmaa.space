@@ -30,6 +30,7 @@ import {
   SFInfoCircleFill,
   SFLongTextPageAndPencilFill,
   SFPauseCircleFill,
+  SFSquareAndArrowDownFill,
   SFTrashFill,
   SFTrayFill,
   SFXmarkCircleFill,
@@ -617,19 +618,30 @@ export function SuggestionsTab() {
                 type="button"
                 disabled={reviewMutation.isPending}
                 onClick={() => handleReviewSave()}
-                className={`h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
+                className={`flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
                   editingRejection || reviewId > 0
                     ? "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
                     : "border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                 }`}
               >
-                {reviewMutation.isPending
-                  ? "…"
-                  : editingRejection
-                    ? common.save
-                    : reviewId > 0
-                      ? submissionsMessages.suggestions.accept
-                      : submissionsMessages.suggestions.decline}
+                {reviewMutation.isPending ? (
+                  "…"
+                ) : editingRejection ? (
+                  <>
+                    <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+                    {common.save}
+                  </>
+                ) : reviewId > 0 ? (
+                  <>
+                    <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+                    {submissionsMessages.suggestions.accept}
+                  </>
+                ) : (
+                  <>
+                    <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                    {submissionsMessages.suggestions.decline}
+                  </>
+                )}
               </button>
             </div>
           </ResizableDialogCard>

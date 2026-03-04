@@ -3,7 +3,10 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { UserAvatar } from "@/features/system/UserAvatar.tsx";
 import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
-import { SFRectanglePortraitAndArrowRightFill, SFSquareAndPencil } from "sf-symbols-lib/monochrome";
+import {
+  SFLongTextPageAndPencilFill,
+  SFRectanglePortraitAndArrowRightFill,
+} from "sf-symbols-lib/monochrome";
 
 const SKIP_KEY = "logout-skip-confirm";
 
@@ -82,7 +85,7 @@ export function SidebarFooter({
               aria-label={s.editProfile}
               className={btnClass}
             >
-              <SFSquareAndPencil className="w-3.5 h-3.5" />
+              <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
             </button>
           )}
           <button

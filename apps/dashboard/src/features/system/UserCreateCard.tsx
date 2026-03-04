@@ -5,7 +5,12 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useEffect, useState } from "react";
-import { SFPersonBadgePlus, SFPersonFill, SFPersonFillCheckmark } from "sf-symbols-lib/monochrome";
+import {
+  SFPersonBadgePlus,
+  SFPersonFill,
+  SFPersonFillCheckmark,
+  SFPlusCircleFill,
+} from "sf-symbols-lib/monochrome";
 import { EMPTY_CREATE_USER_FORM, useCreateUser } from "./hooks/useAdminUsers.ts";
 import type { CreateUserFormData } from "./hooks/useAdminUsers.ts";
 
@@ -208,8 +213,9 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             type="button"
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
           >
+            <SFPlusCircleFill className="w-3.5 h-3.5" />
             {createMutation.isPending
               ? usersMessages.createCard.creating
               : usersMessages.createCard.create}

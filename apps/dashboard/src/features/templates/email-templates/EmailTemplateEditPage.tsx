@@ -12,7 +12,7 @@ import type { EmailTemplateInput } from "@lmaa/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
-import { SFCheckmarkCircleFill } from "sf-symbols-lib/monochrome";
+import { SFCheckmarkCircleFill, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
 
 interface FieldProps {
   label: string;
@@ -167,8 +167,9 @@ export function EmailTemplateEditPage() {
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
           >
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
             {isPending ? messages.common.saving : m.save}
           </button>
         </div>

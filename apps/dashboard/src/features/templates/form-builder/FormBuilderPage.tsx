@@ -19,7 +19,7 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
-import { SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
+import { SFSquareAndArrowDownFill, SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
 
 const FORM_NAME = "suggestion-form";
 
@@ -419,8 +419,9 @@ export function FormBuilderPage() {
             type="button"
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className="h-9 px-4 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
           >
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
             {saveMutation.isPending ? messages.common.saving : m.save}
           </button>
         </div>
