@@ -39,6 +39,7 @@ const envSchema = z.object({
   UMAMI_PASSWORD: z.string().optional().default(""),
   UMAMI_WEBSITE_ID: z.string().optional().default(""),
   UNSPLASH_ACCESS_KEY: z.string().optional(),
+  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
 });
 
 /**
