@@ -12,6 +12,7 @@ interface CacheEntry<T> {
   ttlMs: number;
 }
 
+// TODO: Replace with Redis for multi-instance
 const cache = new Map<string, CacheEntry<unknown>>();
 
 /** Shared cache key for the public shops listing. */
@@ -70,6 +71,9 @@ export function getCacheStats() {
 
 /** Starts periodic cleanup of expired cache entries. Returns the timer for shutdown. */
 export function startCacheCleanupJob(): NodeJS.Timeout {
+  if (env.NODE_ENV === "production") {
+    logger.warn("in-memory cache is not shared across instances — consider Redis");
+  }
   const intervalMs = env.CACHE_CLEANUP_INTERVAL_MS;
 
   const timer = setInterval(() => {

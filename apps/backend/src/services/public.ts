@@ -13,10 +13,15 @@ import {
   findPublicShopByHostname,
   getPublicCategoryBySlug,
   getPublicShopById,
+  getPublishedContentPageBySlug,
+  getRejectionPageByToken,
   insertDeadLinkReport,
   insertShopConcernReport,
   listAllPublicShopsWithCategories,
+  listPublicCategoriesWithShopCount,
+  listPublicNavItems,
   listPublicShopsByCategoryId,
+  listPublishedContentPages,
   searchPublicCategoriesByEscapedQuery,
   searchPublicShops,
 } from "../repositories/public.js";
@@ -200,4 +205,24 @@ export function getManagedPublicCacheStats() {
   }
 
   return success({ data: getCacheStats() });
+}
+
+export async function getManagedPublicCategories() {
+  return listPublicCategoriesWithShopCount();
+}
+
+export async function getManagedPublicNavItems(navId: "header" | "footer") {
+  return listPublicNavItems(navId);
+}
+
+export async function getManagedPublicContentPages() {
+  return listPublishedContentPages();
+}
+
+export async function getManagedPublicContentPageBySlug(slug: string) {
+  return getPublishedContentPageBySlug(slug);
+}
+
+export async function getManagedPublicRejectionPageByToken(token: string) {
+  return getRejectionPageByToken(token);
 }

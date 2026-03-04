@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { loginSchema } from "@lmaa/contracts";
+import { loginSchema, setupSchema } from "@lmaa/contracts";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { fail, ok } from "../../lib/http.js";
@@ -12,7 +12,7 @@ import {
   logoutAdmin,
   setupOwnerAdmin,
 } from "../../services/admin-auth.js";
-import { SESSION_COOKIE_OPTIONS, setupSchema } from "../../services/auth.js";
+import { SESSION_COOKIE_OPTIONS } from "../../services/auth.js";
 
 /**
  * Admin authentication routes (`/setup`, `/login`, `/logout`, `/me`).

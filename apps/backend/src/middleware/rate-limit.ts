@@ -8,6 +8,7 @@ interface RateLimitEntry {
   resetAt: number;
 }
 
+// TODO: Replace with Redis for multi-instance
 const store = new Map<string, RateLimitEntry>();
 
 /** Extracts the client IP from request headers (CF > X-Real-IP > XFF). */
@@ -29,6 +30,9 @@ export function resolveClientIp(headers: Headers): string {
 
 /** Starts periodic cleanup of expired rate-limit entries. Returns the timer for shutdown. */
 export function startRateLimitCleanupJob(): NodeJS.Timeout {
+  if (env.NODE_ENV === "production") {
+    logger.warn("in-memory rate-limit store is not shared across instances — consider Redis");
+  }
   const intervalMs = env.RATE_LIMIT_CLEANUP_INTERVAL_MS;
 
   const timer = setInterval(() => {
