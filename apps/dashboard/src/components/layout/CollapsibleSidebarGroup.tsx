@@ -5,7 +5,7 @@ import { SFChevronDown } from "sf-symbols-lib/monochrome";
 function SidebarBadge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
-    <span className="h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-[11px] font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+    <span className="h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
       {count}
     </span>
   );

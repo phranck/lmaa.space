@@ -30,7 +30,7 @@ export function SidebarItem({ to, label, icon, end, badge, onClick }: SidebarIte
       <span className="flex-1">{label}</span>
       {badge !== undefined && badge > 0 && (
         <>
-          <span className="ml-auto h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-[11px] font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+          <span className="ml-auto h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
             {badge}
           </span>
           {/* Ghost spacer — same width as chevron so badge aligns with group items */}

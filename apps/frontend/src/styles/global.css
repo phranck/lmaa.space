@@ -26,6 +26,8 @@ body {
   background-color: var(--ds-bg);
   color: var(--ds-text);
   -webkit-font-smoothing: antialiased;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
