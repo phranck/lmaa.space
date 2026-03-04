@@ -26,7 +26,7 @@ export interface SubmissionEditData {
 /**
  * Moderation decision payload.
  */
-export interface SubmissionReviewData {
+interface SubmissionReviewData {
   id: number;
   status: SubmissionReviewStatus;
   adminNote?: string;
@@ -38,7 +38,7 @@ export interface SubmissionReviewData {
 /**
  * Result of a review transaction including optional newly created shop.
  */
-export interface SubmissionReviewResult {
+interface SubmissionReviewResult {
   submission: Submission | null;
   newShop: Pick<Shop, "id" | "url"> | null;
 }
@@ -207,16 +207,6 @@ export async function deleteSubmission(id: number): Promise<void> {
 }
 
 /**
- * Marks feedback as sent for a submission.
- *
- * @param id - Submission id.
- * @returns Resolves when flag has been persisted.
- */
-export async function setSubmissionFeedbackSent(id: number): Promise<void> {
-  await db.update(submissions).set({ feedbackSent: true }).where(eq(submissions.id, id));
-}
-
-/**
  * Creates a new submission row from raw form data.
  *
  * Field values are read by variable name from `data`. Missing fields fall back
@@ -256,15 +246,4 @@ export async function createSubmissionFromFormData(data: Record<string, unknown>
 
     return row.id;
   });
-}
-
-/**
- * Stores a generated OG image URL for a shop created from a submission.
- *
- * @param id - Shop id.
- * @param ogImage - Absolute image URL.
- * @returns Resolves after DB update.
- */
-export async function setShopOgImage(id: number, ogImage: string): Promise<void> {
-  await db.update(shops).set({ ogImage }).where(eq(shops.id, id));
 }

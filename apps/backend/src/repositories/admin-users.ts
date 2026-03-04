@@ -36,7 +36,7 @@ export type AdminUserRow = {
 /**
  * Payload for creating admin/moderator accounts.
  */
-export interface CreateAdminUserInput {
+interface CreateAdminUserInput {
   username: string;
   email: string;
   passwordHash: string;
@@ -46,7 +46,7 @@ export interface CreateAdminUserInput {
 /**
  * Mutable user fields for profile and role updates.
  */
-export type UpdateAdminUserInput = Partial<{
+type UpdateAdminUserInput = Partial<{
   username: string;
   email: string;
   passwordHash: string;

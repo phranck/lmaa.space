@@ -1,16 +1,16 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { adminUsers, contentPages } from "../db/schema.js";
 
 /**
  * Internal storage status of CMS-like content pages.
  */
-export type ContentPageStatus = "draft" | "published" | "hidden";
+type ContentPageStatus = "draft" | "published" | "hidden";
 
 /**
  * Lightweight content page projection used for listings.
  */
-export interface ContentPageSummaryRow {
+interface ContentPageSummaryRow {
   slug: string;
   title: string;
   status: ContentPageStatus;
@@ -23,9 +23,20 @@ export interface ContentPageSummaryRow {
 /**
  * Full page projection including Markdown body.
  */
-export interface ContentPageDetailRow extends ContentPageSummaryRow {
+interface ContentPageDetailRow extends ContentPageSummaryRow {
   content: string;
 }
+
+/** Shared select projection matching `ContentPageSummaryRow`. */
+const CONTENT_PAGE_SUMMARY_FIELDS = {
+  slug: contentPages.slug,
+  title: contentPages.title,
+  status: contentPages.status,
+  createdAt: contentPages.createdAt,
+  createdBy: contentPages.createdBy,
+  updatedAt: contentPages.updatedAt,
+  updatedBy: contentPages.updatedBy,
+};
 
 /**
  * Returns all content pages without loading the full body text.
@@ -112,15 +123,7 @@ export async function createContentPage(data: {
       status: data.status,
       createdBy: data.createdBy,
     })
-    .returning({
-      slug: contentPages.slug,
-      title: contentPages.title,
-      status: contentPages.status,
-      createdAt: contentPages.createdAt,
-      createdBy: contentPages.createdBy,
-      updatedAt: contentPages.updatedAt,
-      updatedBy: contentPages.updatedBy,
-    });
+    .returning(CONTENT_PAGE_SUMMARY_FIELDS);
 
   return page;
 }
@@ -142,15 +145,7 @@ export async function updateContentPageBody(
     .update(contentPages)
     .set({ content, updatedAt: new Date(), updatedBy })
     .where(eq(contentPages.slug, slug))
-    .returning({
-      slug: contentPages.slug,
-      title: contentPages.title,
-      status: contentPages.status,
-      createdAt: contentPages.createdAt,
-      createdBy: contentPages.createdBy,
-      updatedAt: contentPages.updatedAt,
-      updatedBy: contentPages.updatedBy,
-    });
+    .returning(CONTENT_PAGE_SUMMARY_FIELDS);
 
   return page ?? null;
 }
@@ -172,15 +167,7 @@ export async function updateContentPageMeta(
     .update(contentPages)
     .set({ ...updates, updatedAt: new Date(), updatedBy })
     .where(eq(contentPages.slug, currentSlug))
-    .returning({
-      slug: contentPages.slug,
-      title: contentPages.title,
-      status: contentPages.status,
-      createdAt: contentPages.createdAt,
-      createdBy: contentPages.createdBy,
-      updatedAt: contentPages.updatedAt,
-      updatedBy: contentPages.updatedBy,
-    });
+    .returning(CONTENT_PAGE_SUMMARY_FIELDS);
 
   return page ?? null;
 }
@@ -213,7 +200,8 @@ export async function getAdminUsernamesByIds(ids: number[]): Promise<Map<number,
 
   const users = await db
     .select({ id: adminUsers.id, username: adminUsers.username })
-    .from(adminUsers);
+    .from(adminUsers)
+    .where(inArray(adminUsers.id, ids));
 
   return new Map(users.map((user) => [user.id, user.username]));
 }

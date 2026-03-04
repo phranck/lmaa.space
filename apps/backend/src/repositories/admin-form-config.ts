@@ -1,5 +1,5 @@
 import type { FormConfigPayload } from "@lmaa/contracts";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { type FormConfigRow, formConfigs } from "../db/schema.js";
 
@@ -16,7 +16,7 @@ export async function listFormConfigs(): Promise<FormConfigRow[]> {
  * @param name - Form config name (e.g. `"suggestion-form"`).
  */
 export async function getFormConfigByName(name: string): Promise<FormConfigRow | null> {
-  const [row] = await db.select().from(formConfigs).where(eq(formConfigs.name, name));
+  const [row] = await db.select().from(formConfigs).where(eq(formConfigs.name, name)).limit(1);
   return row ?? null;
 }
 
@@ -26,7 +26,7 @@ export async function getFormConfigByName(name: string): Promise<FormConfigRow |
  * @param slug - Form config slug (e.g. `"mein-formular"`).
  */
 export async function getFormConfigBySlug(slug: string): Promise<FormConfigRow | null> {
-  const [row] = await db.select().from(formConfigs).where(eq(formConfigs.slug, slug));
+  const [row] = await db.select().from(formConfigs).where(eq(formConfigs.slug, slug)).limit(1);
   return row ?? null;
 }
 
@@ -34,16 +34,22 @@ export async function getFormConfigBySlug(slug: string): Promise<FormConfigRow |
  * Returns only active form configs by name.
  */
 export async function getActiveFormConfigByName(name: string): Promise<FormConfigRow | null> {
-  const [row] = await db.select().from(formConfigs).where(eq(formConfigs.name, name));
-  return row?.isActive ? row : null;
+  const [row] = await db
+    .select()
+    .from(formConfigs)
+    .where(and(eq(formConfigs.name, name), eq(formConfigs.isActive, true)));
+  return row ?? null;
 }
 
 /**
  * Returns only active form configs by slug.
  */
 export async function getActiveFormConfigBySlug(slug: string): Promise<FormConfigRow | null> {
-  const [row] = await db.select().from(formConfigs).where(eq(formConfigs.slug, slug));
-  return row?.isActive ? row : null;
+  const [row] = await db
+    .select()
+    .from(formConfigs)
+    .where(and(eq(formConfigs.slug, slug), eq(formConfigs.isActive, true)));
+  return row ?? null;
 }
 
 /**

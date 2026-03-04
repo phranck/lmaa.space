@@ -8,7 +8,7 @@ import type { Shop as DbShop } from "../db/schema.js";
 /**
  * Expanded shop detail shape used by admin edit views.
  */
-export type AdminShopDetail = SharedShop;
+type AdminShopDetail = SharedShop;
 
 /**
  * Payload used when creating a shop from dashboard.
@@ -36,7 +36,6 @@ export interface UpdateAdminShopData {
   shipping?: string;
   description?: string;
   socialMedia?: Record<string, string>;
-  isActive?: boolean;
 }
 
 /**
@@ -166,7 +165,7 @@ export async function updateAdminShop(
  * @returns `true` if a row is present.
  */
 export async function shopExists(id: number): Promise<boolean> {
-  const [row] = await db.select({ id: shops.id }).from(shops).where(eq(shops.id, id));
+  const [row] = await db.select({ id: shops.id }).from(shops).where(eq(shops.id, id)).limit(1);
   return Boolean(row);
 }
 
@@ -176,11 +175,9 @@ export async function shopExists(id: number): Promise<boolean> {
  * @param id - Shop id.
  * @returns Resolves when transaction has completed.
  */
-export async function permanentlyDeleteAdminShop(id: number): Promise<void> {
-  await db.transaction(async (tx) => {
-    await tx.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
-    await tx.delete(shops).where(eq(shops.id, id));
-  });
+export async function permanentlyDeleteAdminShop(id: number): Promise<boolean> {
+  const [deleted] = await db.delete(shops).where(eq(shops.id, id)).returning({ id: shops.id });
+  return Boolean(deleted);
 }
 
 /**
@@ -199,19 +196,26 @@ export async function markAdminShopDeleted(
   adminId: number | null,
   reason: string | null,
   wasReported: boolean,
-): Promise<void> {
-  await db
-    .update(shops)
-    .set({
-      visibility: "deleted",
-      deletedBy: adminId,
-      deleteReason: reason,
-      deletedWasReported: wasReported,
-      updatedAt: new Date(),
-    })
-    .where(eq(shops.id, id));
+): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(shops)
+      .set({
+        visibility: "deleted",
+        deletedBy: adminId,
+        deleteReason: reason,
+        deletedWasReported: wasReported,
+        updatedAt: new Date(),
+      })
+      .where(eq(shops.id, id))
+      .returning({ id: shops.id });
 
-  await db.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+    if (updated) {
+      await tx.delete(deadLinkReports).where(eq(deadLinkReports.shopId, id));
+    }
+
+    return Boolean(updated);
+  });
 }
 
 /**
@@ -224,8 +228,8 @@ export async function markAdminShopDeleted(
 export async function setAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
-): Promise<void> {
-  await db
+): Promise<boolean> {
+  const [updated] = await db
     .update(shops)
     .set({
       visibility,
@@ -234,7 +238,9 @@ export async function setAdminShopVisibility(
       deletedWasReported: false,
       updatedAt: new Date(),
     })
-    .where(eq(shops.id, id));
+    .where(eq(shops.id, id))
+    .returning({ id: shops.id });
+  return Boolean(updated);
 }
 
 /**
@@ -269,9 +275,11 @@ export async function setAdminShopOgImage(id: number, ogImage: string | null): P
 export async function updateAdminShopDeleteReason(
   id: number,
   reason: string | null,
-): Promise<void> {
-  await db
+): Promise<boolean> {
+  const [updated] = await db
     .update(shops)
     .set({ deleteReason: reason, updatedAt: new Date() })
-    .where(eq(shops.id, id));
+    .where(eq(shops.id, id))
+    .returning({ id: shops.id });
+  return Boolean(updated);
 }
