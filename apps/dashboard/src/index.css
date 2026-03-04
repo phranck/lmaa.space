@@ -141,8 +141,8 @@
 .section-header {
   background-color: var(--ds-section-header-bg);
   color: var(--ds-text-muted);
-  font-size: 11px;
-  line-height: 1.2;
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -286,6 +286,8 @@ body {
   background-color: var(--ds-bg);
   color: var(--ds-text);
   -webkit-font-smoothing: antialiased;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
 }
 
 /* MDXEditor: let Typography (prose) take precedence */

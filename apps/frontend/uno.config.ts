@@ -5,7 +5,34 @@ export default defineConfig({
     presetWind4({ dark: "class" }),
     presetTypography({
       cssExtend: {
-        h2: { "font-weight": "500", "margin-bottom": "0.3em" },
+        h1: {
+          "margin-top": "0",
+          "margin-bottom": "0.6em",
+          "font-weight": "600",
+        },
+        h2: {
+          "margin-top": "1.8em",
+          "margin-bottom": "0.4em",
+          "font-weight": "500",
+        },
+        h3: {
+          "margin-top": "1.4em",
+          "margin-bottom": "0.3em",
+          "font-weight": "600",
+        },
+        h4: {
+          "margin-top": "1.2em",
+          "margin-bottom": "0.2em",
+          "font-weight": "600",
+        },
+        p: {
+          "margin-top": "0.8em",
+          "margin-bottom": "0.8em",
+        },
+        li: {
+          "margin-top": "0.25em",
+          "margin-bottom": "0.25em",
+        },
       },
     }),
   ],

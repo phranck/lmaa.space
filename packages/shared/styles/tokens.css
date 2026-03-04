@@ -149,8 +149,8 @@
   );
 
   /* Line heights — decrease with size for optical balance */
-  --ds-leading-xs: 1.5;
-  --ds-leading-sm: 1.5;
+  --ds-leading-xs: 1.6;
+  --ds-leading-sm: 1.55;
   --ds-leading-base: 1.5;
   --ds-leading-lg: 1.35;
   --ds-leading-xl: 1.2;
@@ -180,6 +180,14 @@
 
   /* Alias — packages/ui components reference this; apps can override */
   --color-primary: var(--ds-accent);
+
+  /* Vertical rhythm — based on base line-height (1rem x 1.5 = 1.5rem) */
+  --ds-space-xs: 0.375rem; /* 1/4 rhythm */
+  --ds-space-sm: 0.75rem; /* 1/2 rhythm */
+  --ds-space-base: 1.5rem; /* 1 rhythm unit */
+  --ds-space-lg: 2.25rem; /* 1.5 rhythm */
+  --ds-space-xl: 3rem; /* 2 rhythm */
+  --ds-space-2xl: 4.5rem; /* 3 rhythm */
 
   /* Motion */
   --ds-duration-fast: 120ms;
