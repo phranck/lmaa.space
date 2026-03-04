@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { env } from "../config/env.js";
+import { logger } from "../lib/logger.js";
 
 function resolveMigrationsFolder(): string {
   const candidates = [
@@ -38,14 +39,14 @@ function resolveMigrationsFolder(): string {
  */
 export async function runMigrations(): Promise<void> {
   const migrationsFolder = resolveMigrationsFolder();
-  console.log(`[migrations] Using folder: ${migrationsFolder}`);
+  logger.info({ folder: migrationsFolder }, "running migrations");
 
   const sql = postgres(env.DATABASE_URL);
   const db = drizzle(sql);
 
   try {
     await migrate(db, { migrationsFolder });
-    console.log("[migrations] All migrations applied successfully.");
+    logger.info("all migrations applied successfully");
   } finally {
     await sql.end();
   }

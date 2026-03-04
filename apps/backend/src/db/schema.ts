@@ -46,6 +46,7 @@ export const shops = pgTable(
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -59,6 +60,7 @@ export const shops = pgTable(
   },
   (table) => [
     index("idx_shops_active").on(table.isActive),
+    index("idx_shops_visibility").on(table.visibility),
     check("shops_visibility_check", sql`${table.visibility} IN ('public', 'onhold', 'deleted')`),
   ],
 );
@@ -175,7 +177,7 @@ export const deadLinkReports = pgTable(
     id: serial("id").primaryKey(),
     shopId: integer("shop_id")
       .notNull()
-      .references(() => shops.id),
+      .references(() => shops.id, { onDelete: "cascade" }),
     ipHash: text("ip_hash").notNull(),
     reportedAt: timestamp("reported_at").defaultNow().notNull(),
   },

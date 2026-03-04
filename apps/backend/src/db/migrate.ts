@@ -1,6 +1,7 @@
+import { logger } from "../lib/logger.js";
 import { runMigrations } from "./run-migrations.js";
 
 runMigrations().catch((err) => {
-  console.error("Migration failed:", err);
+  logger.fatal({ err }, "migration failed");
   process.exit(1);
 });
