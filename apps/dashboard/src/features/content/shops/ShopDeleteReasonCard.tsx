@@ -1,4 +1,6 @@
+import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import { Checkbox } from "@lmaa/ui";
 import { useEffect, useRef, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
@@ -37,6 +39,8 @@ export function ShopDeleteReasonCard({
   const [deleteMode, setDeleteMode] = useState<ShopDeleteMode>("mark_deleted");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  usePersistedTextareaHeight("shop-delete-reason", "shops:textarea:delete-reason");
+
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
@@ -51,7 +55,11 @@ export function ShopDeleteReasonCard({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-[var(--ds-surface)] rounded-2xl shadow-xl w-full max-w-lg border border-[var(--ds-border)] overflow-hidden overlay-card-enter">
+      <ResizableDialogCard
+        storageKey="shops:delete-reason-card-size"
+        defaultWidth={512}
+        className="flex flex-col rounded-2xl shadow-xl border border-[var(--ds-border)] overlay-card-enter"
+      >
         <div className="px-6 py-5 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border)]">
           <h2 className="text-base font-semibold text-[var(--ds-text)]">
             {shopsMessages.deleteCard.title}
@@ -62,7 +70,7 @@ export function ShopDeleteReasonCard({
           </p>
         </div>
 
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 flex-1 overflow-y-auto">
           <div>
             <label
               htmlFor="shop-delete-reason"
@@ -86,7 +94,7 @@ export function ShopDeleteReasonCard({
               onChange={(e) => setReason(e.target.value)}
               rows={5}
               placeholder={shopsMessages.deleteCard.reasonPlaceholder}
-              className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
+              className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 py-2 resize-y focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
             />
           </div>
 
@@ -137,7 +145,7 @@ export function ShopDeleteReasonCard({
                 : shopsMessages.deleteCard.markDeleted}
           </button>
         </div>
-      </div>
+      </ResizableDialogCard>
     </div>
   );
 }

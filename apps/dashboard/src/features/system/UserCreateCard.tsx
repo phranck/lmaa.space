@@ -1,3 +1,4 @@
+import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -76,8 +77,9 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
       className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
     >
       <div className="absolute inset-0" />
-      <div
-        className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-md overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
+      <ResizableDialogCard
+        storageKey="users:create-card-size"
+        className={`flex flex-col rounded-[var(--radius-card)] shadow-2xl ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
@@ -86,7 +88,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 flex-1 overflow-y-auto">
           {/* Rolle */}
           <div>
             <p className="block text-sm font-medium text-[var(--ds-text)] mb-2">
@@ -213,7 +215,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               : usersMessages.createCard.create}
           </button>
         </div>
-      </div>
+      </ResizableDialogCard>
     </div>
   );
 }

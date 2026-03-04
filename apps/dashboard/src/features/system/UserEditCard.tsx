@@ -1,3 +1,4 @@
+import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import md5 from "blueimp-md5";
@@ -193,11 +194,13 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       }}
     >
       {/* biome-ignore lint/a11y/useSemanticElements: custom overlay with animation */}
-      <div
+      <ResizableDialogCard
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-edit-title"
-        className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-lg overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
+        storageKey="users:edit-card-size"
+        defaultWidth={512}
+        className={`flex flex-col rounded-[var(--radius-card)] shadow-2xl ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
         <div className="flex items-center px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
@@ -207,7 +210,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
         </div>
 
         {/* Body */}
-        <div className="p-5 max-h-[calc(100vh-14rem)] overflow-y-auto">
+        <div className="p-5 flex-1 overflow-y-auto">
           <div className="flex gap-6">
             {/* Left: Avatar */}
             <div className="flex flex-col items-center gap-3 shrink-0">
@@ -421,7 +424,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
             {isPending ? common.saving : common.save}
           </button>
         </div>
-      </div>
+      </ResizableDialogCard>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
+import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -13,6 +14,7 @@ import {
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { CharCounter, Checkbox } from "@lmaa/ui";
 import { type ClipboardEvent, useEffect, useMemo, useState } from "react";
@@ -110,6 +112,13 @@ export function SuggestionsTab() {
 
   // reviewId > 0 = approve, reviewId < 0 = reject
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
+
+  usePersistedTextareaHeight("admin-note", "submissions:textarea:admin-note", reviewId !== null);
+  usePersistedTextareaHeight(
+    "rejection-long",
+    "submissions:textarea:rejection-long",
+    reviewId !== null && reviewId < 0,
+  );
 
   useEffect(() => {
     if (editingRejection) return;
@@ -458,7 +467,13 @@ export function SuggestionsTab() {
       {reviewId !== null && reviewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" />
-          <div className="relative bg-[var(--ds-surface)] rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+          <ResizableDialogCard
+            storageKey={
+              reviewId > 0 ? "submissions:review-approve-size" : "submissions:review-reject-size"
+            }
+            defaultWidth={reviewId > 0 ? 448 : 512}
+            className="flex flex-col rounded-2xl shadow-xl"
+          >
             <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3 border-b border-[var(--ds-border-subtle)]">
               <h3 className="font-bold text-[var(--ds-text)]">
                 {editingRejection
@@ -481,7 +496,7 @@ export function SuggestionsTab() {
               </div>
             </div>
 
-            <div className="px-6 py-3 flex flex-col gap-3">
+            <div className="px-6 py-3 flex-1 overflow-y-auto flex flex-col gap-3">
               <div>
                 <label
                   htmlFor="admin-note"
@@ -599,7 +614,7 @@ export function SuggestionsTab() {
                       : submissionsMessages.suggestions.decline}
               </button>
             </div>
-          </div>
+          </ResizableDialogCard>
         </div>
       )}
 

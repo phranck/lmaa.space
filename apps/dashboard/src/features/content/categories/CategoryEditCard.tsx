@@ -1,3 +1,4 @@
+import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UnsplashBrowser } from "@/features/content/categories/UnsplashBrowser.tsx";
 import {
@@ -8,6 +9,7 @@ import type {
   CategoryFormData,
   CategoryImageState,
 } from "@/features/content/hooks/useAdminCategories.ts";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import { useEffect, useRef, useState } from "react";
 import { SFMagnifyingglass, SFSquareAndArrowUpFill, SFTrashFill } from "sf-symbols-lib/monochrome";
 
@@ -98,6 +100,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
   const saveMutation = useSaveCategory(categoryId);
 
+  usePersistedTextareaHeight("cat-description", "categories:textarea:description");
+
   function handleNameChange(name: string) {
     setForm((f) => ({ ...f, name, slug: isNew ? slugify(name) : f.slug }));
   }
@@ -161,11 +165,13 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         }}
       >
         {/* biome-ignore lint/a11y/useSemanticElements: custom overlay with animation */}
-        <div
+        <ResizableDialogCard
           role="dialog"
           aria-modal="true"
           aria-labelledby="category-edit-title"
-          className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-3xl grid grid-cols-2 overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
+          storageKey="categories:edit-card-size"
+          defaultWidth={768}
+          className={`rounded-[var(--radius-card)] shadow-2xl grid grid-cols-2 ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
         >
           {/* Image Panel – 50 % */}
           <div className="relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]">
@@ -275,7 +281,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                   rows={4}
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
                 />
               </div>
             </div>
@@ -307,7 +313,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               </button>
             </div>
           </div>
-        </div>
+        </ResizableDialogCard>
       </div>
 
       {showUnsplash && (
