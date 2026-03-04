@@ -33,7 +33,6 @@ export const shopUpdateSchema = z.object({
   shipping: z.string().optional(),
   description: z.string().max(2000).optional(),
   socialMedia: socialMediaSchema,
-  isActive: z.boolean().optional(),
 });
 
 /**
