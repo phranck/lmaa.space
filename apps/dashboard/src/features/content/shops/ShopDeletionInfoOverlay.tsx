@@ -1,5 +1,7 @@
 import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import type { ShopSummary } from "@lmaa/shared";
 import { Marked } from "marked";
@@ -63,6 +65,7 @@ export function ShopDeletionInfoOverlay({
   const { locale, messages } = useI18n();
   const t = messages.shops.table;
 
+  const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const [isEditing, setIsEditing] = useState(false);
   const [displayReason, setDisplayReason] = useState(shop.deleteReason ?? null);
   const [editedReason, setEditedReason] = useState(shop.deleteReason ?? "");
@@ -85,18 +88,26 @@ export function ShopDeletionInfoOverlay({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose, isEditing, displayReason]);
 
-  async function handleSave() {
+  async function handleSave(close = true) {
     if (!onUpdateReason) return;
     setIsSaving(true);
     try {
       const newReason = editedReason.trim() || null;
       await onUpdateReason(newReason);
       setDisplayReason(newReason);
-      setIsEditing(false);
+      if (close) {
+        setIsEditing(false);
+      } else {
+        showSaved();
+      }
     } finally {
       setIsSaving(false);
     }
   }
+
+  useKeyboardSave(() => {
+    if (!isSaving) handleSave(false);
+  }, isEditing);
 
   function handleCancelEdit() {
     setEditedReason(displayReason ?? "");
@@ -138,7 +149,10 @@ export function ShopDeletionInfoOverlay({
           className="flex flex-col pointer-events-auto rounded-card border border-[var(--ds-border)] shadow-2xl overlay-card-enter"
         >
           <div className="p-5 space-y-4 flex-1 overflow-y-auto">
-            <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
+              <SaveNotification phase={savedPhase} label={messages.common.saved} />
+            </div>
 
             <p className="text-sm font-medium text-[var(--ds-text)]">{shop.name}</p>
 

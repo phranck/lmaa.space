@@ -1,4 +1,5 @@
 import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UnsplashBrowser } from "@/features/content/categories/UnsplashBrowser.tsx";
 import {
@@ -9,6 +10,7 @@ import type {
   CategoryFormData,
   CategoryImageState,
 } from "@/features/content/hooks/useAdminCategories.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import { useEffect, useRef, useState } from "react";
 import { SFMagnifyingglass, SFSquareAndArrowUpFill, SFTrashFill } from "sf-symbols-lib/monochrome";
@@ -50,6 +52,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   const common = messages.common;
   const categoriesMessages = messages.categories;
   const isNew = categoryId === "new";
+  const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUnsplash, setShowUnsplash] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -101,6 +104,14 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   const saveMutation = useSaveCategory(categoryId);
 
   usePersistedTextareaHeight("cat-description", "categories:textarea:description");
+
+  function handleSave(close = true) {
+    saveMutation.mutate({ form, image }, { onSuccess: close ? onSaved : showSaved });
+  }
+
+  useKeyboardSave(() => {
+    if (canSave) handleSave(false);
+  });
 
   function handleNameChange(name: string) {
     setForm((f) => ({ ...f, name, slug: isNew ? slugify(name) : f.slug }));
@@ -229,12 +240,14 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
           {/* Form Panel – 50 % */}
           <div className="flex flex-col p-3 min-w-0">
-            <h2
-              id="category-edit-title"
-              className="text-lg font-semibold text-[var(--ds-text)] mb-4"
-            >
-              {isNew ? categoriesMessages.editCard.titleNew : categoriesMessages.editCard.titleEdit}
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="category-edit-title" className="text-lg font-semibold text-[var(--ds-text)]">
+                {isNew
+                  ? categoriesMessages.editCard.titleNew
+                  : categoriesMessages.editCard.titleEdit}
+              </h2>
+              <SaveNotification phase={savedPhase} label={common.saved} />
+            </div>
 
             <div className="flex flex-col gap-3 flex-1">
               <div>
@@ -305,7 +318,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               </button>
               <button
                 type="button"
-                onClick={() => saveMutation.mutate({ form, image }, { onSuccess: onSaved })}
+                onClick={() => handleSave()}
                 disabled={!canSave}
                 className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
               >

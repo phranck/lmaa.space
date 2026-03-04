@@ -1,4 +1,5 @@
 import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
@@ -9,6 +10,7 @@ import {
 } from "@/features/content/hooks/useAdminShops.ts";
 import { getShopEditFormI18n } from "@/features/content/shops/shop-form-i18n.ts";
 import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
@@ -40,6 +42,7 @@ export function ShopEditCard({
   const shopFormI18n = getShopEditFormI18n(locale);
   const isSubmissionMode = submissionId !== undefined;
   const isNew = shopId === "new";
+  const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const [closing, setClosing] = useState(false);
   const [form, setForm] = useState<ShopEditFormValue>({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -97,13 +100,18 @@ export function ShopEditCard({
 
   const canSave = form.name.trim() !== "" && form.url.trim() !== "" && !isPending;
 
-  function handleSave() {
+  function handleSave(close = true) {
+    const onSuccess = close ? onSaved : showSaved;
     if (isSubmissionMode) {
-      submissionMutation.mutate({ id: submissionId, data: form }, { onSuccess: onSaved });
+      submissionMutation.mutate({ id: submissionId, data: form }, { onSuccess });
     } else {
-      shopMutation.mutate(form, { onSuccess: onSaved });
+      shopMutation.mutate(form, { onSuccess });
     }
   }
+
+  useKeyboardSave(() => {
+    if (canSave) handleSave(false);
+  });
 
   const title = isSubmissionMode
     ? shopsMessages.editCard.titleSubmissionEdit
@@ -128,10 +136,11 @@ export function ShopEditCard({
         className={`flex flex-col rounded-[var(--radius-card)] shadow-2xl ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
-        <div className="flex items-center px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
+        <div className="flex items-center justify-between px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
           <h2 id="shop-edit-title" className="text-base font-semibold text-[var(--ds-text)]">
             {title}
           </h2>
+          <SaveNotification phase={savedPhase} label={common.saved} />
         </div>
 
         {/* Form */}

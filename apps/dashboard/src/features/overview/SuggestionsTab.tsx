@@ -3,6 +3,7 @@ import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.t
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -14,6 +15,7 @@ import {
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 import { CharCounter, Checkbox } from "@lmaa/ui";
@@ -100,6 +102,7 @@ export function SuggestionsTab() {
   const [rejectionToken, setRejectionToken] = useState<string | null>(null);
   const [sendFeedback, setSendFeedback] = useState(false);
   const [editingRejection, setEditingRejection] = useState(false);
+  const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
   const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
 
@@ -118,6 +121,38 @@ export function SuggestionsTab() {
     "rejection-long",
     "submissions:textarea:rejection-long",
     reviewId !== null && reviewId < 0,
+  );
+
+  function handleReviewSave(close = true) {
+    if (reviewId === null) return;
+    reviewMutation.mutate(
+      {
+        id: Math.abs(reviewId),
+        status: reviewId > 0 ? "approved" : "rejected",
+        adminNote,
+        rejectionLongText: reviewId < 0 ? rejectionLongText : undefined,
+        rejectionToken: reviewId < 0 ? (rejectionToken ?? undefined) : undefined,
+        sendFeedback,
+      },
+      {
+        onSuccess: close
+          ? () => {
+              setReviewId(null);
+              setAdminNote("");
+              setRejectionLongText("");
+              setSendFeedback(false);
+              setEditingRejection(false);
+            }
+          : showSaved,
+      },
+    );
+  }
+
+  useKeyboardSave(
+    () => {
+      if (!reviewMutation.isPending) handleReviewSave(false);
+    },
+    editingRejection && reviewId !== null,
   );
 
   useEffect(() => {
@@ -475,13 +510,16 @@ export function SuggestionsTab() {
             className="flex flex-col rounded-2xl shadow-xl"
           >
             <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3 border-b border-[var(--ds-border-subtle)]">
-              <h3 className="font-bold text-[var(--ds-text)]">
-                {editingRejection
-                  ? submissionsMessages.suggestions.reviewEditRejectionTitle
-                  : reviewId > 0
-                    ? submissionsMessages.suggestions.reviewApproveTitle
-                    : submissionsMessages.suggestions.reviewRejectTitle}
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-[var(--ds-text)]">
+                  {editingRejection
+                    ? submissionsMessages.suggestions.reviewEditRejectionTitle
+                    : reviewId > 0
+                      ? submissionsMessages.suggestions.reviewApproveTitle
+                      : submissionsMessages.suggestions.reviewRejectTitle}
+                </h3>
+                <SaveNotification phase={savedPhase} label={common.saved} />
+              </div>
               <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
               <div className="flex items-center gap-1.5 mt-1">
                 <p className="text-xs text-[var(--ds-text-subtle)] truncate">{reviewing.shopUrl}</p>
@@ -578,27 +616,7 @@ export function SuggestionsTab() {
               <button
                 type="button"
                 disabled={reviewMutation.isPending}
-                onClick={() =>
-                  reviewMutation.mutate(
-                    {
-                      id: Math.abs(reviewId),
-                      status: reviewId > 0 ? "approved" : "rejected",
-                      adminNote,
-                      rejectionLongText: reviewId < 0 ? rejectionLongText : undefined,
-                      rejectionToken: reviewId < 0 ? (rejectionToken ?? undefined) : undefined,
-                      sendFeedback,
-                    },
-                    {
-                      onSuccess: () => {
-                        setReviewId(null);
-                        setAdminNote("");
-                        setRejectionLongText("");
-                        setSendFeedback(false);
-                        setEditingRejection(false);
-                      },
-                    },
-                  )
-                }
+                onClick={() => handleReviewSave()}
                 className={`h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
                   editingRejection || reviewId > 0
                     ? "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
