@@ -94,7 +94,14 @@ publicRoutes.post(
 
     const schema = buildFormValidationSchema(result.data.rows);
     const parsed = schema.safeParse(rawData);
-    if (!parsed.success) return fail(c, 400, "Validation failed");
+    if (!parsed.success) {
+      const issues = parsed.error.issues.map((i) => ({
+        path: i.path.join("."),
+        message: i.message,
+      }));
+      c.status(400);
+      return c.json({ error: { message: "Validation failed", issues } });
+    }
 
     await executeSubmissionChain(result.data.submissionConfig, parsed.data, result.data);
     return ok(c, { message: "OK" }, 201);

@@ -22,7 +22,7 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny | null {
       break;
     }
     case "multi-select":
-      schema = z.array(z.string());
+      schema = z.array(z.union([z.string(), z.number()]));
       break;
     case "checkbox":
       schema = z.union([z.boolean(), z.string()]);

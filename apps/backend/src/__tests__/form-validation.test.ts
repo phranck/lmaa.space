@@ -79,11 +79,11 @@ describe("buildFormValidationSchema", () => {
     expect(schema.safeParse({ f1: "option-a" }).success).toBe(true);
   });
 
-  it("handles multi-select as array of strings", () => {
+  it("handles multi-select as array of strings or numbers", () => {
     const schema = buildFormValidationSchema([row(field({ type: "multi-select" }))]);
     expect(schema.safeParse({ f1: ["a", "b"] }).success).toBe(true);
+    expect(schema.safeParse({ f1: [1, 2] }).success).toBe(true);
     expect(schema.safeParse({ f1: "single" }).success).toBe(false);
-    expect(schema.safeParse({ f1: [1, 2] }).success).toBe(false);
   });
 
   it("handles checkbox as boolean or string", () => {
