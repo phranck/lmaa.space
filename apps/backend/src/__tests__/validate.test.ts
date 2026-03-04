@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectImageType, parseId } from "../lib/validate.js";
+import { detectImageType, isExternalUrl, parseId } from "../lib/validate.js";
 
 describe("parseId", () => {
   it("returns number for valid positive integer", () => {
@@ -64,6 +64,41 @@ describe("detectImageType", () => {
     expect(detectImageType(buf)).toBe("webp");
   });
 
+  it("detects GIF by magic bytes", () => {
+    const buf = Buffer.alloc(12);
+    buf[0] = 0x47; // G
+    buf[1] = 0x49; // I
+    buf[2] = 0x46; // F
+    buf[3] = 0x38; // 8
+    expect(detectImageType(buf)).toBe("gif");
+  });
+
+  it("detects AVIF by magic bytes (avif brand)", () => {
+    const buf = Buffer.alloc(12);
+    buf[4] = 0x66; // f
+    buf[5] = 0x74; // t
+    buf[6] = 0x79; // y
+    buf[7] = 0x70; // p
+    buf[8] = 0x61; // a
+    buf[9] = 0x76; // v
+    buf[10] = 0x69; // i
+    buf[11] = 0x66; // f
+    expect(detectImageType(buf)).toBe("avif");
+  });
+
+  it("detects AVIF by magic bytes (avis brand)", () => {
+    const buf = Buffer.alloc(12);
+    buf[4] = 0x66; // f
+    buf[5] = 0x74; // t
+    buf[6] = 0x79; // y
+    buf[7] = 0x70; // p
+    buf[8] = 0x61; // a
+    buf[9] = 0x76; // v
+    buf[10] = 0x69; // i
+    buf[11] = 0x73; // s
+    expect(detectImageType(buf)).toBe("avif");
+  });
+
   it("returns null for unknown format", () => {
     const buf = Buffer.alloc(12, 0x00);
     expect(detectImageType(buf)).toBeNull();
@@ -72,5 +107,99 @@ describe("detectImageType", () => {
   it("returns null for buffer too small", () => {
     const buf = Buffer.alloc(4);
     expect(detectImageType(buf)).toBeNull();
+  });
+
+  it("returns null for ftyp box with unknown brand", () => {
+    const buf = Buffer.alloc(12);
+    buf[4] = 0x66; // f
+    buf[5] = 0x74; // t
+    buf[6] = 0x79; // y
+    buf[7] = 0x70; // p
+    buf[8] = 0x69; // i
+    buf[9] = 0x73; // s
+    buf[10] = 0x6f; // o
+    buf[11] = 0x6d; // m ("isom")
+    expect(detectImageType(buf)).toBeNull();
+  });
+});
+
+describe("isExternalUrl", () => {
+  it("accepts valid external https URL", () => {
+    expect(isExternalUrl("https://example.com")).toBe(true);
+  });
+
+  it("accepts valid external http URL", () => {
+    expect(isExternalUrl("http://shop.de/path")).toBe(true);
+  });
+
+  it("rejects ftp protocol", () => {
+    expect(isExternalUrl("ftp://files.example.com")).toBe(false);
+  });
+
+  it("rejects javascript protocol", () => {
+    expect(isExternalUrl("javascript:alert(1)")).toBe(false);
+  });
+
+  it("rejects localhost", () => {
+    expect(isExternalUrl("http://localhost")).toBe(false);
+    expect(isExternalUrl("http://localhost:3000")).toBe(false);
+  });
+
+  it("rejects 127.0.0.1", () => {
+    expect(isExternalUrl("http://127.0.0.1")).toBe(false);
+  });
+
+  it("rejects IPv6 loopback", () => {
+    expect(isExternalUrl("http://[::1]")).toBe(false);
+  });
+
+  it("rejects 0.0.0.0", () => {
+    expect(isExternalUrl("http://0.0.0.0")).toBe(false);
+  });
+
+  it("rejects private 10.x.x.x range", () => {
+    expect(isExternalUrl("http://10.0.0.1")).toBe(false);
+    expect(isExternalUrl("http://10.255.255.255")).toBe(false);
+  });
+
+  it("rejects private 172.16-31.x.x range", () => {
+    expect(isExternalUrl("http://172.16.0.1")).toBe(false);
+    expect(isExternalUrl("http://172.31.255.255")).toBe(false);
+  });
+
+  it("accepts public 172.x outside private range", () => {
+    expect(isExternalUrl("http://172.15.0.1")).toBe(true);
+    expect(isExternalUrl("http://172.32.0.1")).toBe(true);
+  });
+
+  it("rejects private 192.168.x.x range", () => {
+    expect(isExternalUrl("http://192.168.0.1")).toBe(false);
+    expect(isExternalUrl("http://192.168.1.100")).toBe(false);
+  });
+
+  it("rejects link-local 169.254.x.x range", () => {
+    expect(isExternalUrl("http://169.254.169.254")).toBe(false);
+  });
+
+  it("rejects IPv6 ULA (fc/fd) addresses", () => {
+    expect(isExternalUrl("http://[fc00::1]")).toBe(false);
+    expect(isExternalUrl("http://[fd12:3456::1]")).toBe(false);
+  });
+
+  it("rejects IPv6 link-local (fe80) addresses", () => {
+    expect(isExternalUrl("http://[fe80::1]")).toBe(false);
+  });
+
+  it("rejects .internal hostnames", () => {
+    expect(isExternalUrl("http://api.internal")).toBe(false);
+  });
+
+  it("rejects .local hostnames", () => {
+    expect(isExternalUrl("http://printer.local")).toBe(false);
+  });
+
+  it("returns false for invalid URL", () => {
+    expect(isExternalUrl("not a url")).toBe(false);
+    expect(isExternalUrl("")).toBe(false);
   });
 });

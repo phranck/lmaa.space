@@ -1,19 +1,5 @@
 import bcrypt from "bcryptjs";
-import { z } from "zod";
 import { env } from "../config/env.js";
-
-/**
- * Validation schema for the initial owner setup payload.
- *
- * @remarks
- * This schema is consumed by route-layer validation before calling service methods.
- * It does not create users itself.
- */
-export const setupSchema = z.object({
-  username: z.string().min(3).max(50),
-  email: z.string().email(),
-  password: z.string().min(8),
-});
 
 /**
  * Default cookie settings for admin session handling.

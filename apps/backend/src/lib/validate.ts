@@ -1,5 +1,5 @@
 /** Detect image type from magic bytes. Returns null if not a recognized image. */
-export function detectImageType(buffer: Buffer): "jpeg" | "png" | "webp" | null {
+export function detectImageType(buffer: Buffer): "jpeg" | "png" | "webp" | "gif" | "avif" | null {
   if (buffer.length < 12) return null;
   if (buffer[0] === 0xff && buffer[1] === 0xd8) return "jpeg";
   if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47)
@@ -15,6 +15,14 @@ export function detectImageType(buffer: Buffer): "jpeg" | "png" | "webp" | null 
     buffer[11] === 0x50
   )
     return "webp";
+  // GIF: "GIF8"
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38)
+    return "gif";
+  // AVIF: bytes 4-7 = "ftyp", bytes 8-11 = "avif" or "avis"
+  if (buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70) {
+    const brand = String.fromCharCode(buffer[8], buffer[9], buffer[10], buffer[11]);
+    if (brand === "avif" || brand === "avis") return "avif";
+  }
   return null;
 }
 

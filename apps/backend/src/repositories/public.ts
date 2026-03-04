@@ -114,15 +114,25 @@ export async function getPublicCategoryBySlug(slug: string) {
  * @returns SQL result rows with core shop fields.
  */
 export async function listPublicShopsByCategoryId(categoryId: number) {
-  return db.execute<CategoryShopRow & Record<string, unknown>>(sql`
-    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage",
-           s.social_media as "socialMedia"
-    FROM shops s
-    INNER JOIN shop_categories sc ON sc.shop_id = s.id AND sc.category_id = ${categoryId}
-    WHERE s.is_active = true AND s.visibility = 'public'
-    ORDER BY s.name
-  `);
+  return db
+    .select({
+      id: shops.id,
+      name: shops.name,
+      url: shops.url,
+      region: shops.region,
+      pickup: shops.pickup,
+      shipping: shops.shipping,
+      description: shops.description,
+      ogImage: shops.ogImage,
+      socialMedia: shops.socialMedia,
+    })
+    .from(shops)
+    .innerJoin(
+      shopCategories,
+      and(eq(shopCategories.shopId, shops.id), eq(shopCategories.categoryId, categoryId)),
+    )
+    .where(and(eq(shops.isActive, true), eq(shops.visibility, "public")))
+    .orderBy(asc(shops.name));
 }
 
 /**
@@ -131,7 +141,7 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
  * @returns SQL rows suitable for frontend catalog rendering.
  */
 export async function listAllPublicShopsWithCategories() {
-  return db.execute<PublicShopRow & Record<string, unknown>>(sql`
+  return db.execute<PublicShopRow>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.social_media as "socialMedia",
