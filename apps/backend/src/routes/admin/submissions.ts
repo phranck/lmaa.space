@@ -3,11 +3,10 @@ import { reviewSchema, submissionEditSchema, submissionStatusFilterSchema } from
 import { Hono } from "hono";
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { editSubmission, listAdminSubmissions } from "../../repositories/admin-submissions.js";
 import {
   deleteRejectedAdminSubmission,
-  editAdminSubmission,
-  getAdminSubmissions,
   reviewAdminSubmission,
 } from "../../services/admin-submissions.js";
 
@@ -20,7 +19,7 @@ import {
 export const submissionsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/submissions
-submissionsRoutes.get("/submissions", requireAuth, async (c) => {
+submissionsRoutes.get("/submissions", async (c) => {
   const statusQuery = c.req.query("status");
   const parsedStatus = statusQuery ? submissionStatusFilterSchema.safeParse(statusQuery) : null;
   if (parsedStatus && !parsedStatus.success) {
@@ -28,49 +27,43 @@ submissionsRoutes.get("/submissions", requireAuth, async (c) => {
   }
 
   const status = parsedStatus?.success ? parsedStatus.data : undefined;
-  const submissions = await getAdminSubmissions(status);
+  const submissions = await listAdminSubmissions(status);
   return ok(c, submissions);
 });
 
 // PATCH /api/admin/submissions/:id
-submissionsRoutes.patch(
-  "/submissions/:id",
-  requireAuth,
-  zValidator("json", reviewSchema),
-  async (c) => {
-    const id = parseId(c.req.param("id"));
-    if (!id) return fail(c, 400, "Invalid id");
-    const { status, adminNote, rejectionLongText, rejectionToken } = c.req.valid("json");
-    const adminId = c.get("adminId");
+submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+  const { status, adminNote, rejectionLongText, rejectionToken } = c.req.valid("json");
+  const adminId = c.get("adminId");
 
-    const result = await reviewAdminSubmission({
-      id,
-      status,
-      adminNote,
-      rejectionLongText,
-      rejectionToken,
-      adminId,
-    });
+  const result = await reviewAdminSubmission({
+    id,
+    status,
+    adminNote,
+    rejectionLongText,
+    rejectionToken,
+    adminId,
+  });
 
-    if (!result.ok) {
-      return fail(c, 404, "Submission not found");
-    }
+  if (!result.ok) {
+    return fail(c, 404, "Submission not found");
+  }
 
-    return ok(c, result.submission);
-  },
-);
+  return ok(c, result.submission);
+});
 
 // PATCH /api/admin/submissions/:id/edit – update pending submission's shop data
 submissionsRoutes.patch(
   "/submissions/:id/edit",
-  requireAuth,
   zValidator("json", submissionEditSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
     const body = c.req.valid("json");
 
-    const submission = await editAdminSubmission(id, body);
+    const submission = await editSubmission(id, body);
 
     if (!submission) {
       return fail(c, 404, "Submission not found");
@@ -81,7 +74,7 @@ submissionsRoutes.patch(
 );
 
 // DELETE /api/admin/submissions/:id – permanently remove rejected submissions
-submissionsRoutes.delete("/submissions/:id", requireAuth, requireAdmin, async (c) => {
+submissionsRoutes.delete("/submissions/:id", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 

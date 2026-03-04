@@ -1,6 +1,13 @@
 import { Hono } from "hono";
 import { fail, ok } from "../lib/http.js";
-import { rateLimit } from "../middleware/rate-limit.js";
+import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
+import {
+  getPublishedContentPageBySlug,
+  getRejectionPageByToken,
+  listPublicCategoriesWithShopCount,
+  listPublicNavItems,
+  listPublishedContentPages,
+} from "../repositories/public.js";
 import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
@@ -11,14 +18,9 @@ import {
   createManagedDeadLinkReport,
   createManagedShopConcernReport,
   getManagedPublicCacheStats,
-  getManagedPublicCategories,
   getManagedPublicCategoryBySlug,
-  getManagedPublicNav,
-  getManagedPublicRejectionPage,
   getManagedPublicShops,
   getManagedPublicStats,
-  getManagedPublishedContentList,
-  getManagedPublishedContentPage,
   searchManagedPublicCatalog,
 } from "../services/public.js";
 
@@ -29,7 +31,7 @@ export const publicRoutes = new Hono();
 
 // GET /api/categories
 publicRoutes.get("/categories", async (c) => {
-  const rows = await getManagedPublicCategories();
+  const rows = await listPublicCategoriesWithShopCount();
   c.header("Cache-Control", "private, max-age=30");
   return ok(c, rows);
 });
@@ -96,21 +98,21 @@ publicRoutes.get("/nav/:navId", async (c) => {
     return fail(c, 400, "Invalid navId");
   }
 
-  const rows = await getManagedPublicNav(navId);
+  const rows = await listPublicNavItems(navId);
   c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
   return ok(c, rows);
 });
 
 // GET /api/content – list all published pages (slugs + titles, for SSG)
 publicRoutes.get("/content", async (c) => {
-  const rows = await getManagedPublishedContentList();
+  const rows = await listPublishedContentPages();
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
   return ok(c, rows);
 });
 
 // GET /api/content/:slug (published pages only)
 publicRoutes.get("/content/:slug", async (c) => {
-  const page = await getManagedPublishedContentPage(c.req.param("slug"));
+  const page = await getPublishedContentPageBySlug(c.req.param("slug"));
   if (!page) {
     return fail(c, 404, "Not found");
   }
@@ -129,13 +131,13 @@ publicRoutes.post(
       return fail(c, 400, "Invalid shop id");
     }
 
-    const ip = c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip") ?? "unknown";
+    const ip = resolveClientIp(c.req.raw.headers);
     const result = await createManagedDeadLinkReport(id, ip);
     if (!result.ok) {
       return fail(c, 404, "Shop not found");
     }
 
-    return ok(c, { message: result.message });
+    return ok(c, { message: "Danke für deinen Hinweis!" });
   },
 );
 
@@ -151,7 +153,7 @@ publicRoutes.post(
 
     const body = await c.req.json().catch(() => ({}));
     const reason = typeof body?.reason === "string" ? body.reason : "";
-    const ip = c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip") ?? "unknown";
+    const ip = resolveClientIp(c.req.raw.headers);
 
     const result = await createManagedShopConcernReport(id, reason, ip);
     if (!result.ok && result.reason === "invalid_reason") {
@@ -161,7 +163,7 @@ publicRoutes.post(
       return fail(c, 404, "Shop not found");
     }
 
-    return ok(c, { message: result.message });
+    return ok(c, { message: "Danke für dein Feedback!" });
   },
 );
 
@@ -188,7 +190,7 @@ publicRoutes.get("/rejected/:token", async (c) => {
     return fail(c, 400, "Invalid token");
   }
 
-  const page = await getManagedPublicRejectionPage(token);
+  const page = await getRejectionPageByToken(token);
   if (!page) {
     return fail(c, 404, "Not found");
   }

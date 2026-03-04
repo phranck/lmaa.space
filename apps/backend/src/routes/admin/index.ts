@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { authRoutes } from "./auth.js";
 import { categoriesRoutes } from "./categories.js";
 import { contentRoutes } from "./content.js";
@@ -17,20 +17,30 @@ import { usersRoutes } from "./users.js";
 
 /**
  * Root admin route bundle mounted at `/api/admin`.
+ *
+ * Auth routes (setup, login) are mounted directly so they remain public.
+ * All other routes go through a sub-router with group-level `requireAuth`.
  */
 export const adminRoutes = new Hono<{ Variables: AuthVariables }>();
 
+// Auth routes handle their own auth (setup/login = public, logout/me = requireAuth inline)
 adminRoutes.route("/", authRoutes);
-adminRoutes.route("/", statsRoutes);
-adminRoutes.route("/", umamiRoutes);
-adminRoutes.route("/", submissionsRoutes);
-adminRoutes.route("/", shopsRoutes);
-adminRoutes.route("/", deadLinkReportsRoutes);
-adminRoutes.route("/", shopConcernReportsRoutes);
-adminRoutes.route("/", categoriesRoutes);
-adminRoutes.route("/", unsplashRoutes);
-adminRoutes.route("/", contentRoutes);
-adminRoutes.route("/", navAdminRoutes);
-adminRoutes.route("/", usersRoutes);
-adminRoutes.route("/", formConfigRoutes);
-adminRoutes.route("/", emailTemplateRoutes);
+
+// All other admin routes require authentication at the group level
+const protectedRoutes = new Hono<{ Variables: AuthVariables }>();
+protectedRoutes.use("*", requireAuth);
+protectedRoutes.route("/", statsRoutes);
+protectedRoutes.route("/", umamiRoutes);
+protectedRoutes.route("/", submissionsRoutes);
+protectedRoutes.route("/", shopsRoutes);
+protectedRoutes.route("/", deadLinkReportsRoutes);
+protectedRoutes.route("/", shopConcernReportsRoutes);
+protectedRoutes.route("/", categoriesRoutes);
+protectedRoutes.route("/", unsplashRoutes);
+protectedRoutes.route("/", contentRoutes);
+protectedRoutes.route("/", navAdminRoutes);
+protectedRoutes.route("/", usersRoutes);
+protectedRoutes.route("/", formConfigRoutes);
+protectedRoutes.route("/", emailTemplateRoutes);
+
+adminRoutes.route("/", protectedRoutes);

@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
-import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+import type { AuthVariables } from "../../middleware/auth.js";
 import {
-  clearManagedAdminDeadLinkReports,
-  getManagedAdminDeadLinkReports,
-} from "../../services/admin-dead-link-reports.js";
+  clearAdminDeadLinkReports,
+  listAdminDeadLinkReports,
+} from "../../repositories/admin-dead-link-reports.js";
 
 /**
  * Admin routes for dead-link report moderation.
@@ -13,15 +13,15 @@ import {
 export const deadLinkReportsRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/dead-link-reports
-deadLinkReportsRoutes.get("/dead-link-reports", requireAuth, async (c) => {
-  const rows = await getManagedAdminDeadLinkReports();
+deadLinkReportsRoutes.get("/dead-link-reports", async (c) => {
+  const rows = await listAdminDeadLinkReports();
   return ok(c, rows);
 });
 
-// DELETE /api/admin/dead-link-reports/:shopId – clear all reports for a shop
-deadLinkReportsRoutes.delete("/dead-link-reports/:shopId", requireAuth, async (c) => {
+// DELETE /api/admin/dead-link-reports/:shopId - clear all reports for a shop
+deadLinkReportsRoutes.delete("/dead-link-reports/:shopId", async (c) => {
   const shopId = parseId(c.req.param("shopId"));
   if (!shopId) return fail(c, 400, "Invalid shop id");
-  const result = await clearManagedAdminDeadLinkReports(shopId);
-  return ok(c, result);
+  await clearAdminDeadLinkReports(shopId);
+  return ok(c, { message: "Reports cleared" });
 });

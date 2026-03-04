@@ -1,23 +1,18 @@
 import { zValidator } from "@hono/zod-validator";
+import { loginSchema } from "@lmaa/contracts";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { z } from "zod";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";
+import { getAdminProfileById } from "../../repositories/admin-auth.js";
 import {
-  getAdminProfile,
   getAdminSetupState,
   loginAdmin,
   logoutAdmin,
   setupOwnerAdmin,
 } from "../../services/admin-auth.js";
 import { SESSION_COOKIE_OPTIONS, setupSchema } from "../../services/auth.js";
-
-const loginSchema = z.object({
-  username: z.string(),
-  password: z.string(),
-});
 
 /**
  * Admin authentication routes (`/setup`, `/login`, `/logout`, `/me`).
@@ -75,7 +70,7 @@ authRoutes.post("/logout", requireAuth, async (c) => {
 // GET /api/admin/me
 authRoutes.get("/me", requireAuth, async (c) => {
   const adminId = c.get("adminId");
-  const admin = await getAdminProfile(adminId);
+  const admin = await getAdminProfileById(adminId);
   if (!admin) {
     return fail(c, 404, "Admin user not found");
   }

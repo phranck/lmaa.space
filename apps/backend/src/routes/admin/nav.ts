@@ -1,21 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
+import { navItemsSchema } from "@lmaa/contracts";
 import type { NavId } from "@lmaa/shared";
 import { Hono } from "hono";
-import { z } from "zod";
 import { fail, ok } from "../../lib/http.js";
-import { type AuthVariables, requireAdmin, requireAuth } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { getManagedNavItems, replaceManagedNavItems } from "../../services/admin-nav.js";
-
-const navItemsSchema = z.object({
-  items: z.array(
-    z.object({
-      pageSlug: z.string().min(1).nullish(),
-      url: z.string().min(1).nullish(),
-      label: z.string().max(100).nullish(),
-      target: z.enum(["_self", "_blank"]).default("_self"),
-    }),
-  ),
-});
 
 /**
  * Admin navigation editor routes (`/nav/:navId`).
@@ -38,7 +27,7 @@ function parseNavId(navId: string): NavId | null {
 
 // ─── GET /admin/nav/:navId ────────────────────────────────────────────────────
 
-navAdminRoutes.get("/nav/:navId", requireAuth, requireAdmin, async (c) => {
+navAdminRoutes.get("/nav/:navId", requireAdmin, async (c) => {
   const navId = parseNavId(c.req.param("navId"));
   if (!navId) {
     return fail(c, 400, "Invalid navId");
@@ -50,28 +39,22 @@ navAdminRoutes.get("/nav/:navId", requireAuth, requireAdmin, async (c) => {
 
 // ─── PUT /admin/nav/:navId ────────────────────────────────────────────────────
 
-navAdminRoutes.put(
-  "/nav/:navId",
-  requireAuth,
-  requireAdmin,
-  zValidator("json", navItemsSchema),
-  async (c) => {
-    const navId = parseNavId(c.req.param("navId"));
-    if (!navId) {
-      return fail(c, 400, "Invalid navId");
-    }
+navAdminRoutes.put("/nav/:navId", requireAdmin, zValidator("json", navItemsSchema), async (c) => {
+  const navId = parseNavId(c.req.param("navId"));
+  if (!navId) {
+    return fail(c, 400, "Invalid navId");
+  }
 
-    const { items } = c.req.valid("json");
-    const updated = await replaceManagedNavItems(
-      navId,
-      items.map((item) => ({
-        pageSlug: item.pageSlug ?? null,
-        url: item.url ?? null,
-        target: item.target,
-        label: item.label ?? null,
-      })),
-    );
+  const { items } = c.req.valid("json");
+  const updated = await replaceManagedNavItems(
+    navId,
+    items.map((item) => ({
+      pageSlug: item.pageSlug ?? null,
+      url: item.url ?? null,
+      target: item.target,
+      label: item.label ?? null,
+    })),
+  );
 
-    return ok(c, updated);
-  },
-);
+  return ok(c, updated);
+});
