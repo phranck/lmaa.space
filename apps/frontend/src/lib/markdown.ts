@@ -35,23 +35,23 @@ export async function renderMarkdown(content: string): Promise<string> {
 
 const markedPlainText = new Marked({
   renderer: {
-    heading({ text }) {
-      return `${text} `;
+    heading({ tokens }) {
+      return `${this.parser.parseInline(tokens)} `;
     },
-    paragraph({ text }) {
-      return `${text} `;
+    paragraph({ tokens }) {
+      return `${this.parser.parseInline(tokens)} `;
     },
-    link({ text }) {
-      return text;
+    link({ tokens }) {
+      return this.parser.parseInline(tokens);
     },
     image() {
       return "";
     },
-    strong({ text }) {
-      return text;
+    strong({ tokens }) {
+      return this.parser.parseInline(tokens);
     },
-    em({ text }) {
-      return text;
+    em({ tokens }) {
+      return this.parser.parseInline(tokens);
     },
     codespan({ text }) {
       return text;
@@ -59,14 +59,14 @@ const markedPlainText = new Marked({
     code({ text }) {
       return `${text} `;
     },
-    blockquote({ text }) {
-      return text;
+    blockquote({ tokens }) {
+      return this.parser.parse(tokens);
     },
     list({ items }) {
-      return items.map((i) => i.text).join(" ");
+      return items.map((i) => this.parser.parse(i.tokens)).join(" ");
     },
-    listitem({ text }) {
-      return text;
+    listitem({ tokens }) {
+      return this.parser.parse(tokens);
     },
     hr() {
       return " ";
