@@ -13,7 +13,7 @@ const ANIMATION_DURATION = 250;
  */
 export function useSaveNotification() {
   const [phase, setPhase] = useState<Phase>("hidden");
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const show = useCallback(() => {
     clearTimeout(timerRef.current);
