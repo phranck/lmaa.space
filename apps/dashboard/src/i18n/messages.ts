@@ -278,6 +278,8 @@ export interface DashboardMessages {
       restore: string;
       info: string;
       infoTitle: string;
+      editRejectionInfo: string;
+      reviewEditRejectionTitle: string;
       noReason: string;
       setToOpen: string;
       rejectionLongLabel: string;
@@ -901,6 +903,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         restore: "Wiederherstellen",
         info: "Ablehnungs-Info",
         infoTitle: "Ablehnungsgrund",
+        editRejectionInfo: "Bearbeiten",
+        reviewEditRejectionTitle: "Ablehnungs-Info bearbeiten",
         noReason: "Kein Ablehnungsgrund hinterlegt.",
         setToOpen: "Auf Neu setzen",
         rejectionLongLabel: "Langbegründung (öffentliche Seite)",
@@ -1520,6 +1524,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         restore: "Restore",
         info: "Rejection info",
         infoTitle: "Rejection reason",
+        editRejectionInfo: "Edit",
+        reviewEditRejectionTitle: "Edit rejection info",
         noReason: "No rejection reason provided.",
         setToOpen: "Set to new",
         rejectionLongLabel: "Long reason (public page)",
