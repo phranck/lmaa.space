@@ -168,6 +168,7 @@ interface SuccessScreenProps {
  */
 function SuccessScreen({ onReset, headline, message }: SuccessScreenProps) {
   const messageRef = useRef<HTMLDivElement>(null);
+  const renderKeyRef = useRef(0);
 
   useEffect(() => {
     const el = messageRef.current;
@@ -176,8 +177,11 @@ function SuccessScreen({ onReset, headline, message }: SuccessScreenProps) {
       el.innerHTML = "";
       return;
     }
+    const currentKey = ++renderKeyRef.current;
     void renderMarkdown(message).then((html) => {
-      if (messageRef.current) messageRef.current.innerHTML = html;
+      if (renderKeyRef.current === currentKey && messageRef.current) {
+        messageRef.current.innerHTML = html;
+      }
     });
   }, [message]);
 
@@ -566,10 +570,10 @@ function MultiSelectDropdown({
           <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-red-500 align-middle" />
         )}
       </span>
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: dropdown trigger */}
-      <div
+      <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`w-full flex items-center gap-2 px-3 min-h-10 rounded-control border text-sm cursor-pointer ${
+        className={`w-full flex items-center gap-2 px-3 min-h-10 rounded-control border text-sm cursor-pointer text-left ${
           error ? "border-[var(--ds-danger-border)]" : "border-[var(--ds-border)]"
         } bg-[var(--ds-input-bg)] text-[var(--ds-text)]`}
       >
@@ -637,7 +641,7 @@ function MultiSelectDropdown({
             />
           </svg>
         </div>
-      </div>
+      </button>
       {open && (
         <div className="absolute z-20 w-full mt-1 bg-white border border-[var(--ds-border)] rounded-xl shadow-lg max-h-64 overflow-y-auto">
           <label className="flex items-center gap-3 px-4 py-1.5 cursor-pointer hover:bg-[var(--ds-surface-alt)] select-none border-b border-[var(--ds-border)]">
@@ -824,6 +828,7 @@ const RICHTEXT_VARIANT_CLASSES: Record<RichTextVariant, string> = {
  */
 function RichTextBlock({ field }: { field: FormField }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const renderKeyRef = useRef(0);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -832,8 +837,9 @@ function RichTextBlock({ field }: { field: FormField }) {
       el.innerHTML = "";
       return;
     }
+    const currentKey = ++renderKeyRef.current;
     void renderMarkdown(field.content).then((html) => {
-      if (containerRef.current) {
+      if (renderKeyRef.current === currentKey && containerRef.current) {
         containerRef.current.innerHTML = html;
       }
     });

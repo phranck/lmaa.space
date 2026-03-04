@@ -1,6 +1,14 @@
 import { api } from "@/lib/api.ts";
 import type { AdminUser } from "@lmaa/shared";
-import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 interface AuthState {
   user: AdminUser | null;
@@ -27,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     try {
       const me = await api.get<AdminUser>("/admin/me");
       setUser(me);
@@ -35,36 +43,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       setUser(null);
       try {
-        const { needsSetup } = await api.get<{ needsSetup: boolean }>("/admin/setup");
-        setNeedsSetup(needsSetup);
+        const res = await api.get<{ needsSetup: boolean }>("/admin/setup");
+        setNeedsSetup(res.needsSetup);
       } catch {
         setNeedsSetup(false);
       }
     } finally {
       setIsLoading(false);
     }
-  }
-
-  async function login(username: string, password: string) {
-    const me = await api.post<AdminUser>("/admin/login", { username, password });
-    setUser(me);
-  }
-
-  async function logout() {
-    await api.post("/admin/logout").catch(() => {});
-    setUser(null);
-  }
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch
-  useEffect(() => {
-    refresh();
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, isLoading, needsSetup, login, logout, refresh }}>
-      {children}
-    </AuthContext.Provider>
+  const login = useCallback(async (username: string, password: string) => {
+    const me = await api.post<AdminUser>("/admin/login", { username, password });
+    setUser(me);
+  }, []);
+
+  const logout = useCallback(async () => {
+    await api.post("/admin/logout").catch(() => {});
+    setUser(null);
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const value = useMemo(
+    () => ({ user, isLoading, needsSetup, login, logout, refresh }),
+    [user, isLoading, needsSetup, login, logout, refresh],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 /**

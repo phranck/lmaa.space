@@ -13,7 +13,7 @@ import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonC
 import { ShopEditCard } from "@/features/content/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 import type { ShopVisibility } from "@lmaa/shared";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   SFEyeFill,
   SFMagnifyingglass,
@@ -47,38 +47,60 @@ export function ShopsPage() {
   const visibilityMutation = useSetShopVisibility();
   const updateReasonMutation = useUpdateDeleteReason();
 
-  const filtered = shops.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.url.toLowerCase().includes(search.toLowerCase()),
+  const searchLower = search.toLowerCase();
+  const filtered = useMemo(
+    () =>
+      shops.filter(
+        (s) =>
+          s.name.toLowerCase().includes(searchLower) || s.url.toLowerCase().includes(searchLower),
+      ),
+    [shops, searchLower],
   );
 
   const deleteTarget = shops.find((s) => s.id === deleteId);
 
   const canModify = me?.role !== "moderator";
 
-  const filterOptions: DropdownOption<VisibilityFilter>[] = [
-    {
-      value: "all",
-      label: shopsMessages.filters.all,
-      icon: <SFSquareGrid2x2Fill className="w-3.5 h-3.5" />,
+  const onHold = useCallback(
+    (id: number) => visibilityMutation.mutate({ id, visibility: "onhold" }),
+    [visibilityMutation],
+  );
+  const onRestore = useCallback(
+    (id: number) => visibilityMutation.mutate({ id, visibility: "public" }),
+    [visibilityMutation],
+  );
+  const onUpdateReason = useCallback(
+    async (id: number, reason: string) => {
+      await updateReasonMutation.mutateAsync({ id, reason });
     },
-    {
-      value: "public",
-      label: shopsMessages.filters.public,
-      icon: <SFEyeFill className="w-3.5 h-3.5" />,
-    },
-    {
-      value: "onhold",
-      label: shopsMessages.filters.onhold,
-      icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
-    },
-    {
-      value: "deleted",
-      label: shopsMessages.filters.deleted,
-      icon: <SFTrashFill className="w-3.5 h-3.5" />,
-    },
-  ];
+    [updateReasonMutation],
+  );
+
+  const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
+    () => [
+      {
+        value: "all",
+        label: shopsMessages.filters.all,
+        icon: <SFSquareGrid2x2Fill className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "public",
+        label: shopsMessages.filters.public,
+        icon: <SFEyeFill className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "onhold",
+        label: shopsMessages.filters.onhold,
+        icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "deleted",
+        label: shopsMessages.filters.deleted,
+        icon: <SFTrashFill className="w-3.5 h-3.5" />,
+      },
+    ],
+    [shopsMessages],
+  );
 
   return (
     <div>
@@ -149,23 +171,9 @@ export function ShopsPage() {
             shops={filtered}
             onEdit={setEditTarget}
             onDelete={canModify ? setDeleteId : undefined}
-            onHold={
-              canModify
-                ? (id) => visibilityMutation.mutate({ id, visibility: "onhold" })
-                : undefined
-            }
-            onRestore={
-              canModify
-                ? (id) => visibilityMutation.mutate({ id, visibility: "public" })
-                : undefined
-            }
-            onUpdateReason={
-              canModify
-                ? async (id, reason) => {
-                    await updateReasonMutation.mutateAsync({ id, reason });
-                  }
-                : undefined
-            }
+            onHold={canModify ? onHold : undefined}
+            onRestore={canModify ? onRestore : undefined}
+            onUpdateReason={canModify ? onUpdateReason : undefined}
           />
         </div>
       )}

@@ -114,12 +114,18 @@ export function ShopEditCard({
         if (closing && e.target === e.currentTarget) onClose();
       }}
     >
+      {/* biome-ignore lint/a11y/useSemanticElements: custom overlay with animation */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shop-edit-title"
         className={`relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl w-full max-w-lg overflow-hidden ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
       >
         {/* Header */}
         <div className="flex items-center px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
-          <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
+          <h2 id="shop-edit-title" className="text-base font-semibold text-[var(--ds-text)]">
+            {title}
+          </h2>
         </div>
 
         {/* Form */}

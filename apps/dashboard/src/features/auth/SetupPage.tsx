@@ -131,7 +131,11 @@ export function SetupPage() {
               />
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && (
+              <p role="alert" className="text-red-500 text-sm">
+                {error}
+              </p>
+            )}
 
             <div className="flex justify-end mt-2">
               <button

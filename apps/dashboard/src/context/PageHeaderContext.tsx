@@ -1,4 +1,4 @@
-import { type ReactNode, createContext, useContext, useState } from "react";
+import { type ReactNode, createContext, useContext, useMemo, useState } from "react";
 
 interface PageHeaderContextValue {
   title: string;
@@ -24,11 +24,9 @@ export function PageHeaderProvider({ children }: { children: ReactNode }) {
   const [title, setTitle] = useState("");
   const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
 
-  return (
-    <PageHeaderContext.Provider value={{ title, setTitle, actionsEl, setActionsEl }}>
-      {children}
-    </PageHeaderContext.Provider>
-  );
+  const value = useMemo(() => ({ title, setTitle, actionsEl, setActionsEl }), [title, actionsEl]);
+
+  return <PageHeaderContext.Provider value={value}>{children}</PageHeaderContext.Provider>;
 }
 
 /**

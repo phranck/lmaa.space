@@ -17,6 +17,7 @@ function CategoryThumb({ category }: { category: Category }) {
       <img
         src={src}
         alt=""
+        loading="lazy"
         className="block w-full h-full object-cover"
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";

@@ -33,7 +33,9 @@ export function SegmentSwitch<T extends string>({
 }: SegmentSwitchProps<T>) {
   const s = sizeStyles[size];
   return (
+    // biome-ignore lint/a11y/useSemanticElements: not a fieldset, role="group" is correct for segment switch
     <div
+      role="group"
       className={`flex ${s.container} bg-[var(--ds-surface-alt)] rounded-control border border-[var(--ds-border)] w-fit ${className ?? ""}`}
     >
       {options.map((opt) => {
@@ -44,6 +46,7 @@ export function SegmentSwitch<T extends string>({
             type="button"
             disabled={opt.disabled}
             onClick={() => onChange(opt.value)}
+            aria-pressed={active}
             className={`inline-flex items-center gap-1 ${s.button} rounded-[calc(var(--radius-control)-2px)] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
               active
                 ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
