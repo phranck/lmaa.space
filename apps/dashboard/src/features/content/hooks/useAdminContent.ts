@@ -88,7 +88,7 @@ export function useDeleteContentPage() {
 export function usePatchContentPage(slug: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { title?: string; slug?: string; status?: string }) =>
+    mutationFn: (data: { title?: string; slug?: string; status?: string; showTitle?: boolean }) =>
       api.patch<{ slug: string; title: string; status: string; updatedAt: string | null }>(
         `/admin/content/${slug}`,
         data,

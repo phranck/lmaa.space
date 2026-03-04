@@ -14,6 +14,7 @@ interface ContentPageSummaryRow {
   slug: string;
   title: string;
   status: ContentPageStatus;
+  showTitle: boolean;
   createdAt: Date;
   createdBy: number | null;
   updatedAt: Date | null;
@@ -32,6 +33,7 @@ const CONTENT_PAGE_SUMMARY_FIELDS = {
   slug: contentPages.slug,
   title: contentPages.title,
   status: contentPages.status,
+  showTitle: contentPages.showTitle,
   createdAt: contentPages.createdAt,
   createdBy: contentPages.createdBy,
   updatedAt: contentPages.updatedAt,
@@ -44,18 +46,7 @@ const CONTENT_PAGE_SUMMARY_FIELDS = {
  * @returns Summaries ordered by title.
  */
 export async function listContentPageSummaries(): Promise<ContentPageSummaryRow[]> {
-  return db
-    .select({
-      slug: contentPages.slug,
-      title: contentPages.title,
-      status: contentPages.status,
-      createdAt: contentPages.createdAt,
-      createdBy: contentPages.createdBy,
-      updatedAt: contentPages.updatedAt,
-      updatedBy: contentPages.updatedBy,
-    })
-    .from(contentPages)
-    .orderBy(contentPages.title);
+  return db.select(CONTENT_PAGE_SUMMARY_FIELDS).from(contentPages).orderBy(contentPages.title);
 }
 
 /**
@@ -67,14 +58,8 @@ export async function listContentPageSummaries(): Promise<ContentPageSummaryRow[
 export async function getContentPageBySlug(slug: string): Promise<ContentPageDetailRow | null> {
   const [page] = await db
     .select({
-      slug: contentPages.slug,
-      title: contentPages.title,
+      ...CONTENT_PAGE_SUMMARY_FIELDS,
       content: contentPages.content,
-      status: contentPages.status,
-      createdAt: contentPages.createdAt,
-      createdBy: contentPages.createdBy,
-      updatedAt: contentPages.updatedAt,
-      updatedBy: contentPages.updatedBy,
     })
     .from(contentPages)
     .where(eq(contentPages.slug, slug))
@@ -160,7 +145,7 @@ export async function updateContentPageBody(
  */
 export async function updateContentPageMeta(
   currentSlug: string,
-  updates: Partial<{ title: string; slug: string; status: ContentPageStatus }>,
+  updates: Partial<{ title: string; slug: string; status: ContentPageStatus; showTitle: boolean }>,
   updatedBy: number,
 ): Promise<ContentPageSummaryRow | null> {
   const [page] = await db

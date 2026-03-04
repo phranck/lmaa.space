@@ -21,6 +21,7 @@ function mapSummary(
     slug: string;
     title: string;
     status: ContentStatus;
+    showTitle: boolean;
     createdAt: Date;
     createdBy: number | null;
     updatedAt: Date | null;
@@ -32,6 +33,7 @@ function mapSummary(
     slug: row.slug,
     title: row.title,
     status: row.status,
+    showTitle: row.showTitle,
     createdAt: row.createdAt.toISOString(),
     createdByUsername: row.createdBy ? (usernames.get(row.createdBy) ?? null) : null,
     updatedAt: toIso(row.updatedAt),
@@ -90,6 +92,7 @@ export async function createManagedContentPage(input: {
       slug: page.slug,
       title: page.title,
       status: page.status,
+      showTitle: page.showTitle,
       createdAt: page.createdAt.toISOString(),
       createdByUsername: creatorUsername,
       updatedAt: null,
@@ -118,6 +121,7 @@ export async function getManagedContentPage(slug: string) {
     title: page.title,
     content: page.content,
     status: page.status,
+    showTitle: page.showTitle,
     createdAt: page.createdAt.toISOString(),
     createdByUsername: page.createdBy ? (usernames.get(page.createdBy) ?? null) : null,
     updatedAt: toIso(page.updatedAt),
@@ -163,6 +167,7 @@ export async function updateManagedContentPageMeta(input: {
   newSlug?: string;
   title?: string;
   status?: ContentStatus;
+  showTitle?: boolean;
   adminId: number;
 }) {
   if (input.newSlug && input.newSlug !== input.currentSlug) {
@@ -174,7 +179,7 @@ export async function updateManagedContentPageMeta(input: {
 
   const updated = await updateContentPageMeta(
     input.currentSlug,
-    { slug: input.newSlug, title: input.title, status: input.status },
+    { slug: input.newSlug, title: input.title, status: input.status, showTitle: input.showTitle },
     input.adminId,
   );
   if (!updated) {

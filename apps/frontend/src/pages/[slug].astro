@@ -9,44 +9,23 @@ import type { Category } from "@lmaa/shared";
 interface ContentPageView {
   title: string;
   content: string;
+  showTitle: boolean;
 }
 
 const { slug } = Astro.params;
 const forbiddenSlugs = new Set(["api", "uploads", "_astro", "favicon.ico", "sitemap.xml"]);
-const fallbackPages: Record<string, ContentPageView> = {
-  about: {
-    title: "Über LMAA",
-    content:
-      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
-  },
-  history: {
-    title: "Geschichte",
-    content:
-      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
-  },
-  impressum: {
-    title: "Impressum",
-    content:
-      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
-  },
-  datenschutz: {
-    title: "Datenschutz",
-    content:
-      "## Inhalt vorübergehend nicht verfügbar\n\nDiese Seite konnte gerade nicht geladen werden. Bitte versuche es in wenigen Minuten erneut.",
-  },
-};
-
 if (!slug || forbiddenSlugs.has(slug)) {
   return Astro.redirect("/404");
 }
 
 let page: ContentPageView | null = null;
 try {
-  const remote = await apiGet<{ title: string; content: string }>(`/content/${slug}`);
-  page = { title: remote.title, content: remote.content };
-} catch (err) {
-  console.error("[SSR] content fetch failed:", err);
-  page = fallbackPages[slug] ?? null;
+  const remote = await apiGet<{ title: string; content: string; showTitle: boolean }>(
+    `/content/${slug}`,
+  );
+  page = { title: remote.title, content: remote.content, showTitle: remote.showTitle };
+} catch {
+  // Content page not found or API error — fall through to form check / 404
 }
 
 // If no content page found, try to resolve as a form config slug
@@ -86,11 +65,10 @@ if (page) {
 {page ? (
   <BaseLayout title={page.title} description={description}>
     <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
-      <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-10">{page.title}</h1>
-      <article
-        class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
-        set:html={html}
-      />
+      <article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
+        {page.showTitle && <h1>{page.title}</h1>}
+        <Fragment set:html={html} />
+      </article>
     </div>
   </BaseLayout>
 ) : (

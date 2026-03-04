@@ -73,7 +73,7 @@ contentRoutes.patch(
   zValidator("json", contentMetaSchema),
   async (c) => {
     const currentSlug = c.req.param("slug");
-    const { title, slug: newSlug, status } = c.req.valid("json");
+    const { title, slug: newSlug, status, showTitle } = c.req.valid("json");
     const adminId = c.get("adminId");
 
     const result = await updateManagedContentPageMeta({
@@ -81,6 +81,7 @@ contentRoutes.patch(
       newSlug,
       title,
       status,
+      showTitle,
       adminId,
     });
     if (!result.ok && result.reason === "slug_conflict")
