@@ -241,13 +241,6 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
     />
   )}
 
-  <!-- Contact Email -->
-  {shop.contactEmail && (
-    <p class="text-sm text-stone-600">
-      <span class="font-medium">Kontakt:</span>{" "}
-      <a href={`mailto:${shop.contactEmail}`} class="text-amber-700 hover:underline">{shop.contactEmail}</a>
-    </p>
-  )}
 
   <!-- Category pills -->
   {shop.categories?.length > 0 && (
