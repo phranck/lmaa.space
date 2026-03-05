@@ -1,3 +1,4 @@
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
 import { useCallback, useEffect, useReducer, useRef } from "react";
@@ -176,14 +177,6 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
     return () => observer.disconnect();
   }, [hasMore, photos.length]);
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   async function handleSelect(photo: UnsplashPhoto) {
     api
       .post("/admin/unsplash/download", { downloadLocation: photo.downloadLocation })
@@ -195,93 +188,92 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
   const isLoadingMore = status === "loading-more";
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-
-      <div
-        className="relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden overlay-card-enter"
-        style={{ width: "85vw", height: "85vh" }}
-      >
-        {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ds-border-subtle)] shrink-0">
-          <div className="relative flex-1">
-            <SFMagnifyingglass className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] w-3.5 h-3.5" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => dispatch({ type: "set-query", query: e.target.value })}
-              placeholder={categoriesMessages.unsplash.searchPlaceholder}
-              className="w-full pl-8 pr-3 py-2 text-sm border border-[var(--ds-border)] rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors rounded-control hover:bg-[var(--ds-bg-elevated)]"
-            aria-label={categoriesMessages.unsplash.closeAria}
-          >
-            <SFXmarkCircleFill className="w-5 h-5" />
-          </button>
+    <OverlayCard
+      open
+      onClose={onClose}
+      size="fullscreen"
+      aria-label={categoriesMessages.unsplash.title ?? "Unsplash"}
+      zIndex={60}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ds-border-subtle)] shrink-0">
+        <div className="relative flex-1">
+          <SFMagnifyingglass className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] w-3.5 h-3.5" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => dispatch({ type: "set-query", query: e.target.value })}
+            placeholder={categoriesMessages.unsplash.searchPlaceholder}
+            className="w-full pl-8 pr-3 py-2 text-sm border border-[var(--ds-border)] rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          />
         </div>
-
-        {/* Content */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4">
-          {!query.trim() && (
-            <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
-              {categoriesMessages.unsplash.searchHint}
-            </p>
-          )}
-
-          {isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <SFArrowClockwise className="w-6 h-6 text-[var(--ds-text-subtle)] animate-spin" />
-            </div>
-          )}
-
-          {error && <p className="text-center text-sm text-red-500 py-12">{error}</p>}
-
-          {!isLoading && !error && photos.length === 0 && query.trim() && (
-            <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
-              {categoriesMessages.unsplash.emptyPrefix} „{query}"
-            </p>
-          )}
-
-          {!isLoading && photos.length > 0 && (
-            <>
-              <div className="grid grid-cols-4 gap-2">
-                {photos.map((photo) => (
-                  <button
-                    key={photo.id}
-                    type="button"
-                    onClick={() => handleSelect(photo)}
-                    className="group relative aspect-video overflow-hidden rounded-control bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                    title={`${categoriesMessages.unsplash.addTitlePrefix} ${photo.user.name}`}
-                  >
-                    <img
-                      src={photo.urls.small}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-white text-[10px] truncate">{photo.user.name}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Sentinel for infinite scroll – spinner visible while loading more */}
-              <div ref={sentinelRef} className="flex justify-center py-4">
-                {isLoadingMore && (
-                  <span title={common.loading} aria-label={common.loading}>
-                    <SFArrowClockwise className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin" />
-                  </span>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors rounded-control hover:bg-[var(--ds-bg-elevated)]"
+          aria-label={categoriesMessages.unsplash.closeAria}
+        >
+          <SFXmarkCircleFill className="w-5 h-5" />
+        </button>
       </div>
-    </div>
+
+      {/* Content */}
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4">
+        {!query.trim() && (
+          <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
+            {categoriesMessages.unsplash.searchHint}
+          </p>
+        )}
+
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <SFArrowClockwise className="w-6 h-6 text-[var(--ds-text-subtle)] animate-spin" />
+          </div>
+        )}
+
+        {error && <p className="text-center text-sm text-red-500 py-12">{error}</p>}
+
+        {!isLoading && !error && photos.length === 0 && query.trim() && (
+          <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
+            {categoriesMessages.unsplash.emptyPrefix} &bdquo;{query}&ldquo;
+          </p>
+        )}
+
+        {!isLoading && photos.length > 0 && (
+          <>
+            <div className="grid grid-cols-4 gap-2">
+              {photos.map((photo) => (
+                <button
+                  key={photo.id}
+                  type="button"
+                  onClick={() => handleSelect(photo)}
+                  className="group relative aspect-video overflow-hidden rounded-control bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  title={`${categoriesMessages.unsplash.addTitlePrefix} ${photo.user.name}`}
+                >
+                  <img
+                    src={photo.urls.small}
+                    alt=""
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-[10px] truncate">{photo.user.name}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Sentinel for infinite scroll -- spinner visible while loading more */}
+            <div ref={sentinelRef} className="flex justify-center py-4">
+              {isLoadingMore && (
+                <span title={common.loading} aria-label={common.loading}>
+                  <SFArrowClockwise className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin" />
+                </span>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </OverlayCard>
   );
 }

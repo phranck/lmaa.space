@@ -1,4 +1,4 @@
-import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -54,7 +54,6 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const usersMessages = messages.users;
   const { user: me } = useAuth();
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
-  const [closing, setClosing] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -94,15 +93,6 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       setAvatar({ ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null });
     }
   }, [user]);
-
-  // ESC key
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setClosing(true);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -199,246 +189,233 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const canSave = hasChanges && username.trim() !== "" && email.trim() !== "" && !isPending;
 
   return (
-    <div
-      className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
-      onAnimationEnd={(e) => {
-        if (closing && e.target === e.currentTarget) onClose();
-      }}
+    <OverlayCard
+      open
+      onClose={onClose}
+      size={{ storageKey: "users:edit-card-size", defaultWidth: 512 }}
+      aria-label={usersMessages.editCard.title}
     >
-      {/* biome-ignore lint/a11y/useSemanticElements: custom overlay with animation */}
-      <ResizableDialogCard
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="user-edit-title"
-        storageKey="users:edit-card-size"
-        defaultWidth={512}
-        className={`flex flex-col rounded-[var(--radius-card)] shadow-2xl ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)]">
-          <h2 id="user-edit-title" className="text-base font-semibold text-[var(--ds-text)]">
-            {usersMessages.editCard.title}
-          </h2>
-          <SaveNotification phase={savedPhase} label={common.saved} />
-        </div>
+      <OverlayCard.Header className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-[var(--ds-text)]">
+          {usersMessages.editCard.title}
+        </h2>
+        <SaveNotification phase={savedPhase} label={common.saved} />
+      </OverlayCard.Header>
 
-        {/* Body */}
-        <div className="p-5 flex-1 overflow-y-auto">
-          <div className="flex gap-6">
-            {/* Left: Avatar */}
-            <div className="flex flex-col items-center gap-3 shrink-0">
-              {/* Avatar preview */}
-              <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
-                {currentAvatarUrl ? (
-                  <img
-                    src={currentAvatarUrl}
-                    alt={displayUsername}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-3xl font-bold text-[var(--ds-text-subtle)] select-none">
-                    {displayUsername[0]?.toUpperCase()}
-                  </span>
-                )}
-              </div>
+      <OverlayCard.Body>
+        <div className="flex gap-6">
+          {/* Left: Avatar */}
+          <div className="flex flex-col items-center gap-3 shrink-0">
+            {/* Avatar preview */}
+            <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
+              {currentAvatarUrl ? (
+                <img
+                  src={currentAvatarUrl}
+                  alt={displayUsername}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-3xl font-bold text-[var(--ds-text-subtle)] select-none">
+                  {displayUsername[0]?.toUpperCase()}
+                </span>
+              )}
+            </div>
 
-              {/* Avatar actions */}
-              <div className="flex flex-col gap-1.5 w-full">
+            {/* Avatar actions */}
+            <div className="flex flex-col gap-1.5 w-full">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+              >
+                <SFTrayAndArrowUpFill className="w-3.5 h-3.5 shrink-0" />
+                {usersMessages.editCard.uploadImage}
+              </button>
+              <button
+                type="button"
+                onClick={handleGravatar}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+              >
+                <SFPersonCropCircle className="w-3.5 h-3.5 shrink-0" />
+                {usersMessages.editCard.useGravatar}
+              </button>
+              {currentAvatarUrl && (
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+                  onClick={handleRemoveAvatar}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
                 >
-                  <SFTrayAndArrowUpFill className="w-3.5 h-3.5 shrink-0" />
-                  {usersMessages.editCard.uploadImage}
+                  <SFTrashFill className="w-3.5 h-3.5 shrink-0" />
+                  {usersMessages.editCard.removeAvatar}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleGravatar}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-                >
-                  <SFPersonCropCircle className="w-3.5 h-3.5 shrink-0" />
-                  {usersMessages.editCard.useGravatar}
-                </button>
-                {currentAvatarUrl && (
-                  <button
-                    type="button"
-                    onClick={handleRemoveAvatar}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
-                  >
-                    <SFTrashFill className="w-3.5 h-3.5 shrink-0" />
-                    {usersMessages.editCard.removeAvatar}
-                  </button>
-                )}
-              </div>
+              )}
+            </div>
 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+          </div>
+
+          {/* Right: Form fields */}
+          <div className="flex-1 space-y-3 min-w-0">
+            {/* Username */}
+            <div>
+              <label
+                htmlFor="user-edit-username"
+                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+              >
+                <SFPencil className="w-3 h-3" />
+                {usersMessages.editCard.username}
+              </label>
               <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={handleFileSelect}
+                id="user-edit-username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
               />
             </div>
 
-            {/* Right: Form fields */}
-            <div className="flex-1 space-y-3 min-w-0">
-              {/* Username */}
-              <div>
-                <label
-                  htmlFor="user-edit-username"
-                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  <SFPencil className="w-3 h-3" />
-                  {usersMessages.editCard.username}
-                </label>
-                <input
-                  id="user-edit-username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-                />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="user-edit-email"
-                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  <SFAt className="w-3 h-3" />
-                  {usersMessages.editCard.email}
-                </label>
-                <input
-                  id="user-edit-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-                />
-              </div>
-
-              {/* First name */}
-              <div>
-                <label
-                  htmlFor="user-edit-first-name"
-                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  <SFPerson className="w-3 h-3" />
-                  {usersMessages.editCard.firstName}
-                </label>
-                <input
-                  id="user-edit-first-name"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-                />
-              </div>
-
-              {/* Last name */}
-              <div>
-                <label
-                  htmlFor="user-edit-last-name"
-                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  <SFPerson className="w-3 h-3" />
-                  {usersMessages.editCard.lastName}
-                </label>
-                <input
-                  id="user-edit-last-name"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-                />
-              </div>
-
-              {/* Role (only for owner editing someone else) */}
-              {canChangeRole && (
-                <div>
-                  <label
-                    htmlFor="user-edit-role"
-                    className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-                  >
-                    {usersMessages.editCard.role}
-                  </label>
-                  <select
-                    id="user-edit-role"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as "admin" | "moderator")}
-                    className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-                  >
-                    <option value="admin">{usersMessages.editCard.roleAdmin}</option>
-                    <option value="moderator">{usersMessages.editCard.roleModerator}</option>
-                  </select>
-                </div>
-              )}
-
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="user-edit-password"
-                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  <SFKey className="w-3 h-3" />
-                  {usersMessages.editCard.password}
-                </label>
-                <input
-                  id="user-edit-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={usersMessages.editCard.passwordPlaceholder}
-                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-                />
-              </div>
-
-              {/* Logout confirmation (own profile only) */}
-              {me?.id === userId && (
-                <label className="flex items-center gap-2 cursor-pointer select-none pt-1">
-                  <input
-                    type="checkbox"
-                    checked={logoutConfirm}
-                    onChange={(e) => setLogoutConfirm(e.target.checked)}
-                    className="w-4 h-4 rounded accent-[var(--color-primary)]"
-                  />
-                  <span className="text-xs text-[var(--ds-text-muted)]">
-                    {messages.layout.sidebar.logoutConfirmLabel}
-                  </span>
-                </label>
-              )}
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="user-edit-email"
+                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+              >
+                <SFAt className="w-3 h-3" />
+                {usersMessages.editCard.email}
+              </label>
+              <input
+                id="user-edit-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+              />
             </div>
+
+            {/* First name */}
+            <div>
+              <label
+                htmlFor="user-edit-first-name"
+                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+              >
+                <SFPerson className="w-3 h-3" />
+                {usersMessages.editCard.firstName}
+              </label>
+              <input
+                id="user-edit-first-name"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+              />
+            </div>
+
+            {/* Last name */}
+            <div>
+              <label
+                htmlFor="user-edit-last-name"
+                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+              >
+                <SFPerson className="w-3 h-3" />
+                {usersMessages.editCard.lastName}
+              </label>
+              <input
+                id="user-edit-last-name"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+              />
+            </div>
+
+            {/* Role (only for owner editing someone else) */}
+            {canChangeRole && (
+              <div>
+                <label
+                  htmlFor="user-edit-role"
+                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+                >
+                  {usersMessages.editCard.role}
+                </label>
+                <select
+                  id="user-edit-role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as "admin" | "moderator")}
+                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+                >
+                  <option value="admin">{usersMessages.editCard.roleAdmin}</option>
+                  <option value="moderator">{usersMessages.editCard.roleModerator}</option>
+                </select>
+              </div>
+            )}
+
+            {/* Password */}
+            <div>
+              <label
+                htmlFor="user-edit-password"
+                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+              >
+                <SFKey className="w-3 h-3" />
+                {usersMessages.editCard.password}
+              </label>
+              <input
+                id="user-edit-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={usersMessages.editCard.passwordPlaceholder}
+                className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+              />
+            </div>
+
+            {/* Logout confirmation (own profile only) */}
+            {me?.id === userId && (
+              <label className="flex items-center gap-2 cursor-pointer select-none pt-1">
+                <input
+                  type="checkbox"
+                  checked={logoutConfirm}
+                  onChange={(e) => setLogoutConfirm(e.target.checked)}
+                  className="w-4 h-4 rounded accent-[var(--color-primary)]"
+                />
+                <span className="text-xs text-[var(--ds-text-muted)]">
+                  {messages.layout.sidebar.logoutConfirmLabel}
+                </span>
+              </label>
+            )}
           </div>
-
-          {isError && (
-            <p className="text-red-500 text-sm mt-4">
-              {error instanceof Error ? error.message : usersMessages.editCard.errorSaving}
-            </p>
-          )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-2 px-5 py-4 bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border-subtle)]">
-          <button
-            type="button"
-            onClick={() => setClosing(true)}
-            className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
-          >
-            {common.cancel}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSave()}
-            disabled={!canSave}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
-          >
-            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-            {isPending ? common.saving : common.save}
-          </button>
-        </div>
-      </ResizableDialogCard>
-    </div>
+        {isError && (
+          <p className="text-red-500 text-sm mt-4">
+            {error instanceof Error ? error.message : usersMessages.editCard.errorSaving}
+          </p>
+        )}
+      </OverlayCard.Body>
+
+      <OverlayCard.Footer className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+        >
+          {common.cancel}
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSave()}
+          disabled={!canSave}
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+        >
+          <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+          {isPending ? common.saving : common.save}
+        </button>
+      </OverlayCard.Footer>
+    </OverlayCard>
   );
 }

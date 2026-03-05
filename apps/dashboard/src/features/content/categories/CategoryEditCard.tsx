@@ -1,4 +1,4 @@
-import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UnsplashBrowser } from "@/features/content/categories/UnsplashBrowser.tsx";
@@ -12,7 +12,7 @@ import type {
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   SFMagnifyingglass,
   SFSquareAndArrowDownFill,
@@ -60,7 +60,6 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUnsplash, setShowUnsplash] = useState(false);
-  const [closing, setClosing] = useState(false);
 
   const { data: categories = [] } = useAdminCategories(!isNew);
   const category = isNew ? undefined : categories.find((c) => c.id === categoryId);
@@ -77,7 +76,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   });
 
   // Populate form when editing existing category
-  // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used – sync only when category changes, not on every property update
+  // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used -- sync only when category changes, not on every property update
   useEffect(() => {
     if (category) {
       setForm({
@@ -97,13 +96,9 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     }
   }, [category?.id]);
 
-  // ESC key starts the close animation
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !showUnsplash) setClosing(true);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+  const handleEscape = useCallback(() => {
+    if (showUnsplash) return false;
+    return true;
   }, [showUnsplash]);
 
   const saveMutation = useSaveCategory(categoryId);
@@ -173,167 +168,158 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
   return (
     <>
-      {/* Backdrop – fade in on mount, fade out on close */}
-      <div
-        className={`fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4 ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
-        onAnimationEnd={(e) => {
-          if (closing && e.target === e.currentTarget) onClose();
-        }}
+      <OverlayCard
+        open
+        onClose={onClose}
+        size={{ storageKey: "categories:edit-card-size", defaultWidth: 768 }}
+        aria-label={
+          isNew ? categoriesMessages.editCard.titleNew : categoriesMessages.editCard.titleEdit
+        }
+        className="grid grid-cols-2"
+        onEscape={handleEscape}
       >
-        {/* biome-ignore lint/a11y/useSemanticElements: custom overlay with animation */}
-        <ResizableDialogCard
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="category-edit-title"
-          storageKey="categories:edit-card-size"
-          defaultWidth={768}
-          className={`rounded-[var(--radius-card)] shadow-2xl grid grid-cols-2 ${closing ? "overlay-card-exit" : "overlay-card-enter"}`}
-        >
-          {/* Image Panel – 50 % */}
-          <div className="relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]">
-            {displayImageUrl && !image.loadError ? (
-              <img
-                src={displayImageUrl}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
-                <SFMagnifyingglass className="w-10 h-10" />
-              </div>
-            )}
-
-            {/* Image action buttons */}
-            <div className="absolute bottom-0 inset-x-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/50 to-transparent">
-              {displayImageUrl && !image.loadError && (
-                <button
-                  type="button"
-                  onClick={handleDeleteImage}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium transition-colors w-full"
-                >
-                  <SFTrashFill className="w-3 h-3" />
-                  {categoriesMessages.editCard.deleteImage}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
-              >
-                <SFTrayAndArrowUpFill className="w-3 h-3" />
-                {categoriesMessages.editCard.upload}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowUnsplash(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
-              >
-                <span className="text-[10px] font-bold leading-none">U</span>
-                {categoriesMessages.editCard.unsplash}
-              </button>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleFileSelect}
+        {/* Image Panel -- 50 % */}
+        <div className="relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]">
+          {displayImageUrl && !image.loadError ? (
+            <img
+              src={displayImageUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
             />
-          </div>
-
-          {/* Form Panel – 50 % */}
-          <div className="flex flex-col p-3 min-w-0">
-            <div className="flex items-center justify-between mb-4">
-              <h2 id="category-edit-title" className="text-lg font-semibold text-[var(--ds-text)]">
-                {isNew
-                  ? categoriesMessages.editCard.titleNew
-                  : categoriesMessages.editCard.titleEdit}
-              </h2>
-              <SaveNotification phase={savedPhase} label={common.saved} />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
+              <SFMagnifyingglass className="w-10 h-10" />
             </div>
+          )}
 
-            <div className="flex flex-col gap-3 flex-1">
-              <div>
-                <label
-                  htmlFor="cat-name"
-                  className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  {categoriesMessages.editCard.name}
-                </label>
-                <input
-                  id="cat-name"
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="cat-slug"
-                  className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  {categoriesMessages.editCard.slug}
-                </label>
-                <input
-                  id="cat-slug"
-                  type="text"
-                  value={form.slug}
-                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="cat-description"
-                  className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  {categoriesMessages.editCard.description}
-                </label>
-                <textarea
-                  id="cat-description"
-                  rows={4}
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
-                />
-              </div>
-            </div>
-
-            {saveMutation.isError && (
-              <p role="alert" className="text-red-500 text-sm mt-3">
-                {saveMutation.error instanceof Error
-                  ? saveMutation.error.message
-                  : categoriesMessages.editCard.errorSaving}
-              </p>
+          {/* Image action buttons */}
+          <div className="absolute bottom-0 inset-x-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/50 to-transparent">
+            {displayImageUrl && !image.loadError && (
+              <button
+                type="button"
+                onClick={handleDeleteImage}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium transition-colors w-full"
+              >
+                <SFTrashFill className="w-3 h-3" />
+                {categoriesMessages.editCard.deleteImage}
+              </button>
             )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
+            >
+              <SFTrayAndArrowUpFill className="w-3 h-3" />
+              {categoriesMessages.editCard.upload}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowUnsplash(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
+            >
+              <span className="text-[10px] font-bold leading-none">U</span>
+              {categoriesMessages.editCard.unsplash}
+            </button>
+          </div>
 
-            {/* Footer buttons */}
-            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
-              <button
-                type="button"
-                onClick={() => setClosing(true)}
-                className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </div>
+
+        {/* Form Panel -- 50 % */}
+        <div className="flex flex-col p-3 min-w-0">
+          <div className="flex items-center justify-between mb-4">
+            <h2 id="category-edit-title" className="text-lg font-semibold text-[var(--ds-text)]">
+              {isNew ? categoriesMessages.editCard.titleNew : categoriesMessages.editCard.titleEdit}
+            </h2>
+            <SaveNotification phase={savedPhase} label={common.saved} />
+          </div>
+
+          <div className="flex flex-col gap-3 flex-1">
+            <div>
+              <label
+                htmlFor="cat-name"
+                className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
               >
-                {common.cancel}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSave()}
-                disabled={!canSave}
-                className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+                {categoriesMessages.editCard.name}
+              </label>
+              <input
+                id="cat-name"
+                type="text"
+                value={form.name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="cat-slug"
+                className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
               >
-                <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-                {saveMutation.isPending ? common.saving : common.save}
-              </button>
+                {categoriesMessages.editCard.slug}
+              </label>
+              <input
+                id="cat-slug"
+                type="text"
+                value={form.slug}
+                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="cat-description"
+                className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
+              >
+                {categoriesMessages.editCard.description}
+              </label>
+              <textarea
+                id="cat-description"
+                rows={4}
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
+              />
             </div>
           </div>
-        </ResizableDialogCard>
-      </div>
+
+          {saveMutation.isError && (
+            <p role="alert" className="text-red-500 text-sm mt-3">
+              {saveMutation.error instanceof Error
+                ? saveMutation.error.message
+                : categoriesMessages.editCard.errorSaving}
+            </p>
+          )}
+
+          {/* Footer buttons */}
+          <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+            >
+              {common.cancel}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSave()}
+              disabled={!canSave}
+              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+            >
+              <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+              {saveMutation.isPending ? common.saving : common.save}
+            </button>
+          </div>
+        </div>
+      </OverlayCard>
 
       {showUnsplash && (
         <UnsplashBrowser

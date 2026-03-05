@@ -2,7 +2,7 @@ import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
-import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -36,7 +36,7 @@ import {
   SFXmarkCircleFill,
 } from "sf-symbols-lib/monochrome";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ---- Constants ----
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
@@ -56,7 +56,7 @@ function useStatusLabels() {
   } satisfies Record<SubmissionStatus, string>;
 }
 
-// ─── Shop image (favicon + lettermark fallback) ───────────────────────────────
+// ---- Shop image (favicon + lettermark fallback) ----
 
 function ShopImage({ url, name }: { url: string; name: string }) {
   const [imgError, setImgError] = useState(false);
@@ -87,7 +87,7 @@ function ShopImage({ url, name }: { url: string; name: string }) {
   );
 }
 
-// ─── SuggestionsTab ──────────────────────────────────────────────────────────
+// ---- SuggestionsTab ----
 
 export function SuggestionsTab() {
   const { locale, messages } = useI18n();
@@ -177,17 +177,10 @@ export function SuggestionsTab() {
     setAdminNote(newValue);
   };
 
-  useEffect(() => {
-    if (reviewId === null) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setReviewId(null);
-        setEditingRejection(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [reviewId]);
+  function closeReview() {
+    setReviewId(null);
+    setEditingRejection(false);
+  }
 
   const sorted = useMemo(
     () =>
@@ -199,6 +192,12 @@ export function SuggestionsTab() {
   );
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
+
+  const reviewTitle = editingRejection
+    ? submissionsMessages.suggestions.reviewEditRejectionTitle
+    : reviewId !== null && reviewId > 0
+      ? submissionsMessages.suggestions.reviewApproveTitle
+      : submissionsMessages.suggestions.reviewRejectTitle;
 
   return (
     <>
@@ -500,25 +499,23 @@ export function SuggestionsTab() {
       )}
 
       {/* Review Modal */}
-      {reviewId !== null && reviewing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/50" />
-          <ResizableDialogCard
-            storageKey={
-              reviewId > 0 ? "submissions:review-approve-size" : "submissions:review-reject-size"
-            }
-            defaultWidth={reviewId > 0 ? 448 : 512}
-            className="flex flex-col rounded-2xl shadow-xl"
-          >
-            <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3 border-b border-[var(--ds-border-subtle)]">
+      <OverlayCard
+        open={reviewId !== null && reviewing !== undefined}
+        onClose={closeReview}
+        size={{
+          storageKey:
+            reviewId !== null && reviewId > 0
+              ? "submissions:review-approve-size"
+              : "submissions:review-reject-size",
+          defaultWidth: reviewId !== null && reviewId > 0 ? 448 : 512,
+        }}
+        aria-label={reviewTitle}
+      >
+        {reviewing && (
+          <>
+            <OverlayCard.Header>
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-[var(--ds-text)]">
-                  {editingRejection
-                    ? submissionsMessages.suggestions.reviewEditRejectionTitle
-                    : reviewId > 0
-                      ? submissionsMessages.suggestions.reviewApproveTitle
-                      : submissionsMessages.suggestions.reviewRejectTitle}
-                </h3>
+                <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
                 <SaveNotification phase={savedPhase} label={common.saved} />
               </div>
               <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
@@ -533,9 +530,9 @@ export function SuggestionsTab() {
                   <SFDocumentOnDocumentFill className="w-4 h-4" />
                 </button>
               </div>
-            </div>
+            </OverlayCard.Header>
 
-            <div className="px-6 py-3 flex-1 overflow-y-auto flex flex-col gap-3">
+            <OverlayCard.Body className="flex flex-col gap-3">
               <div>
                 <label
                   htmlFor="admin-note"
@@ -553,7 +550,7 @@ export function SuggestionsTab() {
                   onPaste={handleCommentPaste}
                   rows={3}
                   placeholder={
-                    reviewId < 0
+                    reviewId !== null && reviewId < 0
                       ? submissionsMessages.suggestions.rejectReasonPlaceholder
                       : submissionsMessages.suggestions.commentPlaceholder
                   }
@@ -561,7 +558,7 @@ export function SuggestionsTab() {
                 <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
               </div>
 
-              {reviewId < 0 && (
+              {reviewId !== null && reviewId < 0 && (
                 <div>
                   <label
                     htmlFor="rejection-long"
@@ -601,15 +598,12 @@ export function SuggestionsTab() {
                   {reviewMutation.error?.message ?? common.unknownError}
                 </p>
               )}
-            </div>
+            </OverlayCard.Body>
 
-            <div className="bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border)] px-6 py-4 flex justify-end gap-3">
+            <OverlayCard.Footer className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setReviewId(null);
-                  setEditingRejection(false);
-                }}
+                onClick={closeReview}
                 className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
               >
                 {common.cancel}
@@ -619,7 +613,7 @@ export function SuggestionsTab() {
                 disabled={reviewMutation.isPending}
                 onClick={() => handleReviewSave()}
                 className={`flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
-                  editingRejection || reviewId > 0
+                  editingRejection || (reviewId !== null && reviewId > 0)
                     ? "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
                     : "border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                 }`}
@@ -631,7 +625,7 @@ export function SuggestionsTab() {
                     <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
                     {common.save}
                   </>
-                ) : reviewId > 0 ? (
+                ) : reviewId !== null && reviewId > 0 ? (
                   <>
                     <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
                     {submissionsMessages.suggestions.accept}
@@ -643,10 +637,10 @@ export function SuggestionsTab() {
                   </>
                 )}
               </button>
-            </div>
-          </ResizableDialogCard>
-        </div>
-      )}
+            </OverlayCard.Footer>
+          </>
+        )}
+      </OverlayCard>
 
       <Dialog
         open={deleteSubmissionId !== null && deleteSubmissionTarget !== null}

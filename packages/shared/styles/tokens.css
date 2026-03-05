@@ -75,7 +75,7 @@
   --ds-L-surface: 1.0;
   --ds-L-bg: calc(var(--ds-L-surface) - var(--ds-L-surface-step));
   --ds-L-elevated: calc(var(--ds-L-surface) - var(--ds-L-surface-step) * 2);
-  --ds-L-inset: var(--ds-L-bg);
+  --ds-L-inset: calc(var(--ds-L-bg) - var(--ds-L-surface-step));
 
   /* Text lightness levels (light mode: low L, step upward) */
   --ds-L-text: 0.2;
@@ -215,7 +215,7 @@
   --ds-L-surface: 0.225;
   --ds-L-bg: 0.185;
   --ds-L-elevated: 0.25;
-  --ds-L-inset: 0.155;
+  --ds-L-inset: 0.185;
 
   /* Text lightness overrides (dark mode: high L, reversed) */
   --ds-L-text: 0.95;
