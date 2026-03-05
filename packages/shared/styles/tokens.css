@@ -215,7 +215,7 @@
   --ds-L-surface: 0.225;
   --ds-L-bg: 0.185;
   --ds-L-elevated: 0.25;
-  --ds-L-inset: 0.185;
+  --ds-L-inset: 0.205;
 
   /* Text lightness overrides (dark mode: high L, reversed) */
   --ds-L-text: 0.95;

@@ -205,7 +205,7 @@ export function OverlayCard({
         <div
           ref={dialogRef}
           className={[
-            "relative bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden",
+            "relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden",
             cardAnimClass,
             className,
           ]
@@ -224,7 +224,7 @@ export function OverlayCard({
       <div
         ref={dialogRef}
         className={[
-          `relative bg-[var(--ds-surface)] rounded-2xl shadow-xl w-full ${fixedMaxWidth}`,
+          `relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl w-full ${fixedMaxWidth}`,
           cardAnimClass,
           className,
         ]

@@ -5,7 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
     <title>lmaa.space – Admin</title>
+    <script>
+      // Apply dark mode before first paint so native controls (autofill, scrollbars)
+      // use dark colors. Must run synchronously in <head>, before body is parsed.
+      (function () {
+        var t = localStorage.getItem("dashboard-theme");
+        var dark =
+          t === "dark" ||
+          (t !== "light" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) {
+          document.documentElement.classList.add("dark");
+          document.querySelector('meta[name="color-scheme"]').content = "dark";
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

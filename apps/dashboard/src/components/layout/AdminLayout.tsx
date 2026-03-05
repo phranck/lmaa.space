@@ -1,12 +1,11 @@
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/system/UserEditCard.tsx";
-import type { DashboardLocale } from "@/i18n/messages.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
@@ -73,11 +72,6 @@ function useSidebarWidth() {
   return { width, onMouseDown };
 }
 
-const LANGUAGE_OPTIONS = [
-  { value: "de" as const, label: "DE" },
-  { value: "en" as const, label: "EN" },
-];
-
 function ThemeToggle({ userId }: { userId?: number }) {
   const { theme, setTheme } = useTheme();
   return (
@@ -89,16 +83,8 @@ function ThemeToggle({ userId }: { userId?: number }) {
   );
 }
 
-function LanguageToggle({ userId }: { userId?: number }) {
-  const { locale, setLocale } = useI18n();
-  return (
-    <SegmentedControl<DashboardLocale>
-      value={locale}
-      onChange={setLocale}
-      options={LANGUAGE_OPTIONS}
-      storageKey={getSegmentedStorageKey(userId, "layout:locale")}
-    />
-  );
+function LanguageToggleWithUser() {
+  return <LanguageToggle />;
 }
 
 function AdminLayoutInner() {
@@ -148,7 +134,7 @@ function AdminLayoutInner() {
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/30"
+            className="absolute inset-0 backdrop-blur-md"
             onClick={() => setSidebarOpen(false)}
             aria-label={messages.layout.menuClose}
           />
@@ -187,7 +173,7 @@ function AdminLayoutInner() {
 
         <div className="flex items-center gap-3 ml-auto">
           <div ref={setActionsEl} className="flex items-center gap-2" />
-          <LanguageToggle userId={user?.id} />
+          <LanguageToggleWithUser />
           <ThemeToggle userId={user?.id} />
         </div>
       </header>
