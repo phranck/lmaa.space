@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { ResizableDialogCard } from "./ResizableDialogCard.tsx";
 import { pushOverlay } from "./overlay-stack.ts";
 
@@ -108,7 +108,6 @@ export function OverlayCard({
   onEscape,
   children,
 }: OverlayCardProps) {
-  const labelId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [closing, setClosing] = useState(false);
