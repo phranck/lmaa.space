@@ -186,7 +186,6 @@ export function ShopEditCard({
             categories={categories}
             regionOptions={shopFormI18n.regionOptions}
             messages={shopFormI18n.messages}
-            variant="dashboard"
           />
         )}
 
