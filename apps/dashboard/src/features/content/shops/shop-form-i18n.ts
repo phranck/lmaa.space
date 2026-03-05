@@ -58,7 +58,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         contactEmailPlaceholder: "e.g. info@example.com",
         socialMediaLabel: "Social Media",
         socialMedia: {
-          handlePlaceholder: "Handle or profile URL",
+          urlPlaceholder: "Paste URL",
           addAriaLabel: "Add link",
           removeAriaLabel: "Remove link",
           selectPlatformAriaLabel: "Select platform",
@@ -95,7 +95,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       contactEmailPlaceholder: "z.B. info@beispiel.de",
       socialMediaLabel: "Social Media",
       socialMedia: {
-        handlePlaceholder: "Handle oder Profil-URL",
+        urlPlaceholder: "URL einfügen",
         addAriaLabel: "Link hinzufügen",
         removeAriaLabel: "Link entfernen",
         selectPlatformAriaLabel: "Plattform wählen",
