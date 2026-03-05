@@ -90,7 +90,7 @@ export const ResizableDialogCard = forwardRef<HTMLDivElement, ResizableDialogCar
       <div
         ref={innerRef}
         className={[
-          "relative bg-[var(--ds-surface)] max-w-[calc(100vw-2rem)] overflow-hidden",
+          "relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] max-w-[calc(100vw-2rem)] overflow-hidden",
           className,
         ]
           .filter(Boolean)

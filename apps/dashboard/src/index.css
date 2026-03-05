@@ -277,6 +277,39 @@ button {
   animation: save-notification-out 250ms ease forwards;
 }
 
+/* Tell browsers which color scheme is active so native UI (autofill, scrollbars, etc.) matches */
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
+
+/* Detect browser autofill via animationstart event (see useAutofillSwap hook) */
+@keyframes on-autofill {
+  from {
+    opacity: 0.99;
+  }
+}
+input:-webkit-autofill {
+  animation: on-autofill 0.01s both;
+}
+
+/* Auth page: pulsing logo glow */
+@keyframes auth-glow {
+  0%,
+  100% {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.35;
+    filter: blur(30px);
+    transform: scale(1.1);
+  }
+}
+
 html {
   font-size: 18px;
 }

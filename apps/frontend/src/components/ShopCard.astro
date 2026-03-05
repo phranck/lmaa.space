@@ -57,6 +57,20 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
     </div>
   )}
 
+  <!-- Category pills -->
+  {shop.categories?.length > 0 && (
+    <div class="flex flex-wrap gap-1.5">
+      {shop.categories.map((cat) => (
+        <a
+          href={`/category/${cat.slug}`}
+          class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+        >
+          {cat.name}
+        </a>
+      ))}
+    </div>
+  )}
+
   <!-- Footer: actions + (optional) shop details + visit button -->
   <div class="flex items-center justify-between mt-auto">
     <div class="flex items-center gap-3" data-shop-actions>
@@ -225,6 +239,20 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
       class="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-4 prose-a:text-amber-700"
       set:html={fullDescriptionHtml}
     />
+  )}
+
+  <!-- Category pills -->
+  {shop.categories?.length > 0 && (
+    <div class="flex flex-wrap gap-1.5">
+      {shop.categories.map((cat) => (
+        <a
+          href={`/category/${cat.slug}`}
+          class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+        >
+          {cat.name}
+        </a>
+      ))}
+    </div>
   )}
 
   <!-- Footer (same as card) -->

@@ -103,6 +103,7 @@ export async function loginAdmin(input: LoginAdminInput) {
       username: admin.username,
       role: admin.role,
       isOwner: admin.role === "owner",
+      avatarUrl: admin.avatarUrl,
     },
   });
 }
