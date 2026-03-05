@@ -35,11 +35,13 @@ function genId(): string {
 }
 
 function recordToEntries(record: Record<string, string>): Entry[] {
-  return Object.entries(record).map(([platform, url]) => ({
+  const entries = Object.entries(record).map(([platform, url]) => ({
     id: genId(),
     platform,
     url,
   }));
+  if (entries.length === 0) entries.push({ id: genId(), platform: "", url: "" });
+  return entries;
 }
 
 function entriesToRecord(entries: Entry[]): Record<string, string> {
