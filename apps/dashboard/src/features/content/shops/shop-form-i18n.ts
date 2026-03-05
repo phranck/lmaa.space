@@ -54,6 +54,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         categoriesPlaceholder: "Select categories…",
         shippingLabel: "Shipping",
         shippingPlaceholder: "e.g. Free shipping from €50",
+        contactEmailLabel: "Contact Email",
+        contactEmailPlaceholder: "e.g. info@example.com",
         socialMediaLabel: "Social Media",
         socialMedia: {
           handlePlaceholder: "Handle or profile URL",
@@ -89,6 +91,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       categoriesPlaceholder: "Kategorie wählen…",
       shippingLabel: "Versand",
       shippingPlaceholder: "z.B. Kostenlos ab 50 €",
+      contactEmailLabel: "Kontakt-E-Mail",
+      contactEmailPlaceholder: "z.B. info@beispiel.de",
       socialMediaLabel: "Social Media",
       socialMedia: {
         handlePlaceholder: "Handle oder Profil-URL",

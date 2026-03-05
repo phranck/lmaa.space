@@ -21,6 +21,7 @@ export interface CreateAdminShopData {
   pickup?: string;
   shipping?: string;
   description?: string;
+  contactEmail?: string;
   socialMedia?: Record<string, string>;
 }
 
@@ -35,6 +36,7 @@ export interface UpdateAdminShopData {
   pickup?: string;
   shipping?: string;
   description?: string;
+  contactEmail?: string;
   socialMedia?: Record<string, string>;
 }
 
@@ -78,7 +80,8 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<ShopS
 export async function getAdminShopById(id: number): Promise<AdminShopDetail | null> {
   const [shop] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.is_active as "isActive",
+           s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.is_active as "isActive",
            s.social_media as "socialMedia",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
@@ -104,8 +107,11 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
  */
 export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop> {
   return db.transaction(async (tx) => {
-    const { categoryIds, ...shopData } = data;
-    const [shop] = await tx.insert(shops).values(shopData).returning();
+    const { categoryIds, contactEmail, ...shopData } = data;
+    const [shop] = await tx
+      .insert(shops)
+      .values({ ...shopData, contactEmail: contactEmail || null })
+      .returning();
 
     if (categoryIds.length > 0) {
       await tx
@@ -132,11 +138,11 @@ export async function updateAdminShop(
   data: UpdateAdminShopData,
 ): Promise<DbShop | null> {
   return db.transaction(async (tx) => {
-    const { categoryIds, ...shopData } = data;
+    const { categoryIds, contactEmail, ...shopData } = data;
 
     const [shop] = await tx
       .update(shops)
-      .set({ ...shopData, updatedAt: new Date() })
+      .set({ ...shopData, contactEmail: contactEmail || null, updatedAt: new Date() })
       .where(eq(shops.id, id))
       .returning();
 

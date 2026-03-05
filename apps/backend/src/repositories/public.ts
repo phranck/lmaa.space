@@ -144,6 +144,7 @@ export async function listAllPublicShopsWithCategories() {
   return db.execute<PublicShopRow>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
+           s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
@@ -171,7 +172,8 @@ export async function searchPublicShops(query: string) {
 
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.is_active as "isActive",
+           s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.is_active as "isActive",
            s.social_media as "socialMedia",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(

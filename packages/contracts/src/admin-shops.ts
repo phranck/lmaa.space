@@ -18,6 +18,10 @@ export const shopBodySchema = z.object({
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(2000).optional(),
+  contactEmail: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().email().max(200).optional(),
+  ),
   socialMedia: socialMediaSchema,
 });
 
@@ -32,6 +36,10 @@ export const shopUpdateSchema = z.object({
   pickup: z.string().optional(),
   shipping: z.string().optional(),
   description: z.string().max(2000).optional(),
+  contactEmail: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().email().max(200).optional(),
+  ),
   socialMedia: socialMediaSchema,
 });
 

@@ -491,6 +491,7 @@ export function SuggestionsTab() {
             categoryIds: editSubmission.categoryIds ?? [],
             region: Array.isArray(editSubmission.region) ? editSubmission.region : [],
             shipping: editSubmission.shipping ?? "",
+            contactEmail: editSubmission.contactEmail ?? "",
             socialMedia: editSubmission.socialMedia ?? {},
           }}
           onClose={() => setEditSubmission(null)}

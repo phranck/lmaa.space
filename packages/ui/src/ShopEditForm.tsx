@@ -19,6 +19,7 @@ export interface ShopEditFormValue {
   categoryIds: number[];
   region: string[];
   shipping: string;
+  contactEmail: string;
   socialMedia: Record<string, string>;
 }
 
@@ -32,6 +33,7 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   categoryIds: [],
   region: [],
   shipping: "",
+  contactEmail: "",
   socialMedia: {},
 };
 
@@ -50,6 +52,8 @@ export interface ShopEditFormMessages {
   categoriesPlaceholder: string;
   shippingLabel: string;
   shippingPlaceholder: string;
+  contactEmailLabel: string;
+  contactEmailPlaceholder: string;
   regionSelect: RegionSelectMessages;
   categorySelect: MultiSelectMessages;
   socialMediaLabel?: string;
@@ -152,6 +156,27 @@ export function ShopEditForm({
         </div>
         {errors?.url && <p className="text-red-500 text-xs mt-1">{errors.url}</p>}
         {urlWarning}
+      </div>
+
+      {/* Contact Email */}
+      <div>
+        <label htmlFor="sef-contact-email" className={labelClass}>
+          <span className="flex items-center gap-1.5">
+            {messages.contactEmailLabel}{" "}
+            <span className="text-[var(--ds-text-subtle)] font-normal">
+              {messages.optionalLabel}
+            </span>
+          </span>
+        </label>
+        <input
+          id="sef-contact-email"
+          type="email"
+          value={value.contactEmail}
+          onChange={(e) => set("contactEmail", e.target.value)}
+          placeholder={messages.contactEmailPlaceholder}
+          className={`${inputClass}${errors?.contactEmail ? " border-red-400" : ""}`}
+        />
+        {errors?.contactEmail && <p className="text-red-500 text-xs mt-1">{errors.contactEmail}</p>}
       </div>
 
       {/* Description */}
