@@ -1,3 +1,4 @@
+import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -291,13 +292,16 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             </div>
           </div>
 
-          {saveMutation.isError && (
-            <p role="alert" className="text-red-500 text-sm mt-3">
-              {saveMutation.error instanceof Error
+          <AlertDialog
+            open={saveMutation.isError}
+            title={categoriesMessages.editCard.errorSaving}
+            message={
+              saveMutation.error instanceof Error
                 ? saveMutation.error.message
-                : categoriesMessages.editCard.errorSaving}
-            </p>
-          )}
+                : categoriesMessages.editCard.errorSaving
+            }
+            onClose={() => saveMutation.reset()}
+          />
 
           {/* Footer buttons */}
           <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">

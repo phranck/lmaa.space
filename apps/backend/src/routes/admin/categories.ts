@@ -15,6 +15,10 @@ import {
   uploadManagedAdminCategoryImage,
 } from "../../services/admin-categories.js";
 
+function isDuplicateSlug(e: unknown): boolean {
+  return e instanceof Error && e.message.includes("categories_slug_key");
+}
+
 /**
  * Admin category CRUD routes.
  *
@@ -29,8 +33,15 @@ categoriesRoutes.get("/categories", async (c) => {
 
 categoriesRoutes.post("/categories", zValidator("json", categoryBodySchema), async (c) => {
   const body = c.req.valid("json");
-  const category = await createAdminCategory(body);
-  return ok(c, category, 201);
+  try {
+    const category = await createAdminCategory(body);
+    return ok(c, category, 201);
+  } catch (e: unknown) {
+    if (isDuplicateSlug(e)) {
+      return fail(c, 409, `Eine Kategorie mit dem Slug '${body.slug}' existiert bereits.`);
+    }
+    throw e;
+  }
 });
 
 const updateCategoryHandler = zValidator("json", categoryUpdateSchema);
@@ -39,18 +50,32 @@ categoriesRoutes.put("/categories/:id", updateCategoryHandler, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
   const body = c.req.valid("json");
-  const category = await updateAdminCategory(id, body);
-  if (!category) return fail(c, 404, "Category not found");
-  return ok(c, category);
+  try {
+    const category = await updateAdminCategory(id, body);
+    if (!category) return fail(c, 404, "Category not found");
+    return ok(c, category);
+  } catch (e: unknown) {
+    if (isDuplicateSlug(e)) {
+      return fail(c, 409, `Eine Kategorie mit dem Slug '${body.slug}' existiert bereits.`);
+    }
+    throw e;
+  }
 });
 
 categoriesRoutes.patch("/categories/:id", updateCategoryHandler, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
   const body = c.req.valid("json");
-  const category = await updateAdminCategory(id, body);
-  if (!category) return fail(c, 404, "Category not found");
-  return ok(c, category);
+  try {
+    const category = await updateAdminCategory(id, body);
+    if (!category) return fail(c, 404, "Category not found");
+    return ok(c, category);
+  } catch (e: unknown) {
+    if (isDuplicateSlug(e)) {
+      return fail(c, 409, `Eine Kategorie mit dem Slug '${body.slug}' existiert bereits.`);
+    }
+    throw e;
+  }
 });
 
 categoriesRoutes.delete("/categories/:id", requireAdmin, async (c) => {
