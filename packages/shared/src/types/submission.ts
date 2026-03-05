@@ -19,6 +19,7 @@ export interface Submission {
   shipping: string;
   description: string;
   socialMedia: Record<string, string>;
+  contactEmail: string | null;
   submitterEmail: string | null;
   submitterNote: string | null;
   status: SubmissionStatus;
