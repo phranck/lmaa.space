@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef } from "react";
+import { OverlayCard } from "./OverlayCard.tsx";
 
 interface DialogProps {
   open: boolean;
@@ -26,7 +26,7 @@ function DialogFooter({ children, className }: DialogFooterProps) {
 /**
  * Base modal dialog component.
  *
- * - Closes on ESC key.
+ * - Closes on ESC key (via OverlayCard's overlay-stack).
  * - Backdrop click does NOT close the dialog.
  * - Always renders a header with `title` and slots children below.
  * - Use `Dialog.Footer` for the action button row.
@@ -38,80 +38,22 @@ function DialogFooter({ children, className }: DialogFooterProps) {
  * @param props.maxWidth  - `"sm"` (default) or `"md"`.
  */
 export function Dialog({ open, title, onClose, children, maxWidth = "sm" }: DialogProps) {
-  const titleId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-
-  const trapFocus = useCallback((e: KeyboardEvent) => {
-    if (e.key !== "Tab") return;
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const focusable = dialog.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    const dialog = dialogRef.current;
-    if (dialog) {
-      const firstFocusable = dialog.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
-      firstFocusable?.focus();
-    }
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      trapFocus(e);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      previousFocusRef.current?.focus();
-    };
-  }, [open, onClose, trapFocus]);
-
-  if (!open) return null;
-
-  const maxWidthClass = maxWidth === "md" ? "max-w-md" : "max-w-sm";
+  const size = maxWidth === "md" ? "fixed-md" : "fixed-sm";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/50" aria-hidden="true" />
-      {/* biome-ignore lint/a11y/useSemanticElements: custom dialog with animation, not native <dialog> */}
-      <div
-        role="dialog"
-        ref={dialogRef}
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className={`relative bg-[var(--ds-surface)] rounded-2xl shadow-xl ${maxWidthClass} w-full overlay-card-enter`}
-      >
-        <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3">
-          <h3 id={titleId} className="font-bold text-[var(--ds-text)]">
-            {title}
-          </h3>
-        </div>
-        {children}
+    <OverlayCard open={open} onClose={onClose} size={size} aria-label={title}>
+      <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3">
+        <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
       </div>
-    </div>
+      {children}
+    </OverlayCard>
   );
 }
 
 Dialog.Footer = DialogFooter;
 
 // ---------------------------------------------------------------------------
-// Button style constants — use these inside Dialog.Footer for consistency.
+// Button style constants -- use these inside Dialog.Footer for consistency.
 // ---------------------------------------------------------------------------
 
 export const dialogBtnPrimary =

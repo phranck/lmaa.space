@@ -1,6 +1,12 @@
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import { type ComponentPropsWithoutRef, useEffect, useRef } from "react";
+import {
+  type ComponentPropsWithoutRef,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from "react";
 
 interface ResizableDialogCardProps extends ComponentPropsWithoutRef<"div"> {
   /** Base key for localStorage, e.g. "submissions:review-modal-size" */
@@ -13,80 +19,87 @@ interface ResizableDialogCardProps extends ComponentPropsWithoutRef<"div"> {
   minHeight?: number;
 }
 
-export function ResizableDialogCard({
-  storageKey,
-  defaultWidth = 448,
-  minWidth = 320,
-  minHeight = 200,
-  className,
-  style,
-  children,
-  ...rest
-}: ResizableDialogCardProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
-  const fullKey = getSegmentedStorageKey(user?.id, storageKey);
+export const ResizableDialogCard = forwardRef<HTMLDivElement, ResizableDialogCardProps>(
+  function ResizableDialogCard(
+    {
+      storageKey,
+      defaultWidth = 448,
+      minWidth = 320,
+      minHeight = 200,
+      className,
+      style,
+      children,
+      ...rest
+    },
+    forwardedRef,
+  ) {
+    const innerRef = useRef<HTMLDivElement>(null);
+    useImperativeHandle(forwardedRef, () => innerRef.current as HTMLDivElement);
 
-  const storedSize = (() => {
-    try {
-      const raw = localStorage.getItem(fullKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (typeof parsed.w === "number" && typeof parsed.h === "number") {
-          return parsed as { w: number; h: number };
+    const { user } = useAuth();
+    const fullKey = getSegmentedStorageKey(user?.id, storageKey);
+
+    const storedSize = (() => {
+      try {
+        const raw = localStorage.getItem(fullKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (typeof parsed.w === "number" && typeof parsed.h === "number") {
+            return parsed as { w: number; h: number };
+          }
         }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
-    return null;
-  })();
+      return null;
+    })();
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    useEffect(() => {
+      const el = innerRef.current;
+      if (!el) return;
 
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const box = entry.borderBoxSize?.[0];
-        if (!box || box.inlineSize < minWidth || box.blockSize < minHeight) return;
-        try {
-          localStorage.setItem(
-            fullKey,
-            JSON.stringify({ w: Math.round(box.inlineSize), h: Math.round(box.blockSize) }),
-          );
-        } catch {
-          // ignore
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const box = entry.borderBoxSize?.[0];
+          if (!box || box.inlineSize < minWidth || box.blockSize < minHeight) return;
+          try {
+            localStorage.setItem(
+              fullKey,
+              JSON.stringify({ w: Math.round(box.inlineSize), h: Math.round(box.blockSize) }),
+            );
+          } catch {
+            // ignore
+          }
         }
-      }
-    });
+      });
 
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [fullKey, minWidth, minHeight]);
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, [fullKey, minWidth, minHeight]);
 
-  const mergedStyle: React.CSSProperties = {
-    resize: "both",
-    width: storedSize?.w ?? defaultWidth,
-    minWidth,
-    minHeight,
-    ...(storedSize ? { height: storedSize.h } : {}),
-    ...style,
-  };
+    const mergedStyle: React.CSSProperties = {
+      resize: "both",
+      width: storedSize?.w ?? defaultWidth,
+      minWidth,
+      minHeight,
+      ...(storedSize ? { height: storedSize.h } : {}),
+      ...style,
+    };
 
-  return (
-    <div
-      ref={ref}
-      className={[
-        "relative bg-[var(--ds-surface)] max-w-[calc(100vw-2rem)] overflow-hidden",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      style={mergedStyle}
-      {...rest}
-    >
-      {children}
-    </div>
-  );
-}
+    return (
+      <div
+        ref={innerRef}
+        className={[
+          "relative bg-[var(--ds-surface)] max-w-[calc(100vw-2rem)] overflow-hidden",
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={mergedStyle}
+        {...rest}
+      >
+        {children}
+      </div>
+    );
+  },
+);

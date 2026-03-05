@@ -1,11 +1,11 @@
-import { ResizableDialogCard } from "@/components/ui/ResizableDialogCard.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import type { ShopSummary } from "@lmaa/shared";
 import { Marked } from "marked";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
 import {
   SFLongTextPageAndPencilFill,
@@ -18,7 +18,7 @@ import {
  *
  * `gfm: false` disables GFM bare-URL autolinks, which in marked v17 run
  * before the inline-link tokenizer and would consume the URL inside
- * `[text](url)` — breaking the link token entirely.
+ * `[text](url)` -- breaking the link token entirely.
  *
  * Bare-URL autolinks are added back via a custom `url` extension whose
  * `start()` function returns a non-zero offset whenever `https?://` is
@@ -77,20 +77,14 @@ export function ShopDeletionInfoOverlay({
 
   usePersistedTextareaHeight("shop-deletion-reason", "shops:textarea:deletion-reason", isEditing);
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        if (isEditing) {
-          setIsEditing(false);
-          setEditedReason(displayReason ?? "");
-        } else {
-          onClose();
-        }
-      }
+  const handleEscape = useCallback(() => {
+    if (isEditing) {
+      setIsEditing(false);
+      setEditedReason(displayReason ?? "");
+      return false;
     }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, isEditing, displayReason]);
+    return true;
+  }, [isEditing, displayReason]);
 
   async function handleSave(close = true) {
     if (!onUpdateReason) return;
@@ -139,127 +133,120 @@ export function ShopDeletionInfoOverlay({
   );
 
   return (
-    <>
-      <button
-        type="button"
-        aria-label={messages.common.close}
-        className="fixed inset-0 z-40 bg-black/50 overlay-backdrop-enter"
-        onClick={onClose}
-      />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <ResizableDialogCard
-          storageKey="shops:deletion-info-size"
-          defaultWidth={672}
-          className="flex flex-col pointer-events-auto rounded-card border border-[var(--ds-border)] shadow-2xl overlay-card-enter"
-        >
-          <div className="p-5 space-y-4 flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
-              <SaveNotification phase={savedPhase} label={messages.common.saved} />
+    <OverlayCard
+      open
+      onClose={onClose}
+      size={{ storageKey: "shops:deletion-info-size", defaultWidth: 672 }}
+      aria-label={t.deletionInfo}
+      backdropClose
+      onEscape={handleEscape}
+      className="border border-[var(--ds-border)]"
+    >
+      <OverlayCard.Body className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
+          <SaveNotification phase={savedPhase} label={messages.common.saved} />
+        </div>
+
+        <p className="text-sm font-medium text-[var(--ds-text)]">{shop.name}</p>
+
+        <dl className="space-y-2 text-sm">
+          {deletedByName && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-[var(--ds-text-muted)] shrink-0">{t.deletedBy}</dt>
+              <dd className="text-[var(--ds-text)] text-right">{deletedByName}</dd>
             </div>
-
-            <p className="text-sm font-medium text-[var(--ds-text)]">{shop.name}</p>
-
-            <dl className="space-y-2 text-sm">
-              {deletedByName && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-[var(--ds-text-muted)] shrink-0">{t.deletedBy}</dt>
-                  <dd className="text-[var(--ds-text)] text-right">{deletedByName}</dd>
-                </div>
-              )}
-              {deletedAtFormatted && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-[var(--ds-text-muted)] shrink-0">{t.deletedAt}</dt>
-                  <dd className="text-[var(--ds-text)] text-right text-xs tabular-nums">
-                    {deletedAtFormatted}
-                  </dd>
-                </div>
-              )}
-              <div className="flex flex-col gap-1">
-                <dt className="text-[var(--ds-text-muted)]">{t.deletionReason}</dt>
-                <dd className="text-xs leading-relaxed">
-                  {isEditing ? (
-                    <div className="relative">
-                      <textarea
-                        id="shop-deletion-reason"
-                        value={editedReason}
-                        onChange={(e) => setEditedReason(e.target.value)}
-                        rows={6}
-                        className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
-                      />
-                      <SiMarkdown className="absolute bottom-2 right-2 w-6 h-6 text-[var(--ds-text-subtle)] opacity-40 pointer-events-none" />
-                    </div>
-                  ) : reasonHtml ? (
-                    <div
-                      className="prose prose-sm max-w-none text-[var(--ds-text)] prose-a:text-[var(--color-primary)] prose-a:break-all"
-                      // biome-ignore lint/security/noDangerouslySetInnerHtml: marked output from trusted admin-entered content
-                      dangerouslySetInnerHTML={{ __html: reasonHtml }}
-                    />
-                  ) : (
-                    <span className="text-[var(--ds-text-subtle)] italic">{t.noReason}</span>
-                  )}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          {/* Footer */}
-          <div className="px-5 py-3 bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border)] flex items-center justify-between gap-4">
-            {shop.deletedWasReported ? (
-              <span className="flex items-center gap-1.5 text-xs text-red-400">
-                <SFTrashFill className="w-3 h-3 shrink-0" />
-                {t.wasReported}
-              </span>
-            ) : (
-              <span />
-            )}
-
-            <div className="flex items-center gap-2">
+          )}
+          {deletedAtFormatted && (
+            <div className="flex justify-between gap-4">
+              <dt className="text-[var(--ds-text-muted)] shrink-0">{t.deletedAt}</dt>
+              <dd className="text-[var(--ds-text)] text-right text-xs tabular-nums">
+                {deletedAtFormatted}
+              </dd>
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            <dt className="text-[var(--ds-text-muted)]">{t.deletionReason}</dt>
+            <dd className="text-xs leading-relaxed">
               {isEditing ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    disabled={isSaving}
-                    className="h-9 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
-                  >
-                    {messages.common.cancel}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSave()}
-                    disabled={isSaving}
-                    className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
-                  >
-                    <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-                    {isSaving ? messages.common.saving : messages.common.save}
-                  </button>
-                </>
+                <div className="relative">
+                  <textarea
+                    id="shop-deletion-reason"
+                    value={editedReason}
+                    onChange={(e) => setEditedReason(e.target.value)}
+                    rows={6}
+                    className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
+                  />
+                  <SiMarkdown className="absolute bottom-2 right-2 w-6 h-6 text-[var(--ds-text-subtle)] opacity-40 pointer-events-none" />
+                </div>
+              ) : reasonHtml ? (
+                <div
+                  className="prose prose-sm max-w-none text-[var(--ds-text)] prose-a:text-[var(--color-primary)] prose-a:break-all"
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: marked output from trusted admin-entered content
+                  dangerouslySetInnerHTML={{ __html: reasonHtml }}
+                />
               ) : (
-                <>
-                  {onUpdateReason && (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(true)}
-                      className="h-9 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                    >
-                      <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                      {messages.common.edit}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
-                  >
-                    {messages.common.ok}
-                  </button>
-                </>
+                <span className="text-[var(--ds-text-subtle)] italic">{t.noReason}</span>
               )}
-            </div>
+            </dd>
           </div>
-        </ResizableDialogCard>
-      </div>
-    </>
+        </dl>
+      </OverlayCard.Body>
+
+      <OverlayCard.Footer className="flex items-center justify-between gap-4">
+        {shop.deletedWasReported ? (
+          <span className="flex items-center gap-1.5 text-xs text-red-400">
+            <SFTrashFill className="w-3 h-3 shrink-0" />
+            {t.wasReported}
+          </span>
+        ) : (
+          <span />
+        )}
+
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <>
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+                className="h-9 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+              >
+                {messages.common.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSave()}
+                disabled={isSaving}
+                className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
+              >
+                <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+                {isSaving ? messages.common.saving : messages.common.save}
+              </button>
+            </>
+          ) : (
+            <>
+              {onUpdateReason && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="h-9 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {messages.common.edit}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+              >
+                {messages.common.ok}
+              </button>
+            </>
+          )}
+        </div>
+      </OverlayCard.Footer>
+    </OverlayCard>
   );
 }
