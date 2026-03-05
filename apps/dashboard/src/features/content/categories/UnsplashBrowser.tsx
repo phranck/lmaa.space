@@ -188,13 +188,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
   const isLoadingMore = status === "loading-more";
 
   return (
-    <OverlayCard
-      open
-      onClose={onClose}
-      size="fullscreen"
-      aria-label={categoriesMessages.unsplash.title ?? "Unsplash"}
-      zIndex={60}
-    >
+    <OverlayCard open onClose={onClose} size="fullscreen" aria-label="Unsplash" zIndex={60}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ds-border-subtle)] shrink-0">
         <div className="relative flex-1">
