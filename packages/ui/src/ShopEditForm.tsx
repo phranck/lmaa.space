@@ -179,6 +179,26 @@ export function ShopEditForm({
         {errors?.contactEmail && <p className="text-red-500 text-xs mt-1">{errors.contactEmail}</p>}
       </div>
 
+      {/* Social Media */}
+      {messages.socialMediaLabel && messages.socialMedia && (
+        <div>
+          <p className={labelClass}>
+            <span className="flex items-center gap-1.5">
+              {messages.socialMediaLabel}{" "}
+              <span className="text-[var(--ds-text-subtle)] font-normal">
+                {messages.optionalLabel}
+              </span>
+            </span>
+          </p>
+          <SocialMediaEditor
+            value={value.socialMedia}
+            onChange={(v) => set("socialMedia", v)}
+            messages={messages.socialMedia}
+          />
+          {errors?.socialMedia && <p className="text-red-500 text-xs mt-1">{errors.socialMedia}</p>}
+        </div>
+      )}
+
       {/* Description */}
       <div>
         <label htmlFor="sef-description" className={labelClass}>
@@ -238,26 +258,6 @@ export function ShopEditForm({
         />
         {errors?.shipping && <p className="text-red-500 text-xs mt-1">{errors.shipping}</p>}
       </div>
-
-      {/* Social Media */}
-      {messages.socialMediaLabel && messages.socialMedia && (
-        <div>
-          <p className={labelClass}>
-            <span className="flex items-center gap-1.5">
-              {messages.socialMediaLabel}{" "}
-              <span className="text-[var(--ds-text-subtle)] font-normal">
-                {messages.optionalLabel}
-              </span>
-            </span>
-          </p>
-          <SocialMediaEditor
-            value={value.socialMedia}
-            onChange={(v) => set("socialMedia", v)}
-            messages={messages.socialMedia}
-          />
-          {errors?.socialMedia && <p className="text-red-500 text-xs mt-1">{errors.socialMedia}</p>}
-        </div>
-      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { normalizeSocialMediaValue } from "@lmaa/shared";
+import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SFGlobe, SFMinus, SFPlus } from "sf-symbols-lib/monochrome";
@@ -7,14 +7,14 @@ import { PLATFORMS, PLATFORM_MAP } from "./social-media-platforms";
 interface Entry {
   id: string;
   platform: string;
-  handle: string;
+  url: string;
 }
 
 /**
  * Localizable UI copy contract for the social media editor.
  */
 export interface SocialMediaEditorMessages {
-  handlePlaceholder: string;
+  urlPlaceholder: string;
   addAriaLabel: string;
   removeAriaLabel: string;
   selectPlatformAriaLabel: string;
@@ -35,18 +35,18 @@ function genId(): string {
 }
 
 function recordToEntries(record: Record<string, string>): Entry[] {
-  return Object.entries(record).map(([platform, handle]) => ({
+  return Object.entries(record).map(([platform, url]) => ({
     id: genId(),
     platform,
-    handle,
+    url,
   }));
 }
 
 function entriesToRecord(entries: Entry[]): Record<string, string> {
   const record: Record<string, string> = {};
   for (const entry of entries) {
-    if (entry.platform) {
-      record[entry.platform] = entry.handle;
+    if (entry.platform && entry.url) {
+      record[entry.platform] = entry.url;
     }
   }
   return record;
@@ -55,8 +55,8 @@ function entriesToRecord(entries: Entry[]): Record<string, string> {
 /**
  * Dynamic key-value editor for social media links.
  *
- * Each row shows a platform icon dropdown, a handle/URL input,
- * and buttons to remove the entry or add a new one.
+ * Each row shows an auto-detected platform icon, a URL input,
+ * and a button to remove the entry. Click the icon to manually override the platform.
  */
 export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEditorProps) {
   const [entries, setEntries] = useState<Entry[]>(() => recordToEntries(value));
@@ -110,7 +110,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
   }
 
   function addEntry() {
-    emit([...entries, { id: genId(), platform: "", handle: "" }]);
+    emit([...entries, { id: genId(), platform: "", url: "" }]);
   }
 
   function removeEntry(id: string) {
@@ -127,16 +127,27 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
     setDropdownRect(null);
   }
 
-  function updateHandle(id: string, handle: string) {
-    emit(entries.map((e) => (e.id === id ? { ...e, handle } : e)));
+  function updateUrl(id: string, url: string) {
+    const detected = detectPlatformFromUrl(url);
+    const entry = entries.find((e) => e.id === id);
+    if (!entry) return;
+
+    // Auto-detect platform, but only if user hasn't manually overridden
+    // or if the current platform is empty/website (generic fallback)
+    const shouldAutoDetect = !entry.platform || entry.platform === "website" || detected;
+    const platform = shouldAutoDetect
+      ? (detected ?? (url.trim() ? "website" : ""))
+      : entry.platform;
+
+    emit(entries.map((e) => (e.id === id ? { ...e, url, platform } : e)));
   }
 
-  function normalizeHandle(id: string) {
+  function normalizeUrl(id: string) {
     const entry = entries.find((e) => e.id === id);
-    if (!entry?.platform || !entry.handle) return;
-    const normalized = normalizeSocialMediaValue(entry.platform, entry.handle);
-    if (normalized && normalized !== entry.handle) {
-      emit(entries.map((e) => (e.id === id ? { ...e, handle: normalized } : e)));
+    if (!entry?.platform || !entry.url) return;
+    const normalized = normalizeSocialMediaValue(entry.platform, entry.url);
+    if (normalized && normalized !== entry.url) {
+      emit(entries.map((e) => (e.id === id ? { ...e, url: normalized } : e)));
     }
   }
 
@@ -197,7 +208,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
 
         return (
           <div key={entry.id} className="flex gap-2">
-            {/* Combined platform dropdown + handle input */}
+            {/* Platform icon (click to override) + URL input */}
             <div className="flex flex-1 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)] focus-within:ring-2 focus-within:ring-[var(--color-primary)]">
               <button
                 type="button"
@@ -214,10 +225,10 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
 
               <input
                 type="text"
-                value={entry.handle}
-                onChange={(e) => updateHandle(entry.id, e.target.value)}
-                onBlur={() => normalizeHandle(entry.id)}
-                placeholder={messages.handlePlaceholder}
+                value={entry.url}
+                onChange={(e) => updateUrl(entry.id, e.target.value)}
+                onBlur={() => normalizeUrl(entry.id)}
+                placeholder={messages.urlPlaceholder}
                 className="flex-1 px-3 py-2 text-sm bg-transparent text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none"
               />
             </div>

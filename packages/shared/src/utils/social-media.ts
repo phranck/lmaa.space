@@ -13,6 +13,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "linkedin",
   "pinterest",
   "patreon",
+  "website",
 ] as const;
 
 export type SocialPlatformKey = (typeof SOCIAL_PLATFORM_KEYS)[number];
@@ -285,6 +286,57 @@ function normalizePatreon(input: string): string | null {
   return `https://patreon.com/${handle}`;
 }
 
+function normalizeWebsite(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const url = tryParseUrl(withScheme);
+  if (!url) return null;
+  return url.href;
+}
+
+const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
+  "instagram.com": "instagram",
+  "facebook.com": "facebook",
+  "fb.com": "facebook",
+  "threads.net": "threads",
+  "tiktok.com": "tiktok",
+  "youtube.com": "youtube",
+  "youtu.be": "youtube",
+  "twitch.tv": "twitch",
+  "x.com": "x",
+  "twitter.com": "x",
+  "bsky.app": "bluesky",
+  "linkedin.com": "linkedin",
+  "pin.it": "pinterest",
+  "patreon.com": "patreon",
+};
+
+export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const url = tryParseUrl(withScheme);
+  if (!url) return null;
+
+  const host = stripWww(url.hostname);
+
+  // Direct domain match
+  const direct = DOMAIN_TO_PLATFORM[host];
+  if (direct) return direct;
+
+  // Pinterest subdomains (e.g. de.pinterest.com)
+  if (host.endsWith(".pinterest.com")) return "pinterest";
+
+  // Mastodon heuristic: path starts with /@
+  const path = stripTrailingSlash(url.pathname);
+  if (path.startsWith("/@")) return "mastodon";
+
+  return null;
+}
+
 const normalizers: Record<SocialPlatformKey, (input: string) => string | null> = {
   instagram: normalizeInstagram,
   facebook: normalizeFacebook,
@@ -298,6 +350,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   linkedin: normalizeLinkedin,
   pinterest: normalizePinterest,
   patreon: normalizePatreon,
+  website: normalizeWebsite,
 };
 
 export function normalizeSocialMediaValue(platform: string, input: string): string | null {
