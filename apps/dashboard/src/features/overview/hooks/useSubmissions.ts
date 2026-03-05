@@ -66,6 +66,7 @@ export function useEditSubmission() {
         region: data.region,
         shipping: data.shipping,
         categoryIds: data.categoryIds,
+        contactEmail: data.contactEmail,
         socialMedia: data.socialMedia,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),

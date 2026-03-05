@@ -29,6 +29,10 @@ export const submissionEditSchema = z.object({
   region: defaultRegionArraySchema,
   shipping: z.string().max(200).optional(),
   categoryIds: z.array(z.number().int().positive()),
+  contactEmail: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().email().max(200).optional(),
+  ),
   socialMedia: socialMediaSchema,
 });
 

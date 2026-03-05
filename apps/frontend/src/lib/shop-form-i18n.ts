@@ -48,6 +48,8 @@ export function getFrontendShopFormI18n(locale: FrontendLocale = "de"): {
         categoriesPlaceholder: "Select categories…",
         shippingLabel: "Shipping",
         shippingPlaceholder: "e.g. Free shipping from €50",
+        contactEmailLabel: "Contact Email",
+        contactEmailPlaceholder: "e.g. info@example.com",
         categorySelect: {
           selectAll: "(Select all)",
           clearAllAriaLabel: "Clear all selected categories",
@@ -76,6 +78,8 @@ export function getFrontendShopFormI18n(locale: FrontendLocale = "de"): {
       categoriesPlaceholder: "Kategorie wählen…",
       shippingLabel: "Versand",
       shippingPlaceholder: "z.B. Kostenlos ab 50 €",
+      contactEmailLabel: "Kontakt-E-Mail",
+      contactEmailPlaceholder: "z.B. info@beispiel.de",
       categorySelect: {
         selectAll: "(Alle auswählen)",
         clearAllAriaLabel: "Alle ausgewählten Kategorien entfernen",

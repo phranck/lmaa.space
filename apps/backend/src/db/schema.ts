@@ -46,6 +46,7 @@ export const shops = pgTable(
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    contactEmail: text("contact_email"),
     /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -115,6 +116,7 @@ export const submissions = pgTable(
     shipping: text("shipping").notNull().default(""),
     description: text("description").notNull().default(""),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    contactEmail: text("contact_email"),
     submitterEmail: text("submitter_email"),
     submitterNote: text("submitter_note"),
     status: text("status")

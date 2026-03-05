@@ -69,6 +69,7 @@ export function ShopEditCard({
         categoryIds: shopData.categories.map((c) => c.id),
         region: shopData.region ?? [],
         shipping: shopData.shipping ?? "",
+        contactEmail: shopData.contactEmail ?? "",
         socialMedia: shopData.socialMedia ?? {},
       });
     }

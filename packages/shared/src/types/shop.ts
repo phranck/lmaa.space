@@ -40,6 +40,7 @@ export interface Shop {
   shipping: string;
   description: string;
   ogImage?: string | null;
+  contactEmail?: string | null;
   socialMedia: Record<string, string>;
   /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
   isActive: boolean;
@@ -58,6 +59,7 @@ export interface ShopCreate {
   pickup?: string;
   shipping?: string;
   description?: string;
+  contactEmail?: string;
 }
 
 /**

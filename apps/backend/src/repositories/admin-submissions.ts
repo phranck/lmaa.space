@@ -20,6 +20,7 @@ export interface SubmissionEditData {
   region: string[];
   shipping?: string;
   categoryIds: number[];
+  contactEmail?: string;
   socialMedia?: Record<string, string>;
 }
 
@@ -123,6 +124,7 @@ export async function reviewSubmission(
         pickup: submission.pickup,
         shipping: submission.shipping,
         description: submission.description,
+        contactEmail: submission.contactEmail,
         socialMedia: submission.socialMedia,
       })
       .returning({ id: shops.id, url: shops.url });
@@ -159,6 +161,7 @@ export async function editSubmission(
         description: data.description ?? "",
         region: data.region,
         shipping: data.shipping ?? "",
+        contactEmail: data.contactEmail || null,
         socialMedia: data.socialMedia ?? {},
         updatedAt: new Date(),
       })
@@ -233,6 +236,7 @@ export async function createSubmissionFromFormData(data: Record<string, unknown>
         pickup: str("pickup"),
         shipping: str("shipping"),
         description: str("description"),
+        contactEmail: strOrNull("contactEmail"),
         submitterEmail: strOrNull("submitterEmail"),
         submitterNote: strOrNull("submitterNote"),
       })
