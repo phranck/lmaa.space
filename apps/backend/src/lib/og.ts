@@ -12,6 +12,7 @@ const HEADERS = {
 const SKIP_PATTERNS = /icon|logo|sprite|pixel|tracking|badge|flag|avatar|1x1|blank/i;
 const MIN_APPLE_SIZE = 120; // px — smaller icons look blurry on retina displays
 const SKIP_EXT = /\.(svg|gif|ico)(\?|$)/i;
+const MAX_REDIRECTS = 3;
 
 function extractDomain(url: string): string {
   try {
@@ -123,35 +124,80 @@ function firstLargeImage(html: string, base: string): string | null {
   return null;
 }
 
-async function fetchHtml(url: string): Promise<string | null> {
-  if (!isExternalUrl(url)) return null;
+function isRedirectStatus(status: number): boolean {
+  return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
+}
+
+function resolveRedirectUrl(location: string, currentUrl: string): string | null {
   try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(10000),
-      headers: HEADERS,
-      redirect: "follow",
-    });
-    if (!res.ok) return null;
-    return await res.text();
-  } catch (err) {
-    logger.error({ err }, "OG image fetch failed");
+    return new URL(location, currentUrl).toString();
+  } catch {
     return null;
   }
 }
 
-async function tryImageUrl(url: string): Promise<string | null> {
+/**
+ * Fetches an external resource while validating each redirect hop.
+ *
+ * Redirects are resolved manually so a public URL cannot bounce the backend
+ * into private/internal targets.
+ */
+export async function fetchExternalResource(
+  url: string,
+  init: RequestInit,
+): Promise<{ response: Response; finalUrl: string } | null> {
   if (!isExternalUrl(url)) return null;
+
   try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(5000),
-      headers: { "User-Agent": HEADERS["User-Agent"] },
-      redirect: "follow",
-    });
-    if (res.ok && res.headers.get("content-type")?.startsWith("image/")) return url;
+    let currentUrl = url;
+
+    for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
+      const response = await fetch(currentUrl, { ...init, redirect: "manual" });
+
+      if (!isRedirectStatus(response.status)) {
+        return { response, finalUrl: currentUrl };
+      }
+
+      const location = response.headers.get("location");
+      const nextUrl = location ? resolveRedirectUrl(location, currentUrl) : null;
+
+      if (!nextUrl || !isExternalUrl(nextUrl)) {
+        logger.warn({ currentUrl, location }, "blocked redirect while resolving external resource");
+        return null;
+      }
+
+      currentUrl = nextUrl;
+    }
+
+    logger.warn(
+      { url, maxRedirects: MAX_REDIRECTS },
+      "too many redirects while resolving external resource",
+    );
     return null;
-  } catch {
+  } catch (err) {
+    logger.error({ err }, "external resource fetch failed");
     return null;
   }
+}
+
+async function fetchHtml(url: string): Promise<string | null> {
+  const result = await fetchExternalResource(url, {
+    signal: AbortSignal.timeout(10000),
+    headers: HEADERS,
+  });
+  if (!result?.response.ok) return null;
+  return await result.response.text();
+}
+
+async function tryImageUrl(url: string): Promise<string | null> {
+  const result = await fetchExternalResource(url, {
+    signal: AbortSignal.timeout(5000),
+    headers: { "User-Agent": HEADERS["User-Agent"] },
+  });
+  if (result?.response.ok && result.response.headers.get("content-type")?.startsWith("image/")) {
+    return result.finalUrl;
+  }
+  return null;
 }
 
 function googleFaviconUrl(shopUrl: string): string {

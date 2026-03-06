@@ -1,8 +1,10 @@
-import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { CharCounter, Checkbox, MarkdownTextarea } from "@lmaa/ui";
 import type { ClipboardEvent, ReactNode } from "react";
 import { SFDocumentOnDocumentFill, SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
+
+import { CharCounter, MarkdownTextarea } from "@lmaa/ui";
+
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
 export interface RejectDialogMessages {
   cancel: string;
@@ -11,7 +13,6 @@ export interface RejectDialogMessages {
   commentPlaceholder: string;
   rejectionLongLabel: string;
   rejectionLongPlaceholder: string;
-  feedbackToPrefix: string;
   errorPrefix: string;
 }
 
@@ -26,9 +27,6 @@ export interface RejectDialogProps {
   onAdminNotePaste?: (e: ClipboardEvent<HTMLTextAreaElement>) => void;
   rejectionLongText: string;
   onRejectionLongTextChange: (v: string) => void;
-  submitterEmail?: string;
-  sendFeedback?: boolean;
-  onSendFeedbackChange?: (v: boolean) => void;
   onSubmit: () => void;
   isPending: boolean;
   isError?: boolean;
@@ -54,9 +52,6 @@ export function RejectDialog({
   onAdminNotePaste,
   rejectionLongText,
   onRejectionLongTextChange,
-  submitterEmail,
-  sendFeedback,
-  onSendFeedbackChange,
   onSubmit,
   isPending,
   isError,
@@ -145,18 +140,6 @@ export function RejectDialog({
             placeholder={messages.rejectionLongPlaceholder}
           />
         </div>
-
-        {submitterEmail && onSendFeedbackChange && (
-          <Checkbox
-            checked={sendFeedback ?? false}
-            onChange={onSendFeedbackChange}
-            label={
-              <>
-                {messages.feedbackToPrefix} <span className="font-medium">{submitterEmail}</span>
-              </>
-            }
-          />
-        )}
 
         {isError && (
           <p className="text-sm text-red-600">

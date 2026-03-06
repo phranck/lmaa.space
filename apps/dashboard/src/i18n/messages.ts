@@ -274,7 +274,6 @@ export interface DashboardMessages {
       delete: string;
       confirmDeleteTitle: string;
       confirmDeleteDescription: string;
-      feedbackToPrefix: string;
       reviewApproveTitle: string;
       reviewRejectTitle: string;
       comment: string;
@@ -911,7 +910,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         delete: "Löschen",
         confirmDeleteTitle: "Vorschlag löschen?",
         confirmDeleteDescription: "wird dauerhaft entfernt.",
-        feedbackToPrefix: "E-Mail-Feedback senden an",
         reviewApproveTitle: "Vorschlag freischalten",
         reviewRejectTitle: "Vorschlag ablehnen",
         comment: "Kommentar",
@@ -1544,7 +1542,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         delete: "Delete",
         confirmDeleteTitle: "Delete suggestion?",
         confirmDeleteDescription: "will be permanently removed.",
-        feedbackToPrefix: "Send email feedback to",
         reviewApproveTitle: "Publish suggestion",
         reviewRejectTitle: "Reject suggestion",
         comment: "Comment",

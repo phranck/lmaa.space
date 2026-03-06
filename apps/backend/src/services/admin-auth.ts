@@ -1,12 +1,12 @@
+import { hashPassword, verifyPassword } from "./auth.js";
 import { failure, success } from "../lib/result.js";
 import {
-  createOwnerAdmin,
+  createOwnerAdminWithSession,
   createSession,
   deleteSession,
   findAdminByUsername,
   getAdminCount,
 } from "../repositories/admin-auth.js";
-import { hashPassword, verifyPassword } from "./auth.js";
 
 /**
  * Input payload for initial owner setup.
@@ -56,23 +56,28 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
   }
 
   const passwordHash = await hashPassword(input.password);
-  const admin = await createOwnerAdmin({
-    username: input.username,
-    email: input.email,
-    passwordHash,
-  });
+  try {
+    const { admin, sessionId } = await createOwnerAdminWithSession({
+      username: input.username,
+      email: input.email,
+      passwordHash,
+    });
 
-  const sessionId = await createSession(admin.id);
-
-  return success({
-    sessionId,
-    admin: {
-      id: admin.id,
-      username: admin.username,
-      role: admin.role,
-      isOwner: admin.role === "owner",
-    },
-  });
+    return success({
+      sessionId,
+      admin: {
+        id: admin.id,
+        username: admin.username,
+        role: admin.role,
+        isOwner: admin.role === "owner",
+      },
+    });
+  } catch (err) {
+    if (isUniqueViolationError(err) && (await getAdminCount()) > 0) {
+      return failure("already_setup");
+    }
+    throw err;
+  }
 }
 
 /**
@@ -118,4 +123,8 @@ export async function logoutAdmin(sessionId: string | undefined) {
   if (sessionId) {
     await deleteSession(sessionId);
   }
+}
+
+function isUniqueViolationError(err: unknown): err is { code: string } {
+  return typeof err === "object" && err !== null && "code" in err && err.code === "23505";
 }

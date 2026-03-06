@@ -1,4 +1,6 @@
 import type { SubmissionReviewStatus } from "@lmaa/shared";
+
+import { hydrateShopOgImageInBackground } from "./preview-images.js";
 import { failure, success } from "../lib/result.js";
 import { setAdminShopOgImage } from "../repositories/admin-shops.js";
 import {
@@ -6,7 +8,6 @@ import {
   getSubmissionStatus,
   reviewSubmission,
 } from "../repositories/admin-submissions.js";
-import { hydrateShopOgImageInBackground } from "./preview-images.js";
 
 /**
  * Input contract for submission moderation action.
@@ -32,7 +33,6 @@ interface ReviewAdminSubmissionInput {
  * Side effects:
  * - May create a new shop when status is `approved`.
  * - May hydrate and persist OG image for newly created shop.
- * - May send feedback email and persist `feedbackSent` flag.
  */
 export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
   const { submission, newShop } = await reviewSubmission({

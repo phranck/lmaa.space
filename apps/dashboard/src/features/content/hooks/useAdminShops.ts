@@ -1,8 +1,10 @@
-import type { ShopDeleteMode } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
-import { api } from "@/lib/api.ts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import type { Shop, ShopMutableVisibility, ShopSummary, ShopVisibility } from "@lmaa/shared";
 import type { ShopEditFormValue } from "@lmaa/ui";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { ShopDeleteMode } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
+import { api } from "@/lib/api.ts";
 
 /**
  * Re-exported form value type used by shop editor views.
@@ -92,7 +94,12 @@ export function useDeleteShop() {
       reason,
       wasReported,
       mode,
-    }: { id: number; reason?: string; wasReported?: boolean; mode?: ShopDeleteMode }) =>
+    }: {
+      id: number;
+      reason?: string;
+      wasReported?: boolean;
+      mode?: ShopDeleteMode;
+    }) =>
       api.delete(`/admin/shops/${id}`, {
         reason: reason ?? null,
         wasReported: wasReported ?? false,
@@ -125,6 +132,20 @@ export function useFetchPreviewImage() {
   return useMutation({
     mutationFn: (url: string) =>
       api.post<{ ogImage: string | null }>("/admin/preview-image", { url }),
+  });
+}
+
+/**
+ * Loads a preview OG image for an arbitrary shop URL.
+ *
+ * @param url - Target shop URL or `null` to disable loading.
+ * @returns React Query result with preview image data.
+ */
+export function usePreviewImage(url: string | null) {
+  return useQuery({
+    queryKey: ["preview-image", url],
+    queryFn: () => api.post<{ ogImage: string | null }>("/admin/preview-image", { url }),
+    enabled: typeof url === "string" && url.trim().length > 0,
   });
 }
 

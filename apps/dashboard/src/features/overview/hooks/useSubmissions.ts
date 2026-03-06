@@ -1,7 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { Submission, SubmissionStatus } from "@lmaa/shared";
+
 import type { ShopEditFormValue } from "@/features/content/hooks/useAdminShops.ts";
 import { api } from "@/lib/api.ts";
-import type { Submission, SubmissionStatus } from "@lmaa/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Loads submissions by moderation status.
@@ -30,21 +32,18 @@ export function useReviewSubmission() {
       adminNote,
       rejectionLongText,
       rejectionToken,
-      sendFeedback,
     }: {
       id: number;
       status: "approved" | "rejected" | "onhold" | "pending";
       adminNote?: string;
       rejectionLongText?: string;
       rejectionToken?: string;
-      sendFeedback: boolean;
     }) =>
       api.patch(`/admin/submissions/${id}`, {
         status,
         adminNote: adminNote || undefined,
         rejectionLongText: rejectionLongText || undefined,
         rejectionToken: rejectionToken || undefined,
-        sendFeedback,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),
   });

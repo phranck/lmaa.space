@@ -79,5 +79,4 @@ export interface SubmissionReview {
   status: SubmissionReviewStatus;
   adminNote?: string;
   rejectionLongText?: string;
-  sendFeedback?: boolean;
 }

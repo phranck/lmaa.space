@@ -1,15 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().positive().default(3000),
-  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  IP_HASH_SALT: z
-    .string()
-    .min(16, "IP_HASH_SALT must be at least 16 characters")
-    .default("local-dev-salt-not-for-production"),
-});
+import { DEFAULT_IP_HASH_SALT, envSchema } from "../config/env.js";
 
 describe("envSchema", () => {
   it("requires DATABASE_URL", () => {
@@ -23,6 +14,7 @@ describe("envSchema", () => {
     if (result.success) {
       expect(result.data.PORT).toBe(3000);
       expect(result.data.NODE_ENV).toBe("development");
+      expect(result.data.IP_HASH_SALT).toBe(DEFAULT_IP_HASH_SALT);
     }
   });
 
@@ -36,10 +28,19 @@ describe("envSchema", () => {
 
   it("accepts IP_HASH_SALT of 16+ characters", () => {
     const result = envSchema.safeParse({
+      NODE_ENV: "production",
       DATABASE_URL: "postgres://localhost/test",
       IP_HASH_SALT: "this-is-a-valid-salt-value",
     });
     expect(result.success).toBe(true);
+  });
+
+  it("requires IP_HASH_SALT in production", () => {
+    const result = envSchema.safeParse({
+      NODE_ENV: "production",
+      DATABASE_URL: "postgres://localhost/test",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("coerces PORT to number", () => {
