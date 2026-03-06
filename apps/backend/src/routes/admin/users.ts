@@ -28,15 +28,14 @@ usersRoutes.get("/users", requireAdmin, async (c) => {
 
 // POST /api/admin/users
 usersRoutes.post("/users", requireOwner, zValidator("json", createUserSchema), async (c) => {
-  const { username, email, password, role, welcomeTemplateId } = c.req.valid("json");
-  const user = await createManagedAdminUser({
+  const { username, email, role, welcomeTemplateId } = c.req.valid("json");
+  const invite = await createManagedAdminUser({
     username,
     email,
-    password,
     role,
     welcomeTemplateId,
   });
-  return ok(c, user, 201);
+  return ok(c, invite, 201);
 });
 
 // PATCH /api/admin/users/:id

@@ -6,9 +6,16 @@ import { z } from "zod";
 export const createUserSchema = z.object({
   username: z.string().min(1).max(64),
   email: z.string().email(),
-  password: z.string().min(8),
   role: z.enum(["admin", "moderator"]).optional(),
   welcomeTemplateId: z.number().int().positive().optional(),
+});
+
+/**
+ * Public invite lookup/accept payload.
+ */
+export const acceptInviteSchema = z.object({
+  token: z.string().min(32).max(256),
+  password: z.string().min(8),
 });
 
 /**

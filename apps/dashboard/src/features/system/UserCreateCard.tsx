@@ -1,8 +1,11 @@
 import { useState } from "react";
+import SFDocumentOnDocument from "sf-symbols-lib/monochrome/SFDocumentOnDocument";
 import SFPersonBadgePlus from "sf-symbols-lib/monochrome/SFPersonBadgePlus";
 import SFPersonFill from "sf-symbols-lib/monochrome/SFPersonFill";
 import SFPersonFillCheckmark from "sf-symbols-lib/monochrome/SFPersonFillCheckmark";
 import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+
+import type { AdminUserInvite } from "@lmaa/shared";
 
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
@@ -49,19 +52,33 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
     ...EMPTY_CREATE_USER_FORM,
     role: "admin",
   });
+  const [inviteResult, setInviteResult] = useState<AdminUserInvite | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const createMutation = useCreateUser();
   const { data: emailTemplates = [] } = useEmailTemplates();
 
   function handleSubmit() {
-    createMutation.mutate(form, { onSuccess: onCreated });
+    createMutation.mutate(form, {
+      onSuccess: (result) => {
+        setInviteResult(result);
+        setCopied(false);
+        onCreated();
+      },
+    });
   }
 
-  const canSubmit =
-    form.username.trim().length >= 3 &&
-    form.email.trim().length > 0 &&
-    form.password.length >= 8 &&
-    !createMutation.isPending;
+  async function handleCopyInviteLink() {
+    if (!inviteResult) return;
+    try {
+      await navigator.clipboard.writeText(inviteResult.inviteUrl);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  const canSubmit = form.username.trim().length >= 3 && form.email.trim().length > 0 && !createMutation.isPending;
 
   return (
     <OverlayCard
@@ -78,109 +95,118 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
       </OverlayCard.Header>
 
       <OverlayCard.Body className="space-y-4">
-        {/* Rolle */}
-        <div>
-          <p className="block text-sm font-medium text-[var(--ds-text)] mb-2">
-            {usersMessages.createCard.role}
-          </p>
-          <SegmentedControl
-            value={form.role ?? "admin"}
-            onChange={(role) => setForm((f) => ({ ...f, role }))}
-            storageKey={getSegmentedStorageKey(user?.id, "users:create:role")}
-            options={roleOptions}
-          />
-        </div>
+        {inviteResult ? (
+          <div className="space-y-4">
+            <div className="rounded-[var(--radius-card)] border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-4 space-y-2">
+              <p className="text-sm font-medium text-[var(--ds-text)]">
+                {usersMessages.createCard.inviteCreated}
+              </p>
+              <p className="text-sm text-[var(--ds-text-muted)]">
+                {usersMessages.createCard.inviteHint}
+              </p>
+            </div>
+            <div>
+              <label
+                htmlFor="uc-invite-url"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
+                {usersMessages.createCard.inviteLink}
+              </label>
+              <input
+                id="uc-invite-url"
+                type="text"
+                readOnly
+                value={inviteResult.inviteUrl}
+                className={inputClass}
+              />
+            </div>
+          </div>
+        ) : (
+          <>
+            <div>
+              <p className="block text-sm font-medium text-[var(--ds-text)] mb-2">
+                {usersMessages.createCard.role}
+              </p>
+              <SegmentedControl
+                value={form.role ?? "admin"}
+                onChange={(role) => setForm((f) => ({ ...f, role }))}
+                storageKey={getSegmentedStorageKey(user?.id, "users:create:role")}
+                options={roleOptions}
+              />
+            </div>
 
-        {/* Benutzername */}
-        <div>
-          <label
-            htmlFor="uc-username"
-            className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-          >
-            {usersMessages.createCard.username}
-          </label>
-          <input
-            id="uc-username"
-            type="text"
-            value={form.username}
-            onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-            minLength={3}
-            className={inputClass}
-          />
-        </div>
+            <div>
+              <label
+                htmlFor="uc-username"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
+                {usersMessages.createCard.username}
+              </label>
+              <input
+                id="uc-username"
+                type="text"
+                value={form.username}
+                onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+                minLength={3}
+                className={inputClass}
+              />
+            </div>
 
-        {/* E-Mail */}
-        <div>
-          <label
-            htmlFor="uc-email"
-            className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-          >
-            {usersMessages.createCard.email}
-          </label>
-          <input
-            id="uc-email"
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className={inputClass}
-          />
-        </div>
+            <div>
+              <label
+                htmlFor="uc-email"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
+                {usersMessages.createCard.email}
+              </label>
+              <input
+                id="uc-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
 
-        {/* Passwort */}
-        <div>
-          <label
-            htmlFor="uc-password"
-            className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-          >
-            {usersMessages.createCard.tempPassword}
-          </label>
-          <input
-            id="uc-password"
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            minLength={8}
-            className={inputClass}
-          />
-          <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">
-            {usersMessages.createCard.minLengthHint}
-          </p>
-        </div>
+            <p className="text-xs text-[var(--ds-text-subtle)]">
+              {usersMessages.createCard.inviteFlowHint}
+            </p>
 
-        {/* Welcome-Template */}
-        <div>
-          <label
-            htmlFor="uc-welcome-template"
-            className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-          >
-            {usersMessages.createCard.welcomeTemplate}
-          </label>
-          <select
-            id="uc-welcome-template"
-            value={form.welcomeTemplateId ?? ""}
-            onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                welcomeTemplateId: e.target.value ? Number(e.target.value) : undefined,
-              }))
-            }
-            className="w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-          >
-            <option value="">{usersMessages.createCard.welcomeTemplateNone}</option>
-            {emailTemplates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div>
+              <label
+                htmlFor="uc-welcome-template"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
+                {usersMessages.createCard.welcomeTemplate}
+              </label>
+              <select
+                id="uc-welcome-template"
+                value={form.welcomeTemplateId ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    welcomeTemplateId: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }
+                className="w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              >
+                <option value="">{usersMessages.createCard.welcomeTemplateNone}</option>
+                {emailTemplates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {createMutation.isError && (
-          <p className="text-[var(--ds-danger-text)] text-sm">
-            {createMutation.error instanceof Error
-              ? createMutation.error.message
-              : usersMessages.createCard.errorCreating}
-          </p>
+            {createMutation.isError && (
+              <p className="text-[var(--ds-danger-text)] text-sm">
+                {createMutation.error instanceof Error
+                  ? createMutation.error.message
+                  : usersMessages.createCard.errorCreating}
+              </p>
+            )}
+          </>
         )}
       </OverlayCard.Body>
 
@@ -192,17 +218,28 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
         >
           {common.cancel}
         </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
-        >
-          <SFPlusCircleFill className="w-3.5 h-3.5" />
-          {createMutation.isPending
-            ? usersMessages.createCard.creating
-            : usersMessages.createCard.create}
-        </button>
+        {inviteResult ? (
+          <button
+            type="button"
+            onClick={handleCopyInviteLink}
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+          >
+            <SFDocumentOnDocument className="w-3.5 h-3.5" />
+            {copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+          >
+            <SFPlusCircleFill className="w-3.5 h-3.5" />
+            {createMutation.isPending
+              ? usersMessages.createCard.creating
+              : usersMessages.createCard.create}
+          </button>
+        )}
       </OverlayCard.Footer>
     </OverlayCard>
   );

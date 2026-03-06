@@ -101,7 +101,9 @@ export const adminUsers = pgTable(
     id: serial("id").primaryKey(),
     username: text("username").notNull().unique(),
     email: text("email").notNull().unique(),
-    passwordHash: text("password_hash").notNull(),
+    passwordHash: text("password_hash"),
+    inviteTokenHash: text("invite_token_hash"),
+    inviteExpiresAt: timestamp("invite_expires_at"),
     isOwner: boolean("is_owner").notNull().default(false),
     role: text("role").$type<"owner" | "admin" | "moderator">().notNull().default("admin"),
     firstName: text("first_name"),
@@ -114,6 +116,9 @@ export const adminUsers = pgTable(
     uniqueIndex("admin_users_single_owner_idx")
       .on(table.role)
       .where(sql`${table.role} = 'owner'`),
+    uniqueIndex("admin_users_invite_token_idx")
+      .on(table.inviteTokenHash)
+      .where(sql`${table.inviteTokenHash} IS NOT NULL`),
   ],
 );
 

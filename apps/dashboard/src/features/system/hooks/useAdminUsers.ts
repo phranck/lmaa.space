@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { AdminUser } from "@lmaa/shared";
+import type { AdminUser, AdminUserInvite } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
@@ -10,7 +10,6 @@ import { api } from "@/lib/api.ts";
 export interface CreateUserFormData {
   username: string;
   email: string;
-  password: string;
   role?: "admin" | "moderator";
   welcomeTemplateId?: number;
 }
@@ -21,7 +20,6 @@ export interface CreateUserFormData {
 export const EMPTY_CREATE_USER_FORM: CreateUserFormData = {
   username: "",
   email: "",
-  password: "",
 };
 
 /**
@@ -44,7 +42,7 @@ export function useAdminUsers() {
 export function useCreateUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateUserFormData) => api.post("/admin/users", data),
+    mutationFn: (data: CreateUserFormData) => api.post<AdminUserInvite>("/admin/users", data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users-admin"] }),
   });
 }

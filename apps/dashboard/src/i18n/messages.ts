@@ -69,6 +69,17 @@ export interface DashboardMessages {
       submit: string;
       submitLoading: string;
     };
+    invite: {
+      title: string;
+      subtitle: string;
+      password: string;
+      confirmPassword: string;
+      passwordMismatch: string;
+      invalidLink: string;
+      submit: string;
+      submitLoading: string;
+      toLogin: string;
+    };
     setup: {
       welcome: string;
       title: string;
@@ -331,10 +342,14 @@ export interface DashboardMessages {
       role: string;
       username: string;
       email: string;
-      tempPassword: string;
-      minLengthHint: string;
+      inviteFlowHint: string;
       welcomeTemplate: string;
       welcomeTemplateNone: string;
+      inviteCreated: string;
+      inviteHint: string;
+      inviteLink: string;
+      copyInvite: string;
+      inviteCopied: string;
       errorCreating: string;
       creating: string;
       create: string;
@@ -702,6 +717,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         submit: "Anmelden",
         submitLoading: "Anmelden...",
       },
+      invite: {
+        title: "Einladung annehmen",
+        subtitle: "Lege dein Passwort für den Dashboard-Zugang fest.",
+        password: "Passwort",
+        confirmPassword: "Passwort bestätigen",
+        passwordMismatch: "Passwörter stimmen nicht überein.",
+        invalidLink: "Der Einladungslink ist ungültig oder abgelaufen.",
+        submit: "Passwort setzen",
+        submitLoading: "Speichern...",
+        toLogin: "Zum Login",
+      },
       setup: {
         welcome: "Willkommen!",
         title: "Admin einrichten",
@@ -969,10 +995,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         role: "Rolle",
         username: "Benutzername",
         email: "E-Mail",
-        tempPassword: "Temporäres Passwort",
-        minLengthHint: "Mindestens 8 Zeichen.",
+        inviteFlowHint:
+          "Neue Benutzer erhalten einen Einladungslink und setzen ihr Passwort selbst.",
         welcomeTemplate: "Willkommens-E-Mail",
         welcomeTemplateNone: "Keine E-Mail senden",
+        inviteCreated: "Einladung erstellt",
+        inviteHint:
+          "Diesen Link kannst du direkt teilen, falls keine Welcome-Mail verschickt wird.",
+        inviteLink: "Einladungslink",
+        copyInvite: "Link kopieren",
+        inviteCopied: "Link kopiert",
         errorCreating: "Fehler beim Erstellen.",
         creating: "Wird erstellt…",
         create: "Benutzer erstellen",
@@ -1335,6 +1367,17 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         submit: "Sign in",
         submitLoading: "Signing in...",
       },
+      invite: {
+        title: "Accept invitation",
+        subtitle: "Set your password for dashboard access.",
+        password: "Password",
+        confirmPassword: "Confirm password",
+        passwordMismatch: "Passwords do not match.",
+        invalidLink: "The invite link is invalid or has expired.",
+        submit: "Set password",
+        submitLoading: "Saving...",
+        toLogin: "Back to login",
+      },
       setup: {
         welcome: "Welcome!",
         title: "Set up admin",
@@ -1600,10 +1643,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         role: "Role",
         username: "Username",
         email: "Email",
-        tempPassword: "Temporary password",
-        minLengthHint: "At least 8 characters.",
+        inviteFlowHint: "New users receive an invite link and set their password themselves.",
         welcomeTemplate: "Welcome email",
         welcomeTemplateNone: "Don't send email",
+        inviteCreated: "Invite created",
+        inviteHint: "You can share this link directly if no welcome email is sent.",
+        inviteLink: "Invite link",
+        copyInvite: "Copy link",
+        inviteCopied: "Link copied",
         errorCreating: "Error while creating user.",
         creating: "Creating…",
         create: "Create user",

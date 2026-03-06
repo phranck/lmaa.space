@@ -143,7 +143,7 @@ export function UsersPage() {
       {showCreate && (
         <UserCreateCard
           onClose={() => setShowCreate(false)}
-          onCreated={() => setShowCreate(false)}
+          onCreated={() => {}}
         />
       )}
 

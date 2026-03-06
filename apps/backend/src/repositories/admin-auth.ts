@@ -128,3 +128,57 @@ export async function findAdminByUsername(username: string) {
     .limit(1);
   return admin ?? null;
 }
+
+/**
+ * Finds an invited admin by hashed invite token.
+ *
+ * @param inviteTokenHash - SHA-256 hash of the invite token.
+ * @returns Matching row or `null`.
+ */
+export async function findAdminByInviteTokenHash(inviteTokenHash: string) {
+  const [admin] = await db
+    .select({
+      id: adminUsers.id,
+      username: adminUsers.username,
+      email: adminUsers.email,
+      role: adminUsers.role,
+      avatarUrl: adminUsers.avatarUrl,
+      inviteExpiresAt: adminUsers.inviteExpiresAt,
+    })
+    .from(adminUsers)
+    .where(eq(adminUsers.inviteTokenHash, inviteTokenHash))
+    .limit(1);
+  return admin ?? null;
+}
+
+/**
+ * Activates an invited admin by setting the password and creating a session.
+ *
+ * @param input - Target admin id and hashed password.
+ * @returns Activated admin projection plus persisted session id.
+ */
+export async function acceptInviteWithSession(input: { adminId: number; passwordHash: string }) {
+  return db.transaction(async (tx) => {
+    const [admin] = await tx
+      .update(adminUsers)
+      .set({
+        passwordHash: input.passwordHash,
+        inviteTokenHash: null,
+        inviteExpiresAt: null,
+        lastLoginAt: new Date(),
+      })
+      .where(eq(adminUsers.id, input.adminId))
+      .returning({
+        id: adminUsers.id,
+        username: adminUsers.username,
+        role: adminUsers.role,
+        avatarUrl: adminUsers.avatarUrl,
+      });
+
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+    await tx.insert(sessions).values({ id: sessionId, adminUserId: admin.id, expiresAt });
+
+    return { admin, sessionId };
+  });
+}
