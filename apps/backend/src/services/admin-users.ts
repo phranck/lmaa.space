@@ -1,5 +1,10 @@
 import type { AdminUser } from "@lmaa/shared";
 
+import {
+  createAdminInviteToken,
+  getAdminInviteExpiresAt,
+  hashAdminInviteToken,
+} from "./admin-invite.js";
 import { hashPassword } from "./auth.js";
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
@@ -42,7 +47,6 @@ function toAdminUser(row: AdminUserRow): AdminUser {
 interface CreateManagedAdminUserInput {
   username: string;
   email: string;
-  password: string;
   role?: "admin" | "moderator";
   welcomeTemplateId?: number;
 }
@@ -60,6 +64,11 @@ interface UpdateManagedAdminUserInput {
   firstName?: string;
   lastName?: string;
   role?: "admin" | "moderator";
+}
+
+interface CreateManagedAdminUserResult {
+  user: AdminUser;
+  inviteUrl: string;
 }
 
 /**
@@ -80,17 +89,22 @@ export async function getManagedAdminUsers(): Promise<AdminUser[]> {
  *
  * @remarks
  * Side effects:
- * - Persists hashed password.
+ * - Persists invite token metadata.
  * - Sends welcome email asynchronously (non-blocking).
  */
 export async function createManagedAdminUser(
   input: CreateManagedAdminUserInput,
-): Promise<AdminUser> {
-  const passwordHash = await hashPassword(input.password);
+): Promise<CreateManagedAdminUserResult> {
+  const inviteToken = createAdminInviteToken();
+  const inviteTokenHash = hashAdminInviteToken(inviteToken);
+  const inviteExpiresAt = getAdminInviteExpiresAt();
+  const inviteUrl = `${env.DASHBOARD_URL.replace(/\/$/, "")}/invite/${inviteToken}`;
   const created = await createAdminUser({
     username: input.username,
     email: input.email,
-    passwordHash,
+    passwordHash: null,
+    inviteTokenHash,
+    inviteExpiresAt,
     role: input.role ?? "admin",
   });
 
@@ -99,8 +113,8 @@ export async function createManagedAdminUser(
     if (template) {
       const { html, subject } = await renderEmailTemplate(template, {
         username: input.username,
-        password: input.password,
         loginUrl: env.DASHBOARD_URL,
+        inviteUrl,
         email: input.email,
       });
       sendMail(input.email, subject, html).catch((err) => {
@@ -109,7 +123,7 @@ export async function createManagedAdminUser(
     }
   }
 
-  return toAdminUser(created);
+  return { user: toAdminUser(created), inviteUrl };
 }
 
 /**

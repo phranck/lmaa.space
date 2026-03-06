@@ -2,13 +2,15 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
-import { loginSchema, setupSchema } from "@lmaa/contracts";
+import { acceptInviteSchema, loginSchema, setupSchema } from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";
 import { getAdminProfileById } from "../../repositories/admin-auth.js";
 import {
+  acceptAdminInvite,
+  getAdminInviteState,
   getAdminSetupState,
   loginAdmin,
   logoutAdmin,
@@ -28,6 +30,24 @@ export const authRoutes = new Hono<{ Variables: AuthVariables }>();
 authRoutes.get("/setup", async (c) => {
   const state = await getAdminSetupState();
   return ok(c, state);
+});
+
+// GET /api/admin/invite/:token – validate invite link and resolve metadata
+authRoutes.get("/invite/:token", async (c) => {
+  const token = c.req.param("token");
+  const result = await getAdminInviteState(token);
+
+  if (!result.ok && result.reason === "invalid_invite") {
+    return fail(c, 404, "Invite link is invalid");
+  }
+  if (!result.ok && result.reason === "expired_invite") {
+    return fail(c, 410, "Invite link has expired");
+  }
+
+  return ok(c, {
+    username: result.username,
+    email: result.email,
+  });
 });
 
 // POST /api/admin/setup (only if no admin exists)
@@ -60,6 +80,22 @@ authRoutes.post(
     return ok(c, result.admin);
   },
 );
+
+// POST /api/admin/invite/accept
+authRoutes.post("/invite/accept", zValidator("json", acceptInviteSchema), async (c) => {
+  const { token, password } = c.req.valid("json");
+  const result = await acceptAdminInvite({ token, password });
+
+  if (!result.ok && result.reason === "invalid_invite") {
+    return fail(c, 404, "Invite link is invalid");
+  }
+  if (!result.ok && result.reason === "expired_invite") {
+    return fail(c, 410, "Invite link has expired");
+  }
+
+  setCookie(c, "session", result.sessionId, SESSION_COOKIE_OPTIONS);
+  return ok(c, result.admin);
+});
 
 // POST /api/admin/logout
 authRoutes.post("/logout", requireAuth, async (c) => {

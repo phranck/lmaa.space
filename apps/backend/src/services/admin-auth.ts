@@ -1,9 +1,12 @@
+import { hashAdminInviteToken } from "./admin-invite.js";
 import { hashPassword, verifyPassword } from "./auth.js";
 import { failure, success } from "../lib/result.js";
 import {
+  acceptInviteWithSession,
   createOwnerAdminWithSession,
   createSession,
   deleteSession,
+  findAdminByInviteTokenHash,
   findAdminByUsername,
   getAdminCount,
 } from "../repositories/admin-auth.js";
@@ -22,6 +25,11 @@ interface SetupAdminInput {
  */
 interface LoginAdminInput {
   username: string;
+  password: string;
+}
+
+interface AcceptInviteInput {
+  token: string;
   password: string;
 }
 
@@ -95,7 +103,7 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
  */
 export async function loginAdmin(input: LoginAdminInput) {
   const admin = await findAdminByUsername(input.username);
-  if (!admin || !(await verifyPassword(input.password, admin.passwordHash))) {
+  if (!admin?.passwordHash || !(await verifyPassword(input.password, admin.passwordHash))) {
     return failure("invalid_credentials");
   }
 
@@ -109,6 +117,60 @@ export async function loginAdmin(input: LoginAdminInput) {
       role: admin.role,
       isOwner: admin.role === "owner",
       avatarUrl: admin.avatarUrl,
+    },
+  });
+}
+
+/**
+ * Resolves invite metadata for a public password-setup screen.
+ *
+ * @param token - Raw invite token from URL.
+ * @returns Invite identity or a typed invalid/expired failure.
+ */
+export async function getAdminInviteState(token: string) {
+  const admin = await findAdminByInviteTokenHash(hashAdminInviteToken(token));
+  if (!admin) {
+    return failure("invalid_invite");
+  }
+  if (!admin.inviteExpiresAt || admin.inviteExpiresAt.getTime() < Date.now()) {
+    return failure("expired_invite");
+  }
+
+  return success({
+    username: admin.username,
+    email: admin.email,
+  });
+}
+
+/**
+ * Accepts an invite, sets the first password and signs the user in.
+ *
+ * @param input - Raw invite token plus chosen password.
+ * @returns Session/admin payload or invalid/expired failure.
+ */
+export async function acceptAdminInvite(input: AcceptInviteInput) {
+  const admin = await findAdminByInviteTokenHash(hashAdminInviteToken(input.token));
+  if (!admin) {
+    return failure("invalid_invite");
+  }
+  if (!admin.inviteExpiresAt || admin.inviteExpiresAt.getTime() < Date.now()) {
+    return failure("expired_invite");
+  }
+
+  const passwordHash = await hashPassword(input.password);
+  const { admin: activatedAdmin, sessionId } = await acceptInviteWithSession({
+    adminId: admin.id,
+    passwordHash,
+  });
+
+  return success({
+    sessionId,
+    admin: {
+      id: activatedAdmin.id,
+      username: activatedAdmin.username,
+      role: activatedAdmin.role,
+      isOwner: activatedAdmin.role === "owner",
+      avatarUrl: activatedAdmin.avatarUrl,
     },
   });
 }

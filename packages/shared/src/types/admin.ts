@@ -48,3 +48,19 @@ export interface AdminLogin {
   username: string;
   password: string;
 }
+
+/**
+ * Payload returned after creating an invited dashboard user.
+ */
+export interface AdminUserInvite {
+  user: AdminUser;
+  inviteUrl: string;
+}
+
+/**
+ * Public invite metadata shown before the invited user sets a password.
+ */
+export interface AdminInviteState {
+  username: string;
+  email: string;
+}

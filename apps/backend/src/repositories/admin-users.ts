@@ -41,7 +41,9 @@ export type AdminUserRow = {
 interface CreateAdminUserInput {
   username: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string | null;
+  inviteTokenHash?: string | null;
+  inviteExpiresAt?: Date | null;
   role: Extract<AdminRole, "admin" | "moderator">;
 }
 
@@ -52,6 +54,8 @@ type UpdateAdminUserInput = Partial<{
   username: string;
   email: string;
   passwordHash: string;
+  inviteTokenHash: string | null;
+  inviteExpiresAt: Date | null;
   firstName: string;
   lastName: string;
   role: Extract<AdminRole, "admin" | "moderator">;

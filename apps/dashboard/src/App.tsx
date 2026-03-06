@@ -6,6 +6,7 @@ import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
 import { I18nProvider } from "@/context/I18nContext.tsx";
 import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
+import { InvitePage } from "@/features/auth/InvitePage.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
 import { SetupPage } from "@/features/auth/SetupPage.tsx";
 
@@ -103,6 +104,10 @@ function AppRoutes() {
       <Route
         path="/setup"
         element={needsSetup ? <SetupPage /> : <Navigate to={user ? "/" : "/login"} replace />}
+      />
+      <Route
+        path="/invite/:token"
+        element={user ? <Navigate to="/" replace /> : <InvitePage />}
       />
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
 
