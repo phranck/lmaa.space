@@ -1,4 +1,5 @@
-import { SFLongTextPageAndPencilFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { Category } from "@lmaa/shared";
 

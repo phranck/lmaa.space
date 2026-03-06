@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { SFGlobe, SFMinus, SFPlus } from "sf-symbols-lib/monochrome";
+import SFGlobe from "sf-symbols-lib/monochrome/SFGlobe";
+import SFMinus from "sf-symbols-lib/monochrome/SFMinus";
+import SFPlus from "sf-symbols-lib/monochrome/SFPlus";
 
 import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
 

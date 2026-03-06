@@ -1,4 +1,5 @@
-import { SFArrowshapeDownFill, SFArrowshapeRightFill } from "sf-symbols-lib/monochrome";
+import SFArrowshapeDownFill from "sf-symbols-lib/monochrome/SFArrowshapeDownFill";
+import SFArrowshapeRightFill from "sf-symbols-lib/monochrome/SFArrowshapeRightFill";
 
 interface FlowConnectorProps {
   direction?: "vertical" | "horizontal";

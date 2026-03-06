@@ -1,13 +1,11 @@
 import { useMemo, useState } from "react";
-import {
-  SFArrowCounterclockwise,
-  SFEyeFill,
-  SFInfoCircleFill,
-  SFLongTextPageAndPencilFill,
-  SFPauseCircleFill,
-  SFTrashFill,
-  SFXmarkCircleFill,
-} from "sf-symbols-lib/monochrome";
+import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
+import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
+import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { REGION_CODES, type ShopSummary } from "@lmaa/shared";
 

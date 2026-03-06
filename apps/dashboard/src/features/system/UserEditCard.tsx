@@ -1,15 +1,13 @@
 import md5 from "blueimp-md5";
 import { useEffect, useRef, useState } from "react";
-import {
-  SFAt,
-  SFKey,
-  SFPencil,
-  SFPerson,
-  SFPersonCropCircle,
-  SFSquareAndArrowDownFill,
-  SFTrashFill,
-  SFTrayAndArrowUpFill,
-} from "sf-symbols-lib/monochrome";
+import SFAt from "sf-symbols-lib/monochrome/SFAt";
+import SFKey from "sf-symbols-lib/monochrome/SFKey";
+import SFPencil from "sf-symbols-lib/monochrome/SFPencil";
+import SFPerson from "sf-symbols-lib/monochrome/SFPerson";
+import SFPersonCropCircle from "sf-symbols-lib/monochrome/SFPersonCropCircle";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
+import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";

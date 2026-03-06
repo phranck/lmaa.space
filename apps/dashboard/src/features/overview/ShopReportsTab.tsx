@@ -1,10 +1,8 @@
 import { useState } from "react";
-import {
-  SFArrowCounterclockwise,
-  SFLongTextPageAndPencilFill,
-  SFStorefrontFill,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
-import { SFCheckmarkCircleFill, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
+import SFExclamationmarkSquareFill from "sf-symbols-lib/dualtone/SFExclamationmarkSquareFill";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
 

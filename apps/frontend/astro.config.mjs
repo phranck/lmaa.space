@@ -25,6 +25,23 @@ export default defineConfig({
     },
     build: {
       cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("/src/lib/buttonIconMap.tsx")) {
+              return "button-icons";
+            }
+
+            if (id.includes("/node_modules/marked") || id.includes("/node_modules/marked-footnote")) {
+              return "markdown";
+            }
+
+            if (id.includes("/node_modules/react-hook-form/")) {
+              return "react-hook-form";
+            }
+          },
+        },
+      },
     },
     ssr: {
       noExternal: ["marked"],

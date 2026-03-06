@@ -1,15 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  SFEyeFill,
-  SFMagnifyingglass,
-  SFPauseCircleFill,
-  SFPlusCircleFill,
-  SFSquareGrid2x2Fill,
-  SFStorefrontFill,
-  SFTrashFill,
-  SFXmark,
-  SFXmarkCircleFill,
-} from "sf-symbols-lib/monochrome";
+import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
+import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
+import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
+import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
+import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import type { ShopVisibility } from "@lmaa/shared";
 

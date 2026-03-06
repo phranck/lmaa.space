@@ -1,13 +1,11 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import {
-  SFCalendar,
-  SFEnvelopeFill,
-  SFIphone,
-  SFLink,
-  SFLockFill,
-  SFNumbersign,
-  SFTextformat,
-} from "sf-symbols-lib/monochrome";
+import SFCalendar from "sf-symbols-lib/monochrome/SFCalendar";
+import SFEnvelopeFill from "sf-symbols-lib/monochrome/SFEnvelopeFill";
+import SFIphone from "sf-symbols-lib/monochrome/SFIphone";
+import SFLink from "sf-symbols-lib/monochrome/SFLink";
+import SFLockFill from "sf-symbols-lib/monochrome/SFLockFill";
+import SFNumbersign from "sf-symbols-lib/monochrome/SFNumbersign";
+import SFTextformat from "sf-symbols-lib/monochrome/SFTextformat";
 
 import type {
   ButtonActionType,
@@ -23,6 +21,7 @@ import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BUTTON_ICON_LIST } from "@/features/templates/form-builder/buttonIconMap.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
+import { LazyMonochromeIcon } from "@/features/templates/form-builder/LazyMonochromeIcon.tsx";
 
 const RichTextEditor = lazy(() =>
   import("@/features/templates/form-builder/RichTextEditor.tsx").then((m) => ({
@@ -75,8 +74,8 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
   const q = query.toLowerCase();
   const icons = BUTTON_ICON_LIST.filter((e) => !q || e.label.toLowerCase().includes(q)).map((e) =>
     variant === "outline"
-      ? { name: e.outlineName, Icon: e.Outline, label: e.label }
-      : { name: e.filledName, Icon: e.Filled, label: e.label },
+      ? { name: e.outlineName, label: e.label }
+      : { name: e.filledName, label: e.label },
   );
 
   return (
@@ -121,7 +120,7 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
             {mp.iconPickerEmpty}
           </p>
         ) : (
-          icons.map(({ name, Icon, label: iconLabel }) => (
+          icons.map(({ name, label: iconLabel }) => (
             <button
               key={name}
               type="button"
@@ -133,7 +132,7 @@ function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
                   : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
               }`}
             >
-              <Icon width={18} height={18} />
+              <LazyMonochromeIcon name={name} width={18} height={18} />
             </button>
           ))
         )}

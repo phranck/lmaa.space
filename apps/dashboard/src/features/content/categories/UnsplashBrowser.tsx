@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { SFArrowClockwise, SFMagnifyingglass, SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
+import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
+import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";

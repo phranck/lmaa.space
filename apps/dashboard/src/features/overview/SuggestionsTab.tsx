@@ -1,19 +1,17 @@
 import { type ClipboardEvent, useMemo, useReducer, useState } from "react";
-import {
-  SFArrowCounterclockwise,
-  SFArrowDownCircleFill,
-  SFArrowUpCircleFill,
-  SFCheckmarkCircleFill,
-  SFClockFill,
-  SFDocumentOnDocumentFill,
-  SFInfoCircleFill,
-  SFLongTextPageAndPencilFill,
-  SFPauseCircleFill,
-  SFSquareAndArrowDownFill,
-  SFTrashFill,
-  SFTrayFill,
-  SFXmarkCircleFill,
-} from "sf-symbols-lib/monochrome";
+import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
+import SFArrowDownCircleFill from "sf-symbols-lib/monochrome/SFArrowDownCircleFill";
+import SFArrowUpCircleFill from "sf-symbols-lib/monochrome/SFArrowUpCircleFill";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import SFClockFill from "sf-symbols-lib/monochrome/SFClockFill";
+import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
+import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
+import SFTrayFill from "sf-symbols-lib/monochrome/SFTrayFill";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { type Submission, type SubmissionStatus, generateRejectionToken } from "@lmaa/shared";
 import { CharCounter } from "@lmaa/ui";

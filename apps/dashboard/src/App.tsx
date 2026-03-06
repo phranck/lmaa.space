@@ -8,11 +8,36 @@ import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
 import { LoginPage } from "@/features/auth/LoginPage.tsx";
 import { SetupPage } from "@/features/auth/SetupPage.tsx";
-import { CategoriesPage } from "@/features/content/categories/CategoriesPage.tsx";
-import { ShopsPage } from "@/features/content/shops/ShopsPage.tsx";
-import { DashboardPage } from "@/features/overview/DashboardPage.tsx";
-import { SubmissionsPage } from "@/features/overview/SubmissionsPage.tsx";
-import { UsersPage } from "@/features/system/UsersPage.tsx";
+
+const CategoriesPage = lazy(() =>
+  import("@/features/content/categories/CategoriesPage.tsx").then((m) => ({
+    default: m.CategoriesPage,
+  })),
+);
+
+const ShopsPage = lazy(() =>
+  import("@/features/content/shops/ShopsPage.tsx").then((m) => ({
+    default: m.ShopsPage,
+  })),
+);
+
+const DashboardPage = lazy(() =>
+  import("@/features/overview/DashboardPage.tsx").then((m) => ({
+    default: m.DashboardPage,
+  })),
+);
+
+const SubmissionsPage = lazy(() =>
+  import("@/features/overview/SubmissionsPage.tsx").then((m) => ({
+    default: m.SubmissionsPage,
+  })),
+);
+
+const UsersPage = lazy(() =>
+  import("@/features/system/UsersPage.tsx").then((m) => ({
+    default: m.UsersPage,
+  })),
+);
 
 const ContentEditorPage = lazy(() =>
   import("@/features/content/pages/ContentEditorPage.tsx").then((m) => ({
@@ -83,11 +108,48 @@ function AppRoutes() {
 
       {user ? (
         <Route element={<AdminLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="reports" element={<SubmissionsPage />} />
-          <Route path="shops" element={<ShopsPage />} />
-          <Route path="categories" element={<CategoriesPage />} />
-          {user.isOwner && <Route path="users" element={<UsersPage />} />}
+          <Route
+            index
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <DashboardPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="reports"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <SubmissionsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="shops"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <ShopsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="categories"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <CategoriesPage />
+              </Suspense>
+            }
+          />
+          {user.isOwner && (
+            <Route
+              path="users"
+              element={
+                <Suspense fallback={<ContentEditorLoadingFallback />}>
+                  <UsersPage />
+                </Suspense>
+              }
+            />
+          )}
           {user.role !== "moderator" && (
             <>
               <Route

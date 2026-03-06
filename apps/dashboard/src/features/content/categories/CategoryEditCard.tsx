@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  SFMagnifyingglass,
-  SFSquareAndArrowDownFill,
-  SFTrashFill,
-  SFTrayAndArrowUpFill,
-} from "sf-symbols-lib/monochrome";
+import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
+import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";

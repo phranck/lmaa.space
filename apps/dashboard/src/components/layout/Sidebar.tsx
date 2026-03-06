@@ -1,21 +1,19 @@
 import { NavLink, useNavigate } from "react-router";
-import {
-  SFBookPagesFill,
-  SFChartBarFill,
-  SFCheckmarkCircleFill,
-  SFCircle,
-  SFDocumentFill,
-  SFDocumentOnDocumentFill,
-  SFEnvelopeBadgeFill,
-  SFEyeSlashFill,
-  SFLink,
-  SFListBulletRectanglePortraitFill,
-  SFPerson3Fill,
-  SFSquareGrid2x2Fill,
-  SFStorefrontFill,
-  SFTagFill,
-  SFTrayFill,
-} from "sf-symbols-lib/monochrome";
+import SFBookPagesFill from "sf-symbols-lib/monochrome/SFBookPagesFill";
+import SFChartBarFill from "sf-symbols-lib/monochrome/SFChartBarFill";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
+import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
+import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
+import SFEnvelopeBadgeFill from "sf-symbols-lib/monochrome/SFEnvelopeBadgeFill";
+import SFEyeSlashFill from "sf-symbols-lib/monochrome/SFEyeSlashFill";
+import SFLink from "sf-symbols-lib/monochrome/SFLink";
+import SFListBulletRectanglePortraitFill from "sf-symbols-lib/monochrome/SFListBulletRectanglePortraitFill";
+import SFPerson3Fill from "sf-symbols-lib/monochrome/SFPerson3Fill";
+import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
+import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
+import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
+import SFTrayFill from "sf-symbols-lib/monochrome/SFTrayFill";
 
 import type { AdminRole } from "@lmaa/shared";
 

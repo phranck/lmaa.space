@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import { SFLine3Horizontal } from "sf-symbols-lib/monochrome";
+import SFLine3Horizontal from "sf-symbols-lib/monochrome/SFLine3Horizontal";
 
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";

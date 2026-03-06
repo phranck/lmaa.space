@@ -11,13 +11,11 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import {
-  SFCheckmarkCircleFill,
-  SFCircle,
-  SFHandTap,
-  SFSquareAndArrowDownFill,
-  SFSquareAndArrowUp,
-} from "sf-symbols-lib/monochrome";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
+import SFHandTap from "sf-symbols-lib/monochrome/SFHandTap";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFSquareAndArrowUp from "sf-symbols-lib/monochrome/SFSquareAndArrowUp";
 
 import type {
   FieldOptionsSource,

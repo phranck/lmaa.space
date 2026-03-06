@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMatch } from "react-router";
-import { SFChevronDown } from "sf-symbols-lib/monochrome";
+import SFChevronDown from "sf-symbols-lib/monochrome/SFChevronDown";
 
 function SidebarBadge({ count }: { count: number }) {
   if (count === 0) return null;

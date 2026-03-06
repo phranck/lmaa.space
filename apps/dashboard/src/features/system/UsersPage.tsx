@@ -1,9 +1,7 @@
 import { useState } from "react";
-import {
-  SFLongTextPageAndPencilFill,
-  SFPlusCircleFill,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
