@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import {
   deleteReasonUpdateSchema,
+  ogImageUpdateSchema,
   previewImageSchema,
   shopBodySchema,
   shopDeleteBodySchema,
@@ -19,6 +20,7 @@ import {
   deleteManagedAdminShop,
   previewAdminShopImage,
   refetchAdminShopImage,
+  setManagedAdminShopOgImage,
   updateManagedAdminShop,
   updateManagedAdminShopDeleteReason,
 } from "../../services/admin-shops.js";
@@ -134,6 +136,15 @@ shopsRoutes.post("/shops/:id/refetch-image", async (c) => {
   const result = await refetchAdminShopImage(id);
   if (!result.ok) return fail(c, 404, "Shop not found");
   return ok(c, { ogImage: result.ogImage });
+});
+
+// PATCH /admin/shops/:id/og-image — manually set the OG image URL
+shopsRoutes.patch("/shops/:id/og-image", zValidator("json", ogImageUpdateSchema), async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+  const { ogImage } = c.req.valid("json");
+  await setManagedAdminShopOgImage(id, ogImage);
+  return ok(c, { ogImage });
 });
 
 shopsRoutes.post("/preview-image", zValidator("json", previewImageSchema), async (c) => {

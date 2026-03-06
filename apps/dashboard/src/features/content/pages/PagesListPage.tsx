@@ -122,7 +122,7 @@ export function PagesListPage() {
           <button
             type="button"
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
           >
             <SFPlusCircleFill className="w-3.5 h-3.5" />
             {text.newPage}
@@ -152,7 +152,7 @@ export function PagesListPage() {
                   onChange={(e) => handleTitleChange(e.target.value)}
                   required
                   placeholder={text.titlePlaceholder}
-                  className="w-full px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                  className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
               <div>
@@ -172,7 +172,7 @@ export function PagesListPage() {
                     required
                     pattern="[a-z0-9-]+"
                     placeholder={text.slugPlaceholder}
-                    className="flex-1 px-3 py-2 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
+                    className="flex-1 px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
                   />
                 </div>
               </div>
@@ -182,7 +182,7 @@ export function PagesListPage() {
               <button
                 type="submit"
                 disabled={createPage.isPending || !slug || !title}
-                className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+                className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
               >
                 <SFPlusCircleFill className="w-3.5 h-3.5" />
                 {createPage.isPending ? text.creating : text.create}
@@ -190,7 +190,7 @@ export function PagesListPage() {
               <button
                 type="button"
                 onClick={handleCancelCreate}
-                className="px-4 py-2 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+                className="px-4 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
               >
                 {cancel}
               </button>

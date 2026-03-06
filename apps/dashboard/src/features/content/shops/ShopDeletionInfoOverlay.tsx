@@ -175,7 +175,7 @@ export function ShopDeletionInfoOverlay({
                     value={editedReason}
                     onChange={(e) => setEditedReason(e.target.value)}
                     rows={6}
-                    className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
+                    className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
                   />
                   <SiMarkdown className="absolute bottom-2 right-2 w-6 h-6 text-[var(--ds-text-subtle)] opacity-40 pointer-events-none" />
                 </div>
@@ -210,7 +210,7 @@ export function ShopDeletionInfoOverlay({
                 type="button"
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="h-9 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+                className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
               >
                 {messages.common.cancel}
               </button>
@@ -218,7 +218,7 @@ export function ShopDeletionInfoOverlay({
                 type="button"
                 onClick={() => handleSave()}
                 disabled={isSaving}
-                className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
               >
                 <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
                 {isSaving ? messages.common.saving : messages.common.save}
@@ -230,7 +230,7 @@ export function ShopDeletionInfoOverlay({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="h-9 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  className="py-1.5 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
                   <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
                   {messages.common.edit}
@@ -239,7 +239,7 @@ export function ShopDeletionInfoOverlay({
               <button
                 type="button"
                 onClick={onClose}
-                className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+                className="py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
               >
                 {messages.common.ok}
               </button>

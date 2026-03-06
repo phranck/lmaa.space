@@ -112,7 +112,7 @@ export function ShopsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={shopsMessages.searchPlaceholder}
-            className="h-9 w-52 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
+            className="py-1.5 w-52 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
           />
           {search && (
             <button
@@ -130,7 +130,7 @@ export function ShopsPage() {
         <button
           type="button"
           onClick={() => setEditTarget("new")}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
           <SFPlusCircleFill className="w-3.5 h-3.5" />
           {shopsMessages.newShop}

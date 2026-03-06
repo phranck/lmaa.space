@@ -86,7 +86,7 @@ export function ShopDeleteReasonCard({
             onChange={(e) => setReason(e.target.value)}
             rows={5}
             placeholder={shopsMessages.deleteCard.reasonPlaceholder}
-            className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 py-2 resize-y focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
+            className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 py-1.5 resize-y focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
           />
         </div>
 
@@ -107,7 +107,7 @@ export function ShopDeleteReasonCard({
             id="shop-delete-mode"
             value={deleteMode}
             onChange={(event) => setDeleteMode(event.target.value as ShopDeleteMode)}
-            className="w-full h-9 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="w-full py-1.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
             <option value="mark_deleted">{shopsMessages.deleteCard.markDeleted}</option>
             <option value="delete">{shopsMessages.deleteCard.deletePermanently}</option>
@@ -120,7 +120,7 @@ export function ShopDeleteReasonCard({
           type="button"
           onClick={onCancel}
           disabled={isPending}
-          className="h-9 px-4 border border-[var(--ds-btn-neutral-border)] rounded-control text-sm text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+          className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] rounded-control text-sm text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
         >
           {common.cancel}
         </button>
@@ -128,7 +128,7 @@ export function ShopDeleteReasonCard({
           type="button"
           onClick={() => onConfirm(reason.trim(), wasReported, deleteMode)}
           disabled={isPending}
-          className="h-9 px-4 bg-red-600 text-white rounded-control text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+          className="py-1.5 px-4 bg-red-600 text-white rounded-control text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
         >
           {isPending
             ? shopsMessages.deleteCard.deleting

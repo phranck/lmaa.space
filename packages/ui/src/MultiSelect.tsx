@@ -180,7 +180,7 @@ export function MultiSelect({
               <button
                 type="button"
                 onClick={handleToggleAll}
-                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors outline-none hover:bg-[var(--ds-bg-elevated)]"
+                className="w-full flex items-center gap-3 px-3 py-1.5 text-sm text-left transition-colors outline-none hover:bg-[var(--ds-bg-elevated)]"
               >
                 <span
                   className={cn(
@@ -206,7 +206,7 @@ export function MultiSelect({
                     disabled={opt.disabled}
                     style={opt.style}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors outline-none hover:bg-[var(--ds-bg-elevated)]",
+                      "w-full flex items-center gap-3 px-3 py-1.5 text-sm text-left transition-colors outline-none hover:bg-[var(--ds-bg-elevated)]",
                       isSelected ? "text-[var(--ds-text)]" : "text-[var(--ds-text-muted)]",
                       opt.disabled && "opacity-50 cursor-not-allowed",
                     )}
@@ -242,7 +242,7 @@ export function MultiSelect({
         type="button"
         onClick={handleTriggerClick}
         className={cn(
-          "w-full flex items-center justify-between min-h-10 h-auto px-3 py-1.5 border rounded-control text-sm text-left transition-colors [&_svg]:pointer-events-auto",
+          "w-full flex items-center justify-between px-3 py-1.5 border rounded-control text-sm text-left transition-colors [&_svg]:pointer-events-auto",
           isOpen
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error

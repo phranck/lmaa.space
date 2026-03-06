@@ -35,7 +35,7 @@ export function MarkdownTextarea({
         onPaste={onPaste}
         rows={rows}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y ${className}`}
+        className={`w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y ${className}`}
       />
       <SiMarkdown className="absolute bottom-2 right-2 w-5 h-5 text-[var(--ds-text-subtle)] opacity-40 pointer-events-none" />
     </div>
