@@ -42,7 +42,7 @@ export function CategoriesPage() {
   const deleteTarget = categories.find((c) => c.id === deleteId);
 
   return (
-    <div>
+    <div className="flex flex-col flex-1">
       <PageHeader title={categoriesMessages.title}>
         <SegmentedControl
           value={viewMode}
@@ -84,7 +84,6 @@ export function CategoriesPage() {
 
       {!isLoading && categories.length === 0 && (
         <ContentUnavailableView
-          className="flex-1"
           icon={<SFTagFill aria-hidden />}
           title={categoriesMessages.empty}
           subtitle={categoriesMessages.emptyHint}
