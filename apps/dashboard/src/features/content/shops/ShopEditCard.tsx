@@ -1,9 +1,7 @@
 import { type ClipboardEvent, useReducer, useState } from "react";
-import {
-  SFArrowClockwise,
-  SFSquareAndArrowDownFill,
-  SFXmarkCircleFill,
-} from "sf-symbols-lib/monochrome";
+import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { generateRejectionToken } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
@@ -124,19 +122,24 @@ export function ShopEditCard({
   const setVisibilityMutation = useSetShopVisibility();
 
   const initialFormValue = getInitialFormValue(initialData, shopData);
-  const editorKey = isNew
+  const editorStateKey = isNew
     ? "new"
     : isSubmissionMode
       ? `submission-${submissionId}`
       : shopData
         ? `shop-${shopData.id}`
         : `shop-loading-${shopId}`;
+  const title = isSubmissionMode
+    ? shopsMessages.editCard.titleSubmissionEdit
+    : isNew
+      ? shopsMessages.editCard.titleNew
+      : shopsMessages.editCard.titleEdit;
 
   return (
     <ShopEditCardEditor
-      key={editorKey}
       categories={categories ?? []}
       common={common}
+      editorStateKey={editorStateKey}
       initialData={initialData}
       initialFormValue={initialFormValue}
       isLoadingShop={isLoadingShop}
@@ -157,6 +160,7 @@ export function ShopEditCard({
       submissionId={submissionId}
       submissionMutation={submissionMutation}
       suggestionsMsg={suggestionsMsg}
+      title={title}
     />
   );
 }
@@ -164,6 +168,7 @@ export function ShopEditCard({
 interface ShopEditCardEditorProps {
   categories: NonNullable<Awaited<ReturnType<typeof useAdminCategories>>["data"]>;
   common: ReturnType<typeof useI18n>["messages"]["common"];
+  editorStateKey: string;
   initialData?: Partial<ShopEditFormValue>;
   initialFormValue: ShopEditFormValue;
   isLoadingShop: boolean;
@@ -184,11 +189,13 @@ interface ShopEditCardEditorProps {
   submissionId: number | undefined;
   submissionMutation: ReturnType<typeof useEditSubmission>;
   suggestionsMsg: ReturnType<typeof useI18n>["messages"]["submissions"]["suggestions"];
+  title: string;
 }
 
 function ShopEditCardEditor({
   categories,
   common,
+  editorStateKey,
   initialData,
   initialFormValue,
   isLoadingShop,
@@ -209,7 +216,95 @@ function ShopEditCardEditor({
   submissionId,
   submissionMutation,
   suggestionsMsg,
+  title,
 }: ShopEditCardEditorProps) {
+  return (
+    <OverlayCard
+      open
+      onClose={onClose}
+      size={{ storageKey: "shops:edit-card-size", defaultWidth: 512 }}
+      aria-label={title}
+    >
+      <OverlayCard.Header className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
+        <SaveNotification phase={savedPhase} label={common.saved} />
+      </OverlayCard.Header>
+
+      <ShopEditCardContent
+        key={editorStateKey}
+        categories={categories}
+        common={common}
+        initialData={initialData}
+        initialFormValue={initialFormValue}
+        isLoadingShop={isLoadingShop}
+        isNew={isNew}
+        isSubmissionMode={isSubmissionMode}
+        onClose={onClose}
+        onSaved={onSaved}
+        refetchImageMutation={refetchImageMutation}
+        setOgImageMutation={setOgImageMutation}
+        setVisibilityMutation={setVisibilityMutation}
+        shopData={shopData}
+        shopFormI18n={shopFormI18n}
+        shopId={shopId}
+        shopMutation={shopMutation}
+        shopsMessages={shopsMessages}
+        showSaved={showSaved}
+        submissionId={submissionId}
+        submissionMutation={submissionMutation}
+        suggestionsMsg={suggestionsMsg}
+      />
+    </OverlayCard>
+  );
+}
+
+interface ShopEditCardContentProps {
+  categories: NonNullable<Awaited<ReturnType<typeof useAdminCategories>>["data"]>;
+  common: ReturnType<typeof useI18n>["messages"]["common"];
+  initialData?: Partial<ShopEditFormValue>;
+  initialFormValue: ShopEditFormValue;
+  isLoadingShop: boolean;
+  isNew: boolean;
+  isSubmissionMode: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+  refetchImageMutation: ReturnType<typeof useRefetchShopImage>;
+  setOgImageMutation: ReturnType<typeof useSetShopOgImage>;
+  setVisibilityMutation: ReturnType<typeof useSetShopVisibility>;
+  shopData: Awaited<ReturnType<typeof useAdminShop>>["data"] | null;
+  shopFormI18n: ReturnType<typeof getShopEditFormI18n>;
+  shopId: ShopEditCardProps["shopId"];
+  shopMutation: ReturnType<typeof useSaveShop>;
+  shopsMessages: ReturnType<typeof useI18n>["messages"]["shops"];
+  showSaved: ReturnType<typeof useSaveNotification>["show"];
+  submissionId: number | undefined;
+  submissionMutation: ReturnType<typeof useEditSubmission>;
+  suggestionsMsg: ReturnType<typeof useI18n>["messages"]["submissions"]["suggestions"];
+}
+
+function ShopEditCardContent({
+  categories,
+  common,
+  initialData,
+  initialFormValue,
+  isLoadingShop,
+  isNew,
+  isSubmissionMode,
+  onClose,
+  onSaved,
+  refetchImageMutation,
+  setOgImageMutation,
+  setVisibilityMutation,
+  shopData,
+  shopFormI18n,
+  shopId,
+  shopMutation,
+  shopsMessages,
+  showSaved,
+  submissionId,
+  submissionMutation,
+  suggestionsMsg,
+}: ShopEditCardContentProps) {
   const [form, setForm] = useReducer(formReducer, initialFormValue);
   const [imageState, setImageState] = useState<ShopImageState>(() =>
     getInitialImageState(initialData, isSubmissionMode),
@@ -327,80 +422,62 @@ function ShopEditCardEditor({
     if (canSave) handleSave(false);
   });
 
-  const title = isSubmissionMode
-    ? shopsMessages.editCard.titleSubmissionEdit
-    : isNew
-      ? shopsMessages.editCard.titleNew
-      : shopsMessages.editCard.titleEdit;
-
   return (
     <>
-      <OverlayCard
-        open
+      <OverlayCard.Body>
+        {!isNew && (
+          <ShopPreviewImageSection
+            displayImage={displayImage}
+            isLoading={isLoadingShop}
+            isRefetchPending={isRefetchPending}
+            isSavingImage={!isSubmissionMode && setOgImageMutation.isPending}
+            name={form.name}
+            ogImageInput={ogImageInput}
+            onApplyImage={handleApplyImage}
+            onChangeOgImageInput={handleOgImageInputChange}
+            onRefreshImage={handleRefreshImage}
+            placeholder={shopsMessages.editCard.noImage}
+            previewImageLabel={shopsMessages.editCard.previewImage}
+            reloadImageLabel={shopsMessages.editCard.reloadImage}
+            setImageLabel={shopsMessages.editCard.setImage}
+          />
+        )}
+
+        {isLoadingShop ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((k) => (
+              <div key={k} className="h-10 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <ShopEditForm
+            value={form}
+            onChange={setForm}
+            categories={categories}
+            regionOptions={shopFormI18n.regionOptions}
+            messages={shopFormI18n.messages}
+          />
+        )}
+
+        {isError && (
+          <p className="text-red-500 text-sm mt-4">
+            {error instanceof Error ? error.message : shopsMessages.editCard.errorSaving}
+          </p>
+        )}
+      </OverlayCard.Body>
+
+      <ShopEditFooter
+        canReject={canReject}
+        canSave={canSave}
+        isPending={isPending}
         onClose={onClose}
-        size={{ storageKey: "shops:edit-card-size", defaultWidth: 512 }}
-        aria-label={title}
-      >
-        <OverlayCard.Header className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
-          <SaveNotification phase={savedPhase} label={common.saved} />
-        </OverlayCard.Header>
-
-        <OverlayCard.Body>
-          {!isNew && (
-            <ShopPreviewImageSection
-              displayImage={displayImage}
-              isLoading={isLoadingShop}
-              isRefetchPending={isRefetchPending}
-              isSavingImage={!isSubmissionMode && setOgImageMutation.isPending}
-              name={form.name}
-              ogImageInput={ogImageInput}
-              onApplyImage={handleApplyImage}
-              onChangeOgImageInput={handleOgImageInputChange}
-              onRefreshImage={handleRefreshImage}
-              placeholder={shopsMessages.editCard.noImage}
-              previewImageLabel={shopsMessages.editCard.previewImage}
-              reloadImageLabel={shopsMessages.editCard.reloadImage}
-              setImageLabel={shopsMessages.editCard.setImage}
-            />
-          )}
-
-          {isLoadingShop ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((k) => (
-                <div key={k} className="h-10 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <ShopEditForm
-              value={form}
-              onChange={setForm}
-              categories={categories}
-              regionOptions={shopFormI18n.regionOptions}
-              messages={shopFormI18n.messages}
-            />
-          )}
-
-          {isError && (
-            <p className="text-red-500 text-sm mt-4">
-              {error instanceof Error ? error.message : shopsMessages.editCard.errorSaving}
-            </p>
-          )}
-        </OverlayCard.Body>
-
-        <ShopEditFooter
-          canReject={canReject}
-          canSave={canSave}
-          isPending={isPending}
-          onClose={onClose}
-          onOpenRejectCard={handleOpenRejectCard}
-          onSave={() => handleSave()}
-          cancelLabel={common.cancel}
-          rejectLabel={shopsMessages.editCard.rejectSubmit}
-          saveLabel={common.save}
-          savingLabel={common.saving}
-        />
-      </OverlayCard>
+        onOpenRejectCard={handleOpenRejectCard}
+        onSave={() => handleSave()}
+        cancelLabel={common.cancel}
+        rejectLabel={shopsMessages.editCard.rejectSubmit}
+        saveLabel={common.save}
+        savingLabel={common.saving}
+      />
 
       <RejectDialog
         open={rejectState.open}
