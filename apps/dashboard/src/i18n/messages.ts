@@ -153,6 +153,7 @@ export interface DashboardMessages {
       public: string;
       onhold: string;
       deleted: string;
+      rejected: string;
     };
     table: {
       shop: string;
@@ -160,10 +161,15 @@ export interface DashboardMessages {
       region: string;
       statusOnhold: string;
       statusDeleted: string;
+      statusRejected: string;
+      rejectionInfo: string;
       edit: string;
       putOnHold: string;
       restore: string;
       delete: string;
+      permanentDelete: string;
+      permanentDeleteTitle: string;
+      permanentDeleteDescription: string;
       deletionInfo: string;
       deletedBy: string;
       deletedAt: string;
@@ -183,6 +189,8 @@ export interface DashboardMessages {
       unsplash: string;
       deleteImage: string;
       errorSaving: string;
+      rejectTitle: string;
+      rejectSubmit: string;
     };
     deleteCard: {
       title: string;
@@ -779,7 +787,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         all: "Alle",
         public: "Öffentlich",
         onhold: "Zurückgestellt",
-        deleted: "Gelöscht",
+        deleted: "Gelöscht markiert",
+        rejected: "Abgelehnt",
       },
       table: {
         shop: "Shop",
@@ -787,10 +796,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         region: "Region",
         statusOnhold: "zurückgestellt",
         statusDeleted: "gelöscht",
+        statusRejected: "abgelehnt",
+        rejectionInfo: "Ablehnungs-Info",
         edit: "Bearbeiten",
         putOnHold: "Zurückstellen",
         restore: "Wiederherstellen",
         delete: "Löschen",
+        permanentDelete: "Löschen",
+        permanentDeleteTitle: "Shop dauerhaft löschen?",
+        permanentDeleteDescription:
+          "Der Shop wird dauerhaft aus der Datenbank entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
         deletionInfo: "Löschdetails",
         deletedBy: "Gelöscht von",
         deletedAt: "Gelöscht am",
@@ -810,6 +825,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         unsplash: "Unsplash",
         deleteImage: "Löschen",
         errorSaving: "Fehler beim Speichern.",
+        rejectTitle: "Shop ablehnen",
+        rejectSubmit: "Ablehnen",
       },
       deleteCard: {
         title: "Shop löschen",
@@ -1404,7 +1421,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         all: "All",
         public: "Public",
         onhold: "On hold",
-        deleted: "Deleted",
+        deleted: "Marked as deleted",
+        rejected: "Rejected",
       },
       table: {
         shop: "Shop",
@@ -1412,10 +1430,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         region: "Region",
         statusOnhold: "on hold",
         statusDeleted: "deleted",
+        statusRejected: "rejected",
+        rejectionInfo: "Rejection info",
         edit: "Edit",
         putOnHold: "Put on hold",
         restore: "Restore",
         delete: "Delete",
+        permanentDelete: "Delete",
+        permanentDeleteTitle: "Permanently delete shop?",
+        permanentDeleteDescription:
+          "The shop will be permanently removed from the database. This action cannot be undone.",
         deletionInfo: "Deletion details",
         deletedBy: "Deleted by",
         deletedAt: "Deleted at",
@@ -1435,6 +1459,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         unsplash: "Unsplash",
         deleteImage: "Delete",
         errorSaving: "Error while saving.",
+        rejectTitle: "Reject shop",
+        rejectSubmit: "Reject",
       },
       deleteCard: {
         title: "Delete shop",

@@ -25,6 +25,7 @@ export interface ShopSummary {
   deletedByUsername?: string | null;
   deletedByFirstName?: string | null;
   deletedByLastName?: string | null;
+  rejectionToken?: string | null;
 }
 
 /**
