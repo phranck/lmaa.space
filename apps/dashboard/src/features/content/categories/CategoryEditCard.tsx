@@ -44,6 +44,16 @@ function slugify(s: string) {
     .replace(/^-|-$/g, "");
 }
 
+function slugifyInput(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9-]+/g, "-");
+}
+
 /**
  * Overlay card for creating/updating categories and category images.
  *
@@ -270,7 +280,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 id="cat-slug"
                 type="text"
                 value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, slug: slugifyInput(e.target.value) }))}
+                onBlur={(e) => setForm((f) => ({ ...f, slug: slugify(e.target.value) }))}
                 className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
