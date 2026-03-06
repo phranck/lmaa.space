@@ -257,7 +257,9 @@ function normalizePinterest(input: string): string | null {
   const url = tryParseUrl(trimmed);
   if (url) {
     const host = stripWww(url.hostname);
-    if (!host.startsWith("pinterest.") && host !== "pin.it") return null;
+    const isPinterest =
+      host.startsWith("pinterest.") || host.endsWith(".pinterest.com") || host === "pin.it";
+    if (!isPinterest) return null;
     const user = extractPathUser(url);
     if (!user) return null;
     return `https://pinterest.com/${user}`;
