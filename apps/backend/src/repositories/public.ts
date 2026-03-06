@@ -354,13 +354,15 @@ export async function getPublishedContentPageBySlug(slug: string) {
 }
 
 /**
- * Returns rejection page data for a rejected submission.
+ * Returns rejection page data for a given token.
  *
- * @param id - Submission id.
- * @returns `{ shopName, shopUrl, rejectionLongText }` or `null` if not found / not rejected.
+ * Queries submissions first (status = "rejected"), then shops (visibility = "rejected").
+ *
+ * @param token - Rejection token from the public URL.
+ * @returns `{ shopName, shopUrl, rejectionLongText, reviewedAt }` or `null` if not found.
  */
 export async function getRejectionPageByToken(token: string) {
-  const [row] = await db
+  const [submissionRow] = await db
     .select({
       shopName: submissions.shopName,
       shopUrl: submissions.shopUrl,
@@ -371,7 +373,20 @@ export async function getRejectionPageByToken(token: string) {
     .where(and(eq(submissions.rejectionToken, token), eq(submissions.status, "rejected")))
     .limit(1);
 
-  return row ?? null;
+  if (submissionRow) return submissionRow;
+
+  const [shopRow] = await db
+    .select({
+      shopName: shops.name,
+      shopUrl: shops.url,
+      rejectionLongText: shops.rejectionLongText,
+      reviewedAt: shops.updatedAt,
+    })
+    .from(shops)
+    .where(and(eq(shops.rejectionToken, token), eq(shops.visibility, "rejected")))
+    .limit(1);
+
+  return shopRow ?? null;
 }
 
 /**

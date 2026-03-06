@@ -105,14 +105,16 @@ export async function deleteManagedAdminShop(id: number, data: DeleteAdminShopDa
  * Updates mutable visibility state for a shop.
  *
  * @param id - Shop id.
- * @param visibility - Target visibility (`public` or `onhold`).
+ * @param visibility - Target visibility.
+ * @param options - Optional rejection payload passed through when visibility is `"rejected"`.
  * @returns Confirmation message payload.
  */
 export async function changeManagedAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
+  options?: { rejectionToken?: string | null; rejectionLongText?: string | null },
 ) {
-  const found = await setAdminShopVisibility(id, visibility);
+  const found = await setAdminShopVisibility(id, visibility, options);
   if (!found) {
     return failure("not_found");
   }

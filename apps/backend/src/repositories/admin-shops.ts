@@ -56,6 +56,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<ShopS
            u.username as "deletedByUsername",
            u.first_name as "deletedByFirstName",
            u.last_name as "deletedByLastName",
+           s.rejection_token as "rejectionToken",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -81,7 +82,7 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
   const [shop] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.contact_email as "contactEmail",
-           s.is_active as "isActive",
+           s.is_active as "isActive", s.visibility,
            s.social_media as "socialMedia",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
@@ -225,23 +226,31 @@ export async function markAdminShopDeleted(
 }
 
 /**
- * Switches mutable visibility state (`public`/`onhold`) and clears delete metadata.
+ * Switches mutable visibility state and clears unrelated metadata.
+ *
+ * For `rejected`: stores `rejectionToken` and `rejectionLongText` from options.
+ * For `public`/`onhold`: clears all deletion and rejection metadata.
  *
  * @param id - Shop id.
  * @param visibility - Target visibility.
- * @returns Resolves after update.
+ * @param options - Optional rejection payload (only used when visibility is `"rejected"`).
+ * @returns `true` if a row was updated, `false` when shop not found.
  */
 export async function setAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
+  options?: { rejectionToken?: string | null; rejectionLongText?: string | null },
 ): Promise<boolean> {
+  const isRejected = visibility === "rejected";
   const [updated] = await db
     .update(shops)
     .set({
       visibility,
       deletedBy: null,
-      deleteReason: null,
       deletedWasReported: false,
+      deleteReason: isRejected ? null : null,
+      rejectionToken: isRejected ? (options?.rejectionToken ?? null) : null,
+      rejectionLongText: isRejected ? (options?.rejectionLongText ?? null) : null,
       updatedAt: new Date(),
     })
     .where(eq(shops.id, id))

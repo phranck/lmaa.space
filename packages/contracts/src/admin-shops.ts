@@ -55,8 +55,13 @@ export const visibilityFilterSchema = shopVisibilitySchema;
 
 /**
  * Visibility update payload contract for mutable visibility transitions.
+ * When setting `rejected`, optionally pass `rejectionToken` and `rejectionLongText`.
  */
-export const visibilityUpdateSchema = z.object({ visibility: shopMutableVisibilitySchema });
+export const visibilityUpdateSchema = z.object({
+  visibility: shopMutableVisibilitySchema,
+  rejectionToken: z.string().optional(),
+  rejectionLongText: z.string().nullable().optional(),
+});
 
 /**
  * Delete reason update payload contract.

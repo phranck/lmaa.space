@@ -41,7 +41,7 @@ export type SubmissionReviewStatus = (typeof SUBMISSION_REVIEW_STATUSES)[number]
 /**
  * Persisted visibility states for shops.
  */
-export const SHOP_VISIBILITIES = ["public", "onhold", "deleted"] as const;
+export const SHOP_VISIBILITIES = ["public", "onhold", "deleted", "rejected"] as const;
 
 /**
  * Union type for all persisted shop visibility states.
@@ -51,7 +51,7 @@ export type ShopVisibility = (typeof SHOP_VISIBILITIES)[number];
 /**
  * Visibility states that can be changed via admin UI actions.
  */
-export const SHOP_MUTABLE_VISIBILITIES = ["public", "onhold"] as const;
+export const SHOP_MUTABLE_VISIBILITIES = ["public", "onhold", "rejected"] as const;
 
 /**
  * Union type for mutable shop visibility states.

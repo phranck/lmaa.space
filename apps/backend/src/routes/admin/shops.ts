@@ -100,18 +100,21 @@ shopsRoutes.delete(
   },
 );
 
-// PATCH /admin/shops/:id/visibility — set public or onhold (use DELETE for deleted)
+// PATCH /admin/shops/:id/visibility — set public, onhold or rejected (use DELETE for deleted)
 shopsRoutes.patch("/shops/:id/visibility", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
   const parsedBody = visibilityUpdateSchema.safeParse(await c.req.json().catch(() => ({})));
   if (!parsedBody.success) {
-    return fail(c, 400, "Use 'public' or 'onhold'; for deleting use DELETE");
+    return fail(c, 400, "Use 'public', 'onhold' or 'rejected'; for deleting use DELETE");
   }
-  const { visibility } = parsedBody.data;
+  const { visibility, rejectionToken, rejectionLongText } = parsedBody.data;
 
-  const result = await changeManagedAdminShopVisibility(id, visibility);
+  const result = await changeManagedAdminShopVisibility(id, visibility, {
+    rejectionToken,
+    rejectionLongText,
+  });
   if (!result.ok) return fail(c, 404, "Shop not found");
   return ok(c, { message: result.message });
 });
