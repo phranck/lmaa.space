@@ -43,6 +43,7 @@ export interface Shop {
   ogImage?: string | null;
   contactEmail?: string | null;
   socialMedia: Record<string, string>;
+  visibility: ShopVisibility;
   /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
   isActive: boolean;
   createdAt: string;
