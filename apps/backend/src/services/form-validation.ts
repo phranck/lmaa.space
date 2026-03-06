@@ -1,5 +1,6 @@
-import type { FormField, FormRow } from "@lmaa/contracts";
 import { z } from "zod";
+
+import type { FormField, FormRow } from "@lmaa/contracts";
 
 const DISPLAY_FIELD_TYPES = new Set(["richtext", "headline", "separator", "paragraph", "button"]);
 

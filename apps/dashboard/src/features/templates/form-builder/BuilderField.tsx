@@ -1,8 +1,10 @@
-import { useI18n } from "@/context/I18nContext.tsx";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { FormField } from "@lmaa/contracts";
 import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
+
+import type { FormField } from "@lmaa/contracts";
+
+import { useI18n } from "@/context/I18nContext.tsx";
 
 interface BuilderFieldProps {
   field: FormField;

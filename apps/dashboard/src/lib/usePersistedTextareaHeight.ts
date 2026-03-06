@@ -1,6 +1,7 @@
+import { useEffect } from "react";
+
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import { useEffect } from "react";
 
 /**
  * Persists the user-resized height of a textarea across sessions.

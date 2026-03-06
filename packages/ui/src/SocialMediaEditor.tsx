@@ -1,7 +1,9 @@
-import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SFGlobe, SFMinus, SFPlus } from "sf-symbols-lib/monochrome";
+
+import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
+
 import { PLATFORMS, PLATFORM_MAP } from "./social-media-platforms";
 
 interface Entry {

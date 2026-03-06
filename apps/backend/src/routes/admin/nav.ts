@@ -1,7 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+
 import { navItemsSchema } from "@lmaa/contracts";
 import type { NavId } from "@lmaa/shared";
-import { Hono } from "hono";
+
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { getManagedNavItems, replaceManagedNavItems } from "../../services/admin-nav.js";

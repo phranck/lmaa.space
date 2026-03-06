@@ -1,8 +1,3 @@
-import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
-import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import md5 from "blueimp-md5";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -15,6 +10,13 @@ import {
   SFTrashFill,
   SFTrayAndArrowUpFill,
 } from "sf-symbols-lib/monochrome";
+
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+
 import {
   useAdminUsers,
   useDeleteUserAvatar,

@@ -1,11 +1,12 @@
 import type { SubmissionConfig } from "@lmaa/contracts";
+
+import { renderEmailTemplate } from "./email-renderer.js";
+import { sendMail } from "./email.js";
 import { escapeHtml } from "../lib/html.js";
 import { logger } from "../lib/logger.js";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
 import { insertFormSubmission } from "../repositories/form-submission.js";
-import { renderEmailTemplate } from "./email-renderer.js";
-import { sendMail } from "./email.js";
 
 const DEFAULT_SUBMISSION_SUBJECT = "Neue Formular-Übermittlung";
 

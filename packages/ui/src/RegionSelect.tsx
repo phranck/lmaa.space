@@ -1,7 +1,8 @@
-import { REGION_CODES, type RegionCode } from "@lmaa/shared";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { SFCheckmark, SFChevronDown } from "sf-symbols-lib/monochrome";
+
+import { REGION_CODES, type RegionCode } from "@lmaa/shared";
 
 /**
  * Display option used by region select inputs.

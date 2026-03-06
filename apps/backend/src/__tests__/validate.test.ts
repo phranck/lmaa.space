@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { detectImageType, isExternalUrl, parseId } from "../lib/validate.js";
 
 describe("parseId", () => {

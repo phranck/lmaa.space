@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { ShopConcernReportEntry } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { ShopConcernReportEntry } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 /**
  * Loads shop concern reports submitted by users.

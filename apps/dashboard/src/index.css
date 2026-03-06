@@ -164,7 +164,9 @@
 
 /* Hover lift for list/grid cards */
 .card-hover {
-  transition: box-shadow 150ms ease, transform 150ms ease;
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 .card-hover:hover {
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);

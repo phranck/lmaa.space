@@ -1,18 +1,3 @@
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { useTheme } from "@/context/ThemeContext.tsx";
-import {
-  type UmamiMetricType,
-  type UmamiPeriod,
-  useUmamiActive,
-  useUmamiMetrics,
-  useUmamiPageviews,
-  useUmamiRealtime,
-  useUmamiStats,
-} from "@/features/analytics/hooks/useUmamiStats.ts";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
-import type { DashboardLocale } from "@/i18n/messages.ts";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { type ReactNode, Suspense, lazy, useCallback, useMemo, useState } from "react";
 import type { IconType } from "react-icons";
 import {
@@ -31,6 +16,22 @@ import {
   FaTabletScreenButton,
   FaWindows,
 } from "react-icons/fa6";
+
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { useTheme } from "@/context/ThemeContext.tsx";
+import {
+  type UmamiMetricType,
+  type UmamiPeriod,
+  useUmamiActive,
+  useUmamiMetrics,
+  useUmamiPageviews,
+  useUmamiRealtime,
+  useUmamiStats,
+} from "@/features/analytics/hooks/useUmamiStats.ts";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import type { DashboardLocale } from "@/i18n/messages.ts";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 const RealtimeBarsChart = lazy(() =>
   import("./AnalyticsCharts.tsx").then((module) => ({ default: module.RealtimeBarsChart })),

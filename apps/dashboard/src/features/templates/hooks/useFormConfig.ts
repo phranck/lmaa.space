@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { FormConfig, FormConfigPayload } from "@lmaa/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { FormConfig, FormConfigPayload } from "@lmaa/contracts";
+
+import { api } from "@/lib/api.ts";
 
 interface CreateFormConfigInput {
   name: string;

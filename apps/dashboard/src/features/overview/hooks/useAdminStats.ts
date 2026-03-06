@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { AdminStats } from "@lmaa/shared";
 import { useQuery } from "@tanstack/react-query";
+
+import type { AdminStats } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 /**
  * Loads core dashboard stats from backend.

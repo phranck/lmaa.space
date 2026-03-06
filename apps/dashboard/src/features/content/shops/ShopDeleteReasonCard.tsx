@@ -1,9 +1,11 @@
+import { useEffect, useRef, useState } from "react";
+import { SiMarkdown } from "react-icons/si";
+
+import { Checkbox } from "@lmaa/ui";
+
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { Checkbox } from "@lmaa/ui";
-import { useEffect, useRef, useState } from "react";
-import { SiMarkdown } from "react-icons/si";
 
 /**
  * Available delete strategies for shop removal flow.

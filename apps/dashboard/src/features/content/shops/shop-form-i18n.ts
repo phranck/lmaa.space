@@ -1,5 +1,6 @@
-import type { DashboardLocale } from "@/i18n/messages.ts";
 import { type ShopEditFormMessages, createRegionOptions } from "@lmaa/ui";
+
+import type { DashboardLocale } from "@/i18n/messages.ts";
 
 const REGION_NAMES = {
   de: {

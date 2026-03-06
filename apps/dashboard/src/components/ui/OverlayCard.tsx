@@ -1,6 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import { ResizableDialogCard } from "./ResizableDialogCard.tsx";
+
 import { pushOverlay } from "./overlay-stack.ts";
+import { ResizableDialogCard } from "./ResizableDialogCard.tsx";
 
 // ---------------------------------------------------------------------------
 // Types

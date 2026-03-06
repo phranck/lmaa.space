@@ -1,3 +1,7 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Outlet, useNavigate } from "react-router";
+import { SFLine3Horizontal } from "sf-symbols-lib/monochrome";
+
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
@@ -7,9 +11,6 @@ import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/system/UserEditCard.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Outlet, useNavigate } from "react-router";
-import { SFLine3Horizontal } from "sf-symbols-lib/monochrome";
 
 const SIDEBAR_DEFAULT = 224;
 const SIDEBAR_MIN = 160;

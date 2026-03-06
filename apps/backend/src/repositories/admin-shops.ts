@@ -1,6 +1,8 @@
+import { eq, sql } from "drizzle-orm";
+
 import type { ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
 import type { Shop as SharedShop, ShopSummary } from "@lmaa/shared";
-import { eq, sql } from "drizzle-orm";
+
 import { db } from "../db/index.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../db/schema.js";
 import type { Shop as DbShop } from "../db/schema.js";

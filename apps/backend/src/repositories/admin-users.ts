@@ -1,5 +1,7 @@
-import type { AdminRole } from "@lmaa/shared";
 import { eq } from "drizzle-orm";
+
+import type { AdminRole } from "@lmaa/shared";
+
 import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
 

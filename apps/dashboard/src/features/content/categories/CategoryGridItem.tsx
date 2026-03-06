@@ -1,6 +1,8 @@
-import { useI18n } from "@/context/I18nContext.tsx";
-import type { Category } from "@lmaa/shared";
 import { SFLongTextPageAndPencilFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+
+import type { Category } from "@lmaa/shared";
+
+import { useI18n } from "@/context/I18nContext.tsx";
 
 interface CategoryGridItemProps {
   category: Category;

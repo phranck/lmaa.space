@@ -1,11 +1,3 @@
-import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import {
-  useContentPages,
-  useCreateContentPage,
-  useDeleteContentPage,
-} from "@/features/content/hooks/useAdminContent.ts";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -16,6 +8,15 @@ import {
   SFPlusCircleFill,
   SFTrashFill,
 } from "sf-symbols-lib/monochrome";
+
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import {
+  useContentPages,
+  useCreateContentPage,
+  useDeleteContentPage,
+} from "@/features/content/hooks/useAdminContent.ts";
 
 function slugify(str: string): string {
   return str

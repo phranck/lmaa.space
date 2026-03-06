@@ -1,10 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
-import { FieldConfigPanel } from "@/features/templates/form-builder/FieldConfigPanel.tsx";
-import { FieldPalette } from "@/features/templates/form-builder/FieldPalette.tsx";
-import { exportFormConfigSingle } from "@/features/templates/hooks/formConfigExport.ts";
-import { useFormConfig, useSaveFormConfig } from "@/features/templates/hooks/useFormConfig.ts";
 import {
   DndContext,
   type DragEndEvent,
@@ -17,9 +10,18 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
 import { SFSquareAndArrowDownFill, SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
+
+import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
+
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
+import { FieldConfigPanel } from "@/features/templates/form-builder/FieldConfigPanel.tsx";
+import { FieldPalette } from "@/features/templates/form-builder/FieldPalette.tsx";
+import { exportFormConfigSingle } from "@/features/templates/hooks/formConfigExport.ts";
+import { useFormConfig, useSaveFormConfig } from "@/features/templates/hooks/useFormConfig.ts";
 
 const FORM_NAME = "suggestion-form";
 

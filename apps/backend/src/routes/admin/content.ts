@@ -1,6 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
-import { contentCreateSchema, contentMetaSchema, contentUpdateSchema } from "@lmaa/contracts";
 import { Hono } from "hono";
+
+import { contentCreateSchema, contentMetaSchema, contentUpdateSchema } from "@lmaa/contracts";
+
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {

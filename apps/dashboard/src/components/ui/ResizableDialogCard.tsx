@@ -1,5 +1,3 @@
-import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import {
   type ComponentPropsWithoutRef,
   forwardRef,
@@ -7,6 +5,9 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
+
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 interface ResizableDialogCardProps extends ComponentPropsWithoutRef<"div"> {
   /** Base key for localStorage, e.g. "submissions:review-modal-size" */

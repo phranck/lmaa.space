@@ -17,8 +17,9 @@ document.addEventListener(
   { capture: true },
 );
 
-import { API_BASE } from "@/lib/client-api";
 import { type ApiRequestError, createApiRequestError } from "@lmaa/shared";
+
+import { API_BASE } from "@/lib/client-api";
 
 function getConcernErrorMessage(error: unknown): string {
   if (error instanceof TypeError) {

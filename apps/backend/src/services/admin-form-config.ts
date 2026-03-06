@@ -1,4 +1,5 @@
 import type { FormConfig, FormConfigPayload } from "@lmaa/contracts";
+
 import {
   createFormConfig,
   deleteFormConfig,

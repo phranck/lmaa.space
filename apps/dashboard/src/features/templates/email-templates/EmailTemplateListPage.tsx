@@ -1,3 +1,17 @@
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import {
+  SFEnvelopeFill,
+  SFLockFill,
+  SFLongTextPageAndPencilFill,
+  SFPlusCircleFill,
+  SFSquareAndArrowDown,
+  SFSquareAndArrowUp,
+  SFTrashFill,
+} from "sf-symbols-lib/monochrome";
+
+import type { EmailTemplateInput } from "@lmaa/contracts";
+
 import { Card } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
@@ -13,18 +27,6 @@ import {
   useEmailTemplates,
   useImportEmailTemplate,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
-import type { EmailTemplateInput } from "@lmaa/contracts";
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router";
-import {
-  SFEnvelopeFill,
-  SFLockFill,
-  SFLongTextPageAndPencilFill,
-  SFPlusCircleFill,
-  SFSquareAndArrowDown,
-  SFSquareAndArrowUp,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
 
 type ImportTemplateData = EmailTemplateInput;
 

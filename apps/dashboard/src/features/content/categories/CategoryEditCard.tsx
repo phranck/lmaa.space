@@ -1,3 +1,11 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  SFMagnifyingglass,
+  SFSquareAndArrowDownFill,
+  SFTrashFill,
+  SFTrayAndArrowUpFill,
+} from "sf-symbols-lib/monochrome";
+
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -13,13 +21,6 @@ import type {
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  SFMagnifyingglass,
-  SFSquareAndArrowDownFill,
-  SFTrashFill,
-  SFTrayAndArrowUpFill,
-} from "sf-symbols-lib/monochrome";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";

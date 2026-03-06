@@ -1,5 +1,7 @@
-import type { NavId, NavTarget } from "@lmaa/shared";
 import { asc, eq } from "drizzle-orm";
+
+import type { NavId, NavTarget } from "@lmaa/shared";
+
 import { db } from "../db/index.js";
 import { contentPages, navItems } from "../db/schema.js";
 

@@ -1,5 +1,6 @@
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { SFDesktopcomputer, SFMoonFill, SFSunMaxFill } from "sf-symbols-lib/monochrome";
+
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 
 export type ThemeOption = "light" | "dark" | "system";
 

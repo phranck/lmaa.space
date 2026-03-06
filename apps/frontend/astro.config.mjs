@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+
 import node from "@astrojs/node";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";

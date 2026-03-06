@@ -1,4 +1,5 @@
 import type { EmailTemplate } from "@lmaa/contracts";
+
 import type { EmailTemplateInsert } from "../db/schema.js";
 import {
   deleteEmailTemplate,

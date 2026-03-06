@@ -1,5 +1,3 @@
-import { api } from "@/lib/api.ts";
-import type { AdminUser } from "@lmaa/shared";
 import {
   type ReactNode,
   createContext,
@@ -9,6 +7,10 @@ import {
   useMemo,
   useState,
 } from "react";
+
+import type { AdminUser } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 interface AuthState {
   user: AdminUser | null;

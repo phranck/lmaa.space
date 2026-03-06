@@ -1,3 +1,18 @@
+import { useCallback, useMemo, useState } from "react";
+import {
+  SFEyeFill,
+  SFMagnifyingglass,
+  SFPauseCircleFill,
+  SFPlusCircleFill,
+  SFSquareGrid2x2Fill,
+  SFStorefrontFill,
+  SFTrashFill,
+  SFXmark,
+  SFXmarkCircleFill,
+} from "sf-symbols-lib/monochrome";
+
+import type { ShopVisibility } from "@lmaa/shared";
+
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
@@ -13,19 +28,6 @@ import {
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/content/shops/ShopEditCard.tsx";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
-import type { ShopVisibility } from "@lmaa/shared";
-import { useCallback, useMemo, useState } from "react";
-import {
-  SFEyeFill,
-  SFMagnifyingglass,
-  SFPauseCircleFill,
-  SFPlusCircleFill,
-  SFSquareGrid2x2Fill,
-  SFStorefrontFill,
-  SFTrashFill,
-  SFXmark,
-  SFXmarkCircleFill,
-} from "sf-symbols-lib/monochrome";
 
 type VisibilityFilter = "all" | ShopVisibility;
 

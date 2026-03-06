@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { Category } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { Category } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 // ─── Form & Image Types ───────────────────────────────────────────────────────
 
@@ -56,13 +58,7 @@ export function useSaveCategory(categoryId: number | "new") {
   const isNew = categoryId === "new";
 
   return useMutation({
-    mutationFn: async ({
-      form,
-      image,
-    }: {
-      form: CategoryFormData;
-      image: CategoryImageState;
-    }) => {
+    mutationFn: async ({ form, image }: { form: CategoryFormData; image: CategoryImageState }) => {
       let saved: Category;
 
       if (isNew) {

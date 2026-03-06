@@ -1,5 +1,7 @@
-import type { Shop, ShopCategory } from "@lmaa/shared";
 import { and, asc, count, eq, isNull, or, sql } from "drizzle-orm";
+
+import type { Shop, ShopCategory } from "@lmaa/shared";
+
 import { db } from "../db/index.js";
 import {
   categories,

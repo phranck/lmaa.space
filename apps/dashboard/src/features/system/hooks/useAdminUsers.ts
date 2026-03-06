@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { AdminUser } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { AdminUser } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 /**
  * Form model for creating a new dashboard user.

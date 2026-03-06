@@ -1,3 +1,32 @@
+import {
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router";
+import {
+  SFCheckmarkCircleFill,
+  SFCircle,
+  SFHandTap,
+  SFSquareAndArrowDownFill,
+  SFSquareAndArrowUp,
+} from "sf-symbols-lib/monochrome";
+
+import type {
+  FieldOptionsSource,
+  FieldType,
+  FormField,
+  FormRow,
+  SubmissionConfig,
+} from "@lmaa/contracts";
+
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -12,33 +41,6 @@ import {
   useSaveFormConfig,
   useSetFormConfigActive,
 } from "@/features/templates/hooks/useFormConfig.ts";
-import {
-  DndContext,
-  type DragEndEvent,
-  DragOverlay,
-  type DragStartEvent,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
-import type {
-  FieldOptionsSource,
-  FieldType,
-  FormField,
-  FormRow,
-  SubmissionConfig,
-} from "@lmaa/contracts";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
-import {
-  SFCheckmarkCircleFill,
-  SFCircle,
-  SFHandTap,
-  SFSquareAndArrowDownFill,
-  SFSquareAndArrowUp,
-} from "sf-symbols-lib/monochrome";
 
 /**
  * Returns the default human-readable label for a given field type.

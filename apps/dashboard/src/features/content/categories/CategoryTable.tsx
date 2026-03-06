@@ -1,8 +1,10 @@
-import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import type { Category } from "@lmaa/shared";
 import { useMemo } from "react";
 import { SFLongTextPageAndPencilFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+
+import type { Category } from "@lmaa/shared";
+
+import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 
 interface CategoryTableProps {
   categories: Category[];

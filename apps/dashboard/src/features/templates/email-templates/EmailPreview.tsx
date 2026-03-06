@@ -1,7 +1,8 @@
+import { useEffect, useRef, useState } from "react";
+
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
-import { useEffect, useRef, useState } from "react";
 
 interface EmailPreviewProps {
   headerBannerUrl: string;

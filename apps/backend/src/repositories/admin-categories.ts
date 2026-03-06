@@ -1,4 +1,5 @@
 import { count, eq, getTableColumns } from "drizzle-orm";
+
 import { db } from "../db/index.js";
 import { type Category, categories, shopCategories, shops } from "../db/schema.js";
 

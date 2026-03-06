@@ -4,6 +4,7 @@
  */
 
 import postgres from "postgres";
+
 import { env } from "../config/env.js";
 
 const BASE_URL = "https://codeberg.org/api/v1/repos/phranck/Amazon-Alternativen/raw/categories";

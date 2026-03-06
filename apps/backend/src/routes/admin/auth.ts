@@ -1,7 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
-import { loginSchema, setupSchema } from "@lmaa/contracts";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+
+import { loginSchema, setupSchema } from "@lmaa/contracts";
+
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";

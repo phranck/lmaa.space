@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
+
 import { HttpError, fail, getErrorResponse, ok, respondError } from "../lib/http.js";
 
 describe("HttpError", () => {

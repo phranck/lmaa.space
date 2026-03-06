@@ -1,8 +1,3 @@
-import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
-import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
-import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import {
   DndContext,
   type DragEndEvent,
@@ -20,7 +15,6 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
 import { useEffect, useRef, useState } from "react";
 import {
   SFArrowRight,
@@ -31,6 +25,14 @@ import {
   SFStorefrontFill,
   SFTrashFill,
 } from "sf-symbols-lib/monochrome";
+
+import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
+
+import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
+import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
+import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
 // ---------------------------------------------------------------------------
 // Props

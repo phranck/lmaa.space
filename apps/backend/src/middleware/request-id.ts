@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+
 import { createMiddleware } from "hono/factory";
 
 export const requestId = createMiddleware(async (c, next) => {

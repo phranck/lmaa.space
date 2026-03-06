@@ -1,3 +1,11 @@
+import { useState } from "react";
+import {
+  SFArrowUpRightSquareFill,
+  SFCheckmark,
+  SFLink,
+  SFTrashFill,
+} from "sf-symbols-lib/monochrome";
+
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -7,13 +15,6 @@ import {
   useDeleteShopFromDeadLinks,
   useDismissDeadLink,
 } from "@/features/overview/hooks/useDeadLinks.ts";
-import { useState } from "react";
-import {
-  SFArrowUpRightSquareFill,
-  SFCheckmark,
-  SFLink,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
 
 export function DeadLinksTab() {
   const { locale, messages } = useI18n();

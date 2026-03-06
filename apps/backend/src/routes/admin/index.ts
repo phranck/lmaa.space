@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
+
 import { authRoutes } from "./auth.js";
 import { categoriesRoutes } from "./categories.js";
 import { contentRoutes } from "./content.js";
@@ -14,6 +14,7 @@ import { submissionsRoutes } from "./submissions.js";
 import { umamiRoutes } from "./umami.js";
 import { unsplashRoutes } from "./unsplash.js";
 import { usersRoutes } from "./users.js";
+import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 
 /**
  * Root admin route bundle mounted at `/api/admin`.
