@@ -227,7 +227,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
             rows={4}
             value={field.content ?? ""}
             onChange={(e) => set("content", e.target.value || undefined)}
-            className="px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
+            className="px-3 py-1.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
           />
         </label>
       )}
@@ -505,7 +505,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
               set("options", lines.length > 0 ? lines : undefined);
             }}
             placeholder={m.optionsHint}
-            className="px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
+            className="px-3 py-1.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
           />
           <span className="text-xs text-[var(--ds-text-subtle)]">{m.optionsHint}</span>
         </label>

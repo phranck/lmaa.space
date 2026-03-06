@@ -178,6 +178,7 @@ export interface DashboardMessages {
       previewImage: string;
       noImage: string;
       reloadImage: string;
+      setImage: string;
       upload: string;
       unsplash: string;
       deleteImage: string;
@@ -804,6 +805,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         previewImage: "Vorschaubild",
         noImage: "Kein Bild gesetzt",
         reloadImage: "Neu laden",
+        setImage: "Übernehmen",
         upload: "Hochladen",
         unsplash: "Unsplash",
         deleteImage: "Löschen",
@@ -1428,6 +1430,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         previewImage: "Preview image",
         noImage: "No image set",
         reloadImage: "Reload",
+        setImage: "Apply",
         upload: "Upload",
         unsplash: "Unsplash",
         deleteImage: "Delete",

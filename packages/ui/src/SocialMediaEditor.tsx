@@ -231,7 +231,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
                 onChange={(e) => updateUrl(entry.id, e.target.value)}
                 onBlur={() => normalizeUrl(entry.id)}
                 placeholder={messages.urlPlaceholder}
-                className="flex-1 px-3 py-2 text-sm bg-transparent text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none"
+                className="flex-1 px-3 py-1.5 text-sm bg-transparent text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none"
               />
             </div>
 

@@ -7,6 +7,7 @@ import {
   useFetchPreviewImage,
   useRefetchShopImage,
   useSaveShop,
+  useSetShopOgImage,
 } from "@/features/content/hooks/useAdminShops.ts";
 import { getShopEditFormI18n } from "@/features/content/shops/shop-form-i18n.ts";
 import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
@@ -45,6 +46,7 @@ export function ShopEditCard({
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const [form, setForm] = useState<ShopEditFormValue>({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [ogImageInput, setOgImageInput] = useState<string>("");
 
   const { data: categories = [] } = useAdminCategories();
   const { data: shopData, isLoading: isLoadingShop } = useAdminShop(
@@ -53,6 +55,7 @@ export function ShopEditCard({
   const shopMutation = useSaveShop(isSubmissionMode ? null : isNew ? null : (shopId as number));
   const submissionMutation = useEditSubmission();
   const refetchImageMutation = useRefetchShopImage(typeof shopId === "number" ? shopId : 0);
+  const setOgImageMutation = useSetShopOgImage(typeof shopId === "number" ? shopId : 0);
   const fetchPreviewMutation = useFetchPreviewImage();
 
   const isPending = shopMutation.isPending || submissionMutation.isPending;
@@ -72,6 +75,7 @@ export function ShopEditCard({
         contactEmail: shopData.contactEmail ?? "",
         socialMedia: shopData.socialMedia ?? {},
       });
+      setOgImageInput(shopData.ogImage ?? "");
     }
   }, [shopData]);
 
@@ -83,7 +87,10 @@ export function ShopEditCard({
   useEffect(() => {
     if (isSubmissionMode && form.url) {
       fetchPreviewMutation.mutate(form.url, {
-        onSuccess: (data) => setPreviewImage(data.ogImage),
+        onSuccess: (data) => {
+          setPreviewImage(data.ogImage);
+          setOgImageInput(data.ogImage ?? "");
+        },
       });
     }
   }, [isSubmissionMode]);
@@ -127,48 +134,79 @@ export function ShopEditCard({
         {!isNew &&
           (() => {
             const displayImage = isSubmissionMode ? previewImage : (shopData?.ogImage ?? null);
-            const isPending = isSubmissionMode
+            const isRefetchPending = isSubmissionMode
               ? fetchPreviewMutation.isPending
               : refetchImageMutation.isPending;
+            const btnClass =
+              "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-40";
 
             function handleRefreshImage() {
               if (isSubmissionMode) {
                 fetchPreviewMutation.mutate(form.url, {
-                  onSuccess: (data) => setPreviewImage(data.ogImage),
+                  onSuccess: (data) => {
+                    setPreviewImage(data.ogImage);
+                    setOgImageInput(data.ogImage ?? "");
+                  },
                 });
               } else {
                 refetchImageMutation.mutate();
               }
             }
 
+            function handleApplyImage() {
+              if (isSubmissionMode) {
+                setPreviewImage(ogImageInput || null);
+              } else {
+                setOgImageMutation.mutate(ogImageInput || null);
+              }
+            }
+
             return (
-              <div className="mb-4 pb-4 border-b border-[var(--ds-border-subtle)] flex items-center gap-3">
-                <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
-                  {displayImage ? (
-                    <img src={displayImage} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xl font-bold text-[var(--ds-text-subtle)] select-none">
-                      {form.name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
+              <div className="mb-4 pb-4 border-b border-[var(--ds-border-subtle)]">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
+                    {displayImage ? (
+                      <img src={displayImage} alt="" className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-xl font-bold text-[var(--ds-text-subtle)] select-none">
+                        {form.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+                      {shopsMessages.editCard.previewImage}
+                    </p>
+                    <input
+                      type="text"
+                      value={ogImageInput}
+                      onChange={(e) => setOgImageInput(e.target.value)}
+                      placeholder={shopsMessages.editCard.noImage}
+                      className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                    />
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-[var(--ds-text-muted)] mb-0.5">
-                    {shopsMessages.editCard.previewImage}
-                  </p>
-                  <p className="text-xs text-[var(--ds-text-subtle)] truncate">
-                    {displayImage ?? shopsMessages.editCard.noImage}
-                  </p>
+                <div className="flex justify-end gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleRefreshImage}
+                    disabled={isRefetchPending || isLoadingShop}
+                    className={btnClass}
+                  >
+                    <SFArrowClockwise
+                      className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`}
+                    />
+                    {shopsMessages.editCard.reloadImage}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleApplyImage}
+                    disabled={setOgImageMutation.isPending || isLoadingShop}
+                    className={btnClass}
+                  >
+                    {shopsMessages.editCard.setImage}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleRefreshImage}
-                  disabled={isPending || isLoadingShop}
-                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-40"
-                >
-                  <SFArrowClockwise className={`w-3 h-3 ${isPending ? "animate-spin" : ""}`} />
-                  {shopsMessages.editCard.reloadImage}
-                </button>
               </div>
             );
           })()}
@@ -200,7 +238,7 @@ export function ShopEditCard({
         <button
           type="button"
           onClick={onClose}
-          className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
         >
           {common.cancel}
         </button>
@@ -208,7 +246,7 @@ export function ShopEditCard({
           type="button"
           onClick={() => handleSave()}
           disabled={!canSave}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
         >
           <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
           {isPending ? common.saving : common.save}

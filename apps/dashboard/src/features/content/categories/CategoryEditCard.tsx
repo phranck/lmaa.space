@@ -255,7 +255,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 type="text"
                 value={form.name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
 
@@ -271,7 +271,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 type="text"
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
 
@@ -287,7 +287,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 rows={4}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className="w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
+                className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
               />
             </div>
           </div>
@@ -308,7 +308,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             <button
               type="button"
               onClick={onClose}
-              className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+              className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
             >
               {common.cancel}
             </button>
@@ -316,7 +316,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               type="button"
               onClick={() => handleSave()}
               disabled={!canSave}
-              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+              className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
             >
               <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
               {saveMutation.isPending ? common.saving : common.save}

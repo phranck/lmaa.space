@@ -226,7 +226,7 @@ function EditorHeaderActions({
         <button
           type="button"
           onClick={onOpenDelete}
-          className="flex items-center gap-2 px-3 py-2 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors"
           title={editorMessages.deletePage}
         >
           <SFTrashFill className="w-3.5 h-3.5" />
@@ -258,7 +258,7 @@ function EditorHeaderActions({
         type="button"
         onClick={onSave}
         disabled={isSaving}
-        className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+        className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
       >
         <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
         {saved ? editorMessages.saved : common.save}

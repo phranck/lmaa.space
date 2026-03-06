@@ -198,7 +198,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
             value={query}
             onChange={(e) => dispatch({ type: "set-query", query: e.target.value })}
             placeholder={categoriesMessages.unsplash.searchPlaceholder}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-[var(--ds-border)] rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-[var(--ds-border)] rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           />
         </div>
         <button

@@ -92,7 +92,7 @@ export function ShopEditForm({
   const labelClass = "block text-xs font-medium text-[var(--ds-text-muted)] mb-1";
 
   const inputClass =
-    "w-full px-3 py-2 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
+    "w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });

@@ -142,6 +142,12 @@ export async function refetchAdminShopImage(id: number) {
   return success({ ogImage });
 }
 
+export async function setManagedAdminShopOgImage(id: number, ogImage: string | null) {
+  await setAdminShopOgImage(id, ogImage);
+  invalidateCache(SHOPS_CACHE_KEY);
+  return success();
+}
+
 /**
  * Resolves OG preview image for an arbitrary URL without persistence.
  *

@@ -39,7 +39,7 @@ export function UsersPage() {
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
           <SFPlusCircleFill className="w-3.5 h-3.5" />
           {usersMessages.inviteUser}
@@ -90,7 +90,7 @@ export function UsersPage() {
                 <button
                   type="button"
                   onClick={() => setEditingUserId(user.id)}
-                  className="h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+                  className="py-1.5 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
                 >
                   <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
                   {usersMessages.editCard.editTooltip}
@@ -100,7 +100,7 @@ export function UsersPage() {
                 <button
                   type="button"
                   onClick={() => setDeleteId(user.id)}
-                  className="h-9 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  className="py-1.5 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                 >
                   <SFTrashFill className="w-3.5 h-3.5" />
                   {usersMessages.remove}

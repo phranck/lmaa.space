@@ -163,7 +163,7 @@ export function RegionSelect({
                     key={code}
                     type="button"
                     onClick={() => toggle(code)}
-                    className={`w-full flex items-center px-3 py-2 text-sm text-left transition-colors hover:bg-[var(--ds-bg-elevated)] ${
+                    className={`w-full flex items-center px-3 py-1.5 text-sm text-left transition-colors hover:bg-[var(--ds-bg-elevated)] ${
                       checked
                         ? "bg-[var(--color-primary)]/5 text-[var(--ds-text)]"
                         : "text-[var(--ds-text-muted)]"
@@ -203,7 +203,7 @@ export function RegionSelect({
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
-        className={`w-full flex items-center justify-between px-3 py-2 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
+        className={`w-full flex items-center justify-between px-3 py-1.5 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors ${buttonClassName ?? ""} ${
           open
             ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
             : error

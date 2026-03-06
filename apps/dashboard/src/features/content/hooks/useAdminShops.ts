@@ -134,3 +134,15 @@ export function useRefetchShopImage(shopId: number) {
     },
   });
 }
+
+export function useSetShopOgImage(shopId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ogImage: string | null) =>
+      api.patch<{ ogImage: string | null }>(`/admin/shops/${shopId}/og-image`, { ogImage }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["shop", shopId] });
+      qc.invalidateQueries({ queryKey: ["shops-admin"] });
+    },
+  });
+}
