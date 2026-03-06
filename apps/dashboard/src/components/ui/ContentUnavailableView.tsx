@@ -24,7 +24,10 @@ export function ContentUnavailableView({
 }: ContentUnavailableViewProps) {
   return (
     <div
-      className={["flex flex-col items-center justify-center gap-3 p-6 text-center", className]
+      className={[
+        "flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
