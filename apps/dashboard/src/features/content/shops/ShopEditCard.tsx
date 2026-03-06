@@ -1,3 +1,14 @@
+import { type ClipboardEvent, useReducer, useState } from "react";
+import {
+  SFArrowClockwise,
+  SFSquareAndArrowDownFill,
+  SFXmarkCircleFill,
+} from "sf-symbols-lib/monochrome";
+
+import { generateRejectionToken } from "@lmaa/shared";
+import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui";
+
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -5,7 +16,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
   useAdminShop,
-  useFetchPreviewImage,
+  usePreviewImage,
   useRefetchShopImage,
   useSaveShop,
   useSetShopOgImage,
@@ -15,21 +26,70 @@ import { getShopEditFormI18n } from "@/features/content/shops/shop-form-i18n.ts"
 import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { generateRejectionToken } from "@lmaa/shared";
-import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
-import type { ShopEditFormValue } from "@lmaa/ui";
-import { type ClipboardEvent, useEffect, useState } from "react";
-import {
-  SFArrowClockwise,
-  SFSquareAndArrowDownFill,
-  SFXmarkCircleFill,
-} from "sf-symbols-lib/monochrome";
 
 type ShopEditCardProps = {
   initialData?: Partial<ShopEditFormValue>;
   onClose: () => void;
   onSaved: () => void;
 } & ({ shopId: number | "new"; submissionId?: never } | { submissionId: number; shopId?: never });
+
+type ShopImageState = {
+  draftOgImageInput: string | null;
+  previewOverride: string | null | undefined;
+  previewRequestUrl: string | null;
+};
+
+type RejectState = {
+  open: boolean;
+  reason: string;
+  longText: string;
+  token: string | null;
+};
+
+function getInitialImageState(
+  initialData: Partial<ShopEditFormValue> | undefined,
+  isSubmissionMode: boolean,
+): ShopImageState {
+  return {
+    draftOgImageInput: null,
+    previewOverride: undefined,
+    previewRequestUrl: isSubmissionMode ? initialData?.url?.trim() || null : null,
+  };
+}
+
+function getEmptyRejectState(): RejectState {
+  return {
+    open: false,
+    reason: "",
+    longText: "",
+    token: null,
+  };
+}
+
+function getInitialFormValue(
+  initialData: Partial<ShopEditFormValue> | undefined,
+  shopData?: Awaited<ReturnType<typeof useAdminShop>>["data"],
+): ShopEditFormValue {
+  if (!shopData) {
+    return { ...EMPTY_SHOP_FORM_VALUE, ...initialData };
+  }
+
+  return {
+    ...EMPTY_SHOP_FORM_VALUE,
+    name: shopData.name,
+    url: shopData.url,
+    description: shopData.description ?? "",
+    categoryIds: shopData.categories.map((category) => category.id),
+    region: shopData.region ?? [],
+    shipping: shopData.shipping ?? "",
+    contactEmail: shopData.contactEmail ?? "",
+    socialMedia: shopData.socialMedia ?? {},
+  };
+}
+
+function formReducer(_state: ShopEditFormValue, nextState: ShopEditFormValue): ShopEditFormValue {
+  return nextState;
+}
 
 /**
  * Drawer-like editor for creating/updating shops.
@@ -52,15 +112,6 @@ export function ShopEditCard({
   const isSubmissionMode = submissionId !== undefined;
   const isNew = shopId === "new";
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
-  const [form, setForm] = useState<ShopEditFormValue>({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [ogImageInput, setOgImageInput] = useState<string>("");
-
-  // Reject card state
-  const [showRejectCard, setShowRejectCard] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [rejectLongText, setRejectLongText] = useState("");
-  const [rejectionToken, setRejectionToken] = useState<string | null>(null);
 
   const { data: categories = [] } = useAdminCategories();
   const { data: shopData, isLoading: isLoadingShop } = useAdminShop(
@@ -70,8 +121,101 @@ export function ShopEditCard({
   const submissionMutation = useEditSubmission();
   const refetchImageMutation = useRefetchShopImage(typeof shopId === "number" ? shopId : 0);
   const setOgImageMutation = useSetShopOgImage(typeof shopId === "number" ? shopId : 0);
-  const fetchPreviewMutation = useFetchPreviewImage();
   const setVisibilityMutation = useSetShopVisibility();
+
+  const initialFormValue = getInitialFormValue(initialData, shopData);
+  const editorKey = isNew
+    ? "new"
+    : isSubmissionMode
+      ? `submission-${submissionId}`
+      : shopData
+        ? `shop-${shopData.id}`
+        : `shop-loading-${shopId}`;
+
+  return (
+    <ShopEditCardEditor
+      key={editorKey}
+      categories={categories ?? []}
+      common={common}
+      initialData={initialData}
+      initialFormValue={initialFormValue}
+      isLoadingShop={isLoadingShop}
+      isNew={isNew}
+      isSubmissionMode={isSubmissionMode}
+      onClose={onClose}
+      onSaved={onSaved}
+      refetchImageMutation={refetchImageMutation}
+      savedPhase={savedPhase}
+      setOgImageMutation={setOgImageMutation}
+      setVisibilityMutation={setVisibilityMutation}
+      shopData={shopData ?? null}
+      shopFormI18n={shopFormI18n}
+      shopId={shopId}
+      shopMutation={shopMutation}
+      shopsMessages={shopsMessages}
+      showSaved={showSaved}
+      submissionId={submissionId}
+      submissionMutation={submissionMutation}
+      suggestionsMsg={suggestionsMsg}
+    />
+  );
+}
+
+interface ShopEditCardEditorProps {
+  categories: NonNullable<Awaited<ReturnType<typeof useAdminCategories>>["data"]>;
+  common: ReturnType<typeof useI18n>["messages"]["common"];
+  initialData?: Partial<ShopEditFormValue>;
+  initialFormValue: ShopEditFormValue;
+  isLoadingShop: boolean;
+  isNew: boolean;
+  isSubmissionMode: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+  refetchImageMutation: ReturnType<typeof useRefetchShopImage>;
+  savedPhase: ReturnType<typeof useSaveNotification>["phase"];
+  setOgImageMutation: ReturnType<typeof useSetShopOgImage>;
+  setVisibilityMutation: ReturnType<typeof useSetShopVisibility>;
+  shopData: Awaited<ReturnType<typeof useAdminShop>>["data"] | null;
+  shopFormI18n: ReturnType<typeof getShopEditFormI18n>;
+  shopId: ShopEditCardProps["shopId"];
+  shopMutation: ReturnType<typeof useSaveShop>;
+  shopsMessages: ReturnType<typeof useI18n>["messages"]["shops"];
+  showSaved: ReturnType<typeof useSaveNotification>["show"];
+  submissionId: number | undefined;
+  submissionMutation: ReturnType<typeof useEditSubmission>;
+  suggestionsMsg: ReturnType<typeof useI18n>["messages"]["submissions"]["suggestions"];
+}
+
+function ShopEditCardEditor({
+  categories,
+  common,
+  initialData,
+  initialFormValue,
+  isLoadingShop,
+  isNew,
+  isSubmissionMode,
+  onClose,
+  onSaved,
+  refetchImageMutation,
+  savedPhase,
+  setOgImageMutation,
+  setVisibilityMutation,
+  shopData,
+  shopFormI18n,
+  shopId,
+  shopMutation,
+  shopsMessages,
+  showSaved,
+  submissionId,
+  submissionMutation,
+  suggestionsMsg,
+}: ShopEditCardEditorProps) {
+  const [form, setForm] = useReducer(formReducer, initialFormValue);
+  const [imageState, setImageState] = useState<ShopImageState>(() =>
+    getInitialImageState(initialData, isSubmissionMode),
+  );
+  const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
+  const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
 
   const isPending = shopMutation.isPending || submissionMutation.isPending;
   const isError = shopMutation.isError || submissionMutation.isError;
@@ -80,46 +224,24 @@ export function ShopEditCard({
   const isRejecting = setVisibilityMutation.isPending;
   const canReject = !isNew && !isSubmissionMode && shopData?.visibility === "public";
 
-  useEffect(() => {
-    if (shopData) {
-      setForm({
-        ...EMPTY_SHOP_FORM_VALUE,
-        name: shopData.name,
-        url: shopData.url,
-        description: shopData.description ?? "",
-        categoryIds: shopData.categories.map((c) => c.id),
-        region: shopData.region ?? [],
-        shipping: shopData.shipping ?? "",
-        contactEmail: shopData.contactEmail ?? "",
-        socialMedia: shopData.socialMedia ?? {},
-      });
-      setOgImageInput(shopData.ogImage ?? "");
-    }
-  }, [shopData]);
-
-  useEffect(() => {
-    if (!shopData) setForm({ ...EMPTY_SHOP_FORM_VALUE, ...initialData });
-  }, [initialData, shopData]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch for submission preview image
-  useEffect(() => {
-    if (isSubmissionMode && form.url) {
-      fetchPreviewMutation.mutate(form.url, {
-        onSuccess: (data) => {
-          setPreviewImage(data.ogImage);
-          setOgImageInput(data.ogImage ?? "");
-        },
-      });
-    }
-  }, [isSubmissionMode]);
-
   usePersistedTextareaHeight("sef-description", "shops:textarea:description", !isLoadingShop);
 
   const canSave = form.name.trim() !== "" && form.url.trim() !== "" && !isPending;
+  const previewImage =
+    imageState.previewOverride === undefined
+      ? (previewImageQuery.data?.ogImage ?? null)
+      : imageState.previewOverride;
+  const ogImageInput =
+    imageState.draftOgImageInput ??
+    (isSubmissionMode ? (previewImageQuery.data?.ogImage ?? "") : (shopData?.ogImage ?? ""));
+  const displayImage = isSubmissionMode ? previewImage : (shopData?.ogImage ?? null);
+  const isRefetchPending = isSubmissionMode
+    ? previewImageQuery.isFetching
+    : refetchImageMutation.isPending;
 
   function handleSave(close = true) {
     const onSuccess = close ? onSaved : showSaved;
-    if (isSubmissionMode) {
+    if (isSubmissionMode && submissionId !== undefined) {
       submissionMutation.mutate({ id: submissionId, data: form }, { onSuccess });
     } else {
       shopMutation.mutate(form, { onSuccess });
@@ -127,22 +249,26 @@ export function ShopEditCard({
   }
 
   function handleOpenRejectCard() {
-    setRejectionToken(generateRejectionToken());
-    setRejectReason("");
-    setRejectLongText("");
-    setShowRejectCard(true);
+    setRejectState({
+      open: true,
+      reason: "",
+      longText: "",
+      token: generateRejectionToken(),
+    });
   }
 
   const handleRejectPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const pastedText = e.clipboardData.getData("text");
     if (!pastedText.includes("[REJECT_TOKEN]")) return;
     e.preventDefault();
-    const token = rejectionToken ?? "";
+    const token = rejectState.token ?? "";
     const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
     const ta = e.currentTarget;
     const newValue =
-      rejectReason.slice(0, ta.selectionStart) + replaced + rejectReason.slice(ta.selectionEnd);
-    setRejectReason(newValue);
+      rejectState.reason.slice(0, ta.selectionStart) +
+      replaced +
+      rejectState.reason.slice(ta.selectionEnd);
+    setRejectState((current) => ({ ...current, reason: newValue }));
   };
 
   function handleReject() {
@@ -151,16 +277,50 @@ export function ShopEditCard({
       {
         id,
         visibility: "rejected",
-        rejectionToken: rejectionToken ?? undefined,
-        rejectionLongText: rejectLongText || null,
+        rejectionToken: rejectState.token ?? undefined,
+        rejectionLongText: rejectState.longText || null,
       },
       {
         onSuccess: () => {
-          setShowRejectCard(false);
+          setRejectState(getEmptyRejectState());
           onSaved();
         },
       },
     );
+  }
+
+  function handleOgImageInputChange(value: string) {
+    setImageState((current) => ({ ...current, draftOgImageInput: value }));
+  }
+
+  function handleRefreshImage() {
+    if (isSubmissionMode) {
+      const nextUrl = form.url.trim() || null;
+      setImageState((current) => ({
+        ...current,
+        draftOgImageInput: null,
+        previewOverride: undefined,
+        previewRequestUrl: nextUrl,
+      }));
+      if (nextUrl && nextUrl === imageState.previewRequestUrl) {
+        previewImageQuery.refetch();
+      }
+      return;
+    }
+
+    refetchImageMutation.mutate();
+  }
+
+  function handleApplyImage() {
+    if (isSubmissionMode) {
+      setImageState((current) => ({
+        ...current,
+        previewOverride: ogImageInput || null,
+      }));
+      return;
+    }
+
+    setOgImageMutation.mutate(ogImageInput || null);
   }
 
   useKeyboardSave(() => {
@@ -187,85 +347,23 @@ export function ShopEditCard({
         </OverlayCard.Header>
 
         <OverlayCard.Body>
-          {!isNew &&
-            (() => {
-              const displayImage = isSubmissionMode ? previewImage : (shopData?.ogImage ?? null);
-              const isRefetchPending = isSubmissionMode
-                ? fetchPreviewMutation.isPending
-                : refetchImageMutation.isPending;
-              const btnClass =
-                "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-40";
-
-              function handleRefreshImage() {
-                if (isSubmissionMode) {
-                  fetchPreviewMutation.mutate(form.url, {
-                    onSuccess: (data) => {
-                      setPreviewImage(data.ogImage);
-                      setOgImageInput(data.ogImage ?? "");
-                    },
-                  });
-                } else {
-                  refetchImageMutation.mutate();
-                }
-              }
-
-              function handleApplyImage() {
-                if (isSubmissionMode) {
-                  setPreviewImage(ogImageInput || null);
-                } else {
-                  setOgImageMutation.mutate(ogImageInput || null);
-                }
-              }
-
-              return (
-                <div className="mb-4 pb-4 border-b border-[var(--ds-border-subtle)]">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
-                      {displayImage ? (
-                        <img src={displayImage} alt="" className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-xl font-bold text-[var(--ds-text-subtle)] select-none">
-                          {form.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1">
-                        {shopsMessages.editCard.previewImage}
-                      </p>
-                      <input
-                        type="text"
-                        value={ogImageInput}
-                        onChange={(e) => setOgImageInput(e.target.value)}
-                        placeholder={shopsMessages.editCard.noImage}
-                        className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={handleRefreshImage}
-                      disabled={isRefetchPending || isLoadingShop}
-                      className={btnClass}
-                    >
-                      <SFArrowClockwise
-                        className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`}
-                      />
-                      {shopsMessages.editCard.reloadImage}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleApplyImage}
-                      disabled={setOgImageMutation.isPending || isLoadingShop}
-                      className={btnClass}
-                    >
-                      {shopsMessages.editCard.setImage}
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
+          {!isNew && (
+            <ShopPreviewImageSection
+              displayImage={displayImage}
+              isLoading={isLoadingShop}
+              isRefetchPending={isRefetchPending}
+              isSavingImage={!isSubmissionMode && setOgImageMutation.isPending}
+              name={form.name}
+              ogImageInput={ogImageInput}
+              onApplyImage={handleApplyImage}
+              onChangeOgImageInput={handleOgImageInputChange}
+              onRefreshImage={handleRefreshImage}
+              placeholder={shopsMessages.editCard.noImage}
+              previewImageLabel={shopsMessages.editCard.previewImage}
+              reloadImageLabel={shopsMessages.editCard.reloadImage}
+              setImageLabel={shopsMessages.editCard.setImage}
+            />
+          )}
 
           {isLoadingShop ? (
             <div className="space-y-3">
@@ -290,47 +388,33 @@ export function ShopEditCard({
           )}
         </OverlayCard.Body>
 
-        <OverlayCard.Footer className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
-          >
-            {common.cancel}
-          </button>
-          {canReject && (
-            <button
-              type="button"
-              onClick={handleOpenRejectCard}
-              className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-            >
-              <SFXmarkCircleFill className="w-3.5 h-3.5" />
-              {shopsMessages.editCard.rejectSubmit}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => handleSave()}
-            disabled={!canSave}
-            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
-          >
-            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-            {isPending ? common.saving : common.save}
-          </button>
-        </OverlayCard.Footer>
+        <ShopEditFooter
+          canReject={canReject}
+          canSave={canSave}
+          isPending={isPending}
+          onClose={onClose}
+          onOpenRejectCard={handleOpenRejectCard}
+          onSave={() => handleSave()}
+          cancelLabel={common.cancel}
+          rejectLabel={shopsMessages.editCard.rejectSubmit}
+          saveLabel={common.save}
+          savingLabel={common.saving}
+        />
       </OverlayCard>
 
       <RejectDialog
-        open={showRejectCard}
-        onClose={() => setShowRejectCard(false)}
+        open={rejectState.open}
+        onClose={() => setRejectState(getEmptyRejectState())}
         title={shopsMessages.editCard.rejectTitle}
         name={shopData?.name ?? ""}
         url={shopData?.url ?? ""}
-        adminNote={rejectReason}
-        onAdminNoteChange={setRejectReason}
+        adminNote={rejectState.reason}
+        onAdminNoteChange={(value) => setRejectState((current) => ({ ...current, reason: value }))}
         onAdminNotePaste={handleRejectPaste}
-        rejectionLongText={rejectLongText}
-        onRejectionLongTextChange={setRejectLongText}
+        rejectionLongText={rejectState.longText}
+        onRejectionLongTextChange={(value) =>
+          setRejectState((current) => ({ ...current, longText: value }))
+        }
         onSubmit={handleReject}
         isPending={isRejecting}
         isError={setVisibilityMutation.isError}
@@ -346,10 +430,148 @@ export function ShopEditCard({
           commentPlaceholder: suggestionsMsg.rejectReasonPlaceholder,
           rejectionLongLabel: suggestionsMsg.rejectionLongLabel,
           rejectionLongPlaceholder: suggestionsMsg.rejectionLongPlaceholder,
-          feedbackToPrefix: suggestionsMsg.feedbackToPrefix,
           errorPrefix: suggestionsMsg.reviewErrorPrefix,
         }}
       />
     </>
+  );
+}
+
+interface ShopPreviewImageSectionProps {
+  displayImage: string | null;
+  isLoading: boolean;
+  isRefetchPending: boolean;
+  isSavingImage: boolean;
+  name: string;
+  ogImageInput: string;
+  onApplyImage: () => void;
+  onChangeOgImageInput: (value: string) => void;
+  onRefreshImage: () => void;
+  placeholder: string;
+  previewImageLabel: string;
+  reloadImageLabel: string;
+  setImageLabel: string;
+}
+
+function ShopPreviewImageSection({
+  displayImage,
+  isLoading,
+  isRefetchPending,
+  isSavingImage,
+  name,
+  ogImageInput,
+  onApplyImage,
+  onChangeOgImageInput,
+  onRefreshImage,
+  placeholder,
+  previewImageLabel,
+  reloadImageLabel,
+  setImageLabel,
+}: ShopPreviewImageSectionProps) {
+  const buttonClass =
+    "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-40";
+
+  return (
+    <div className="mb-4 pb-4 border-b border-[var(--ds-border-subtle)]">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
+          {displayImage ? (
+            <img src={displayImage} alt="" className="w-full h-full object-contain" />
+          ) : (
+            <span className="text-xl font-bold text-[var(--ds-text-subtle)] select-none">
+              {name.charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1">
+            {previewImageLabel}
+          </p>
+          <input
+            type="text"
+            value={ogImageInput}
+            onChange={(e) => onChangeOgImageInput(e.target.value)}
+            placeholder={placeholder}
+            className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          />
+        </div>
+      </div>
+      <div className="flex justify-end gap-1.5">
+        <button
+          type="button"
+          onClick={onRefreshImage}
+          disabled={isRefetchPending || isLoading}
+          className={buttonClass}
+        >
+          <SFArrowClockwise className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`} />
+          {reloadImageLabel}
+        </button>
+        <button
+          type="button"
+          onClick={onApplyImage}
+          disabled={isSavingImage || isLoading}
+          className={buttonClass}
+        >
+          {setImageLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface ShopEditFooterProps {
+  canReject: boolean;
+  canSave: boolean;
+  isPending: boolean;
+  onClose: () => void;
+  onOpenRejectCard: () => void;
+  onSave: () => void;
+  cancelLabel: string;
+  rejectLabel: string;
+  saveLabel: string;
+  savingLabel: string;
+}
+
+function ShopEditFooter({
+  canReject,
+  canSave,
+  isPending,
+  onClose,
+  onOpenRejectCard,
+  onSave,
+  cancelLabel,
+  rejectLabel,
+  saveLabel,
+  savingLabel,
+}: ShopEditFooterProps) {
+  return (
+    <OverlayCard.Footer className="flex justify-end gap-2">
+      <button
+        type="button"
+        onClick={onClose}
+        className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+      >
+        {cancelLabel}
+      </button>
+      {canReject && (
+        <button
+          type="button"
+          onClick={onOpenRejectCard}
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+        >
+          <SFXmarkCircleFill className="w-3.5 h-3.5" />
+          {rejectLabel}
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={!canSave}
+        className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+      >
+        <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+        {isPending ? savingLabel : saveLabel}
+      </button>
+    </OverlayCard.Footer>
   );
 }

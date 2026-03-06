@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
+
+import type { AdminUserRow } from "./admin-users.js";
 import { db } from "../db/index.js";
 import { adminUsers, sessions } from "../db/schema.js";
-import type { AdminUserRow } from "./admin-users.js";
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -15,27 +16,36 @@ interface CreateOwnerAdminInput {
 }
 
 /**
- * Creates the initial owner account.
+ * Creates the initial owner account and first session atomically.
  *
  * @param input - Setup payload with unique username/email and pre-hashed password.
- * @returns Newly created admin identity used to bootstrap the first session.
+ * @returns Newly created admin identity together with a persisted session id.
  */
-export async function createOwnerAdmin(input: CreateOwnerAdminInput) {
-  const [admin] = await db
-    .insert(adminUsers)
-    .values({
-      username: input.username,
-      email: input.email,
-      passwordHash: input.passwordHash,
-      role: "owner",
-    })
-    .returning({
-      id: adminUsers.id,
-      username: adminUsers.username,
-      role: adminUsers.role,
-    });
+export async function createOwnerAdminWithSession(input: CreateOwnerAdminInput) {
+  return db.transaction(async (tx) => {
+    const [admin] = await tx
+      .insert(adminUsers)
+      .values({
+        username: input.username,
+        email: input.email,
+        passwordHash: input.passwordHash,
+        isOwner: true,
+        role: "owner",
+      })
+      .returning({
+        id: adminUsers.id,
+        username: adminUsers.username,
+        role: adminUsers.role,
+      });
 
-  return admin;
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+
+    await tx.insert(sessions).values({ id: sessionId, adminUserId: admin.id, expiresAt });
+    await tx.update(adminUsers).set({ lastLoginAt: new Date() }).where(eq(adminUsers.id, admin.id));
+
+    return { admin, sessionId };
+  });
 }
 
 /**

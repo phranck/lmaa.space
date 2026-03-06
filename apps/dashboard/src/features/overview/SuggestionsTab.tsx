@@ -1,3 +1,23 @@
+import { type ClipboardEvent, useMemo, useReducer, useState } from "react";
+import {
+  SFArrowCounterclockwise,
+  SFArrowDownCircleFill,
+  SFArrowUpCircleFill,
+  SFCheckmarkCircleFill,
+  SFClockFill,
+  SFDocumentOnDocumentFill,
+  SFInfoCircleFill,
+  SFLongTextPageAndPencilFill,
+  SFPauseCircleFill,
+  SFSquareAndArrowDownFill,
+  SFTrashFill,
+  SFTrayFill,
+  SFXmarkCircleFill,
+} from "sf-symbols-lib/monochrome";
+
+import { type Submission, type SubmissionStatus, generateRejectionToken } from "@lmaa/shared";
+import { CharCounter } from "@lmaa/ui";
+
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
@@ -18,24 +38,6 @@ import {
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import type { Submission, SubmissionStatus } from "@lmaa/shared";
-import { CharCounter } from "@lmaa/ui";
-import { type ClipboardEvent, useEffect, useMemo, useState } from "react";
-import {
-  SFArrowCounterclockwise,
-  SFArrowDownCircleFill,
-  SFArrowUpCircleFill,
-  SFCheckmarkCircleFill,
-  SFClockFill,
-  SFDocumentOnDocumentFill,
-  SFInfoCircleFill,
-  SFLongTextPageAndPencilFill,
-  SFPauseCircleFill,
-  SFSquareAndArrowDownFill,
-  SFTrashFill,
-  SFTrayFill,
-  SFXmarkCircleFill,
-} from "sf-symbols-lib/monochrome";
 
 // ---- Constants ----
 
@@ -88,7 +90,59 @@ function ShopImage({ url, name }: { url: string; name: string }) {
   );
 }
 
-// ---- SuggestionsTab ----
+type ReviewState = {
+  adminNote: string;
+  editingRejection: boolean;
+  rejectionLongText: string;
+  rejectionToken: string | null;
+  reviewId: number | null;
+};
+
+type ReviewAction =
+  | { type: "close" }
+  | { type: "openApprove"; id: number }
+  | {
+      type: "openReject";
+      adminNote: string;
+      editingRejection: boolean;
+      id: number;
+      rejectionLongText: string;
+      rejectionToken: string | null;
+    }
+  | { type: "setAdminNote"; value: string }
+  | { type: "setRejectionLongText"; value: string };
+
+const EMPTY_REVIEW_STATE: ReviewState = {
+  adminNote: "",
+  editingRejection: false,
+  rejectionLongText: "",
+  rejectionToken: null,
+  reviewId: null,
+};
+
+function reviewReducer(state: ReviewState, action: ReviewAction): ReviewState {
+  switch (action.type) {
+    case "close":
+      return EMPTY_REVIEW_STATE;
+    case "openApprove":
+      return {
+        ...EMPTY_REVIEW_STATE,
+        reviewId: action.id,
+      };
+    case "openReject":
+      return {
+        adminNote: action.adminNote,
+        editingRejection: action.editingRejection,
+        rejectionLongText: action.rejectionLongText,
+        rejectionToken: action.rejectionToken,
+        reviewId: -action.id,
+      };
+    case "setAdminNote":
+      return { ...state, adminNote: action.value };
+    case "setRejectionLongText":
+      return { ...state, rejectionLongText: action.value };
+  }
+}
 
 export function SuggestionsTab() {
   const { locale, messages } = useI18n();
@@ -98,12 +152,7 @@ export function SuggestionsTab() {
   const submissionsMessages = messages.submissions;
   const [filter, setFilter] = useState<SubmissionStatus>("pending");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
-  const [reviewId, setReviewId] = useState<number | null>(null);
-  const [adminNote, setAdminNote] = useState("");
-  const [rejectionLongText, setRejectionLongText] = useState("");
-  const [rejectionToken, setRejectionToken] = useState<string | null>(null);
-  const [sendFeedback, setSendFeedback] = useState(false);
-  const [editingRejection, setEditingRejection] = useState(false);
+  const [reviewState, dispatchReview] = useReducer(reviewReducer, EMPTY_REVIEW_STATE);
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const [editSubmission, setEditSubmission] = useState<Submission | null>(null);
   const [deleteSubmissionId, setDeleteSubmissionId] = useState<number | null>(null);
@@ -115,36 +164,27 @@ export function SuggestionsTab() {
   const deleteSubmissionTarget =
     submissions.find((entry) => entry.id === deleteSubmissionId) ?? null;
 
-  // reviewId > 0 = approve, reviewId < 0 = reject
-  const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
+  const reviewing = submissions.find((s) => s.id === Math.abs(reviewState.reviewId ?? 0));
 
   usePersistedTextareaHeight(
     "admin-note",
     "submissions:textarea:admin-note",
-    reviewId !== null && reviewId > 0,
+    reviewState.reviewId !== null && reviewState.reviewId > 0,
   );
 
   function handleReviewSave(close = true) {
-    if (reviewId === null) return;
+    if (reviewState.reviewId === null) return;
     reviewMutation.mutate(
       {
-        id: Math.abs(reviewId),
-        status: reviewId > 0 ? "approved" : "rejected",
-        adminNote,
-        rejectionLongText: reviewId < 0 ? rejectionLongText : undefined,
-        rejectionToken: reviewId < 0 ? (rejectionToken ?? undefined) : undefined,
-        sendFeedback,
+        id: Math.abs(reviewState.reviewId),
+        status: reviewState.reviewId > 0 ? "approved" : "rejected",
+        adminNote: reviewState.adminNote,
+        rejectionLongText: reviewState.reviewId < 0 ? reviewState.rejectionLongText : undefined,
+        rejectionToken:
+          reviewState.reviewId < 0 ? (reviewState.rejectionToken ?? undefined) : undefined,
       },
       {
-        onSuccess: close
-          ? () => {
-              setReviewId(null);
-              setAdminNote("");
-              setRejectionLongText("");
-              setSendFeedback(false);
-              setEditingRejection(false);
-            }
-          : showSaved,
+        onSuccess: close ? () => dispatchReview({ type: "close" }) : showSaved,
       },
     );
   }
@@ -153,33 +193,42 @@ export function SuggestionsTab() {
     () => {
       if (!reviewMutation.isPending) handleReviewSave(false);
     },
-    editingRejection && reviewId !== null,
+    reviewState.editingRejection && reviewState.reviewId !== null,
   );
-
-  useEffect(() => {
-    if (editingRejection) return;
-    if (reviewId !== null && reviewId < 0) {
-      setRejectionToken(crypto.randomUUID().replace(/-/g, ""));
-    } else {
-      setRejectionToken(null);
-    }
-  }, [reviewId, editingRejection]);
 
   const handleCommentPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const pastedText = e.clipboardData.getData("text");
     if (!pastedText.includes("[REJECT_TOKEN]")) return;
     e.preventDefault();
-    const token = rejectionToken ?? "";
-    const replaced = pastedText.replace(/\[SUBMISSION_ID\]/g, token);
+    const token = reviewState.rejectionToken ?? "";
+    const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
     const ta = e.currentTarget;
     const newValue =
-      adminNote.slice(0, ta.selectionStart) + replaced + adminNote.slice(ta.selectionEnd);
-    setAdminNote(newValue);
+      reviewState.adminNote.slice(0, ta.selectionStart) +
+      replaced +
+      reviewState.adminNote.slice(ta.selectionEnd);
+    dispatchReview({ type: "setAdminNote", value: newValue });
   };
 
   function closeReview() {
-    setReviewId(null);
-    setEditingRejection(false);
+    dispatchReview({ type: "close" });
+  }
+
+  function openApproveReview(id: number) {
+    dispatchReview({ type: "openApprove", id });
+  }
+
+  function openRejectReview(submission: Submission, editingRejection: boolean) {
+    dispatchReview({
+      type: "openReject",
+      id: submission.id,
+      adminNote: editingRejection ? (submission.adminNote ?? "") : "",
+      editingRejection,
+      rejectionLongText: editingRejection ? (submission.rejectionLongText ?? "") : "",
+      rejectionToken: editingRejection
+        ? (submission.rejectionToken ?? null)
+        : generateRejectionToken(),
+    });
   }
 
   const sorted = useMemo(
@@ -193,15 +242,14 @@ export function SuggestionsTab() {
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
-  const reviewTitle = editingRejection
+  const reviewTitle = reviewState.editingRejection
     ? submissionsMessages.suggestions.reviewEditRejectionTitle
-    : reviewId !== null && reviewId > 0
+    : reviewState.reviewId !== null && reviewState.reviewId > 0
       ? submissionsMessages.suggestions.reviewApproveTitle
       : submissionsMessages.suggestions.reviewRejectTitle;
 
   return (
     <>
-      {/* Status filter + sort */}
       <div className="flex items-center justify-between mb-6">
         <SegmentedControl
           value={filter}
@@ -261,229 +309,20 @@ export function SuggestionsTab() {
         />
       )}
 
-      <div className="space-y-3">
-        {sorted.map((sub) => (
-          <div
-            key={sub.id}
-            className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-4 flex items-stretch gap-4"
-          >
-            {/* Logo */}
-            <ShopImage url={sub.shopUrl} name={sub.shopName} />
+      <SuggestionsSubmissionList
+        categoryMap={categoryMap}
+        filter={filter}
+        locale={locale}
+        onDeleteSubmission={setDeleteSubmissionId}
+        onEditSubmission={setEditSubmission}
+        onOpenApprove={openApproveReview}
+        onOpenReject={(submission, editing) => openRejectReview(submission, editing)}
+        reviewMutation={reviewMutation}
+        sorted={sorted}
+        statusLabels={statusLabels}
+        submissionsMessages={submissionsMessages}
+      />
 
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-semibold text-[var(--ds-text)]">{sub.shopName}</p>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[sub.status as SubmissionStatus]}`}
-                >
-                  {statusLabels[sub.status as SubmissionStatus]}
-                </span>
-              </div>
-              <a
-                href={sub.shopUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-[var(--color-primary)] hover:underline truncate block"
-              >
-                {sub.shopUrl}
-              </a>
-              {sub.description && (
-                <p className="text-sm text-[var(--ds-text-muted)] mt-1">{sub.description}</p>
-              )}
-              {sub.categoryIds && sub.categoryIds.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {sub.categoryIds.map((id) => {
-                    const cat = categoryMap.get(id);
-                    return cat ? (
-                      <span
-                        key={id}
-                        className="px-2 py-0.5 rounded-full bg-[var(--ds-border)] text-[var(--ds-text-muted)] text-xs"
-                      >
-                        {cat.name}
-                      </span>
-                    ) : null;
-                  })}
-                </div>
-              )}
-              <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
-                <span>
-                  {new Date(sub.createdAt).toLocaleString(locale, {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-                {sub.submitterEmail && <span>✉ {sub.submitterEmail}</span>}
-              </div>
-            </div>
-
-            {/* Actions */}
-            {filter === "pending" && (
-              <div className="flex flex-row items-end gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReviewId(sub.id);
-                    setAdminNote("");
-                    setSendFeedback(!!sub.submitterEmail);
-                  }}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
-                >
-                  <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.approve}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditSubmission(sub)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.edit}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    reviewMutation.mutate({
-                      id: sub.id,
-                      status: "onhold",
-                      adminNote: "",
-                      sendFeedback: false,
-                    })
-                  }
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
-                >
-                  <SFPauseCircleFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.onhold}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReviewId(-sub.id);
-                    setAdminNote("");
-                    setSendFeedback(!!sub.submitterEmail);
-                  }}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                >
-                  <SFXmarkCircleFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.reject}
-                </button>
-              </div>
-            )}
-            {filter === "onhold" && (
-              <div className="flex flex-row items-end gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() =>
-                    reviewMutation.mutate({
-                      id: sub.id,
-                      status: "pending",
-                      adminNote: "",
-                      sendFeedback: false,
-                    })
-                  }
-                  disabled={reviewMutation.isPending}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
-                >
-                  <SFArrowCounterclockwise className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.restore}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditSubmission(sub)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.edit}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReviewId(-sub.id);
-                    setAdminNote("");
-                    setSendFeedback(!!sub.submitterEmail);
-                  }}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                >
-                  <SFXmarkCircleFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.reject}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteSubmissionId(sub.id)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                >
-                  <SFTrashFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.delete}
-                </button>
-              </div>
-            )}
-            {filter === "rejected" && (
-              <div className="flex flex-row items-end gap-1.5 shrink-0">
-                {sub.rejectionToken ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      window.open(
-                        `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${sub.rejectionToken}`,
-                        "_blank",
-                      )
-                    }
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                  >
-                    <SFInfoCircleFill className="w-3.5 h-3.5" />
-                    {submissionsMessages.suggestions.info}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      reviewMutation.mutate({
-                        id: sub.id,
-                        status: "pending",
-                        adminNote: "",
-                        sendFeedback: false,
-                      })
-                    }
-                    disabled={reviewMutation.isPending}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
-                  >
-                    <SFArrowCounterclockwise className="w-3.5 h-3.5" />
-                    {submissionsMessages.suggestions.setToOpen}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReviewId(-sub.id);
-                    setAdminNote(sub.adminNote ?? "");
-                    setRejectionLongText(sub.rejectionLongText ?? "");
-                    setRejectionToken(sub.rejectionToken ?? null);
-                    setSendFeedback(false);
-                    setEditingRejection(true);
-                  }}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.editRejectionInfo}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteSubmissionId(sub.id)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                >
-                  <SFTrashFill className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.delete}
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Edit submission overlay */}
       {editSubmission !== null && (
         <ShopEditCard
           submissionId={editSubmission.id}
@@ -502,115 +341,53 @@ export function SuggestionsTab() {
         />
       )}
 
-      {/* Approve Modal */}
-      <OverlayCard
-        open={reviewId !== null && reviewId > 0 && reviewing !== undefined}
+      <ApproveSubmissionReviewCard
+        adminNote={reviewState.adminNote}
+        commentPlaceholder={submissionsMessages.suggestions.commentPlaceholder}
+        commentLabel={submissionsMessages.suggestions.comment}
+        errorMessage={reviewMutation.error?.message ?? common.unknownError}
+        errorPrefix={submissionsMessages.suggestions.reviewErrorPrefix}
+        isError={reviewMutation.isError}
+        isPending={reviewMutation.isPending}
+        onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
+        onAdminNotePaste={handleCommentPaste}
         onClose={closeReview}
-        size={{ storageKey: "submissions:review-approve-size", defaultWidth: 448 }}
-        aria-label={reviewTitle}
-      >
-        {reviewing && (
-          <>
-            <OverlayCard.Header>
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
-                <SaveNotification phase={savedPhase} label={common.saved} />
-              </div>
-              <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
-              <div className="flex items-center gap-1.5 mt-1">
-                <p className="text-xs text-[var(--ds-text-subtle)] truncate">{reviewing.shopUrl}</p>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard.writeText(reviewing.shopUrl)}
-                  className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
-                  aria-label="Copy URL"
-                >
-                  <SFDocumentOnDocumentFill className="w-4 h-4" />
-                </button>
-              </div>
-            </OverlayCard.Header>
+        onSubmit={() => handleReviewSave()}
+        open={reviewState.reviewId !== null && reviewState.reviewId > 0 && reviewing !== undefined}
+        optionalLabel={submissionsMessages.suggestions.optional}
+        reviewTitle={reviewTitle}
+        reviewing={reviewing ?? null}
+        savedPhase={savedPhase}
+        savedLabel={common.saved}
+        submitLabel={submissionsMessages.suggestions.accept}
+        cancelLabel={common.cancel}
+      />
 
-            <OverlayCard.Body className="flex flex-col gap-3">
-              <div>
-                <label
-                  htmlFor="admin-note"
-                  className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-                >
-                  {submissionsMessages.suggestions.comment}{" "}
-                  <span className="text-[var(--ds-text-subtle)] font-normal">
-                    {submissionsMessages.suggestions.optional}
-                  </span>
-                </label>
-                <MarkdownTextarea
-                  id="admin-note"
-                  value={adminNote}
-                  onChange={setAdminNote}
-                  onPaste={handleCommentPaste}
-                  rows={3}
-                  placeholder={submissionsMessages.suggestions.commentPlaceholder}
-                />
-                <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
-              </div>
-
-              {reviewMutation.isError && (
-                <p className="text-sm text-red-600">
-                  {submissionsMessages.suggestions.reviewErrorPrefix}{" "}
-                  {reviewMutation.error?.message ?? common.unknownError}
-                </p>
-              )}
-            </OverlayCard.Body>
-
-            <OverlayCard.Footer className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={closeReview}
-                className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-              >
-                {common.cancel}
-              </button>
-              <button
-                type="button"
-                disabled={reviewMutation.isPending}
-                onClick={() => handleReviewSave()}
-                className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-              >
-                {reviewMutation.isPending ? (
-                  "…"
-                ) : (
-                  <>
-                    <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
-                    {submissionsMessages.suggestions.accept}
-                  </>
-                )}
-              </button>
-            </OverlayCard.Footer>
-          </>
-        )}
-      </OverlayCard>
-
-      {/* Reject / Edit-Rejection Modal — shared RejectDialog component */}
       <RejectDialog
-        open={reviewId !== null && reviewId < 0 && reviewing !== undefined}
+        open={reviewState.reviewId !== null && reviewState.reviewId < 0 && reviewing !== undefined}
         onClose={closeReview}
         title={reviewTitle}
         name={reviewing?.shopName ?? ""}
         url={reviewing?.shopUrl ?? ""}
-        adminNote={adminNote}
-        onAdminNoteChange={setAdminNote}
+        adminNote={reviewState.adminNote}
+        onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
         onAdminNotePaste={handleCommentPaste}
-        rejectionLongText={rejectionLongText}
-        onRejectionLongTextChange={setRejectionLongText}
-        submitterEmail={!editingRejection ? (reviewing?.submitterEmail ?? undefined) : undefined}
-        sendFeedback={sendFeedback}
-        onSendFeedbackChange={setSendFeedback}
+        rejectionLongText={reviewState.rejectionLongText}
+        onRejectionLongTextChange={(value) =>
+          dispatchReview({ type: "setRejectionLongText", value })
+        }
         onSubmit={() => handleReviewSave()}
         isPending={reviewMutation.isPending}
         isError={reviewMutation.isError}
         errorMessage={reviewMutation.error?.message ?? common.unknownError}
-        submitLabel={editingRejection ? common.save : submissionsMessages.suggestions.decline}
-        submitVariant={editingRejection ? "primary" : "danger"}
+        submitLabel={
+          reviewState.editingRejection ? common.save : submissionsMessages.suggestions.decline
+        }
+        submitVariant={reviewState.editingRejection ? "primary" : "danger"}
         submitIcon={
-          editingRejection ? <SFSquareAndArrowDownFill className="w-3.5 h-3.5" /> : undefined
+          reviewState.editingRejection ? (
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+          ) : undefined
         }
         headerRight={<SaveNotification phase={savedPhase} label={common.saved} />}
         storageKey="submissions:review-reject-size"
@@ -623,7 +400,6 @@ export function SuggestionsTab() {
           commentPlaceholder: submissionsMessages.suggestions.rejectReasonPlaceholder,
           rejectionLongLabel: submissionsMessages.suggestions.rejectionLongLabel,
           rejectionLongPlaceholder: submissionsMessages.suggestions.rejectionLongPlaceholder,
-          feedbackToPrefix: submissionsMessages.suggestions.feedbackToPrefix,
           errorPrefix: submissionsMessages.suggestions.reviewErrorPrefix,
         }}
       />
@@ -663,5 +439,441 @@ export function SuggestionsTab() {
         </Dialog.Footer>
       </Dialog>
     </>
+  );
+}
+
+interface SuggestionsSubmissionListProps {
+  categoryMap: Map<number, { name: string }>;
+  filter: SubmissionStatus;
+  locale: string;
+  onDeleteSubmission: (id: number) => void;
+  onEditSubmission: (submission: Submission) => void;
+  onOpenApprove: (id: number) => void;
+  onOpenReject: (submission: Submission, editing: boolean) => void;
+  reviewMutation: ReturnType<typeof useReviewSubmission>;
+  sorted: Submission[];
+  statusLabels: Record<SubmissionStatus, string>;
+  submissionsMessages: ReturnType<typeof useI18n>["messages"]["submissions"];
+}
+
+function SuggestionsSubmissionList({
+  categoryMap,
+  filter,
+  locale,
+  onDeleteSubmission,
+  onEditSubmission,
+  onOpenApprove,
+  onOpenReject,
+  reviewMutation,
+  sorted,
+  statusLabels,
+  submissionsMessages,
+}: SuggestionsSubmissionListProps) {
+  return (
+    <div className="space-y-3">
+      {sorted.map((submission) => (
+        <SuggestionsSubmissionRow
+          key={submission.id}
+          categoryMap={categoryMap}
+          filter={filter}
+          locale={locale}
+          onDeleteSubmission={onDeleteSubmission}
+          onEditSubmission={onEditSubmission}
+          onOpenApprove={onOpenApprove}
+          onOpenReject={onOpenReject}
+          reviewMutation={reviewMutation}
+          statusLabels={statusLabels}
+          submission={submission}
+          submissionsMessages={submissionsMessages}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface SuggestionsSubmissionRowProps {
+  categoryMap: Map<number, { name: string }>;
+  filter: SubmissionStatus;
+  locale: string;
+  onDeleteSubmission: (id: number) => void;
+  onEditSubmission: (submission: Submission) => void;
+  onOpenApprove: (id: number) => void;
+  onOpenReject: (submission: Submission, editing: boolean) => void;
+  reviewMutation: ReturnType<typeof useReviewSubmission>;
+  statusLabels: Record<SubmissionStatus, string>;
+  submission: Submission;
+  submissionsMessages: ReturnType<typeof useI18n>["messages"]["submissions"];
+}
+
+function SuggestionsSubmissionRow({
+  categoryMap,
+  filter,
+  locale,
+  onDeleteSubmission,
+  onEditSubmission,
+  onOpenApprove,
+  onOpenReject,
+  reviewMutation,
+  statusLabels,
+  submission,
+  submissionsMessages,
+}: SuggestionsSubmissionRowProps) {
+  return (
+    <div className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-4 flex items-stretch gap-4">
+      <ShopImage url={submission.shopUrl} name={submission.shopName} />
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-semibold text-[var(--ds-text)]">{submission.shopName}</p>
+          <span
+            className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[submission.status as SubmissionStatus]}`}
+          >
+            {statusLabels[submission.status as SubmissionStatus]}
+          </span>
+        </div>
+        <a
+          href={submission.shopUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-[var(--color-primary)] hover:underline truncate block"
+        >
+          {submission.shopUrl}
+        </a>
+        {submission.description && (
+          <p className="text-sm text-[var(--ds-text-muted)] mt-1">{submission.description}</p>
+        )}
+        {submission.categoryIds && submission.categoryIds.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {submission.categoryIds.map((id) => {
+              const category = categoryMap.get(id);
+              return category ? (
+                <span
+                  key={id}
+                  className="px-2 py-0.5 rounded-full bg-[var(--ds-border)] text-[var(--ds-text-muted)] text-xs"
+                >
+                  {category.name}
+                </span>
+              ) : null;
+            })}
+          </div>
+        )}
+        <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
+          <span>
+            {new Date(submission.createdAt).toLocaleString(locale, {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+          {submission.submitterEmail && <span>✉ {submission.submitterEmail}</span>}
+        </div>
+      </div>
+
+      <SuggestionsSubmissionActions
+        filter={filter}
+        onDeleteSubmission={onDeleteSubmission}
+        onEditSubmission={onEditSubmission}
+        onOpenApprove={onOpenApprove}
+        onOpenReject={onOpenReject}
+        reviewMutation={reviewMutation}
+        submission={submission}
+        submissionsMessages={submissionsMessages}
+      />
+    </div>
+  );
+}
+
+interface SuggestionsSubmissionActionsProps {
+  filter: SubmissionStatus;
+  onDeleteSubmission: (id: number) => void;
+  onEditSubmission: (submission: Submission) => void;
+  onOpenApprove: (id: number) => void;
+  onOpenReject: (submission: Submission, editing: boolean) => void;
+  reviewMutation: ReturnType<typeof useReviewSubmission>;
+  submission: Submission;
+  submissionsMessages: ReturnType<typeof useI18n>["messages"]["submissions"];
+}
+
+function SuggestionsSubmissionActions({
+  filter,
+  onDeleteSubmission,
+  onEditSubmission,
+  onOpenApprove,
+  onOpenReject,
+  reviewMutation,
+  submission,
+  submissionsMessages,
+}: SuggestionsSubmissionActionsProps) {
+  if (filter === "pending") {
+    return (
+      <div className="flex flex-row items-end gap-1.5 shrink-0">
+        <button
+          type="button"
+          onClick={() => onOpenApprove(submission.id)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
+        >
+          <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.approve}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEditSubmission(submission)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+        >
+          <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.edit}
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            reviewMutation.mutate({
+              id: submission.id,
+              status: "onhold",
+              adminNote: "",
+            })
+          }
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
+        >
+          <SFPauseCircleFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.onhold}
+        </button>
+        <button
+          type="button"
+          onClick={() => onOpenReject(submission, false)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+        >
+          <SFXmarkCircleFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.reject}
+        </button>
+      </div>
+    );
+  }
+
+  if (filter === "onhold") {
+    return (
+      <div className="flex flex-row items-end gap-1.5 shrink-0">
+        <button
+          type="button"
+          onClick={() =>
+            reviewMutation.mutate({
+              id: submission.id,
+              status: "pending",
+              adminNote: "",
+            })
+          }
+          disabled={reviewMutation.isPending}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
+        >
+          <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.restore}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEditSubmission(submission)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+        >
+          <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.edit}
+        </button>
+        <button
+          type="button"
+          onClick={() => onOpenReject(submission, false)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+        >
+          <SFXmarkCircleFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.reject}
+        </button>
+        <button
+          type="button"
+          onClick={() => onDeleteSubmission(submission.id)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+        >
+          <SFTrashFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.delete}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-row items-end gap-1.5 shrink-0">
+      {submission.rejectionToken ? (
+        <button
+          type="button"
+          onClick={() =>
+            window.open(
+              `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
+              "_blank",
+            )
+          }
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+        >
+          <SFInfoCircleFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.info}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() =>
+            reviewMutation.mutate({
+              id: submission.id,
+              status: "pending",
+              adminNote: "",
+            })
+          }
+          disabled={reviewMutation.isPending}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
+        >
+          <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.setToOpen}
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => onOpenReject(submission, true)}
+        className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+      >
+        <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+        {submissionsMessages.suggestions.editRejectionInfo}
+      </button>
+      <button
+        type="button"
+        onClick={() => onDeleteSubmission(submission.id)}
+        className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+      >
+        <SFTrashFill className="w-3.5 h-3.5" />
+        {submissionsMessages.suggestions.delete}
+      </button>
+    </div>
+  );
+}
+
+interface ApproveSubmissionReviewCardProps {
+  adminNote: string;
+  cancelLabel: string;
+  commentLabel: string;
+  commentPlaceholder: string;
+  errorMessage: string;
+  errorPrefix: string;
+  isError: boolean;
+  isPending: boolean;
+  onAdminNoteChange: (value: string) => void;
+  onAdminNotePaste: (e: ClipboardEvent<HTMLTextAreaElement>) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+  open: boolean;
+  optionalLabel: string;
+  reviewTitle: string;
+  reviewing: Submission | null;
+  savedLabel: string;
+  savedPhase: ReturnType<typeof useSaveNotification>["phase"];
+  submitLabel: string;
+}
+
+function ApproveSubmissionReviewCard({
+  adminNote,
+  cancelLabel,
+  commentLabel,
+  commentPlaceholder,
+  errorMessage,
+  errorPrefix,
+  isError,
+  isPending,
+  onAdminNoteChange,
+  onAdminNotePaste,
+  onClose,
+  onSubmit,
+  open,
+  optionalLabel,
+  reviewTitle,
+  reviewing,
+  savedLabel,
+  savedPhase,
+  submitLabel,
+}: ApproveSubmissionReviewCardProps) {
+  return (
+    <OverlayCard
+      open={open}
+      onClose={onClose}
+      size={{ storageKey: "submissions:review-approve-size", defaultWidth: 448 }}
+      aria-label={reviewTitle}
+    >
+      {reviewing && (
+        <>
+          <OverlayCard.Header>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
+              <SaveNotification phase={savedPhase} label={savedLabel} />
+            </div>
+            <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <p className="text-xs text-[var(--ds-text-subtle)] truncate">{reviewing.shopUrl}</p>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(reviewing.shopUrl)}
+                className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
+                aria-label="Copy URL"
+              >
+                <SFDocumentOnDocumentFill className="w-4 h-4" />
+              </button>
+            </div>
+          </OverlayCard.Header>
+
+          <OverlayCard.Body className="flex flex-col gap-3">
+            <div>
+              <label
+                htmlFor="admin-note"
+                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
+              >
+                {commentLabel}{" "}
+                <span className="text-[var(--ds-text-subtle)] font-normal">{optionalLabel}</span>
+              </label>
+              <MarkdownTextarea
+                id="admin-note"
+                value={adminNote}
+                onChange={onAdminNoteChange}
+                onPaste={onAdminNotePaste}
+                rows={3}
+                placeholder={commentPlaceholder}
+              />
+              <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
+            </div>
+
+            {isError && (
+              <p className="text-sm text-red-600">
+                {errorPrefix} {errorMessage}
+              </p>
+            )}
+          </OverlayCard.Body>
+
+          <OverlayCard.Footer className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+            >
+              {cancelLabel}
+            </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={onSubmit}
+              className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
+            >
+              {isPending ? (
+                "…"
+              ) : (
+                <>
+                  <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+                  {submitLabel}
+                </>
+              )}
+            </button>
+          </OverlayCard.Footer>
+        </>
+      )}
+    </OverlayCard>
   );
 }

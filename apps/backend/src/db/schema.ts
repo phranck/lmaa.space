@@ -1,4 +1,3 @@
-import type { FormConfigPayload } from "@lmaa/contracts";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -12,7 +11,10 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+
+import type { FormConfigPayload } from "@lmaa/contracts";
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -93,19 +95,27 @@ export const shopCategories = pgTable(
 /**
  * Dashboard admin user accounts.
  */
-export const adminUsers = pgTable("admin_users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
-  isOwner: boolean("is_owner").notNull().default(false),
-  role: text("role").$type<"owner" | "admin" | "moderator">().notNull().default("admin"),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  avatarUrl: text("avatar_url"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastLoginAt: timestamp("last_login_at"),
-});
+export const adminUsers = pgTable(
+  "admin_users",
+  {
+    id: serial("id").primaryKey(),
+    username: text("username").notNull().unique(),
+    email: text("email").notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    isOwner: boolean("is_owner").notNull().default(false),
+    role: text("role").$type<"owner" | "admin" | "moderator">().notNull().default("admin"),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    avatarUrl: text("avatar_url"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastLoginAt: timestamp("last_login_at"),
+  },
+  (table) => [
+    uniqueIndex("admin_users_single_owner_idx")
+      .on(table.role)
+      .where(sql`${table.role} = 'owner'`),
+  ],
+);
 
 /**
  * Raw user shop submissions awaiting moderation.

@@ -1,4 +1,5 @@
 import { createMiddleware } from "hono/factory";
+
 import { env } from "../config/env.js";
 import { fail } from "../lib/http.js";
 import { logger } from "../lib/logger.js";
@@ -8,30 +9,83 @@ interface RateLimitEntry {
   resetAt: number;
 }
 
-// TODO: Replace with Redis for multi-instance
-const store = new Map<string, RateLimitEntry>();
+interface TrustedProxyConfig {
+  trustedHeader: "cf-connecting-ip" | "x-real-ip" | "x-forwarded-for";
+  trustedHops: number;
+}
 
-/** Extracts the client IP from request headers (CF > X-Real-IP > XFF). */
-export function resolveClientIp(headers: Headers): string {
-  const cfIp = headers.get("CF-Connecting-IP");
-  if (cfIp) return cfIp.trim();
+interface RateLimitStore {
+  get(key: string): RateLimitEntry | undefined | Promise<RateLimitEntry | undefined>;
+  set(key: string, entry: RateLimitEntry): void | Promise<void>;
+  delete(key: string): void | Promise<void>;
+  entries?(): IterableIterator<[string, RateLimitEntry]>;
+}
 
-  const xRealIp = headers.get("X-Real-IP");
-  if (xRealIp) return xRealIp.trim();
+class MemoryRateLimitStore implements RateLimitStore {
+  private readonly entriesMap = new Map<string, RateLimitEntry>();
 
-  const xForwardedFor = headers.get("X-Forwarded-For");
-  if (xForwardedFor) {
-    const first = xForwardedFor.split(",")[0];
-    if (first) return first.trim();
+  get(key: string) {
+    return this.entriesMap.get(key);
   }
 
-  return "unknown";
+  set(key: string, entry: RateLimitEntry) {
+    this.entriesMap.set(key, entry);
+  }
+
+  delete(key: string) {
+    this.entriesMap.delete(key);
+  }
+
+  entries() {
+    return this.entriesMap.entries();
+  }
+}
+
+const rateLimitStore = new MemoryRateLimitStore();
+
+/** Resolves the trusted client IP from the configured proxy header strategy. */
+export function resolveClientIp(
+  headers: Headers,
+  config: TrustedProxyConfig = {
+    trustedHeader: env.TRUST_PROXY_IP_HEADER,
+    trustedHops: env.TRUST_PROXY_HOPS,
+  },
+): string {
+  switch (config.trustedHeader) {
+    case "cf-connecting-ip": {
+      const ip = headers.get("CF-Connecting-IP");
+      return ip?.trim() || "unknown";
+    }
+    case "x-real-ip": {
+      const ip = headers.get("X-Real-IP");
+      return ip?.trim() || "unknown";
+    }
+    case "x-forwarded-for": {
+      const xForwardedFor = headers.get("X-Forwarded-For");
+      if (!xForwardedFor) return "unknown";
+
+      const hops = xForwardedFor
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (hops.length === 0) return "unknown";
+
+      const trustedIndex = Math.max(0, hops.length - config.trustedHops - 1);
+      return hops[trustedIndex] ?? hops[0] ?? "unknown";
+    }
+  }
 }
 
 /** Starts periodic cleanup of expired rate-limit entries. Returns the timer for shutdown. */
 export function startRateLimitCleanupJob(): NodeJS.Timeout {
   if (env.NODE_ENV === "production") {
-    logger.warn("in-memory rate-limit store is not shared across instances — consider Redis");
+    logger.warn(
+      {
+        trustedHeader: env.TRUST_PROXY_IP_HEADER,
+        trustedProxyHops: env.TRUST_PROXY_HOPS,
+      },
+      "rate-limit store is process-local memory; use a shared store before scaling horizontally",
+    );
   }
   const intervalMs = env.RATE_LIMIT_CLEANUP_INTERVAL_MS;
 
@@ -39,9 +93,9 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
     const now = Date.now();
     let purged = 0;
 
-    for (const [key, entry] of store.entries()) {
+    for (const [key, entry] of rateLimitStore.entries?.() ?? []) {
       if (entry.resetAt < now) {
-        store.delete(key);
+        rateLimitStore.delete(key);
         purged++;
       }
     }
@@ -66,16 +120,19 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
  * @remarks
  * Hidden behavior:
  * - Keying strategy is `"{path}:{clientIp}"`.
- * - Store is process-local memory (not shared across instances).
+ * - Default store is process-local memory. Pass a shared store (for example Redis)
+ *   when running multiple backend instances.
  * - Expired entries are cleaned up by a background interval.
  */
-export function rateLimit(options: { max: number; windowMs: number }) {
+export function rateLimit(options: { max: number; windowMs: number; store?: RateLimitStore }) {
+  const store = options.store ?? rateLimitStore;
+
   return createMiddleware(async (c, next) => {
     const ip = resolveClientIp(c.req.raw.headers);
 
     const key = `${c.req.path}:${ip}`;
     const now = Date.now();
-    const entry = store.get(key) ?? { count: 0, resetAt: now + options.windowMs };
+    const entry = (await store.get(key)) ?? { count: 0, resetAt: now + options.windowMs };
 
     if (entry.resetAt < now) {
       entry.count = 0;
@@ -92,7 +149,7 @@ export function rateLimit(options: { max: number; windowMs: number }) {
     }
 
     entry.count++;
-    store.set(key, entry);
+    await store.set(key, entry);
     c.header("X-RateLimit-Limit", String(options.max));
     c.header("X-RateLimit-Remaining", String(Math.max(options.max - entry.count, 0)));
     c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));

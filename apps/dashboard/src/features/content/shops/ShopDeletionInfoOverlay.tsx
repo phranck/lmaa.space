@@ -1,9 +1,3 @@
-import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
-import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import type { ShopSummary } from "@lmaa/shared";
 import { Marked } from "marked";
 import { useCallback, useMemo, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
@@ -12,6 +6,15 @@ import {
   SFSquareAndArrowDownFill,
   SFTrashFill,
 } from "sf-symbols-lib/monochrome";
+
+import type { ShopSummary } from "@lmaa/shared";
+
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { renderMarkdownToReact } from "@/lib/render-markdown-to-react.tsx";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
 /**
  * Local marked instance for rendering deletion reasons.
@@ -127,8 +130,8 @@ export function ShopDeletionInfoOverlay({
       })
     : null;
 
-  const reasonHtml = useMemo(
-    () => (displayReason ? md.parse(displayReason, { async: false }) : null),
+  const reasonContent = useMemo(
+    () => (displayReason ? renderMarkdownToReact(displayReason, md) : null),
     [displayReason],
   );
 
@@ -179,12 +182,10 @@ export function ShopDeletionInfoOverlay({
                   />
                   <SiMarkdown className="absolute bottom-2 right-2 w-6 h-6 text-[var(--ds-text-subtle)] opacity-40 pointer-events-none" />
                 </div>
-              ) : reasonHtml ? (
-                <div
-                  className="prose prose-sm max-w-none text-[var(--ds-text)] prose-a:text-[var(--color-primary)] prose-a:break-all"
-                  // biome-ignore lint/security/noDangerouslySetInnerHtml: marked output from trusted admin-entered content
-                  dangerouslySetInnerHTML={{ __html: reasonHtml }}
-                />
+              ) : reasonContent ? (
+                <div className="prose prose-sm max-w-none text-[var(--ds-text)] prose-a:text-[var(--color-primary)] prose-a:break-all">
+                  {reasonContent}
+                </div>
               ) : (
                 <span className="text-[var(--ds-text-subtle)] italic">{t.noReason}</span>
               )}
