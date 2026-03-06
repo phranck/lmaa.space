@@ -600,7 +600,7 @@ export function SuggestionsTab() {
         onAdminNotePaste={handleCommentPaste}
         rejectionLongText={rejectionLongText}
         onRejectionLongTextChange={setRejectionLongText}
-        submitterEmail={!editingRejection ? reviewing?.submitterEmail : undefined}
+        submitterEmail={!editingRejection ? (reviewing?.submitterEmail ?? undefined) : undefined}
         sendFeedback={sendFeedback}
         onSendFeedbackChange={setSendFeedback}
         onSubmit={() => handleReviewSave()}
