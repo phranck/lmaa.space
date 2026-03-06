@@ -11,12 +11,14 @@ import {
   SFLongTextPageAndPencilFill,
   SFPauseCircleFill,
   SFTrashFill,
+  SFXmarkCircleFill,
 } from "sf-symbols-lib/monochrome";
 
 interface ShopTableProps {
   shops: ShopSummary[];
   onEdit: (id: number) => void;
   onDelete?: (id: number) => void;
+  onPermanentDelete?: (id: number) => void;
   onHold?: (id: number) => void;
   onRestore?: (id: number) => void;
   onUpdateReason?: (id: number, reason: string | null) => Promise<void>;
@@ -42,6 +44,14 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
       </span>
     );
   }
+  if (visibility === "rejected") {
+    return (
+      <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-500/10 text-orange-400">
+        <SFXmarkCircleFill className="w-3 h-3" />
+        {shopsMessages.table.statusRejected}
+      </span>
+    );
+  }
   return null;
 }
 
@@ -55,6 +65,7 @@ export function ShopTable({
   shops,
   onEdit,
   onDelete,
+  onPermanentDelete,
   onHold,
   onRestore,
   onUpdateReason,
@@ -79,7 +90,7 @@ export function ShopTable({
                 className={`font-medium truncate ${
                   shop.visibility === "deleted"
                     ? "text-[var(--ds-text-subtle)] line-through"
-                    : shop.visibility === "onhold"
+                    : shop.visibility === "onhold" || shop.visibility === "rejected"
                       ? "text-[var(--ds-text-muted)]"
                       : "text-[var(--ds-text)]"
                 }`}
@@ -231,13 +242,60 @@ export function ShopTable({
                   <SFInfoCircleFill className="w-3.5 h-3.5" />
                   {shopsMessages.table.deletionInfo}
                 </button>
+                {onPermanentDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onPermanentDelete(shop.id)}
+                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  >
+                    <SFTrashFill className="w-3.5 h-3.5" />
+                    {shopsMessages.table.permanentDelete}
+                  </button>
+                )}
+              </>
+            )}
+            {shop.visibility === "rejected" && (
+              <>
+                {shop.rejectionToken && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const base =
+                        import.meta.env.VITE_FRONTEND_URL ??
+                        (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space");
+                      window.open(`${base}/rejected/${shop.rejectionToken}`, "_blank");
+                    }}
+                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  >
+                    <SFInfoCircleFill className="w-3.5 h-3.5" />
+                    {shopsMessages.table.rejectionInfo}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => onEdit(shop.id)}
+                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  {shopsMessages.table.edit}
+                </button>
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(shop.id)}
+                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  >
+                    <SFTrashFill className="w-3.5 h-3.5" />
+                    {shopsMessages.table.delete}
+                  </button>
+                )}
               </>
             )}
           </div>
         ),
       },
     ],
-    [onDelete, onEdit, onHold, onRestore, regionOptions, shopsMessages],
+    [onDelete, onPermanentDelete, onEdit, onHold, onRestore, regionOptions, shopsMessages],
   );
 
   return (

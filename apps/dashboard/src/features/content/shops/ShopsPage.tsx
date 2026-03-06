@@ -1,4 +1,5 @@
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -23,6 +24,7 @@ import {
   SFStorefrontFill,
   SFTrashFill,
   SFXmark,
+  SFXmarkCircleFill,
 } from "sf-symbols-lib/monochrome";
 
 type VisibilityFilter = "all" | ShopVisibility;
@@ -38,6 +40,7 @@ export function ShopsPage() {
   const { user: me } = useAuth();
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
 
@@ -59,6 +62,7 @@ export function ShopsPage() {
   );
 
   const deleteTarget = shops.find((s) => s.id === deleteId);
+  const permanentDeleteTarget = shops.find((s) => s.id === permanentDeleteId);
 
   const canModify = me?.role !== "moderator";
 
@@ -99,12 +103,17 @@ export function ShopsPage() {
         label: shopsMessages.filters.deleted,
         icon: <SFTrashFill className="w-3.5 h-3.5" />,
       },
+      {
+        value: "rejected",
+        label: shopsMessages.filters.rejected,
+        icon: <SFXmarkCircleFill className="w-3.5 h-3.5" />,
+      },
     ],
     [shopsMessages],
   );
 
   return (
-    <div>
+    <div className="flex flex-col flex-1">
       <PageHeader title={shopsMessages.title}>
         <div className="relative">
           <input
@@ -151,7 +160,6 @@ export function ShopsPage() {
 
       {!isLoading && shops.length === 0 && (
         <ContentUnavailableView
-          className="flex-1"
           icon={<SFStorefrontFill aria-hidden />}
           title={shopsMessages.noShops}
           subtitle={shopsMessages.noShopsHint}
@@ -160,7 +168,6 @@ export function ShopsPage() {
 
       {!isLoading && shops.length > 0 && filtered.length === 0 && (
         <ContentUnavailableView
-          className="flex-1"
           icon={<SFMagnifyingglass aria-hidden />}
           title={`${shopsMessages.noResultsPrefix} „${search}".`}
           subtitle={shopsMessages.noResultsHint}
@@ -173,6 +180,7 @@ export function ShopsPage() {
             shops={filtered}
             onEdit={setEditTarget}
             onDelete={canModify ? setDeleteId : undefined}
+            onPermanentDelete={canModify ? setPermanentDeleteId : undefined}
             onHold={canModify ? onHold : undefined}
             onRestore={canModify ? onRestore : undefined}
             onUpdateReason={canModify ? onUpdateReason : undefined}
@@ -188,6 +196,45 @@ export function ShopsPage() {
           onSaved={() => setEditTarget(null)}
         />
       )}
+
+      {/* Permanent Delete Confirmation */}
+      <Dialog
+        open={permanentDeleteId !== null && permanentDeleteTarget !== undefined}
+        title={shopsMessages.table.permanentDeleteTitle}
+        onClose={() => setPermanentDeleteId(null)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">
+            <span className="font-medium">{permanentDeleteTarget?.name}</span>{" "}
+            {shopsMessages.table.permanentDeleteDescription}
+          </p>
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setPermanentDeleteId(null)}
+            className={dialogBtnSecondary}
+          >
+            {messages.common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteMutation.isPending}
+            onClick={() => {
+              if (permanentDeleteId === null) return;
+              deleteMutation.mutate(
+                { id: permanentDeleteId, mode: "delete" },
+                { onSuccess: () => setPermanentDeleteId(null) },
+              );
+            }}
+            className={dialogBtnDestructive}
+          >
+            {deleteMutation.isPending
+              ? messages.common.saving
+              : shopsMessages.table.permanentDelete}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
 
       {/* Delete Modal */}
       {deleteId !== null && deleteTarget && (
