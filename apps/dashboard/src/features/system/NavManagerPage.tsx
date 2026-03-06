@@ -16,12 +16,10 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState } from "react";
-import {
-  SFLine3Horizontal,
-  SFPlusCircle,
-  SFSquareAndArrowDownFill,
-  SFXmark,
-} from "sf-symbols-lib/monochrome";
+import SFLine3Horizontal from "sf-symbols-lib/monochrome/SFLine3Horizontal";
+import SFPlusCircle from "sf-symbols-lib/monochrome/SFPlusCircle";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 
 import type { NavId } from "@lmaa/shared";
 

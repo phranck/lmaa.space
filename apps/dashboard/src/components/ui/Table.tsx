@@ -1,6 +1,8 @@
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
 import { useMemo, useState } from "react";
-import { SFChevronDown, SFChevronUp, SFChevronUpChevronDown } from "sf-symbols-lib/monochrome";
+import SFChevronDown from "sf-symbols-lib/monochrome/SFChevronDown";
+import SFChevronUp from "sf-symbols-lib/monochrome/SFChevronUp";
+import SFChevronUpChevronDown from "sf-symbols-lib/monochrome/SFChevronUpChevronDown";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 

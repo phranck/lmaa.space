@@ -16,15 +16,13 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useRef, useState } from "react";
-import {
-  SFArrowRight,
-  SFCheckmark,
-  SFEnvelope,
-  SFPlusCircleFill,
-  SFSquareAndArrowDown,
-  SFStorefrontFill,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFArrowRight from "sf-symbols-lib/monochrome/SFArrowRight";
+import SFCheckmark from "sf-symbols-lib/monochrome/SFCheckmark";
+import SFEnvelope from "sf-symbols-lib/monochrome/SFEnvelope";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+import SFSquareAndArrowDown from "sf-symbols-lib/monochrome/SFSquareAndArrowDown";
+import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
 

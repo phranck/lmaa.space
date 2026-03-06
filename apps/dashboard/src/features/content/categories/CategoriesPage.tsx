@@ -1,10 +1,8 @@
 import { useState } from "react";
-import {
-  SFListBullet,
-  SFPlusCircleFill,
-  SFSquareGrid2x2Fill,
-  SFTagFill,
-} from "sf-symbols-lib/monochrome";
+import SFListBullet from "sf-symbols-lib/monochrome/SFListBullet";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
+import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";

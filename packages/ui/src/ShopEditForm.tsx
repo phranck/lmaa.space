@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { SFArrowUpRight } from "sf-symbols-lib/monochrome";
+import SFArrowUpRight from "sf-symbols-lib/monochrome/SFArrowUpRight";
 
 import { MarkdownTextarea } from "./MarkdownTextarea.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";

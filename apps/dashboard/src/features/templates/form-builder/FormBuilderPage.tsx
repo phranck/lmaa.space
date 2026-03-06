@@ -11,7 +11,8 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useRef, useState } from "react";
-import { SFSquareAndArrowDownFill, SFSquareAndArrowUp } from "sf-symbols-lib/monochrome";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFSquareAndArrowUp from "sf-symbols-lib/monochrome/SFSquareAndArrowUp";
 
 import type { FieldType, FormField, FormRow } from "@lmaa/contracts";
 

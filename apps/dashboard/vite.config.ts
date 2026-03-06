@@ -12,6 +12,41 @@ export default defineConfig({
       "@lmaa/contracts": resolve(__dirname, "../../packages/contracts/src/index.ts"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("/src/features/templates/form-builder/buttonIconMap.tsx")) {
+            return "form-builder-icons";
+          }
+
+          if (id.includes("/node_modules/@dnd-kit/")) {
+            return "dnd-kit";
+          }
+
+          if (id.includes("/node_modules/@mdxeditor/")) {
+            return "mdxeditor-core";
+          }
+
+          if (id.includes("/node_modules/lexical/")) {
+            return "lexical";
+          }
+
+          if (id.includes("/node_modules/@codemirror/")) {
+            return "codemirror";
+          }
+
+          if (id.includes("/node_modules/@lezer/")) {
+            return "lezer";
+          }
+
+          if (id.includes("/node_modules/recharts/")) {
+            return "recharts";
+          }
+        },
+      },
+    },
+  },
   server: {
     port: 5174,
     proxy: {

@@ -1,10 +1,8 @@
 import { useState } from "react";
-import {
-  SFPersonBadgePlus,
-  SFPersonFill,
-  SFPersonFillCheckmark,
-  SFPlusCircleFill,
-} from "sf-symbols-lib/monochrome";
+import SFPersonBadgePlus from "sf-symbols-lib/monochrome/SFPersonBadgePlus";
+import SFPersonFill from "sf-symbols-lib/monochrome/SFPersonFill";
+import SFPersonFillCheckmark from "sf-symbols-lib/monochrome/SFPersonFillCheckmark";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
 
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";

@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import {
-  SFCheckmarkCircleFill,
-  SFCircle,
-  SFDocumentFill,
-  SFEyeSlashFill,
-  SFPlusCircleFill,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
+import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
+import SFEyeSlashFill from "sf-symbols-lib/monochrome/SFEyeSlashFill";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";

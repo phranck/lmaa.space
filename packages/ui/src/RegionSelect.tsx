@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { SFCheckmark, SFChevronDown } from "sf-symbols-lib/monochrome";
+import SFCheckmark from "sf-symbols-lib/monochrome/SFCheckmark";
+import SFChevronDown from "sf-symbols-lib/monochrome/SFChevronDown";
 
 import { REGION_CODES, type RegionCode } from "@lmaa/shared";
 

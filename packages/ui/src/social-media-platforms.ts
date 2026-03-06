@@ -12,7 +12,7 @@ import {
   SiTwitch,
   SiYoutube,
 } from "react-icons/si";
-import { SFGlobe } from "sf-symbols-lib/monochrome";
+import SFGlobe from "sf-symbols-lib/monochrome/SFGlobe";
 
 export interface PlatformDef {
   key: string;

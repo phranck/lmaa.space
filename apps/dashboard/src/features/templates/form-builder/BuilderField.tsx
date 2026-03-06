@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
+import SFExclamationmarkSquareFill from "sf-symbols-lib/dualtone/SFExclamationmarkSquareFill";
 
 import type { FormField } from "@lmaa/contracts";
 

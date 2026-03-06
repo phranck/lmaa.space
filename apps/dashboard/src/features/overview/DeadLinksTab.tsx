@@ -1,10 +1,8 @@
 import { useState } from "react";
-import {
-  SFArrowUpRightSquareFill,
-  SFCheckmark,
-  SFLink,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFArrowUpRightSquareFill from "sf-symbols-lib/monochrome/SFArrowUpRightSquareFill";
+import SFCheckmark from "sf-symbols-lib/monochrome/SFCheckmark";
+import SFLink from "sf-symbols-lib/monochrome/SFLink";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";

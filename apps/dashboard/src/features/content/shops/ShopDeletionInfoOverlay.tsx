@@ -1,11 +1,9 @@
 import { Marked } from "marked";
 import { useCallback, useMemo, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
-import {
-  SFLongTextPageAndPencilFill,
-  SFSquareAndArrowDownFill,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { ShopSummary } from "@lmaa/shared";
 

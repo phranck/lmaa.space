@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useController, useForm } from "react-hook-form";
-import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
-import { SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
+import SFExclamationmarkSquareFill from "sf-symbols-lib/dualtone/SFExclamationmarkSquareFill";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";

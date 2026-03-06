@@ -1,4 +1,6 @@
-import { SFDesktopcomputer, SFMoonFill, SFSunMaxFill } from "sf-symbols-lib/monochrome";
+import SFDesktopcomputer from "sf-symbols-lib/monochrome/SFDesktopcomputer";
+import SFMoonFill from "sf-symbols-lib/monochrome/SFMoonFill";
+import SFSunMaxFill from "sf-symbols-lib/monochrome/SFSunMaxFill";
 
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 

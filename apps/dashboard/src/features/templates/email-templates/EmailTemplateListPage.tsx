@@ -1,14 +1,12 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import {
-  SFEnvelopeFill,
-  SFLockFill,
-  SFLongTextPageAndPencilFill,
-  SFPlusCircleFill,
-  SFSquareAndArrowDown,
-  SFSquareAndArrowUp,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFEnvelopeFill from "sf-symbols-lib/monochrome/SFEnvelopeFill";
+import SFLockFill from "sf-symbols-lib/monochrome/SFLockFill";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+import SFSquareAndArrowDown from "sf-symbols-lib/monochrome/SFSquareAndArrowDown";
+import SFSquareAndArrowUp from "sf-symbols-lib/monochrome/SFSquareAndArrowUp";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
 

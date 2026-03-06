@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import {
-  SFCheckmarkCircleFill,
-  SFCircle,
-  SFDocumentFill,
-  SFLongTextPageAndPencilFill,
-  SFPlusCircleFill,
-  SFSquareAndArrowDown,
-  SFSquareAndArrowUp,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
+import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
+import SFSquareAndArrowDown from "sf-symbols-lib/monochrome/SFSquareAndArrowDown";
+import SFSquareAndArrowUp from "sf-symbols-lib/monochrome/SFSquareAndArrowUp";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { FormConfig } from "@lmaa/contracts";
 

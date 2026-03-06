@@ -35,7 +35,10 @@ import {
 } from "@mdxeditor/editor";
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
-import { SFMinus, SFPlus, SFSquareAndArrowDownFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+import SFMinus from "sf-symbols-lib/monochrome/SFMinus";
+import SFPlus from "sf-symbols-lib/monochrome/SFPlus";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { ContentPage } from "@lmaa/shared";
 

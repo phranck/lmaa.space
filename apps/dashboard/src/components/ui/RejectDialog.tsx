@@ -1,5 +1,6 @@
 import type { ClipboardEvent, ReactNode } from "react";
-import { SFDocumentOnDocumentFill, SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
+import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { CharCounter, MarkdownTextarea } from "@lmaa/ui";
 

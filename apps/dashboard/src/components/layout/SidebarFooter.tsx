@@ -1,8 +1,6 @@
 import { useState } from "react";
-import {
-  SFLongTextPageAndPencilFill,
-  SFRectanglePortraitAndArrowRightFill,
-} from "sf-symbols-lib/monochrome";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFRectanglePortraitAndArrowRightFill from "sf-symbols-lib/monochrome/SFRectanglePortraitAndArrowRightFill";
 
 import type { AdminRole } from "@lmaa/shared";
 

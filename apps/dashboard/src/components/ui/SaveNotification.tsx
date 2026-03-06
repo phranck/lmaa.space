@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SFCheckmarkCircleFill } from "sf-symbols-lib/monochrome";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
 
 type Phase = "hidden" | "entering" | "visible" | "exiting";
 
