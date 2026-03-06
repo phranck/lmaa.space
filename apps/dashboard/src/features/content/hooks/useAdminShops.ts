@@ -24,15 +24,25 @@ export function useAdminShops(visibility?: ShopVisibility) {
 }
 
 /**
- * Updates visibility (`public`/`onhold`) for one shop.
+ * Updates visibility (`public`/`onhold`/`rejected`) for one shop.
  *
  * @returns React Query mutation for visibility updates.
  */
 export function useSetShopVisibility() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, visibility }: { id: number; visibility: ShopMutableVisibility }) =>
-      api.patch(`/admin/shops/${id}/visibility`, { visibility }),
+    mutationFn: ({
+      id,
+      visibility,
+      rejectionToken,
+      rejectionLongText,
+    }: {
+      id: number;
+      visibility: ShopMutableVisibility;
+      rejectionToken?: string;
+      rejectionLongText?: string | null;
+    }) =>
+      api.patch(`/admin/shops/${id}/visibility`, { visibility, rejectionToken, rejectionLongText }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }

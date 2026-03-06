@@ -3,6 +3,7 @@ import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.t
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
+import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -18,7 +19,7 @@ import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
-import { CharCounter, Checkbox } from "@lmaa/ui";
+import { CharCounter } from "@lmaa/ui";
 import { type ClipboardEvent, useEffect, useMemo, useState } from "react";
 import {
   SFArrowCounterclockwise,
@@ -117,11 +118,10 @@ export function SuggestionsTab() {
   // reviewId > 0 = approve, reviewId < 0 = reject
   const reviewing = submissions.find((s) => s.id === Math.abs(reviewId ?? 0));
 
-  usePersistedTextareaHeight("admin-note", "submissions:textarea:admin-note", reviewId !== null);
   usePersistedTextareaHeight(
-    "rejection-long",
-    "submissions:textarea:rejection-long",
-    reviewId !== null && reviewId < 0,
+    "admin-note",
+    "submissions:textarea:admin-note",
+    reviewId !== null && reviewId > 0,
   );
 
   function handleReviewSave(close = true) {
@@ -167,7 +167,7 @@ export function SuggestionsTab() {
 
   const handleCommentPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const pastedText = e.clipboardData.getData("text");
-    if (!pastedText.includes("[SUBMISSION_ID]")) return;
+    if (!pastedText.includes("[REJECT_TOKEN]")) return;
     e.preventDefault();
     const token = rejectionToken ?? "";
     const replaced = pastedText.replace(/\[SUBMISSION_ID\]/g, token);
@@ -426,7 +426,10 @@ export function SuggestionsTab() {
                   <button
                     type="button"
                     onClick={() =>
-                      window.open(`https://lmaa.space/rejected/${sub.rejectionToken}`, "_blank")
+                      window.open(
+                        `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${sub.rejectionToken}`,
+                        "_blank",
+                      )
                     }
                     className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                   >
@@ -499,17 +502,11 @@ export function SuggestionsTab() {
         />
       )}
 
-      {/* Review Modal */}
+      {/* Approve Modal */}
       <OverlayCard
-        open={reviewId !== null && reviewing !== undefined}
+        open={reviewId !== null && reviewId > 0 && reviewing !== undefined}
         onClose={closeReview}
-        size={{
-          storageKey:
-            reviewId !== null && reviewId > 0
-              ? "submissions:review-approve-size"
-              : "submissions:review-reject-size",
-          defaultWidth: reviewId !== null && reviewId > 0 ? 448 : 512,
-        }}
+        size={{ storageKey: "submissions:review-approve-size", defaultWidth: 448 }}
         aria-label={reviewTitle}
       >
         {reviewing && (
@@ -550,48 +547,10 @@ export function SuggestionsTab() {
                   onChange={setAdminNote}
                   onPaste={handleCommentPaste}
                   rows={3}
-                  placeholder={
-                    reviewId !== null && reviewId < 0
-                      ? submissionsMessages.suggestions.rejectReasonPlaceholder
-                      : submissionsMessages.suggestions.commentPlaceholder
-                  }
+                  placeholder={submissionsMessages.suggestions.commentPlaceholder}
                 />
                 <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
               </div>
-
-              {reviewId !== null && reviewId < 0 && (
-                <div>
-                  <label
-                    htmlFor="rejection-long"
-                    className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-                  >
-                    {submissionsMessages.suggestions.rejectionLongLabel}{" "}
-                    <span className="text-[var(--ds-text-subtle)] font-normal">
-                      {submissionsMessages.suggestions.optional}
-                    </span>
-                  </label>
-                  <MarkdownTextarea
-                    id="rejection-long"
-                    value={rejectionLongText}
-                    onChange={setRejectionLongText}
-                    rows={6}
-                    placeholder={submissionsMessages.suggestions.rejectionLongPlaceholder}
-                  />
-                </div>
-              )}
-
-              {!editingRejection && reviewing.submitterEmail && (
-                <Checkbox
-                  checked={sendFeedback}
-                  onChange={setSendFeedback}
-                  label={
-                    <>
-                      {submissionsMessages.suggestions.feedbackToPrefix}{" "}
-                      <span className="font-medium">{reviewing.submitterEmail}</span>
-                    </>
-                  }
-                />
-              )}
 
               {reviewMutation.isError && (
                 <p className="text-sm text-red-600">
@@ -613,28 +572,14 @@ export function SuggestionsTab() {
                 type="button"
                 disabled={reviewMutation.isPending}
                 onClick={() => handleReviewSave()}
-                className={`flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
-                  editingRejection || (reviewId !== null && reviewId > 0)
-                    ? "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-                    : "border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-                }`}
+                className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
               >
                 {reviewMutation.isPending ? (
                   "…"
-                ) : editingRejection ? (
-                  <>
-                    <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-                    {common.save}
-                  </>
-                ) : reviewId !== null && reviewId > 0 ? (
+                ) : (
                   <>
                     <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
                     {submissionsMessages.suggestions.accept}
-                  </>
-                ) : (
-                  <>
-                    <SFXmarkCircleFill className="w-3.5 h-3.5" />
-                    {submissionsMessages.suggestions.decline}
                   </>
                 )}
               </button>
@@ -642,6 +587,46 @@ export function SuggestionsTab() {
           </>
         )}
       </OverlayCard>
+
+      {/* Reject / Edit-Rejection Modal — shared RejectDialog component */}
+      <RejectDialog
+        open={reviewId !== null && reviewId < 0 && reviewing !== undefined}
+        onClose={closeReview}
+        title={reviewTitle}
+        name={reviewing?.shopName ?? ""}
+        url={reviewing?.shopUrl ?? ""}
+        adminNote={adminNote}
+        onAdminNoteChange={setAdminNote}
+        onAdminNotePaste={handleCommentPaste}
+        rejectionLongText={rejectionLongText}
+        onRejectionLongTextChange={setRejectionLongText}
+        submitterEmail={!editingRejection ? reviewing?.submitterEmail : undefined}
+        sendFeedback={sendFeedback}
+        onSendFeedbackChange={setSendFeedback}
+        onSubmit={() => handleReviewSave()}
+        isPending={reviewMutation.isPending}
+        isError={reviewMutation.isError}
+        errorMessage={reviewMutation.error?.message ?? common.unknownError}
+        submitLabel={editingRejection ? common.save : submissionsMessages.suggestions.decline}
+        submitVariant={editingRejection ? "primary" : "danger"}
+        submitIcon={
+          editingRejection ? <SFSquareAndArrowDownFill className="w-3.5 h-3.5" /> : undefined
+        }
+        headerRight={<SaveNotification phase={savedPhase} label={common.saved} />}
+        storageKey="submissions:review-reject-size"
+        adminNoteStorageKey="submissions:textarea:admin-note"
+        rejectionLongStorageKey="submissions:textarea:rejection-long"
+        messages={{
+          cancel: common.cancel,
+          comment: submissionsMessages.suggestions.comment,
+          optional: submissionsMessages.suggestions.optional,
+          commentPlaceholder: submissionsMessages.suggestions.rejectReasonPlaceholder,
+          rejectionLongLabel: submissionsMessages.suggestions.rejectionLongLabel,
+          rejectionLongPlaceholder: submissionsMessages.suggestions.rejectionLongPlaceholder,
+          feedbackToPrefix: submissionsMessages.suggestions.feedbackToPrefix,
+          errorPrefix: submissionsMessages.suggestions.reviewErrorPrefix,
+        }}
+      />
 
       <Dialog
         open={deleteSubmissionId !== null && deleteSubmissionTarget !== null}

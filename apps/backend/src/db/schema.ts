@@ -52,17 +52,22 @@ export const shops = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     visibility: text("visibility")
-      .$type<"public" | "onhold" | "deleted">()
+      .$type<"public" | "onhold" | "deleted" | "rejected">()
       .notNull()
       .default("public"),
     deletedBy: integer("deleted_by").references(() => adminUsers.id, { onDelete: "set null" }),
     deleteReason: text("delete_reason"),
     deletedWasReported: boolean("deleted_was_reported").notNull().default(false),
+    rejectionToken: text("rejection_token").unique(),
+    rejectionLongText: text("rejection_long_text"),
   },
   (table) => [
     index("idx_shops_active").on(table.isActive),
     index("idx_shops_visibility").on(table.visibility),
-    check("shops_visibility_check", sql`${table.visibility} IN ('public', 'onhold', 'deleted')`),
+    check(
+      "shops_visibility_check",
+      sql`${table.visibility} IN ('public', 'onhold', 'deleted', 'rejected')`,
+    ),
   ],
 );
 
