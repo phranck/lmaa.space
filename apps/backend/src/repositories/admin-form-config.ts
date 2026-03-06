@@ -1,5 +1,7 @@
-import type { FormConfigPayload } from "@lmaa/contracts";
 import { and, eq } from "drizzle-orm";
+
+import type { FormConfigPayload } from "@lmaa/contracts";
+
 import { db } from "../db/index.js";
 import { type FormConfigRow, formConfigs } from "../db/schema.js";
 

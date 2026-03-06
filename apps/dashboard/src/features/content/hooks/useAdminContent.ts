@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { ContentPage, ContentPageSummary } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { ContentPage, ContentPageSummary } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 /**
  * Loads all content page summaries for the content overview.

@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
+
+import { api } from "@/lib/api.ts";
 
 export type ImportEmailTemplateInput = EmailTemplateInput & { overwrite: boolean };
 

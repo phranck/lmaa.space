@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { DeadLinkReportSummary } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { DeadLinkReportSummary } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 /**
  * Loads aggregated dead-link reports.

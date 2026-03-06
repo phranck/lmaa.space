@@ -1,4 +1,5 @@
 import { marked } from "marked";
+
 import type { EmailTemplate } from "../db/schema.js";
 import { escapeHtml } from "../lib/html.js";
 

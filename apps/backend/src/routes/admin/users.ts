@@ -1,6 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
-import { createUserSchema, gravatarSchema, updateUserSchema } from "@lmaa/contracts";
 import { Hono } from "hono";
+
+import { createUserSchema, gravatarSchema, updateUserSchema } from "@lmaa/contracts";
+
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin, requireOwner } from "../../middleware/auth.js";

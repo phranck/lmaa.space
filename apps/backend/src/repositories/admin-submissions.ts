@@ -1,5 +1,7 @@
-import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
 import { desc, eq, inArray } from "drizzle-orm";
+
+import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
+
 import { db } from "../db/index.js";
 import {
   type Shop,

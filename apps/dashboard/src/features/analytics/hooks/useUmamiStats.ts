@@ -1,5 +1,6 @@
-import { api } from "@/lib/api.ts";
 import { useQuery } from "@tanstack/react-query";
+
+import { api } from "@/lib/api.ts";
 
 /**
  * Supported period filters for Umami analytics queries.

@@ -1,7 +1,10 @@
 {
   "name": "lmaa-space",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev:frontend": "npm run dev -w @lmaa/frontend",
     "dev:backend": "npm run dev -w @lmaa/backend",
@@ -13,17 +16,21 @@
     "ci:smoke": "test -f apps/backend/dist/index.js && test -f apps/frontend/dist/server/entry.mjs && test -f apps/dashboard/dist/index.html",
     "ci:quality": "npm run lint && npm run build -w @lmaa/shared && npm run typecheck && npm run build && npm run ci:smoke",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "npm run db:migrate -w @lmaa/backend",
     "db:studio": "drizzle-kit studio",
     "docs:code": "typedoc --options typedoc.json"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@typescript-eslint/parser": "^8.46.0",
     "drizzle-kit": "^0.30.4",
+    "eslint": "^9.37.0",
+    "eslint-plugin-import": "^2.32.0",
+    "prettier": "^3.6.2",
     "typedoc": "^0.28.9",
     "typescript": "^5.7.3"
   },

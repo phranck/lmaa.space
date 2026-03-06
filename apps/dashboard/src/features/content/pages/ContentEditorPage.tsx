@@ -1,15 +1,4 @@
 import "@mdxeditor/editor/style.css";
-import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import {
-  useAdminContentPage,
-  useDeleteContentPage,
-  usePatchContentPage,
-  useSaveContentPage,
-} from "@/features/content/hooks/useAdminContent.ts";
-import { sourceKeymap } from "@/features/content/pages/sourceKeymap.ts";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import type { ContentPage } from "@lmaa/shared";
 import {
   AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
@@ -47,6 +36,19 @@ import {
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 import { SFMinus, SFPlus, SFSquareAndArrowDownFill, SFTrashFill } from "sf-symbols-lib/monochrome";
+
+import type { ContentPage } from "@lmaa/shared";
+
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import {
+  useAdminContentPage,
+  useDeleteContentPage,
+  usePatchContentPage,
+  useSaveContentPage,
+} from "@/features/content/hooks/useAdminContent.ts";
+import { sourceKeymap } from "@/features/content/pages/sourceKeymap.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 const VIEW_MODE_KEY = "content-editor-view-mode";
 const FONT_SIZE_KEY = "content-editor-source-font-size";

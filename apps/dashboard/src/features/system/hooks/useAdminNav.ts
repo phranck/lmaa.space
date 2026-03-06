@@ -1,6 +1,8 @@
-import { api } from "@/lib/api.ts";
-import type { NavId, NavItem } from "@lmaa/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { NavId, NavItem } from "@lmaa/shared";
+
+import { api } from "@/lib/api.ts";
 
 /**
  * Loads editable nav items for one nav area.

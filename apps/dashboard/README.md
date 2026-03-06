@@ -3,6 +3,7 @@
 Administrationsoberfläche für Moderation, Inhalte, Navigation und Analytics.
 
 ## Tech Stack
+
 - React 19 + Vite
 - TanStack Query
 - Recharts
@@ -25,6 +26,7 @@ npm run build -w @lmaa/dashboard
 Build-Ausgabe liegt in `apps/dashboard/dist`.
 
 ## Wichtige Module
+
 - `src/features`: fachliche Module (Shops, Submissions, Analytics, Content)
 - `src/components`: app-weite UI-Bausteine
 - `src/lib`: API-Client, Services, Utilities

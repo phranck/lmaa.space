@@ -1,3 +1,24 @@
+import { NavLink, useNavigate } from "react-router";
+import {
+  SFBookPagesFill,
+  SFChartBarFill,
+  SFCheckmarkCircleFill,
+  SFCircle,
+  SFDocumentFill,
+  SFDocumentOnDocumentFill,
+  SFEnvelopeBadgeFill,
+  SFEyeSlashFill,
+  SFLink,
+  SFListBulletRectanglePortraitFill,
+  SFPerson3Fill,
+  SFSquareGrid2x2Fill,
+  SFStorefrontFill,
+  SFTagFill,
+  SFTrayFill,
+} from "sf-symbols-lib/monochrome";
+
+import type { AdminRole } from "@lmaa/shared";
+
 import {
   CollapsibleSidebarGroup,
   sidebarGroupItemClass,
@@ -18,25 +39,6 @@ import {
   useEmailTemplates,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
-import type { AdminRole } from "@lmaa/shared";
-import { NavLink, useNavigate } from "react-router";
-import {
-  SFBookPagesFill,
-  SFChartBarFill,
-  SFCheckmarkCircleFill,
-  SFCircle,
-  SFDocumentFill,
-  SFDocumentOnDocumentFill,
-  SFEnvelopeBadgeFill,
-  SFEyeSlashFill,
-  SFLink,
-  SFListBulletRectanglePortraitFill,
-  SFPerson3Fill,
-  SFSquareGrid2x2Fill,
-  SFStorefrontFill,
-  SFTagFill,
-  SFTrayFill,
-} from "sf-symbols-lib/monochrome";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 

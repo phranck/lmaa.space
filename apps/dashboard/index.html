@@ -14,8 +14,7 @@
         var t = localStorage.getItem("dashboard-theme");
         var dark =
           t === "dark" ||
-          (t !== "light" &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches);
+          (t !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
         if (dark) {
           document.documentElement.classList.add("dark");
           document.querySelector('meta[name="color-scheme"]').content = "dark";

@@ -1,9 +1,10 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
+
 import { useI18n } from "@/context/I18nContext.tsx";
 import { AuthBackground } from "@/features/auth/AuthBackground.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { api } from "@/lib/api.ts";
-import { useState } from "react";
-import { useNavigate } from "react-router";
 
 /**
  * First-run setup screen that creates the initial owner account.

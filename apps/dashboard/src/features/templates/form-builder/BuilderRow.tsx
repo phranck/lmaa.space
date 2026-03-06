@@ -1,8 +1,10 @@
-import { BuilderField } from "@/features/templates/form-builder/BuilderField.tsx";
 import { useDndContext, useDroppable } from "@dnd-kit/core";
 import { SortableContext, horizontalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
 import type { FormField, FormRow } from "@lmaa/contracts";
+
+import { BuilderField } from "@/features/templates/form-builder/BuilderField.tsx";
 
 interface BuilderRowProps {
   row: FormRow;

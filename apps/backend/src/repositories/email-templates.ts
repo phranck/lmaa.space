@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+
 import { db } from "../db/index.js";
 import { type EmailTemplate, type EmailTemplateInsert, emailTemplates } from "../db/schema.js";
 

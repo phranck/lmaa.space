@@ -1,5 +1,6 @@
-import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
+
+import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 
 // ---------------------------------------------------------------------------
 // Deterministic starfield via seeded PRNG (one box-shadow per star)

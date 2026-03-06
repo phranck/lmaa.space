@@ -1,8 +1,9 @@
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+
 import { useI18n } from "@/context/I18nContext.tsx";
 import { AuthBackground } from "@/features/auth/AuthBackground.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 
 /**
  * Detects browser/1Password autofill via CSS animation and replaces the

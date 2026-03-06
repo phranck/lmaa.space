@@ -1,4 +1,3 @@
-import { logger } from "../lib/logger.js";
 import {
   UMAMI_WEBSITE_ID,
   type UmamiPeriod,
@@ -8,6 +7,7 @@ import {
   umamiConfigured,
   umamiGet,
 } from "./umami.js";
+import { logger } from "../lib/logger.js";
 
 const DEFAULT_PERIOD: UmamiPeriod = "7d";
 

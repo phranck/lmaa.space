@@ -1,7 +1,8 @@
+import { Suspense, lazy } from "react";
+
 import { AnalyticsLoadingFallback } from "@/components/AnalyticsLoadingFallback.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { Suspense, lazy } from "react";
 
 const AnalyticsSection = lazy(() =>
   import("./AnalyticsSection.tsx").then((m) => ({ default: m.AnalyticsSection })),

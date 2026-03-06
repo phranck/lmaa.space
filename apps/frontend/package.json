@@ -9,8 +9,10 @@
     "preview": "astro preview",
     "check": "astro check",
     "typecheck": "astro check",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write ."
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "dependencies": {
     "@astrojs/node": "^9.5.4",

@@ -1,9 +1,10 @@
+import { type ReactNode, createContext, useContext, useMemo, useState } from "react";
+
 import {
   DASHBOARD_MESSAGES,
   type DashboardLocale,
   type DashboardMessages,
 } from "@/i18n/messages.ts";
-import { type ReactNode, createContext, useContext, useMemo, useState } from "react";
 
 const DASHBOARD_LOCALE_STORAGE_KEY = "dashboard-locale";
 

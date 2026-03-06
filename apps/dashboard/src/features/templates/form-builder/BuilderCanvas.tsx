@@ -1,8 +1,10 @@
-import { useI18n } from "@/context/I18nContext.tsx";
-import { BuilderRow } from "@/features/templates/form-builder/BuilderRow.tsx";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+
 import type { FormRow } from "@lmaa/contracts";
+
+import { useI18n } from "@/context/I18nContext.tsx";
+import { BuilderRow } from "@/features/templates/form-builder/BuilderRow.tsx";
 
 interface BuilderCanvasProps {
   rows: FormRow[];

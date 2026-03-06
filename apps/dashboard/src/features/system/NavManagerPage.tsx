@@ -1,8 +1,3 @@
-import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
-import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
-import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
 import {
   DndContext,
   type DragEndEvent,
@@ -20,7 +15,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { NavId } from "@lmaa/shared";
 import { useEffect, useState } from "react";
 import {
   SFLine3Horizontal,
@@ -28,6 +22,14 @@ import {
   SFSquareAndArrowDownFill,
   SFXmark,
 } from "sf-symbols-lib/monochrome";
+
+import type { NavId } from "@lmaa/shared";
+
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
+import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
+import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
 
 const NAV_TEXT = {
   de: {

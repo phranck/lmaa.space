@@ -1,3 +1,10 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
+import { SFCheckmarkCircleFill, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
+
+import type { EmailTemplateInput } from "@lmaa/contracts";
+
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -8,11 +15,6 @@ import {
   useEmailTemplate,
   useUpdateEmailTemplate,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
-import type { EmailTemplateInput } from "@lmaa/contracts";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { SFExclamationmarkSquareFill } from "sf-symbols-lib/dualtone";
-import { SFCheckmarkCircleFill, SFSquareAndArrowDownFill } from "sf-symbols-lib/monochrome";
 
 interface FieldProps {
   label: string;

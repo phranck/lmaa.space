@@ -1,5 +1,7 @@
-import type { AdminStats } from "@lmaa/shared";
 import { sql } from "drizzle-orm";
+
+import type { AdminStats } from "@lmaa/shared";
+
 import { db } from "../db/index.js";
 
 /**

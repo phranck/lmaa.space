@@ -1,3 +1,11 @@
+import { useState } from "react";
+import {
+  SFListBullet,
+  SFPlusCircleFill,
+  SFSquareGrid2x2Fill,
+  SFTagFill,
+} from "sf-symbols-lib/monochrome";
+
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -12,13 +20,6 @@ import {
   useDeleteCategory,
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import { useState } from "react";
-import {
-  SFListBullet,
-  SFPlusCircleFill,
-  SFSquareGrid2x2Fill,
-  SFTagFill,
-} from "sf-symbols-lib/monochrome";
 
 type ViewMode = "list" | "grid";
 

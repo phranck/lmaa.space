@@ -1,3 +1,11 @@
+import { useState } from "react";
+import {
+  SFArrowCounterclockwise,
+  SFLongTextPageAndPencilFill,
+  SFStorefrontFill,
+  SFTrashFill,
+} from "sf-symbols-lib/monochrome";
+
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -8,13 +16,6 @@ import {
   useDismissShopConcern,
   useShopConcernReports,
 } from "@/features/overview/hooks/useShopConcerns.ts";
-import { useState } from "react";
-import {
-  SFArrowCounterclockwise,
-  SFLongTextPageAndPencilFill,
-  SFStorefrontFill,
-  SFTrashFill,
-} from "sf-symbols-lib/monochrome";
 
 export function ShopReportsTab() {
   const { locale, messages } = useI18n();

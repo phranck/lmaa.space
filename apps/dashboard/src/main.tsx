@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
+
 import "virtual:uno.css";
 import "./index.css";
 import App from "./App.tsx";

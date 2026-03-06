@@ -1,12 +1,14 @@
-import { Dialog, dialogBtnPrimary, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { UserAvatar } from "@/features/system/UserAvatar.tsx";
-import type { AdminRole } from "@lmaa/shared";
 import { useState } from "react";
 import {
   SFLongTextPageAndPencilFill,
   SFRectanglePortraitAndArrowRightFill,
 } from "sf-symbols-lib/monochrome";
+
+import type { AdminRole } from "@lmaa/shared";
+
+import { Dialog, dialogBtnPrimary, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { UserAvatar } from "@/features/system/UserAvatar.tsx";
 
 const SKIP_KEY = "logout-skip-confirm";
 

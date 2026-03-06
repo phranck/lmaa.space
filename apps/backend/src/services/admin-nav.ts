@@ -1,4 +1,5 @@
 import type { NavId, NavItem } from "@lmaa/shared";
+
 import {
   type ReplaceAdminNavItemInput,
   listAdminNavItems,

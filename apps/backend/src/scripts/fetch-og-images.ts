@@ -6,6 +6,7 @@
 import { eq, isNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+
 import { env } from "../config/env.js";
 import { shops } from "../db/schema.js";
 import { fetchShopPreviewImage } from "../services/preview-images.js";

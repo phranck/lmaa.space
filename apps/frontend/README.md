@@ -3,6 +3,7 @@
 Öffentliche Website auf Basis von Astro SSR mit React-Islands.
 
 ## Tech Stack
+
 - Astro 5 (`@astrojs/node`, `@astrojs/react`)
 - UnoCSS
 - geteilte Pakete: `@lmaa/shared`, `@lmaa/ui`
@@ -24,6 +25,7 @@ npm run build -w @lmaa/frontend
 SSR-Ausgabe liegt in `apps/frontend/dist`.
 
 ## Wichtige Module
+
 - `src/pages`: öffentliche Routen
 - `src/components/islands`: React-Komponenten mit Client-Hydration
 - `src/lib`: API-Clients, Domain-Helfer und Shared-Adapter

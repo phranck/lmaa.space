@@ -1,7 +1,8 @@
-import { resolveInitialLocale } from "@/context/I18nContext.tsx";
-import { DASHBOARD_MESSAGES } from "@/i18n/messages.ts";
 import { Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
+
+import { resolveInitialLocale } from "@/context/I18nContext.tsx";
+import { DASHBOARD_MESSAGES } from "@/i18n/messages.ts";
 
 interface Props {
   children: ReactNode;

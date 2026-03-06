@@ -1,5 +1,7 @@
-import type { FormField, FormRow } from "@lmaa/contracts";
 import { describe, expect, it } from "vitest";
+
+import type { FormField, FormRow } from "@lmaa/contracts";
+
 import { buildFormValidationSchema } from "../services/form-validation.js";
 
 function row(...fields: FormField[]): FormRow {

@@ -1,16 +1,3 @@
-import { Card } from "@/components/ui/Card.tsx";
-import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
-import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
-import { BUTTON_ICON_LIST } from "@/features/templates/form-builder/buttonIconMap.tsx";
-import type {
-  ButtonActionType,
-  FieldType,
-  FormField,
-  InputType,
-  RichTextVariant,
-} from "@lmaa/contracts";
 import { Suspense, lazy, useEffect, useState } from "react";
 import {
   SFCalendar,
@@ -21,6 +8,21 @@ import {
   SFNumbersign,
   SFTextformat,
 } from "sf-symbols-lib/monochrome";
+
+import type {
+  ButtonActionType,
+  FieldType,
+  FormField,
+  InputType,
+  RichTextVariant,
+} from "@lmaa/contracts";
+
+import { Card } from "@/components/ui/Card.tsx";
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
+import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { BUTTON_ICON_LIST } from "@/features/templates/form-builder/buttonIconMap.tsx";
+import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 
 const RichTextEditor = lazy(() =>
   import("@/features/templates/form-builder/RichTextEditor.tsx").then((m) => ({

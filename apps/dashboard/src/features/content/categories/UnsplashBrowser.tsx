@@ -1,8 +1,9 @@
+import { useCallback, useEffect, useReducer, useRef } from "react";
+import { SFArrowClockwise, SFMagnifyingglass, SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
+
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
-import { useCallback, useEffect, useReducer, useRef } from "react";
-import { SFArrowClockwise, SFMagnifyingglass, SFXmarkCircleFill } from "sf-symbols-lib/monochrome";
 
 interface UnsplashPhoto {
   id: string;

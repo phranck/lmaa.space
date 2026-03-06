@@ -1,8 +1,3 @@
-import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { ShopDeletionInfoOverlay } from "@/features/content/shops/ShopDeletionInfoOverlay.tsx";
-import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
-import { REGION_CODES, type ShopSummary } from "@lmaa/shared";
 import { useMemo, useState } from "react";
 import {
   SFArrowCounterclockwise,
@@ -13,6 +8,13 @@ import {
   SFTrashFill,
   SFXmarkCircleFill,
 } from "sf-symbols-lib/monochrome";
+
+import { REGION_CODES, type ShopSummary } from "@lmaa/shared";
+
+import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
+import { ShopDeletionInfoOverlay } from "@/features/content/shops/ShopDeletionInfoOverlay.tsx";
 
 interface ShopTableProps {
   shops: ShopSummary[];

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { hashIp, normalizeShopHostname } from "../services/public.js";
 
 describe("normalizeShopHostname", () => {

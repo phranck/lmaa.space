@@ -72,7 +72,7 @@
 
 :root {
   /* Surface lightness levels (light mode: high L, step downward) */
-  --ds-L-surface: 1.0;
+  --ds-L-surface: 1;
   --ds-L-bg: calc(var(--ds-L-surface) - var(--ds-L-surface-step));
   --ds-L-elevated: calc(var(--ds-L-surface) - var(--ds-L-surface-step) * 2);
   --ds-L-inset: calc(var(--ds-L-bg) - var(--ds-L-surface-step));
@@ -146,12 +146,7 @@
   --ds-text-2xl: calc(1rem * var(--ds-scale) * var(--ds-scale) * var(--ds-scale));
   --ds-text-3xl: calc(1rem * var(--ds-scale) * var(--ds-scale) * var(--ds-scale) * var(--ds-scale));
   --ds-text-4xl: calc(
-    1rem *
-    var(--ds-scale) *
-    var(--ds-scale) *
-    var(--ds-scale) *
-    var(--ds-scale) *
-    var(--ds-scale)
+    1rem * var(--ds-scale) * var(--ds-scale) * var(--ds-scale) * var(--ds-scale) * var(--ds-scale)
   );
 
   /* Line heights — decrease with size for optical balance */

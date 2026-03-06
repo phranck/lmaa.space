@@ -1,15 +1,16 @@
+import { useState } from "react";
+
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { DeadLinksTab } from "@/features/overview/DeadLinksTab.tsx";
-import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
-import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
 import { useDeadLinkReports } from "@/features/overview/hooks/useDeadLinks.ts";
 import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
+import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
+import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import { useState } from "react";
 
 type Tab = "suggestions" | "dead-links" | "shop-reports";
 

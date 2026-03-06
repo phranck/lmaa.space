@@ -1,4 +1,5 @@
 import sharp from "sharp";
+
 import { detectImageType } from "./validate.js";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;

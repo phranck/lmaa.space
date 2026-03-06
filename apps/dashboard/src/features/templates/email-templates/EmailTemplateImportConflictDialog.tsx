@@ -1,6 +1,7 @@
+import { useState } from "react";
+
 import { Dialog, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useState } from "react";
 
 interface EmailTemplateImportConflictDialogProps {
   templateName: string;

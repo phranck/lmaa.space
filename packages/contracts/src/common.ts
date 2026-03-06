@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   REGION_CODES,
   SHOP_MUTABLE_VISIBILITIES,
@@ -5,7 +7,6 @@ import {
   SUBMISSION_REVIEW_STATUSES,
   SUBMISSION_STATUSES,
 } from "@lmaa/shared";
-import { z } from "zod";
 
 /**
  * Region code validator shared by public and admin routes.

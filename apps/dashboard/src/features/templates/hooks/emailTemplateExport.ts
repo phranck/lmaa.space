@@ -1,5 +1,6 @@
-import { downloadJson } from "@/lib/download.ts";
 import type { EmailTemplate } from "@lmaa/contracts";
+
+import { downloadJson } from "@/lib/download.ts";
 
 export function exportEmailTemplateSingle(template: EmailTemplate) {
   const { id: _id, createdAt: _c, updatedAt: _u, ...fields } = template;

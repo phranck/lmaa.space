@@ -1,3 +1,6 @@
+import { Suspense, lazy } from "react";
+import { Navigate, Route, Routes } from "react-router";
+
 import { ContentEditorLoadingFallback } from "@/components/ContentEditorLoadingFallback.tsx";
 import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
 import { I18nProvider } from "@/context/I18nContext.tsx";
@@ -10,8 +13,6 @@ import { ShopsPage } from "@/features/content/shops/ShopsPage.tsx";
 import { DashboardPage } from "@/features/overview/DashboardPage.tsx";
 import { SubmissionsPage } from "@/features/overview/SubmissionsPage.tsx";
 import { UsersPage } from "@/features/system/UsersPage.tsx";
-import { Suspense, lazy } from "react";
-import { Navigate, Route, Routes } from "react-router";
 
 const ContentEditorPage = lazy(() =>
   import("@/features/content/pages/ContentEditorPage.tsx").then((m) => ({

@@ -1,8 +1,10 @@
-import { Card } from "@/components/ui/Card.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+
 import type { FieldType } from "@lmaa/contracts";
+
+import { Card } from "@/components/ui/Card.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 
 interface PaletteTileProps {
   /** dnd-kit drag id suffix — not necessarily a FieldType (e.g. "categories-select") */

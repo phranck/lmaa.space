@@ -1,6 +1,7 @@
-import { usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { type ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
+
+import { usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 
 interface PageHeaderProps {
   title: string;
