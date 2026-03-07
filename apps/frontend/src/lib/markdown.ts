@@ -2,9 +2,9 @@ import { Marked } from "marked";
 import markedFootnote from "marked-footnote";
 
 /**
- * Renders Markdown to HTML with raw HTML blocks stripped.
- * Prevents XSS from user-submitted or admin-approved content.
- * Standard Markdown elements (bold, italic, links, code) are unaffected.
+ * Renders Markdown to HTML.
+ * Raw HTML blocks are passed through as-is (admin-authored content only).
+ * javascript: hrefs in links are stripped.
  */
 const UNSAFE_HREF = /^\s*javascript:/i;
 
@@ -55,9 +55,6 @@ function normalizeFootnoteSourceHeadings(content: string): string {
 
 const markedSafe = new Marked({
   renderer: {
-    html() {
-      return "";
-    },
     link({ href, title, text }) {
       if (!href || UNSAFE_HREF.test(href)) return text;
       const titleAttr = title ? ` title="${title}"` : "";
