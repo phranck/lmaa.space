@@ -9,6 +9,7 @@ import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrow
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
+import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -53,7 +54,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const { messages } = useI18n();
   const common = messages.common;
   const usersMessages = messages.users;
-  const { user: me } = useAuth();
+  const { user: me, refresh } = useAuth();
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -63,6 +64,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const [role, setRole] = useState<"admin" | "moderator">("admin");
   const [avatar, setAvatar] = useState<AvatarState>(EMPTY_AVATAR_STATE);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewObjectUrlRef = useRef<string | null>(null);
   const [logoutConfirm, setLogoutConfirm] = useState(
     () => localStorage.getItem("logout-skip-confirm") !== "true",
   );
@@ -83,6 +85,19 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
   const error = updateUser.error ?? saveAvatar.error ?? setGravatar.error ?? deleteAvatar.error;
 
+  function setAvatarState(next: AvatarState) {
+    if (previewObjectUrlRef.current && previewObjectUrlRef.current !== next.previewUrl) {
+      URL.revokeObjectURL(previewObjectUrlRef.current);
+      previewObjectUrlRef.current = null;
+    }
+
+    if (next.previewUrl?.startsWith("blob:")) {
+      previewObjectUrlRef.current = next.previewUrl;
+    }
+
+    setAvatar(next);
+  }
+
   // Populate form when user data arrives
   useEffect(() => {
     if (user) {
@@ -91,22 +106,31 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       setFirstName(user.firstName ?? "");
       setLastName(user.lastName ?? "");
       setRole(user.role === "moderator" ? "moderator" : "admin");
-      setAvatar({ ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null });
+      setAvatarState({ ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null });
     }
   }, [user]);
+
+  useEffect(
+    () => () => {
+      if (previewObjectUrlRef.current) {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+      }
+    },
+    [],
+  );
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const previewUrl = URL.createObjectURL(file);
-    setAvatar({ previewUrl, pendingFile: file, pendingGravatarUrl: null, deleted: false });
+    setAvatarState({ previewUrl, pendingFile: file, pendingGravatarUrl: null, deleted: false });
     e.target.value = "";
   }
 
   function handleGravatar() {
     const hash = md5(email.trim().toLowerCase());
     const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?s=256&d=mp`;
-    setAvatar({
+    setAvatarState({
       previewUrl: gravatarUrl,
       pendingFile: null,
       pendingGravatarUrl: gravatarUrl,
@@ -115,7 +139,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   }
 
   function handleRemoveAvatar() {
-    setAvatar({ previewUrl: null, pendingFile: null, pendingGravatarUrl: null, deleted: true });
+    setAvatarState({ previewUrl: null, pendingFile: null, pendingGravatarUrl: null, deleted: true });
   }
 
   const canChangeRole = me?.isOwner && userId !== me?.id && user?.role !== "owner";
@@ -159,6 +183,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       } else {
         localStorage.setItem("logout-skip-confirm", "true");
       }
+      await refresh();
     }
 
     if (close) {
@@ -395,11 +420,6 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
           </div>
         </div>
 
-        {isError && (
-          <p className="text-red-500 text-sm mt-4">
-            {error instanceof Error ? error.message : usersMessages.editCard.errorSaving}
-          </p>
-        )}
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
@@ -420,6 +440,19 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
           {isPending ? common.saving : common.save}
         </button>
       </OverlayCard.Footer>
+
+      <AlertDialog
+        open={isError}
+        title={usersMessages.editCard.errorSaving}
+        message={error instanceof Error ? error.message : usersMessages.editCard.errorSaving}
+        onClose={() => {
+          updateUser.reset();
+          saveAvatar.reset();
+          setGravatar.reset();
+          deleteAvatar.reset();
+        }}
+        buttonLabel={common.close}
+      />
     </OverlayCard>
   );
 }

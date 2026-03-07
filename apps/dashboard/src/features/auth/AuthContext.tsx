@@ -1,12 +1,5 @@
-import {
-  type ReactNode,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type ReactNode, createContext, useCallback, useContext, useMemo } from "react";
 
 import type { AdminUser } from "@lmaa/shared";
 
@@ -22,6 +15,8 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState | null>(null);
+const authMeQueryKey = ["auth", "me"] as const;
+const authSetupQueryKey = ["auth", "setup"] as const;
 
 /**
  * Authentication provider for dashboard session state.
@@ -33,41 +28,48 @@ const AuthContext = createContext<AuthState | null>(null);
  * @returns Context provider element.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [needsSetup, setNeedsSetup] = useState(false);
+  const queryClient = useQueryClient();
+
+  const meQuery = useQuery<AdminUser | null>({
+    queryKey: authMeQueryKey,
+    queryFn: () => api.get<AdminUser>("/admin/me"),
+    retry: false,
+  });
+
+  const setupQuery = useQuery({
+    queryKey: authSetupQueryKey,
+    queryFn: () => api.get<{ needsSetup: boolean }>("/admin/setup"),
+    enabled: meQuery.isError,
+    retry: false,
+  });
+
+  const user = meQuery.data ?? null;
+  const isLoading = meQuery.isLoading || (meQuery.isError && setupQuery.isLoading);
+  const needsSetup = !user && meQuery.isError ? (setupQuery.data?.needsSetup ?? false) : false;
 
   const refresh = useCallback(async () => {
-    try {
-      const me = await api.get<AdminUser>("/admin/me");
-      setUser(me);
-      setNeedsSetup(false);
-    } catch {
-      setUser(null);
-      try {
-        const res = await api.get<{ needsSetup: boolean }>("/admin/setup");
-        setNeedsSetup(res.needsSetup);
-      } catch {
-        setNeedsSetup(false);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: authMeQueryKey }),
+      queryClient.invalidateQueries({ queryKey: authSetupQueryKey }),
+    ]);
+
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: authMeQueryKey, type: "active" }),
+      queryClient.refetchQueries({ queryKey: authSetupQueryKey, type: "active" }),
+    ]);
+  }, [queryClient]);
 
   const login = useCallback(async (username: string, password: string) => {
     const me = await api.post<AdminUser>("/admin/login", { username, password });
-    setUser(me);
-  }, []);
+    queryClient.setQueryData(authMeQueryKey, me);
+    queryClient.setQueryData(authSetupQueryKey, { needsSetup: false });
+  }, [queryClient]);
 
   const logout = useCallback(async () => {
     await api.post("/admin/logout").catch(() => {});
-    setUser(null);
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+    queryClient.setQueryData(authMeQueryKey, null);
+    queryClient.setQueryData(authSetupQueryKey, { needsSetup: false });
+  }, [queryClient]);
 
   const value = useMemo(
     () => ({ user, isLoading, needsSetup, login, logout, refresh }),
