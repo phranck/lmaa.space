@@ -64,7 +64,7 @@ if (page) {
 
 {page ? (
   <BaseLayout title={page.title} description={description}>
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
       <article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
         {page.showTitle && <h1>{page.title}</h1>}
         <Fragment set:html={html} />
@@ -73,7 +73,7 @@ if (page) {
   </BaseLayout>
 ) : (
   <BaseLayout title={formConfig!.name}>
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
       <DynamicForm client:only="react" formConfig={formConfig!} categories={categories} />
     </div>
   </BaseLayout>
