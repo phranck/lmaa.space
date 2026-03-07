@@ -35,6 +35,7 @@ import {
 } from "@mdxeditor/editor";
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
+import SFArrowUpRightSquareFill from "sf-symbols-lib/monochrome/SFArrowUpRightSquareFill";
 import SFMinus from "sf-symbols-lib/monochrome/SFMinus";
 import SFPlus from "sf-symbols-lib/monochrome/SFPlus";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
@@ -176,6 +177,7 @@ interface EditorHeaderActionsProps {
     confirmDelete: string;
     confirmDeleteAction: string;
     saved: string;
+    preview: string;
   };
   onDecreaseFont: () => void;
   onIncreaseFont: () => void;
@@ -183,6 +185,7 @@ interface EditorHeaderActionsProps {
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
   onSave: () => void;
+  onPreview: () => void;
 }
 
 function EditorHeaderActions({
@@ -201,6 +204,7 @@ function EditorHeaderActions({
   onCancelDelete,
   onConfirmDelete,
   onSave,
+  onPreview,
 }: EditorHeaderActionsProps) {
   return (
     <div className="flex items-center gap-3">
@@ -267,6 +271,15 @@ function EditorHeaderActions({
       >
         <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
         {saved ? editorMessages.saved : common.save}
+      </button>
+
+      <button
+        type="button"
+        onClick={onPreview}
+        className="flex items-center gap-2 py-1.5 px-3 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+        title={editorMessages.preview}
+      >
+        <SFArrowUpRightSquareFill className="w-3.5 h-3.5" />
       </button>
     </div>
   );
@@ -603,6 +616,12 @@ export function ContentEditorPage() {
             });
           }}
           onSave={handleSave}
+          onPreview={() => {
+            const base =
+              import.meta.env.VITE_FRONTEND_URL ??
+              (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space");
+            window.open(`${base}/${slug}`, "_blank");
+          }}
         />
       </PageHeader>
 

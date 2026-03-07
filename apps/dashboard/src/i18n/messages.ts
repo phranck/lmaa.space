@@ -405,6 +405,7 @@ export interface DashboardMessages {
       updatedBy: string;
       loadingContent: string;
       saveError: string;
+      preview: string;
     };
     linkPicker: {
       insertInternalLink: string;
@@ -1073,6 +1074,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         updatedBy: "Geändert von",
         loadingContent: "Lade Inhalt…",
         saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
+        preview: "Vorschau",
       },
       linkPicker: {
         insertInternalLink: "Internen Link einfügen",
@@ -1732,6 +1734,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         updatedBy: "Updated by",
         loadingContent: "Loading content…",
         saveError: "Error while saving. Please try again.",
+        preview: "Preview",
       },
       linkPicker: {
         insertInternalLink: "Insert internal link",
