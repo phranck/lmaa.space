@@ -1,5 +1,5 @@
 import md5 from "blueimp-md5";
-import { useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type Reducer, type RefObject, useEffect, useReducer, useRef } from "react";
 import SFAt from "sf-symbols-lib/monochrome/SFAt";
 import SFKey from "sf-symbols-lib/monochrome/SFKey";
 import SFPencil from "sf-symbols-lib/monochrome/SFPencil";
@@ -9,12 +9,15 @@ import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrow
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
+import type { AdminUser } from "@lmaa/shared";
+
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import type { DashboardMessages } from "@/i18n/messages.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 import {
@@ -24,17 +27,52 @@ import {
   useSetGravatarAvatar,
   useUpdateUser,
 } from "./hooks/useAdminUsers.ts";
+
 interface UserEditCardProps {
   userId: number;
   onClose: () => void;
   onSaved: () => void;
 }
 
+type EditableRole = "admin" | "moderator";
+
 interface AvatarState {
   previewUrl: string | null;
   pendingFile: File | null;
   pendingGravatarUrl: string | null;
   deleted: boolean;
+}
+
+interface UserEditDraftState {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: EditableRole;
+  logoutConfirm: boolean;
+  avatar: AvatarState;
+}
+
+type UserEditField = "username" | "email" | "password" | "firstName" | "lastName";
+
+type UserEditDraftAction =
+  | { type: "setField"; field: UserEditField; value: string }
+  | { type: "setRole"; value: EditableRole }
+  | { type: "setLogoutConfirm"; value: boolean }
+  | { type: "setAvatar"; value: AvatarState };
+
+interface UserEditCardFormProps {
+  common: DashboardMessages["common"];
+  logoutConfirmLabel: string;
+  me: AdminUser | null;
+  onClose: () => void;
+  onSaved: () => void;
+  refreshAuth: () => Promise<void>;
+  savedPhase: ReturnType<typeof useSaveNotification>["phase"];
+  showSaved: ReturnType<typeof useSaveNotification>["show"];
+  user: AdminUser;
+  usersMessages: DashboardMessages["users"];
 }
 
 const EMPTY_AVATAR_STATE: AvatarState = {
@@ -44,33 +82,267 @@ const EMPTY_AVATAR_STATE: AvatarState = {
   deleted: false,
 };
 
-/**
- * Modal card for editing one dashboard user.
- *
- * @param props - User id and close/save callbacks.
- * @returns User edit modal.
- */
-export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
-  const { messages } = useI18n();
-  const common = messages.common;
-  const usersMessages = messages.users;
-  const { user: me, refresh } = useAuth();
-  const { phase: savedPhase, show: showSaved } = useSaveNotification();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<"admin" | "moderator">("admin");
-  const [avatar, setAvatar] = useState<AvatarState>(EMPTY_AVATAR_STATE);
+const userEditDraftReducer: Reducer<UserEditDraftState, UserEditDraftAction> = (state, action) => {
+  switch (action.type) {
+    case "setField":
+      return { ...state, [action.field]: action.value };
+    case "setRole":
+      return { ...state, role: action.value };
+    case "setLogoutConfirm":
+      return { ...state, logoutConfirm: action.value };
+    case "setAvatar":
+      return { ...state, avatar: action.value };
+    default:
+      return state;
+  }
+};
+
+function createInitialDraft(user: AdminUser): UserEditDraftState {
+  return {
+    username: user.username,
+    email: user.email,
+    password: "",
+    firstName: user.firstName ?? "",
+    lastName: user.lastName ?? "",
+    role: user.role === "moderator" ? "moderator" : "admin",
+    logoutConfirm: localStorage.getItem("logout-skip-confirm") !== "true",
+    avatar: { ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null },
+  };
+}
+
+function UserAvatarEditor({
+  currentAvatarUrl,
+  displayUsername,
+  fileInputRef,
+  onFileChange,
+  onRemoveAvatar,
+  onUseGravatar,
+  usersMessages,
+}: {
+  currentAvatarUrl: string | null;
+  displayUsername: string;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onRemoveAvatar: () => void;
+  onUseGravatar: () => void;
+  usersMessages: DashboardMessages["users"];
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3 shrink-0">
+      <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
+        {currentAvatarUrl ? (
+          <img
+            src={currentAvatarUrl}
+            alt={displayUsername}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="text-3xl font-bold text-[var(--ds-text-subtle)] select-none">
+            {displayUsername[0]?.toUpperCase()}
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-1.5 w-full">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+        >
+          <SFTrayAndArrowUpFill className="w-3.5 h-3.5 shrink-0" />
+          {usersMessages.editCard.uploadImage}
+        </button>
+        <button
+          type="button"
+          onClick={onUseGravatar}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+        >
+          <SFPersonCropCircle className="w-3.5 h-3.5 shrink-0" />
+          {usersMessages.editCard.useGravatar}
+        </button>
+        {currentAvatarUrl && (
+          <button
+            type="button"
+            onClick={onRemoveAvatar}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
+          >
+            <SFTrashFill className="w-3.5 h-3.5 shrink-0" />
+            {usersMessages.editCard.removeAvatar}
+          </button>
+        )}
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={onFileChange}
+      />
+    </div>
+  );
+}
+
+function UserProfileFields({
+  canChangeRole,
+  draft,
+  logoutConfirmLabel,
+  me,
+  onFieldChange,
+  onLogoutConfirmChange,
+  onRoleChange,
+  userId,
+  usersMessages,
+}: {
+  canChangeRole: boolean;
+  draft: UserEditDraftState;
+  logoutConfirmLabel: string;
+  me: AdminUser | null;
+  onFieldChange: (field: UserEditField, value: string) => void;
+  onLogoutConfirmChange: (value: boolean) => void;
+  onRoleChange: (value: EditableRole) => void;
+  userId: number;
+  usersMessages: DashboardMessages["users"];
+}) {
+  return (
+    <div className="flex-1 space-y-3 min-w-0">
+      <div>
+        <label
+          htmlFor="user-edit-username"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+        >
+          <SFPencil className="w-3 h-3" />
+          {usersMessages.editCard.username}
+        </label>
+        <input
+          id="user-edit-username"
+          type="text"
+          value={draft.username}
+          onChange={(e) => onFieldChange("username", e.target.value)}
+          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="user-edit-email"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+        >
+          <SFAt className="w-3 h-3" />
+          {usersMessages.editCard.email}
+        </label>
+        <input
+          id="user-edit-email"
+          type="email"
+          value={draft.email}
+          onChange={(e) => onFieldChange("email", e.target.value)}
+          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="user-edit-first-name"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+        >
+          <SFPerson className="w-3 h-3" />
+          {usersMessages.editCard.firstName}
+        </label>
+        <input
+          id="user-edit-first-name"
+          type="text"
+          value={draft.firstName}
+          onChange={(e) => onFieldChange("firstName", e.target.value)}
+          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="user-edit-last-name"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+        >
+          <SFPerson className="w-3 h-3" />
+          {usersMessages.editCard.lastName}
+        </label>
+        <input
+          id="user-edit-last-name"
+          type="text"
+          value={draft.lastName}
+          onChange={(e) => onFieldChange("lastName", e.target.value)}
+          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+        />
+      </div>
+
+      {canChangeRole && (
+        <div>
+          <label
+            htmlFor="user-edit-role"
+            className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+          >
+            {usersMessages.editCard.role}
+          </label>
+          <select
+            id="user-edit-role"
+            value={draft.role}
+            onChange={(e) => onRoleChange(e.target.value as EditableRole)}
+            className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+          >
+            <option value="admin">{usersMessages.editCard.roleAdmin}</option>
+            <option value="moderator">{usersMessages.editCard.roleModerator}</option>
+          </select>
+        </div>
+      )}
+
+      <div>
+        <label
+          htmlFor="user-edit-password"
+          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
+        >
+          <SFKey className="w-3 h-3" />
+          {usersMessages.editCard.password}
+        </label>
+        <input
+          id="user-edit-password"
+          type="password"
+          value={draft.password}
+          onChange={(e) => onFieldChange("password", e.target.value)}
+          placeholder={usersMessages.editCard.passwordPlaceholder}
+          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+        />
+      </div>
+
+      {me?.id === userId && (
+        <label className="flex items-center gap-2 cursor-pointer select-none pt-1">
+          <input
+            type="checkbox"
+            checked={draft.logoutConfirm}
+            onChange={(e) => onLogoutConfirmChange(e.target.checked)}
+            className="w-4 h-4 rounded accent-[var(--color-primary)]"
+          />
+          <span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>
+        </label>
+      )}
+    </div>
+  );
+}
+
+function UserEditCardForm({
+  common,
+  logoutConfirmLabel,
+  me,
+  onClose,
+  onSaved,
+  refreshAuth,
+  savedPhase,
+  showSaved,
+  user,
+  usersMessages,
+}: UserEditCardFormProps) {
+  const savedLogoutConfirm = localStorage.getItem("logout-skip-confirm") !== "true";
+  const [draft, dispatch] = useReducer(userEditDraftReducer, user, createInitialDraft);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewObjectUrlRef = useRef<string | null>(null);
-  const [logoutConfirm, setLogoutConfirm] = useState(
-    () => localStorage.getItem("logout-skip-confirm") !== "true",
-  );
-
-  const { data: users = [] } = useAdminUsers();
-  const user = users.find((u) => u.id === userId);
 
   const updateUser = useUpdateUser();
   const saveAvatar = useSaveUserAvatar();
@@ -79,11 +351,29 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
   const isPending =
     updateUser.isPending || saveAvatar.isPending || setGravatar.isPending || deleteAvatar.isPending;
-
   const isError =
     updateUser.isError || saveAvatar.isError || setGravatar.isError || deleteAvatar.isError;
-
   const error = updateUser.error ?? saveAvatar.error ?? setGravatar.error ?? deleteAvatar.error;
+
+  const canChangeRole = me?.isOwner && user.id !== me?.id && user.role !== "owner";
+  const roleChanged =
+    canChangeRole && draft.role !== (user.role === "moderator" ? "moderator" : "admin");
+  const hasChanges =
+    draft.username !== user.username ||
+    draft.email !== user.email ||
+    draft.password.trim() !== "" ||
+    draft.firstName !== (user.firstName ?? "") ||
+    draft.lastName !== (user.lastName ?? "") ||
+    roleChanged ||
+    draft.avatar.pendingFile !== null ||
+    draft.avatar.pendingGravatarUrl !== null ||
+    draft.avatar.deleted ||
+    (me?.id === user.id && draft.logoutConfirm !== savedLogoutConfirm);
+
+  const canSave =
+    hasChanges && draft.username.trim() !== "" && draft.email.trim() !== "" && !isPending;
+  const currentAvatarUrl = draft.avatar.previewUrl;
+  const displayUsername = draft.username || user.username;
 
   function setAvatarState(next: AvatarState) {
     if (previewObjectUrlRef.current && previewObjectUrlRef.current !== next.previewUrl) {
@@ -95,20 +385,8 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       previewObjectUrlRef.current = next.previewUrl;
     }
 
-    setAvatar(next);
+    dispatch({ type: "setAvatar", value: next });
   }
-
-  // Populate form when user data arrives
-  useEffect(() => {
-    if (user) {
-      setUsername(user.username);
-      setEmail(user.email);
-      setFirstName(user.firstName ?? "");
-      setLastName(user.lastName ?? "");
-      setRole(user.role === "moderator" ? "moderator" : "admin");
-      setAvatarState({ ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null });
-    }
-  }, [user]);
 
   useEffect(
     () => () => {
@@ -119,7 +397,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     [],
   );
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const previewUrl = URL.createObjectURL(file);
@@ -128,7 +406,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   }
 
   function handleGravatar() {
-    const hash = md5(email.trim().toLowerCase());
+    const hash = md5(draft.email.trim().toLowerCase());
     const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?s=256&d=mp`;
     setAvatarState({
       previewUrl: gravatarUrl,
@@ -142,48 +420,42 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
     setAvatarState({ previewUrl: null, pendingFile: null, pendingGravatarUrl: null, deleted: true });
   }
 
-  const canChangeRole = me?.isOwner && userId !== me?.id && user?.role !== "owner";
-  const roleChanged = canChangeRole && role !== (user?.role ?? "admin");
-
   async function handleSave(close = true) {
-    if (!user) return;
-
-    // 1. Update profile fields if changed
     const profileChanges: {
       username?: string;
       email?: string;
       password?: string;
       firstName?: string;
       lastName?: string;
-      role?: "admin" | "moderator";
+      role?: EditableRole;
     } = {};
-    if (username !== user.username) profileChanges.username = username;
-    if (email !== user.email) profileChanges.email = email;
-    if (password.trim()) profileChanges.password = password;
-    if (firstName !== (user.firstName ?? "")) profileChanges.firstName = firstName;
-    if (lastName !== (user.lastName ?? "")) profileChanges.lastName = lastName;
-    if (roleChanged) profileChanges.role = role;
+
+    if (draft.username !== user.username) profileChanges.username = draft.username;
+    if (draft.email !== user.email) profileChanges.email = draft.email;
+    if (draft.password.trim()) profileChanges.password = draft.password;
+    if (draft.firstName !== (user.firstName ?? "")) profileChanges.firstName = draft.firstName;
+    if (draft.lastName !== (user.lastName ?? "")) profileChanges.lastName = draft.lastName;
+    if (roleChanged) profileChanges.role = draft.role;
 
     if (Object.keys(profileChanges).length > 0) {
-      await updateUser.mutateAsync({ id: userId, data: profileChanges });
+      await updateUser.mutateAsync({ id: user.id, data: profileChanges });
     }
 
-    // 2. Handle avatar changes
-    if (avatar.pendingFile) {
-      await saveAvatar.mutateAsync({ id: userId, file: avatar.pendingFile });
-    } else if (avatar.pendingGravatarUrl) {
-      await setGravatar.mutateAsync({ id: userId, gravatarUrl: avatar.pendingGravatarUrl });
-    } else if (avatar.deleted && user.avatarUrl) {
-      await deleteAvatar.mutateAsync(userId);
+    if (draft.avatar.pendingFile) {
+      await saveAvatar.mutateAsync({ id: user.id, file: draft.avatar.pendingFile });
+    } else if (draft.avatar.pendingGravatarUrl) {
+      await setGravatar.mutateAsync({ id: user.id, gravatarUrl: draft.avatar.pendingGravatarUrl });
+    } else if (draft.avatar.deleted && user.avatarUrl) {
+      await deleteAvatar.mutateAsync(user.id);
     }
 
-    if (me?.id === userId) {
-      if (logoutConfirm) {
+    if (me?.id === user.id) {
+      if (draft.logoutConfirm) {
         localStorage.removeItem("logout-skip-confirm");
       } else {
         localStorage.setItem("logout-skip-confirm", "true");
       }
-      await refresh();
+      await refreshAuth();
     }
 
     if (close) {
@@ -194,25 +466,8 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   }
 
   useKeyboardSave(() => {
-    if (hasChanges) handleSave(false);
+    if (hasChanges) void handleSave(false);
   });
-
-  const currentAvatarUrl = avatar.previewUrl;
-  const displayUsername = username || (user?.username ?? "");
-  const savedLogoutConfirm = localStorage.getItem("logout-skip-confirm") !== "true";
-  const hasChanges =
-    username !== (user?.username ?? "") ||
-    email !== (user?.email ?? "") ||
-    password.trim() !== "" ||
-    firstName !== (user?.firstName ?? "") ||
-    lastName !== (user?.lastName ?? "") ||
-    roleChanged ||
-    avatar.pendingFile !== null ||
-    avatar.pendingGravatarUrl !== null ||
-    avatar.deleted ||
-    (me?.id === userId && logoutConfirm !== savedLogoutConfirm);
-
-  const canSave = hasChanges && username.trim() !== "" && email.trim() !== "" && !isPending;
 
   return (
     <OverlayCard
@@ -233,193 +488,28 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
 
       <OverlayCard.Body>
         <div className="flex gap-6">
-          {/* Left: Avatar */}
-          <div className="flex flex-col items-center gap-3 shrink-0">
-            {/* Avatar preview */}
-            <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
-              {currentAvatarUrl ? (
-                <img
-                  src={currentAvatarUrl}
-                  alt={displayUsername}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-3xl font-bold text-[var(--ds-text-subtle)] select-none">
-                  {displayUsername[0]?.toUpperCase()}
-                </span>
-              )}
-            </div>
+          <UserAvatarEditor
+            currentAvatarUrl={currentAvatarUrl}
+            displayUsername={displayUsername}
+            fileInputRef={fileInputRef}
+            onFileChange={handleFileSelect}
+            onRemoveAvatar={handleRemoveAvatar}
+            onUseGravatar={handleGravatar}
+            usersMessages={usersMessages}
+          />
 
-            {/* Avatar actions */}
-            <div className="flex flex-col gap-1.5 w-full">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-              >
-                <SFTrayAndArrowUpFill className="w-3.5 h-3.5 shrink-0" />
-                {usersMessages.editCard.uploadImage}
-              </button>
-              <button
-                type="button"
-                onClick={handleGravatar}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-              >
-                <SFPersonCropCircle className="w-3.5 h-3.5 shrink-0" />
-                {usersMessages.editCard.useGravatar}
-              </button>
-              {currentAvatarUrl && (
-                <button
-                  type="button"
-                  onClick={handleRemoveAvatar}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
-                >
-                  <SFTrashFill className="w-3.5 h-3.5 shrink-0" />
-                  {usersMessages.editCard.removeAvatar}
-                </button>
-              )}
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-          </div>
-
-          {/* Right: Form fields */}
-          <div className="flex-1 space-y-3 min-w-0">
-            {/* Username */}
-            <div>
-              <label
-                htmlFor="user-edit-username"
-                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                <SFPencil className="w-3 h-3" />
-                {usersMessages.editCard.username}
-              </label>
-              <input
-                id="user-edit-username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="user-edit-email"
-                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                <SFAt className="w-3 h-3" />
-                {usersMessages.editCard.email}
-              </label>
-              <input
-                id="user-edit-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-              />
-            </div>
-
-            {/* First name */}
-            <div>
-              <label
-                htmlFor="user-edit-first-name"
-                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                <SFPerson className="w-3 h-3" />
-                {usersMessages.editCard.firstName}
-              </label>
-              <input
-                id="user-edit-first-name"
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-              />
-            </div>
-
-            {/* Last name */}
-            <div>
-              <label
-                htmlFor="user-edit-last-name"
-                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                <SFPerson className="w-3 h-3" />
-                {usersMessages.editCard.lastName}
-              </label>
-              <input
-                id="user-edit-last-name"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-              />
-            </div>
-
-            {/* Role (only for owner editing someone else) */}
-            {canChangeRole && (
-              <div>
-                <label
-                  htmlFor="user-edit-role"
-                  className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-                >
-                  {usersMessages.editCard.role}
-                </label>
-                <select
-                  id="user-edit-role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as "admin" | "moderator")}
-                  className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-                >
-                  <option value="admin">{usersMessages.editCard.roleAdmin}</option>
-                  <option value="moderator">{usersMessages.editCard.roleModerator}</option>
-                </select>
-              </div>
-            )}
-
-            {/* Password */}
-            <div>
-              <label
-                htmlFor="user-edit-password"
-                className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                <SFKey className="w-3 h-3" />
-                {usersMessages.editCard.password}
-              </label>
-              <input
-                id="user-edit-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={usersMessages.editCard.passwordPlaceholder}
-                className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
-              />
-            </div>
-
-            {/* Logout confirmation (own profile only) */}
-            {me?.id === userId && (
-              <label className="flex items-center gap-2 cursor-pointer select-none pt-1">
-                <input
-                  type="checkbox"
-                  checked={logoutConfirm}
-                  onChange={(e) => setLogoutConfirm(e.target.checked)}
-                  className="w-4 h-4 rounded accent-[var(--color-primary)]"
-                />
-                <span className="text-xs text-[var(--ds-text-muted)]">
-                  {messages.layout.sidebar.logoutConfirmLabel}
-                </span>
-              </label>
-            )}
-          </div>
+          <UserProfileFields
+            canChangeRole={canChangeRole}
+            draft={draft}
+            logoutConfirmLabel={logoutConfirmLabel}
+            me={me}
+            onFieldChange={(field, value) => dispatch({ type: "setField", field, value })}
+            onLogoutConfirmChange={(value) => dispatch({ type: "setLogoutConfirm", value })}
+            onRoleChange={(value) => dispatch({ type: "setRole", value })}
+            userId={user.id}
+            usersMessages={usersMessages}
+          />
         </div>
-
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
@@ -432,7 +522,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
         </button>
         <button
           type="button"
-          onClick={() => handleSave()}
+          onClick={() => void handleSave()}
           disabled={!canSave}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
         >
@@ -454,5 +544,69 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
         buttonLabel={common.close}
       />
     </OverlayCard>
+  );
+}
+
+/**
+ * Modal card for editing one dashboard user.
+ *
+ * @param props - User id and close/save callbacks.
+ * @returns User edit modal.
+ */
+export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const usersMessages = messages.users;
+  const { user: me, refresh } = useAuth();
+  const { phase: savedPhase, show: showSaved } = useSaveNotification();
+  const { data: users = [] } = useAdminUsers();
+
+  const user = users.find((candidate) => candidate.id === userId);
+
+  if (!user) {
+    return (
+      <OverlayCard
+        open
+        onClose={onClose}
+        size={{ storageKey: "users:edit-card-size", defaultWidth: 512 }}
+        aria-label={usersMessages.editCard.title}
+      >
+        <OverlayCard.Header className="flex items-center gap-3">
+          <SFPencil className={dialogHeaderIconClass} />
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">
+            {usersMessages.editCard.title}
+          </h2>
+        </OverlayCard.Header>
+        <OverlayCard.Body>
+          <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
+        </OverlayCard.Body>
+      </OverlayCard>
+    );
+  }
+
+  const userKey = [
+    user.id,
+    user.username,
+    user.email,
+    user.firstName ?? "",
+    user.lastName ?? "",
+    user.avatarUrl ?? "",
+    user.role,
+  ].join(":");
+
+  return (
+    <UserEditCardForm
+      key={userKey}
+      common={common}
+      logoutConfirmLabel={messages.layout.sidebar.logoutConfirmLabel}
+      me={me}
+      onClose={onClose}
+      onSaved={onSaved}
+      refreshAuth={refresh}
+      savedPhase={savedPhase}
+      showSaved={showSaved}
+      user={user}
+      usersMessages={usersMessages}
+    />
   );
 }
