@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 
 import { db } from "../db/index.js";
 import { shopConcernReports, shops } from "../db/schema.js";
@@ -20,6 +20,7 @@ export async function listAdminShopConcernReports() {
     })
     .from(shopConcernReports)
     .innerJoin(shops, eq(shopConcernReports.shopId, shops.id))
+    .where(and(ne(shops.visibility, "rejected"), ne(shops.visibility, "deleted")))
     .orderBy(desc(shopConcernReports.reportedAt));
 }
 
