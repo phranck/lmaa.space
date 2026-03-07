@@ -231,6 +231,15 @@ function EditorHeaderActions({
         </button>
       </div>
 
+      <button
+        type="button"
+        onClick={onPreview}
+        className="flex items-center gap-2 px-3 py-1.5 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+      >
+        <SFArrowUpRightSquareFill className="w-3.5 h-3.5" />
+        {editorMessages.preview}
+      </button>
+
       {!confirmDelete ? (
         <button
           type="button"
@@ -273,14 +282,6 @@ function EditorHeaderActions({
         {saved ? editorMessages.saved : common.save}
       </button>
 
-      <button
-        type="button"
-        onClick={onPreview}
-        className="flex items-center gap-2 py-1.5 px-3 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
-        title={editorMessages.preview}
-      >
-        <SFArrowUpRightSquareFill className="w-3.5 h-3.5" />
-      </button>
     </div>
   );
 }
