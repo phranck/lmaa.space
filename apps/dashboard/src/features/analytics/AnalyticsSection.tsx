@@ -21,12 +21,19 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import {
+  type UmamiEventValueRow,
   type UmamiMetricType,
   type UmamiPeriod,
   useUmamiActive,
+  useUmamiCategoryClicks,
+  useUmamiInteractionTotal,
   useUmamiMetrics,
   useUmamiPageviews,
   useUmamiRealtime,
+  useUmamiSearchTerms,
+  useUmamiShopVisitClicks,
+  useUmamiShopVisitTotal,
+  useUmamiSiteLinkClicks,
   useUmamiStats,
 } from "@/features/analytics/hooks/useUmamiStats.ts";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -587,6 +594,54 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
   );
 }
 
+interface EventListCardProps {
+  title: string;
+  rows: UmamiEventValueRow[];
+  isLoading: boolean;
+}
+
+function EventListCard({ title, rows, isLoading }: EventListCardProps) {
+  const { messages, formatNumber } = useI18n();
+  const analyticsMessages = messages.dashboard.analytics;
+  const max = rows[0]?.total ?? 1;
+
+  return (
+    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
+      <p className="text-base font-medium text-[var(--ds-text)]">{title}</p>
+      {isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }, (_, i) => `event-sk-${title}-${i}`).map((k) => (
+            <div key={k} className="h-7 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
+          ))}
+        </div>
+      ) : rows.length === 0 ? (
+        <p className="text-sm text-[var(--ds-text-subtle)] py-4 text-center">
+          {analyticsMessages.noData}
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((row) => (
+            <li key={`${title}-${row.value}`} className="flex items-center gap-2 text-sm">
+              <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={row.value}>
+                {row.value}
+              </span>
+              <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-amber-400 rounded-full"
+                  style={{ width: `${Math.round((row.total / max) * 100)}%` }}
+                />
+              </div>
+              <span className="shrink-0 w-10 text-right text-sm text-[var(--ds-text-muted)]">
+                {formatNumber(row.total)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 interface TabbedMetricCardProps {
   title: string;
   tabs: readonly MetricTabConfig[];
@@ -749,6 +804,14 @@ export function AnalyticsSection() {
   );
   const { data: stats, isLoading: statsLoading } = useUmamiStats(period);
   const { data: pageviews, isLoading: pvLoading } = useUmamiPageviews(period);
+  const { data: searchTerms, isLoading: searchTermsLoading } = useUmamiSearchTerms(period);
+  const { data: categoryClicks, isLoading: categoryClicksLoading } = useUmamiCategoryClicks(period);
+  const { data: shopVisitClicks, isLoading: shopVisitClicksLoading } =
+    useUmamiShopVisitClicks(period);
+  const { data: shopVisitTotal, isLoading: shopVisitTotalLoading } = useUmamiShopVisitTotal(period);
+  const { data: siteLinkClicks, isLoading: siteLinkClicksLoading } = useUmamiSiteLinkClicks(period);
+  const { data: interactionTotal, isLoading: interactionTotalLoading } =
+    useUmamiInteractionTotal(period);
 
   const chartData = useMemo(
     () =>
@@ -803,9 +866,9 @@ export function AnalyticsSection() {
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
         {statsLoading ? (
-          Array.from({ length: 4 }, (_, i) => `kpi-${i}`).map((k) => (
+          Array.from({ length: 6 }, (_, i) => `kpi-${i}`).map((k) => (
             <div key={k} className="h-16 bg-[var(--ds-bg-elevated)] rounded-xl animate-pulse" />
           ))
         ) : hasStats ? (
@@ -831,9 +894,29 @@ export function AnalyticsSection() {
               value={avgDuration}
               trend={relativeChange(avgDurationSeconds, previousAvgDuration)}
             />
+            <KpiCard
+              label={analyticsMessages.shopVisitClicks}
+              value={
+                shopVisitTotalLoading
+                  ? "–"
+                  : shopVisitTotal
+                    ? formatNumber(shopVisitTotal.total)
+                    : "–"
+              }
+            />
+            <KpiCard
+              label={analyticsMessages.websiteInteractions}
+              value={
+                interactionTotalLoading
+                  ? "–"
+                  : interactionTotal
+                    ? formatNumber(interactionTotal.total)
+                    : "–"
+              }
+            />
           </>
         ) : (
-          <div className="col-span-4 text-sm text-[var(--ds-text-subtle)] py-2">
+          <div className="col-span-6 text-sm text-[var(--ds-text-subtle)] py-2">
             {analyticsMessages.umamiNotConfigured}
           </div>
         )}
@@ -883,6 +966,29 @@ export function AnalyticsSection() {
           )}
         </div>
       )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
+        <EventListCard
+          title={analyticsMessages.topSearchTerms}
+          rows={searchTerms ?? []}
+          isLoading={searchTermsLoading}
+        />
+        <EventListCard
+          title={analyticsMessages.topCategoriesByClicks}
+          rows={categoryClicks ?? []}
+          isLoading={categoryClicksLoading}
+        />
+        <EventListCard
+          title={analyticsMessages.topShopsByVisitClicks}
+          rows={shopVisitClicks ?? []}
+          isLoading={shopVisitClicksLoading}
+        />
+        <EventListCard
+          title={analyticsMessages.topLinkClicks}
+          rows={siteLinkClicks ?? []}
+          isLoading={siteLinkClicksLoading}
+        />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <div className="md:col-span-3">

@@ -42,6 +42,15 @@ interface UmamiMetricRow {
   y: number;
 }
 
+export interface UmamiEventValueRow {
+  value: string;
+  total: number;
+}
+
+export interface UmamiEventTotal {
+  total: number;
+}
+
 interface UmamiRealtimeEvent {
   __type: string;
   sessionId: string;
@@ -152,6 +161,66 @@ export function useUmamiMetrics(type: UmamiMetricType, period: UmamiPeriod) {
     queryKey: ["umami-metrics", type, period],
     queryFn: () =>
       api.get<UmamiMetricRow[] | null>(`/admin/umami/metrics?type=${type}&period=${period}`),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+  });
+}
+
+export function useUmamiSearchTerms(period: UmamiPeriod) {
+  return useQuery({
+    queryKey: ["umami-events", "search-terms", period],
+    queryFn: () =>
+      api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/search-terms?period=${period}`),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+  });
+}
+
+export function useUmamiCategoryClicks(period: UmamiPeriod) {
+  return useQuery({
+    queryKey: ["umami-events", "category-clicks", period],
+    queryFn: () =>
+      api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/category-clicks?period=${period}`),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+  });
+}
+
+export function useUmamiShopVisitClicks(period: UmamiPeriod) {
+  return useQuery({
+    queryKey: ["umami-events", "shop-visits", period],
+    queryFn: () =>
+      api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/shop-visits?period=${period}`),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+  });
+}
+
+export function useUmamiShopVisitTotal(period: UmamiPeriod) {
+  return useQuery({
+    queryKey: ["umami-events", "shop-visits-total", period],
+    queryFn: () =>
+      api.get<UmamiEventTotal | null>(`/admin/umami/events/shop-visits/total?period=${period}`),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+  });
+}
+
+export function useUmamiSiteLinkClicks(period: UmamiPeriod) {
+  return useQuery({
+    queryKey: ["umami-events", "site-links", period],
+    queryFn: () =>
+      api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/site-links?period=${period}`),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+  });
+}
+
+export function useUmamiInteractionTotal(period: UmamiPeriod) {
+  return useQuery({
+    queryKey: ["umami-events", "interaction-total", period],
+    queryFn: () =>
+      api.get<UmamiEventTotal | null>(`/admin/umami/events/interactions/total?period=${period}`),
     staleTime: 2 * 60 * 1000,
     refetchInterval: 2 * 60 * 1000,
   });

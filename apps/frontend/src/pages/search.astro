@@ -35,7 +35,12 @@ const hasQuery = q.length >= 2;
 >
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <!-- Search form -->
-    <form method="GET" action="/search" class="flex flex-col items-center mb-10">
+    <form
+      method="GET"
+      action="/search"
+      class="flex flex-col items-center mb-10"
+      data-analytics-search-source="search-page"
+    >
       <input
         type="search"
         name="q"
@@ -63,6 +68,11 @@ const hasQuery = q.length >= 2;
         <a
           href="/suggestion"
           class="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
+          data-analytics-event="site-link-click"
+          data-analytics-kind="cta"
+          data-analytics-placement="search-empty-state"
+          data-analytics-label="Shop vorschlagen"
+          data-analytics-href="/suggestion"
         >
           Shop vorschlagen
         </a>
@@ -80,6 +90,11 @@ const hasQuery = q.length >= 2;
             <a
               href={`/category/${cat.slug}`}
               class="px-4 py-2 bg-white border border-stone-200 rounded-full text-sm font-medium text-stone-700 hover:border-amber-400 hover:text-amber-700 transition-colors"
+              data-analytics-event="category-click"
+              data-analytics-source="search-result"
+              data-category-id={String(cat.id)}
+              data-category-slug={cat.slug}
+              data-category-name={cat.name}
             >
               {cat.name}
               {cat.shopCount !== undefined && (
@@ -99,7 +114,7 @@ const hasQuery = q.length >= 2;
         </h2>
         <div class="grid sm:grid-cols-2 gap-4">
           {shopResults.map((shop) => (
-            <ShopCard shop={shop} />
+            <ShopCard shop={shop} analyticsSource="search-result" />
           ))}
         </div>
       </section>
