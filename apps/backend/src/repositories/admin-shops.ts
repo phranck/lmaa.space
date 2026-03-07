@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 
-import type { ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
-import type { Shop as SharedShop, ShopSummary } from "@lmaa/shared";
+import type { AdminShopListItem } from "@lmaa/shared";
+import type { Shop as SharedShop, ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
 
 import { db } from "../db/index.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../db/schema.js";
@@ -48,9 +48,14 @@ export interface UpdateAdminShopData {
  * @param visibility - Optional visibility filter.
  * @returns Shop summaries sorted by name.
  */
-export async function listAdminShops(visibility?: ShopVisibility): Promise<ShopSummary[]> {
-  return db.execute<ShopSummary & Record<string, unknown>>(sql`
+export async function listAdminShops(visibility?: ShopVisibility): Promise<AdminShopListItem[]> {
+  return db.execute<AdminShopListItem & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region,
+           s.description,
+           s.shipping,
+           s.contact_email as "contactEmail",
+           s.social_media as "socialMedia",
+           s.og_image as "ogImage",
            s.visibility,
            s.delete_reason as "deleteReason",
            s.deleted_was_reported as "deletedWasReported",

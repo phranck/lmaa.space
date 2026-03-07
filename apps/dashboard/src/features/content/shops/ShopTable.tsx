@@ -7,7 +7,7 @@ import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
-import { REGION_CODES, type ShopSummary } from "@lmaa/shared";
+import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
 
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -15,10 +15,8 @@ import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
 import { ShopDeletionInfoOverlay } from "@/features/content/shops/ShopDeletionInfoOverlay.tsx";
 
 interface ShopTableProps {
-  editLoadingId?: number | null;
-  shops: ShopSummary[];
-  onEdit: (id: number) => void | Promise<void>;
-  onEditIntent?: (id: number) => void | Promise<void>;
+  shops: AdminShopListItem[];
+  onEdit: (shop: AdminShopListItem) => void;
   onDelete?: (id: number) => void;
   onPermanentDelete?: (id: number) => void;
   onHold?: (id: number) => void;
@@ -64,10 +62,8 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
  * @returns Data table with sticky header.
  */
 export function ShopTable({
-  editLoadingId = null,
   shops,
   onEdit,
-  onEditIntent,
   onDelete,
   onPermanentDelete,
   onHold,
@@ -78,7 +74,7 @@ export function ShopTable({
   const shopsMessages = messages.shops;
   const [infoShop, setInfoShop] = useState<ShopSummary | null>(null);
   const regionOptions = getRegionOptions(locale);
-  const columns = useMemo<ColumnDef<ShopSummary>[]>(
+  const columns = useMemo<ColumnDef<AdminShopListItem>[]>(
     () => [
       {
         id: "name",
@@ -166,10 +162,7 @@ export function ShopTable({
               <>
                 <button
                   type="button"
-                  onClick={() => void onEdit(shop.id)}
-                  onFocus={() => void onEditIntent?.(shop.id)}
-                  onMouseEnter={() => void onEditIntent?.(shop.id)}
-                  disabled={editLoadingId === shop.id}
+                  onClick={() => onEdit(shop)}
                   className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
                   <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
@@ -211,10 +204,7 @@ export function ShopTable({
                 )}
                 <button
                   type="button"
-                  onClick={() => void onEdit(shop.id)}
-                  onFocus={() => void onEditIntent?.(shop.id)}
-                  onMouseEnter={() => void onEditIntent?.(shop.id)}
-                  disabled={editLoadingId === shop.id}
+                  onClick={() => onEdit(shop)}
                   className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
                   <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
@@ -283,10 +273,7 @@ export function ShopTable({
                 )}
                 <button
                   type="button"
-                  onClick={() => void onEdit(shop.id)}
-                  onFocus={() => void onEditIntent?.(shop.id)}
-                  onMouseEnter={() => void onEditIntent?.(shop.id)}
-                  disabled={editLoadingId === shop.id}
+                  onClick={() => onEdit(shop)}
                   className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
                   <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
@@ -313,7 +300,12 @@ export function ShopTable({
 
   return (
     <>
-      <DataTable columns={columns} data={shops} getRowKey={(s: ShopSummary) => s.id} stickyHeader />
+      <DataTable
+        columns={columns}
+        data={shops}
+        getRowKey={(s: AdminShopListItem) => s.id}
+        stickyHeader
+      />
       {infoShop && (
         <ShopDeletionInfoOverlay
           shop={infoShop}

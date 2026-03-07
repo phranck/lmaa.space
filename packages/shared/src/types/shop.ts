@@ -29,6 +29,17 @@ export interface ShopSummary {
 }
 
 /**
+ * Admin list item with enough data to open the editor without a blocking detail fetch.
+ */
+export interface AdminShopListItem extends ShopSummary {
+  description: string;
+  shipping: string;
+  contactEmail?: string | null;
+  socialMedia: Record<string, string>;
+  ogImage?: string | null;
+}
+
+/**
  * Full public shop model.
  */
 export interface Shop {
