@@ -320,22 +320,26 @@ export async function listPublicNavItems(navId: "header" | "footer") {
     .where(
       and(
         eq(navItems.navId, navId),
-        or(eq(contentPages.status, "published"), isNull(navItems.pageSlug)),
+        or(
+          eq(contentPages.status, "published"),
+          eq(contentPages.status, "hidden"),
+          isNull(navItems.pageSlug),
+        ),
       ),
     )
     .orderBy(asc(navItems.position));
 }
 
 /**
- * Lists all published content pages for static path generation.
+ * Lists all published and hidden content pages for static path generation.
  *
- * @returns Slug/title pairs for published pages only.
+ * @returns Slug/title pairs for published and hidden pages.
  */
 export async function listPublishedContentPages() {
   return db
     .select({ slug: contentPages.slug, title: contentPages.title })
     .from(contentPages)
-    .where(eq(contentPages.status, "published"))
+    .where(or(eq(contentPages.status, "published"), eq(contentPages.status, "hidden")))
     .orderBy(contentPages.slug);
 }
 
@@ -349,7 +353,12 @@ export async function getPublishedContentPageBySlug(slug: string) {
   const [page] = await db
     .select()
     .from(contentPages)
-    .where(and(eq(contentPages.slug, slug), eq(contentPages.status, "published")))
+    .where(
+      and(
+        eq(contentPages.slug, slug),
+        or(eq(contentPages.status, "published"), eq(contentPages.status, "hidden")),
+      ),
+    )
     .limit(1);
 
   return page ?? null;
