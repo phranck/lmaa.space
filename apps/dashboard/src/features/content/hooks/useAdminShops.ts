@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Shop, ShopMutableVisibility, ShopSummary, ShopVisibility } from "@lmaa/shared";
+import type {
+  AdminShopListItem,
+  Shop,
+  ShopMutableVisibility,
+  ShopVisibility,
+} from "@lmaa/shared";
 import type { ShopEditFormValue } from "@lmaa/ui";
 
 import type { ShopDeleteMode } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
@@ -21,7 +26,7 @@ export function useAdminShops(visibility?: ShopVisibility) {
   return useQuery({
     queryKey: ["shops-admin", visibility],
     queryFn: () =>
-      api.get<ShopSummary[]>(`/admin/shops${visibility ? `?visibility=${visibility}` : ""}`),
+      api.get<AdminShopListItem[]>(`/admin/shops${visibility ? `?visibility=${visibility}` : ""}`),
   });
 }
 

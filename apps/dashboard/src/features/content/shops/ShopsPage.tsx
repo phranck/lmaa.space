@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
 import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
@@ -10,7 +9,7 @@ import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
-import type { ShopVisibility } from "@lmaa/shared";
+import type { AdminShopListItem, ShopVisibility } from "@lmaa/shared";
 import type { ShopEditFormValue } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -26,7 +25,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
-  getAdminShopQueryOptions,
   useAdminShops,
   useDeleteShop,
   useSetShopVisibility,
@@ -41,10 +39,12 @@ type VisibilityFilter = "all" | ShopVisibility;
 type ShopEditTarget =
   | {
       initialData?: never;
+      initialShop?: never;
       shopId: "new";
     }
   | {
       initialData: Partial<ShopEditFormValue>;
+      initialShop: AdminShopListItem;
       shopId: number;
     };
 
@@ -79,9 +79,8 @@ export function ShopsPage() {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;
   const { user: me } = useAuth();
-  const queryClient = useQueryClient();
+  useAdminCategories();
   const [editTarget, setEditTarget] = useState<ShopEditTarget | null>(null);
-  const [editLoadingId, setEditLoadingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -90,7 +89,6 @@ export function ShopsPage() {
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
   );
-  useAdminCategories();
   const deleteMutation = useDeleteShop();
   const visibilityMutation = useSetShopVisibility();
   const updateReasonMutation = useUpdateDeleteReason();
@@ -124,31 +122,15 @@ export function ShopsPage() {
     },
     [updateReasonMutation],
   );
-  const prefetchEditTarget = useCallback(
-    async (id: number) => {
-      await queryClient.prefetchQuery(getAdminShopQueryOptions(id));
-    },
-    [queryClient],
-  );
   const handleEdit = useCallback(
-    async (id: number | "new") => {
-      if (id === "new") {
-        setEditTarget({ shopId: "new" });
-        return;
-      }
-
-      setEditLoadingId(id);
-      try {
-        const shop = await queryClient.fetchQuery(getAdminShopQueryOptions(id));
-        setEditTarget({
-          shopId: id,
-          initialData: toShopEditInitialData(shop),
-        });
-      } finally {
-        setEditLoadingId((current) => (current === id ? null : current));
-      }
+    (shop: AdminShopListItem) => {
+      setEditTarget({
+        shopId: shop.id,
+        initialData: toShopEditInitialData(shop),
+        initialShop: shop,
+      });
     },
-    [queryClient],
+    [],
   );
 
   const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
@@ -208,7 +190,7 @@ export function ShopsPage() {
 
         <button
           type="button"
-          onClick={() => void handleEdit("new")}
+          onClick={() => setEditTarget({ shopId: "new" })}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
           <SFPlusCircleFill className="w-3.5 h-3.5" />
@@ -248,9 +230,7 @@ export function ShopsPage() {
         <div className="-mx-3 -mt-3">
           <ShopTable
             shops={filtered}
-            editLoadingId={editLoadingId}
             onEdit={handleEdit}
-            onEditIntent={prefetchEditTarget}
             onDelete={canModify ? setDeleteId : undefined}
             onPermanentDelete={canModify ? setPermanentDeleteId : undefined}
             onHold={canModify ? onHold : undefined}
@@ -264,6 +244,7 @@ export function ShopsPage() {
       {editTarget !== null && (
         <ShopEditCard
           initialData={editTarget.initialData}
+          initialShop={editTarget.initialShop}
           shopId={editTarget.shopId}
           onClose={() => setEditTarget(null)}
           onSaved={() => setEditTarget(null)}
