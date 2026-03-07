@@ -7,6 +7,7 @@ import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { ShopSummary } from "@lmaa/shared";
 
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -145,7 +146,10 @@ export function ShopDeletionInfoOverlay({
     >
       <OverlayCard.Body className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
+          <div className="flex items-center gap-3">
+            <SFTrashFill className={dialogHeaderIconClass} />
+            <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
+          </div>
           <SaveNotification phase={savedPhase} label={messages.common.saved} />
         </div>
 

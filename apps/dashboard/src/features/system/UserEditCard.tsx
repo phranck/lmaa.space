@@ -9,6 +9,7 @@ import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrow
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -196,9 +197,12 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
       aria-label={usersMessages.editCard.title}
     >
       <OverlayCard.Header className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-[var(--ds-text)]">
-          {usersMessages.editCard.title}
-        </h2>
+        <div className="flex items-center gap-3">
+          <SFPencil className={dialogHeaderIconClass} />
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">
+            {usersMessages.editCard.title}
+          </h2>
+        </div>
         <SaveNotification phase={savedPhase} label={common.saved} />
       </OverlayCard.Header>
 

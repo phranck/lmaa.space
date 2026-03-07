@@ -350,6 +350,12 @@ export interface DashboardMessages {
       inviteLink: string;
       copyInvite: string;
       inviteCopied: string;
+      templateVariablesLabel: string;
+      templateVariableUsername: string;
+      templateVariableEmail: string;
+      templateVariableRole: string;
+      templateVariableInviteUrl: string;
+      templateVariableLoginUrl: string;
       errorCreating: string;
       creating: string;
       create: string;
@@ -1005,6 +1011,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         inviteLink: "Einladungslink",
         copyInvite: "Link kopieren",
         inviteCopied: "Link kopiert",
+        templateVariablesLabel: "Template-Variablen",
+        templateVariableUsername: "Benutzername des eingeladenen Benutzers",
+        templateVariableEmail: "E-Mail-Adresse des eingeladenen Benutzers",
+        templateVariableRole: "Rolle des angelegten Benutzers",
+        templateVariableInviteUrl: "Einmal-Link zum Passwort-Setzen",
+        templateVariableLoginUrl: "Normale Dashboard-Login-Seite",
         errorCreating: "Fehler beim Erstellen.",
         creating: "Wird erstellt…",
         create: "Benutzer erstellen",
@@ -1651,6 +1663,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         inviteLink: "Invite link",
         copyInvite: "Copy link",
         inviteCopied: "Link copied",
+        templateVariablesLabel: "Template variables",
+        templateVariableUsername: "Username of the invited user",
+        templateVariableEmail: "Email address of the invited user",
+        templateVariableRole: "Role assigned to the new user",
+        templateVariableInviteUrl: "One-time password setup link",
+        templateVariableLoginUrl: "Regular dashboard login page",
         errorCreating: "Error while creating user.",
         creating: "Creating…",
         create: "Create user",

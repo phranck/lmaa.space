@@ -3,6 +3,7 @@ import { OverlayCard } from "./OverlayCard.tsx";
 interface DialogProps {
   open: boolean;
   title: string;
+  titleIcon?: React.ReactNode;
   onClose: () => void;
   children: React.ReactNode;
   maxWidth?: "sm" | "md";
@@ -33,17 +34,23 @@ function DialogFooter({ children, className }: DialogFooterProps) {
  *
  * @param props.open      - Whether the dialog is visible.
  * @param props.title     - Heading shown in the dialog header.
+ * @param props.titleIcon - Optional SF Symbol shown before the title.
  * @param props.onClose   - Called when ESC is pressed.
  * @param props.children  - Body content and `Dialog.Footer`.
  * @param props.maxWidth  - `"sm"` (default) or `"md"`.
  */
-export function Dialog({ open, title, onClose, children, maxWidth = "sm" }: DialogProps) {
+export const dialogHeaderIconClass = "w-6 h-6 shrink-0 text-[var(--ds-text-muted)]";
+
+export function Dialog({ open, title, titleIcon, onClose, children, maxWidth = "sm" }: DialogProps) {
   const size = maxWidth === "md" ? "fixed-md" : "fixed-sm";
 
   return (
     <OverlayCard open={open} onClose={onClose} size={size} aria-label={title}>
       <div className="bg-[var(--ds-surface-inset)] px-6 pt-6 pb-3">
-        <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
+        <div className="flex items-center gap-3">
+          {titleIcon}
+          <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
+        </div>
       </div>
       {children}
     </OverlayCard>

@@ -1,12 +1,14 @@
 import { type ClipboardEvent, useReducer, useState } from "react";
 import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { generateRejectionToken } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -226,7 +228,10 @@ function ShopEditCardEditor({
       aria-label={title}
     >
       <OverlayCard.Header className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
+        <div className="flex items-center gap-3">
+          <SFStorefrontFill className={dialogHeaderIconClass} />
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">{title}</h2>
+        </div>
         <SaveNotification phase={savedPhase} label={common.saved} />
       </OverlayCard.Header>
 
@@ -497,6 +502,7 @@ function ShopEditCardContent({
         isError={setVisibilityMutation.isError}
         errorMessage={common.unknownError}
         submitLabel={shopsMessages.editCard.rejectSubmit}
+        headerIcon={<SFXmarkCircleFill className={dialogHeaderIconClass} />}
         storageKey="shops:reject-dialog-size"
         adminNoteStorageKey="shops:textarea:reject-note"
         rejectionLongStorageKey="shops:textarea:reject-long"

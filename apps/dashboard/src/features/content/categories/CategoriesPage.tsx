@@ -3,9 +3,15 @@ import SFListBullet from "sf-symbols-lib/monochrome/SFListBullet";
 import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
 import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
 import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import {
+  Dialog,
+  dialogBtnDestructive,
+  dialogBtnSecondary,
+  dialogHeaderIconClass,
+} from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -126,6 +132,7 @@ export function CategoriesPage() {
       <Dialog
         open={deleteId !== null && !!deleteTarget}
         title={categoriesMessages.deleteTitle}
+        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
         onClose={() => setDeleteId(null)}
       >
         <div className="px-6 py-3">
