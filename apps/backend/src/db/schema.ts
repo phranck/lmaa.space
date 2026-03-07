@@ -135,6 +135,7 @@ export const submissions = pgTable(
     pickup: text("pickup").notNull().default(""),
     shipping: text("shipping").notNull().default(""),
     description: text("description").notNull().default(""),
+    ogImage: text("og_image"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
     contactEmail: text("contact_email"),
     submitterEmail: text("submitter_email"),

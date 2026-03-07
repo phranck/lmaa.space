@@ -48,7 +48,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     return failure("not_found");
   }
 
-  if (newShop) {
+  if (newShop && !submission.ogImage) {
     hydrateShopOgImageInBackground(newShop.url, async (imageUrl) => {
       await setAdminShopOgImage(newShop.id, imageUrl);
     });

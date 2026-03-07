@@ -28,6 +28,10 @@ export const submissionEditSchema = z.object({
   shopName: z.string().min(1).max(200),
   shopUrl: z.string().url(),
   description: z.string().max(2000).optional(),
+  ogImage: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().url().max(2000).nullable().optional(),
+  ),
   region: defaultRegionArraySchema,
   shipping: z.string().max(200).optional(),
   categoryIds: z.array(z.number().int().positive()),

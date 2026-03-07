@@ -19,6 +19,7 @@ export interface SubmissionEditData {
   shopName: string;
   shopUrl: string;
   description?: string;
+  ogImage?: string | null;
   region: string[];
   shipping?: string;
   categoryIds: number[];
@@ -126,6 +127,7 @@ export async function reviewSubmission(
         pickup: submission.pickup,
         shipping: submission.shipping,
         description: submission.description,
+        ogImage: submission.ogImage,
         contactEmail: submission.contactEmail,
         socialMedia: submission.socialMedia,
       })
@@ -161,6 +163,7 @@ export async function editSubmission(
         shopName: data.shopName,
         shopUrl: data.shopUrl,
         description: data.description ?? "",
+        ...(data.ogImage !== undefined ? { ogImage: data.ogImage } : {}),
         region: data.region,
         shipping: data.shipping ?? "",
         contactEmail: data.contactEmail || null,

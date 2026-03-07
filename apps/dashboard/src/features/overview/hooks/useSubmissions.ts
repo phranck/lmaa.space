@@ -57,11 +57,20 @@ export function useReviewSubmission() {
 export function useEditSubmission() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ShopEditFormValue }) =>
+    mutationFn: ({
+      id,
+      data,
+      ogImage,
+    }: {
+      id: number;
+      data: ShopEditFormValue;
+      ogImage?: string | null;
+    }) =>
       api.patch(`/admin/submissions/${id}/edit`, {
         shopName: data.name,
         shopUrl: data.url,
         description: data.description,
+        ogImage: ogImage ?? null,
         region: data.region,
         shipping: data.shipping,
         categoryIds: data.categoryIds,
