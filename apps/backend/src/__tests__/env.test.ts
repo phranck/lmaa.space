@@ -15,6 +15,18 @@ describe("envSchema", () => {
       expect(result.data.PORT).toBe(3000);
       expect(result.data.NODE_ENV).toBe("development");
       expect(result.data.IP_HASH_SALT).toBe(DEFAULT_IP_HASH_SALT);
+      expect(result.data.RUN_MIGRATIONS_ON_STARTUP).toBe(true);
+    }
+  });
+
+  it("parses RUN_MIGRATIONS_ON_STARTUP", () => {
+    const result = envSchema.safeParse({
+      DATABASE_URL: "postgres://localhost/test",
+      RUN_MIGRATIONS_ON_STARTUP: "false",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.RUN_MIGRATIONS_ON_STARTUP).toBe(false);
     }
   });
 

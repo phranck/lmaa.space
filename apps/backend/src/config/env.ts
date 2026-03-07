@@ -44,6 +44,7 @@ export const envSchema = z
     UMAMI_WEBSITE_ID: z.string().optional().default(""),
     UNSPLASH_ACCESS_KEY: z.string().optional(),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
+    RUN_MIGRATIONS_ON_STARTUP: z.enum(["true", "false"]).default("true"),
   })
   .superRefine((data, ctx) => {
     if (data.IP_HASH_SALT && data.IP_HASH_SALT.length < 16) {
@@ -68,6 +69,7 @@ export const envSchema = z
   .transform((data) => ({
     ...data,
     IP_HASH_SALT: data.IP_HASH_SALT ?? DEFAULT_IP_HASH_SALT,
+    RUN_MIGRATIONS_ON_STARTUP: data.RUN_MIGRATIONS_ON_STARTUP === "true",
     DASHBOARD_URL:
       data.DASHBOARD_URL ??
       (data.NODE_ENV === "production"
