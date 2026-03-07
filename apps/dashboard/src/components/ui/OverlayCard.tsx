@@ -241,7 +241,7 @@ export function OverlayCard({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center px-4 backdrop-blur-md ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
+      className={`fixed inset-0 flex items-center justify-center px-4 backdrop-blur-xl ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
       style={{ zIndex }}
       onAnimationEnd={handleBackdropAnimationEnd}
     >
