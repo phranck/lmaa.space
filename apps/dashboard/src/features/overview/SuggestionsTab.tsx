@@ -29,6 +29,7 @@ import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
@@ -554,18 +555,13 @@ function SuggestionsSubmissionRow({
           <p className="text-sm text-[var(--ds-text-muted)] mt-1">{submission.description}</p>
         )}
         {submission.categoryIds && submission.categoryIds.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {submission.categoryIds.map((id) => {
-              const category = categoryMap.get(id);
-              return category ? (
-                <span
-                  key={id}
-                  className="px-2 py-0.5 rounded-full bg-[var(--ds-border)] text-[var(--ds-text-muted)] text-xs"
-                >
-                  {category.name}
-                </span>
-              ) : null;
-            })}
+          <div className="mt-1">
+            <ShopCategoryBadges
+              categories={submission.categoryIds.flatMap((id) => {
+                const category = categoryMap.get(id);
+                return category ? [{ id, name: category.name }] : [];
+              })}
+            />
           </div>
         )}
         <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
@@ -622,19 +618,19 @@ function SuggestionsSubmissionActions({
       <div className="flex flex-row items-end gap-1.5 shrink-0">
         <button
           type="button"
-          onClick={() => onOpenApprove(submission.id)}
-          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
-        >
-          <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
-          {submissionsMessages.suggestions.approve}
-        </button>
-        <button
-          type="button"
           onClick={() => onEditSubmission(submission)}
           className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
         >
           <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
           {submissionsMessages.suggestions.edit}
+        </button>
+        <button
+          type="button"
+          onClick={() => onOpenApprove(submission.id)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
+        >
+          <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.approve}
         </button>
         <button
           type="button"
@@ -667,6 +663,14 @@ function SuggestionsSubmissionActions({
       <div className="flex flex-row items-end gap-1.5 shrink-0">
         <button
           type="button"
+          onClick={() => onEditSubmission(submission)}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+        >
+          <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+          {submissionsMessages.suggestions.edit}
+        </button>
+        <button
+          type="button"
           onClick={() =>
             reviewMutation.mutate({
               id: submission.id,
@@ -679,14 +683,6 @@ function SuggestionsSubmissionActions({
         >
           <SFArrowCounterclockwise className="w-3.5 h-3.5" />
           {submissionsMessages.suggestions.restore}
-        </button>
-        <button
-          type="button"
-          onClick={() => onEditSubmission(submission)}
-          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-        >
-          <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-          {submissionsMessages.suggestions.edit}
         </button>
         <button
           type="button"
@@ -710,6 +706,14 @@ function SuggestionsSubmissionActions({
 
   return (
     <div className="flex flex-row items-end gap-1.5 shrink-0">
+      <button
+        type="button"
+        onClick={() => onOpenReject(submission, true)}
+        className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+      >
+        <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+        {submissionsMessages.suggestions.editRejectionInfo}
+      </button>
       {submission.rejectionToken ? (
         <button
           type="button"
@@ -719,7 +723,7 @@ function SuggestionsSubmissionActions({
               "_blank",
             )
           }
-          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
         >
           <SFInfoCircleFill className="w-3.5 h-3.5" />
           {submissionsMessages.suggestions.info}
@@ -741,14 +745,6 @@ function SuggestionsSubmissionActions({
           {submissionsMessages.suggestions.setToOpen}
         </button>
       )}
-      <button
-        type="button"
-        onClick={() => onOpenReject(submission, true)}
-        className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-      >
-        <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-        {submissionsMessages.suggestions.editRejectionInfo}
-      </button>
       <button
         type="button"
         onClick={() => onDeleteSubmission(submission.id)}

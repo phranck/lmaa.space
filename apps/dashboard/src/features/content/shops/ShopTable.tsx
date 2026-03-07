@@ -9,6 +9,7 @@ import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
 
+import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
@@ -114,21 +115,7 @@ export function ShopTable({
       {
         id: "categories",
         header: shopsMessages.table.categories,
-        cell: (shop) =>
-          shop.categories.length === 0 ? (
-            <span className="text-[var(--ds-text-subtle)]">–</span>
-          ) : (
-            <div className="flex flex-wrap gap-1">
-              {shop.categories.map((cat) => (
-                <span
-                  key={cat.id}
-                  className="px-2 py-0.5 rounded-[4px] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-xs"
-                >
-                  {cat.name}
-                </span>
-              ))}
-            </div>
-          ),
+        cell: (shop) => <ShopCategoryBadges categories={shop.categories} emptyLabel="–" />,
       },
       {
         id: "region",
