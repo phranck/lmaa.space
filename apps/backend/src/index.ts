@@ -108,7 +108,9 @@ app.onError((err, c) => {
 });
 
 async function startServer() {
-  await runMigrations();
+  if (env.RUN_MIGRATIONS_ON_STARTUP) {
+    await runMigrations();
+  }
 
   const timers = [startSessionCleanupJob(), startRateLimitCleanupJob(), startCacheCleanupJob()];
 
