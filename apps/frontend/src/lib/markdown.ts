@@ -8,6 +8,51 @@ import markedFootnote from "marked-footnote";
  */
 const UNSAFE_HREF = /^\s*javascript:/i;
 
+function normalizeFootnoteSourceHeadings(content: string): string {
+  const lines = content.split(/\r?\n/);
+  const normalized: string[] = [];
+  let inFence = false;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (/^(```|~~~)/.test(trimmed)) {
+      inFence = !inFence;
+      normalized.push(line);
+      continue;
+    }
+
+    if (!inFence) {
+      const sourceHeadingMatch = trimmed.match(/^(?:#{1,6}\s*)?(Quellen|Sources)\s*:?\s*$/i);
+
+      if (sourceHeadingMatch) {
+        let nextIndex = index + 1;
+        while (nextIndex < lines.length && lines[nextIndex].trim() === "") {
+          nextIndex += 1;
+        }
+
+        if (nextIndex < lines.length && /^\[\^[^\]]+\]:/.test(lines[nextIndex].trim())) {
+          const label = sourceHeadingMatch[1];
+
+          if (normalized.length > 0 && normalized[normalized.length - 1] !== "") {
+            normalized.push("");
+          }
+
+          normalized.push(`### ${label}`);
+          normalized.push("");
+          index = nextIndex - 1;
+          continue;
+        }
+      }
+    }
+
+    normalized.push(line);
+  }
+
+  return normalized.join("\n");
+}
+
 const markedSafe = new Marked({
   renderer: {
     html() {
@@ -30,7 +75,7 @@ const markedSafe = new Marked({
  * @returns HTML string safe for insertion into trusted templates.
  */
 export async function renderMarkdown(content: string): Promise<string> {
-  return markedSafe.parse(content) as Promise<string>;
+  return markedSafe.parse(normalizeFootnoteSourceHeadings(content)) as Promise<string>;
 }
 
 const markedPlainText = new Marked({
