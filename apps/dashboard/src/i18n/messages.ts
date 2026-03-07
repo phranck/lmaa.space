@@ -115,6 +115,12 @@ export interface DashboardMessages {
       pageviews: string;
       bounceRate: string;
       averageDuration: string;
+      shopVisitClicks: string;
+      websiteInteractions: string;
+      topSearchTerms: string;
+      topCategoriesByClicks: string;
+      topShopsByVisitClicks: string;
+      topLinkClicks: string;
       realtime: {
         title: string;
         active5m: string;
@@ -769,6 +775,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         pageviews: "Seitenaufrufe",
         bounceRate: "Absprungrate",
         averageDuration: "Ø Verweildauer",
+        shopVisitClicks: "Shop-Besuchen-Klicks",
+        websiteInteractions: "Website-Interaktionen",
+        topSearchTerms: "Top Suchbegriffe",
+        topCategoriesByClicks: "Top Kategorien nach Klicks",
+        topShopsByVisitClicks: "Top Shops nach Besuchen-Klicks",
+        topLinkClicks: "Top Link-Klicks",
         realtime: {
           title: "Live",
           active5m: "aktiv (5 min)",
@@ -1425,6 +1437,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         pageviews: "Pageviews",
         bounceRate: "Bounce rate",
         averageDuration: "Avg. visit duration",
+        shopVisitClicks: "Shop visit clicks",
+        websiteInteractions: "Website interactions",
+        topSearchTerms: "Top search terms",
+        topCategoriesByClicks: "Top categories by clicks",
+        topShopsByVisitClicks: "Top shops by visit clicks",
+        topLinkClicks: "Top link clicks",
         realtime: {
           title: "Live",
           active5m: "active (5 min)",

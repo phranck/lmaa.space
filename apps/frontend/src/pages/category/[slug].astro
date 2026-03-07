@@ -108,6 +108,11 @@ const jsonLd = {
             <a
               href="/suggestion"
               class="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-colors"
+              data-analytics-event="site-link-click"
+              data-analytics-kind="cta"
+              data-analytics-placement="category-empty-state"
+              data-analytics-label="Ersten Shop vorschlagen"
+              data-analytics-href="/suggestion"
             >
               Ersten Shop vorschlagen
             </a>
@@ -117,7 +122,7 @@ const jsonLd = {
     ) : (
       <div class="grid sm:grid-cols-2 gap-4">
         {category.shops.map((shop) => (
-          <ShopCard shop={shop} />
+          <ShopCard shop={shop} analyticsSource="category-page" />
         ))}
       </div>
     )}

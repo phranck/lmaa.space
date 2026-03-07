@@ -39,11 +39,24 @@ function navLinkClass(href: string, external = false) {
                 target="_blank"
                 rel="noopener noreferrer"
                 class={navLinkClass(href, true)}
+                data-analytics-event="site-link-click"
+                data-analytics-kind="nav"
+                data-analytics-placement="header"
+                data-analytics-label={label}
+                data-analytics-href={href}
               >
                 {label}
               </a>
             ) : (
-              <a href={href} class={navLinkClass(href ?? "")}>
+              <a
+                href={href}
+                class={navLinkClass(href ?? "")}
+                data-analytics-event="site-link-click"
+                data-analytics-kind="nav"
+                data-analytics-placement="header"
+                data-analytics-label={label}
+                data-analytics-href={href}
+              >
                 {label}
               </a>
             );
@@ -55,7 +68,12 @@ function navLinkClass(href: string, external = false) {
       <div class="flex items-center gap-2">
 
         <!-- Desktop Search -->
-        <form action="/search" method="get" class="hidden md:flex items-center">
+        <form
+          action="/search"
+          method="get"
+          class="hidden md:flex items-center"
+          data-analytics-search-source="header-desktop"
+        >
           <div class="relative">
             <input
               name="q"
@@ -101,6 +119,11 @@ function navLinkClass(href: string, external = false) {
               target="_blank"
               rel="noopener noreferrer"
               class="flex items-center justify-center gap-2 h-9 px-3 rounded-control bg-[#FF5E5B] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+              data-analytics-event="site-link-click"
+              data-analytics-kind="cta"
+              data-analytics-placement="header"
+              data-analytics-label="Via Ko-Fi spenden"
+              data-analytics-href="https://ko-fi.com/layeredwork?ref=lmaa.space"
             >
               <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 2.68.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.015-2.059 2.015z"/>
@@ -123,7 +146,12 @@ function navLinkClass(href: string, external = false) {
 
           <div class="pb-4 pt-2 space-y-1 border-t border-stone-100">
             <!-- Mobile Search -->
-            <form action="/search" method="get" class="px-1 pb-2">
+            <form
+              action="/search"
+              method="get"
+              class="px-1 pb-2"
+              data-analytics-search-source="header-mobile"
+            >
               <div class="relative">
                 <input
                   name="q"
@@ -161,6 +189,11 @@ function navLinkClass(href: string, external = false) {
                   target="_blank"
                   rel="noopener noreferrer"
                   class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-600 hover:bg-stone-100"
+                  data-analytics-event="site-link-click"
+                  data-analytics-kind="nav"
+                  data-analytics-placement="header-mobile-menu"
+                  data-analytics-label={label}
+                  data-analytics-href={href}
                 >
                   {label}
                 </a>
@@ -170,6 +203,11 @@ function navLinkClass(href: string, external = false) {
                   class={`block px-3 py-2 rounded-md font-serif text-lg transition-colors ${
                     isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"
                   }`}
+                  data-analytics-event="site-link-click"
+                  data-analytics-kind="nav"
+                  data-analytics-placement="header-mobile-menu"
+                  data-analytics-label={label}
+                  data-analytics-href={href}
                 >
                   {label}
                 </a>
@@ -182,6 +220,11 @@ function navLinkClass(href: string, external = false) {
                 target="_blank"
                 rel="noopener noreferrer"
                 class="flex items-center gap-2 h-9 px-3 rounded-control bg-[#FF5E5B] text-white text-sm font-medium hover:opacity-90 transition-opacity w-full justify-center"
+                data-analytics-event="site-link-click"
+                data-analytics-kind="cta"
+                data-analytics-placement="header-mobile-menu"
+                data-analytics-label="Via Ko-Fi spenden"
+                data-analytics-href="https://ko-fi.com/layeredwork?ref=lmaa.space"
               >
                 Via Ko-Fi spenden
               </a>

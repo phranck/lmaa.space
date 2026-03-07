@@ -7,9 +7,10 @@ import ShopCardHeader from "./ShopCardHeader.astro";
 
 interface Props {
   shop: Shop;
+  analyticsSource?: "shop-card" | "search-result" | "category-page";
 }
 
-const { shop } = Astro.props;
+const { shop, analyticsSource = "shop-card" } = Astro.props;
 
 const domain = shopDomain(shop.url);
 const shopUrl = shopRefUrl(shop.url);
@@ -36,6 +37,8 @@ const descriptionPreview = plainDescription
   : null;
 
 const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
+const categoryAnalyticsSource =
+  analyticsSource === "shop-card" ? "shop-card-pill" : analyticsSource;
 ---
 
 <div
@@ -64,6 +67,11 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
         <a
           href={`/category/${cat.slug}`}
           class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+          data-analytics-event="category-click"
+          data-analytics-source={categoryAnalyticsSource}
+          data-category-id={String(cat.id)}
+          data-category-slug={cat.slug}
+          data-category-name={cat.name}
         >
           {cat.name}
         </a>
@@ -112,6 +120,11 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
         target="_blank"
         rel="noopener noreferrer"
         class="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
+        data-analytics-event="shop-visit-click"
+        data-analytics-source={analyticsSource}
+        data-shop-id={String(shop.id)}
+        data-shop-name={shop.name}
+        data-shop-domain={domain}
       >
         Besuchen ↗
       </a>
@@ -249,6 +262,11 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
         <a
           href={`/category/${cat.slug}`}
           class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+          data-analytics-event="category-click"
+          data-analytics-source={categoryAnalyticsSource}
+          data-category-id={String(cat.id)}
+          data-category-slug={cat.slug}
+          data-category-name={cat.name}
         >
           {cat.name}
         </a>
@@ -285,6 +303,11 @@ const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.descrip
       target="_blank"
       rel="noopener noreferrer"
       class="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
+      data-analytics-event="shop-visit-click"
+      data-analytics-source="shop-details-dialog"
+      data-shop-id={String(shop.id)}
+      data-shop-name={shop.name}
+      data-shop-domain={domain}
     >
       Besuchen ↗
     </a>

@@ -13,6 +13,11 @@ const imageUrl = resolveImageUrl(category.imageUrl) ?? `/images/${category.slug}
 <a
   href={`/category/${category.slug}`}
   class="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+  data-analytics-event="category-click"
+  data-analytics-source="homepage-card"
+  data-category-id={String(category.id)}
+  data-category-slug={category.slug}
+  data-category-name={category.name}
 >
   <!-- Photo -->
   <div class="aspect-video overflow-hidden relative">
