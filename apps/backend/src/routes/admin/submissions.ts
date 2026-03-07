@@ -8,7 +8,7 @@ import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { editSubmission, listAdminSubmissions } from "../../repositories/admin-submissions.js";
 import {
-  deleteRejectedAdminSubmission,
+  deleteModeratedAdminSubmission,
   reviewAdminSubmission,
 } from "../../services/admin-submissions.js";
 
@@ -75,17 +75,17 @@ submissionsRoutes.patch(
   },
 );
 
-// DELETE /api/admin/submissions/:id – permanently remove rejected submissions
+// DELETE /api/admin/submissions/:id – permanently remove rejected or onhold submissions
 submissionsRoutes.delete("/submissions/:id", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
-  const result = await deleteRejectedAdminSubmission(id);
+  const result = await deleteModeratedAdminSubmission(id);
   if (!result.ok && result.reason === "not_found") {
     return fail(c, 404, "Submission not found");
   }
   if (!result.ok && result.reason === "invalid_status") {
-    return fail(c, 400, "Only rejected submissions can be deleted");
+    return fail(c, 400, "Only rejected or onhold submissions can be deleted");
   }
 
   return ok(c, { message: "Submission deleted" });
