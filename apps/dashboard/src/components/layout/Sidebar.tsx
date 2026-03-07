@@ -10,6 +10,7 @@ import SFEyeSlashFill from "sf-symbols-lib/monochrome/SFEyeSlashFill";
 import SFLink from "sf-symbols-lib/monochrome/SFLink";
 import SFListBulletRectanglePortraitFill from "sf-symbols-lib/monochrome/SFListBulletRectanglePortraitFill";
 import SFPerson3Fill from "sf-symbols-lib/monochrome/SFPerson3Fill";
+import SFRectangleBottomhalfFilled from "sf-symbols-lib/monochrome/SFRectangleBottomhalfFilled";
 import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
 import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
 import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
@@ -277,13 +278,19 @@ export function Sidebar({
           {isAdmin && <PagesGroup onItemClick={onItemClick} />}
         </div>
 
-        {/* Templates */}
+        {/* Builders */}
         {isAdmin && (
           <>
             <SidebarSection label={s.sectionTemplates} />
             <div className="space-y-0.5">
               <FormsGroup onItemClick={onItemClick} />
               <EmailTemplatesGroup onItemClick={onItemClick} />
+              <SidebarItem
+                to="/footer-builder"
+                label={s.footerBuilder}
+                icon={<SFRectangleBottomhalfFilled className="w-4 h-4" />}
+                onClick={onItemClick}
+              />
             </div>
           </>
         )}

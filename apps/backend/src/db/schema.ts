@@ -14,7 +14,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import type { FormConfigPayload } from "@lmaa/contracts";
+import type { FooterConfig, FormConfigPayload } from "@lmaa/contracts";
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -352,6 +352,20 @@ export const formSubmissions = pgTable("form_submissions", {
  * Inferred select type for `form_submissions`.
  */
 export type FormSubmissionRow = typeof formSubmissions.$inferSelect;
+
+/**
+ * Singleton table holding the website footer configuration (id always = 1).
+ */
+export const footerConfig = pgTable("footer_config", {
+  id: integer("id").primaryKey().default(1),
+  config: jsonb("config").$type<FooterConfig>().notNull().default({ columns: [] }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/**
+ * Inferred select type for `footer_config`.
+ */
+export type FooterConfigRow = typeof footerConfig.$inferSelect;
 
 /**
  * Email templates used for transactional and system notifications.
