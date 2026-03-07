@@ -320,14 +320,16 @@ export interface DashboardMessages {
       confirmDeleteTitle: string;
       confirmDeleteDescription: string;
     };
-    shopReports: {
-      loading: string;
-      none: string;
-      noneHint: string;
-      doneOrDecline: string;
-      edit: string;
-      delete: string;
-    };
+      shopReports: {
+        loading: string;
+        none: string;
+        noneHint: string;
+        done: string;
+        reject: string;
+        doneOrDecline: string;
+        edit: string;
+        delete: string;
+      };
   };
   users: {
     title: string;
@@ -988,6 +990,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loading: "Lade…",
         none: "Keine Shop-Meldungen.",
         noneHint: "Es liegen keine neuen Shop-Meldungen vor.",
+        done: "Erledigt",
+        reject: "Ablehnen",
         doneOrDecline: "Erledigt / Ablehnen",
         edit: "Bearbeiten",
         delete: "Löschen",
@@ -1649,6 +1653,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loading: "Loading…",
         none: "No shop reports.",
         noneHint: "No new shop reports available.",
+        done: "Done",
+        reject: "Reject",
         doneOrDecline: "Done / Reject",
         edit: "Edit",
         delete: "Delete",
