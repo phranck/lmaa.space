@@ -154,10 +154,18 @@ export function ShopReportsTab() {
                 type="button"
                 onClick={() => dismiss.mutate(r.id)}
                 disabled={dismiss.isPending || setVisibilityMutation.isPending}
-                className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-50"
+                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
               >
-                <SFArrowCounterclockwise className="w-3 h-3" />
+                <SFArrowCounterclockwise className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.done}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditShopId(r.shopId)}
+                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+              >
+                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                {submissionsMessages.shopReports.edit}
               </button>
               <button
                 type="button"
@@ -174,14 +182,6 @@ export function ShopReportsTab() {
               >
                 <SFXmarkCircleFill className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.reject}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditShopId(r.shopId)}
-                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-              >
-                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                {submissionsMessages.shopReports.edit}
               </button>
               <button
                 type="button"

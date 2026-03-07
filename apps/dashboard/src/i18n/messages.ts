@@ -326,7 +326,6 @@ export interface DashboardMessages {
         noneHint: string;
         done: string;
         reject: string;
-        doneOrDecline: string;
         edit: string;
         delete: string;
       };
@@ -990,9 +989,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loading: "Lade…",
         none: "Keine Shop-Meldungen.",
         noneHint: "Es liegen keine neuen Shop-Meldungen vor.",
-        done: "Erledigt",
+        done: "Behalten",
         reject: "Ablehnen",
-        doneOrDecline: "Erledigt / Ablehnen",
         edit: "Bearbeiten",
         delete: "Löschen",
       },
@@ -1653,9 +1651,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loading: "Loading…",
         none: "No shop reports.",
         noneHint: "No new shop reports available.",
-        done: "Done",
+        done: "Keep",
         reject: "Reject",
-        doneOrDecline: "Done / Reject",
         edit: "Edit",
         delete: "Delete",
       },
