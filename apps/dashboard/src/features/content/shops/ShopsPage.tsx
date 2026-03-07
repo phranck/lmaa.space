@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
 import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
@@ -10,6 +11,7 @@ import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import type { ShopVisibility } from "@lmaa/shared";
+import type { ShopEditFormValue } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -22,7 +24,9 @@ import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
+  getAdminShopQueryOptions,
   useAdminShops,
   useDeleteShop,
   useSetShopVisibility,
@@ -34,6 +38,38 @@ import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 type VisibilityFilter = "all" | ShopVisibility;
 
+type ShopEditTarget =
+  | {
+      initialData?: never;
+      shopId: "new";
+    }
+  | {
+      initialData: Partial<ShopEditFormValue>;
+      shopId: number;
+    };
+
+function toShopEditInitialData(shop: {
+  categories: Array<{ id: number }>;
+  contactEmail?: string | null;
+  description?: string | null;
+  name: string;
+  region?: string[] | null;
+  shipping?: string | null;
+  socialMedia?: Record<string, string>;
+  url: string;
+}): Partial<ShopEditFormValue> {
+  return {
+    name: shop.name,
+    url: shop.url,
+    description: shop.description ?? "",
+    categoryIds: shop.categories.map((category) => category.id),
+    region: shop.region ?? [],
+    shipping: shop.shipping ?? "",
+    contactEmail: shop.contactEmail ?? "",
+    socialMedia: shop.socialMedia ?? {},
+  };
+}
+
 /**
  * Shop management route with filters and moderation actions.
  *
@@ -43,7 +79,9 @@ export function ShopsPage() {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;
   const { user: me } = useAuth();
-  const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
+  const queryClient = useQueryClient();
+  const [editTarget, setEditTarget] = useState<ShopEditTarget | null>(null);
+  const [editLoadingId, setEditLoadingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -52,6 +90,7 @@ export function ShopsPage() {
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
   );
+  useAdminCategories();
   const deleteMutation = useDeleteShop();
   const visibilityMutation = useSetShopVisibility();
   const updateReasonMutation = useUpdateDeleteReason();
@@ -84,6 +123,32 @@ export function ShopsPage() {
       await updateReasonMutation.mutateAsync({ id, reason });
     },
     [updateReasonMutation],
+  );
+  const prefetchEditTarget = useCallback(
+    async (id: number) => {
+      await queryClient.prefetchQuery(getAdminShopQueryOptions(id));
+    },
+    [queryClient],
+  );
+  const handleEdit = useCallback(
+    async (id: number | "new") => {
+      if (id === "new") {
+        setEditTarget({ shopId: "new" });
+        return;
+      }
+
+      setEditLoadingId(id);
+      try {
+        const shop = await queryClient.fetchQuery(getAdminShopQueryOptions(id));
+        setEditTarget({
+          shopId: id,
+          initialData: toShopEditInitialData(shop),
+        });
+      } finally {
+        setEditLoadingId((current) => (current === id ? null : current));
+      }
+    },
+    [queryClient],
   );
 
   const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
@@ -143,7 +208,7 @@ export function ShopsPage() {
 
         <button
           type="button"
-          onClick={() => setEditTarget("new")}
+          onClick={() => void handleEdit("new")}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
           <SFPlusCircleFill className="w-3.5 h-3.5" />
@@ -183,7 +248,9 @@ export function ShopsPage() {
         <div className="-mx-3 -mt-3">
           <ShopTable
             shops={filtered}
-            onEdit={setEditTarget}
+            editLoadingId={editLoadingId}
+            onEdit={handleEdit}
+            onEditIntent={prefetchEditTarget}
             onDelete={canModify ? setDeleteId : undefined}
             onPermanentDelete={canModify ? setPermanentDeleteId : undefined}
             onHold={canModify ? onHold : undefined}
@@ -196,7 +263,8 @@ export function ShopsPage() {
       {/* Edit / New Overlay */}
       {editTarget !== null && (
         <ShopEditCard
-          shopId={editTarget}
+          initialData={editTarget.initialData}
+          shopId={editTarget.shopId}
           onClose={() => setEditTarget(null)}
           onSaved={() => setEditTarget(null)}
         />

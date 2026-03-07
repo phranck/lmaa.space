@@ -1,4 +1,4 @@
-import { type ClipboardEvent, useReducer, useState } from "react";
+import { type ClipboardEvent, useEffect, useReducer, useRef, useState } from "react";
 import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
@@ -127,10 +127,8 @@ export function ShopEditCard({
   const editorStateKey = isNew
     ? "new"
     : isSubmissionMode
-      ? `submission-${submissionId}`
-      : shopData
-        ? `shop-${shopData.id}`
-        : `shop-loading-${shopId}`;
+      ? `submission-${submissionId ?? "unknown"}`
+      : `shop-${shopId}`;
   const title = isSubmissionMode
     ? shopsMessages.editCard.titleSubmissionEdit
     : isNew
@@ -315,7 +313,14 @@ function ShopEditCardContent({
     getInitialImageState(initialData, isSubmissionMode),
   );
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
+  const hydratedShopRef = useRef(false);
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
+
+  useEffect(() => {
+    if (isNew || isSubmissionMode || shopData === null || hydratedShopRef.current) return;
+    hydratedShopRef.current = true;
+    setForm(getInitialFormValue(initialData, shopData));
+  }, [initialData, isNew, isSubmissionMode, shopData]);
 
   const isPending = shopMutation.isPending || submissionMutation.isPending;
   const isError = shopMutation.isError || submissionMutation.isError;
