@@ -355,7 +355,7 @@ function UserEditCardForm({
     updateUser.isError || saveAvatar.isError || setGravatar.isError || deleteAvatar.isError;
   const error = updateUser.error ?? saveAvatar.error ?? setGravatar.error ?? deleteAvatar.error;
 
-  const canChangeRole = me?.isOwner && user.id !== me?.id && user.role !== "owner";
+  const canChangeRole = Boolean(me?.isOwner) && user.id !== me?.id && user.role !== "owner";
   const roleChanged =
     canChangeRole && draft.role !== (user.role === "moderator" ? "moderator" : "admin");
   const hasChanges =
