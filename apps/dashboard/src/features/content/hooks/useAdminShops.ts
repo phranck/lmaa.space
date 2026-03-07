@@ -49,6 +49,14 @@ export function useSetShopVisibility() {
   });
 }
 
+function getAdminShopQueryKey(id: number | null) {
+  return ["shop", id] as const;
+}
+
+function getAdminShopQueryFn(id: number) {
+  return () => api.get<Shop>(`/admin/shops/${id}`);
+}
+
 /**
  * Loads one shop detail for edit mode.
  *
@@ -57,10 +65,17 @@ export function useSetShopVisibility() {
  */
 export function useAdminShop(id: number | null) {
   return useQuery({
-    queryKey: ["shop", id],
-    queryFn: () => api.get<Shop>(`/admin/shops/${id}`),
+    queryKey: getAdminShopQueryKey(id),
+    queryFn: id === null ? undefined : getAdminShopQueryFn(id),
     enabled: id !== null,
   });
+}
+
+export function getAdminShopQueryOptions(id: number) {
+  return {
+    queryKey: getAdminShopQueryKey(id),
+    queryFn: getAdminShopQueryFn(id),
+  };
 }
 
 /**
