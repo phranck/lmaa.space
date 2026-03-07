@@ -113,6 +113,7 @@ export async function createManagedAdminUser(
     if (template) {
       const { html, subject } = await renderEmailTemplate(template, {
         username: input.username,
+        role: created.role,
         loginUrl: env.DASHBOARD_URL,
         inviteUrl,
         email: input.email,

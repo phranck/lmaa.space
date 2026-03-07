@@ -4,7 +4,12 @@ import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
-import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import {
+  Dialog,
+  dialogBtnDestructive,
+  dialogBtnSecondary,
+  dialogHeaderIconClass,
+} from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -114,6 +119,7 @@ export function UsersPage() {
       <Dialog
         open={deleteId !== null && !!deleteTarget}
         title={usersMessages.removeConfirmTitle}
+        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
         onClose={() => setDeleteId(null)}
       >
         <div className="px-6 py-3">

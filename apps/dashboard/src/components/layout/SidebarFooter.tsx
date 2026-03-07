@@ -4,7 +4,12 @@ import SFRectanglePortraitAndArrowRightFill from "sf-symbols-lib/monochrome/SFRe
 
 import type { AdminRole } from "@lmaa/shared";
 
-import { Dialog, dialogBtnPrimary, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import {
+  Dialog,
+  dialogBtnPrimary,
+  dialogBtnSecondary,
+  dialogHeaderIconClass,
+} from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UserAvatar } from "@/features/system/UserAvatar.tsx";
 
@@ -99,7 +104,12 @@ export function SidebarFooter({
         </div>
       </div>
 
-      <Dialog open={confirmOpen} title={s.logoutConfirmTitle} onClose={() => setConfirmOpen(false)}>
+      <Dialog
+        open={confirmOpen}
+        title={s.logoutConfirmTitle}
+        titleIcon={<SFRectanglePortraitAndArrowRightFill className={dialogHeaderIconClass} />}
+        onClose={() => setConfirmOpen(false)}
+      >
         <div className="px-6 py-3 space-y-3">
           <p className="text-sm text-[var(--ds-text-muted)]">{s.logoutConfirmDescription}</p>
           <label className="flex items-center gap-2 cursor-pointer select-none">

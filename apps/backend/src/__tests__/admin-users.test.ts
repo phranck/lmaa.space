@@ -89,6 +89,7 @@ describe("createManagedAdminUser", () => {
       { id: 7, name: "Welcome" },
       expect.objectContaining({
         username: "mod",
+        role: "moderator",
         email: "mod@example.com",
         loginUrl: "http://localhost:5174",
         inviteUrl: "http://localhost:5174/invite/invite-token",

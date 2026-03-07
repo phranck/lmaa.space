@@ -4,6 +4,7 @@ import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { CharCounter, MarkdownTextarea } from "@lmaa/ui";
 
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
@@ -35,6 +36,7 @@ export interface RejectDialogProps {
   submitLabel: string;
   submitVariant?: "danger" | "primary";
   submitIcon?: ReactNode;
+  headerIcon?: ReactNode;
   headerRight?: ReactNode;
   storageKey?: string;
   adminNoteStorageKey?: string;
@@ -60,6 +62,7 @@ export function RejectDialog({
   submitLabel,
   submitVariant = "danger",
   submitIcon,
+  headerIcon,
   headerRight,
   storageKey = "reject-dialog-size",
   adminNoteStorageKey,
@@ -88,7 +91,10 @@ export function RejectDialog({
     >
       <OverlayCard.Header>
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
+          <div className="flex min-w-0 items-center gap-3">
+            {headerIcon ?? <SFXmarkCircleFill className={dialogHeaderIconClass} />}
+            <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
+          </div>
           {headerRight}
         </div>
         <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{name}</p>

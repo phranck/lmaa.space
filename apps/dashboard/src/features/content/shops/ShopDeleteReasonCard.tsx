@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { Checkbox } from "@lmaa/ui";
 
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
@@ -55,9 +57,12 @@ export function ShopDeleteReasonCard({
       aria-label={shopsMessages.deleteCard.title}
     >
       <OverlayCard.Header>
-        <h2 className="text-base font-semibold text-[var(--ds-text)]">
-          {shopsMessages.deleteCard.title}
-        </h2>
+        <div className="flex items-center gap-3">
+          <SFTrashFill className={dialogHeaderIconClass} />
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">
+            {shopsMessages.deleteCard.title}
+          </h2>
+        </div>
         <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">
           <span className="font-medium text-[var(--ds-text)]">{shopName}</span>{" "}
           {shopsMessages.deleteCard.markedDeletedHint}

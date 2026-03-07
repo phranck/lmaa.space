@@ -18,7 +18,12 @@ import { CharCounter } from "@lmaa/ui";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import {
+  Dialog,
+  dialogBtnDestructive,
+  dialogBtnSecondary,
+  dialogHeaderIconClass,
+} from "@/components/ui/Dialog.tsx";
 import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
@@ -365,6 +370,13 @@ export function SuggestionsTab() {
         open={reviewState.reviewId !== null && reviewState.reviewId < 0 && reviewing !== undefined}
         onClose={closeReview}
         title={reviewTitle}
+        headerIcon={
+          reviewState.editingRejection ? (
+            <SFLongTextPageAndPencilFill className={dialogHeaderIconClass} />
+          ) : (
+            <SFXmarkCircleFill className={dialogHeaderIconClass} />
+          )
+        }
         name={reviewing?.shopName ?? ""}
         url={reviewing?.shopUrl ?? ""}
         adminNote={reviewState.adminNote}
@@ -405,6 +417,7 @@ export function SuggestionsTab() {
       <Dialog
         open={deleteSubmissionId !== null && deleteSubmissionTarget !== null}
         title={submissionsMessages.suggestions.confirmDeleteTitle}
+        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
         onClose={() => setDeleteSubmissionId(null)}
       >
         <div className="px-6 py-3">
@@ -802,7 +815,10 @@ function ApproveSubmissionReviewCard({
         <>
           <OverlayCard.Header>
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
+              <div className="flex min-w-0 items-center gap-3">
+                <SFArrowUpCircleFill className={dialogHeaderIconClass} />
+                <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
+              </div>
               <SaveNotification phase={savedPhase} label={savedLabel} />
             </div>
             <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>

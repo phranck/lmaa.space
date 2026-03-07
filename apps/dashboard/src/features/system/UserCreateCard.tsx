@@ -7,6 +7,7 @@ import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
 
 import type { AdminUserInvite } from "@lmaa/shared";
 
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -57,6 +58,28 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
 
   const createMutation = useCreateUser();
   const { data: emailTemplates = [] } = useEmailTemplates();
+  const templateVariables = [
+    {
+      name: "{{username}}",
+      description: usersMessages.createCard.templateVariableUsername,
+    },
+    {
+      name: "{{email}}",
+      description: usersMessages.createCard.templateVariableEmail,
+    },
+    {
+      name: "{{role}}",
+      description: usersMessages.createCard.templateVariableRole,
+    },
+    {
+      name: "{{inviteUrl}}",
+      description: usersMessages.createCard.templateVariableInviteUrl,
+    },
+    {
+      name: "{{loginUrl}}",
+      description: usersMessages.createCard.templateVariableLoginUrl,
+    },
+  ] as const;
 
   function handleSubmit() {
     createMutation.mutate(form, {
@@ -89,7 +112,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
     >
       <OverlayCard.Header>
         <div className="flex items-center gap-3">
-          <SFPersonBadgePlus className="w-5 h-5 text-[var(--ds-text-muted)]" />
+          <SFPersonBadgePlus className={dialogHeaderIconClass} />
           <h2 className="font-semibold text-[var(--ds-text)]">{usersMessages.createCard.title}</h2>
         </div>
       </OverlayCard.Header>
@@ -197,6 +220,24 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
                   </option>
                 ))}
               </select>
+              <div className="mt-3 rounded-control border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-inset)] p-3">
+                <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--ds-text-subtle)]">
+                  {usersMessages.createCard.templateVariablesLabel}
+                </p>
+                <div className="mt-2 space-y-2">
+                  {templateVariables.map((variable) => (
+                    <div
+                      key={variable.name}
+                      className="grid grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-x-2 text-xs text-left"
+                    >
+                      <code className="shrink-0 rounded bg-[var(--ds-bg-elevated)] px-1.5 py-0.5 font-mono text-[var(--ds-text)]">
+                        {variable.name}
+                      </code>
+                      <span className="text-[var(--ds-text-muted)]">{variable.description}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {createMutation.isError && (

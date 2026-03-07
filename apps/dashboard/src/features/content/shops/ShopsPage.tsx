@@ -12,7 +12,12 @@ import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 import type { ShopVisibility } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { Dialog, dialogBtnDestructive, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import {
+  Dialog,
+  dialogBtnDestructive,
+  dialogBtnSecondary,
+  dialogHeaderIconClass,
+} from "@/components/ui/Dialog.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -201,6 +206,7 @@ export function ShopsPage() {
       <Dialog
         open={permanentDeleteId !== null && permanentDeleteTarget !== undefined}
         title={shopsMessages.table.permanentDeleteTitle}
+        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
         onClose={() => setPermanentDeleteId(null)}
       >
         <div className="px-6 py-3">

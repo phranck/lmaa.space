@@ -12,7 +12,7 @@ import type { EmailTemplateInput } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { Dialog, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailTemplateImportConflictDialog } from "@/features/templates/email-templates/EmailTemplateImportConflictDialog.tsx";
@@ -283,6 +283,7 @@ export function EmailTemplateListPage() {
       <Dialog
         open={alertMessage !== null}
         title={alertMessage ?? ""}
+        titleIcon={<SFSquareAndArrowDown className={dialogHeaderIconClass} />}
         onClose={() => setAlertMessage(null)}
       >
         <Dialog.Footer>

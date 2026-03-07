@@ -16,6 +16,7 @@ import {
   Dialog,
   dialogBtnDestructive,
   dialogBtnPrimary,
+  dialogHeaderIconClass,
   dialogBtnSecondary,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -152,7 +153,13 @@ function NewFormDialog({
   }
 
   return (
-    <Dialog open={open} title={m.newForm} onClose={onClose} maxWidth="md">
+    <Dialog
+      open={open}
+      title={m.newForm}
+      titleIcon={<SFPlusCircleFill className={dialogHeaderIconClass} />}
+      onClose={onClose}
+      maxWidth="md"
+    >
       <form onSubmit={handleSubmit}>
         <div className="px-6 py-3 space-y-4">
           <div>
@@ -508,6 +515,7 @@ export function FormBuilderListPage() {
       <Dialog
         open={deleteTarget !== null}
         title={`${m.deleteConfirmPrefix}${deleteTarget}${m.deleteConfirmSuffix}`}
+        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
         onClose={() => setDeleteTarget(null)}
       >
         <div className="px-6 py-3">
@@ -535,6 +543,7 @@ export function FormBuilderListPage() {
       <Dialog
         open={alertMessage !== null}
         title={alertMessage ?? ""}
+        titleIcon={<SFSquareAndArrowDown className={dialogHeaderIconClass} />}
         onClose={() => setAlertMessage(null)}
       >
         <Dialog.Footer>
