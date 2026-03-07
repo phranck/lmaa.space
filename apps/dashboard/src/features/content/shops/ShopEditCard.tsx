@@ -153,7 +153,7 @@ export function ShopEditCard({
   const error = shopMutation.error ?? submissionMutation.error;
   const isRejecting = setVisibilityMutation.isPending;
   const activeShop = shopData ?? initialShop ?? null;
-  const canReject = !isNew && !isSubmissionMode && activeShop?.visibility === "public";
+  const canReject = !isNew && !isSubmissionMode && activeShop !== null;
 
   usePersistedTextareaHeight("sef-description", "shops:textarea:description", !showLoadingSkeleton);
 
