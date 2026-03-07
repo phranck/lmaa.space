@@ -44,6 +44,7 @@ export interface DashboardMessages {
       formsOverview: string;
       emailTemplates: string;
       emailTemplatesOverview: string;
+      footerBuilder: string;
       editProfile: string;
       logout: string;
       logoutConfirmTitle: string;
@@ -690,7 +691,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       sidebar: {
         sectionGeneral: "Allgemein",
         sectionContent: "Content",
-        sectionTemplates: "Templates",
+        sectionTemplates: "Builders",
         sectionAnalytics: "Analytics",
         analytics: "Analytics",
         sectionSystem: "System",
@@ -706,6 +707,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Übersicht",
         emailTemplates: "E-Mail-Templates",
         emailTemplatesOverview: "Übersicht",
+        footerBuilder: "Footer-Builder",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
         logoutConfirmTitle: "Abmelden?",
@@ -1354,7 +1356,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       sidebar: {
         sectionGeneral: "General",
         sectionContent: "Content",
-        sectionTemplates: "Templates",
+        sectionTemplates: "Builders",
         sectionAnalytics: "Analytics",
         analytics: "Analytics",
         sectionSystem: "System",
@@ -1370,6 +1372,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Overview",
         emailTemplates: "Email Templates",
         emailTemplatesOverview: "Overview",
+        footerBuilder: "Footer Builder",
         editProfile: "Edit profile",
         logout: "Log out",
         logoutConfirmTitle: "Log out?",

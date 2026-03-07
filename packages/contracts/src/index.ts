@@ -22,3 +22,5 @@ export * from "./admin-nav";
 export * from "./admin-users";
 /** Admin form config schemas. */
 export * from "./admin-form-config";
+/** Footer builder type definitions and schemas. */
+export * from "./footer-config";

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { env } from "../config/env.js";
 import { fail, ok } from "../lib/http.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
+import { getFooterConfig } from "../repositories/footer-config.js";
 import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
@@ -199,6 +200,13 @@ publicRoutes.get("/form-config-by-slug/:slug", publicReadLimit, async (c) => {
   if (!result.ok) return fail(c, 404, "Form config not found");
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, result.data);
+});
+
+// GET /api/footer-config
+publicRoutes.get("/footer-config", publicReadLimit, async (c) => {
+  const config = await getFooterConfig();
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, config);
 });
 
 // GET /api/rejected/:token – public rejection reason page
