@@ -18,6 +18,7 @@ export interface Submission {
   pickup: string;
   shipping: string;
   description: string;
+  ogImage: string | null;
   socialMedia: Record<string, string>;
   contactEmail: string | null;
   submitterEmail: string | null;

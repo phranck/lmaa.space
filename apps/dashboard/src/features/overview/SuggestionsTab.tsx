@@ -340,6 +340,7 @@ export function SuggestionsTab() {
             contactEmail: editSubmission.contactEmail ?? "",
             socialMedia: editSubmission.socialMedia ?? {},
           }}
+          initialOgImage={editSubmission.ogImage}
           onClose={() => setEditSubmission(null)}
           onSaved={() => setEditSubmission(null)}
         />

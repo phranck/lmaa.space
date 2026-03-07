@@ -30,6 +30,7 @@ import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts"
 
 type ShopEditCardProps = {
   initialData?: Partial<ShopEditFormValue>;
+  initialOgImage?: string | null;
   initialShop?: AdminShopListItem;
   onClose: () => void;
   onSaved: () => void;
@@ -50,12 +51,16 @@ type RejectState = {
 
 function getInitialImageState(
   initialData: Partial<ShopEditFormValue> | undefined,
+  initialOgImage: string | null | undefined,
   isSubmissionMode: boolean,
 ): ShopImageState {
+  const trimmedInitialOgImage = initialOgImage?.trim() || null;
+
   return {
-    draftOgImageInput: null,
-    previewOverride: undefined,
-    previewRequestUrl: isSubmissionMode ? initialData?.url?.trim() || null : null,
+    draftOgImageInput: trimmedInitialOgImage,
+    previewOverride: isSubmissionMode && trimmedInitialOgImage ? trimmedInitialOgImage : undefined,
+    previewRequestUrl:
+      isSubmissionMode && !trimmedInitialOgImage ? initialData?.url?.trim() || null : null,
   };
 }
 
@@ -97,6 +102,7 @@ export function ShopEditCard({
   shopId,
   submissionId,
   initialData,
+  initialOgImage,
   initialShop,
   onClose,
   onSaved,
@@ -127,7 +133,7 @@ export function ShopEditCard({
       : shopsMessages.editCard.titleEdit;
   const [form, setForm] = useReducer(formReducer, getInitialFormValue(initialData, shopData));
   const [imageState, setImageState] = useState<ShopImageState>(() =>
-    getInitialImageState(initialData, isSubmissionMode),
+    getInitialImageState(initialData, initialOgImage, isSubmissionMode),
   );
   const [showDeferredShopImage, setShowDeferredShopImage] = useState(() => initialShop === undefined);
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
@@ -174,10 +180,24 @@ export function ShopEditCard({
     ? previewImageQuery.isFetching
     : refetchImageMutation.isPending;
 
+  function getSubmissionOgImageValue() {
+    if (!isSubmissionMode) return null;
+
+    if (imageState.draftOgImageInput !== null) {
+      const trimmedDraft = imageState.draftOgImageInput.trim();
+      return trimmedDraft.length > 0 ? trimmedDraft : null;
+    }
+
+    return previewImage?.trim() || null;
+  }
+
   function handleSave(close = true) {
     const onSuccess = close ? onSaved : showSaved;
     if (isSubmissionMode && submissionId !== undefined) {
-      submissionMutation.mutate({ id: submissionId, data: form }, { onSuccess });
+      submissionMutation.mutate(
+        { id: submissionId, data: form, ogImage: getSubmissionOgImageValue() },
+        { onSuccess },
+      );
     } else {
       shopMutation.mutate(form, { onSuccess });
     }
@@ -225,7 +245,11 @@ export function ShopEditCard({
   }
 
   function handleOgImageInputChange(value: string) {
-    setImageState((current) => ({ ...current, draftOgImageInput: value }));
+    setImageState((current) => ({
+      ...current,
+      draftOgImageInput: value,
+      previewOverride: isSubmissionMode ? (value.trim() || null) : current.previewOverride,
+    }));
   }
 
   function handleRefreshImage() {
