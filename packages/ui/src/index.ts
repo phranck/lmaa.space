@@ -4,10 +4,6 @@ export { CharCounter } from "./CharCounter.tsx";
 export type { CharCounterProps } from "./CharCounter.tsx";
 /** Shared checkbox component and props. */
 export { Checkbox } from "./Checkbox.tsx";
-/** Shared Markdown textarea component. */
-export { MarkdownTextarea } from "./MarkdownTextarea.tsx";
-/** Re-exported props for `MarkdownTextarea`. */
-export type { MarkdownTextareaProps } from "./MarkdownTextarea.tsx";
 /** CodeMirror-based Markdown source editor with syntax highlighting. */
 export { MarkdownEditor } from "./MarkdownEditor.tsx";
 /** Re-exported props for `MarkdownEditor`. */
