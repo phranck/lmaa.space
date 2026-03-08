@@ -58,12 +58,14 @@ export function FooterStylePane({ style, onChange }: Props) {
         </label>
       ))}
 
-      <SegmentSwitch
-        label="Höhe (Padding)"
-        value={s.paddingY}
-        onChange={(v) => onChange({ ...s, paddingY: v })}
-        options={PADDING_OPTIONS}
-      />
+      <div className="flex flex-col gap-2">
+        <span className={labelClass}>Höhe (Padding)</span>
+        <SegmentSwitch
+          value={s.paddingY}
+          onChange={(v) => onChange({ ...s, paddingY: v })}
+          options={PADDING_OPTIONS}
+        />
+      </div>
     </Card>
   );
 }
