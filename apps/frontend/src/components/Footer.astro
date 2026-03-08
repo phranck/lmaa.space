@@ -1,118 +1,101 @@
 ---
+import type { FooterConfig, FooterColumn } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
+import { FOOTER_STYLES_CSS, footerStyleVars } from "@lmaa/shared";
+
+import { renderMarkdown } from "@/lib/markdown";
 
 interface Props {
+  config: FooterConfig;
   navItems: NavItem[];
 }
 
-const { navItems } = Astro.props;
+const { config, navItems } = Astro.props;
 
-const year = new Date().getFullYear();
+const textBlockHtmlMap = new Map<string, string>();
+for (const col of config.columns) {
+  for (const block of col.blocks) {
+    if (block.type === "text") {
+      textBlockHtmlMap.set(block.id, await renderMarkdown(block.markdown));
+    }
+  }
+}
+
+const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
 ---
 
-<footer class="mt-auto bg-stone-900 text-stone-300">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-10 mb-10">
+{config.columns.length > 0 && (
+  <footer class="footer-root" style={footerStyleVars(config.style)}>
+    <div class="footer-inner">
+      <div class="footer-grid" style={`--footer-cols:${totalSpan}`}>
+        {config.columns.map((col: FooterColumn) => (
+          <div class="footer-col" style={`--col-span:${col.span}`}>
+            {col.blocks.map((block) => {
+              if (block.type === "headline") {
+                return <p class="footer-headline">{block.text}</p>;
+              }
 
-      <!-- About -->
-      <div>
-        <p class="font-serif text-lg font-semibold text-white mb-3 tracking-wide">
-          lmaa.space
-        </p>
-        <p class="text-sm text-stone-400 leading-relaxed">
-          Eine kuratierte Liste von Online-Shops als Alternativen zu Amazon.
-        </p>
-      </div>
+              if (block.type === "text") {
+                const html = textBlockHtmlMap.get(block.id) ?? "";
+                return <div class="footer-text" set:html={html} />;
+              }
 
-      <!-- Navigation -->
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-4">
-          Navigation
-        </p>
-        <ul class="space-y-2.5 text-sm">
-          {navItems.map((item) => {
-            const href = item.url ?? `/${item.pageSlug}`;
-            const label = item.label ?? item.pageTitle ?? href;
-            const external = item.target === "_blank" || (item.url?.startsWith("http") ?? false);
-            return (
-              <li>
-                {external ? (
+              if (block.type === "button") {
+                const isExternal = block.external;
+                const styleClass = `footer-btn footer-btn-${block.style}`;
+                return (
                   <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-stone-400 hover:text-amber-400 transition-colors"
-                    data-analytics-event="site-link-click"
-                    data-analytics-kind="footer"
-                    data-analytics-placement="footer-nav"
-                    data-analytics-label={label}
-                    data-analytics-href={href}
+                    href={block.href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    class={styleClass}
                   >
-                    {label}
+                    {block.label && <span>{block.label}</span>}
                   </a>
-                ) : (
-                  <a
-                    href={href}
-                    class="text-stone-400 hover:text-amber-400 transition-colors"
-                    data-analytics-event="site-link-click"
-                    data-analytics-kind="footer"
-                    data-analytics-placement="footer-nav"
-                    data-analytics-label={label}
-                    data-analytics-href={href}
-                  >
-                    {label}
-                  </a>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+                );
+              }
 
-      <!-- Donate -->
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-4">
-          Projekt unterstützen
-        </p>
-        <p class="text-sm text-stone-400 mb-5 leading-relaxed">
-          lmaa.space ist ein privates Community-Projekt. Über eine kleine Unterstützung freue ich mich sehr.
-        </p>
-        <div class="flex flex-col gap-2.5">
-          <a
-            href="https://ko-fi.com/layeredwork?ref=lmaa.space"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#FF5E5B] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-            data-analytics-event="site-link-click"
-            data-analytics-kind="cta"
-            data-analytics-placement="footer"
-            data-analytics-label="Via Ko-Fi spenden"
-            data-analytics-href="https://ko-fi.com/layeredwork?ref=lmaa.space"
-          >
-            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.352.24 7.422-2.831 6.649-6.916zm-11.062 3.511c-1.246 1.453-4.011 3.976-4.011 3.976s-.121.119-.31.023c-.076-.057-.108-.09-.108-.09-.443-.441-3.368-3.049-4.034-3.954-.709-.965-1.041-2.7-.091-3.71.951-1.01 3.005-1.086 4.363.407 0 0 1.565-1.782 3.468-.963 1.904.82 1.832 2.68.723 4.311zm6.173.478c-.928.116-1.682.028-1.682.028V7.284h1.77s1.971.551 1.971 2.638c0 1.913-.985 2.015-2.059 2.015z"/>
-            </svg>
-            Via Ko-Fi spenden
-          </a>
-        </div>
+              if (block.type === "separator") {
+                return <hr class="footer-separator" />;
+              }
+
+              if (block.type === "footer-nav") {
+                const isHorizontal = block.direction === "horizontal";
+                return (
+                  <ul class={isHorizontal ? "footer-nav footer-nav-h" : "footer-nav"}>
+                    {navItems.map((item) => {
+                      const href = item.url ?? `/${item.pageSlug}`;
+                      const label = item.label ?? item.pageTitle ?? href;
+                      const external =
+                        item.target === "_blank" || (item.url?.startsWith("http") ?? false);
+                      return (
+                        <li>
+                          <a
+                            href={href}
+                            target={external ? "_blank" : undefined}
+                            rel={external ? "noopener noreferrer" : undefined}
+                            data-analytics-event="site-link-click"
+                            data-analytics-kind="footer"
+                            data-analytics-placement="footer-nav"
+                            data-analytics-label={label}
+                            data-analytics-href={href}
+                          >
+                            {label}
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
+              }
+
+              return null;
+            })}
+          </div>
+        ))}
       </div>
     </div>
+  </footer>
+)}
 
-    <div class="border-t border-stone-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
-      <span>© {year} lmaa.space</span>
-      <a
-        href="https://codeberg.org/phranck/Amazon-Alternativen"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="hover:text-amber-400 transition-colors"
-        data-analytics-event="site-link-click"
-        data-analytics-kind="footer"
-        data-analytics-placement="footer-meta"
-        data-analytics-label="Ursprungsprojekt auf Codeberg"
-        data-analytics-href="https://codeberg.org/phranck/Amazon-Alternativen"
-      >
-        Ursprungsprojekt auf Codeberg ↗
-      </a>
-    </div>
-  </div>
-</footer>
+<style set:html={FOOTER_STYLES_CSS} />

@@ -88,6 +88,12 @@ const EmailTemplateEditPage = lazy(() =>
   })),
 );
 
+const FooterBuilderPage = lazy(() =>
+  import("@/features/content/FooterBuilderPage.tsx").then((m) => ({
+    default: m.FooterBuilderPage,
+  })),
+);
+
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
 
@@ -218,6 +224,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <NavManagerPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="footer-builder"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <FooterBuilderPage />
                   </Suspense>
                 }
               />

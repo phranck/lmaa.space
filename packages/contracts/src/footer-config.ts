@@ -1,5 +1,35 @@
 import { z } from "zod";
 
+// ---------------------------------------------------------------------------
+// Style
+// ---------------------------------------------------------------------------
+
+export const footerStyleSchema = z.object({
+  bgColor: z.string().default("#1c1917"),
+  textColor: z.string().default("#d6d3d1"),
+  headlineColor: z.string().default("#78716c"),
+  linkColor: z.string().default("#a8a29e"),
+  linkHoverColor: z.string().default("#fbbf24"),
+  buttonColor: z.string().default("#7c3aed"),
+  buttonTextColor: z.string().default("#ffffff"),
+  paddingY: z.enum(["sm", "md", "lg", "xl"]).default("lg"),
+});
+
+export type FooterStyle = z.infer<typeof footerStyleSchema>;
+
+export const FOOTER_STYLE_DEFAULTS: FooterStyle = footerStyleSchema.parse({});
+
+export const FOOTER_PADDING_Y: Record<FooterStyle["paddingY"], string> = {
+  sm: "2rem",
+  md: "2.75rem",
+  lg: "3.5rem",
+  xl: "5rem",
+};
+
+// ---------------------------------------------------------------------------
+// Blocks
+// ---------------------------------------------------------------------------
+
 export const headlineBlockSchema = z.object({
   id: z.string(),
   type: z.literal("headline"),
@@ -29,6 +59,12 @@ export const buttonBlockSchema = z
 export const footerNavBlockSchema = z.object({
   id: z.string(),
   type: z.literal("footer-nav"),
+  direction: z.enum(["horizontal", "vertical"]).default("vertical"),
+});
+
+export const separatorBlockSchema = z.object({
+  id: z.string(),
+  type: z.literal("separator"),
 });
 
 export const footerBlockSchema = z.union([
@@ -36,7 +72,12 @@ export const footerBlockSchema = z.union([
   textBlockSchema,
   buttonBlockSchema,
   footerNavBlockSchema,
+  separatorBlockSchema,
 ]);
+
+// ---------------------------------------------------------------------------
+// Column + Config
+// ---------------------------------------------------------------------------
 
 export const footerColumnSchema = z.object({
   id: z.string(),
@@ -46,12 +87,14 @@ export const footerColumnSchema = z.object({
 
 export const footerConfigSchema = z.object({
   columns: z.array(footerColumnSchema),
+  style: footerStyleSchema.optional(),
 });
 
 export type HeadlineBlock = z.infer<typeof headlineBlockSchema>;
 export type TextBlock = z.infer<typeof textBlockSchema>;
 export type ButtonBlock = z.infer<typeof buttonBlockSchema>;
 export type FooterNavBlock = z.infer<typeof footerNavBlockSchema>;
+export type SeparatorBlock = z.infer<typeof separatorBlockSchema>;
 export type FooterBlock = z.infer<typeof footerBlockSchema>;
 export type FooterColumn = z.infer<typeof footerColumnSchema>;
 export type FooterConfig = z.infer<typeof footerConfigSchema>;
