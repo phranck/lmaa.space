@@ -2,7 +2,7 @@ import type { ClipboardEvent, ReactNode } from "react";
 import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
-import { CharCounter, MarkdownTextarea } from "@lmaa/ui";
+import { CharCounter, MarkdownEditor } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -26,7 +26,7 @@ export interface RejectDialogProps {
   url: string;
   adminNote: string;
   onAdminNoteChange: (v: string) => void;
-  onAdminNotePaste?: (e: ClipboardEvent<HTMLTextAreaElement>) => void;
+  onAdminNotePaste?: (e: ClipboardEvent<HTMLDivElement>) => void;
   rejectionLongText: string;
   onRejectionLongTextChange: (v: string) => void;
   onSubmit: () => void;
@@ -120,12 +120,13 @@ export function RejectDialog({
             {messages.comment}{" "}
             <span className="text-[var(--ds-text-subtle)] font-normal">{messages.optional}</span>
           </label>
-          <MarkdownTextarea
+          <MarkdownEditor
             id="reject-note"
             value={adminNote}
             onChange={onAdminNoteChange}
             onPaste={onAdminNotePaste}
             rows={3}
+            resizable
             placeholder={messages.commentPlaceholder}
           />
           <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
@@ -139,11 +140,12 @@ export function RejectDialog({
             {messages.rejectionLongLabel}{" "}
             <span className="text-[var(--ds-text-subtle)] font-normal">{messages.optional}</span>
           </label>
-          <MarkdownTextarea
+          <MarkdownEditor
             id="reject-long"
             value={rejectionLongText}
             onChange={onRejectionLongTextChange}
             rows={6}
+            resizable
             placeholder={messages.rejectionLongPlaceholder}
           />
         </div>

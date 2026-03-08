@@ -7,7 +7,7 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
-import { CharCounter, MarkdownTextarea, RegionSelect, createRegionOptions } from "@lmaa/ui";
+import { CharCounter, MarkdownEditor, RegionSelect, createRegionOptions } from "@lmaa/ui";
 
 import { BUTTON_ICON_MAP } from "@/lib/buttonIconMap.tsx";
 import { API_BASE } from "@/lib/client-api";
@@ -286,12 +286,13 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
         )}
       </label>
       {field.allowMarkdown ? (
-        <MarkdownTextarea
+        <MarkdownEditor
           id={key}
           value={rhfField.value}
           onChange={(val) => rhfField.onChange(val)}
           placeholder={field.placeholder}
           rows={field.rows ?? 4}
+          resizable
         />
       ) : (
         <textarea
@@ -303,17 +304,9 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
           {...rhfField}
         />
       )}
-      {(field.allowMarkdown || field.subtext || maxLen !== undefined) && (
+      {(field.subtext || maxLen !== undefined) && (
         <div className="flex justify-between items-start gap-4">
-          <DynamicFormSubtext>
-            {field.allowMarkdown && (
-              <>
-                Markdown ist erlaubt.
-                {field.subtext && <br />}
-              </>
-            )}
-            {field.subtext}
-          </DynamicFormSubtext>
+          <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>
           {maxLen !== undefined && (
             <CharCounter value={rhfField.value} max={maxLen} className="shrink-0 mt-1.5" />
           )}

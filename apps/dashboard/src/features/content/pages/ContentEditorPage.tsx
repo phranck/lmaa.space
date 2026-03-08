@@ -17,7 +17,6 @@ import {
   usePatchContentPage,
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
-import { sourceKeymap } from "@/features/content/pages/sourceKeymap.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 const FONT_SIZE_KEY = "content-editor-source-font-size";
@@ -435,7 +434,6 @@ function EditorMetadataBar({
   );
 }
 
-const editorExtensions = [sourceKeymap];
 
 /**
  * Markdown content editor page for one content slug.
@@ -598,7 +596,7 @@ export function ContentEditorPage() {
             value={currentContent}
             onChange={handleChange}
             height="100%"
-            extensions={editorExtensions}
+            showHints={false}
             className="rounded-none border-none"
           />
         )}

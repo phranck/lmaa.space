@@ -25,9 +25,9 @@ import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
+import { MarkdownEditor } from "@lmaa/ui";
 
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
-import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
@@ -503,7 +503,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                 >
                   Text
                 </label>
-                <MarkdownTextarea
+                <MarkdownEditor
                   id="submission-success-message"
                   value={cfg.successMessage ?? ""}
                   onChange={(value) => updateField("successMessage", value)}

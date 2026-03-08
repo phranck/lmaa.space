@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { SiMarkdown } from "react-icons/si";
+import { useState } from "react";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
-import { Checkbox } from "@lmaa/ui";
+import { Checkbox, MarkdownEditor } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -41,13 +40,8 @@ export function ShopDeleteReasonCard({
   const [reason, setReason] = useState("");
   const [wasReported, setWasReported] = useState(initialWasReported);
   const [deleteMode, setDeleteMode] = useState<ShopDeleteMode>("mark_deleted");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   usePersistedTextareaHeight("shop-delete-reason", "shops:textarea:delete-reason");
-
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
 
   return (
     <OverlayCard
@@ -80,20 +74,15 @@ export function ShopDeleteReasonCard({
               <span className="text-[var(--ds-text-subtle)] font-normal">
                 {shopsMessages.deleteCard.optional}
               </span>
-              <SiMarkdown
-                className="w-5 h-5 opacity-40"
-                title={shopsMessages.deleteCard.markdownSupported}
-              />
             </span>
           </label>
-          <textarea
+          <MarkdownEditor
             id="shop-delete-reason"
-            ref={textareaRef}
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            onChange={setReason}
             rows={5}
+            resizable
             placeholder={shopsMessages.deleteCard.reasonPlaceholder}
-            className="w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 py-1.5 resize-y focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] placeholder:text-[var(--ds-text-subtle)]"
           />
         </div>
 
