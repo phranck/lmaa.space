@@ -129,15 +129,17 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
       )}
 
       {block.type === "footer-nav" && (
-        <SegmentSwitch
-          label="Ausrichtung"
-          value={block.direction ?? "vertical"}
-          onChange={(v) => onChange({ ...block, direction: v })}
-          options={[
-            { value: "vertical" as const, label: "Vertikal" },
-            { value: "horizontal" as const, label: "Horizontal" },
-          ]}
-        />
+        <div className="flex flex-col gap-2">
+          <span className={labelClass}>Ausrichtung</span>
+          <SegmentSwitch
+            value={block.direction ?? "vertical"}
+            onChange={(v) => onChange({ ...block, direction: v })}
+            options={[
+              { value: "vertical" as const, label: "Vertikal" },
+              { value: "horizontal" as const, label: "Horizontal" },
+            ]}
+          />
+        </div>
       )}
     </Card>
   );
