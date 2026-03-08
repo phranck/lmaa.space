@@ -11,6 +11,7 @@ import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import type { ShopVisibility } from "@lmaa/shared";
+
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
