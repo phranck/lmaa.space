@@ -19,8 +19,8 @@ import {
 /**
  * Admin submission moderation routes.
  *
- * Supports listing, reviewing, editing pending submissions and deleting
- * rejected submissions.
+ * Supports listing, single-item loading, reviewing, editing pending
+ * submissions and deleting rejected submissions.
  */
 export const submissionsRoutes = new Hono<{ Variables: AuthVariables }>();
 
