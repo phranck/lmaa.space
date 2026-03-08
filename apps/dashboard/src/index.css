@@ -47,94 +47,10 @@
   --ds-section-header-bg: var(--ds-bg-elevated);
 }
 
-/* Dark mode: MDXEditor toolbar and popups */
-.dark .mdxeditor {
-  --baseBg: var(--ds-surface);
-  --basePageBg: var(--ds-surface-alt);
-  --baseBgSubtle: var(--ds-surface-alt);
-  --baseBgHover: var(--ds-bg-elevated);
-  --baseBgActive: var(--ds-border);
-  --baseBorder: var(--ds-border);
-  --baseBorderHover: var(--ds-border-strong);
-  --baseBase: var(--ds-bg-elevated);
-  --baseLine: var(--ds-border);
-  --baseSolid: var(--ds-text-muted);
-  --baseSolidHover: #b7bdc8; /* kein Token-Match (L≈0.78) */
-  --baseText: var(--ds-text-muted);
-  --baseTextContrast: var(--ds-text);
-  color-scheme: dark;
-}
-
-.dark .mdxeditor-popup-container [role="dialog"],
-.dark .mdxeditor-popup-container [role="tooltip"],
-.dark .mdxeditor-popup-container [data-radix-popper-content-wrapper] > * {
-  background-color: var(--ds-surface) !important;
-  border-color: var(--ds-border) !important;
-  color: var(--ds-text) !important;
-}
-
-.dark .mdxeditor input,
-.dark .mdxeditor select {
-  background-color: var(--ds-bg-elevated);
-  border-color: var(--ds-border);
-  color: var(--ds-text);
-}
-
-.dark .mdxeditor-popup-container input,
-.dark .mdxeditor-popup-container select,
-.dark .mdxeditor-popup-container textarea {
-  background-color: var(--ds-bg-elevated) !important;
-  border-color: var(--ds-border) !important;
-  color: var(--ds-text) !important;
-}
-
-.dark .mdxeditor-popup-container input::placeholder,
-.dark .mdxeditor-popup-container textarea::placeholder {
-  color: var(--ds-text-muted) !important;
-}
-
-.dark .mdxeditor-popup-container label,
-.dark .mdxeditor-popup-container p,
-.dark .mdxeditor-popup-container span {
-  color: var(--ds-text) !important;
-}
-
-.dark .mdxeditor-popup-container [role="dialog"] button {
-  background-color: var(--ds-bg-elevated) !important;
-  border: 1px solid var(--ds-border) !important;
-  color: var(--ds-text) !important;
-}
-
-.dark .mdxeditor-popup-container [role="dialog"] button:hover {
-  background-color: var(--ds-bg-elevated) !important;
-  border-color: var(--ds-border-strong) !important;
-}
-
-.dark .mdxeditor-popup-container [role="dialog"] button[type="submit"],
-.dark .mdxeditor-popup-container [role="dialog"] button:last-child {
-  background-color: #5ea349 !important;
-  border-color: #5ea349 !important;
-  color: #ffffff !important;
-}
-
-.dark .mdxeditor-popup-container [role="dialog"] button[type="submit"]:hover,
-.dark .mdxeditor-popup-container [role="dialog"] button:last-child:hover {
-  background-color: #4e8f3c !important;
-  border-color: #4e8f3c !important;
-}
-
-.dark .mdxeditor .cm-editor {
-  background-color: var(--ds-surface-alt);
-  color: var(--ds-text);
-}
-.dark .mdxeditor .cm-gutters {
-  background-color: var(--ds-surface-alt);
-  border-color: var(--ds-border);
-  color: var(--ds-text-muted);
-}
-.dark .mdxeditor .cm-activeLineGutter,
-.dark .mdxeditor .cm-activeLine {
-  background-color: var(--ds-bg);
+/* Dark mode: CodeMirror selection (MarkdownEditor) */
+.dark .cm-selectionBackground,
+.dark .cm-editor.cm-focused .cm-selectionBackground {
+  background-color: color-mix(in srgb, var(--color-primary) 25%, var(--ds-input-bg)) !important;
 }
 
 /* Section headers: shared style for sidebar sections and table headers */

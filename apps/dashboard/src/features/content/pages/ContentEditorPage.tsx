@@ -1,47 +1,13 @@
-import "@mdxeditor/editor/style.css";
-import {
-  AdmonitionDirectiveDescriptor,
-  BlockTypeSelect,
-  BoldItalicUnderlineToggles,
-  CodeToggle,
-  CreateLink,
-  DiffSourceToggleWrapper,
-  InsertAdmonition,
-  InsertCodeBlock,
-  InsertImage,
-  InsertTable,
-  InsertThematicBreak,
-  ListsToggle,
-  MDXEditor,
-  Separator,
-  StrikeThroughSupSubToggles,
-  UndoRedo,
-  type ViewMode,
-  codeBlockPlugin,
-  diffSourcePlugin,
-  directivesPlugin,
-  headingsPlugin,
-  imagePlugin,
-  linkDialogPlugin,
-  linkPlugin,
-  listsPlugin,
-  markdownShortcutPlugin,
-  quotePlugin,
-  realmPlugin,
-  tablePlugin,
-  thematicBreakPlugin,
-  toolbarPlugin,
-  viewMode$,
-} from "@mdxeditor/editor";
-import { useCallback, useEffect, useMemo, useReducer } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
-import SFArrowUpRightSquareFill from "sf-symbols-lib/monochrome/SFArrowUpRightSquareFill";
+import SFEyeCircleFill from "sf-symbols-lib/monochrome/SFEyeCircleFill";
 import SFMinus from "sf-symbols-lib/monochrome/SFMinus";
 import SFPlus from "sf-symbols-lib/monochrome/SFPlus";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { ContentPage } from "@lmaa/shared";
+import { MarkdownEditor } from "@lmaa/ui";
 
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -54,16 +20,10 @@ import {
 import { sourceKeymap } from "@/features/content/pages/sourceKeymap.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
-const VIEW_MODE_KEY = "content-editor-view-mode";
 const FONT_SIZE_KEY = "content-editor-source-font-size";
 const FONT_SIZE_MIN = 10;
 const FONT_SIZE_MAX = 24;
 const FONT_SIZE_DEFAULT = 13;
-
-function loadViewMode(): ViewMode {
-  const stored = localStorage.getItem(VIEW_MODE_KEY);
-  return stored === "source" || stored === "diff" ? stored : "rich-text";
-}
 
 function loadFontSize(): number {
   const stored = localStorage.getItem(FONT_SIZE_KEY);
@@ -157,6 +117,23 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
   }
 }
 
+function Key({ children }: { children: string }) {
+  return (
+    <kbd className="inline-flex items-center justify-center min-w-[1.375rem] h-[1.375rem] px-1 rounded border border-[var(--ds-border-strong)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text)] text-[0.6875rem] font-medium shadow-[0_1px_0_var(--ds-border-strong)] leading-none select-none">
+      {children}
+    </kbd>
+  );
+}
+
+function ShortcutHint({ keys, label }: { keys: string[]; label: string }) {
+  return (
+    <span className="flex items-center gap-1 text-xs">
+      {keys.map((k) => <Key key={k}>{k}</Key>)}
+      <span className="ml-0.5 text-[var(--ds-text-muted)]">{label}</span>
+    </span>
+  );
+}
+
 interface EditorHeaderActionsProps {
   sourceFontSize: number;
   canIncreaseFont: boolean;
@@ -236,7 +213,7 @@ function EditorHeaderActions({
         onClick={onPreview}
         className="flex items-center gap-2 px-3 h-8 min-w-8 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
       >
-        <SFArrowUpRightSquareFill className="w-3.5 h-3.5" />
+        <SFEyeCircleFill className="w-3.5 h-3.5" />
         {editorMessages.preview}
       </button>
 
@@ -281,7 +258,6 @@ function EditorHeaderActions({
           </button>
         </div>
       )}
-
     </div>
   );
 }
@@ -459,6 +435,8 @@ function EditorMetadataBar({
   );
 }
 
+const editorExtensions = [sourceKeymap];
+
 /**
  * Markdown content editor page for one content slug.
  *
@@ -540,58 +518,6 @@ export function ContentEditorPage() {
     dispatch({ type: "setEditingSlug", value: false });
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: slug from useParams() is reactive; plugins must reinit on route change
-  const plugins = useMemo(
-    () => [
-      headingsPlugin(),
-      listsPlugin(),
-      quotePlugin(),
-      thematicBreakPlugin(),
-      linkPlugin(),
-      linkDialogPlugin(),
-      imagePlugin(),
-      tablePlugin(),
-      codeBlockPlugin({ defaultCodeBlockLanguage: "" }),
-      directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
-      markdownShortcutPlugin(),
-      diffSourcePlugin({ viewMode: loadViewMode(), codeMirrorExtensions: [sourceKeymap] }),
-      realmPlugin({
-        postInit(realm) {
-          // Defer subscription past initialization so we only catch
-          // user-triggered view mode changes, not internal init emissions.
-          setTimeout(() => {
-            realm.sub(viewMode$, (mode) => {
-              localStorage.setItem(VIEW_MODE_KEY, mode);
-            });
-          }, 0);
-        },
-      })(),
-      toolbarPlugin({
-        toolbarContents: () => (
-          <DiffSourceToggleWrapper>
-            <UndoRedo />
-            <Separator />
-            <BoldItalicUnderlineToggles />
-            <CodeToggle />
-            <StrikeThroughSupSubToggles />
-            <Separator />
-            <ListsToggle />
-            <Separator />
-            <BlockTypeSelect />
-            <Separator />
-            <CreateLink />
-            <InsertImage />
-            <InsertTable />
-            <InsertThematicBreak />
-            <InsertCodeBlock />
-            <InsertAdmonition />
-          </DiffSourceToggleWrapper>
-        ),
-      }),
-    ],
-    [slug],
-  );
-
   const title = page?.title ?? slug;
 
   return (
@@ -667,18 +593,27 @@ export function ContentEditorPage() {
         )}
 
         {page && (
-          <MDXEditor
+          <MarkdownEditor
             key={slug}
-            markdown={currentContent}
+            value={currentContent}
             onChange={handleChange}
-            contentEditableClassName="prose prose-stone prose-sm dark:prose-invert max-w-none prose-a:text-amber-700 dark:prose-a:text-amber-500 min-h-[60vh] focus:outline-none"
-            plugins={plugins}
+            height="100%"
+            extensions={editorExtensions}
+            className="rounded-none border-none"
           />
         )}
 
         {save.isError && (
           <p className="text-red-500 text-sm text-center mt-4">{editorMessages.saveError}</p>
         )}
+      </div>
+
+      <div className="flex items-center gap-4 px-4 py-2 border-t border-[var(--ds-border)] bg-[var(--ds-surface)]">
+        <ShortcutHint keys={["⌘", "S"]} label="Speichern" />
+        <ShortcutHint keys={["⌘", "B"]} label="Fett" />
+        <ShortcutHint keys={["⌘", "I"]} label="Kursiv" />
+        <ShortcutHint keys={["⌘", "⇧", "D"]} label="Durchgestrichen" />
+        <ShortcutHint keys={["⌘", "K"]} label="Link" />
       </div>
     </>
   );

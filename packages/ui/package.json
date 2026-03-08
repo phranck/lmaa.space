@@ -22,8 +22,11 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language-data": "^6.5.2",
     "@lmaa/shared": "*",
     "@radix-ui/react-popover": "^1.1.15",
+    "@uiw/react-codemirror": "^4.25.7",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
     "lucide-react": "^0.575.0",

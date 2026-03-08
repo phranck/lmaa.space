@@ -197,6 +197,13 @@
   --ds-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ds-ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ds-ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Markdown editor syntax highlighting */
+  --md-heading:     #0969da;
+  --md-emphasis:    #8250df;
+  --md-code:        #bc4c00;
+  --md-quote:       #1a7f37;
+  --md-punctuation: #6e7781;
 }
 
 /* ── SEMANTIC TOKENS · Dark mode ──────────────────────────────
@@ -357,4 +364,11 @@
   --ds-badge-success-text: #57ab5a;
   --ds-badge-danger-bg: rgba(229, 83, 75, 0.1);
   --ds-badge-danger-text: #e5534b;
+
+  /* Markdown editor syntax highlighting */
+  --md-heading:     #79c0ff;
+  --md-emphasis:    #d2a8ff;
+  --md-code:        #ffa657;
+  --md-quote:       #7ee787;
+  --md-punctuation: #8b949e;
 }
