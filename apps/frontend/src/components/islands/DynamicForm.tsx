@@ -257,9 +257,9 @@ interface TextareaFieldProps {
 
 /**
  * Textarea input with optional character counter and validation error.
- * Uses `useController` so both the plain textarea and `MarkdownTextarea` share
+ * Uses `useController` so both the plain textarea and `MarkdownEditor` share
  * the same controlled `value`/`onChange` API.
- * When `field.allowMarkdown` is true, renders a `MarkdownTextarea`.
+ * When `field.allowMarkdown` is true, renders a `MarkdownEditor`.
  *
  * @param props          - Component props.
  * @param props.field    - The field definition (label, placeholder, rows, validation).
