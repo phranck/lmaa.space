@@ -20,6 +20,8 @@ export * from "./admin-content";
 export * from "./admin-nav";
 /** Admin user management schemas. */
 export * from "./admin-users";
+/** Admin media library schemas. */
+export * from "./admin-media";
 /** Admin form config schemas. */
 export * from "./admin-form-config";
 /** Footer builder type definitions and schemas. */

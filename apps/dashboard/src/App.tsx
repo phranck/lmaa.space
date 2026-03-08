@@ -40,6 +40,12 @@ const UsersPage = lazy(() =>
   })),
 );
 
+const MediaPage = lazy(() =>
+  import("@/features/system/media/MediaPage.tsx").then((m) => ({
+    default: m.MediaPage,
+  })),
+);
+
 const ContentEditorPage = lazy(() =>
   import("@/features/content/pages/ContentEditorPage.tsx").then((m) => ({
     default: m.ContentEditorPage,
@@ -163,6 +169,14 @@ function AppRoutes() {
           )}
           {user.role !== "moderator" && (
             <>
+              <Route
+                path="media"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <MediaPage />
+                  </Suspense>
+                }
+              />
               <Route
                 path="analytics"
                 element={

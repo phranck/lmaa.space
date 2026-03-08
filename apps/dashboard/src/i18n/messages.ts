@@ -36,6 +36,7 @@ export interface DashboardMessages {
       submissions: string;
       shops: string;
       categories: string;
+      media: string;
       users: string;
       pages: string;
       pagesOverview: string;
@@ -263,6 +264,42 @@ export interface DashboardMessages {
       searchHint: string;
       emptyPrefix: string;
       addTitlePrefix: string;
+    };
+  };
+  media: {
+    title: string;
+    upload: string;
+    uploading: string;
+    uploadHint: string;
+    empty: string;
+    emptyHint: string;
+    selectPrompt: string;
+    detailsTitle: string;
+    previewTitle: string;
+    infoTitle: string;
+    displayName: string;
+    originalName: string;
+    fileType: string;
+    dimensions: string;
+    fileSize: string;
+    internalUrl: string;
+    createdAt: string;
+    updatedAt: string;
+    uploadedBy: string;
+    saveName: string;
+    openFile: string;
+    copyUrl: string;
+    copied: string;
+    renameError: string;
+    uploadError: string;
+    unsupportedPreview: string;
+    deleteTitle: string;
+    deleteDescription: string;
+    table: {
+      name: string;
+      type: string;
+      size: string;
+      updated: string;
     };
   };
   submissions: {
@@ -699,6 +736,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         submissions: "Meldungen",
         shops: "Shops",
         categories: "Kategorien",
+        media: "Media",
         users: "Benutzer",
         pages: "Seiten",
         pagesOverview: "Übersicht",
@@ -929,6 +967,42 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         searchHint: "Suchbegriff eingeben, um Bilder zu finden",
         emptyPrefix: "Keine Bilder gefunden für",
         addTitlePrefix: "Foto von",
+      },
+    },
+    media: {
+      title: "Media",
+      upload: "Dateien hochladen",
+      uploading: "Lade hoch…",
+      uploadHint: "Erlaubt: Bilder, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis 10 MB",
+      empty: "Noch keine Dateien vorhanden.",
+      emptyHint: "Lade Bilder oder Dokumente hoch, damit sie in Pages und anderen Inhalten nutzbar sind.",
+      selectPrompt: "Wähle links eine Datei aus, um Metadaten und die interne URL zu sehen.",
+      detailsTitle: "Metadaten",
+      previewTitle: "Vorschau",
+      infoTitle: "Datei-Infos",
+      displayName: "Anzeigename",
+      originalName: "Originalname",
+      fileType: "Dateityp",
+      dimensions: "Abmessungen",
+      fileSize: "Dateigröße",
+      internalUrl: "Interne URL",
+      createdAt: "Hochgeladen",
+      updatedAt: "Geändert",
+      uploadedBy: "Hochgeladen von",
+      saveName: "Name speichern",
+      openFile: "Datei öffnen",
+      copyUrl: "URL kopieren",
+      copied: "Kopiert",
+      renameError: "Name konnte nicht gespeichert werden.",
+      uploadError: "Datei konnte nicht hochgeladen werden.",
+      unsupportedPreview: "Für diesen Dateityp ist keine Vorschau verfügbar.",
+      deleteTitle: "Datei löschen?",
+      deleteDescription: "wird dauerhaft gelöscht und ist unter der internen URL nicht mehr erreichbar.",
+      table: {
+        name: "Name",
+        type: "Typ",
+        size: "Größe",
+        updated: "Geändert",
       },
     },
     submissions: {
@@ -1364,6 +1438,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         submissions: "Reports",
         shops: "Shops",
         categories: "Categories",
+        media: "Media",
         users: "Users",
         pages: "Pages",
         pagesOverview: "Overview",
@@ -1593,6 +1668,42 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         searchHint: "Enter a search term to find images",
         emptyPrefix: "No images found for",
         addTitlePrefix: "Photo by",
+      },
+    },
+    media: {
+      title: "Media",
+      upload: "Upload files",
+      uploading: "Uploading…",
+      uploadHint: "Allowed: images, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) up to 10 MB",
+      empty: "No files uploaded yet.",
+      emptyHint: "Upload images or documents so they can be reused in pages and other content.",
+      selectPrompt: "Select a file on the left to view metadata and the internal URL.",
+      detailsTitle: "Metadata",
+      previewTitle: "Preview",
+      infoTitle: "File info",
+      displayName: "Display name",
+      originalName: "Original name",
+      fileType: "File type",
+      dimensions: "Dimensions",
+      fileSize: "File size",
+      internalUrl: "Internal URL",
+      createdAt: "Uploaded",
+      updatedAt: "Updated",
+      uploadedBy: "Uploaded by",
+      saveName: "Save name",
+      openFile: "Open file",
+      copyUrl: "Copy URL",
+      copied: "Copied",
+      renameError: "Could not save file name.",
+      uploadError: "Could not upload file.",
+      unsupportedPreview: "No preview is available for this file type.",
+      deleteTitle: "Delete file?",
+      deleteDescription: "will be permanently deleted and will no longer be reachable via its internal URL.",
+      table: {
+        name: "Name",
+        type: "Type",
+        size: "Size",
+        updated: "Updated",
       },
     },
     submissions: {

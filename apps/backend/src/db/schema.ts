@@ -223,6 +223,31 @@ export const contentPages = pgTable("content_pages", {
 });
 
 /**
+ * Uploaded media assets managed through the dashboard media library.
+ */
+export const mediaAssets = pgTable(
+  "media_assets",
+  {
+    id: serial("id").primaryKey(),
+    displayName: text("display_name").notNull(),
+    originalName: text("original_name").notNull(),
+    storedFilename: text("stored_filename").notNull().unique(),
+    mimeType: text("mime_type").notNull(),
+    kind: text("kind").$type<"image" | "document">().notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+  },
+  (table) => [
+    index("idx_media_assets_kind").on(table.kind),
+    index("idx_media_assets_created_at").on(table.createdAt),
+  ],
+);
+
+/**
  * Configurable header/footer navigation items.
  */
 export const navItems = pgTable(
@@ -243,6 +268,10 @@ export const navItems = pgTable(
  * Inferred select type for `content_pages`.
  */
 export type ContentPage = typeof contentPages.$inferSelect;
+/**
+ * Inferred select type for `media_assets`.
+ */
+export type MediaAsset = typeof mediaAssets.$inferSelect;
 /**
  * Inferred select type for `nav_items`.
  */

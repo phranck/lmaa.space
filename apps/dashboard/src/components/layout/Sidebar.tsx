@@ -10,6 +10,7 @@ import SFEyeSlashFill from "sf-symbols-lib/monochrome/SFEyeSlashFill";
 import SFLink from "sf-symbols-lib/monochrome/SFLink";
 import SFListBulletRectanglePortraitFill from "sf-symbols-lib/monochrome/SFListBulletRectanglePortraitFill";
 import SFPerson3Fill from "sf-symbols-lib/monochrome/SFPerson3Fill";
+import SFPhotoOnRectangleAngledFill from "sf-symbols-lib/monochrome/SFPhotoOnRectangleAngledFill";
 import SFRectangleBottomhalfFilled from "sf-symbols-lib/monochrome/SFRectangleBottomhalfFilled";
 import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
 import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
@@ -32,6 +33,7 @@ import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
 import { useDeadLinkReports } from "@/features/overview/hooks/useDeadLinks.ts";
 import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
+import { useAdminMedia } from "@/features/system/hooks/useAdminMedia.ts";
 import { useAdminUsers } from "@/features/system/hooks/useAdminUsers.ts";
 import {
   useCreateEmailTemplate,
@@ -229,6 +231,7 @@ export function Sidebar({
   const { data: shops = [] } = useAdminShops();
   const { data: categories = [] } = useAdminCategories();
   const { data: users = [] } = useAdminUsers();
+  const { data: media = [] } = useAdminMedia();
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
@@ -320,6 +323,13 @@ export function Sidebar({
                 label={s.users}
                 icon={<SFPerson3Fill className="w-4 h-4" />}
                 badge={users.length}
+                onClick={onItemClick}
+              />
+              <SidebarItem
+                to="/media"
+                label={s.media}
+                icon={<SFPhotoOnRectangleAngledFill className="w-4 h-4" />}
+                badge={media.length}
                 onClick={onItemClick}
               />
               <SidebarItem
