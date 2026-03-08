@@ -1,4 +1,4 @@
-import { type ClipboardEvent, useMemo, useReducer, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
 import SFArrowDownCircleFill from "sf-symbols-lib/monochrome/SFArrowDownCircleFill";
 import SFArrowUpCircleFill from "sf-symbols-lib/monochrome/SFArrowUpCircleFill";
@@ -199,15 +199,6 @@ export function SuggestionsTab() {
     reviewState.editingRejection && reviewState.reviewId !== null,
   );
 
-  const handleCommentPaste = (e: ClipboardEvent<HTMLDivElement>) => {
-    const pastedText = e.clipboardData.getData("text");
-    if (!pastedText.includes("[REJECT_TOKEN]")) return;
-    e.preventDefault();
-    const token = reviewState.rejectionToken ?? "";
-    const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
-    dispatchReview({ type: "setAdminNote", value: `${reviewState.adminNote}${replaced}` });
-  };
-
   function closeReview() {
     dispatchReview({ type: "close" });
   }
@@ -349,7 +340,6 @@ export function SuggestionsTab() {
         isError={reviewMutation.isError}
         isPending={reviewMutation.isPending}
         onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
-        onAdminNotePaste={handleCommentPaste}
         onClose={closeReview}
         onSubmit={() => handleReviewSave()}
         open={reviewState.reviewId !== null && reviewState.reviewId > 0 && reviewing !== undefined}
@@ -377,11 +367,11 @@ export function SuggestionsTab() {
         url={reviewing?.shopUrl ?? ""}
         adminNote={reviewState.adminNote}
         onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
-        onAdminNotePaste={handleCommentPaste}
         rejectionLongText={reviewState.rejectionLongText}
         onRejectionLongTextChange={(value) =>
           dispatchReview({ type: "setRejectionLongText", value })
         }
+        rejectionToken={reviewState.rejectionToken}
         onSubmit={() => handleReviewSave()}
         isPending={reviewMutation.isPending}
         isError={reviewMutation.isError}
@@ -762,7 +752,6 @@ interface ApproveSubmissionReviewCardProps {
   isError: boolean;
   isPending: boolean;
   onAdminNoteChange: (value: string) => void;
-  onAdminNotePaste: (e: ClipboardEvent<HTMLDivElement>) => void;
   onClose: () => void;
   onSubmit: () => void;
   open: boolean;
@@ -784,7 +773,6 @@ function ApproveSubmissionReviewCard({
   isError,
   isPending,
   onAdminNoteChange,
-  onAdminNotePaste,
   onClose,
   onSubmit,
   open,
@@ -839,7 +827,6 @@ function ApproveSubmissionReviewCard({
                 id="admin-note"
                 value={adminNote}
                 onChange={onAdminNoteChange}
-                onPaste={onAdminNotePaste}
                 rows={3}
                 resizable
                 placeholder={commentPlaceholder}

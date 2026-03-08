@@ -1,4 +1,4 @@
-import { type ClipboardEvent, useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
@@ -212,15 +212,6 @@ export function ShopEditCard({
     });
   }
 
-  const handleRejectPaste = (e: ClipboardEvent<HTMLDivElement>) => {
-    const pastedText = e.clipboardData.getData("text");
-    if (!pastedText.includes("[REJECT_TOKEN]")) return;
-    e.preventDefault();
-    const token = rejectState.token ?? "";
-    const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
-    setRejectState((current) => ({ ...current, reason: `${current.reason}${replaced}` }));
-  };
-
   function handleReject() {
     const id = shopId as number;
     setVisibilityMutation.mutate(
@@ -359,11 +350,11 @@ export function ShopEditCard({
         url={activeShop?.url ?? ""}
         adminNote={rejectState.reason}
         onAdminNoteChange={(value) => setRejectState((current) => ({ ...current, reason: value }))}
-        onAdminNotePaste={handleRejectPaste}
         rejectionLongText={rejectState.longText}
         onRejectionLongTextChange={(value) =>
           setRejectState((current) => ({ ...current, longText: value }))
         }
+        rejectionToken={rejectState.token}
         onSubmit={handleReject}
         isPending={isRejecting}
         isError={setVisibilityMutation.isError}
