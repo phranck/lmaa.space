@@ -1,4 +1,4 @@
-import { type ClipboardEvent, useState } from "react";
+import { useState } from "react";
 import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
 import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
 import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
@@ -63,15 +63,6 @@ export function ShopReportsTab() {
     setRejectReason("");
     setRejectLongText("");
     setRejectToken(null);
-  }
-
-  function handleRejectPaste(event: ClipboardEvent<HTMLDivElement>) {
-    const pastedText = event.clipboardData.getData("text");
-    if (!pastedText.includes("[REJECT_TOKEN]")) return;
-    event.preventDefault();
-    const token = rejectToken ?? "";
-    const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
-    setRejectReason((current) => `${current}${replaced}`);
   }
 
   function handleRejectShop() {
@@ -229,9 +220,9 @@ export function ShopReportsTab() {
         url={rejectTarget?.shopUrl ?? ""}
         adminNote={rejectReason}
         onAdminNoteChange={setRejectReason}
-        onAdminNotePaste={handleRejectPaste}
         rejectionLongText={rejectLongText}
         onRejectionLongTextChange={setRejectLongText}
+        rejectionToken={rejectToken}
         onSubmit={handleRejectShop}
         isPending={setVisibilityMutation.isPending}
         isError={setVisibilityMutation.isError}

@@ -1,4 +1,4 @@
-import type { ClipboardEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
@@ -26,9 +26,9 @@ export interface RejectDialogProps {
   url: string;
   adminNote: string;
   onAdminNoteChange: (v: string) => void;
-  onAdminNotePaste?: (e: ClipboardEvent<HTMLDivElement>) => void;
   rejectionLongText: string;
   onRejectionLongTextChange: (v: string) => void;
+  rejectionToken?: string | null;
   onSubmit: () => void;
   isPending: boolean;
   isError?: boolean;
@@ -52,9 +52,9 @@ export function RejectDialog({
   url,
   adminNote,
   onAdminNoteChange,
-  onAdminNotePaste,
   rejectionLongText,
   onRejectionLongTextChange,
+  rejectionToken,
   onSubmit,
   isPending,
   isError,
@@ -70,6 +70,13 @@ export function RejectDialog({
   messages,
 }: RejectDialogProps) {
   const isDanger = submitVariant === "danger";
+
+  function handleAdminNotePaste(event: ClipboardEvent) {
+    const pastedText = event.clipboardData?.getData("text") ?? "";
+    if (!pastedText.includes("[REJECT_TOKEN]") || !rejectionToken) return;
+    event.preventDefault();
+    onAdminNoteChange(`${adminNote}${pastedText.replace(/\[REJECT_TOKEN\]/g, rejectionToken)}`);
+  }
 
   usePersistedTextareaHeight(
     "reject-note",
@@ -124,7 +131,7 @@ export function RejectDialog({
             id="reject-note"
             value={adminNote}
             onChange={onAdminNoteChange}
-            onPaste={onAdminNotePaste}
+            onPaste={handleAdminNotePaste}
             rows={3}
             resizable
             placeholder={messages.commentPlaceholder}

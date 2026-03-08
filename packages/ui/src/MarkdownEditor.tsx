@@ -12,7 +12,7 @@ export interface MarkdownEditorProps {
   id?: string;
   value: string;
   onChange: (value: string) => void;
-  onPaste?: (e: React.ClipboardEvent<HTMLDivElement>) => void;
+  onPaste?: (event: ClipboardEvent) => void;
   placeholder?: string;
   rows?: number;
   height?: string;
@@ -29,6 +29,15 @@ const editorTheme = EditorView.theme({
     backgroundColor: "var(--ds-input-bg)",
     color: "var(--ds-text)",
     fontSize: "var(--source-font-size, 0.875rem)",
+  },
+  ".cm-editor": {
+    height: "100%",
+    minHeight: 0,
+  },
+  ".cm-scroller": {
+    overflowY: "auto",
+    overflowX: "auto",
+    overscrollBehavior: "contain",
   },
   ".cm-content": {
     padding: "0.375rem 0.75rem",
@@ -169,12 +178,22 @@ export function MarkdownEditor({
       markdown({ codeLanguages: languages }),
       EditorView.lineWrapping,
       mdKeymap,
+      ...(onPaste
+        ? [
+            EditorView.domEventHandlers({
+              paste(event) {
+                onPaste(event);
+                return event.defaultPrevented;
+              },
+            }),
+          ]
+        : []),
       ...(placeholder ? [cmPlaceholder(placeholder)] : []),
       ...extraExtensions,
     ],
     // extraExtensions is spread from props — caller is responsible for stability
     // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
-    [placeholder, extraExtensions],
+    [onPaste, placeholder, extraExtensions],
   );
 
   const wrapperStyle: React.CSSProperties | undefined = resizable
@@ -184,13 +203,14 @@ export function MarkdownEditor({
       : undefined;
 
   const isFlexCol = resizable && showHints;
+  const hasBoundedHeight = resizable || Boolean(height);
+  const editorContainerClassName = hasBoundedHeight ? "h-full min-h-0" : undefined;
 
   return (
     <div
       id={id}
       className={`rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] overflow-hidden focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:outline-none ${isFlexCol ? "flex flex-col" : ""} ${className}`}
       style={wrapperStyle}
-      onPaste={onPaste}
     >
       <div className={isFlexCol ? "flex-1 min-h-0 overflow-hidden" : undefined}>
         <CodeMirror
@@ -198,6 +218,7 @@ export function MarkdownEditor({
           onChange={(val) => onChange(val)}
           extensions={extensions}
           theme={lmaaTheme}
+          className={editorContainerClassName}
           height={resizable ? "100%" : height}
           minHeight={resizable ? undefined : (height ? undefined : rowsHeight)}
           basicSetup={{
