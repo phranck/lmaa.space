@@ -5,9 +5,9 @@ import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFi
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
+import { MarkdownEditor } from "@lmaa/ui";
 
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
-import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
@@ -228,7 +228,7 @@ export function EmailTemplateEditPage() {
                 />
               </Field>
               <Field label={m.headerText} htmlFor="tpl-header-text">
-                <MarkdownTextarea
+                <MarkdownEditor
                   id="tpl-header-text"
                   value={headerText}
                   onChange={setHeaderText}
@@ -240,7 +240,7 @@ export function EmailTemplateEditPage() {
             {/* Body */}
             <SectionCard title={m.sectionBody}>
               <Field label={m.bodyText} htmlFor="tpl-body-text" required>
-                <MarkdownTextarea
+                <MarkdownEditor
                   id="tpl-body-text"
                   value={bodyText}
                   onChange={setBodyText}
@@ -252,7 +252,7 @@ export function EmailTemplateEditPage() {
             {/* Footer */}
             <SectionCard title={m.sectionFooter}>
               <Field label={m.footerText} htmlFor="tpl-footer-text">
-                <MarkdownTextarea
+                <MarkdownEditor
                   id="tpl-footer-text"
                   value={footerText}
                   onChange={setFooterText}

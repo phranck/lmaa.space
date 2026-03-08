@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import SFArrowUpRight from "sf-symbols-lib/monochrome/SFArrowUpRight";
 
-import { MarkdownTextarea } from "./MarkdownTextarea.tsx";
+import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
 import {
   RegionSelect,
@@ -208,7 +208,7 @@ export function ShopEditForm({
             </span>
           </span>
         </label>
-        <MarkdownTextarea
+        <MarkdownEditor
           id="sef-description"
           value={value.description}
           onChange={(v) => set("description", v)}

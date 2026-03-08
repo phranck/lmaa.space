@@ -19,7 +19,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@lmaa/shared": "0.1.0",
     "@lmaa/ui": "0.1.0",
-    "@mdxeditor/editor": "^3.52.4",
     "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-query-devtools": "^5.74.4",
     "blueimp-md5": "^2.19.0",

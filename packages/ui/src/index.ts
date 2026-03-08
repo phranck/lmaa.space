@@ -8,6 +8,10 @@ export { Checkbox } from "./Checkbox.tsx";
 export { MarkdownTextarea } from "./MarkdownTextarea.tsx";
 /** Re-exported props for `MarkdownTextarea`. */
 export type { MarkdownTextareaProps } from "./MarkdownTextarea.tsx";
+/** CodeMirror-based Markdown source editor with syntax highlighting. */
+export { MarkdownEditor } from "./MarkdownEditor.tsx";
+/** Re-exported props for `MarkdownEditor`. */
+export type { MarkdownEditorProps } from "./MarkdownEditor.tsx";
 /** Re-exported props for `Checkbox`. */
 export type { CheckboxProps } from "./Checkbox.tsx";
 /** Shared multi-select component and related contracts. */

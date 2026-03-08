@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SFCalendar from "sf-symbols-lib/monochrome/SFCalendar";
 import SFEnvelopeFill from "sf-symbols-lib/monochrome/SFEnvelopeFill";
 import SFIphone from "sf-symbols-lib/monochrome/SFIphone";
@@ -14,6 +14,7 @@ import type {
   InputType,
   RichTextVariant,
 } from "@lmaa/contracts";
+import { MarkdownEditor } from "@lmaa/ui";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
@@ -22,12 +23,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { BUTTON_ICON_LIST } from "@/features/templates/form-builder/buttonIconMap.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { LazyMonochromeIcon } from "@/features/templates/form-builder/LazyMonochromeIcon.tsx";
-
-const RichTextEditor = lazy(() =>
-  import("@/features/templates/form-builder/RichTextEditor.tsx").then((m) => ({
-    default: m.RichTextEditor,
-  })),
-);
 
 // ---------------------------------------------------------------------------
 // Field type label helper
@@ -311,19 +306,11 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
             {m.content}
           </span>
-          <Suspense
-            fallback={
-              <div className="h-32 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] flex items-center justify-center text-xs text-[var(--ds-text-subtle)]">
-                {m.loadingEditor}
-              </div>
-            }
-          >
-            <RichTextEditor
-              value={field.content ?? ""}
-              onChange={(val) => set("content", val || undefined)}
-              rows={field.rows}
-            />
-          </Suspense>
+          <MarkdownEditor
+            value={field.content ?? ""}
+            onChange={(val) => set("content", val || undefined)}
+            rows={field.rows}
+          />
         </div>
       )}
 
