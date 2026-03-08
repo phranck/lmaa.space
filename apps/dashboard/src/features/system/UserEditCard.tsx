@@ -1,18 +1,17 @@
 import md5 from "blueimp-md5";
 import { type ChangeEvent, type Reducer, type RefObject, useEffect, useReducer, useRef } from "react";
-import SFAt from "sf-symbols-lib/monochrome/SFAt";
-import SFKey from "sf-symbols-lib/monochrome/SFKey";
-import SFPencil from "sf-symbols-lib/monochrome/SFPencil";
-import SFPerson from "sf-symbols-lib/monochrome/SFPerson";
+import SFPersonCropCircleFill from "sf-symbols-lib/monochrome/SFPersonCropCircleFill";
 import SFPersonCropCircle from "sf-symbols-lib/monochrome/SFPersonCropCircle";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
 import type { AdminUser } from "@lmaa/shared";
+import { FormLabel, formInputClass } from "@lmaa/ui";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -207,86 +206,57 @@ function UserProfileFields({
   return (
     <div className="flex-1 space-y-3 min-w-0">
       <div>
-        <label
-          htmlFor="user-edit-username"
-          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-        >
-          <SFPencil className="w-3 h-3" />
-          {usersMessages.editCard.username}
-        </label>
+        <FormLabel htmlFor="user-edit-username">{usersMessages.editCard.username}</FormLabel>
         <input
           id="user-edit-username"
           type="text"
           value={draft.username}
           onChange={(e) => onFieldChange("username", e.target.value)}
-          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+          className={formInputClass}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="user-edit-email"
-          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-        >
-          <SFAt className="w-3 h-3" />
-          {usersMessages.editCard.email}
-        </label>
+        <FormLabel htmlFor="user-edit-email">{usersMessages.editCard.email}</FormLabel>
         <input
           id="user-edit-email"
           type="email"
           value={draft.email}
           onChange={(e) => onFieldChange("email", e.target.value)}
-          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+          className={formInputClass}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="user-edit-first-name"
-          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-        >
-          <SFPerson className="w-3 h-3" />
-          {usersMessages.editCard.firstName}
-        </label>
+        <FormLabel htmlFor="user-edit-first-name">{usersMessages.editCard.firstName}</FormLabel>
         <input
           id="user-edit-first-name"
           type="text"
           value={draft.firstName}
           onChange={(e) => onFieldChange("firstName", e.target.value)}
-          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+          className={formInputClass}
         />
       </div>
 
       <div>
-        <label
-          htmlFor="user-edit-last-name"
-          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-        >
-          <SFPerson className="w-3 h-3" />
-          {usersMessages.editCard.lastName}
-        </label>
+        <FormLabel htmlFor="user-edit-last-name">{usersMessages.editCard.lastName}</FormLabel>
         <input
           id="user-edit-last-name"
           type="text"
           value={draft.lastName}
           onChange={(e) => onFieldChange("lastName", e.target.value)}
-          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+          className={formInputClass}
         />
       </div>
 
       {canChangeRole && (
         <div>
-          <label
-            htmlFor="user-edit-role"
-            className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-          >
-            {usersMessages.editCard.role}
-          </label>
+          <FormLabel htmlFor="user-edit-role">{usersMessages.editCard.role}</FormLabel>
           <select
             id="user-edit-role"
             value={draft.role}
             onChange={(e) => onRoleChange(e.target.value as EditableRole)}
-            className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+            className={formInputClass}
           >
             <option value="admin">{usersMessages.editCard.roleAdmin}</option>
             <option value="moderator">{usersMessages.editCard.roleModerator}</option>
@@ -295,33 +265,36 @@ function UserProfileFields({
       )}
 
       <div>
-        <label
-          htmlFor="user-edit-password"
-          className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-        >
-          <SFKey className="w-3 h-3" />
-          {usersMessages.editCard.password}
-        </label>
+        <FormLabel htmlFor="user-edit-password">{usersMessages.editCard.password}</FormLabel>
         <input
           id="user-edit-password"
           type="password"
           value={draft.password}
           onChange={(e) => onFieldChange("password", e.target.value)}
           placeholder={usersMessages.editCard.passwordPlaceholder}
-          className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-strong)] transition-colors"
+          className={formInputClass}
         />
       </div>
 
       {me?.id === userId && (
-        <label className="flex items-center gap-2 cursor-pointer select-none pt-1">
-          <input
-            type="checkbox"
-            checked={draft.logoutConfirm}
-            onChange={(e) => onLogoutConfirmChange(e.target.checked)}
-            className="w-4 h-4 rounded accent-[var(--color-primary)]"
-          />
-          <span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>
-        </label>
+        <>
+          <div>
+            <FormLabel>{usersMessages.editCard.language}</FormLabel>
+            <div className="inline-block">
+              <LanguageToggle />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none px-[5px] pt-1">
+            <input
+              type="checkbox"
+              checked={draft.logoutConfirm}
+              onChange={(e) => onLogoutConfirmChange(e.target.checked)}
+              className="w-4 h-4 rounded accent-[var(--color-primary)]"
+            />
+            <span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>
+          </label>
+        </>
       )}
     </div>
   );
@@ -478,7 +451,7 @@ function UserEditCardForm({
     >
       <OverlayCard.Header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <SFPencil className={dialogHeaderIconClass} />
+          <SFPersonCropCircleFill className={dialogHeaderIconClass} />
           <h2 className="text-base font-semibold text-[var(--ds-text)]">
             {usersMessages.editCard.title}
           </h2>
@@ -487,7 +460,7 @@ function UserEditCardForm({
       </OverlayCard.Header>
 
       <OverlayCard.Body>
-        <div className="flex gap-6">
+        <div className="flex gap-6 items-start">
           <UserAvatarEditor
             currentAvatarUrl={currentAvatarUrl}
             displayUsername={displayUsername}
@@ -572,7 +545,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
         aria-label={usersMessages.editCard.title}
       >
         <OverlayCard.Header className="flex items-center gap-3">
-          <SFPencil className={dialogHeaderIconClass} />
+          <SFPersonCropCircleFill className={dialogHeaderIconClass} />
           <h2 className="text-base font-semibold text-[var(--ds-text)]">
             {usersMessages.editCard.title}
           </h2>

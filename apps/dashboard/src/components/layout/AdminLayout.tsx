@@ -3,7 +3,6 @@ import { Outlet, useNavigate } from "react-router";
 import SFLine3Horizontal from "sf-symbols-lib/monochrome/SFLine3Horizontal";
 
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
-import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
@@ -84,17 +83,13 @@ function ThemeToggle({ userId }: { userId?: number }) {
   );
 }
 
-function LanguageToggleWithUser() {
-  return <LanguageToggle />;
-}
-
 function AdminLayoutInner() {
   const { user, logout } = useAuth();
   const { messages } = useI18n();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOwnProfile, setEditingOwnProfile] = useState(false);
-  const { title, setActionsEl } = usePageHeaderContext();
+  const { title, setLeadingEl, setActionsEl } = usePageHeaderContext();
   const { width: sidebarWidth, onMouseDown: onResizeStart } = useSidebarWidth();
 
   async function handleLogout() {
@@ -159,22 +154,25 @@ function AdminLayoutInner() {
 
       {/* Fixed Header — full width on mobile, offset by sidebar on desktop */}
       <header className="sidebar-aware-header h-14 z-30 flex items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]">
-        <button
-          type="button"
-          onClick={() => setSidebarOpen(true)}
-          className="md:hidden p-2 -ml-2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-          aria-label={messages.layout.menuOpen}
-        >
-          <SFLine3Horizontal className="w-5 h-5" />
-        </button>
+        <div className="flex min-w-0 items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden p-2 -ml-2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+            aria-label={messages.layout.menuOpen}
+          >
+            <SFLine3Horizontal className="w-5 h-5" />
+          </button>
 
-        <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
-          {title || messages.layout.pageFallbackTitle}
-        </span>
+          <div ref={setLeadingEl} className="flex items-center shrink-0" />
+
+          <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
+            {title || messages.layout.pageFallbackTitle}
+          </span>
+        </div>
 
         <div className="flex items-center gap-3 ml-auto">
           <div ref={setActionsEl} className="flex items-center gap-2" />
-          <LanguageToggleWithUser />
           <ThemeToggle userId={user?.id} />
         </div>
       </header>

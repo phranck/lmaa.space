@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
@@ -6,6 +6,7 @@ import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { Card } from "@/components/ui/Card.tsx";
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -64,24 +65,18 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const showDelete = !controller.isNew;
   const backLabel = messages.layout.sidebar.shops;
 
-  const saveLabel = useMemo(() => {
-    return controller.isPending ? controller.common.saving : controller.common.save;
-  }, [controller]);
+  const saveLabel = controller.isPending ? controller.common.saving : controller.common.save;
 
   const isActionPending =
     controller.isPending || visibilityMutation.isPending || deleteMutation.isPending;
 
   return (
     <PageLayout>
-      <PageHeader title={controller.title}>
+      <PageHeader
+        title={controller.title}
+        leading={<HeaderBackButton label={backLabel} onClick={() => navigate("/shops")} />}
+      >
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/shops")}
-            className="h-8 px-3 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
-          >
-            {backLabel}
-          </button>
           <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
         </div>
       </PageHeader>
@@ -92,17 +87,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
         </Card>
       </PageBody>
 
-      <Toolbar className="justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate("/shops")}
-            className="h-8 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
-          >
-            {backLabel}
-          </button>
-        </div>
-
+      <Toolbar className="justify-end">
         <div className="flex items-center gap-2">
           {showRestore && controller.activeShop && (
             <button

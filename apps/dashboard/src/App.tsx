@@ -40,6 +40,12 @@ const SubmissionsPage = lazy(() =>
   })),
 );
 
+const SubmissionEditorPage = lazy(() =>
+  import("@/features/overview/SubmissionEditorPage.tsx").then((m) => ({
+    default: m.SubmissionEditorPage,
+  })),
+);
+
 const UsersPage = lazy(() =>
   import("@/features/system/UsersPage.tsx").then((m) => ({
     default: m.UsersPage,
@@ -144,6 +150,14 @@ function AppRoutes() {
             element={
               <Suspense fallback={<ContentEditorLoadingFallback />}>
                 <SubmissionsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="reports/suggestions/:submissionId"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <SubmissionEditorPage />
               </Suspense>
             }
           />

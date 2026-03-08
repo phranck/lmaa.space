@@ -59,6 +59,35 @@ export async function listAdminSubmissions(
   const query = db.select().from(submissions).orderBy(desc(submissions.createdAt));
   const rows = status ? await query.where(eq(submissions.status, status)) : await query;
 
+  return hydrateSubmissionCategoryIds(rows);
+}
+
+/**
+ * Loads a single submission and hydrates its category ids.
+ *
+ * @param id - Submission id.
+ * @returns Submission row with category ids or `null` when not found.
+ */
+export async function getAdminSubmissionById(
+  id: number,
+): Promise<(Submission & { categoryIds: number[] }) | null> {
+  const [submission] = await db.select().from(submissions).where(eq(submissions.id, id));
+
+  if (!submission) {
+    return null;
+  }
+
+  const [hydrated] = await hydrateSubmissionCategoryIds([submission]);
+  return hydrated ?? null;
+}
+
+async function hydrateSubmissionCategoryIds(
+  rows: Submission[],
+): Promise<Array<Submission & { categoryIds: number[] }>> {
+  if (rows.length === 0) {
+    return [];
+  }
+
   const submissionIds = rows.map((submission) => submission.id);
   const categoryRows =
     submissionIds.length > 0

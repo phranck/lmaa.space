@@ -19,6 +19,20 @@ export function useAdminSubmissions(status: SubmissionStatus) {
 }
 
 /**
+ * Loads a single submission for route-based moderation/editing.
+ *
+ * @param id - Submission id or `null` to disable the query.
+ * @returns React Query result with one submission row.
+ */
+export function useAdminSubmission(id: number | null) {
+  return useQuery({
+    queryKey: ["submission", id],
+    enabled: id !== null,
+    queryFn: () => api.get<Submission>(`/admin/submissions/${id}`),
+  });
+}
+
+/**
  * Sends a moderation decision for one submission.
  *
  * @returns React Query mutation for approve/reject/onhold actions.
@@ -39,13 +53,16 @@ export function useReviewSubmission() {
       rejectionLongText?: string;
       rejectionToken?: string;
     }) =>
-      api.patch(`/admin/submissions/${id}`, {
+      api.patch<Submission>(`/admin/submissions/${id}`, {
         status,
         adminNote: adminNote || undefined,
         rejectionLongText: rejectionLongText || undefined,
         rejectionToken: rejectionToken || undefined,
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),
+    onSuccess: (_submission, variables) => {
+      qc.invalidateQueries({ queryKey: ["submissions"] });
+      qc.invalidateQueries({ queryKey: ["submission", variables.id] });
+    },
   });
 }
 
@@ -66,7 +83,7 @@ export function useEditSubmission() {
       data: ShopEditFormValue;
       ogImage?: string | null;
     }) =>
-      api.patch(`/admin/submissions/${id}/edit`, {
+      api.patch<Submission>(`/admin/submissions/${id}/edit`, {
         shopName: data.name,
         shopUrl: data.url,
         description: data.description,
@@ -77,7 +94,10 @@ export function useEditSubmission() {
         contactEmail: data.contactEmail,
         socialMedia: data.socialMedia,
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),
+    onSuccess: (_submission, variables) => {
+      qc.invalidateQueries({ queryKey: ["submissions"] });
+      qc.invalidateQueries({ queryKey: ["submission", variables.id] });
+    },
   });
 }
 
@@ -90,6 +110,9 @@ export function useDeleteSubmission() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/admin/submissions/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["submissions"] }),
+    onSuccess: (_result, id) => {
+      qc.invalidateQueries({ queryKey: ["submissions"] });
+      qc.removeQueries({ queryKey: ["submission", id] });
+    },
   });
 }

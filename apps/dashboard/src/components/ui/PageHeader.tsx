@@ -5,6 +5,7 @@ import { usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 
 interface PageHeaderProps {
   title: string;
+  leading?: ReactNode;
   children?: ReactNode;
 }
 
@@ -18,14 +19,20 @@ interface PageHeaderProps {
  * @param props - Title and optional right-aligned action content.
  * @returns Consistent page heading row.
  */
-export function PageHeader({ title, children }: PageHeaderProps) {
-  const { setTitle, actionsEl } = usePageHeaderContext();
+export function PageHeader({ title, leading, children }: PageHeaderProps) {
+  const { setTitle, leadingEl, actionsEl } = usePageHeaderContext();
 
   useEffect(() => {
     setTitle(title);
     return () => setTitle("");
   }, [title, setTitle]);
 
-  if (!actionsEl || !children) return null;
-  return createPortal(children, actionsEl);
+  if (!leadingEl && !actionsEl) return null;
+
+  return (
+    <>
+      {leadingEl && leading ? createPortal(leading, leadingEl) : null}
+      {actionsEl && children ? createPortal(children, actionsEl) : null}
+    </>
+  );
 }
