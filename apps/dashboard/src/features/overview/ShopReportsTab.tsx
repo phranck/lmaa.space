@@ -65,18 +65,13 @@ export function ShopReportsTab() {
     setRejectToken(null);
   }
 
-  function handleRejectPaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+  function handleRejectPaste(event: ClipboardEvent<HTMLDivElement>) {
     const pastedText = event.clipboardData.getData("text");
     if (!pastedText.includes("[REJECT_TOKEN]")) return;
     event.preventDefault();
     const token = rejectToken ?? "";
     const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
-    const textarea = event.currentTarget;
-    const newValue =
-      rejectReason.slice(0, textarea.selectionStart) +
-      replaced +
-      rejectReason.slice(textarea.selectionEnd);
-    setRejectReason(newValue);
+    setRejectReason((current) => `${current}${replaced}`);
   }
 
   function handleRejectShop() {
