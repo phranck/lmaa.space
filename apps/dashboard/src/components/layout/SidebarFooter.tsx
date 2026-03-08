@@ -1,5 +1,5 @@
 import { useState } from "react";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFPersonCropCircleFill from "sf-symbols-lib/monochrome/SFPersonCropCircleFill";
 import SFRectanglePortraitAndArrowRightFill from "sf-symbols-lib/monochrome/SFRectanglePortraitAndArrowRightFill";
 
 import type { AdminRole } from "@lmaa/shared";
@@ -90,7 +90,7 @@ export function SidebarFooter({
               aria-label={s.editProfile}
               className={btnClass}
             >
-              <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+              <SFPersonCropCircleFill className="w-3.5 h-3.5" />
             </button>
           )}
           <button

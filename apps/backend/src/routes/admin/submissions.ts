@@ -6,7 +6,11 @@ import { reviewSchema, submissionEditSchema, submissionStatusFilterSchema } from
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { editSubmission, listAdminSubmissions } from "../../repositories/admin-submissions.js";
+import {
+  editSubmission,
+  getAdminSubmissionById,
+  listAdminSubmissions,
+} from "../../repositories/admin-submissions.js";
 import {
   deleteModeratedAdminSubmission,
   reviewAdminSubmission,
@@ -31,6 +35,19 @@ submissionsRoutes.get("/submissions", async (c) => {
   const status = parsedStatus?.success ? parsedStatus.data : undefined;
   const submissions = await listAdminSubmissions(status);
   return ok(c, submissions);
+});
+
+// GET /api/admin/submissions/:id
+submissionsRoutes.get("/submissions/:id", async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+
+  const submission = await getAdminSubmissionById(id);
+  if (!submission) {
+    return fail(c, 404, "Submission not found");
+  }
+
+  return ok(c, submission);
 });
 
 // PATCH /api/admin/submissions/:id

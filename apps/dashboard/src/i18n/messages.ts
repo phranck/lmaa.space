@@ -419,6 +419,7 @@ export interface DashboardMessages {
       passwordPlaceholder: string;
       roleAdmin: string;
       roleModerator: string;
+      language: string;
       errorSaving: string;
       editTooltip: string;
     };
@@ -1126,6 +1127,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         passwordPlaceholder: "Nicht ändern",
         roleAdmin: "Admin",
         roleModerator: "Moderator",
+        language: "Sprache",
         errorSaving: "Fehler beim Speichern.",
         editTooltip: "Bearbeiten",
       },
@@ -1824,6 +1826,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         passwordPlaceholder: "Do not change",
         roleAdmin: "Admin",
         roleModerator: "Moderator",
+        language: "Language",
         errorSaving: "Error while saving.",
         editTooltip: "Edit",
       },

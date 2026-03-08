@@ -1,0 +1,688 @@
+import { useMemo, useReducer, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router";
+import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
+import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
+import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
+import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
+import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
+
+import { type Submission, generateRejectionToken } from "@lmaa/shared";
+import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
+
+import { Card } from "@/components/ui/Card.tsx";
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { Toolbar } from "@/components/ui/Toolbar.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import {
+  ShopEditorFormContent,
+  useShopEditorController,
+} from "@/features/content/shops/ShopEditorShared.tsx";
+import {
+  useAdminSubmission,
+  useDeleteSubmission,
+  useReviewSubmission,
+} from "@/features/overview/hooks/useSubmissions.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+
+function resolveSubmissionRoute(submissionIdParam: string | undefined) {
+  const parsed = Number(submissionIdParam);
+  if (!submissionIdParam || Number.isNaN(parsed) || parsed <= 0) {
+    return { submissionId: null, invalid: true };
+  }
+
+  return { submissionId: parsed, invalid: false };
+}
+
+function toSubmissionFormData(submission: Submission) {
+  return {
+    name: submission.shopName,
+    url: submission.shopUrl,
+    description: submission.description ?? "",
+    categoryIds: submission.categoryIds ?? [],
+    region: Array.isArray(submission.region) ? submission.region : [],
+    shipping: submission.shipping ?? "",
+    contactEmail: submission.contactEmail ?? "",
+    socialMedia: submission.socialMedia ?? {},
+  };
+}
+
+type ReviewState = {
+  adminNote: string;
+  editingRejection: boolean;
+  rejectionLongText: string;
+  rejectionToken: string | null;
+  reviewMode: "approve" | "reject" | null;
+};
+
+type ReviewAction =
+  | { type: "close" }
+  | { type: "openApprove"; adminNote: string }
+  | {
+      type: "openReject";
+      adminNote: string;
+      editingRejection: boolean;
+      rejectionLongText: string;
+      rejectionToken: string | null;
+    }
+  | { type: "setAdminNote"; value: string }
+  | { type: "setRejectionLongText"; value: string };
+
+const EMPTY_REVIEW_STATE: ReviewState = {
+  adminNote: "",
+  editingRejection: false,
+  rejectionLongText: "",
+  rejectionToken: null,
+  reviewMode: null,
+};
+
+function reviewReducer(state: ReviewState, action: ReviewAction): ReviewState {
+  switch (action.type) {
+    case "close":
+      return EMPTY_REVIEW_STATE;
+    case "openApprove":
+      return {
+        ...EMPTY_REVIEW_STATE,
+        reviewMode: "approve",
+        adminNote: action.adminNote,
+      };
+    case "openReject":
+      return {
+        adminNote: action.adminNote,
+        editingRejection: action.editingRejection,
+        rejectionLongText: action.rejectionLongText,
+        rejectionToken: action.rejectionToken,
+        reviewMode: "reject",
+      };
+    case "setAdminNote":
+      return { ...state, adminNote: action.value };
+    case "setRejectionLongText":
+      return { ...state, rejectionLongText: action.value };
+  }
+}
+
+export function SubmissionEditorPage() {
+  const { submissionId: submissionIdParam } = useParams();
+  const { submissionId, invalid } = resolveSubmissionRoute(submissionIdParam);
+
+  if (invalid || submissionId === null) {
+    return <Navigate to="/reports?tab=suggestions" replace />;
+  }
+
+  return <ResolvedSubmissionEditorPage submissionId={submissionId} />;
+}
+
+function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }) {
+  const { messages } = useI18n();
+  const navigate = useNavigate();
+  const submissionsMessages = messages.submissions;
+  const submissionQuery = useAdminSubmission(submissionId);
+  const submission = submissionQuery.data ?? null;
+
+  if (submissionQuery.isLoading) {
+    return (
+      <PageLayout>
+        <PageHeader
+          title={submissionsMessages.suggestions.edit}
+          leading={
+            <HeaderBackButton
+              label={submissionsMessages.title}
+              onClick={() => navigate("/reports?tab=suggestions")}
+            />
+          }
+        >
+          <div className="flex items-center gap-3">
+          </div>
+        </PageHeader>
+
+        <PageBody className="min-h-0 overflow-y-auto mb-3">
+          <Card className="flex-1 min-h-0 p-5 overflow-y-auto animate-pulse" />
+        </PageBody>
+      </PageLayout>
+    );
+  }
+
+  if (!submission || submission.status === "approved") {
+    return <Navigate to="/reports?tab=suggestions" replace />;
+  }
+
+  return <LoadedSubmissionEditorPage submission={submission} isFetching={submissionQuery.isFetching} />;
+}
+
+function LoadedSubmissionEditorPage({
+  submission,
+  isFetching,
+}: {
+  submission: Submission;
+  isFetching: boolean;
+}) {
+  const { messages } = useI18n();
+  const navigate = useNavigate();
+  const [reviewState, dispatchReview] = useReducer(reviewReducer, EMPTY_REVIEW_STATE);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { phase: reviewSavedPhase, show: showReviewSaved } = useSaveNotification();
+  const common = messages.common;
+  const submissionsMessages = messages.submissions;
+  const reviewMutation = useReviewSubmission();
+  const deleteMutation = useDeleteSubmission();
+
+  const controller = useShopEditorController({
+    submissionId: submission.id,
+    initialData: toSubmissionFormData(submission),
+    initialOgImage: submission.ogImage,
+  });
+
+  usePersistedTextareaHeight(
+    "submission-editor-admin-note",
+    "submissions:textarea:admin-note",
+    reviewState.reviewMode === "approve",
+  );
+
+  useKeyboardSave(
+    () => {
+      if (reviewState.reviewMode === "approve" && !reviewMutation.isPending) {
+        handleApprove(false);
+      }
+    },
+    reviewState.reviewMode === "approve",
+  );
+
+  const headerBackLabel = submissionsMessages.title;
+  const pageTitle = submission.shopName || submissionsMessages.suggestions.edit;
+  const showDelete = submission.status === "onhold" || submission.status === "rejected";
+  const isRejected = submission.status === "rejected";
+  const isPending = submission.status === "pending";
+  const isOnHold = submission.status === "onhold";
+
+  const saveLabel = useMemo(
+    () => (controller.isPending ? common.saving : common.save),
+    [common.save, common.saving, controller.isPending],
+  );
+  const combinedSavedPhase = controller.savedPhase !== "hidden" ? controller.savedPhase : reviewSavedPhase;
+  const isActionPending =
+    controller.isPending ||
+    reviewMutation.isPending ||
+    deleteMutation.isPending ||
+    isFetching;
+
+  function navigateBack() {
+    navigate("/reports?tab=suggestions");
+  }
+
+  function openApproveReview() {
+    dispatchReview({
+      type: "openApprove",
+      adminNote: submission.adminNote ?? "",
+    });
+  }
+
+  function openRejectReview(editingRejection: boolean) {
+    dispatchReview({
+      type: "openReject",
+      adminNote: editingRejection ? (submission.adminNote ?? "") : "",
+      editingRejection,
+      rejectionLongText: editingRejection ? (submission.rejectionLongText ?? "") : "",
+      rejectionToken: editingRejection
+        ? (submission.rejectionToken ?? null)
+        : generateRejectionToken(),
+    });
+  }
+
+  function handleApprove(close = true) {
+    reviewMutation.mutate(
+      {
+        id: submission.id,
+        status: "approved",
+        adminNote: reviewState.adminNote,
+      },
+      {
+        onSuccess: () => {
+          if (close) {
+            navigateBack();
+          } else {
+            showReviewSaved();
+          }
+          dispatchReview({ type: "close" });
+        },
+      },
+    );
+  }
+
+  function handleSetStatus(
+    status: "pending" | "onhold",
+    options?: { navigateBack?: boolean; onSuccess?: () => void },
+  ) {
+    reviewMutation.mutate(
+      {
+        id: submission.id,
+        status,
+        adminNote: "",
+      },
+      {
+        onSuccess: () => {
+          options?.onSuccess?.();
+          if (options?.navigateBack) {
+            navigateBack();
+          }
+        },
+      },
+    );
+  }
+
+  function handleReject() {
+    reviewMutation.mutate(
+      {
+        id: submission.id,
+        status: "rejected",
+        adminNote: reviewState.adminNote,
+        rejectionLongText: reviewState.rejectionLongText || undefined,
+        rejectionToken: reviewState.rejectionToken ?? undefined,
+      },
+      {
+        onSuccess: () => {
+          dispatchReview({ type: "close" });
+          showReviewSaved();
+        },
+      },
+    );
+  }
+
+  return (
+    <PageLayout>
+      <PageHeader
+        title={pageTitle}
+        leading={<HeaderBackButton label={headerBackLabel} onClick={navigateBack} />}
+      >
+        <div className="flex items-center gap-3">
+          <SaveNotification phase={combinedSavedPhase} label={common.saved} />
+        </div>
+      </PageHeader>
+
+      <PageBody className="min-h-0 overflow-y-auto mb-3">
+        <Card className="flex-1 min-h-0 p-5 overflow-y-auto">
+          <ShopEditorFormContent controller={controller} />
+        </Card>
+      </PageBody>
+
+      <Toolbar className="justify-end">
+        <div className="flex items-center gap-2">
+          {isPending && (
+            <>
+              <button
+                type="button"
+                onClick={openApproveReview}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.approve}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSetStatus("onhold")}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <SFPauseCircleFill className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.onhold}
+              </button>
+              <button
+                type="button"
+                onClick={() => openRejectReview(false)}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.reject}
+              </button>
+            </>
+          )}
+
+          {isOnHold && (
+            <>
+              <button
+                type="button"
+                onClick={() => handleSetStatus("pending")}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.restore}
+              </button>
+              <button
+                type="button"
+                onClick={() => openRejectReview(false)}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.reject}
+              </button>
+            </>
+          )}
+
+          {isRejected && (
+            <>
+              <button
+                type="button"
+                onClick={() => openRejectReview(true)}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+              >
+                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.editRejectionInfo}
+              </button>
+
+              {submission.rejectionToken ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.open(
+                      `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
+                      "_blank",
+                    )
+                  }
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                >
+                  <SFInfoCircleFill className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.info}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleSetStatus("pending")}
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                >
+                  <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.setToOpen}
+                </button>
+              )}
+            </>
+          )}
+
+          {showDelete && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isActionPending}
+              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+            >
+              <SFTrashFill className="w-3.5 h-3.5" />
+              {submissionsMessages.suggestions.delete}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() =>
+              void controller.handleSave({
+                onSuccess: () => {
+                  controller.showSaved();
+                },
+              })
+            }
+            disabled={!controller.canSave || isActionPending}
+            className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+          >
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+            {saveLabel}
+          </button>
+        </div>
+      </Toolbar>
+
+      <ApproveSubmissionReviewCard
+        adminNote={reviewState.adminNote}
+        cancelLabel={common.cancel}
+        commentLabel={submissionsMessages.suggestions.comment}
+        commentPlaceholder={submissionsMessages.suggestions.commentPlaceholder}
+        errorMessage={reviewMutation.error?.message ?? common.unknownError}
+        errorPrefix={submissionsMessages.suggestions.reviewErrorPrefix}
+        isError={reviewMutation.isError}
+        isPending={reviewMutation.isPending}
+        onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
+        onClose={() => dispatchReview({ type: "close" })}
+        onSubmit={() => handleApprove()}
+        open={reviewState.reviewMode === "approve"}
+        optionalLabel={submissionsMessages.suggestions.optional}
+        reviewTitle={submissionsMessages.suggestions.reviewApproveTitle}
+        reviewing={submission}
+        savedLabel={common.saved}
+        savedPhase={combinedSavedPhase}
+        submitLabel={submissionsMessages.suggestions.accept}
+      />
+
+      <RejectDialog
+        open={reviewState.reviewMode === "reject"}
+        onClose={() => dispatchReview({ type: "close" })}
+        title={
+          reviewState.editingRejection
+            ? submissionsMessages.suggestions.reviewEditRejectionTitle
+            : submissionsMessages.suggestions.reviewRejectTitle
+        }
+        headerIcon={
+          reviewState.editingRejection ? (
+            <SFLongTextPageAndPencilFill className={dialogHeaderIconClass} />
+          ) : (
+            <SFXmarkCircleFill className={dialogHeaderIconClass} />
+          )
+        }
+        name={submission.shopName}
+        url={submission.shopUrl}
+        adminNote={reviewState.adminNote}
+        onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
+        rejectionLongText={reviewState.rejectionLongText}
+        onRejectionLongTextChange={(value) =>
+          dispatchReview({ type: "setRejectionLongText", value })
+        }
+        rejectionToken={reviewState.rejectionToken}
+        onSubmit={handleReject}
+        isPending={reviewMutation.isPending}
+        isError={reviewMutation.isError}
+        errorMessage={reviewMutation.error?.message ?? common.unknownError}
+        submitLabel={
+          reviewState.editingRejection ? common.save : submissionsMessages.suggestions.decline
+        }
+        submitVariant={reviewState.editingRejection ? "primary" : "danger"}
+        submitIcon={
+          reviewState.editingRejection ? (
+            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+          ) : undefined
+        }
+        headerRight={<SaveNotification phase={combinedSavedPhase} label={common.saved} />}
+        storageKey="submissions:review-reject-size"
+        adminNoteStorageKey="submissions:textarea:admin-note"
+        rejectionLongStorageKey="submissions:textarea:rejection-long"
+        messages={{
+          cancel: common.cancel,
+          comment: submissionsMessages.suggestions.comment,
+          optional: submissionsMessages.suggestions.optional,
+          commentPlaceholder: submissionsMessages.suggestions.rejectReasonPlaceholder,
+          rejectionLongLabel: submissionsMessages.suggestions.rejectionLongLabel,
+          rejectionLongPlaceholder: submissionsMessages.suggestions.rejectionLongPlaceholder,
+          errorPrefix: submissionsMessages.suggestions.reviewErrorPrefix,
+        }}
+      />
+
+      {showDeleteDialog && (
+        <OverlayCard
+          open={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          size={{ storageKey: "submissions:delete-size", defaultWidth: 480 }}
+          aria-label={submissionsMessages.suggestions.confirmDeleteTitle}
+        >
+          <OverlayCard.Header>
+            <div className="flex items-center gap-3">
+              <SFTrashFill className={dialogHeaderIconClass} />
+              <h3 className="font-bold text-[var(--ds-text)]">
+                {submissionsMessages.suggestions.confirmDeleteTitle}
+              </h3>
+            </div>
+          </OverlayCard.Header>
+
+          <OverlayCard.Body>
+            <p className="text-sm text-[var(--ds-text-muted)]">
+              <span className="font-medium">{submission.shopName}</span>{" "}
+              {submissionsMessages.suggestions.confirmDeleteDescription}
+            </p>
+          </OverlayCard.Body>
+
+          <OverlayCard.Footer className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowDeleteDialog(false)}
+              className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+            >
+              {common.cancel}
+            </button>
+            <button
+              type="button"
+              disabled={deleteMutation.isPending}
+              onClick={() =>
+                deleteMutation.mutate(submission.id, {
+                  onSuccess: navigateBack,
+                })
+              }
+              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+            >
+              <SFTrashFill className="w-3.5 h-3.5" />
+              {deleteMutation.isPending ? "…" : common.delete}
+            </button>
+          </OverlayCard.Footer>
+        </OverlayCard>
+      )}
+    </PageLayout>
+  );
+}
+
+interface ApproveSubmissionReviewCardProps {
+  adminNote: string;
+  cancelLabel: string;
+  commentLabel: string;
+  commentPlaceholder: string;
+  errorMessage: string;
+  errorPrefix: string;
+  isError: boolean;
+  isPending: boolean;
+  onAdminNoteChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+  open: boolean;
+  optionalLabel: string;
+  reviewTitle: string;
+  reviewing: Submission;
+  savedLabel: string;
+  savedPhase: ReturnType<typeof useSaveNotification>["phase"];
+  submitLabel: string;
+}
+
+function ApproveSubmissionReviewCard({
+  adminNote,
+  cancelLabel,
+  commentLabel,
+  commentPlaceholder,
+  errorMessage,
+  errorPrefix,
+  isError,
+  isPending,
+  onAdminNoteChange,
+  onClose,
+  onSubmit,
+  open,
+  optionalLabel,
+  reviewTitle,
+  reviewing,
+  savedLabel,
+  savedPhase,
+  submitLabel,
+}: ApproveSubmissionReviewCardProps) {
+  return (
+    <OverlayCard
+      open={open}
+      onClose={onClose}
+      size={{ storageKey: "submissions:review-approve-size", defaultWidth: 448 }}
+      aria-label={reviewTitle}
+    >
+      <OverlayCard.Header>
+        <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <SFCheckmarkCircleFill className={dialogHeaderIconClass} />
+            <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
+          </div>
+          <SaveNotification phase={savedPhase} label={savedLabel} />
+        </div>
+        <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
+        <div className="flex items-center gap-1.5 mt-1">
+          <p className="text-xs text-[var(--ds-text-subtle)] truncate">{reviewing.shopUrl}</p>
+          <button
+            type="button"
+            onClick={() => navigator.clipboard.writeText(reviewing.shopUrl)}
+            className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
+            aria-label="Copy URL"
+          >
+            <SFDocumentOnDocumentFill className="w-4 h-4" />
+          </button>
+        </div>
+      </OverlayCard.Header>
+
+      <OverlayCard.Body className="flex flex-col gap-3">
+        <div>
+          <FormLabel htmlFor="submission-editor-admin-note">
+            {commentLabel} <FormOptional>{optionalLabel}</FormOptional>
+          </FormLabel>
+          <MarkdownEditor
+            id="submission-editor-admin-note"
+            value={adminNote}
+            onChange={onAdminNoteChange}
+            rows={3}
+            resizable
+            placeholder={commentPlaceholder}
+          />
+          <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
+        </div>
+
+        {isError && (
+          <p className="text-sm text-red-600">
+            {errorPrefix} {errorMessage}
+          </p>
+        )}
+      </OverlayCard.Body>
+
+      <OverlayCard.Footer className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+        >
+          {cancelLabel}
+        </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={onSubmit}
+          className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
+        >
+          {isPending ? (
+            "…"
+          ) : (
+            <>
+              <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+              {submitLabel}
+            </>
+          )}
+        </button>
+      </OverlayCard.Footer>
+    </OverlayCard>
+  );
+}
