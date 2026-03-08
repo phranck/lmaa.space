@@ -1,5 +1,6 @@
 import { DashboardInfoCard } from "@/components/ui/DashboardInfoCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminStats } from "@/features/overview/hooks/useAdminStats.ts";
 
@@ -15,7 +16,7 @@ export function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div>
+      <PageLayout>
         <PageHeader title={dashboardMessages.overviewTitle} />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
@@ -25,12 +26,12 @@ export function DashboardPage() {
             />
           ))}
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div>
+    <PageLayout>
       <PageHeader title={dashboardMessages.overviewTitle} />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -65,6 +66,6 @@ export function DashboardPage() {
           href={(stats?.deadLinkReports ?? 0) > 0 ? "/reports?tab=dead-links" : undefined}
         />
       </div>
-    </div>
+    </PageLayout>
   );
 }

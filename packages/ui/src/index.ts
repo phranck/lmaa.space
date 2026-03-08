@@ -4,6 +4,19 @@ export { CharCounter } from "./CharCounter.tsx";
 export type { CharCounterProps } from "./CharCounter.tsx";
 /** Shared checkbox component and props. */
 export { Checkbox } from "./Checkbox.tsx";
+/** Shared dashboard form primitives and class tokens. */
+export {
+  FormErrorText,
+  FormHelpText,
+  FormLabel,
+  FormLabelText,
+  FormOptional,
+  formErrorClass,
+  formHelpClass,
+  formInputClass,
+  formLabelClass,
+  formOptionalClass,
+} from "./FormPrimitives.tsx";
 /** CodeMirror-based Markdown source editor with syntax highlighting. */
 export { MarkdownEditor } from "./MarkdownEditor.tsx";
 /** Re-exported props for `MarkdownEditor`. */

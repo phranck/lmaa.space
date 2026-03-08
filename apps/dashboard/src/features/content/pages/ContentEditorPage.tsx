@@ -10,6 +10,7 @@ import type { ContentPage } from "@lmaa/shared";
 import { MarkdownEditor } from "@lmaa/ui";
 
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -520,7 +521,7 @@ export function ContentEditorPage() {
   const title = page?.title ?? slug;
 
   return (
-    <>
+    <PageLayout>
       <PageHeader title={title}>
         <EditorHeaderActions
           sourceFontSize={state.sourceFontSize}
@@ -581,8 +582,8 @@ export function ContentEditorPage() {
         />
       )}
 
-      <div
-        className="flex-1 overflow-hidden"
+      <PageBody
+        className="overflow-hidden"
         style={{ "--source-font-size": `${state.sourceFontSize}px` } as React.CSSProperties}
       >
         {isLoading && (
@@ -605,7 +606,7 @@ export function ContentEditorPage() {
         {save.isError && (
           <p className="text-red-500 text-sm text-center mt-4">{editorMessages.saveError}</p>
         )}
-      </div>
+      </PageBody>
 
       <Toolbar>
         <ShortcutHint keys={["⌘", "S"]} label="Speichern" />
@@ -614,6 +615,6 @@ export function ContentEditorPage() {
         <ShortcutHint keys={["⌘", "⇧", "D"]} label="Durchgestrichen" />
         <ShortcutHint keys={["⌘", "K"]} label="Link" />
       </Toolbar>
-    </>
+    </PageLayout>
   );
 }

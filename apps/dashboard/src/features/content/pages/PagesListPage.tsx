@@ -9,6 +9,7 @@ import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   useContentPages,
@@ -115,7 +116,7 @@ export function PagesListPage() {
   }
 
   return (
-    <>
+    <PageLayout>
       <PageHeader title={text.title}>
         {!showCreate && (
           <button
@@ -129,7 +130,7 @@ export function PagesListPage() {
         )}
       </PageHeader>
 
-      <div className="space-y-6">
+      <PageBody className="space-y-6">
         {showCreate && (
           <form
             onSubmit={handleCreate}
@@ -205,7 +206,7 @@ export function PagesListPage() {
 
         {!isLoading && pages.length === 0 && (
           <ContentUnavailableView
-            className="flex-1"
+            className="flex-1 min-h-0"
             icon={<SFDocumentFill aria-hidden />}
             title={text.emptyPages}
             subtitle={text.emptyPagesHint}
@@ -269,7 +270,7 @@ export function PagesListPage() {
             </table>
           </div>
         )}
-      </div>
-    </>
+      </PageBody>
+    </PageLayout>
   );
 }

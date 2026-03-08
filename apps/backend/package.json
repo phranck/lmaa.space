@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "db:doctor": "tsx --env-file=.env.local src/db/doctor.ts",
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
     "db:seed": "tsx --env-file=.env.local src/scripts/seed.ts",
     "db:seed-form-config": "tsx --env-file=.env.local src/scripts/seed-form-config.ts",

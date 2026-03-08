@@ -11,6 +11,7 @@ import {
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminUsers, useDeleteUser } from "@/features/system/hooks/useAdminUsers.ts";
@@ -39,7 +40,7 @@ export function UsersPage() {
   const deleteTarget = users.find((u) => u.id === deleteId);
 
   return (
-    <div>
+    <PageLayout>
       <PageHeader title={usersMessages.title}>
         <button
           type="button"
@@ -51,70 +52,71 @@ export function UsersPage() {
         </button>
       </PageHeader>
 
-      {/* List */}
-      {isLoading && (
-        <div className="space-y-2">
-          {Array.from({ length: 3 }, (_, i) => `sk-${i}`).map((key) => (
-            <ItemCard key={key} className="h-16 animate-pulse" />
-          ))}
-        </div>
-      )}
+      <PageBody>
+        {isLoading && (
+          <div className="space-y-2">
+            {Array.from({ length: 3 }, (_, i) => `sk-${i}`).map((key) => (
+              <ItemCard key={key} className="h-16 animate-pulse" />
+            ))}
+          </div>
+        )}
 
-      <div className="space-y-2">
-        {users.map((user) => (
-          <ItemCard key={user.id} className="px-5 py-4 flex items-center gap-3">
-            <UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    user.role === "owner"
-                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+        <div className="space-y-2">
+          {users.map((user) => (
+            <ItemCard key={user.id} className="px-5 py-4 flex items-center gap-3">
+              <UserAvatar username={user.username} avatarUrl={user.avatarUrl} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium text-[var(--ds-text)]">{user.username}</p>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      user.role === "owner"
+                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+                        : user.role === "admin"
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                    }`}
+                  >
+                    {user.role === "owner"
+                      ? usersMessages.role.owner
                       : user.role === "admin"
-                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
-                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                  }`}
-                >
-                  {user.role === "owner"
-                    ? usersMessages.role.owner
-                    : user.role === "admin"
-                      ? usersMessages.role.admin
-                      : usersMessages.role.moderator}
-                </span>
-                {user.id === me?.id && (
-                  <span className="text-xs bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] px-2 py-0.5 rounded-full">
-                    {usersMessages.you}
+                        ? usersMessages.role.admin
+                        : usersMessages.role.moderator}
                   </span>
+                  {user.id === me?.id && (
+                    <span className="text-xs bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] px-2 py-0.5 rounded-full">
+                      {usersMessages.you}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-[var(--ds-text-subtle)]">{user.email}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {(me?.isOwner || user.id === me?.id) && (
+                  <button
+                    type="button"
+                    onClick={() => setEditingUserId(user.id)}
+                    className="py-1.5 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+                  >
+                    <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                    {usersMessages.editCard.editTooltip}
+                  </button>
+                )}
+                {me?.isOwner && user.id !== me?.id && (
+                  <button
+                    type="button"
+                    onClick={() => setDeleteId(user.id)}
+                    className="py-1.5 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                  >
+                    <SFTrashFill className="w-3.5 h-3.5" />
+                    {usersMessages.remove}
+                  </button>
                 )}
               </div>
-              <p className="text-sm text-[var(--ds-text-subtle)]">{user.email}</p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {(me?.isOwner || user.id === me?.id) && (
-                <button
-                  type="button"
-                  onClick={() => setEditingUserId(user.id)}
-                  className="py-1.5 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {usersMessages.editCard.editTooltip}
-                </button>
-              )}
-              {me?.isOwner && user.id !== me?.id && (
-                <button
-                  type="button"
-                  onClick={() => setDeleteId(user.id)}
-                  className="py-1.5 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                >
-                  <SFTrashFill className="w-3.5 h-3.5" />
-                  {usersMessages.remove}
-                </button>
-              )}
-            </div>
-          </ItemCard>
-        ))}
-      </div>
+            </ItemCard>
+          ))}
+        </div>
+      </PageBody>
 
       <Dialog
         open={deleteId !== null && !!deleteTarget}
@@ -160,6 +162,6 @@ export function UsersPage() {
           onSaved={() => setEditingUserId(null)}
         />
       )}
-    </div>
+    </PageLayout>
   );
 }

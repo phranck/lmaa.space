@@ -22,6 +22,12 @@ const ShopsPage = lazy(() =>
   })),
 );
 
+const ShopEditorPage = lazy(() =>
+  import("@/features/content/shops/ShopEditorPage.tsx").then((m) => ({
+    default: m.ShopEditorPage,
+  })),
+);
+
 const DashboardPage = lazy(() =>
   import("@/features/overview/DashboardPage.tsx").then((m) => ({
     default: m.DashboardPage,
@@ -146,6 +152,22 @@ function AppRoutes() {
             element={
               <Suspense fallback={<ContentEditorLoadingFallback />}>
                 <ShopsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="shops/new"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <ShopEditorPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="shops/:shopId"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <ShopEditorPage />
               </Suspense>
             }
           />

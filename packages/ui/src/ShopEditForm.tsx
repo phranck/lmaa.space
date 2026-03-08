@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
 import SFArrowUpRight from "sf-symbols-lib/monochrome/SFArrowUpRight";
 
+import {
+  FormErrorText,
+  FormLabel,
+  FormLabelText,
+  FormOptional,
+  formInputClass,
+} from "./FormPrimitives.tsx";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
 import {
@@ -90,11 +97,6 @@ export function ShopEditForm({
   urlWarning,
   descriptionHint,
 }: ShopEditFormProps) {
-  const labelClass = "block text-xs font-medium text-[var(--ds-text-muted)] mb-1";
-
-  const inputClass =
-    "w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
-
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
   }
@@ -104,23 +106,19 @@ export function ShopEditForm({
       {/* Name + URL */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="sef-name" className={labelClass}>
-            {messages.nameLabel}
-          </label>
+          <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
           <input
             id="sef-name"
             type="text"
             value={value.name}
             onChange={(e) => set("name", e.target.value)}
-            className={`${inputClass}${errors?.name ? " border-red-400" : ""}`}
+            className={`${formInputClass}${errors?.name ? " border-red-400" : ""}`}
           />
-          {errors?.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+          {errors?.name && <FormErrorText>{errors.name}</FormErrorText>}
         </div>
 
         <div>
-          <label htmlFor="sef-url" className={labelClass}>
-            {messages.urlLabel}
-          </label>
+          <FormLabel htmlFor="sef-url">{messages.urlLabel}</FormLabel>
           <div className="flex gap-2">
             <input
               id="sef-url"
@@ -129,7 +127,7 @@ export function ShopEditForm({
               onChange={(e) => set("url", e.target.value)}
               onBlur={() => onUrlBlur?.(value.url)}
               placeholder={messages.urlPlaceholder}
-              className={`flex-1 ${inputClass}${errors?.url ? " border-red-400" : ""}`}
+              className={`flex-1 ${formInputClass}${errors?.url ? " border-red-400" : ""}`}
             />
             <a
               href={value.url || undefined}
@@ -147,7 +145,7 @@ export function ShopEditForm({
               <SFArrowUpRight className="w-3 h-3" />
             </a>
           </div>
-          {errors?.url && <p className="text-red-500 text-xs mt-1">{errors.url}</p>}
+          {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}
           {urlWarning}
         </div>
       </div>
@@ -155,59 +153,46 @@ export function ShopEditForm({
       {/* Contact Email + Social Media */}
       <div className="grid grid-cols-[2fr_3fr] gap-4">
         <div>
-          <label htmlFor="sef-contact-email" className={labelClass}>
+          <FormLabel htmlFor="sef-contact-email">
             <span className="flex items-center gap-1.5">
-              {messages.contactEmailLabel}{" "}
-              <span className="text-[var(--ds-text-subtle)] font-normal">
-                {messages.optionalLabel}
-              </span>
+              {messages.contactEmailLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
             </span>
-          </label>
+          </FormLabel>
           <input
             id="sef-contact-email"
             type="email"
             value={value.contactEmail}
             onChange={(e) => set("contactEmail", e.target.value)}
             placeholder={messages.contactEmailPlaceholder}
-            className={`${inputClass}${errors?.contactEmail ? " border-red-400" : ""}`}
+            className={`${formInputClass}${errors?.contactEmail ? " border-red-400" : ""}`}
           />
-          {errors?.contactEmail && (
-            <p className="text-red-500 text-xs mt-1">{errors.contactEmail}</p>
-          )}
+          {errors?.contactEmail && <FormErrorText>{errors.contactEmail}</FormErrorText>}
         </div>
 
         {messages.socialMediaLabel && messages.socialMedia && (
           <div>
-            <p className={labelClass}>
+            <FormLabelText>
               <span className="flex items-center gap-1.5">
-                {messages.socialMediaLabel}{" "}
-                <span className="text-[var(--ds-text-subtle)] font-normal">
-                  {messages.optionalLabel}
-                </span>
+                {messages.socialMediaLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
               </span>
-            </p>
+            </FormLabelText>
             <SocialMediaEditor
               value={value.socialMedia}
               onChange={(v) => set("socialMedia", v)}
               messages={messages.socialMedia}
             />
-            {errors?.socialMedia && (
-              <p className="text-red-500 text-xs mt-1">{errors.socialMedia}</p>
-            )}
+            {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
           </div>
         )}
       </div>
 
       {/* Description */}
       <div>
-        <label htmlFor="sef-description" className={labelClass}>
+        <FormLabel htmlFor="sef-description">
           <span className="flex items-center gap-1.5">
-            {messages.descriptionLabel}{" "}
-            <span className="text-[var(--ds-text-subtle)] font-normal">
-              {messages.optionalLabel}
-            </span>
+            {messages.descriptionLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
           </span>
-        </label>
+        </FormLabel>
         <MarkdownEditor
           id="sef-description"
           value={value.description}
@@ -216,13 +201,13 @@ export function ShopEditForm({
           resizable
           className={errors?.description ? "border-red-400" : ""}
         />
-        {errors?.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
+        {errors?.description && <FormErrorText>{errors.description}</FormErrorText>}
         {descriptionHint}
       </div>
 
       {/* Categories */}
       <div>
-        <p className={labelClass}>{messages.categoriesLabel}</p>
+        <FormLabelText>{messages.categoriesLabel}</FormLabelText>
         <MultiSelect
           options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
           value={value.categoryIds.map(String)}
@@ -245,18 +230,16 @@ export function ShopEditForm({
         />
 
         <div>
-          <label htmlFor="sef-shipping" className={labelClass}>
-            {messages.shippingLabel}
-          </label>
+          <FormLabel htmlFor="sef-shipping">{messages.shippingLabel}</FormLabel>
           <input
             id="sef-shipping"
             type="text"
             value={value.shipping}
             onChange={(e) => set("shipping", e.target.value)}
             placeholder={messages.shippingPlaceholder}
-            className={`${inputClass}${errors?.shipping ? " border-red-400" : ""}`}
+            className={`${formInputClass}${errors?.shipping ? " border-red-400" : ""}`}
           />
-          {errors?.shipping && <p className="text-red-500 text-xs mt-1">{errors.shipping}</p>}
+          {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
         </div>
       </div>
     </div>

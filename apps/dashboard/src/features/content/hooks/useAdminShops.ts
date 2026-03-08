@@ -93,7 +93,7 @@ export function useSaveShop(editId: number | null) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: ShopEditFormValue) =>
-      editId ? api.patch(`/admin/shops/${editId}`, data) : api.post("/admin/shops", data),
+      editId ? api.patch<Shop>(`/admin/shops/${editId}`, data) : api.post<Shop>("/admin/shops", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
       if (editId) qc.invalidateQueries({ queryKey: ["shop", editId] });

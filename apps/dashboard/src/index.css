@@ -120,17 +120,21 @@ button {
 @keyframes overlay-in {
   from {
     opacity: 0;
+    backdrop-filter: blur(0px);
   }
   to {
     opacity: 1;
+    backdrop-filter: blur(24px);
   }
 }
 @keyframes overlay-out {
   from {
     opacity: 1;
+    backdrop-filter: blur(24px);
   }
   to {
     opacity: 0;
+    backdrop-filter: blur(0px);
   }
 }
 @keyframes card-in {

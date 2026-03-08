@@ -1,7 +1,5 @@
-import { useMemo, useState } from "react";
-import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
+import { useMemo } from "react";
 import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
-import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
 import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
 import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
@@ -13,16 +11,10 @@ import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
-import { ShopDeletionInfoOverlay } from "@/features/content/shops/ShopDeletionInfoOverlay.tsx";
 
 interface ShopTableProps {
   shops: AdminShopListItem[];
   onEdit: (shop: AdminShopListItem) => void;
-  onDelete?: (id: number) => void;
-  onPermanentDelete?: (id: number) => void;
-  onHold?: (id: number) => void;
-  onRestore?: (id: number) => void;
-  onUpdateReason?: (id: number, reason: string | null) => Promise<void>;
 }
 
 function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"] }) {
@@ -65,15 +57,9 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
 export function ShopTable({
   shops,
   onEdit,
-  onDelete,
-  onPermanentDelete,
-  onHold,
-  onRestore,
-  onUpdateReason,
 }: ShopTableProps) {
   const { locale, messages } = useI18n();
   const shopsMessages = messages.shops;
-  const [infoShop, setInfoShop] = useState<ShopSummary | null>(null);
   const regionOptions = getRegionOptions(locale);
   const columns = useMemo<ColumnDef<AdminShopListItem>[]>(
     () => [
@@ -142,166 +128,25 @@ export function ShopTable({
       },
       {
         id: "actions",
-        className: "w-56",
+        className: "w-36",
         cell: (shop) => (
           <div className="flex gap-2 justify-end">
-            {shop.visibility === "public" && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => onEdit(shop)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {shopsMessages.table.edit}
-                </button>
-                {onHold && (
-                  <button
-                    type="button"
-                    onClick={() => onHold(shop.id)}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
-                  >
-                    <SFPauseCircleFill className="w-3.5 h-3.5" />
-                    {shopsMessages.table.putOnHold}
-                  </button>
-                )}
-                {onDelete && (
-                  <button
-                    type="button"
-                    onClick={() => onDelete(shop.id)}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                  >
-                    <SFTrashFill className="w-3.5 h-3.5" />
-                    {shopsMessages.table.delete}
-                  </button>
-                )}
-              </>
-            )}
-            {shop.visibility === "onhold" && (
-              <>
-                {onRestore && (
-                  <button
-                    type="button"
-                    onClick={() => onRestore(shop.id)}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
-                  >
-                    <SFArrowCounterclockwise className="w-3.5 h-3.5" />
-                    {shopsMessages.table.restore}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onEdit(shop)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {shopsMessages.table.edit}
-                </button>
-                {onDelete && (
-                  <button
-                    type="button"
-                    onClick={() => onDelete(shop.id)}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                  >
-                    <SFTrashFill className="w-3.5 h-3.5" />
-                    {shopsMessages.table.delete}
-                  </button>
-                )}
-              </>
-            )}
-            {shop.visibility === "deleted" && (
-              <>
-                {onRestore && (
-                  <button
-                    type="button"
-                    onClick={() => onRestore(shop.id)}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors"
-                  >
-                    <SFArrowCounterclockwise className="w-3.5 h-3.5" />
-                    {shopsMessages.table.restore}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setInfoShop(shop)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] text-sm hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
-                >
-                  <SFInfoCircleFill className="w-3.5 h-3.5" />
-                  {shopsMessages.table.deletionInfo}
-                </button>
-                {onPermanentDelete && (
-                  <button
-                    type="button"
-                    onClick={() => onPermanentDelete(shop.id)}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                  >
-                    <SFTrashFill className="w-3.5 h-3.5" />
-                    {shopsMessages.table.permanentDelete}
-                  </button>
-                )}
-              </>
-            )}
-            {shop.visibility === "rejected" && (
-              <>
-                {shop.rejectionToken && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const base =
-                        import.meta.env.VITE_FRONTEND_URL ??
-                        (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space");
-                      window.open(`${base}/rejected/${shop.rejectionToken}`, "_blank");
-                    }}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                  >
-                    <SFInfoCircleFill className="w-3.5 h-3.5" />
-                    {shopsMessages.table.rejectionInfo}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onEdit(shop)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
-                  {shopsMessages.table.edit}
-                </button>
-                {onDelete && (
-                  <button
-                    type="button"
-                    onClick={() => onDelete(shop.id)}
-                    className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                  >
-                    <SFTrashFill className="w-3.5 h-3.5" />
-                    {shopsMessages.table.delete}
-                  </button>
-                )}
-              </>
-            )}
+            <button
+              type="button"
+              onClick={() => onEdit(shop)}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+            >
+              <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+              {shopsMessages.table.edit}
+            </button>
           </div>
         ),
       },
     ],
-    [onDelete, onPermanentDelete, onEdit, onHold, onRestore, regionOptions, shopsMessages],
+    [onEdit, regionOptions, shopsMessages],
   );
 
   return (
-    <>
-      <DataTable
-        columns={columns}
-        data={shops}
-        getRowKey={(s: AdminShopListItem) => s.id}
-        stickyHeader
-      />
-      {infoShop && (
-        <ShopDeletionInfoOverlay
-          shop={infoShop}
-          onClose={() => setInfoShop(null)}
-          onUpdateReason={
-            onUpdateReason ? (reason) => onUpdateReason(infoShop.id, reason) : undefined
-          }
-        />
-      )}
-    </>
+    <DataTable columns={columns} data={shops} getRowKey={(s: AdminShopListItem) => s.id} stickyHeader />
   );
 }

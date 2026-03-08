@@ -21,6 +21,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "db:generate": "drizzle-kit generate",
+    "db:doctor": "npm run db:doctor -w @lmaa/backend",
     "db:migrate": "npm run db:migrate -w @lmaa/backend",
     "db:studio": "drizzle-kit studio",
     "docs:code": "typedoc --options typedoc.json"

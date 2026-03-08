@@ -1,6 +1,19 @@
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
-import { pushOverlay } from "./overlay-stack.ts";
+import {
+  getOverlayStackSnapshot,
+  registerOverlay,
+  subscribeOverlayStack,
+} from "./overlay-stack.ts";
 import { ResizableDialogCard } from "./ResizableDialogCard.tsx";
 
 // ---------------------------------------------------------------------------
@@ -109,58 +122,83 @@ export function OverlayCard({
   onEscape,
   children,
 }: OverlayCardProps) {
+  const overlayId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const closingRef = useRef(false);
   const [closing, setClosing] = useState(false);
+  const overlayIds = useSyncExternalStore(
+    subscribeOverlayStack,
+    getOverlayStackSnapshot,
+    getOverlayStackSnapshot,
+  );
+  const stackIndex = overlayIds.indexOf(overlayId);
+  const isRegistered = stackIndex !== -1;
+  const isTopMost = isRegistered && stackIndex === overlayIds.length - 1;
+  const isBaseLayer = isRegistered && stackIndex === 0;
 
   const startClose = useCallback(() => {
-    setClosing(true);
+    closingRef.current = true;
+    setClosing((current) => (current ? current : true));
   }, []);
 
-  // ESC stack registration
   useEffect(() => {
-    if (!open || closing) return;
+    if (!open) {
+      closingRef.current = false;
+      setClosing(false);
+    }
+  }, [open]);
+
+  // Overlay stack registration
+  useLayoutEffect(() => {
+    if (!open) return;
     const handler = () => {
+      if (closingRef.current) return;
       if (onEscape) {
         if (onEscape() === false) return;
       }
       startClose();
     };
-    return pushOverlay(handler);
-  }, [open, closing, onEscape, startClose]);
+    return registerOverlay(overlayId, handler);
+  }, [open, onEscape, overlayId, startClose]);
 
-  // Focus management
+  // Focus restore target capture
   useEffect(() => {
     if (!open) return;
     previousFocusRef.current = document.activeElement as HTMLElement | null;
-    const dialog = dialogRef.current;
-    if (dialog) {
-      const first = dialog.querySelector<HTMLElement>(FOCUSABLE);
-      first?.focus();
-    }
     return () => {
       previousFocusRef.current?.focus();
     };
   }, [open]);
 
-  // Focus trap via Tab key
+  // Autofocus only the top-most overlay.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isTopMost) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const first = dialog.querySelector<HTMLElement>(FOCUSABLE);
+    first?.focus();
+  }, [open, isTopMost]);
+
+  // Focus trap via Tab key for the active overlay only.
+  useEffect(() => {
+    if (!open || !isTopMost) return;
     const handler = (e: KeyboardEvent) => trapFocus(e, dialogRef.current);
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [open]);
+  }, [open, isTopMost]);
 
   if (!open) return null;
 
   const handleBackdropAnimationEnd = (e: React.AnimationEvent) => {
     if (closing && e.target === e.currentTarget) {
+      closingRef.current = false;
       setClosing(false);
       onClose();
     }
   };
 
-  const handleBackdropClick = backdropClose ? startClose : undefined;
+  const handleBackdropClick = isTopMost && backdropClose && !closing ? startClose : undefined;
 
   // Resolve size configuration
   const isResizable = typeof size === "object";
@@ -168,6 +206,7 @@ export function OverlayCard({
   const fixedMaxWidth = size === "fixed-sm" ? "max-w-sm" : size === "fixed-md" ? "max-w-md" : "";
 
   const cardAnimClass = closing ? "overlay-card-exit" : "overlay-card-enter";
+  const effectiveZIndex = isRegistered ? zIndex + stackIndex * 100 : zIndex;
 
   // Shared ARIA props for the dialog container
   const dialogProps = {
@@ -241,12 +280,23 @@ export function OverlayCard({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center px-4 backdrop-blur-xl ${closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter"}`}
-      style={{ zIndex }}
-      onAnimationEnd={handleBackdropAnimationEnd}
+      className="fixed inset-0 flex items-center justify-center px-4"
+      style={{ zIndex: effectiveZIndex }}
     >
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click handled separately, ESC via overlay-stack */}
-      <div className="absolute inset-0" aria-hidden="true" onClick={handleBackdropClick} />
+      <div
+        className={[
+          "absolute inset-0",
+          isBaseLayer ? "backdrop-blur-xl bg-black/10" : "bg-black/20",
+          closing ? "overlay-backdrop-exit" : "overlay-backdrop-enter",
+          isTopMost ? "pointer-events-auto" : "pointer-events-none",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-hidden="true"
+        onClick={handleBackdropClick}
+        onAnimationEnd={handleBackdropAnimationEnd}
+      />
       {renderCard()}
     </div>
   );
