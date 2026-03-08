@@ -7,6 +7,7 @@ import { deadLinkReportsRoutes } from "./dead-link-reports.js";
 import { emailTemplateRoutes } from "./email-templates.js";
 import { footerConfigRoutes } from "./footer-config.js";
 import { formConfigRoutes } from "./form-config.js";
+import { mediaRoutes } from "./media.js";
 import { navAdminRoutes } from "./nav.js";
 import { shopConcernReportsRoutes } from "./shop-concern-reports.js";
 import { shopsRoutes } from "./shops.js";
@@ -45,5 +46,6 @@ protectedRoutes.route("/", usersRoutes);
 protectedRoutes.route("/", formConfigRoutes);
 protectedRoutes.route("/", emailTemplateRoutes);
 protectedRoutes.route("/", footerConfigRoutes);
+protectedRoutes.route("/", mediaRoutes);
 
 adminRoutes.route("/", protectedRoutes);

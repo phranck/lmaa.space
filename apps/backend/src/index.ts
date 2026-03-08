@@ -40,7 +40,7 @@ app.use(
   }),
 );
 app.use("*", secureHeaders());
-app.use("*", bodyLimit({ maxSize: 1024 * 1024 }));
+app.use("*", bodyLimit({ maxSize: 10 * 1024 * 1024 }));
 app.use("*", requestId);
 app.use("*", async (c, next) => {
   const start = Date.now();
@@ -58,12 +58,22 @@ app.use("*", async (c, next) => {
 });
 
 const contentTypeMap: Record<string, string> = {
+  csv: "text/csv",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  md: "text/markdown",
+  pdf: "application/pdf",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   png: "image/png",
   webp: "image/webp",
   gif: "image/gif",
   avif: "image/avif",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
+  txt: "text/plain",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 // Serve uploaded category images
@@ -108,6 +118,8 @@ app.onError((err, c) => {
 });
 
 async function startServer() {
+  await fs.promises.mkdir(imagePath, { recursive: true });
+
   if (env.RUN_MIGRATIONS_ON_STARTUP) {
     await runMigrations();
   }

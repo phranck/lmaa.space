@@ -12,6 +12,8 @@ export * from "./types/admin.js";
 export * from "./types/api.js";
 /** CMS/content and navigation models. */
 export * from "./types/content.js";
+/** Media library domain models. */
+export * from "./types/media.js";
 /** API error parsing and normalization helpers. */
 export * from "./utils/api-error.js";
 /** Social media validation and normalization. */

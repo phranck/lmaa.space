@@ -10,6 +10,7 @@ import type { ContentPage } from "@lmaa/shared";
 import { MarkdownEditor } from "@lmaa/ui";
 
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   useAdminContentPage,
@@ -606,13 +607,13 @@ export function ContentEditorPage() {
         )}
       </div>
 
-      <div className="flex items-center gap-4 px-4 py-2 border-t border-[var(--ds-border)] bg-[var(--ds-surface)]">
+      <Toolbar>
         <ShortcutHint keys={["⌘", "S"]} label="Speichern" />
         <ShortcutHint keys={["⌘", "B"]} label="Fett" />
         <ShortcutHint keys={["⌘", "I"]} label="Kursiv" />
         <ShortcutHint keys={["⌘", "⇧", "D"]} label="Durchgestrichen" />
         <ShortcutHint keys={["⌘", "K"]} label="Link" />
-      </div>
+      </Toolbar>
     </>
   );
 }
