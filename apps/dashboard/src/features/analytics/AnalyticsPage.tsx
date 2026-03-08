@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 
 import { AnalyticsLoadingFallback } from "@/components/AnalyticsLoadingFallback.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 const AnalyticsSection = lazy(() =>
@@ -17,11 +18,11 @@ export function AnalyticsPage() {
   const { messages } = useI18n();
 
   return (
-    <div>
+    <PageLayout>
       <PageHeader title={messages.dashboard.analytics.title} />
       <Suspense fallback={<AnalyticsLoadingFallback />}>
         <AnalyticsSection />
       </Suspense>
-    </div>
+    </PageLayout>
   );
 }

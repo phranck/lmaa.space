@@ -6,6 +6,7 @@ import SFPersonFillCheckmark from "sf-symbols-lib/monochrome/SFPersonFillCheckma
 import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
 
 import type { AdminUserInvite } from "@lmaa/shared";
+import { FormLabel, FormLabelText, formInputClass } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -22,9 +23,6 @@ interface UserCreateCardProps {
   onClose: () => void;
   onCreated: () => void;
 }
-
-const inputClass =
-  "w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
 /**
  * Modal card for creating dashboard users.
@@ -129,27 +127,20 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               </p>
             </div>
             <div>
-              <label
-                htmlFor="uc-invite-url"
-                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-              >
-                {usersMessages.createCard.inviteLink}
-              </label>
+              <FormLabel htmlFor="uc-invite-url">{usersMessages.createCard.inviteLink}</FormLabel>
               <input
                 id="uc-invite-url"
                 type="text"
                 readOnly
                 value={inviteResult.inviteUrl}
-                className={inputClass}
+                className={formInputClass}
               />
             </div>
           </div>
         ) : (
           <>
             <div>
-              <p className="block text-sm font-medium text-[var(--ds-text)] mb-2">
-                {usersMessages.createCard.role}
-              </p>
+              <FormLabelText className="mb-2">{usersMessages.createCard.role}</FormLabelText>
               <SegmentedControl
                 value={form.role ?? "admin"}
                 onChange={(role) => setForm((f) => ({ ...f, role }))}
@@ -159,35 +150,25 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             </div>
 
             <div>
-              <label
-                htmlFor="uc-username"
-                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-              >
-                {usersMessages.createCard.username}
-              </label>
+              <FormLabel htmlFor="uc-username">{usersMessages.createCard.username}</FormLabel>
               <input
                 id="uc-username"
                 type="text"
                 value={form.username}
                 onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                 minLength={3}
-                className={inputClass}
+                className={formInputClass}
               />
             </div>
 
             <div>
-              <label
-                htmlFor="uc-email"
-                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-              >
-                {usersMessages.createCard.email}
-              </label>
+              <FormLabel htmlFor="uc-email">{usersMessages.createCard.email}</FormLabel>
               <input
                 id="uc-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className={inputClass}
+                className={formInputClass}
               />
             </div>
 
@@ -196,12 +177,9 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             </p>
 
             <div>
-              <label
-                htmlFor="uc-welcome-template"
-                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-              >
+              <FormLabel htmlFor="uc-welcome-template">
                 {usersMessages.createCard.welcomeTemplate}
-              </label>
+              </FormLabel>
               <select
                 id="uc-welcome-template"
                 value={form.welcomeTemplateId ?? ""}
@@ -211,7 +189,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
                     welcomeTemplateId: e.target.value ? Number(e.target.value) : undefined,
                   }))
                 }
-                className="w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className={`${formInputClass} h-9`}
               >
                 <option value="">{usersMessages.createCard.welcomeTemplateNone}</option>
                 {emailTemplates.map((t) => (

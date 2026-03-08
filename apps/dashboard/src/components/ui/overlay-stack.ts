@@ -1,30 +1,54 @@
 /**
- * Module-level ESC-key stack for nested overlays.
+ * Module-level overlay layer manager for nested dialogs/alerts/drawers.
  *
- * Each mounted overlay registers a handler via `pushOverlay()` and removes it
- * via the returned cleanup function. When ESC is pressed only the top-most
- * handler fires, so inner overlays close before outer ones.
+ * Tracks layer order so the top-most overlay alone owns Escape handling,
+ * focus trapping and interactive backdrop behavior.
  */
 
 type EscHandler = () => void;
 
-const stack: EscHandler[] = [];
+interface OverlayLayer {
+  id: string;
+  onEscape: EscHandler;
+}
+
+const stack: OverlayLayer[] = [];
+let stackSnapshot: string[] = [];
+const listeners = new Set<() => void>();
+
+function syncSnapshot() {
+  stackSnapshot = stack.map((layer) => layer.id);
+}
+
+function emit() {
+  for (const listener of listeners) listener();
+}
 
 function handleKeyDown(e: KeyboardEvent) {
   if (e.key !== "Escape" || stack.length === 0) return;
   e.stopPropagation();
-  const top = stack[stack.length - 1];
-  top();
+  stack[stack.length - 1]?.onEscape();
 }
 
 let listening = false;
 
+export function getOverlayStackSnapshot(): string[] {
+  return stackSnapshot;
+}
+
+export function subscribeOverlayStack(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 /**
- * Register an ESC handler for an overlay. Returns a cleanup function that
- * removes the handler from the stack.
+ * Register an overlay layer in stack order. Returns a cleanup function that
+ * removes it again.
  */
-export function pushOverlay(handler: EscHandler): () => void {
-  stack.push(handler);
+export function registerOverlay(id: string, onEscape: EscHandler): () => void {
+  stack.push({ id, onEscape });
+  syncSnapshot();
+  emit();
 
   if (!listening) {
     window.addEventListener("keydown", handleKeyDown);
@@ -32,8 +56,12 @@ export function pushOverlay(handler: EscHandler): () => void {
   }
 
   return () => {
-    const idx = stack.indexOf(handler);
-    if (idx !== -1) stack.splice(idx, 1);
+    const idx = stack.findIndex((layer) => layer.id === id);
+    if (idx !== -1) {
+      stack.splice(idx, 1);
+      syncSnapshot();
+      emit();
+    }
 
     if (stack.length === 0 && listening) {
       window.removeEventListener("keydown", handleKeyDown);

@@ -1,35 +1,10 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
-
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
-
-function resolveMigrationsFolder(): string {
-  const candidates = [
-    // __dirname-based: robust regardless of cwd (CJS bundle).
-    // dist/index.js      → __dirname = dist/    → ../drizzle
-    path.resolve(__dirname, "..", "drizzle"),
-    // dist/db/migrate.js → __dirname = dist/db/ → ../../drizzle
-    path.resolve(__dirname, "..", "..", "drizzle"),
-    // cwd-based fallbacks (local dev / monorepo root)
-    path.resolve(process.cwd(), "apps/backend/drizzle"),
-    path.resolve(process.cwd(), "drizzle"),
-  ];
-
-  for (const folder of candidates) {
-    if (existsSync(path.join(folder, "meta", "_journal.json"))) {
-      return folder;
-    }
-  }
-
-  throw new Error(
-    `Drizzle migrations folder not found. Checked:\n${candidates.map((c) => `  ${c}`).join("\n")}`,
-  );
-}
+import { getMigratorDatabaseUrl, resolveMigrationsFolder } from "./migrations/metadata.js";
 
 /**
  * Applies any pending Drizzle migrations against the configured database.
@@ -43,7 +18,7 @@ export async function runMigrations(): Promise<void> {
   const migrationsFolder = resolveMigrationsFolder();
   logger.info({ folder: migrationsFolder }, "running migrations");
 
-  const sql = postgres(env.DATABASE_URL);
+  const sql = postgres(getMigratorDatabaseUrl(env));
   const db = drizzle(sql);
 
   try {

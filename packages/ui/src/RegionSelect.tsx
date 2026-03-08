@@ -194,7 +194,7 @@ export function RegionSelect({
   const labelClass =
     variant === "frontend"
       ? "block text-sm font-medium text-[var(--ds-text-muted)] mb-1.5"
-      : "block text-xs font-medium text-[var(--ds-text-muted)] mb-1";
+      : formLabelClass;
 
   return (
     <div>
@@ -229,3 +229,4 @@ export function RegionSelect({
     </div>
   );
 }
+import { formLabelClass } from "./FormPrimitives.tsx";

@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
 import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
 import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
@@ -9,66 +10,17 @@ import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
-import type { AdminShopListItem, ShopVisibility } from "@lmaa/shared";
-import type { ShopEditFormValue } from "@lmaa/ui";
-
+import type { ShopVisibility } from "@lmaa/shared";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import {
-  Dialog,
-  dialogBtnDestructive,
-  dialogBtnSecondary,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
-import {
-  useAdminShops,
-  useDeleteShop,
-  useSetShopVisibility,
-  useUpdateDeleteReason,
-} from "@/features/content/hooks/useAdminShops.ts";
-import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
-import { ShopEditCard } from "@/features/content/shops/ShopEditCard.tsx";
+import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 type VisibilityFilter = "all" | ShopVisibility;
-
-type ShopEditTarget =
-  | {
-      initialData?: never;
-      initialShop?: never;
-      shopId: "new";
-    }
-  | {
-      initialData: Partial<ShopEditFormValue>;
-      initialShop: AdminShopListItem;
-      shopId: number;
-    };
-
-function toShopEditInitialData(shop: {
-  categories: Array<{ id: number }>;
-  contactEmail?: string | null;
-  description?: string | null;
-  name: string;
-  region?: string[] | null;
-  shipping?: string | null;
-  socialMedia?: Record<string, string>;
-  url: string;
-}): Partial<ShopEditFormValue> {
-  return {
-    name: shop.name,
-    url: shop.url,
-    description: shop.description ?? "",
-    categoryIds: shop.categories.map((category) => category.id),
-    region: shop.region ?? [],
-    shipping: shop.shipping ?? "",
-    contactEmail: shop.contactEmail ?? "",
-    socialMedia: shop.socialMedia ?? {},
-  };
-}
 
 /**
  * Shop management route with filters and moderation actions.
@@ -78,20 +30,14 @@ function toShopEditInitialData(shop: {
 export function ShopsPage() {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;
-  const { user: me } = useAuth();
+  const navigate = useNavigate();
   useAdminCategories();
-  const [editTarget, setEditTarget] = useState<ShopEditTarget | null>(null);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
 
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
   );
-  const deleteMutation = useDeleteShop();
-  const visibilityMutation = useSetShopVisibility();
-  const updateReasonMutation = useUpdateDeleteReason();
 
   const searchLower = search.toLowerCase();
   const filtered = useMemo(
@@ -101,36 +47,6 @@ export function ShopsPage() {
           s.name.toLowerCase().includes(searchLower) || s.url.toLowerCase().includes(searchLower),
       ),
     [shops, searchLower],
-  );
-
-  const deleteTarget = shops.find((s) => s.id === deleteId);
-  const permanentDeleteTarget = shops.find((s) => s.id === permanentDeleteId);
-
-  const canModify = me?.role !== "moderator";
-
-  const onHold = useCallback(
-    (id: number) => visibilityMutation.mutate({ id, visibility: "onhold" }),
-    [visibilityMutation],
-  );
-  const onRestore = useCallback(
-    (id: number) => visibilityMutation.mutate({ id, visibility: "public" }),
-    [visibilityMutation],
-  );
-  const onUpdateReason = useCallback(
-    async (id: number, reason: string | null) => {
-      await updateReasonMutation.mutateAsync({ id, reason });
-    },
-    [updateReasonMutation],
-  );
-  const handleEdit = useCallback(
-    (shop: AdminShopListItem) => {
-      setEditTarget({
-        shopId: shop.id,
-        initialData: toShopEditInitialData(shop),
-        initialShop: shop,
-      });
-    },
-    [],
   );
 
   const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
@@ -165,7 +81,7 @@ export function ShopsPage() {
   );
 
   return (
-    <div className="flex flex-col flex-1">
+    <PageLayout>
       <PageHeader title={shopsMessages.title}>
         <div className="relative">
           <input
@@ -190,7 +106,7 @@ export function ShopsPage() {
 
         <button
           type="button"
-          onClick={() => setEditTarget({ shopId: "new" })}
+          onClick={() => navigate("/shops/new")}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
           <SFPlusCircleFill className="w-3.5 h-3.5" />
@@ -198,114 +114,42 @@ export function ShopsPage() {
         </button>
       </PageHeader>
 
-      {/* Loading skeletons */}
-      {isLoading && (
-        <div className="space-y-px">
-          {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
-            <div
-              key={key}
-              className="h-14 bg-[var(--ds-surface)] animate-pulse border-b border-[var(--ds-border-subtle)]"
-            />
-          ))}
-        </div>
-      )}
+      <PageBody>
+        {isLoading && (
+          <div className="space-y-px">
+            {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
+              <div
+                key={key}
+                className="h-14 bg-[var(--ds-surface)] animate-pulse border-b border-[var(--ds-border-subtle)]"
+              />
+            ))}
+          </div>
+        )}
 
-      {!isLoading && shops.length === 0 && (
-        <ContentUnavailableView
-          icon={<SFStorefrontFill aria-hidden />}
-          title={shopsMessages.noShops}
-          subtitle={shopsMessages.noShopsHint}
-        />
-      )}
-
-      {!isLoading && shops.length > 0 && filtered.length === 0 && (
-        <ContentUnavailableView
-          icon={<SFMagnifyingglass aria-hidden />}
-          title={`${shopsMessages.noResultsPrefix} „${search}".`}
-          subtitle={shopsMessages.noResultsHint}
-        />
-      )}
-
-      {!isLoading && filtered.length > 0 && (
-        <div className="-mx-3 -mt-3">
-          <ShopTable
-            shops={filtered}
-            onEdit={handleEdit}
-            onDelete={canModify ? setDeleteId : undefined}
-            onPermanentDelete={canModify ? setPermanentDeleteId : undefined}
-            onHold={canModify ? onHold : undefined}
-            onRestore={canModify ? onRestore : undefined}
-            onUpdateReason={canModify ? onUpdateReason : undefined}
+        {!isLoading && shops.length === 0 && (
+          <ContentUnavailableView
+            icon={<SFStorefrontFill aria-hidden />}
+            title={shopsMessages.noShops}
+            subtitle={shopsMessages.noShopsHint}
+            className="flex-1 min-h-0"
           />
-        </div>
-      )}
+        )}
 
-      {/* Edit / New Overlay */}
-      {editTarget !== null && (
-        <ShopEditCard
-          initialData={editTarget.initialData}
-          initialShop={editTarget.initialShop}
-          shopId={editTarget.shopId}
-          onClose={() => setEditTarget(null)}
-          onSaved={() => setEditTarget(null)}
-        />
-      )}
+        {!isLoading && shops.length > 0 && filtered.length === 0 && (
+          <ContentUnavailableView
+            icon={<SFMagnifyingglass aria-hidden />}
+            title={`${shopsMessages.noResultsPrefix} „${search}".`}
+            subtitle={shopsMessages.noResultsHint}
+            className="flex-1 min-h-0"
+          />
+        )}
 
-      {/* Permanent Delete Confirmation */}
-      <Dialog
-        open={permanentDeleteId !== null && permanentDeleteTarget !== undefined}
-        title={shopsMessages.table.permanentDeleteTitle}
-        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
-        onClose={() => setPermanentDeleteId(null)}
-      >
-        <div className="px-6 py-3">
-          <p className="text-sm text-[var(--ds-text-muted)]">
-            <span className="font-medium">{permanentDeleteTarget?.name}</span>{" "}
-            {shopsMessages.table.permanentDeleteDescription}
-          </p>
-        </div>
-        <Dialog.Footer>
-          <button
-            type="button"
-            onClick={() => setPermanentDeleteId(null)}
-            className={dialogBtnSecondary}
-          >
-            {messages.common.cancel}
-          </button>
-          <button
-            type="button"
-            disabled={deleteMutation.isPending}
-            onClick={() => {
-              if (permanentDeleteId === null) return;
-              deleteMutation.mutate(
-                { id: permanentDeleteId, mode: "delete" },
-                { onSuccess: () => setPermanentDeleteId(null) },
-              );
-            }}
-            className={dialogBtnDestructive}
-          >
-            {deleteMutation.isPending
-              ? messages.common.saving
-              : shopsMessages.table.permanentDelete}
-          </button>
-        </Dialog.Footer>
-      </Dialog>
-
-      {/* Delete Modal */}
-      {deleteId !== null && deleteTarget && (
-        <ShopDeleteReasonCard
-          shopName={deleteTarget.name}
-          wasReported={deleteTarget.deletedWasReported}
-          isPending={deleteMutation.isPending}
-          onConfirm={(reason, wasReported, mode) => {
-            deleteMutation.mutate(
-              { id: deleteId, reason, wasReported, mode },
-              { onSuccess: () => setDeleteId(null) },
-            );
-          }}
-          onCancel={() => setDeleteId(null)}
-        />
-      )}
-    </div>
+        {!isLoading && filtered.length > 0 && (
+          <div className="-mx-3 -mt-3">
+            <ShopTable shops={filtered} onEdit={(shop) => navigate(`/shops/${shop.id}`)} />
+          </div>
+        )}
+      </PageBody>
+    </PageLayout>
   );
 }

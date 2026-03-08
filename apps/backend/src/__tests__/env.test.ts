@@ -30,6 +30,27 @@ describe("envSchema", () => {
     }
   });
 
+  it("defaults DATABASE_URL_MIGRATOR to DATABASE_URL", () => {
+    const result = envSchema.safeParse({
+      DATABASE_URL: "postgres://localhost/test",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DATABASE_URL_MIGRATOR).toBe("postgres://localhost/test");
+    }
+  });
+
+  it("accepts an explicit DATABASE_URL_MIGRATOR", () => {
+    const result = envSchema.safeParse({
+      DATABASE_URL: "postgres://localhost/runtime",
+      DATABASE_URL_MIGRATOR: "postgres://localhost/migrator",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.DATABASE_URL_MIGRATOR).toBe("postgres://localhost/migrator");
+    }
+  });
+
   it("rejects IP_HASH_SALT shorter than 16 characters", () => {
     const result = envSchema.safeParse({
       DATABASE_URL: "postgres://localhost/test",

@@ -13,6 +13,7 @@ import {
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -47,7 +48,7 @@ export function CategoriesPage() {
   const deleteTarget = categories.find((c) => c.id === deleteId);
 
   return (
-    <div className="flex flex-col flex-1">
+    <PageLayout>
       <PageHeader title={categoriesMessages.title}>
         <SegmentedControl
           value={viewMode}
@@ -69,56 +70,56 @@ export function CategoriesPage() {
         </button>
       </PageHeader>
 
-      {/* Loading skeletons */}
-      {isLoading && (
-        <div
-          className={
-            viewMode === "grid"
-              ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-              : "space-y-2"
-          }
-        >
-          {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
-            <div
-              key={key}
-              className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-14"}`}
-            />
-          ))}
-        </div>
-      )}
+      <PageBody>
+        {isLoading && (
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                : "space-y-2"
+            }
+          >
+            {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
+              <div
+                key={key}
+                className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-14"}`}
+              />
+            ))}
+          </div>
+        )}
 
-      {!isLoading && categories.length === 0 && (
-        <ContentUnavailableView
-          icon={<SFTagFill aria-hidden />}
-          title={categoriesMessages.empty}
-          subtitle={categoriesMessages.emptyHint}
-        />
-      )}
-
-      {/* List View */}
-      {!isLoading && viewMode === "list" && (
-        <div className="-mx-3 -mt-3">
-          <CategoryTable
-            categories={categories}
-            onEdit={setEditTarget}
-            onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
+        {!isLoading && categories.length === 0 && (
+          <ContentUnavailableView
+            icon={<SFTagFill aria-hidden />}
+            title={categoriesMessages.empty}
+            subtitle={categoriesMessages.emptyHint}
+            className="flex-1 min-h-0"
           />
-        </div>
-      )}
+        )}
 
-      {/* Grid View */}
-      {!isLoading && viewMode === "grid" && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {categories.map((cat) => (
-            <CategoryGridItem
-              key={cat.id}
-              category={cat}
+        {!isLoading && categories.length > 0 && viewMode === "list" && (
+          <div className="-mx-3 -mt-3">
+            <CategoryTable
+              categories={categories}
               onEdit={setEditTarget}
               onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
             />
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+
+        {!isLoading && categories.length > 0 && viewMode === "grid" && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {categories.map((cat) => (
+              <CategoryGridItem
+                key={cat.id}
+                category={cat}
+                onEdit={setEditTarget}
+                onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
+              />
+            ))}
+          </div>
+        )}
+      </PageBody>
 
       {/* Edit / New Category Overlay */}
       {editTarget !== null && (
@@ -158,6 +159,6 @@ export function CategoriesPage() {
           </button>
         </Dialog.Footer>
       </Dialog>
-    </div>
+    </PageLayout>
   );
 }

@@ -19,6 +19,13 @@ import {
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import {
+  PageBody,
+  PageLayout,
+  PageSplitAside,
+  PageSplitLayout,
+  PageSplitMain,
+} from "@/components/ui/PageLayout.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -139,7 +146,7 @@ export function MediaPage() {
   }
 
   return (
-    <div className="flex flex-col flex-1">
+    <PageLayout>
       <PageHeader title={mediaMessages.title}>
         <SegmentedControl
           value={viewMode}
@@ -176,174 +183,172 @@ export function MediaPage() {
 
       {actionError && <p className="text-sm text-red-500 mb-3">{actionError}</p>}
 
-      <div
-        className={
-          assets.length > 0
-            ? "grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4 flex-1 min-h-0"
-            : "flex-1 min-h-0"
-        }
-      >
-        <div className="min-h-0">
-          {isLoading && (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
-                  : "space-y-2"
-              }
-            >
-              {Array.from({ length: 8 }, (_, index) => `media-sk-${index}`).map((key) => (
-                <div
-                  key={key}
-                  className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`}
-                />
-              ))}
-            </div>
-          )}
+      {assets.length > 0 ? (
+        <PageSplitLayout>
+          <PageSplitMain>
+            {isLoading && (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                    : "space-y-2"
+                }
+              >
+                {Array.from({ length: 8 }, (_, index) => `media-sk-${index}`).map((key) => (
+                  <div
+                    key={key}
+                    className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`}
+                  />
+                ))}
+              </div>
+            )}
 
-          {!isLoading && assets.length === 0 && (
+            {!isLoading && viewMode === "list" && (
+              <div className="-mx-3 -mt-3">
+                <MediaTable assets={assets} selectedId={selectedId} onSelect={setSelectedId} />
+              </div>
+            )}
+
+            {!isLoading && viewMode === "grid" && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {assets.map((asset) => (
+                  <MediaGridItem
+                    key={asset.id}
+                    asset={asset}
+                    selected={asset.id === selectedId}
+                    onSelect={setSelectedId}
+                  />
+                ))}
+              </div>
+            )}
+          </PageSplitMain>
+
+          <PageSplitAside>
+            <Card className="p-4 h-fit xl:sticky xl:top-[4.75rem]">
+              {selectedAsset ? (
+                <div className="space-y-4">
+                  <SectionCard title={mediaMessages.previewTitle}>
+                    <MediaPreview asset={selectedAsset} unsupportedPreview={mediaMessages.unsupportedPreview} />
+                  </SectionCard>
+
+                  <SectionCard title={mediaMessages.detailsTitle}>
+                    <label className="block space-y-1.5">
+                      <span className="text-sm font-medium text-[var(--ds-text)]">{mediaMessages.displayName}</span>
+                      <input
+                        type="text"
+                        value={draftName}
+                        onChange={(event) => setDraftName(event.target.value)}
+                        className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                      />
+                    </label>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void handleSaveName()}
+                        disabled={
+                          renameMedia.isPending ||
+                          draftName.trim().length === 0 ||
+                          draftName.trim() === selectedAsset.displayName
+                        }
+                        className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60"
+                      >
+                        {renameMedia.isPending ? common.saving : mediaMessages.saveName}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(selectedAsset)}
+                        className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                      >
+                        <SFTrashFill className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </SectionCard>
+
+                  <SectionCard title={mediaMessages.infoTitle}>
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.originalName}</p>
+                        <p className="text-[var(--ds-text)] break-all">{selectedAsset.originalName}</p>
+                      </div>
+                      <div>
+                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileType}</p>
+                        <p className="text-[var(--ds-text)]">{selectedAsset.mimeType}</p>
+                      </div>
+                      <div>
+                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
+                        <p className="text-[var(--ds-text)]">{formatBytes(selectedAsset.sizeBytes, locale)}</p>
+                      </div>
+                      {selectedAsset.width && selectedAsset.height && (
+                        <div>
+                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
+                          <p className="text-[var(--ds-text)]">{selectedAsset.width} × {selectedAsset.height}px</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.createdAt}</p>
+                        <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.createdAt, locale)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.updatedAt}</p>
+                        <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.updatedAt, locale)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.uploadedBy}</p>
+                        <p className="text-[var(--ds-text)]">{selectedAsset.createdByUsername ?? "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
+                        <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
+                          {selectedAsset.url}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyUrl()}
+                        className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <SFDocumentOnDocumentFill className="w-4 h-4" />
+                        {copied ? mediaMessages.copied : mediaMessages.copyUrl}
+                      </button>
+                      <a
+                        href={selectedAsset.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <SFLink className="w-4 h-4" />
+                        {mediaMessages.openFile}
+                      </a>
+                    </div>
+                  </SectionCard>
+                </div>
+              ) : (
+                <ContentUnavailableView
+                  icon={<SFDocumentFill aria-hidden />}
+                  title={mediaMessages.detailsTitle}
+                  subtitle={mediaMessages.selectPrompt}
+                  className="flex-1 min-h-[22rem]"
+                />
+              )}
+            </Card>
+          </PageSplitAside>
+        </PageSplitLayout>
+      ) : (
+        <PageBody>
+          {!isLoading && (
             <ContentUnavailableView
               icon={<SFPhotoFill aria-hidden />}
               title={mediaMessages.empty}
               subtitle={mediaMessages.emptyHint}
-              className="min-h-[24rem]"
+              className="flex-1 min-h-0"
             />
           )}
-
-          {!isLoading && assets.length > 0 && viewMode === "list" && (
-            <div className="-mx-3 -mt-3">
-              <MediaTable assets={assets} selectedId={selectedId} onSelect={setSelectedId} />
-            </div>
-          )}
-
-          {!isLoading && assets.length > 0 && viewMode === "grid" && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {assets.map((asset) => (
-                <MediaGridItem
-                  key={asset.id}
-                  asset={asset}
-                  selected={asset.id === selectedId}
-                  onSelect={setSelectedId}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {assets.length > 0 && (
-          <Card className="p-4 h-fit xl:sticky xl:top-[4.75rem]">
-            {selectedAsset ? (
-              <div className="space-y-4">
-                <SectionCard title={mediaMessages.previewTitle}>
-                  <MediaPreview asset={selectedAsset} unsupportedPreview={mediaMessages.unsupportedPreview} />
-                </SectionCard>
-
-                <SectionCard title={mediaMessages.detailsTitle}>
-                  <label className="block space-y-1.5">
-                    <span className="text-sm font-medium text-[var(--ds-text)]">{mediaMessages.displayName}</span>
-                    <input
-                      type="text"
-                      value={draftName}
-                      onChange={(event) => setDraftName(event.target.value)}
-                      className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                    />
-                  </label>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void handleSaveName()}
-                      disabled={
-                        renameMedia.isPending ||
-                        draftName.trim().length === 0 ||
-                        draftName.trim() === selectedAsset.displayName
-                      }
-                      className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60"
-                    >
-                      {renameMedia.isPending ? common.saving : mediaMessages.saveName}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(selectedAsset)}
-                      className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                    >
-                      <SFTrashFill className="w-4 h-4" />
-                    </button>
-                  </div>
-                </SectionCard>
-
-                <SectionCard title={mediaMessages.infoTitle}>
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <p className="text-[var(--ds-text-subtle)]">{mediaMessages.originalName}</p>
-                      <p className="text-[var(--ds-text)] break-all">{selectedAsset.originalName}</p>
-                    </div>
-                    <div>
-                      <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileType}</p>
-                      <p className="text-[var(--ds-text)]">{selectedAsset.mimeType}</p>
-                    </div>
-                    <div>
-                      <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
-                      <p className="text-[var(--ds-text)]">{formatBytes(selectedAsset.sizeBytes, locale)}</p>
-                    </div>
-                    {selectedAsset.width && selectedAsset.height && (
-                      <div>
-                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
-                        <p className="text-[var(--ds-text)]">{selectedAsset.width} × {selectedAsset.height}px</p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-[var(--ds-text-subtle)]">{mediaMessages.createdAt}</p>
-                      <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.createdAt, locale)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[var(--ds-text-subtle)]">{mediaMessages.updatedAt}</p>
-                      <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.updatedAt, locale)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[var(--ds-text-subtle)]">{mediaMessages.uploadedBy}</p>
-                      <p className="text-[var(--ds-text)]">{selectedAsset.createdByUsername ?? "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
-                      <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
-                        {selectedAsset.url}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void handleCopyUrl()}
-                      className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
-                    >
-                      <SFDocumentOnDocumentFill className="w-4 h-4" />
-                      {copied ? mediaMessages.copied : mediaMessages.copyUrl}
-                    </button>
-                    <a
-                      href={selectedAsset.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
-                    >
-                      <SFLink className="w-4 h-4" />
-                      {mediaMessages.openFile}
-                    </a>
-                  </div>
-                </SectionCard>
-              </div>
-            ) : (
-              <ContentUnavailableView
-                icon={<SFDocumentFill aria-hidden />}
-                title={mediaMessages.detailsTitle}
-                subtitle={mediaMessages.selectPrompt}
-                className="min-h-[22rem]"
-              />
-            )}
-          </Card>
-        )}
-      </div>
+        </PageBody>
+      )}
 
       <Toolbar className="mt-4 text-xs text-[var(--ds-text-subtle)]">
         <span>{mediaMessages.uploadHint}</span>
@@ -387,6 +392,6 @@ export function MediaPage() {
           </button>
         </Dialog.Footer>
       </Dialog>
-    </div>
+    </PageLayout>
   );
 }

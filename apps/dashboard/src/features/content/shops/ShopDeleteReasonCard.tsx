@@ -1,7 +1,7 @@
 import { useState } from "react";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
-import { Checkbox, MarkdownEditor } from "@lmaa/ui";
+import { Checkbox, FormLabel, FormOptional, MarkdownEditor, formInputClass } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -65,17 +65,12 @@ export function ShopDeleteReasonCard({
 
       <OverlayCard.Body className="space-y-4">
         <div>
-          <label
-            htmlFor="shop-delete-reason"
-            className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-          >
+          <FormLabel htmlFor="shop-delete-reason">
             <span className="flex items-center gap-1.5">
               {shopsMessages.deleteCard.reason}{" "}
-              <span className="text-[var(--ds-text-subtle)] font-normal">
-                {shopsMessages.deleteCard.optional}
-              </span>
+              <FormOptional>{shopsMessages.deleteCard.optional}</FormOptional>
             </span>
-          </label>
+          </FormLabel>
           <MarkdownEditor
             id="shop-delete-reason"
             value={reason}
@@ -93,17 +88,12 @@ export function ShopDeleteReasonCard({
         />
 
         <div>
-          <label
-            htmlFor="shop-delete-mode"
-            className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-          >
-            {shopsMessages.deleteCard.modeLabel}
-          </label>
+          <FormLabel htmlFor="shop-delete-mode">{shopsMessages.deleteCard.modeLabel}</FormLabel>
           <select
             id="shop-delete-mode"
             value={deleteMode}
             onChange={(event) => setDeleteMode(event.target.value as ShopDeleteMode)}
-            className="w-full py-1.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className={formInputClass}
           >
             <option value="mark_deleted">{shopsMessages.deleteCard.markDeleted}</option>
             <option value="delete">{shopsMessages.deleteCard.deletePermanently}</option>

@@ -5,6 +5,8 @@ import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
+import { FormLabel, formInputClass } from "@lmaa/ui";
+
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -258,51 +260,36 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
           <div className="flex flex-col gap-3 flex-1">
             <div>
-              <label
-                htmlFor="cat-name"
-                className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                {categoriesMessages.editCard.name}
-              </label>
+              <FormLabel htmlFor="cat-name">{categoriesMessages.editCard.name}</FormLabel>
               <input
                 id="cat-name"
                 type="text"
                 value={form.name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className={formInputClass}
               />
             </div>
 
             <div>
-              <label
-                htmlFor="cat-slug"
-                className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                {categoriesMessages.editCard.slug}
-              </label>
+              <FormLabel htmlFor="cat-slug">{categoriesMessages.editCard.slug}</FormLabel>
               <input
                 id="cat-slug"
                 type="text"
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: slugifyInput(e.target.value) }))}
                 onBlur={(e) => setForm((f) => ({ ...f, slug: slugify(e.target.value) }))}
-                className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className={formInputClass}
               />
             </div>
 
             <div>
-              <label
-                htmlFor="cat-description"
-                className="block text-sm font-medium text-[var(--ds-text-muted)] mb-1"
-              >
-                {categoriesMessages.editCard.description}
-              </label>
+              <FormLabel htmlFor="cat-description">{categoriesMessages.editCard.description}</FormLabel>
               <textarea
                 id="cat-description"
                 rows={4}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-y"
+                className={`${formInputClass} resize-y`}
               />
             </div>
           </div>

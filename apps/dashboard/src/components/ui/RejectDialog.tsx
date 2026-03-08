@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
-import { CharCounter, MarkdownEditor } from "@lmaa/ui";
+import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -120,13 +120,10 @@ export function RejectDialog({
 
       <OverlayCard.Body className="flex flex-col gap-3">
         <div>
-          <label
-            htmlFor="reject-note"
-            className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-          >
+          <FormLabel htmlFor="reject-note">
             {messages.comment}{" "}
-            <span className="text-[var(--ds-text-subtle)] font-normal">{messages.optional}</span>
-          </label>
+            <FormOptional>{messages.optional}</FormOptional>
+          </FormLabel>
           <MarkdownEditor
             id="reject-note"
             value={adminNote}
@@ -140,13 +137,10 @@ export function RejectDialog({
         </div>
 
         <div>
-          <label
-            htmlFor="reject-long"
-            className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-          >
+          <FormLabel htmlFor="reject-long">
             {messages.rejectionLongLabel}{" "}
-            <span className="text-[var(--ds-text-subtle)] font-normal">{messages.optional}</span>
-          </label>
+            <FormOptional>{messages.optional}</FormOptional>
+          </FormLabel>
           <MarkdownEditor
             id="reject-long"
             value={rejectionLongText}

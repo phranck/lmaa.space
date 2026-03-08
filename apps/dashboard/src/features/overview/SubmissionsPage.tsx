@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -41,7 +42,7 @@ export function SubmissionsPage() {
   const concernCount = shopConcerns.length;
 
   return (
-    <div className="flex flex-col flex-1">
+    <PageLayout>
       <PageHeader title={submissionsMessages.title}>
         <SegmentedControl
           value={tab}
@@ -85,6 +86,6 @@ export function SubmissionsPage() {
       {tab === "suggestions" && <SuggestionsTab />}
       {tab === "dead-links" && <DeadLinksTab />}
       {tab === "shop-reports" && <ShopReportsTab />}
-    </div>
+    </PageLayout>
   );
 }

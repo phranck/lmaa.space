@@ -14,7 +14,7 @@ import SFTrayFill from "sf-symbols-lib/monochrome/SFTrayFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { type Submission, type SubmissionStatus, generateRejectionToken } from "@lmaa/shared";
-import { CharCounter, MarkdownEditor } from "@lmaa/ui";
+import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -816,13 +816,10 @@ function ApproveSubmissionReviewCard({
 
           <OverlayCard.Body className="flex flex-col gap-3">
             <div>
-              <label
-                htmlFor="admin-note"
-                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-              >
+              <FormLabel htmlFor="admin-note">
                 {commentLabel}{" "}
-                <span className="text-[var(--ds-text-subtle)] font-normal">{optionalLabel}</span>
-              </label>
+                <FormOptional>{optionalLabel}</FormOptional>
+              </FormLabel>
               <MarkdownEditor
                 id="admin-note"
                 value={adminNote}

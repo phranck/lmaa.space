@@ -13,6 +13,7 @@ export const envSchema = z
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     PORT: z.coerce.number().int().positive().default(3000),
     DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+    DATABASE_URL_MIGRATOR: z.string().optional(),
     IMAGE_PATH: z.string().default("./uploads"),
     SESSION_CLEANUP_INTERVAL_MS: z.coerce
       .number()
@@ -69,6 +70,7 @@ export const envSchema = z
   .transform((data) => ({
     ...data,
     IP_HASH_SALT: data.IP_HASH_SALT ?? DEFAULT_IP_HASH_SALT,
+    DATABASE_URL_MIGRATOR: data.DATABASE_URL_MIGRATOR ?? data.DATABASE_URL,
     RUN_MIGRATIONS_ON_STARTUP: data.RUN_MIGRATIONS_ON_STARTUP === "true",
     DASHBOARD_URL:
       data.DASHBOARD_URL ??
