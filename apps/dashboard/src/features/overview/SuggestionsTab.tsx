@@ -14,7 +14,7 @@ import SFTrayFill from "sf-symbols-lib/monochrome/SFTrayFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { type Submission, type SubmissionStatus, generateRejectionToken } from "@lmaa/shared";
-import { CharCounter } from "@lmaa/ui";
+import { CharCounter, MarkdownEditor } from "@lmaa/ui";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -24,7 +24,6 @@ import {
   dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
-import { MarkdownTextarea } from "@/components/ui/MarkdownTextarea.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -200,18 +199,13 @@ export function SuggestionsTab() {
     reviewState.editingRejection && reviewState.reviewId !== null,
   );
 
-  const handleCommentPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+  const handleCommentPaste = (e: ClipboardEvent<HTMLDivElement>) => {
     const pastedText = e.clipboardData.getData("text");
     if (!pastedText.includes("[REJECT_TOKEN]")) return;
     e.preventDefault();
     const token = reviewState.rejectionToken ?? "";
     const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
-    const ta = e.currentTarget;
-    const newValue =
-      reviewState.adminNote.slice(0, ta.selectionStart) +
-      replaced +
-      reviewState.adminNote.slice(ta.selectionEnd);
-    dispatchReview({ type: "setAdminNote", value: newValue });
+    dispatchReview({ type: "setAdminNote", value: `${reviewState.adminNote}${replaced}` });
   };
 
   function closeReview() {
@@ -768,7 +762,7 @@ interface ApproveSubmissionReviewCardProps {
   isError: boolean;
   isPending: boolean;
   onAdminNoteChange: (value: string) => void;
-  onAdminNotePaste: (e: ClipboardEvent<HTMLTextAreaElement>) => void;
+  onAdminNotePaste: (e: ClipboardEvent<HTMLDivElement>) => void;
   onClose: () => void;
   onSubmit: () => void;
   open: boolean;
@@ -841,12 +835,13 @@ function ApproveSubmissionReviewCard({
                 {commentLabel}{" "}
                 <span className="text-[var(--ds-text-subtle)] font-normal">{optionalLabel}</span>
               </label>
-              <MarkdownTextarea
+              <MarkdownEditor
                 id="admin-note"
                 value={adminNote}
                 onChange={onAdminNoteChange}
                 onPaste={onAdminNotePaste}
                 rows={3}
+                resizable
                 placeholder={commentPlaceholder}
               />
               <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />

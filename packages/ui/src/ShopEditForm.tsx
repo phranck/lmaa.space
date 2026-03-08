@@ -213,6 +213,7 @@ export function ShopEditForm({
           value={value.description}
           onChange={(v) => set("description", v)}
           rows={6}
+          resizable
           className={errors?.description ? "border-red-400" : ""}
         />
         {errors?.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}

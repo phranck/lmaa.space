@@ -212,18 +212,13 @@ export function ShopEditCard({
     });
   }
 
-  const handleRejectPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+  const handleRejectPaste = (e: ClipboardEvent<HTMLDivElement>) => {
     const pastedText = e.clipboardData.getData("text");
     if (!pastedText.includes("[REJECT_TOKEN]")) return;
     e.preventDefault();
     const token = rejectState.token ?? "";
     const replaced = pastedText.replace(/\[REJECT_TOKEN\]/g, token);
-    const ta = e.currentTarget;
-    const newValue =
-      rejectState.reason.slice(0, ta.selectionStart) +
-      replaced +
-      rejectState.reason.slice(ta.selectionEnd);
-    setRejectState((current) => ({ ...current, reason: newValue }));
+    setRejectState((current) => ({ ...current, reason: `${current.reason}${replaced}` }));
   };
 
   function handleReject() {
