@@ -2,6 +2,7 @@
 import Footer from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import { apiGet } from "@/lib/api";
+import type { FooterConfig } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
 
 interface Props {
@@ -27,13 +28,15 @@ const canonical = canonicalUrl ?? Astro.url.href;
 
 let headerNav: NavItem[] = [];
 let footerNav: NavItem[] = [];
+let footerConfig: FooterConfig = { columns: [] };
 try {
-  [headerNav, footerNav] = await Promise.all([
+  [headerNav, footerNav, footerConfig] = await Promise.all([
     apiGet<NavItem[]>("/nav/header"),
     apiGet<NavItem[]>("/nav/footer"),
+    apiGet<FooterConfig>("/footer-config"),
   ]);
 } catch {
-  // Nav items optional – graceful degradation
+  // Nav items and footer config optional – graceful degradation
 }
 ---
 
@@ -113,7 +116,7 @@ try {
     <main class="flex-grow">
       <slot />
     </main>
-    <Footer navItems={footerNav} />
+    <Footer config={footerConfig} navItems={footerNav} />
     <script>
       import "@/styles/global.css";
       import "@/scripts/shop-actions.ts";
