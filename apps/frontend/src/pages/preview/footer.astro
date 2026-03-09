@@ -2,7 +2,7 @@
 import type { FooterConfig } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
 
-import Footer from "@/components/Footer.astro";
+import FooterComponent from "@/components/Footer.astro";
 import { apiGet } from "@/lib/api";
 
 import "@/styles/global.css";
@@ -44,7 +44,7 @@ if (!/^[0-9a-f]{32}$/.test(token)) {
   <body class="m-0 bg-transparent text-[var(--ds-text)]">
     {
       config ? (
-        <Footer config={config} navItems={navItems} />
+        <FooterComponent config={config} navItems={navItems} />
       ) : (
         <main class="min-h-32 flex items-center justify-center px-6 py-8 text-center">
           <p class="text-sm text-[var(--ds-text-muted)]">{errorMessage}</p>
