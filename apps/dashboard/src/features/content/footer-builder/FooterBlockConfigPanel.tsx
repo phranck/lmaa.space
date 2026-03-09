@@ -102,6 +102,7 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
             <span className={labelClass}>URL</span>
             <input
               type="text"
+              autoComplete="off"
               className={inputClass}
               value={block.href}
               onChange={(e) => onChange({ ...block, href: e.target.value })}
