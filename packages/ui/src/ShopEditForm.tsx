@@ -81,6 +81,7 @@ export interface ShopEditFormProps {
   onUrlBlur?: (url: string) => void;
   urlWarning?: ReactNode;
   descriptionHint?: ReactNode;
+  blurSocialMediaOnPaste?: boolean;
 }
 
 /**
@@ -96,6 +97,7 @@ export function ShopEditForm({
   onUrlBlur,
   urlWarning,
   descriptionHint,
+  blurSocialMediaOnPaste = false,
 }: ShopEditFormProps) {
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
@@ -180,6 +182,7 @@ export function ShopEditForm({
               value={value.socialMedia}
               onChange={(v) => set("socialMedia", v)}
               messages={messages.socialMedia}
+              blurOnPaste={blurSocialMediaOnPaste}
             />
             {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
           </div>

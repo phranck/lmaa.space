@@ -238,24 +238,27 @@ function LoadedSubmissionEditorPage({
     });
   }
 
-  function handleApprove(close = true) {
-    reviewMutation.mutate(
-      {
+  async function handleApprove(close = true) {
+    try {
+      await controller.handleSave({
+        onSuccess: async () => {},
+      });
+
+      await reviewMutation.mutateAsync({
         id: submission.id,
         status: "approved",
         adminNote: reviewState.adminNote,
-      },
-      {
-        onSuccess: () => {
-          if (close) {
-            navigateBack();
-          } else {
-            showReviewSaved();
-          }
-          dispatchReview({ type: "close" });
-        },
-      },
-    );
+      });
+
+      if (close) {
+        navigateBack();
+      } else {
+        showReviewSaved();
+      }
+      dispatchReview({ type: "close" });
+    } catch {
+      // Save/review errors are surfaced via the existing form and mutation state.
+    }
   }
 
   function handleSetStatus(
@@ -450,10 +453,11 @@ function LoadedSubmissionEditorPage({
         errorMessage={reviewMutation.error?.message ?? common.unknownError}
         errorPrefix={submissionsMessages.suggestions.reviewErrorPrefix}
         isError={reviewMutation.isError}
-        isPending={reviewMutation.isPending}
         onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
         onClose={() => dispatchReview({ type: "close" })}
-        onSubmit={() => handleApprove()}
+        onSubmit={() => {
+          void handleApprove();
+        }}
         open={reviewState.reviewMode === "approve"}
         optionalLabel={submissionsMessages.suggestions.optional}
         reviewTitle={submissionsMessages.suggestions.reviewApproveTitle}
@@ -461,6 +465,7 @@ function LoadedSubmissionEditorPage({
         savedLabel={common.saved}
         savedPhase={combinedSavedPhase}
         submitLabel={submissionsMessages.suggestions.accept}
+        isPending={controller.isPending || reviewMutation.isPending}
       />
 
       <RejectDialog

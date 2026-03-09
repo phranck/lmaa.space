@@ -31,6 +31,7 @@ export interface SocialMediaEditorProps {
   value: Record<string, string>;
   onChange: (value: Record<string, string>) => void;
   messages: SocialMediaEditorMessages;
+  blurOnPaste?: boolean;
 }
 
 let nextEntryId = 0;
@@ -64,7 +65,12 @@ function entriesToRecord(entries: Entry[]): Record<string, string> {
  * Each row shows an auto-detected platform icon, a URL input,
  * and a button to remove the entry. Click the icon to manually override the platform.
  */
-export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEditorProps) {
+export function SocialMediaEditor({
+  value,
+  onChange,
+  messages,
+  blurOnPaste = false,
+}: SocialMediaEditorProps) {
   const [entries, setEntries] = useState<Entry[]>(() => recordToEntries(value));
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
@@ -157,6 +163,16 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
     }
   }
 
+  function handlePaste(event: React.ClipboardEvent<HTMLInputElement>) {
+    if (!blurOnPaste) return;
+    const pastedText = event.clipboardData.getData("text").trim();
+    if (!pastedText) return;
+    const input = event.currentTarget;
+    requestAnimationFrame(() => {
+      input.blur();
+    });
+  }
+
   const usedPlatforms = new Set(entries.map((e) => e.platform).filter(Boolean));
 
   const btnClass =
@@ -233,6 +249,7 @@ export function SocialMediaEditor({ value, onChange, messages }: SocialMediaEdit
                 type="text"
                 value={entry.url}
                 onChange={(e) => updateUrl(entry.id, e.target.value)}
+                onPaste={handlePaste}
                 onBlur={() => normalizeUrl(entry.id)}
                 placeholder={messages.urlPlaceholder}
                 className="flex-1 px-3 py-1.5 text-sm bg-transparent text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none"
