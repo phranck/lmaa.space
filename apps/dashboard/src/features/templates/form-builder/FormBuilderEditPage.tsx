@@ -106,7 +106,7 @@ function resolvePaletteId(
   if (paletteId === "regions-select") {
     return {
       type: "multi-select",
-      label: fieldTypes.regionsSelect ?? "Regionen",
+      label: fieldTypes.regionsSelect ?? "Versand-Regionen",
       optionsSource: "regions",
     };
   }

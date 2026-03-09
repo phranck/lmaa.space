@@ -1,23 +1,6 @@
-import { type ShopEditFormMessages, createRegionOptions } from "@lmaa/ui";
+import { type ShopEditFormMessages, createDefaultRegionOptions } from "@lmaa/ui";
 
 import type { DashboardLocale } from "@/i18n/messages.ts";
-
-const REGION_NAMES = {
-  de: {
-    DE: "Deutschland",
-    AT: "Österreich",
-    CH: "Schweiz",
-    EU: "Europa",
-    WORLD: "Weltweit",
-  },
-  en: {
-    DE: "Germany",
-    AT: "Austria",
-    CH: "Switzerland",
-    EU: "Europe",
-    WORLD: "Worldwide",
-  },
-} as const;
 
 /**
  * Returns localized region options for the shop editor.
@@ -26,7 +9,7 @@ const REGION_NAMES = {
  * @returns Region option list for select controls.
  */
 export function getRegionOptions(locale: DashboardLocale) {
-  return createRegionOptions(REGION_NAMES[locale]);
+  return createDefaultRegionOptions(locale);
 }
 
 /**
@@ -71,8 +54,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
           moreSelected: (count) => `+ ${count} more`,
         },
         regionSelect: {
-          label: "Region",
-          placeholder: "Select region…",
+          label: "Shipping Regions",
+          placeholder: "Select shipping regions…",
         },
       },
       regionOptions,
@@ -108,8 +91,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         moreSelected: (count) => `+ ${count} weitere`,
       },
       regionSelect: {
-        label: "Region",
-        placeholder: "Region wählen…",
+        label: "Versand-Regionen",
+        placeholder: "Versand-Regionen wählen…",
       },
     },
     regionOptions,

@@ -28,7 +28,7 @@ export { MultiSelect } from "./MultiSelect.tsx";
 /** Re-exported contracts for `MultiSelect`. */
 export type { MultiSelectMessages, MultiSelectOption, MultiSelectProps } from "./MultiSelect.tsx";
 /** Shared region select component, helpers and contracts. */
-export { RegionSelect, REGION_FLAGS, createRegionOptions } from "./RegionSelect.tsx";
+export { RegionSelect, REGION_FLAGS, createDefaultRegionOptions, createRegionOptions } from "./RegionSelect.tsx";
 /** Re-exported contracts for `RegionSelect`. */
 export type {
   RegionCode,
