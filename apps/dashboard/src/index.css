@@ -92,7 +92,6 @@
 
 button {
   cursor: pointer;
-  white-space: nowrap;
 }
 
 /* Sidebar-aware layout */

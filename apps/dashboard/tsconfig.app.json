@@ -28,6 +28,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@lmaa/shared": ["../../packages/shared/src/index.ts"],
       "@lmaa/ui": ["../../packages/ui/src/index.ts"],
       "@lmaa/contracts": ["../../packages/contracts/src/index.ts"]
     }

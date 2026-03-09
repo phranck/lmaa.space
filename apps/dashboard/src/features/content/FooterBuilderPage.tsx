@@ -11,12 +11,14 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { nanoid } from "nanoid";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
 import SFPlusCircle from "sf-symbols-lib/monochrome/SFPlusCircle";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 
 import type { FooterBlock, FooterColumn, FooterConfig, FooterStyle } from "@lmaa/contracts";
 import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
+import { resolveFooterHeightPx } from "@lmaa/shared";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -27,8 +29,6 @@ import { FooterPalette } from "./footer-builder/FooterPalette.tsx";
 import { FooterPreview } from "./footer-builder/FooterPreview.tsx";
 import { FooterStylePane } from "./footer-builder/FooterStylePane.tsx";
 import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "./hooks/useFooterConfig.ts";
-
-const PREVIEW_DEBOUNCE_MS = 600;
 
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];
@@ -75,6 +75,13 @@ function getDragLabel(type: FooterBlockType, block?: FooterBlock): string {
   return BLOCK_TYPE_LABELS[type];
 }
 
+function buildFooterPreviewUrl(token: string) {
+  const frontendBase =
+    import.meta.env.VITE_FRONTEND_URL ??
+    (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space");
+  return `${frontendBase}/preview/footer?token=${token}`;
+}
+
 /**
  * Footer builder page with palette sidebar, per-column canvases, and a config panel.
  * Built to the same patterns as FormBuilderPage: drag from palette to canvas,
@@ -83,41 +90,37 @@ function getDragLabel(type: FooterBlockType, block?: FooterBlock): string {
 export function FooterBuilderPage() {
   const { data: loaded, isLoading } = useFooterConfig();
   const save = useSaveFooterConfig();
-  const preview = useFooterPreview();
+  const { mutate: createPreviewSession, isPending: isPreviewPending } = useFooterPreview();
 
   const [config, setConfig] = useState<FooterConfig | null>(null);
   const [selection, setSelection] = useState<Selection>(null);
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [savedOk, setSavedOk] = useState(false);
   const [activeDrag, setActiveDrag] = useState<{ label: string } | null>(null);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previewRef = useRef(preview);
-  previewRef.current = preview;
   const configRef = useRef(config);
   configRef.current = config;
-
-  const refreshPreview = useCallback((cfg: FooterConfig) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      previewRef.current.mutate(cfg, {
-        onSuccess: (res) => setPreviewHtml(res.html),
-      });
-    }, PREVIEW_DEBOUNCE_MS);
-  }, []);
 
   useEffect(() => {
     if (loaded && config === null) {
       setConfig(loaded);
-      refreshPreview(loaded);
+      createPreviewSession(loaded, {
+        onSuccess: ({ token }) => setPreviewUrl(buildFooterPreviewUrl(token)),
+      });
     }
-  }, [loaded, config, refreshPreview]);
+  }, [loaded, config, createPreviewSession]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   function handleChange(updated: FooterConfig) {
     setConfig(updated);
-    refreshPreview(updated);
+  }
+
+  function handleReloadPreview() {
+    if (!config) return;
+    createPreviewSession(config, {
+      onSuccess: ({ token }) => setPreviewUrl(buildFooterPreviewUrl(token)),
+    });
   }
 
   function updateColumns(columns: FooterColumn[]) {
@@ -246,7 +249,7 @@ export function FooterBuilderPage() {
     const activeId = String(active.id);
     const overId = String(over.id);
 
-    // Column reorder — handled by dragOver, just persist and refresh
+    // Column reorder — handled by dragOver, just persist
     if (activeId.startsWith("col:")) {
       const current = configRef.current;
       if (current) handleChange(current);
@@ -281,11 +284,7 @@ export function FooterBuilderPage() {
       const [, fromColId, blockId] = activeId.split(":");
       const target = parseTargetId(overId);
 
-      if (!target || target.colId !== fromColId) {
-        // Cross-column already handled → just refresh preview
-        refreshPreview(config);
-        return;
-      }
+      if (!target || target.colId !== fromColId) return;
 
       if (!target.blockId || target.blockId === blockId) return;
 
@@ -326,6 +325,7 @@ export function FooterBuilderPage() {
   const selectedBlock = selectedBlockId
     ? (config.columns.flatMap((c) => c.blocks).find((b) => b.id === selectedBlockId) ?? null)
     : null;
+  const previewHeightPx = resolveFooterHeightPx(config.style);
 
   return (
     <div className="flex flex-col gap-4">
@@ -416,18 +416,29 @@ export function FooterBuilderPage() {
 
       {/* Preview card — click header to open style settings */}
       <Card>
-        <button
-          type="button"
-          onClick={() => setSelection({ kind: "style" })}
-          className={`w-full text-left px-4 py-2.5 border-b border-[var(--ds-border)] text-xs font-semibold uppercase tracking-wider transition-colors ${
-            showStyle
-              ? "text-[var(--color-primary)]"
-              : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
-          }`}
-        >
-          Vorschau
-        </button>
-        <FooterPreview html={previewHtml} isLoading={preview.isPending} />
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--ds-border)]">
+          <button
+            type="button"
+            onClick={() => setSelection({ kind: "style" })}
+            className={`min-w-0 flex-1 text-left text-xs font-semibold uppercase tracking-wider transition-colors ${
+              showStyle
+                ? "text-[var(--color-primary)]"
+                : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
+            }`}
+          >
+            Vorschau
+          </button>
+          <button
+            type="button"
+            onClick={handleReloadPreview}
+            disabled={isPreviewPending}
+            className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] disabled:opacity-50 transition-colors"
+          >
+            <SFArrowClockwise className={`w-3.5 h-3.5 ${isPreviewPending ? "animate-spin" : ""}`} />
+            Reload
+          </button>
+        </div>
+        <FooterPreview src={previewUrl} heightPx={previewHeightPx} isLoading={isPreviewPending} />
       </Card>
     </div>
   );

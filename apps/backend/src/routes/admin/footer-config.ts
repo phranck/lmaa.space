@@ -6,8 +6,7 @@ import { footerConfigSchema } from "@lmaa/contracts";
 import { ok } from "../../lib/http.js";
 import type { AuthVariables } from "../../middleware/auth.js";
 import { getFooterConfig, upsertFooterConfig } from "../../repositories/footer-config.js";
-import { listPublicNavItems } from "../../repositories/public.js";
-import { renderFooterPreview } from "../../services/footer-renderer.js";
+import { createFooterPreviewSession } from "../../services/footer-preview-store.js";
 
 /**
  * Admin footer-config routes.
@@ -31,14 +30,12 @@ footerConfigRoutes.put(
   },
 );
 
-// POST /admin/footer-config/preview
+// POST /admin/footer-config/preview-sessions
 footerConfigRoutes.post(
-  "/footer-config/preview",
+  "/footer-config/preview-sessions",
   zValidator("json", footerConfigSchema),
   async (c) => {
     const config = c.req.valid("json");
-    const navItems = await listPublicNavItems("footer");
-    const html = renderFooterPreview(config, navItems);
-    return ok(c, { html });
+    return ok(c, createFooterPreviewSession(config));
   },
 );

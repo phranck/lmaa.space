@@ -27,6 +27,7 @@ import {
   getManagedPublicStats,
   searchManagedPublicCatalog,
 } from "../services/public.js";
+import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 
 /**
  * Public API routes consumed by the website and external clients.
@@ -206,6 +207,22 @@ publicRoutes.get("/form-config-by-slug/:slug", publicReadLimit, async (c) => {
 publicRoutes.get("/footer-config", publicReadLimit, async (c) => {
   const config = await getFooterConfig();
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, config);
+});
+
+// GET /api/footer-preview/:token
+publicRoutes.get("/footer-preview/:token", publicReadLimit, async (c) => {
+  const token = c.req.param("token");
+  if (!/^[0-9a-f]{32}$/.test(token)) {
+    return fail(c, 400, "Invalid token");
+  }
+
+  const config = getFooterPreviewSession(token);
+  if (!config) {
+    return fail(c, 404, "Preview not found");
+  }
+
+  c.header("Cache-Control", "no-store");
   return ok(c, config);
 });
 

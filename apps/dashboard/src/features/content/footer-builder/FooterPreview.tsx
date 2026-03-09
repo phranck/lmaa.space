@@ -1,29 +1,13 @@
-import { useEffect, useRef } from "react";
-
 interface Props {
-  html: string | null;
+  src: string | null;
+  heightPx: string;
   isLoading?: boolean;
 }
 
 /**
- * Iframe-based live preview for the footer configuration.
- * Renders the HTML returned by the backend preview endpoint.
+ * Iframe-based footer preview that loads the real frontend preview route.
  */
-export function FooterPreview({ html, isLoading }: Props) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe || html === null) return;
-    const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
-    if (!doc) return;
-    doc.open();
-    doc.write(html);
-    doc.close();
-    const height = doc.body?.scrollHeight;
-    if (height) iframe.style.height = `${height}px`;
-  }, [html]);
-
+export function FooterPreview({ src, heightPx, isLoading }: Props) {
   return (
     <div className="relative">
       {isLoading && (
@@ -31,17 +15,22 @@ export function FooterPreview({ html, isLoading }: Props) {
           <div className="w-5 h-5 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
         </div>
       )}
-      {html === null ? (
+      {src === null ? (
         <div className="h-32 flex items-center justify-center text-xs text-[var(--ds-text-muted)]">
-          Noch keine Vorschau — Spalte hinzufügen und speichern.
+          Noch keine Vorschau geladen.
         </div>
       ) : (
-        <iframe
-          ref={iframeRef}
-          title="Footer Vorschau"
-          className="w-full border-none rounded-b-card"
-          sandbox="allow-same-origin"
-        />
+        <div
+          className="w-full min-h-32 rounded-b-card overflow-hidden bg-transparent"
+          style={{ height: heightPx }}
+        >
+          <iframe
+            src={src}
+            title="Footer Vorschau"
+            className="w-full h-full border-none bg-transparent"
+            sandbox="allow-same-origin"
+          />
+        </div>
       )}
     </div>
   );

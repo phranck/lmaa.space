@@ -21,4 +21,4 @@ export * from "./utils/social-media.js";
 /** Rejection token generation for public rejection pages. */
 export * from "./utils/rejection-token.js";
 /** Shared footer CSS and style-var helper for frontend and backend preview. */
-export { FOOTER_STYLES_CSS, footerStyleVars } from "./footer-styles.js";
+export { FOOTER_STYLES_CSS, footerStyleVars, resolveFooterHeightPx } from "./footer-styles.js";

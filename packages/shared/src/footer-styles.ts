@@ -7,7 +7,15 @@ type FooterStyle = {
   linkHoverColor: string;
   buttonColor: string;
   buttonTextColor: string;
+  height: "sm" | "md" | "lg" | "xl";
   paddingY: "sm" | "md" | "lg" | "xl";
+};
+
+const FOOTER_HEIGHTS_PX: Record<FooterStyle["height"], number> = {
+  sm: 240,
+  md: 320,
+  lg: 420,
+  xl: 560,
 };
 
 const FOOTER_PADDING_Y: Record<FooterStyle["paddingY"], string> = {
@@ -15,6 +23,13 @@ const FOOTER_PADDING_Y: Record<FooterStyle["paddingY"], string> = {
   md: "2.75rem",
   lg: "3.5rem",
   xl: "5rem",
+};
+
+const FOOTER_PADDING_Y_PX: Record<FooterStyle["paddingY"], number> = {
+  sm: 36,
+  md: 50,
+  lg: 63,
+  xl: 90,
 };
 
 const FOOTER_STYLE_DEFAULTS = {
@@ -25,8 +40,18 @@ const FOOTER_STYLE_DEFAULTS = {
   linkHoverColor: "#fbbf24",
   buttonColor: "#7c3aed",
   buttonTextColor: "#ffffff",
+  height: "md" as const,
   paddingY: "lg" as const,
 } satisfies FooterStyle;
+
+export function resolveFooterHeightPx(style?: Partial<FooterStyle>): string {
+  const s = { ...FOOTER_STYLE_DEFAULTS, ...style };
+  const baseHeight = FOOTER_HEIGHTS_PX[s.height];
+  const defaultPadding = FOOTER_PADDING_Y_PX[FOOTER_STYLE_DEFAULTS.paddingY];
+  const nextPadding = FOOTER_PADDING_Y_PX[s.paddingY];
+  const totalHeight = baseHeight + (nextPadding - defaultPadding) * 2;
+  return `${totalHeight}px`;
+}
 
 /**
  * Shared CSS for the website footer.
@@ -36,17 +61,19 @@ const FOOTER_STYLE_DEFAULTS = {
  *
  * Used by:
  * - `apps/frontend` Footer.astro  (injected as a <style> block)
- * - `apps/backend` footer-renderer.ts (embedded in the preview HTML document)
  */
 export const FOOTER_STYLES_CSS = `
 .footer-root {
   margin-top: auto;
+  height: var(--footer-height, ${resolveFooterHeightPx(FOOTER_STYLE_DEFAULTS)});
   background: var(--footer-bg, ${FOOTER_STYLE_DEFAULTS.bgColor});
   color: var(--footer-text, ${FOOTER_STYLE_DEFAULTS.textColor});
 }
 .footer-inner {
   max-width: 72rem;
   margin: 0 auto;
+  height: 100%;
+  box-sizing: border-box;
   padding: var(--footer-padding-y, ${FOOTER_PADDING_Y[FOOTER_STYLE_DEFAULTS.paddingY]}) 1rem;
 }
 @media (min-width: 640px) {
@@ -119,14 +146,25 @@ export const FOOTER_STYLES_CSS = `
 .footer-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
+  text-align: center;
   text-decoration: none;
   transition: opacity 0.15s;
   cursor: pointer;
+}
+.footer-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.footer-btn-icon svg {
+  display: block;
 }
 .footer-btn:hover { opacity: 0.9; }
 .footer-separator {
@@ -160,6 +198,7 @@ export function footerStyleVars(style?: FooterStyle): string {
     `--footer-link-hover:${s.linkHoverColor}`,
     `--footer-btn:${s.buttonColor}`,
     `--footer-btn-text:${s.buttonTextColor}`,
+    `--footer-height:${resolveFooterHeightPx(s)}`,
     `--footer-padding-y:${FOOTER_PADDING_Y[s.paddingY]}`,
   ].join(";");
 }

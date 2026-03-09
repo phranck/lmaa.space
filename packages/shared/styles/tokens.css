@@ -372,3 +372,17 @@
   --md-quote:       #7ee787;
   --md-punctuation: #8b949e;
 }
+
+/* Shared button content alignment
+   Applies to real buttons globally and to link-buttons only when they use
+   the shared button token palette, so nav/sidebar links stay untouched. */
+:where(button, input[type="button"], input[type="submit"], input[type="reset"]).rounded-control,
+:where(a).footer-btn,
+:where(a).rounded-control[class*="var(--ds-btn-"],
+:where(a).rounded-control[class*="var(--ds-accent)"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
