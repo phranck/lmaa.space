@@ -46,6 +46,29 @@ export function createRegionOptions(
 }
 
 /**
+ * Canonical region option set shared across dashboard and website forms.
+ */
+export function createDefaultRegionOptions(locale: "de" | "en" = "de"): ReadonlyArray<RegionSelectOption> {
+  return createRegionOptions(
+    locale === "en"
+      ? {
+          DE: "Germany",
+          AT: "Austria",
+          CH: "Switzerland",
+          EU: "Europe",
+          WORLD: "World",
+        }
+      : {
+          DE: "Deutschland",
+          AT: "Österreich",
+          CH: "Schweiz",
+          EU: "Europa",
+          WORLD: "Weltweit",
+        },
+  );
+}
+
+/**
  * Re-export of shared `RegionCode` union for UI consumers.
  */
 export type { RegionCode };
@@ -116,20 +139,17 @@ export function RegionSelect({
       onChange(value.filter((v) => v !== code));
       return;
     }
-    const next = [...value, code];
     if (code === "WORLD") {
-      // WORLD: exclusive – deselects all other regions
       onChange(["WORLD"]);
-    } else if (code === "EU") {
-      // EU: incompatible with WORLD, DE, AT (CH is not an EU member, so it's allowed)
-      onChange(next.filter((v) => v !== "WORLD" && v !== "DE" && v !== "AT"));
-    } else if (code === "DE" || code === "AT") {
-      // DE / AT: incompatible with WORLD and EU
-      onChange(next.filter((v) => v !== "WORLD" && v !== "EU"));
-    } else {
-      // CH: incompatible with WORLD only
-      onChange(next.filter((v) => v !== "WORLD"));
+      return;
     }
+
+    if (code === "EU") {
+      onChange(["EU"]);
+      return;
+    }
+
+    onChange([...value.filter((v) => v !== "WORLD" && v !== "EU"), code]);
   }
 
   const label =

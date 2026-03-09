@@ -7,7 +7,7 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
-import { CharCounter, MarkdownEditor, RegionSelect, createRegionOptions } from "@lmaa/ui";
+import { CharCounter, MarkdownEditor, RegionSelect, createDefaultRegionOptions } from "@lmaa/ui";
 
 import { BUTTON_ICON_MAP } from "@/lib/buttonIconMap.tsx";
 import { API_BASE } from "@/lib/client-api";
@@ -32,13 +32,7 @@ type SimpleFields = Record<string, string>;
 // Constants
 // ---------------------------------------------------------------------------
 
-const REGION_OPTIONS = createRegionOptions({
-  DE: "Deutschland",
-  AT: "Österreich",
-  CH: "Schweiz",
-  EU: "Europäische Union",
-  WORLD: "Weltweit",
-});
+const REGION_OPTIONS = createDefaultRegionOptions("de");
 
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
@@ -733,8 +727,8 @@ function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSele
       onChange={onChange}
       options={REGION_OPTIONS}
       messages={{
-        label: field.label,
-        placeholder: field.placeholder ?? "Region wählen…",
+        label: field.label || "Versand-Regionen",
+        placeholder: field.placeholder ?? "Versand-Regionen wählen…",
       }}
       error={error}
       variant="frontend"
