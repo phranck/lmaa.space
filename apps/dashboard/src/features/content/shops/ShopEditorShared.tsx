@@ -296,6 +296,7 @@ export function useShopEditorController({
     displayImage,
     error,
     form,
+    blurSocialMediaOnPaste: isSubmissionMode,
     handleApplyImage,
     handleOgImageInputChange,
     handleOpenRejectCard,
@@ -395,6 +396,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           categories={categories}
           regionOptions={shopFormI18n.regionOptions}
           messages={shopFormI18n.messages}
+          blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
         />
       )}
 
