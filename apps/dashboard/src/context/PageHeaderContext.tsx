@@ -3,6 +3,8 @@ import { type ReactNode, createContext, useContext, useMemo, useState } from "re
 interface PageHeaderContextValue {
   title: string;
   setTitle: (title: string) => void;
+  titleContent: ReactNode | null;
+  setTitleContent: (content: ReactNode | null) => void;
   leadingEl: HTMLDivElement | null;
   setLeadingEl: (el: HTMLDivElement | null) => void;
   actionsEl: HTMLDivElement | null;
@@ -12,6 +14,8 @@ interface PageHeaderContextValue {
 const PageHeaderContext = createContext<PageHeaderContextValue>({
   title: "",
   setTitle: () => {},
+  titleContent: null,
+  setTitleContent: () => {},
   leadingEl: null,
   setLeadingEl: () => {},
   actionsEl: null,
@@ -26,12 +30,22 @@ const PageHeaderContext = createContext<PageHeaderContextValue>({
  */
 export function PageHeaderProvider({ children }: { children: ReactNode }) {
   const [title, setTitle] = useState("");
+  const [titleContent, setTitleContent] = useState<ReactNode | null>(null);
   const [leadingEl, setLeadingEl] = useState<HTMLDivElement | null>(null);
   const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
 
   const value = useMemo(
-    () => ({ title, setTitle, leadingEl, setLeadingEl, actionsEl, setActionsEl }),
-    [title, leadingEl, actionsEl],
+    () => ({
+      title,
+      setTitle,
+      titleContent,
+      setTitleContent,
+      leadingEl,
+      setLeadingEl,
+      actionsEl,
+      setActionsEl,
+    }),
+    [title, titleContent, leadingEl, actionsEl],
   );
 
   return <PageHeaderContext.Provider value={value}>{children}</PageHeaderContext.Provider>;

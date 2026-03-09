@@ -322,6 +322,8 @@ export interface DashboardMessages {
     suggestions: {
       nonePrefix: string;
       noneHint: string;
+      submittedAt: string;
+      submittedBy: string;
       reject: string;
       onhold: string;
       edit: string;
@@ -1026,6 +1028,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       suggestions: {
         nonePrefix: "Keine",
         noneHint: "Sobald neue Vorschläge eingehen, erscheinen sie hier.",
+        submittedAt: "eingereicht am",
+        submittedBy: "eingereicht von",
         reject: "Ablehnen",
         onhold: "Zurückstellen",
         edit: "Bearbeiten",
@@ -1728,6 +1732,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       suggestions: {
         nonePrefix: "No",
         noneHint: "New suggestions will appear here once submitted.",
+        submittedAt: "submitted at",
+        submittedBy: "submitted by",
         reject: "Reject",
         onhold: "Put on hold",
         edit: "Edit",
