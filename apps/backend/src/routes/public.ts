@@ -10,6 +10,7 @@ import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
 } from "../services/admin-form-config.js";
+import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
 import {
@@ -27,7 +28,6 @@ import {
   getManagedPublicStats,
   searchManagedPublicCatalog,
 } from "../services/public.js";
-import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 
 /**
  * Public API routes consumed by the website and external clients.
