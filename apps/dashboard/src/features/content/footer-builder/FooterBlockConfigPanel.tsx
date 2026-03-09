@@ -2,8 +2,9 @@ import type { FooterBlock } from "@lmaa/contracts";
 import { MarkdownEditor } from "@lmaa/ui";
 
 import { Card } from "@/components/ui/Card.tsx";
-import { Dropdown } from "@/components/ui/Dropdown.tsx";
+import { IconPicker } from "@/components/ui/IconPicker.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { FooterBlockTypeIcon } from "@/features/content/footer-builder/FooterPalette.tsx";
 
 const labelClass = "text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider";
@@ -34,6 +35,9 @@ interface Props {
  * Follows the same patterns as FieldConfigPanel in the form builder.
  */
 export function FooterBlockConfigPanel({ block, onChange }: Props) {
+  const { messages } = useI18n();
+  const buttonMessages = messages.formBuilder.panel;
+
   return (
     <Card className="flex flex-col gap-4 p-4 min-w-64">
       {/* Header: type icon + label */}
@@ -87,16 +91,12 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
             />
           </label>
 
-          <label className="flex flex-col gap-1">
-            <span className={labelClass}>SF Symbol (optional)</span>
-            <input
-              type="text"
-              className={inputClass}
-              value={block.icon ?? ""}
-              onChange={(e) => onChange({ ...block, icon: e.target.value || undefined })}
-              placeholder="z.B. arrow.right.circle"
-            />
-          </label>
+          <IconPicker
+            value={block.icon}
+            onChange={(icon) => onChange({ ...block, icon })}
+            label={buttonMessages.buttonIcon}
+            noneLabel={buttonMessages.buttonIconNone}
+          />
 
           <label className="flex flex-col gap-1">
             <span className={labelClass}>URL</span>
@@ -109,12 +109,25 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
             />
           </label>
 
-          <Dropdown
-            label="Stil"
-            value={block.style}
-            onChange={(v) => onChange({ ...block, style: v })}
-            options={BUTTON_STYLE_OPTIONS}
-          />
+          <div className="flex flex-col gap-1">
+            <span className={labelClass}>Stil</span>
+            <div className="flex gap-1.5">
+              {BUTTON_STYLE_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onChange({ ...block, style: value })}
+                  className={`flex-1 h-8 rounded-control border text-xs font-medium transition-colors ${
+                    block.style === value
+                      ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                      : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input

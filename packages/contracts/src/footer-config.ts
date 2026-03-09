@@ -12,6 +12,7 @@ export const footerStyleSchema = z.object({
   linkHoverColor: z.string().default("#fbbf24"),
   buttonColor: z.string().default("#7c3aed"),
   buttonTextColor: z.string().default("#ffffff"),
+  height: z.enum(["sm", "md", "lg", "xl"]).default("md"),
   paddingY: z.enum(["sm", "md", "lg", "xl"]).default("lg"),
 });
 
@@ -24,6 +25,13 @@ export const FOOTER_PADDING_Y: Record<FooterStyle["paddingY"], string> = {
   md: "2.75rem",
   lg: "3.5rem",
   xl: "5rem",
+};
+
+export const FOOTER_HEIGHTS: Record<FooterStyle["height"], string> = {
+  sm: "240px",
+  md: "320px",
+  lg: "420px",
+  xl: "560px",
 };
 
 // ---------------------------------------------------------------------------

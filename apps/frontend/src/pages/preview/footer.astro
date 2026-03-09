@@ -1,0 +1,55 @@
+---
+import type { FooterConfig } from "@lmaa/contracts";
+import type { NavItem } from "@lmaa/shared";
+
+import Footer from "@/components/Footer.astro";
+import { apiGet } from "@/lib/api";
+
+import "@/styles/global.css";
+
+export const prerender = false;
+
+const token = Astro.url.searchParams.get("token")?.trim() ?? "";
+
+let config: FooterConfig | null = null;
+let navItems: NavItem[] = [];
+let errorMessage: string | null = null;
+
+if (!/^[0-9a-f]{32}$/.test(token)) {
+  errorMessage = "Ungueltiger Preview-Token.";
+  Astro.response.status = 400;
+} else {
+  try {
+    [config, navItems] = await Promise.all([
+      apiGet<FooterConfig>(`/footer-preview/${token}`),
+      apiGet<NavItem[]>("/nav/footer"),
+    ]);
+    Astro.response.headers.set("Cache-Control", "no-store");
+  } catch {
+    errorMessage = "Preview konnte nicht geladen werden.";
+    Astro.response.status = 404;
+  }
+}
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Footer Preview</title>
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+  </head>
+  <body class="m-0 bg-transparent text-[var(--ds-text)]">
+    {
+      config ? (
+        <Footer config={config} navItems={navItems} />
+      ) : (
+        <main class="min-h-32 flex items-center justify-center px-6 py-8 text-center">
+          <p class="text-sm text-[var(--ds-text-muted)]">{errorMessage}</p>
+        </main>
+      )
+    }
+  </body>
+</html>

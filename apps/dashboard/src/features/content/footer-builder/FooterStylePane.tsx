@@ -23,6 +23,13 @@ const PADDING_OPTIONS = [
   { value: "xl" as const, label: "Sehr groß" },
 ];
 
+const HEIGHT_OPTIONS = [
+  { value: "sm" as const, label: "Klein" },
+  { value: "md" as const, label: "Normal" },
+  { value: "lg" as const, label: "Groß" },
+  { value: "xl" as const, label: "Sehr groß" },
+];
+
 interface Props {
   style: FooterStyle;
   onChange: (updated: FooterStyle) => void;
@@ -59,7 +66,16 @@ export function FooterStylePane({ style, onChange }: Props) {
       ))}
 
       <div className="flex flex-col gap-2">
-        <span className={labelClass}>Höhe (Padding)</span>
+        <span className={labelClass}>Footer-Höhe</span>
+        <SegmentSwitch
+          value={s.height}
+          onChange={(v) => onChange({ ...s, height: v })}
+          options={HEIGHT_OPTIONS}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className={labelClass}>Vertikales Padding</span>
         <SegmentSwitch
           value={s.paddingY}
           onChange={(v) => onChange({ ...s, paddingY: v })}
