@@ -89,8 +89,9 @@ function AdminLayoutInner() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOwnProfile, setEditingOwnProfile] = useState(false);
-  const { title, setLeadingEl, setActionsEl } = usePageHeaderContext();
+  const { title, titleContent, setLeadingEl, setActionsEl } = usePageHeaderContext();
   const { width: sidebarWidth, onMouseDown: onResizeStart } = useSidebarWidth();
+  const hasCustomTitleContent = titleContent !== null;
 
   async function handleLogout() {
     await logout();
@@ -153,7 +154,9 @@ function AdminLayoutInner() {
       )}
 
       {/* Fixed Header — full width on mobile, offset by sidebar on desktop */}
-      <header className="sidebar-aware-header h-14 z-30 flex items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]">
+      <header
+        className={`sidebar-aware-header z-30 flex items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)] ${hasCustomTitleContent ? "min-h-[4.5rem] py-2" : "h-14"}`}
+      >
         <div className="flex min-w-0 items-center gap-4">
           <button
             type="button"
@@ -166,9 +169,13 @@ function AdminLayoutInner() {
 
           <div ref={setLeadingEl} className="flex items-center shrink-0" />
 
-          <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
-            {title || messages.layout.pageFallbackTitle}
-          </span>
+          {hasCustomTitleContent ? (
+            <div className="min-w-0">{titleContent}</div>
+          ) : (
+            <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
+              {title || messages.layout.pageFallbackTitle}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-3 ml-auto">
@@ -178,7 +185,10 @@ function AdminLayoutInner() {
       </header>
 
       {/* Main — full width on mobile, offset by sidebar on desktop */}
-      <div className="sidebar-aware-main flex flex-col min-h-screen">
+      <div
+        className="sidebar-aware-main flex flex-col min-h-screen"
+        style={{ paddingTop: hasCustomTitleContent ? "4.5rem" : "3.5rem" }}
+      >
         <main className="flex-1 p-3 flex flex-col">
           <Outlet />
         </main>

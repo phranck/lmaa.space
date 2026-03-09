@@ -166,7 +166,7 @@ function LoadedSubmissionEditorPage({
   submission: Submission;
   isFetching: boolean;
 }) {
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const navigate = useNavigate();
   const [reviewState, dispatchReview] = useReducer(reviewReducer, EMPTY_REVIEW_STATE);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -199,6 +199,17 @@ function LoadedSubmissionEditorPage({
 
   const headerBackLabel = submissionsMessages.title;
   const pageTitle = submission.shopName || submissionsMessages.suggestions.edit;
+  const submittedAt = new Date(submission.createdAt).toLocaleString(locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const submitterEmail = submission.submitterEmail?.trim() ?? "";
+  const pageSubtitle = submitterEmail
+    ? `${submissionsMessages.suggestions.submittedBy}: ${submitterEmail} · ${submissionsMessages.suggestions.submittedAt}: ${submittedAt}`
+    : `${submissionsMessages.suggestions.submittedAt}: ${submittedAt}`;
   const showDelete = submission.status === "onhold" || submission.status === "rejected";
   const isRejected = submission.status === "rejected";
   const isPending = submission.status === "pending";
@@ -304,6 +315,12 @@ function LoadedSubmissionEditorPage({
     <PageLayout>
       <PageHeader
         title={pageTitle}
+        titleContent={
+          <div className="min-w-0">
+            <p className="font-semibold text-sm text-[var(--ds-text)] truncate">{pageTitle}</p>
+            <p className="text-xs text-[var(--ds-text-muted)] truncate">{pageSubtitle}</p>
+          </div>
+        }
         leading={<HeaderBackButton label={headerBackLabel} onClick={navigateBack} />}
       >
         <div className="flex items-center gap-3">
