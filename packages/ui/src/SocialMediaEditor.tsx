@@ -74,8 +74,10 @@ export function SocialMediaEditor({
   const [entries, setEntries] = useState<Entry[]>(() => recordToEntries(value));
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
+  const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
   const lastEmittedRef = useRef(JSON.stringify(value));
   const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
   const portalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,6 +103,16 @@ export function SocialMediaEditor({
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [openDropdownId]);
 
+  useEffect(() => {
+    if (!pendingFocusId) return;
+    const frameId = requestAnimationFrame(() => {
+      const input = inputRefs.current.get(pendingFocusId);
+      input?.focus();
+      setPendingFocusId(null);
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [pendingFocusId]);
+
   function toggleDropdown(entryId: string) {
     if (openDropdownId === entryId) {
       setOpenDropdownId(null);
@@ -122,7 +134,9 @@ export function SocialMediaEditor({
   }
 
   function addEntry() {
-    emit([...entries, { id: genId(), platform: "", url: "" }]);
+    const nextEntry = { id: genId(), platform: "", url: "" };
+    setPendingFocusId(nextEntry.id);
+    emit([...entries, nextEntry]);
   }
 
   function removeEntry(id: string) {
@@ -246,6 +260,10 @@ export function SocialMediaEditor({
               </button>
 
               <input
+                ref={(el) => {
+                  if (el) inputRefs.current.set(entry.id, el);
+                  else inputRefs.current.delete(entry.id);
+                }}
                 type="text"
                 value={entry.url}
                 onChange={(e) => updateUrl(entry.id, e.target.value)}
