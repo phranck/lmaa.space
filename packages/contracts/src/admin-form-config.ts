@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isSafeConfiguredUrl } from "./safe-url.js";
+
 const slugSchema = z
   .string()
   .min(1)
@@ -37,7 +39,13 @@ const submissionConfigSchema = z.object({
   steps: z.array(submissionStepSchema),
   successHeadline: z.string().max(200).optional(),
   successMessage: z.string().max(1000).optional(),
-  successRedirectUrl: z.string().max(2000).optional(),
+  successRedirectUrl: z
+    .string()
+    .max(2000)
+    .refine((value) => isSafeConfiguredUrl(value, { allowRelative: true }), {
+      message: "successRedirectUrl must be a relative path or a safe URL",
+    })
+    .optional(),
 });
 
 const formFieldSchema = z.object({

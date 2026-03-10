@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isSafeConfiguredUrl } from "./safe-url.js";
+
 // ---------------------------------------------------------------------------
 // Style
 // ---------------------------------------------------------------------------
@@ -56,7 +58,9 @@ export const buttonBlockSchema = z
     type: z.literal("button"),
     label: z.string().optional(),
     icon: z.string().optional(),
-    href: z.string(),
+    href: z.string().refine((value) => isSafeConfiguredUrl(value, { allowRelative: true, allowMailto: true }), {
+      message: "href must be a relative path or a safe URL",
+    }),
     external: z.boolean(),
     style: z.enum(["filled", "outline", "ghost"]),
   })

@@ -1,5 +1,6 @@
 ---
 import type { NavItem } from "@lmaa/shared";
+import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
 
 interface Props {
   navItems: NavItem[];
@@ -30,10 +31,12 @@ function navLinkClass(href: string, external = false) {
 
         <div class="hidden md:flex items-center gap-8">
           {navItems.map((item) => {
-            const href = item.url ?? `/${item.pageSlug}`;
-            const label = item.label ?? item.pageTitle ?? href;
-            const external = item.target === "_blank" || (item.url?.startsWith("http") ?? false);
-            return external ? (
+            const href = getSafeConfigHref(item.url) ?? (item.pageSlug ? `/${item.pageSlug}` : null);
+            const label = item.label ?? item.pageTitle ?? href ?? "#";
+            const external = href !== null && (item.target === "_blank" || isExternalHref(href));
+            return href === null ? (
+              <span class={navLinkClass("#")}>{label}</span>
+            ) : external ? (
               <a
                 href={href}
                 target="_blank"
@@ -164,11 +167,15 @@ function navLinkClass(href: string, external = false) {
             </form>
 
             {navItems.map((item) => {
-              const href = item.url ?? `/${item.pageSlug}`;
-              const label = item.label ?? item.pageTitle ?? href;
-              const external = item.target === "_blank" || (item.url?.startsWith("http") ?? false);
-              const isActive = currentPath === href || (href !== "/" && currentPath.startsWith(href ?? ""));
-              return external ? (
+              const href = getSafeConfigHref(item.url) ?? (item.pageSlug ? `/${item.pageSlug}` : null);
+              const label = item.label ?? item.pageTitle ?? href ?? "#";
+              const external = href !== null && (item.target === "_blank" || isExternalHref(href));
+              const isActive = href !== null && (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
+              return href === null ? (
+                <span class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-600">
+                  {label}
+                </span>
+              ) : external ? (
                 <a
                   href={href}
                   target="_blank"

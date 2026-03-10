@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { footerConfigSchema } from "@lmaa/contracts";
 
 import { ok } from "../../lib/http.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { getFooterConfig, upsertFooterConfig } from "../../repositories/footer-config.js";
 import { createFooterPreviewSession } from "../../services/footer-preview-store.js";
 
@@ -12,6 +12,8 @@ import { createFooterPreviewSession } from "../../services/footer-preview-store.
  * Admin footer-config routes.
  */
 export const footerConfigRoutes = new Hono<{ Variables: AuthVariables }>();
+
+footerConfigRoutes.use("*", requireAdmin);
 
 // GET /admin/footer-config
 footerConfigRoutes.get("/footer-config", async (c) => {
