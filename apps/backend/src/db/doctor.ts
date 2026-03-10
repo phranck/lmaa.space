@@ -19,6 +19,11 @@ interface ExistingObjectRow {
   name: string;
 }
 
+interface ExistingColumnRow {
+  table_name: string;
+  column_name: string;
+}
+
 async function loadAppliedMigrations(databaseUrl: string): Promise<AppliedMigrationRow[]> {
   const sql = postgres(databaseUrl);
 
@@ -59,6 +64,41 @@ async function loadExistingObjectNames(
           `;
 
     return rows.map((row) => row.name);
+  } finally {
+    await sql.end();
+  }
+}
+
+async function loadExistingColumns(
+  databaseUrl: string,
+  columns: Array<{ tableName: string; columnName: string }>,
+): Promise<Array<{ tableName: string; columnName: string }>> {
+  if (columns.length === 0) return [];
+
+  const sql = postgres(databaseUrl);
+
+  try {
+    const rows = await Promise.all(
+      columns.map(async ({ tableName, columnName }) => {
+        const [row] = await sql<ExistingColumnRow[]>`
+          select table_name, column_name
+          from information_schema.columns
+          where table_schema = 'public'
+            and table_name = ${tableName}
+            and column_name = ${columnName}
+          limit 1
+        `;
+
+        return row
+          ? {
+              tableName: row.table_name,
+              columnName: row.column_name,
+            }
+          : null;
+      }),
+    );
+
+    return rows.filter((row): row is { tableName: string; columnName: string } => row !== null);
   } finally {
     await sql.end();
   }
@@ -126,21 +166,36 @@ async function runDoctor() {
   }
 
   const pending = repoMigrations.slice(applied.length);
+  const pendingColumns = [
+    ...new Map(
+      pending
+        .flatMap((migration) => migration.createdColumns)
+        .map((column) => [`${column.tableName}.${column.columnName}`, column]),
+    ).values(),
+  ];
   const pendingTables = [...new Set(pending.flatMap((migration) => migration.createdTables))];
   const pendingIndexes = [...new Set(pending.flatMap((migration) => migration.createdIndexes))];
 
-  const [existingPendingTables, existingPendingIndexes] = await Promise.all([
+  const [existingPendingTables, existingPendingIndexes, existingPendingColumns] = await Promise.all([
     loadExistingObjectNames(databaseUrl, "tables", pendingTables),
     loadExistingObjectNames(databaseUrl, "indexes", pendingIndexes),
+    loadExistingColumns(databaseUrl, pendingColumns),
   ]);
 
-  if (existingPendingTables.length > 0 || existingPendingIndexes.length > 0) {
+  if (
+    existingPendingTables.length > 0 ||
+    existingPendingIndexes.length > 0 ||
+    existingPendingColumns.length > 0
+  ) {
     const details = [
       existingPendingTables.length > 0
         ? `tables already exist before their pending migrations: ${existingPendingTables.join(", ")}`
         : null,
       existingPendingIndexes.length > 0
         ? `indexes already exist before their pending migrations: ${existingPendingIndexes.join(", ")}`
+        : null,
+      existingPendingColumns.length > 0
+        ? `columns already exist before their pending migrations: ${existingPendingColumns.map((column) => `${column.tableName}.${column.columnName}`).join(", ")}`
         : null,
     ]
       .filter(Boolean)
