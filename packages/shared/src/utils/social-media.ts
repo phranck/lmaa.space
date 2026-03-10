@@ -40,6 +40,10 @@ function stripWww(host: string): string {
   return host.startsWith("www.") ? host.slice(4) : host;
 }
 
+function isPinterestHost(host: string): boolean {
+  return host.startsWith("pinterest.") || host.endsWith(".pinterest.com") || host === "pin.it";
+}
+
 function extractPathUser(url: URL): string {
   return stripTrailingSlash(url.pathname).split("/").pop() ?? "";
 }
@@ -257,9 +261,7 @@ function normalizePinterest(input: string): string | null {
   const url = tryParseUrl(trimmed);
   if (url) {
     const host = stripWww(url.hostname);
-    const isPinterest =
-      host.startsWith("pinterest.") || host.endsWith(".pinterest.com") || host === "pin.it";
-    if (!isPinterest) return null;
+    if (!isPinterestHost(host)) return null;
     const user = extractPathUser(url);
     if (!user) return null;
     return `https://pinterest.com/${user}`;
@@ -329,8 +331,7 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
   const direct = DOMAIN_TO_PLATFORM[host];
   if (direct) return direct;
 
-  // Pinterest subdomains (e.g. de.pinterest.com)
-  if (host.endsWith(".pinterest.com")) return "pinterest";
+  if (isPinterestHost(host)) return "pinterest";
 
   // Mastodon heuristic: path starts with /@
   const path = stripTrailingSlash(url.pathname);
