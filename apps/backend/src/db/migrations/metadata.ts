@@ -20,10 +20,12 @@ export interface RepoMigration extends MigrationJournalEntry {
   fileName: string;
   filePath: string;
   hash: string;
+  createdColumns: Array<{ tableName: string; columnName: string }>;
   createdTables: string[];
   createdIndexes: string[];
 }
 
+const ADD_COLUMN_RE = /^ALTER TABLE "([^"]+)" ADD COLUMN "([^"]+)"/gm;
 const CREATE_TABLE_RE = /^CREATE TABLE "([^"]+)"/gm;
 const CREATE_INDEX_RE = /^CREATE INDEX "([^"]+)"/gm;
 
@@ -64,6 +66,10 @@ export function loadRepoMigrations(migrationsFolder: string): RepoMigration[] {
       fileName,
       filePath,
       hash: createHash("sha256").update(sql).digest("hex"),
+      createdColumns: [...sql.matchAll(ADD_COLUMN_RE)].map((match) => ({
+        tableName: match[1],
+        columnName: match[2],
+      })),
       createdTables: [...sql.matchAll(CREATE_TABLE_RE)].map((match) => match[1]),
       createdIndexes: [...sql.matchAll(CREATE_INDEX_RE)].map((match) => match[1]),
     };
