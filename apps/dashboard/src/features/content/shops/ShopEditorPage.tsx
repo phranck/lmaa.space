@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
+import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
 import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
@@ -58,12 +60,14 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const controller = useShopEditorController({ shopId });
 
   const shopVisibility = controller.activeShop?.visibility;
+  const isRejected = shopVisibility === "rejected";
   const showRestore =
     shopVisibility === "onhold" || shopVisibility === "rejected" || shopVisibility === "deleted";
   const showPutOnHold = shopVisibility === "public";
-  const showReject = controller.canReject;
+  const showReject = controller.canReject && !isRejected;
   const showDelete = !controller.isNew;
   const backLabel = messages.layout.sidebar.shops;
+  const rejectionToken = controller.activeShop?.rejectionToken ?? null;
 
   const saveLabel = controller.isPending ? controller.common.saving : controller.common.save;
 
@@ -125,13 +129,44 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
           {showReject && (
             <button
               type="button"
-              onClick={controller.handleOpenRejectCard}
+              onClick={() => controller.handleOpenRejectCard(false)}
               disabled={isActionPending}
               className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
             >
               <SFXmarkCircleFill className="w-3.5 h-3.5" />
               {controller.shopsMessages.editCard.rejectSubmit}
             </button>
+          )}
+
+          {isRejected && (
+            <>
+              <button
+                type="button"
+                onClick={() => controller.handleOpenRejectCard(true)}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+              >
+                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                {messages.submissions.suggestions.editRejectionInfo}
+              </button>
+
+              {rejectionToken ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.open(
+                      `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${rejectionToken}`,
+                      "_blank",
+                    )
+                  }
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                >
+                  <SFInfoCircleFill className="w-3.5 h-3.5" />
+                  {messages.submissions.suggestions.info}
+                </button>
+              ) : null}
+            </>
           )}
 
           {showDelete && (

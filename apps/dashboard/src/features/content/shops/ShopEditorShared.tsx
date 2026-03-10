@@ -1,6 +1,8 @@
 import { useEffect, useReducer, useState } from "react";
 import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
 import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
+import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
+import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
@@ -40,6 +42,7 @@ type ShopImageState = {
 };
 
 type RejectState = {
+  editingRejection: boolean;
   open: boolean;
   reason: string;
   longText: string;
@@ -63,6 +66,7 @@ function getInitialImageState(
 
 function getEmptyRejectState(): RejectState {
   return {
+    editingRejection: false,
     open: false,
     reason: "",
     longText: "",
@@ -219,12 +223,13 @@ export function useShopEditorController({
     return saved;
   }
 
-  function handleOpenRejectCard() {
+  function handleOpenRejectCard(editingRejection = false) {
     setRejectState({
+      editingRejection,
       open: true,
       reason: "",
-      longText: "",
-      token: generateRejectionToken(),
+      longText: editingRejection ? (activeShop?.rejectionLongText ?? "") : "",
+      token: editingRejection ? (activeShop?.rejectionToken ?? null) : generateRejectionToken(),
     });
   }
 
@@ -426,7 +431,11 @@ export function ShopEditorRejectOverlay({ controller }: { controller: ShopEditor
     <RejectDialog
       open={rejectState.open}
       onClose={() => setRejectState(getEmptyRejectState())}
-      title={shopsMessages.editCard.rejectTitle}
+      title={
+        rejectState.editingRejection
+          ? suggestionsMsg.reviewEditRejectionTitle
+          : shopsMessages.editCard.rejectTitle
+      }
       name={activeShop?.name ?? ""}
       url={activeShop?.url ?? ""}
       adminNote={rejectState.reason}
@@ -440,8 +449,20 @@ export function ShopEditorRejectOverlay({ controller }: { controller: ShopEditor
       isPending={isRejecting}
       isError={isRejectError}
       errorMessage={common.unknownError}
-      submitLabel={shopsMessages.editCard.rejectSubmit}
-      headerIcon={<SFXmarkCircleFill className={dialogHeaderIconClass} />}
+      submitLabel={rejectState.editingRejection ? common.save : shopsMessages.editCard.rejectSubmit}
+      submitVariant={rejectState.editingRejection ? "primary" : "danger"}
+      submitIcon={
+        rejectState.editingRejection ? (
+          <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+        ) : undefined
+      }
+      headerIcon={
+        rejectState.editingRejection ? (
+          <SFLongTextPageAndPencilFill className={dialogHeaderIconClass} />
+        ) : (
+          <SFXmarkCircleFill className={dialogHeaderIconClass} />
+        )
+      }
       storageKey="shops:reject-dialog-size"
       adminNoteStorageKey="shops:textarea:reject-note"
       rejectionLongStorageKey="shops:textarea:reject-long"
