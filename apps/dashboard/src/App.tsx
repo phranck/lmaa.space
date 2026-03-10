@@ -97,6 +97,12 @@ const NavManagerPage = lazy(() =>
   })),
 );
 
+const MarkdownWidgetsPage = lazy(() =>
+  import("@/features/system/MarkdownWidgetsPage.tsx").then((m) => ({
+    default: m.MarkdownWidgetsPage,
+  })),
+);
+
 const AnalyticsPage = lazy(() =>
   import("@/features/analytics/AnalyticsPage.tsx").then((m) => ({
     default: m.AnalyticsPage,
@@ -328,6 +334,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <NavManagerPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="markdown-widgets"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <MarkdownWidgetsPage />
                   </Suspense>
                 }
               />

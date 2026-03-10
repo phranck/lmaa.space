@@ -338,6 +338,12 @@ export function Sidebar({
                 icon={<SFLink className="w-4 h-4" />}
                 onClick={onItemClick}
               />
+              <SidebarItem
+                to="/markdown-widgets"
+                label="Markdown Widgets"
+                icon={<SFDocumentOnDocumentFill className="w-4 h-4" />}
+                onClick={onItemClick}
+              />
             </div>
           </>
         )}

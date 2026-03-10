@@ -141,6 +141,13 @@
       "when": 1773100800001,
       "tag": "0019_great_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1773158744275,
+      "tag": "0020_lumpy_ted_forrester",
+      "breakpoints": true
     }
   ]
 }

@@ -14,7 +14,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import type { FooterConfig, FormConfigPayload } from "@lmaa/contracts";
+import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -395,6 +395,20 @@ export const footerConfig = pgTable("footer_config", {
  * Inferred select type for `footer_config`.
  */
 export type FooterConfigRow = typeof footerConfig.$inferSelect;
+
+/**
+ * Singleton table holding globally configurable markdown widgets.
+ */
+export const markdownWidgets = pgTable("markdown_widgets", {
+  id: integer("id").primaryKey().default(1),
+  config: jsonb("config").$type<MarkdownWidgetsConfig>().notNull().default({ widgets: [] }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/**
+ * Inferred select type for `markdown_widgets`.
+ */
+export type MarkdownWidgetsRow = typeof markdownWidgets.$inferSelect;
 
 /**
  * Email templates used for transactional and system notifications.

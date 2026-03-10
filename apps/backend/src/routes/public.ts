@@ -6,6 +6,7 @@ import { env } from "../config/env.js";
 import { fail, ok } from "../lib/http.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
+import { getEnabledMarkdownWidgetByKey } from "../repositories/markdown-widgets.js";
 import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
@@ -208,6 +209,17 @@ publicRoutes.get("/footer-config", publicReadLimit, async (c) => {
   const config = await getFooterConfig();
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, config);
+});
+
+// GET /api/markdown-widgets/:key
+publicRoutes.get("/markdown-widgets/:key", publicReadLimit, async (c) => {
+  const widget = await getEnabledMarkdownWidgetByKey(c.req.param("key"));
+  if (!widget) {
+    return fail(c, 404, "Not found");
+  }
+
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, widget);
 });
 
 // GET /api/footer-preview/:token
