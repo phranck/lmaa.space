@@ -99,7 +99,7 @@ function ShopEditCardLayout({
         {controller.canReject && (
           <button
             type="button"
-            onClick={controller.handleOpenRejectCard}
+            onClick={() => controller.handleOpenRejectCard(false)}
             className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
           >
             <SFXmarkCircleFill className="w-3.5 h-3.5" />
