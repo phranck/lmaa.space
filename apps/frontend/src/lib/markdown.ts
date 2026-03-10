@@ -1,12 +1,21 @@
 import { Marked } from "marked";
 import markedFootnote from "marked-footnote";
 
+import { escapeHtmlAttribute, getSafeConfigHref, isExternalHref } from "./safe-url";
+
 /**
  * Renders Markdown to HTML.
- * Raw HTML blocks are passed through as-is (admin-authored content only).
- * javascript: hrefs in links are stripped.
+ * Raw HTML blocks are escaped to text.
+ * Unsafe hrefs in links are stripped.
  */
-const UNSAFE_HREF = /^\s*javascript:/i;
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
 
 function normalizeFootnoteSourceHeadings(content: string): string {
   const lines = content.split(/\r?\n/);
@@ -56,11 +65,15 @@ function normalizeFootnoteSourceHeadings(content: string): string {
 const markedSafe = new Marked({
   renderer: {
     link({ href, title, text }) {
-      if (!href || UNSAFE_HREF.test(href)) return text;
-      const titleAttr = title ? ` title="${title}"` : "";
-      const isExternal = /^https?:\/\//i.test(href) && !href.startsWith("https://lmaa.space");
+      const safeHref = getSafeConfigHref(href);
+      if (!safeHref) return escapeHtml(text);
+      const titleAttr = title ? ` title="${escapeHtmlAttribute(title)}"` : "";
+      const isExternal = isExternalHref(safeHref);
       const extAttrs = isExternal ? ' rel="noopener noreferrer" target="_blank"' : "";
-      return `<a href="${href}"${titleAttr}${extAttrs}>${text}</a>`;
+      return `<a href="${escapeHtmlAttribute(safeHref)}"${titleAttr}${extAttrs}>${escapeHtml(text)}</a>`;
+    },
+    html({ text }) {
+      return escapeHtml(text);
     },
   },
 }).use(markedFootnote());

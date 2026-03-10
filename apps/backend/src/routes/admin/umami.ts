@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 
 import { ok } from "../../lib/http.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   getManagedUmamiActive,
   getManagedUmamiCategoryClicks,
@@ -20,6 +20,8 @@ import {
  * Admin analytics routes backed by Umami.
  */
 export const umamiRoutes = new Hono<{ Variables: AuthVariables }>();
+
+umamiRoutes.use("*", requireAdmin);
 
 // GET /api/admin/umami/stats?period=today|7d|30d
 umamiRoutes.get("/umami/stats", async (c) => {

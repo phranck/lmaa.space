@@ -5,6 +5,7 @@ import { FOOTER_STYLES_CSS, footerStyleVars } from "@lmaa/shared";
 
 import { BUTTON_ICON_MAP } from "@/lib/buttonIconMap.tsx";
 import { renderMarkdown } from "@/lib/markdown";
+import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
 
 interface Props {
   config: FooterConfig;
@@ -42,24 +43,36 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
               }
 
               if (block.type === "button") {
-                const isExternal = block.external;
+                const href = getSafeConfigHref(block.href);
+                const isExternal = href !== null && block.external && isExternalHref(href);
                 const styleClass = `footer-btn footer-btn-${block.style}`;
                 const ButtonIcon = block.icon ? BUTTON_ICON_MAP[block.icon] : null;
                 return (
-                  <a
-                    href={block.href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
-                    class={styleClass}
-                    aria-label={block.label ?? block.icon ?? undefined}
-                  >
-                    {ButtonIcon && (
-                      <span class="footer-btn-icon" aria-hidden="true">
-                        <ButtonIcon width={15} height={15} />
-                      </span>
-                    )}
-                    {block.label && <span>{block.label}</span>}
-                  </a>
+                  href ? (
+                    <a
+                      href={href}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                      class={styleClass}
+                      aria-label={block.label ?? block.icon ?? undefined}
+                    >
+                      {ButtonIcon && (
+                        <span class="footer-btn-icon" aria-hidden="true">
+                          <ButtonIcon width={15} height={15} />
+                        </span>
+                      )}
+                      {block.label && <span>{block.label}</span>}
+                    </a>
+                  ) : (
+                    <span class={styleClass} aria-disabled="true">
+                      {ButtonIcon && (
+                        <span class="footer-btn-icon" aria-hidden="true">
+                          <ButtonIcon width={15} height={15} />
+                        </span>
+                      )}
+                      {block.label && <span>{block.label}</span>}
+                    </span>
+                  )
                 );
               }
 
@@ -72,24 +85,29 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
                 return (
                   <ul class={isHorizontal ? "footer-nav footer-nav-h" : "footer-nav"}>
                     {navItems.map((item) => {
-                      const href = item.url ?? `/${item.pageSlug}`;
-                      const label = item.label ?? item.pageTitle ?? href;
+                      const href =
+                        getSafeConfigHref(item.url) ?? (item.pageSlug ? `/${item.pageSlug}` : null);
+                      const label = item.label ?? item.pageTitle ?? href ?? "#";
                       const external =
-                        item.target === "_blank" || (item.url?.startsWith("http") ?? false);
+                        href !== null && (item.target === "_blank" || isExternalHref(href));
                       return (
                         <li>
-                          <a
-                            href={href}
-                            target={external ? "_blank" : undefined}
-                            rel={external ? "noopener noreferrer" : undefined}
-                            data-analytics-event="site-link-click"
-                            data-analytics-kind="footer"
-                            data-analytics-placement="footer-nav"
-                            data-analytics-label={label}
-                            data-analytics-href={href}
-                          >
-                            {label}
-                          </a>
+                          {href ? (
+                            <a
+                              href={href}
+                              target={external ? "_blank" : undefined}
+                              rel={external ? "noopener noreferrer" : undefined}
+                              data-analytics-event="site-link-click"
+                              data-analytics-kind="footer"
+                              data-analytics-placement="footer-nav"
+                              data-analytics-label={label}
+                              data-analytics-href={href}
+                            >
+                              {label}
+                            </a>
+                          ) : (
+                            <span>{label}</span>
+                          )}
                         </li>
                       );
                     })}

@@ -9,7 +9,7 @@ import {
 } from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   createManagedAdminFormConfig,
   deleteManagedAdminFormConfig,
@@ -24,6 +24,8 @@ import {
  * Admin form configuration CRUD routes.
  */
 export const formConfigRoutes = new Hono<{ Variables: AuthVariables }>();
+
+formConfigRoutes.use("*", requireAdmin);
 
 // DELETE /api/admin/form-configs/:name — delete a form config
 formConfigRoutes.delete("/form-configs/:name", async (c) => {

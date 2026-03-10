@@ -11,7 +11,7 @@ import {
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { renderEmailPreview } from "../../services/email-renderer.js";
 import {
   createManagedEmailTemplate,
@@ -26,6 +26,8 @@ import {
  * Admin email template CRUD routes.
  */
 export const emailTemplateRoutes = new Hono<{ Variables: AuthVariables }>();
+
+emailTemplateRoutes.use("*", requireAdmin);
 
 // GET /api/admin/email-templates — list all
 emailTemplateRoutes.get("/email-templates", async (c) => {

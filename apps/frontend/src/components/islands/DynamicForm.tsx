@@ -11,6 +11,7 @@ import type { Category } from "@lmaa/shared";
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { API_BASE } from "@/lib/client-api";
 import { renderMarkdown } from "@/lib/markdown";
+import { getSafeActionUrl, getSafeConfigHref } from "@/lib/safe-url";
 
 import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
 
@@ -1043,9 +1044,9 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         throw await createApiRequestError(res, "Submit failed");
       }
 
-      const redirect = formConfig.submissionConfig?.successRedirectUrl;
-      if (redirect) {
-        window.location.href = redirect;
+      const safeRedirect = getSafeConfigHref(formConfig.submissionConfig?.successRedirectUrl);
+      if (safeRedirect) {
+        window.location.href = safeRedirect;
       } else {
         setSubmitted(true);
       }
@@ -1227,9 +1228,11 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           const srcKey = fieldKey(sourceField);
           const val = (getValues(srcKey as keyof SimpleFields) as string) ?? "";
           switch (action.type) {
-            case "open-url":
-              if (val) window.open(val, "_blank", "noopener,noreferrer");
+            case "open-url": {
+              const safeUrl = getSafeActionUrl(val);
+              if (safeUrl) window.open(safeUrl, "_blank", "noopener,noreferrer");
               break;
+            }
             case "copy-clipboard":
               if (val) navigator.clipboard.writeText(val).catch(() => {});
               break;

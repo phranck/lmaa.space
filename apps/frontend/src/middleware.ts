@@ -9,6 +9,30 @@
 import { defineMiddleware } from "astro:middleware";
 
 const DEV_DEFAULT_API_URL = "http://localhost:3000/api/v1";
+const WEBSITE_CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "script-src 'self' 'unsafe-inline' https://umami.layered.work",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://umami.layered.work",
+  "form-action 'self'",
+].join("; ");
+const FOOTER_PREVIEW_CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors https://dashboard.lmaa.space http://localhost:5174",
+  "script-src 'self' 'unsafe-inline' https://umami.layered.work",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://umami.layered.work",
+  "form-action 'self'",
+].join("; ");
 
 function normalizeApiBase(input: string): string {
   const trimmed = input.trim().replace(/\/+$/, "");
@@ -50,6 +74,10 @@ function shouldProxy(pathname: string): boolean {
   );
 }
 
+function isEmbeddablePreviewPath(pathname: string): boolean {
+  return pathname === "/preview/footer";
+}
+
 /**
  * Astro request middleware that proxies API, uploads and sitemap to backend.
  */
@@ -57,7 +85,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
   if (!shouldProxy(pathname)) {
-    return next();
+    const response = await next();
+    response.headers.set(
+      "Content-Security-Policy",
+      isEmbeddablePreviewPath(pathname)
+        ? FOOTER_PREVIEW_CONTENT_SECURITY_POLICY
+        : WEBSITE_CONTENT_SECURITY_POLICY,
+    );
+    if (isEmbeddablePreviewPath(pathname)) {
+      response.headers.delete("X-Frame-Options");
+    } else {
+      response.headers.set("X-Frame-Options", "DENY");
+    }
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    return response;
   }
 
   const target = new URL(`${pathname}${context.url.search}`, BACKEND_ORIGIN);

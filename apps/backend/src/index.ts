@@ -29,7 +29,7 @@ const imagePath = env.IMAGE_PATH;
 
 const allowedOrigins =
   env.NODE_ENV === "production"
-    ? ["https://lmaa.space", "https://www.lmaa.space", "https://dashboard.lmaa.space"]
+    ? ["https://dashboard.lmaa.space"]
     : ["http://localhost:5173", "http://localhost:5174"];
 
 app.use(
