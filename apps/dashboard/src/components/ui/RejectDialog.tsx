@@ -11,6 +11,7 @@ import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts"
 export interface RejectDialogMessages {
   cancel: string;
   comment: string;
+  copyUrl: string;
   optional: string;
   commentPlaceholder: string;
   rejectionLongLabel: string;
@@ -111,7 +112,7 @@ export function RejectDialog({
             type="button"
             onClick={() => navigator.clipboard.writeText(url)}
             className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
-            aria-label="Copy URL"
+            aria-label={messages.copyUrl}
           >
             <SFDocumentOnDocumentFill className="w-4 h-4" />
           </button>

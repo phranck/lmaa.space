@@ -3,13 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import type { FooterBlock } from "@lmaa/contracts";
 
-const BLOCK_LABELS: Record<FooterBlock["type"], string> = {
-  headline: "Überschrift",
-  text: "Markdown",
-  button: "Button",
-  "footer-nav": "Footer-Nav",
-  separator: "Trennlinie",
-};
+import { useI18n } from "@/context/I18nContext.tsx";
 
 const BLOCK_ABBR: Record<FooterBlock["type"], string> = {
   headline: "H",
@@ -19,10 +13,13 @@ const BLOCK_ABBR: Record<FooterBlock["type"], string> = {
   separator: "—",
 };
 
-function getBlockLabel(block: FooterBlock): string {
-  if (block.type === "headline") return block.text || BLOCK_LABELS.headline;
-  if (block.type === "button") return block.label || BLOCK_LABELS.button;
-  return BLOCK_LABELS[block.type];
+function getBlockLabel(
+  block: FooterBlock,
+  labels: Record<FooterBlock["type"], string>,
+): string {
+  if (block.type === "headline") return block.text || labels.headline;
+  if (block.type === "button") return block.label || labels.button;
+  return labels[block.type];
 }
 
 interface Props {
@@ -38,6 +35,14 @@ interface Props {
  * Follows the same patterns as BuilderField in the form builder.
  */
 export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelete }: Props) {
+  const { messages } = useI18n();
+  const labels: Record<FooterBlock["type"], string> = {
+    headline: messages.content.footerBuilder.blockLabels.headline,
+    text: messages.content.footerBuilder.blockLabels.markdown,
+    button: messages.content.footerBuilder.blockLabels.button,
+    "footer-nav": messages.content.footerBuilder.blockLabels.footerNav,
+    separator: messages.content.footerBuilder.blockLabels.separator,
+  };
   const sortableId = `block:${columnId}:${block.id}`;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: sortableId,
@@ -64,7 +69,7 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
       }`}
     >
       <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
-        {getBlockLabel(block)}
+        {getBlockLabel(block, labels)}
       </span>
       <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-border-subtle)] text-[var(--ds-text)]/60">
         {BLOCK_ABBR[block.type]}
@@ -72,7 +77,7 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
 
       <button
         type="button"
-        aria-label="Block entfernen"
+        aria-label={messages.content.footerBuilder.removeBlock}
         onClick={(e) => {
           e.stopPropagation();
           onDelete();

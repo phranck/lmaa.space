@@ -609,11 +609,11 @@ export function ContentEditorPage() {
       </PageBody>
 
       <Toolbar>
-        <ShortcutHint keys={["⌘", "S"]} label="Speichern" />
-        <ShortcutHint keys={["⌘", "B"]} label="Fett" />
-        <ShortcutHint keys={["⌘", "I"]} label="Kursiv" />
-        <ShortcutHint keys={["⌘", "⇧", "D"]} label="Durchgestrichen" />
-        <ShortcutHint keys={["⌘", "K"]} label="Link" />
+        <ShortcutHint keys={["⌘", "S"]} label={editorMessages.shortcuts.save} />
+        <ShortcutHint keys={["⌘", "B"]} label={editorMessages.shortcuts.bold} />
+        <ShortcutHint keys={["⌘", "I"]} label={editorMessages.shortcuts.italic} />
+        <ShortcutHint keys={["⌘", "⇧", "D"]} label={editorMessages.shortcuts.strikethrough} />
+        <ShortcutHint keys={["⌘", "K"]} label={editorMessages.shortcuts.link} />
       </Toolbar>
     </PageLayout>
   );

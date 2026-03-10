@@ -235,6 +235,7 @@ export function ShopReportsTab() {
         messages={{
           cancel: common.cancel,
           comment: suggestionsMessages.comment,
+          copyUrl: common.copyUrl,
           optional: suggestionsMessages.optional,
           commentPlaceholder: suggestionsMessages.rejectReasonPlaceholder,
           rejectionLongLabel: suggestionsMessages.rejectionLongLabel,

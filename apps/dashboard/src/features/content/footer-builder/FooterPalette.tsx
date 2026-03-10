@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { FooterBlock } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 
 type FooterBlockType = FooterBlock["type"];
@@ -55,22 +56,24 @@ function PaletteTile({ type, label }: { type: FooterBlockType; label: string }) 
   );
 }
 
-const PALETTE_BLOCKS: { type: FooterBlockType; label: string }[] = [
-  { type: "button", label: "Button" },
-  { type: "footer-nav", label: "Footer-Nav" },
-  { type: "headline", label: "Überschrift" },
-  { type: "text", label: "Markdown" },
-  { type: "separator", label: "Trennlinie" },
-];
-
 export function FooterPalette() {
+  const { messages } = useI18n();
+  const footerMessages = messages.content.footerBuilder;
+  const paletteBlocks: { type: FooterBlockType; label: string }[] = [
+    { type: "button", label: footerMessages.blockLabels.button },
+    { type: "footer-nav", label: footerMessages.blockLabels.footerNav },
+    { type: "headline", label: footerMessages.blockLabels.headline },
+    { type: "text", label: footerMessages.blockLabels.markdown },
+    { type: "separator", label: footerMessages.blockLabels.separator },
+  ];
+
   return (
     <Card className="flex flex-col gap-4 p-4 min-w-44">
       <div className="flex flex-col gap-1.5">
         <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
-          Blöcke
+          {footerMessages.paletteTitle}
         </p>
-        {PALETTE_BLOCKS.map(({ type, label }) => (
+        {paletteBlocks.map(({ type, label }) => (
           <PaletteTile key={type} type={type} label={label} />
         ))}
       </div>

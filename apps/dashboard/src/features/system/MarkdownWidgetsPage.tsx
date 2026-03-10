@@ -7,6 +7,7 @@ import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import {
   PageBody,
   PageLayout,
@@ -27,19 +28,6 @@ const EMPTY_CSP = {
   formAction: [],
   fontSrc: [],
 };
-
-const WIDGET_TYPE_OPTIONS = [
-  {
-    value: "html",
-    label: "HTML Widget",
-    description: "Für Snippets wie Ko-fi oder andere kleine Drittanbieter-Widgets.",
-  },
-  {
-    value: "iframe",
-    label: "Iframe Widget",
-    description: "Für Einbettungen über eine externe URL.",
-  },
-] as const;
 
 const fieldLabelClass =
   "px-1 text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)]";
@@ -153,6 +141,9 @@ function Field({
 }
 
 export function MarkdownWidgetsPage() {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const widgetMessages = messages.content.markdownWidgets;
   const { data, isLoading } = useMarkdownWidgets();
   const save = useSaveMarkdownWidgets();
   const [config, setConfig] = useState<MarkdownWidgetsConfig | null>(null);
@@ -174,6 +165,22 @@ export function MarkdownWidgetsPage() {
   const autoOrigins = useMemo(
     () => (selectedWidget ? getAutoOrigins(selectedWidget) : EMPTY_CSP),
     [selectedWidget],
+  );
+  const widgetTypeOptions = useMemo(
+    () =>
+      [
+        {
+          value: "html",
+          label: widgetMessages.types.html.label,
+          description: widgetMessages.types.html.description,
+        },
+        {
+          value: "iframe",
+          label: widgetMessages.types.iframe.label,
+          description: widgetMessages.types.iframe.description,
+        },
+      ] as const,
+    [widgetMessages],
   );
 
   function updateWidget(nextKey: string, updater: (widget: MarkdownWidget) => MarkdownWidget) {
@@ -219,7 +226,7 @@ export function MarkdownWidgetsPage() {
 
   return (
     <PageLayout>
-      <PageHeader title="Markdown Widgets">
+      <PageHeader title={widgetMessages.title}>
         <button
           type="button"
           onClick={handleSave}
@@ -227,7 +234,7 @@ export function MarkdownWidgetsPage() {
           className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
         >
           <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
-          {savedOk ? "Gespeichert" : save.isPending ? "Speichert…" : "Speichern"}
+          {savedOk ? common.saved : save.isPending ? common.saving : common.save}
         </button>
       </PageHeader>
 
@@ -242,9 +249,9 @@ export function MarkdownWidgetsPage() {
               <Card className="h-full p-4 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-sm font-semibold text-[var(--ds-text)]">Widgets</h2>
+                    <h2 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.widgetsTitle}</h2>
                     <p className="text-xs text-[var(--ds-text-muted)]">
-                      Nutzbar in jedem Markdown-Feld via <code>[[widget:key]]</code>.
+                      {widgetMessages.widgetsHint}
                     </p>
                   </div>
                   <button
@@ -253,20 +260,19 @@ export function MarkdownWidgetsPage() {
                     className="inline-flex h-8 items-center gap-1.5 rounded-control border border-[var(--ds-border)] px-3 text-xs font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
                   >
                     <SFPlusCircle className="w-3.5 h-3.5" />
-                    Neu
+                    {widgetMessages.newWidget}
                   </button>
                 </div>
 
                 <div className="space-y-2">
                   {config.widgets.length === 0 ? (
                     <div className="rounded-card border border-dashed border-[var(--ds-border)] px-3 py-4 text-xs leading-5 text-[var(--ds-text-muted)]">
-                      Noch keine Widgets. Lege das erste Widget an und verwende es dann in Markdown mit
-                      <span className="font-mono"> [[widget:key]]</span>.
+                      {widgetMessages.emptyTitle} {widgetMessages.emptyHint}
                     </div>
                   ) : (
                     config.widgets.map((widget) => {
                       const isSelected = widget.key === selectedKey;
-                      const typeLabel = WIDGET_TYPE_OPTIONS.find((option) => option.value === widget.type)?.label;
+                      const typeLabel = widgetTypeOptions.find((option) => option.value === widget.type)?.label;
                       return (
                         <button
                           key={widget.key}
@@ -289,7 +295,7 @@ export function MarkdownWidgetsPage() {
                                   : "bg-stone-500/10 text-stone-400"
                               }`}
                             >
-                              {widget.enabled ? "aktiv" : "aus"}
+                              {widget.enabled ? widgetMessages.active : widgetMessages.inactive}
                             </span>
                           </div>
                           <div className="mt-1 truncate font-mono text-[0.6875rem] text-[var(--ds-text-muted)]">
@@ -312,7 +318,7 @@ export function MarkdownWidgetsPage() {
                       <div>
                         <h2 className="text-lg font-semibold text-[var(--ds-text)]">{selectedWidget.label}</h2>
                         <p className="mt-1 text-sm text-[var(--ds-text-muted)]">
-                          Markdown:
+                          {widgetMessages.markdownLabel}:
                           <span className="ml-2 rounded bg-[var(--ds-bg-elevated)] px-2 py-1 font-mono text-xs">
                             [[widget:{selectedWidget.key}]]
                           </span>
@@ -324,12 +330,12 @@ export function MarkdownWidgetsPage() {
                         className="inline-flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-danger-border)] px-3 text-sm font-medium text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                       >
                         <SFTrashFill className="w-3.5 h-3.5" />
-                        Löschen
+                        {widgetMessages.deleteWidget}
                       </button>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="Key" hint="Wird in Markdown als [[widget:key]] verwendet.">
+                      <Field label={widgetMessages.keyLabel} hint={widgetMessages.keyHint}>
                         <input
                           value={selectedWidget.key}
                           onChange={(event) => {
@@ -342,7 +348,7 @@ export function MarkdownWidgetsPage() {
                         />
                       </Field>
 
-                      <Field label="Name">
+                      <Field label={widgetMessages.nameLabel}>
                         <input
                           value={selectedWidget.label}
                           onChange={(event) =>
@@ -355,7 +361,7 @@ export function MarkdownWidgetsPage() {
                         />
                       </Field>
 
-                      <Field label="Widget-Typ" hint="Bestimmt, welche Eingabefelder darunter erscheinen.">
+                      <Field label={widgetMessages.typeLabel} hint={widgetMessages.typeHint}>
                         <select
                           value={selectedWidget.type}
                           onChange={(event) =>
@@ -366,7 +372,7 @@ export function MarkdownWidgetsPage() {
                           }
                           className={textInputClass}
                         >
-                          {WIDGET_TYPE_OPTIONS.map((option) => (
+                          {widgetTypeOptions.map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
@@ -374,7 +380,7 @@ export function MarkdownWidgetsPage() {
                         </select>
                       </Field>
 
-                      <Field label="Standardhöhe" hint="Wird genutzt, wenn in Markdown keine Höhe angegeben ist.">
+                      <Field label={widgetMessages.defaultHeightLabel} hint={widgetMessages.defaultHeightHint}>
                         <input
                           type="number"
                           min={80}
@@ -402,10 +408,10 @@ export function MarkdownWidgetsPage() {
                           }))
                         }
                       />
-                      <span className="text-sm text-[var(--ds-text)]">Aktiviert</span>
+                      <span className="text-sm text-[var(--ds-text)]">{widgetMessages.enabledLabel}</span>
                     </label>
 
-                    <Field label="Beschreibung" hint="Interne Notiz für Redaktion und spätere Wiedererkennung.">
+                    <Field label={widgetMessages.descriptionLabel} hint={widgetMessages.descriptionHint}>
                       <textarea
                         rows={3}
                         value={selectedWidget.description}
@@ -420,15 +426,15 @@ export function MarkdownWidgetsPage() {
                     </Field>
 
                     <div className={insetCardClass}>
-                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">Widget-Konfiguration</h3>
+                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.configurationTitle}</h3>
                       <p className={fieldHintClass}>
-                        {WIDGET_TYPE_OPTIONS.find((option) => option.value === selectedWidget.type)?.description}
+                        {widgetTypeOptions.find((option) => option.value === selectedWidget.type)?.description}
                       </p>
 
                       {selectedWidget.type === "html" ? (
                         <Field
-                          label="HTML-Snippet"
-                          hint="Füge hier das Widget-Snippet ein. Externe Domains werden automatisch erkannt."
+                          label={widgetMessages.types.html.snippetLabel}
+                          hint={widgetMessages.types.html.snippetHint}
                         >
                           <textarea
                             rows={14}
@@ -444,8 +450,8 @@ export function MarkdownWidgetsPage() {
                         </Field>
                       ) : (
                         <Field
-                          label="Iframe-URL"
-                          hint="Die Einbettung wird aus dieser URL erzeugt. Die nötige Frame-Freigabe wird automatisch gesetzt."
+                          label={widgetMessages.types.iframe.urlLabel}
+                          hint={widgetMessages.types.iframe.urlHint}
                         >
                           <input
                             type="url"
@@ -465,15 +471,14 @@ export function MarkdownWidgetsPage() {
 
                   <Card className="p-4 space-y-4">
                     <div className="space-y-1">
-                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">Automatische Sicherheit</h3>
+                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.autoSecurityTitle}</h3>
                       <p className={fieldHintClass}>
-                        Die benötigten Freigaben werden aus deinem Snippet oder der Iframe-URL abgeleitet.
-                        Zusätzliche Origins brauchst du nur in seltenen Sonderfällen.
+                        {widgetMessages.autoSecurityHint}
                       </p>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-2">
-                      <Field label="Erkannte Script-/Style-/Bild-Origins">
+                      <Field label={widgetMessages.detectedScriptStyleImageOrigins}>
                         <textarea
                           rows={4}
                           readOnly
@@ -485,7 +490,7 @@ export function MarkdownWidgetsPage() {
                           className={readOnlyTextAreaClass}
                         />
                       </Field>
-                      <Field label="Erkannte Frame-/Connect-/Form-Origins">
+                      <Field label={widgetMessages.detectedFrameConnectFormOrigins}>
                         <textarea
                           rows={4}
                           readOnly
@@ -501,10 +506,10 @@ export function MarkdownWidgetsPage() {
 
                     <details className="rounded-card border border-[var(--ds-border)] px-4 py-3">
                       <summary className="cursor-pointer text-sm font-medium text-[var(--ds-text)]">
-                        Expertenmodus: zusätzliche Origins
+                        {widgetMessages.expertModeTitle}
                       </summary>
                       <div className="mt-4 grid gap-4 md:grid-cols-2">
-                        <Field label="Zusätzliche script-src Origins">
+                        <Field label={widgetMessages.additionalScriptSrcOrigins}>
                           <textarea
                             rows={4}
                             value={joinOrigins(selectedWidget.csp.scriptSrc)}
@@ -517,7 +522,7 @@ export function MarkdownWidgetsPage() {
                             className={`${textAreaClass} font-mono text-xs`}
                           />
                         </Field>
-                        <Field label="Zusätzliche style-src Origins">
+                        <Field label={widgetMessages.additionalStyleSrcOrigins}>
                           <textarea
                             rows={4}
                             value={joinOrigins(selectedWidget.csp.styleSrc)}
@@ -530,7 +535,7 @@ export function MarkdownWidgetsPage() {
                             className={`${textAreaClass} font-mono text-xs`}
                           />
                         </Field>
-                        <Field label="Zusätzliche img-src Origins">
+                        <Field label={widgetMessages.additionalImgSrcOrigins}>
                           <textarea
                             rows={4}
                             value={joinOrigins(selectedWidget.csp.imgSrc)}
@@ -543,7 +548,7 @@ export function MarkdownWidgetsPage() {
                             className={`${textAreaClass} font-mono text-xs`}
                           />
                         </Field>
-                        <Field label="Zusätzliche connect-src Origins">
+                        <Field label={widgetMessages.additionalConnectSrcOrigins}>
                           <textarea
                             rows={4}
                             value={joinOrigins(selectedWidget.csp.connectSrc)}
@@ -556,7 +561,7 @@ export function MarkdownWidgetsPage() {
                             className={`${textAreaClass} font-mono text-xs`}
                           />
                         </Field>
-                        <Field label="Zusätzliche frame-src Origins">
+                        <Field label={widgetMessages.additionalFrameSrcOrigins}>
                           <textarea
                             rows={4}
                             value={joinOrigins(selectedWidget.csp.frameSrc)}
@@ -569,7 +574,7 @@ export function MarkdownWidgetsPage() {
                             className={`${textAreaClass} font-mono text-xs`}
                           />
                         </Field>
-                        <Field label="Zusätzliche form-action Origins">
+                        <Field label={widgetMessages.additionalFormActionOrigins}>
                           <textarea
                             rows={4}
                             value={joinOrigins(selectedWidget.csp.formAction)}
@@ -582,7 +587,7 @@ export function MarkdownWidgetsPage() {
                             className={`${textAreaClass} font-mono text-xs`}
                           />
                         </Field>
-                        <Field label="Zusätzliche font-src Origins">
+                        <Field label={widgetMessages.additionalFontSrcOrigins}>
                           <textarea
                             rows={4}
                             value={joinOrigins(selectedWidget.csp.fontSrc)}
@@ -600,28 +605,28 @@ export function MarkdownWidgetsPage() {
                   </Card>
 
                   <Card className="p-4 space-y-2">
-                    <h3 className="text-sm font-semibold text-[var(--ds-text)]">Markdown-Verwendung</h3>
+                    <h3 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.usageTitle}</h3>
                     <p className={`${fieldHintClass} leading-5`}>
-                      Widget:
+                      {widgetMessages.widgetUsage}:
                       <span className="ml-2 font-mono">[[widget:{selectedWidget.key}]]</span>
                     </p>
                     <p className={`${fieldHintClass} leading-5`}>
-                      Bild:
+                      {widgetMessages.imageUsage}:
                       <span className="ml-2 font-mono">
                         [[image:/uploads/datei.jpg alt="Alt" width=320]]
                       </span>
                     </p>
                     <p className={`${fieldHintClass} leading-5`}>
-                      PDF:
+                      {widgetMessages.pdfUsage}:
                       <span className="ml-2 font-mono">
-                        [[pdf:/uploads/datei.pdf label="PDF öffnen"]]
+                        {`[[pdf:/uploads/datei.pdf label="${widgetMessages.pdfExampleLabel}"]]`}
                       </span>
                     </p>
                   </Card>
                 </div>
               ) : (
                 <Card className="flex min-h-[24rem] items-center justify-center p-6 text-sm text-[var(--ds-text-muted)]">
-                  Wähle ein Widget aus oder lege links ein neues an.
+                  {widgetMessages.emptySelection}
                 </Card>
               )}
             </PageSplitMain>

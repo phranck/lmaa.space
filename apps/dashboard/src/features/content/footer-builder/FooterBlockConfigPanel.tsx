@@ -16,20 +16,6 @@ const labelClass = "text-xs font-semibold text-[var(--ds-text-subtle)] uppercase
 const inputClass =
   "h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]";
 
-const BLOCK_TYPE_LABELS: Record<FooterBlock["type"], string> = {
-  headline: "Überschrift",
-  text: "Markdown",
-  button: "Button",
-  "footer-nav": "Footer-Nav",
-  separator: "Trennlinie",
-};
-
-const BUTTON_STYLE_OPTIONS = [
-  { value: "filled" as const, label: "Filled" },
-  { value: "outline" as const, label: "Outline" },
-  { value: "ghost" as const, label: "Ghost" },
-];
-
 interface Props {
   block: FooterBlock;
   onChange: (updated: FooterBlock) => void;
@@ -42,6 +28,19 @@ interface Props {
 export function FooterBlockConfigPanel({ block, onChange }: Props) {
   const { messages } = useI18n();
   const buttonMessages = messages.formBuilder.panel;
+  const footerMessages = messages.content.footerBuilder;
+  const blockTypeLabels: Record<FooterBlock["type"], string> = {
+    headline: footerMessages.blockLabels.headline,
+    text: footerMessages.blockLabels.markdown,
+    button: footerMessages.blockLabels.button,
+    "footer-nav": footerMessages.blockLabels.footerNav,
+    separator: footerMessages.blockLabels.separator,
+  };
+  const buttonStyleOptions = [
+    { value: "filled" as const, label: footerMessages.styleOptions.filled },
+    { value: "outline" as const, label: footerMessages.styleOptions.outline },
+    { value: "ghost" as const, label: footerMessages.styleOptions.ghost },
+  ];
 
   return (
     <Card className="flex flex-col gap-4 p-4 min-w-64">
@@ -51,17 +50,17 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
           <FooterBlockTypeIcon type={block.type} />
         </span>
         <span className="text-sm font-semibold text-[var(--ds-text)]">
-          {BLOCK_TYPE_LABELS[block.type]}
+          {blockTypeLabels[block.type]}
         </span>
       </div>
 
       {block.type === "separator" && (
-        <p className="text-xs text-[var(--ds-text-subtle)] italic">Keine weiteren Einstellungen.</p>
+        <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.noSettings}</p>
       )}
 
       {block.type === "headline" && (
         <label className="flex flex-col gap-1">
-          <span className={labelClass}>Text</span>
+          <span className={labelClass}>{footerMessages.headlineTextLabel}</span>
           <input
             type="text"
             className={inputClass}
@@ -73,7 +72,7 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
 
       {block.type === "text" && (
         <div className="flex flex-col gap-1">
-          <span className={labelClass}>Inhalt</span>
+          <span className={labelClass}>{footerMessages.contentLabel}</span>
           <MarkdownEditor
             value={block.markdown}
             onChange={(v) => onChange({ ...block, markdown: v })}
@@ -86,13 +85,13 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
       {block.type === "button" && (
         <>
           <label className="flex flex-col gap-1">
-            <span className={labelClass}>Label</span>
+            <span className={labelClass}>{footerMessages.buttonLabelField}</span>
             <input
               type="text"
               className={inputClass}
               value={block.label ?? ""}
               onChange={(e) => onChange({ ...block, label: e.target.value || undefined })}
-              placeholder="Button-Text"
+              placeholder={footerMessages.buttonLabelPlaceholder}
             />
           </label>
 
@@ -110,21 +109,21 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
           </Suspense>
 
           <label className="flex flex-col gap-1">
-            <span className={labelClass}>URL</span>
+            <span className={labelClass}>{footerMessages.urlLabel}</span>
             <input
               type="text"
               autoComplete="off"
               className={inputClass}
               value={block.href}
               onChange={(e) => onChange({ ...block, href: e.target.value })}
-              placeholder="https://… oder /pfad"
+              placeholder={footerMessages.urlPlaceholder}
             />
           </label>
 
           <div className="flex flex-col gap-1">
-            <span className={labelClass}>Stil</span>
+            <span className={labelClass}>{footerMessages.styleLabel}</span>
             <div className="flex gap-1.5">
-              {BUTTON_STYLE_OPTIONS.map(({ value, label }) => (
+              {buttonStyleOptions.map(({ value, label }) => (
                 <button
                   key={value}
                   type="button"
@@ -148,20 +147,23 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
               onChange={(e) => onChange({ ...block, external: e.target.checked })}
               className="w-4 h-4 accent-[var(--color-primary)]"
             />
-            <span className="text-sm text-[var(--ds-text)]">Externer Link (neuer Tab)</span>
+            <span className="text-sm text-[var(--ds-text)]">{footerMessages.externalLink}</span>
           </label>
         </>
       )}
 
       {block.type === "footer-nav" && (
         <div className="flex flex-col gap-2">
-          <span className={labelClass}>Ausrichtung</span>
+          <span className={labelClass}>{footerMessages.directionLabel}</span>
           <SegmentSwitch
             value={block.direction ?? "vertical"}
             onChange={(v) => onChange({ ...block, direction: v })}
             options={[
-              { value: "vertical" as const, label: "Vertikal" },
-              { value: "horizontal" as const, label: "Horizontal" },
+              { value: "vertical" as const, label: footerMessages.directionOptions.vertical },
+              {
+                value: "horizontal" as const,
+                label: footerMessages.directionOptions.horizontal,
+              },
             ]}
           />
         </div>

@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import type { FormField, FormRow } from "@lmaa/contracts";
 
+import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderField } from "@/features/templates/form-builder/BuilderField.tsx";
 
 interface BuilderRowProps {
@@ -25,6 +26,7 @@ export function BuilderRow({
   onSelectField,
   onDeleteField,
 }: BuilderRowProps) {
+  const { messages } = useI18n();
   const sortableIds = row.fields.map((f: FormField) => `field:${row.id}:${f.id}`);
   const usedSpan = row.fields.reduce((sum, f) => sum + (f.span ?? 12), 0);
   const freeSpan = Math.max(0, 12 - usedSpan);
@@ -68,7 +70,7 @@ export function BuilderRow({
       {/* Row drag handle */}
       <button
         type="button"
-        aria-label="Zeile verschieben"
+        aria-label={messages.formBuilder.moveRow}
         {...attributes}
         {...listeners}
         className="shrink-0 self-center cursor-grab active:cursor-grabbing text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] px-0.5 rounded"

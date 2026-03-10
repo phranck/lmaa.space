@@ -135,6 +135,7 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
 
 function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
   const { messages } = useI18n();
+  const common = messages.common;
   const s = messages.layout.sidebar;
   const { data: templates } = useEmailTemplates();
   const createTemplate = useCreateEmailTemplate();
@@ -169,7 +170,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
           </NavLink>
           <button
             type="button"
-            title="Duplicate"
+            title={common.duplicate}
             onClick={async (e) => {
               e.preventDefault();
               try {
@@ -340,7 +341,7 @@ export function Sidebar({
               />
               <SidebarItem
                 to="/markdown-widgets"
-                label="Markdown Widgets"
+                label={s.markdownWidgets}
                 icon={<SFDocumentOnDocumentFill className="w-4 h-4" />}
                 onClick={onItemClick}
               />

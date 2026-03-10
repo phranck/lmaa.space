@@ -22,6 +22,7 @@ import { resolveFooterHeightPx } from "@lmaa/shared";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 import { FooterBlockConfigPanel } from "./footer-builder/FooterBlockConfigPanel.tsx";
@@ -34,22 +35,14 @@ import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "./hooks/
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];
 
-const BLOCK_TYPE_LABELS: Record<FooterBlockType, string> = {
-  headline: "Überschrift",
-  text: "Markdown",
-  button: "Button",
-  "footer-nav": "Footer-Nav",
-  separator: "Trennlinie",
-};
-
 function buildDefaultBlock(type: FooterBlockType): FooterBlock {
   switch (type) {
     case "headline":
-      return { id: nanoid(), type: "headline", text: "Überschrift" };
+      return { id: nanoid(), type: "headline", text: "" };
     case "text":
       return { id: nanoid(), type: "text", markdown: "" };
     case "button":
-      return { id: nanoid(), type: "button", label: "Button", href: "/", external: false, style: "filled" };
+      return { id: nanoid(), type: "button", label: "", href: "/", external: false, style: "filled" };
     case "footer-nav":
       return { id: nanoid(), type: "footer-nav", direction: "vertical" };
     case "separator":
@@ -70,12 +63,6 @@ function parseTargetId(id: string): { colId: string; blockId?: string } | null {
   return null;
 }
 
-function getDragLabel(type: FooterBlockType, block?: FooterBlock): string {
-  if (block?.type === "headline") return block.text || BLOCK_TYPE_LABELS.headline;
-  if (block?.type === "button") return block.label || BLOCK_TYPE_LABELS.button;
-  return BLOCK_TYPE_LABELS[type];
-}
-
 function buildFooterPreviewUrl(token: string) {
   const frontendBase =
     import.meta.env.VITE_FRONTEND_URL ??
@@ -89,6 +76,9 @@ function buildFooterPreviewUrl(token: string) {
  * click block to configure, click preview header to open style settings.
  */
 export function FooterBuilderPage() {
+  const { messages } = useI18n();
+  const common = messages.common;
+  const footerMessages = messages.content.footerBuilder;
   const { data: loaded, isLoading } = useFooterConfig();
   const save = useSaveFooterConfig();
   const { mutate: createPreviewSession, isPending: isPreviewPending } = useFooterPreview();
@@ -98,6 +88,13 @@ export function FooterBuilderPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [savedOk, setSavedOk] = useState(false);
   const [activeDrag, setActiveDrag] = useState<{ label: string } | null>(null);
+  const blockTypeLabels: Record<FooterBlockType, string> = {
+    headline: footerMessages.blockLabels.headline,
+    text: footerMessages.blockLabels.markdown,
+    button: footerMessages.blockLabels.button,
+    "footer-nav": footerMessages.blockLabels.footerNav,
+    separator: footerMessages.blockLabels.separator,
+  };
 
   const configRef = useRef(config);
   configRef.current = config;
@@ -181,11 +178,18 @@ export function FooterBuilderPage() {
     const id = String(event.active.id);
     if (id.startsWith("palette:")) {
       const type = id.replace("palette:", "") as FooterBlockType;
-      setActiveDrag({ label: BLOCK_TYPE_LABELS[type] });
+      setActiveDrag({ label: blockTypeLabels[type] });
     } else if (id.startsWith("block:")) {
       const [, colId, blockId] = id.split(":");
       const block = config?.columns.find((c) => c.id === colId)?.blocks.find((b) => b.id === blockId);
-      setActiveDrag({ label: getDragLabel(block?.type ?? "headline", block) });
+      setActiveDrag({
+        label:
+          block?.type === "headline"
+            ? block.text || blockTypeLabels.headline
+            : block?.type === "button"
+              ? block.label || blockTypeLabels.button
+              : blockTypeLabels[block?.type ?? "headline"],
+      });
     }
   }
 
@@ -332,10 +336,10 @@ export function FooterBuilderPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Footer-Builder">
+      <PageHeader title={footerMessages.title}>
         <div className="flex items-center gap-2">
-          {save.isError && <span className="text-xs text-red-500">Fehler beim Speichern</span>}
-          {savedOk && <span className="text-xs text-green-500">Gespeichert</span>}
+          {save.isError && <span className="text-xs text-red-500">{footerMessages.saveError}</span>}
+          {savedOk && <span className="text-xs text-green-500">{common.saved}</span>}
           <button
             type="button"
             onClick={handleSave}
@@ -343,7 +347,7 @@ export function FooterBuilderPage() {
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
           >
             <SFSquareAndArrowDownFill className="w-4 h-4" />
-            {save.isPending ? "Speichert…" : "Speichern"}
+            {save.isPending ? common.saving : common.save}
           </button>
         </div>
       </PageHeader>
