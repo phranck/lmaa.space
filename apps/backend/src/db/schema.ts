@@ -101,6 +101,7 @@ export const adminUsers = pgTable(
     id: serial("id").primaryKey(),
     username: text("username").notNull().unique(),
     email: text("email").notNull().unique(),
+    locale: text("locale").$type<"de" | "en">().notNull().default("de"),
     passwordHash: text("password_hash"),
     inviteTokenHash: text("invite_token_hash"),
     inviteExpiresAt: timestamp("invite_expires_at"),

@@ -1,10 +1,11 @@
-import { type ReactNode, createContext, useContext, useMemo, useState } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import {
   DASHBOARD_MESSAGES,
   type DashboardLocale,
   type DashboardMessages,
 } from "@/i18n/messages.ts";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 
 const DASHBOARD_LOCALE_STORAGE_KEY = "dashboard-locale";
 
@@ -46,7 +47,16 @@ export function resolveInitialLocale(): DashboardLocale {
  * @returns Context provider element.
  */
 export function I18nProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [localeState, setLocaleState] = useState<DashboardLocale>(resolveInitialLocale);
+
+  useEffect(() => {
+    if (!user?.locale || user.locale === localeState) return;
+    setLocaleState(user.locale);
+    try {
+      localStorage.setItem(DASHBOARD_LOCALE_STORAGE_KEY, user.locale);
+    } catch {}
+  }, [localeState, user?.locale]);
 
   const value = useMemo<I18nContextValue>(() => {
     const messages = DASHBOARD_MESSAGES[localeState];

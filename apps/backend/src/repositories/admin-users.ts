@@ -12,6 +12,7 @@ const ADMIN_USER_FIELDS = {
   id: adminUsers.id,
   username: adminUsers.username,
   email: adminUsers.email,
+  locale: adminUsers.locale,
   role: adminUsers.role,
   firstName: adminUsers.firstName,
   lastName: adminUsers.lastName,
@@ -27,6 +28,7 @@ export type AdminUserRow = {
   id: number;
   username: string;
   email: string;
+  locale: "de" | "en";
   role: AdminRole;
   firstName: string | null;
   lastName: string | null;
@@ -58,6 +60,7 @@ type UpdateAdminUserInput = Partial<{
   inviteExpiresAt: Date | null;
   firstName: string;
   lastName: string;
+  locale: "de" | "en";
   role: Extract<AdminRole, "admin" | "moderator">;
   avatarUrl: string | null;
 }>;

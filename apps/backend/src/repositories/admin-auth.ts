@@ -28,6 +28,7 @@ export async function createOwnerAdminWithSession(input: CreateOwnerAdminInput) 
       .values({
         username: input.username,
         email: input.email,
+        locale: "de",
         passwordHash: input.passwordHash,
         isOwner: true,
         role: "owner",
@@ -60,6 +61,7 @@ export async function getAdminProfileById(adminId: number): Promise<AdminUserRow
       id: adminUsers.id,
       username: adminUsers.username,
       email: adminUsers.email,
+      locale: adminUsers.locale,
       role: adminUsers.role,
       firstName: adminUsers.firstName,
       lastName: adminUsers.lastName,
@@ -141,6 +143,7 @@ export async function findAdminByInviteTokenHash(inviteTokenHash: string) {
       id: adminUsers.id,
       username: adminUsers.username,
       email: adminUsers.email,
+      locale: adminUsers.locale,
       role: adminUsers.role,
       avatarUrl: adminUsers.avatarUrl,
       inviteExpiresAt: adminUsers.inviteExpiresAt,
@@ -171,6 +174,7 @@ export async function acceptInviteWithSession(input: { adminId: number; password
       .returning({
         id: adminUsers.id,
         username: adminUsers.username,
+        locale: adminUsers.locale,
         role: adminUsers.role,
         avatarUrl: adminUsers.avatarUrl,
       });

@@ -1,0 +1,1 @@
+ALTER TABLE "admin_users" ADD COLUMN "locale" text DEFAULT 'de' NOT NULL;

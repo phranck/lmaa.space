@@ -27,6 +27,7 @@ export const updateUserSchema = z.object({
   password: z.string().min(8).optional(),
   firstName: z.string().max(64).optional(),
   lastName: z.string().max(64).optional(),
+  locale: z.enum(["de", "en"]).optional(),
   role: z.enum(["admin", "moderator"]).optional(),
 });
 

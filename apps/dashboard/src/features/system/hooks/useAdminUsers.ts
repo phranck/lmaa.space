@@ -66,6 +66,7 @@ interface UpdateUserFormData {
   password?: string;
   firstName?: string;
   lastName?: string;
+  locale?: "de" | "en";
   role?: "admin" | "moderator";
 }
 
@@ -81,7 +82,7 @@ export function useUpdateUser() {
       api.patch<AdminUser>(`/admin/users/${id}`, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
-      qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }
@@ -101,7 +102,7 @@ export function useSaveUserAvatar() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
-      qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }
@@ -118,7 +119,7 @@ export function useSetGravatarAvatar() {
       api.patch<AdminUser>(`/admin/users/${id}/avatar`, { gravatarUrl }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
-      qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }
@@ -134,7 +135,7 @@ export function useDeleteUserAvatar() {
     mutationFn: (id: number) => api.delete(`/admin/users/${id}/avatar`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
-      qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }
