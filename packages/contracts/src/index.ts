@@ -26,3 +26,5 @@ export * from "./admin-media";
 export * from "./admin-form-config";
 /** Footer builder type definitions and schemas. */
 export * from "./footer-config";
+/** Admin markdown widget schemas. */
+export * from "./admin-markdown-widgets";

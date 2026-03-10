@@ -14,6 +14,7 @@ const WEBSITE_CONTENT_SECURITY_POLICY = [
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
+  "frame-src 'self'",
   "script-src 'self' 'unsafe-inline' https://umami.layered.work",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
@@ -86,19 +87,27 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (!shouldProxy(pathname)) {
     const response = await next();
-    response.headers.set(
-      "Content-Security-Policy",
-      isEmbeddablePreviewPath(pathname)
-        ? FOOTER_PREVIEW_CONTENT_SECURITY_POLICY
-        : WEBSITE_CONTENT_SECURITY_POLICY,
-    );
-    if (isEmbeddablePreviewPath(pathname)) {
-      response.headers.delete("X-Frame-Options");
-    } else {
-      response.headers.set("X-Frame-Options", "DENY");
+    if (!response.headers.has("Content-Security-Policy")) {
+      response.headers.set(
+        "Content-Security-Policy",
+        isEmbeddablePreviewPath(pathname)
+          ? FOOTER_PREVIEW_CONTENT_SECURITY_POLICY
+          : WEBSITE_CONTENT_SECURITY_POLICY,
+      );
     }
-    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    if (!response.headers.has("X-Frame-Options")) {
+      if (isEmbeddablePreviewPath(pathname)) {
+        response.headers.delete("X-Frame-Options");
+      } else {
+        response.headers.set("X-Frame-Options", "DENY");
+      }
+    }
+    if (!response.headers.has("Referrer-Policy")) {
+      response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    }
+    if (!response.headers.has("Permissions-Policy")) {
+      response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    }
     return response;
   }
 

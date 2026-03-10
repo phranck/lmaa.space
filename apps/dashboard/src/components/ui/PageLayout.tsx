@@ -12,11 +12,20 @@ export function PageBody({ className, ...props }: HTMLAttributes<HTMLDivElement>
   return <div className={cx("flex flex-1 min-h-0 flex-col", className)} {...props} />;
 }
 
-export function PageSplitLayout({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+type PageSplitLayoutProps = HTMLAttributes<HTMLDivElement> & {
+  columnsClassName?: string;
+};
+
+export function PageSplitLayout({
+  className,
+  columnsClassName,
+  ...props
+}: PageSplitLayoutProps) {
   return (
     <div
       className={cx(
-        "grid flex-1 min-h-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]",
+        "grid flex-1 min-h-0 grid-cols-1 gap-4",
+        columnsClassName ?? "xl:grid-cols-[minmax(0,1fr)_22rem]",
         className,
       )}
       {...props}

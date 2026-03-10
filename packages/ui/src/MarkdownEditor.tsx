@@ -147,6 +147,11 @@ function HintsBar() {
         <Hint keys={["⌘", "K"]} label="Link" />
         <Hint keys={["⌘", "⇧", "D"]} label="Durch." />
       </div>
+      <div className="hidden xl:flex items-center gap-2 text-[var(--ds-text-subtle)]">
+        <span className="font-mono">[[widget:key]]</span>
+        <span className="font-mono">[[image:/uploads/...]]</span>
+        <span className="font-mono">[[pdf:/uploads/...]]</span>
+      </div>
     </div>
   );
 }

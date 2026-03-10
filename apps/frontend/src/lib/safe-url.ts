@@ -70,6 +70,30 @@ export function isExternalHref(href: string): boolean {
   }
 }
 
+export function getSafeSiteAssetPath(raw: string | null | undefined): string | null {
+  const value = raw?.trim();
+  if (!value) return null;
+
+  if (/^\/(?!\/)/.test(value)) {
+    return value;
+  }
+
+  try {
+    const parsed = new URL(value);
+    if ((parsed.protocol === "https:" || parsed.protocol === "http:") && SITE_HOSTS.has(parsed.hostname.toLowerCase())) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+
+    if (parsed.protocol === "http:" && isLoopbackHost(parsed.hostname)) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
