@@ -130,7 +130,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
       {/* Delete button — only visible on hover, positioned at top-right corner */}
       <button
         type="button"
-        aria-label="Feld entfernen"
+        aria-label={messages.formBuilder.removeField}
         onClick={(e) => {
           e.stopPropagation();
           onDelete();

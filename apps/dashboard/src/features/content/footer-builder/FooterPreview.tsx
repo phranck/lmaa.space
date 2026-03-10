@@ -1,3 +1,5 @@
+import { useI18n } from "@/context/I18nContext.tsx";
+
 interface Props {
   src: string | null;
   heightPx: string;
@@ -8,6 +10,9 @@ interface Props {
  * Iframe-based footer preview that loads the real frontend preview route.
  */
 export function FooterPreview({ src, heightPx, isLoading }: Props) {
+  const { messages } = useI18n();
+  const footerMessages = messages.content.footerBuilder;
+
   return (
     <div className="relative">
       {isLoading && (
@@ -17,7 +22,7 @@ export function FooterPreview({ src, heightPx, isLoading }: Props) {
       )}
       {src === null ? (
         <div className="h-32 flex items-center justify-center text-xs text-[var(--ds-text-muted)]">
-          Noch keine Vorschau geladen.
+          {footerMessages.noPreviewLoaded}
         </div>
       ) : (
         <div
@@ -26,7 +31,7 @@ export function FooterPreview({ src, heightPx, isLoading }: Props) {
         >
           <iframe
             src={src}
-            title="Footer Vorschau"
+            title={footerMessages.previewTitle}
             className="w-full h-full border-none bg-transparent"
             sandbox="allow-same-origin"
           />

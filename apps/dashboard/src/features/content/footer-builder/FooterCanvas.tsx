@@ -7,14 +7,9 @@ import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 import type { FooterColumn } from "@lmaa/contracts";
 
 import { Dropdown } from "@/components/ui/Dropdown.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 
 import { FooterBlockItem } from "./FooterBlockItem.tsx";
-
-const SPAN_OPTIONS = [
-  { value: "1", label: "Schmal" },
-  { value: "2", label: "Normal" },
-  { value: "3", label: "Breit" },
-];
 
 interface Props {
   column: FooterColumn;
@@ -39,6 +34,13 @@ export function FooterCanvas({
   onChangeSpan,
   onRemoveColumn,
 }: Props) {
+  const { messages } = useI18n();
+  const footerMessages = messages.content.footerBuilder;
+  const SPAN_OPTIONS = [
+    { value: "1", label: footerMessages.columnSpan.narrow },
+    { value: "2", label: footerMessages.columnSpan.normal },
+    { value: "3", label: footerMessages.columnSpan.wide },
+  ];
   const {
     attributes,
     listeners,
@@ -67,7 +69,7 @@ export function FooterCanvas({
           {...attributes}
           {...listeners}
           className="shrink-0 cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] touch-none"
-          title="Spalte verschieben"
+          title={footerMessages.moveColumn}
         >
           <SFLine3Horizontal className="w-3.5 h-3.5" />
         </button>
@@ -82,7 +84,7 @@ export function FooterCanvas({
           type="button"
           onClick={onRemoveColumn}
           className="shrink-0 text-[var(--ds-text-muted)] hover:text-red-500 transition-colors"
-          title="Spalte entfernen"
+          title={footerMessages.removeColumn}
         >
           <SFXmark className="w-3.5 h-3.5" />
         </button>
@@ -99,7 +101,7 @@ export function FooterCanvas({
       >
         {column.blocks.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-48 p-8">
-            <p className="text-sm text-[var(--ds-text-subtle)] text-center">Block hierher ziehen</p>
+            <p className="text-sm text-[var(--ds-text-subtle)] text-center">{footerMessages.dragBlockHere}</p>
           </div>
         ) : (
           <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>

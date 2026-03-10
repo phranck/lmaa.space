@@ -3,32 +3,9 @@ import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 
 const labelClass = "text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider";
-
-const COLOR_FIELDS: { key: keyof FooterStyle; label: string }[] = [
-  { key: "bgColor", label: "Hintergrund" },
-  { key: "textColor", label: "Text" },
-  { key: "headlineColor", label: "Überschriften" },
-  { key: "linkColor", label: "Links" },
-  { key: "linkHoverColor", label: "Link Hover" },
-  { key: "buttonColor", label: "Button-Farbe" },
-  { key: "buttonTextColor", label: "Button-Text" },
-];
-
-const PADDING_OPTIONS = [
-  { value: "sm" as const, label: "Klein" },
-  { value: "md" as const, label: "Normal" },
-  { value: "lg" as const, label: "Groß" },
-  { value: "xl" as const, label: "Sehr groß" },
-];
-
-const HEIGHT_OPTIONS = [
-  { value: "sm" as const, label: "Klein" },
-  { value: "md" as const, label: "Normal" },
-  { value: "lg" as const, label: "Groß" },
-  { value: "xl" as const, label: "Sehr groß" },
-];
 
 interface Props {
   style: FooterStyle;
@@ -36,15 +13,34 @@ interface Props {
 }
 
 export function FooterStylePane({ style, onChange }: Props) {
+  const { messages } = useI18n();
+  const footerMessages = messages.content.footerBuilder;
   const s = { ...FOOTER_STYLE_DEFAULTS, ...style };
+  const colorFields: { key: keyof FooterStyle; label: string }[] = [
+    { key: "bgColor", label: footerMessages.colorFields.background },
+    { key: "textColor", label: footerMessages.colorFields.text },
+    { key: "headlineColor", label: footerMessages.colorFields.headlines },
+    { key: "linkColor", label: footerMessages.colorFields.links },
+    { key: "linkHoverColor", label: footerMessages.colorFields.linkHover },
+    { key: "buttonColor", label: footerMessages.colorFields.button },
+    { key: "buttonTextColor", label: footerMessages.colorFields.buttonText },
+  ];
+  const sizeOptions = [
+    { value: "sm" as const, label: footerMessages.sizeOptions.small },
+    { value: "md" as const, label: footerMessages.sizeOptions.medium },
+    { value: "lg" as const, label: footerMessages.sizeOptions.large },
+    { value: "xl" as const, label: footerMessages.sizeOptions.extraLarge },
+  ];
 
   return (
     <Card className="flex flex-col gap-4 p-4">
       <div className="flex items-center gap-2 pb-3 border-b border-[var(--ds-border)]">
-        <span className="text-sm font-semibold text-[var(--ds-text)]">Stil</span>
+        <span className="text-sm font-semibold text-[var(--ds-text)]">
+          {footerMessages.styleTitle}
+        </span>
       </div>
 
-      {COLOR_FIELDS.map(({ key, label }) => (
+      {colorFields.map(({ key, label }) => (
         <label key={key} className="flex items-center justify-between gap-3">
           <span className={labelClass}>{label}</span>
           <div className="flex items-center gap-2">
@@ -66,20 +62,20 @@ export function FooterStylePane({ style, onChange }: Props) {
       ))}
 
       <div className="flex flex-col gap-2">
-        <span className={labelClass}>Footer-Höhe</span>
+        <span className={labelClass}>{footerMessages.heightLabel}</span>
         <SegmentSwitch
           value={s.height}
           onChange={(v) => onChange({ ...s, height: v })}
-          options={HEIGHT_OPTIONS}
+          options={sizeOptions}
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className={labelClass}>Vertikales Padding</span>
+        <span className={labelClass}>{footerMessages.verticalPaddingLabel}</span>
         <SegmentSwitch
           value={s.paddingY}
           onChange={(v) => onChange({ ...s, paddingY: v })}
-          options={PADDING_OPTIONS}
+          options={sizeOptions}
         />
       </div>
     </Card>

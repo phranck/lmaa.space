@@ -467,6 +467,7 @@ function LoadedSubmissionEditorPage({
         cancelLabel={common.cancel}
         commentLabel={submissionsMessages.suggestions.comment}
         commentPlaceholder={submissionsMessages.suggestions.commentPlaceholder}
+        copyUrlLabel={common.copyUrl}
         errorMessage={reviewMutation.error?.message ?? common.unknownError}
         errorPrefix={submissionsMessages.suggestions.reviewErrorPrefix}
         isError={reviewMutation.isError}
@@ -529,6 +530,7 @@ function LoadedSubmissionEditorPage({
         messages={{
           cancel: common.cancel,
           comment: submissionsMessages.suggestions.comment,
+          copyUrl: common.copyUrl,
           optional: submissionsMessages.suggestions.optional,
           commentPlaceholder: submissionsMessages.suggestions.rejectReasonPlaceholder,
           rejectionLongLabel: submissionsMessages.suggestions.rejectionLongLabel,
@@ -593,6 +595,7 @@ interface ApproveSubmissionReviewCardProps {
   cancelLabel: string;
   commentLabel: string;
   commentPlaceholder: string;
+  copyUrlLabel: string;
   errorMessage: string;
   errorPrefix: string;
   isError: boolean;
@@ -614,6 +617,7 @@ function ApproveSubmissionReviewCard({
   cancelLabel,
   commentLabel,
   commentPlaceholder,
+  copyUrlLabel,
   errorMessage,
   errorPrefix,
   isError,
@@ -651,7 +655,7 @@ function ApproveSubmissionReviewCard({
             type="button"
             onClick={() => navigator.clipboard.writeText(reviewing.shopUrl)}
             className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
-            aria-label="Copy URL"
+            aria-label={copyUrlLabel}
           >
             <SFDocumentOnDocumentFill className="w-4 h-4" />
           </button>

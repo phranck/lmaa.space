@@ -448,6 +448,7 @@ export function ShopEditorRejectOverlay({ controller }: { controller: ShopEditor
       messages={{
         cancel: common.cancel,
         comment: suggestionsMsg.comment,
+        copyUrl: common.copyUrl,
         optional: suggestionsMsg.optional,
         commentPlaceholder: suggestionsMsg.rejectReasonPlaceholder,
         rejectionLongLabel: suggestionsMsg.rejectionLongLabel,

@@ -17,6 +17,8 @@ export interface DashboardMessages {
     edit: string;
     delete: string;
     remove: string;
+    duplicate: string;
+    copyUrl: string;
     close: string;
     loading: string;
     unknownError: string;
@@ -24,6 +26,7 @@ export interface DashboardMessages {
   layout: {
     menuOpen: string;
     menuClose: string;
+    resizeSidebar: string;
     pageFallbackTitle: string;
     sidebar: {
       sectionGeneral: string;
@@ -46,6 +49,7 @@ export interface DashboardMessages {
       emailTemplates: string;
       emailTemplatesOverview: string;
       footerBuilder: string;
+      markdownWidgets: string;
       editProfile: string;
       logout: string;
       logoutConfirmTitle: string;
@@ -447,6 +451,128 @@ export interface DashboardMessages {
       loadingContent: string;
       saveError: string;
       preview: string;
+      shortcuts: {
+        save: string;
+        bold: string;
+        italic: string;
+        strikethrough: string;
+        link: string;
+      };
+    };
+    footerBuilder: {
+      title: string;
+      saveError: string;
+      styleTitle: string;
+      paletteTitle: string;
+      noSettings: string;
+      headlineTextLabel: string;
+      contentLabel: string;
+      buttonLabelField: string;
+      buttonLabelPlaceholder: string;
+      urlLabel: string;
+      urlPlaceholder: string;
+      styleLabel: string;
+      externalLink: string;
+      directionLabel: string;
+      styleOptions: {
+        filled: string;
+        outline: string;
+        ghost: string;
+      };
+      directionOptions: {
+        vertical: string;
+        horizontal: string;
+      };
+      colorFields: {
+        background: string;
+        text: string;
+        headlines: string;
+        links: string;
+        linkHover: string;
+        button: string;
+        buttonText: string;
+      };
+      sizeOptions: {
+        small: string;
+        medium: string;
+        large: string;
+        extraLarge: string;
+      };
+      heightLabel: string;
+      verticalPaddingLabel: string;
+      previewTitle: string;
+      noPreviewLoaded: string;
+      moveColumn: string;
+      removeColumn: string;
+      dragBlockHere: string;
+      removeBlock: string;
+      columnSpan: {
+        narrow: string;
+        normal: string;
+        wide: string;
+      };
+      blockLabels: {
+        headline: string;
+        markdown: string;
+        button: string;
+        footerNav: string;
+        separator: string;
+      };
+    };
+    markdownWidgets: {
+      title: string;
+      widgetsTitle: string;
+      widgetsHint: string;
+      newWidget: string;
+      emptyTitle: string;
+      emptyHint: string;
+      active: string;
+      inactive: string;
+      markdownLabel: string;
+      deleteWidget: string;
+      keyLabel: string;
+      keyHint: string;
+      nameLabel: string;
+      typeLabel: string;
+      typeHint: string;
+      defaultHeightLabel: string;
+      defaultHeightHint: string;
+      enabledLabel: string;
+      descriptionLabel: string;
+      descriptionHint: string;
+      configurationTitle: string;
+      autoSecurityTitle: string;
+      autoSecurityHint: string;
+      detectedScriptStyleImageOrigins: string;
+      detectedFrameConnectFormOrigins: string;
+      expertModeTitle: string;
+      additionalScriptSrcOrigins: string;
+      additionalStyleSrcOrigins: string;
+      additionalImgSrcOrigins: string;
+      additionalConnectSrcOrigins: string;
+      additionalFrameSrcOrigins: string;
+      additionalFormActionOrigins: string;
+      additionalFontSrcOrigins: string;
+      usageTitle: string;
+      widgetUsage: string;
+      imageUsage: string;
+      pdfUsage: string;
+      pdfExampleLabel: string;
+      emptySelection: string;
+      types: {
+        html: {
+          label: string;
+          description: string;
+          snippetLabel: string;
+          snippetHint: string;
+        };
+        iframe: {
+          label: string;
+          description: string;
+          urlLabel: string;
+          urlHint: string;
+        };
+      };
     };
     linkPicker: {
       insertInternalLink: string;
@@ -653,6 +779,8 @@ export interface DashboardMessages {
     importNewNameLabel: string;
     importSkip: string;
     exportUnsavedWarning: string;
+    moveRow: string;
+    removeField: string;
   };
   emailTemplates: {
     listTitle: string;
@@ -720,6 +848,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       edit: "Bearbeiten",
       delete: "Löschen",
       remove: "Entfernen",
+      duplicate: "Duplizieren",
+      copyUrl: "URL kopieren",
       close: "Schließen",
       loading: "Lade…",
       unknownError: "Unbekannter Fehler",
@@ -727,6 +857,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     layout: {
       menuOpen: "Menü öffnen",
       menuClose: "Menü schließen",
+      resizeSidebar: "Seitenleiste anpassen",
       pageFallbackTitle: "lmaa.space",
       sidebar: {
         sectionGeneral: "Allgemein",
@@ -749,6 +880,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplates: "E-Mail-Templates",
         emailTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
+        markdownWidgets: "Markdown Widgets",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
         logoutConfirmTitle: "Abmelden?",
@@ -1157,6 +1289,129 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loadingContent: "Lade Inhalt…",
         saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
         preview: "Vorschau",
+        shortcuts: {
+          save: "Speichern",
+          bold: "Fett",
+          italic: "Kursiv",
+          strikethrough: "Durchgestrichen",
+          link: "Link",
+        },
+      },
+      footerBuilder: {
+        title: "Footer-Builder",
+        saveError: "Fehler beim Speichern",
+        styleTitle: "Stil",
+        paletteTitle: "Blöcke",
+        noSettings: "Keine weiteren Einstellungen.",
+        headlineTextLabel: "Text",
+        contentLabel: "Inhalt",
+        buttonLabelField: "Label",
+        buttonLabelPlaceholder: "Button-Text",
+        urlLabel: "URL",
+        urlPlaceholder: "https://… oder /pfad",
+        styleLabel: "Stil",
+        externalLink: "Externer Link (neuer Tab)",
+        directionLabel: "Ausrichtung",
+        styleOptions: {
+          filled: "Gefüllt",
+          outline: "Outline",
+          ghost: "Ghost",
+        },
+        directionOptions: {
+          vertical: "Vertikal",
+          horizontal: "Horizontal",
+        },
+        colorFields: {
+          background: "Hintergrund",
+          text: "Text",
+          headlines: "Überschriften",
+          links: "Links",
+          linkHover: "Link Hover",
+          button: "Button-Farbe",
+          buttonText: "Button-Text",
+        },
+        sizeOptions: {
+          small: "Klein",
+          medium: "Normal",
+          large: "Groß",
+          extraLarge: "Sehr groß",
+        },
+        heightLabel: "Footer-Höhe",
+        verticalPaddingLabel: "Vertikales Padding",
+        previewTitle: "Footer Vorschau",
+        noPreviewLoaded: "Noch keine Vorschau geladen.",
+        moveColumn: "Spalte verschieben",
+        removeColumn: "Spalte entfernen",
+        dragBlockHere: "Block hierher ziehen",
+        removeBlock: "Block entfernen",
+        columnSpan: {
+          narrow: "Schmal",
+          normal: "Normal",
+          wide: "Breit",
+        },
+        blockLabels: {
+          headline: "Überschrift",
+          markdown: "Markdown",
+          button: "Button",
+          footerNav: "Footer-Nav",
+          separator: "Trennlinie",
+        },
+      },
+      markdownWidgets: {
+        title: "Markdown Widgets",
+        widgetsTitle: "Widgets",
+        widgetsHint: "Nutzbar in jedem Markdown-Feld via [[widget:key]].",
+        newWidget: "Neu",
+        emptyTitle: "Noch keine Widgets.",
+        emptyHint: "Lege das erste Widget an und verwende es dann in Markdown mit [[widget:key]].",
+        active: "aktiv",
+        inactive: "aus",
+        markdownLabel: "Markdown",
+        deleteWidget: "Löschen",
+        keyLabel: "Key",
+        keyHint: "Wird in Markdown als [[widget:key]] verwendet.",
+        nameLabel: "Name",
+        typeLabel: "Widget-Typ",
+        typeHint: "Bestimmt, welche Eingabefelder darunter erscheinen.",
+        defaultHeightLabel: "Standardhöhe",
+        defaultHeightHint: "Wird genutzt, wenn in Markdown keine Höhe angegeben ist.",
+        enabledLabel: "Aktiviert",
+        descriptionLabel: "Beschreibung",
+        descriptionHint: "Interne Notiz für Redaktion und spätere Wiedererkennung.",
+        configurationTitle: "Widget-Konfiguration",
+        autoSecurityTitle: "Automatische Sicherheit",
+        autoSecurityHint:
+          "Die benötigten Freigaben werden aus deinem Snippet oder der Iframe-URL abgeleitet. Zusätzliche Origins brauchst du nur in seltenen Sonderfällen.",
+        detectedScriptStyleImageOrigins: "Erkannte Script-/Style-/Bild-Origins",
+        detectedFrameConnectFormOrigins: "Erkannte Frame-/Connect-/Form-Origins",
+        expertModeTitle: "Expertenmodus: zusätzliche Origins",
+        additionalScriptSrcOrigins: "Zusätzliche script-src Origins",
+        additionalStyleSrcOrigins: "Zusätzliche style-src Origins",
+        additionalImgSrcOrigins: "Zusätzliche img-src Origins",
+        additionalConnectSrcOrigins: "Zusätzliche connect-src Origins",
+        additionalFrameSrcOrigins: "Zusätzliche frame-src Origins",
+        additionalFormActionOrigins: "Zusätzliche form-action Origins",
+        additionalFontSrcOrigins: "Zusätzliche font-src Origins",
+        usageTitle: "Markdown-Verwendung",
+        widgetUsage: "Widget",
+        imageUsage: "Bild",
+        pdfUsage: "PDF",
+        pdfExampleLabel: "PDF öffnen",
+        emptySelection: "Wähle ein Widget aus oder lege links ein neues an.",
+        types: {
+          html: {
+            label: "HTML Widget",
+            description: "Für Snippets wie Ko-fi oder andere kleine Drittanbieter-Widgets.",
+            snippetLabel: "HTML-Snippet",
+            snippetHint: "Füge hier das Widget-Snippet ein. Externe Domains werden automatisch erkannt.",
+          },
+          iframe: {
+            label: "Iframe Widget",
+            description: "Für Einbettungen über eine externe URL.",
+            urlLabel: "Iframe-URL",
+            urlHint: "Die Einbettung wird aus dieser URL erzeugt. Die nötige Frame-Freigabe wird automatisch gesetzt.",
+          },
+        },
       },
       linkPicker: {
         insertInternalLink: "Internen Link einfügen",
@@ -1363,6 +1618,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importNewNameLabel: "Neuer Name",
       importSkip: "Überspringen",
       exportUnsavedWarning: "Bitte zuerst speichern, bevor du exportierst.",
+      moveRow: "Zeile verschieben",
+      removeField: "Feld entfernen",
     },
     emailTemplates: {
       listTitle: "E-Mail-Templates",
@@ -1425,6 +1682,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       edit: "Edit",
       delete: "Delete",
       remove: "Remove",
+      duplicate: "Duplicate",
+      copyUrl: "Copy URL",
       close: "Close",
       loading: "Loading…",
       unknownError: "Unknown error",
@@ -1432,6 +1691,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     layout: {
       menuOpen: "Open menu",
       menuClose: "Close menu",
+      resizeSidebar: "Resize sidebar",
       pageFallbackTitle: "lmaa.space",
       sidebar: {
         sectionGeneral: "General",
@@ -1454,6 +1714,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplates: "Email Templates",
         emailTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
+        markdownWidgets: "Markdown Widgets",
         editProfile: "Edit profile",
         logout: "Log out",
         logoutConfirmTitle: "Log out?",
@@ -1858,6 +2119,129 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loadingContent: "Loading content…",
         saveError: "Error while saving. Please try again.",
         preview: "Preview",
+        shortcuts: {
+          save: "Save",
+          bold: "Bold",
+          italic: "Italic",
+          strikethrough: "Strikethrough",
+          link: "Link",
+        },
+      },
+      footerBuilder: {
+        title: "Footer Builder",
+        saveError: "Error while saving",
+        styleTitle: "Style",
+        paletteTitle: "Blocks",
+        noSettings: "No additional settings.",
+        headlineTextLabel: "Text",
+        contentLabel: "Content",
+        buttonLabelField: "Label",
+        buttonLabelPlaceholder: "Button text",
+        urlLabel: "URL",
+        urlPlaceholder: "https://… or /path",
+        styleLabel: "Style",
+        externalLink: "External link (new tab)",
+        directionLabel: "Direction",
+        styleOptions: {
+          filled: "Filled",
+          outline: "Outline",
+          ghost: "Ghost",
+        },
+        directionOptions: {
+          vertical: "Vertical",
+          horizontal: "Horizontal",
+        },
+        colorFields: {
+          background: "Background",
+          text: "Text",
+          headlines: "Headlines",
+          links: "Links",
+          linkHover: "Link hover",
+          button: "Button color",
+          buttonText: "Button text",
+        },
+        sizeOptions: {
+          small: "Small",
+          medium: "Normal",
+          large: "Large",
+          extraLarge: "Extra large",
+        },
+        heightLabel: "Footer height",
+        verticalPaddingLabel: "Vertical padding",
+        previewTitle: "Footer preview",
+        noPreviewLoaded: "No preview loaded yet.",
+        moveColumn: "Move column",
+        removeColumn: "Remove column",
+        dragBlockHere: "Drag block here",
+        removeBlock: "Remove block",
+        columnSpan: {
+          narrow: "Narrow",
+          normal: "Normal",
+          wide: "Wide",
+        },
+        blockLabels: {
+          headline: "Headline",
+          markdown: "Markdown",
+          button: "Button",
+          footerNav: "Footer nav",
+          separator: "Separator",
+        },
+      },
+      markdownWidgets: {
+        title: "Markdown Widgets",
+        widgetsTitle: "Widgets",
+        widgetsHint: "Usable in any markdown field via [[widget:key]].",
+        newWidget: "New",
+        emptyTitle: "No widgets yet.",
+        emptyHint: "Create your first widget and then use it in markdown with [[widget:key]].",
+        active: "active",
+        inactive: "off",
+        markdownLabel: "Markdown",
+        deleteWidget: "Delete",
+        keyLabel: "Key",
+        keyHint: "Used in markdown as [[widget:key]].",
+        nameLabel: "Name",
+        typeLabel: "Widget type",
+        typeHint: "Determines which input fields appear below.",
+        defaultHeightLabel: "Default height",
+        defaultHeightHint: "Used when no height is specified in markdown.",
+        enabledLabel: "Enabled",
+        descriptionLabel: "Description",
+        descriptionHint: "Internal note for editors and later recognition.",
+        configurationTitle: "Widget configuration",
+        autoSecurityTitle: "Automatic security",
+        autoSecurityHint:
+          "Required permissions are derived from your snippet or iframe URL. You only need additional origins in rare edge cases.",
+        detectedScriptStyleImageOrigins: "Detected script/style/image origins",
+        detectedFrameConnectFormOrigins: "Detected frame/connect/form origins",
+        expertModeTitle: "Expert mode: additional origins",
+        additionalScriptSrcOrigins: "Additional script-src origins",
+        additionalStyleSrcOrigins: "Additional style-src origins",
+        additionalImgSrcOrigins: "Additional img-src origins",
+        additionalConnectSrcOrigins: "Additional connect-src origins",
+        additionalFrameSrcOrigins: "Additional frame-src origins",
+        additionalFormActionOrigins: "Additional form-action origins",
+        additionalFontSrcOrigins: "Additional font-src origins",
+        usageTitle: "Markdown usage",
+        widgetUsage: "Widget",
+        imageUsage: "Image",
+        pdfUsage: "PDF",
+        pdfExampleLabel: "Open PDF",
+        emptySelection: "Select a widget or create a new one on the left.",
+        types: {
+          html: {
+            label: "HTML Widget",
+            description: "For snippets like Ko-fi or other small third-party widgets.",
+            snippetLabel: "HTML snippet",
+            snippetHint: "Paste the widget snippet here. External domains are detected automatically.",
+          },
+          iframe: {
+            label: "Iframe Widget",
+            description: "For embeds via an external URL.",
+            urlLabel: "Iframe URL",
+            urlHint: "The embed is generated from this URL. Required frame permissions are set automatically.",
+          },
+        },
       },
       linkPicker: {
         insertInternalLink: "Insert internal link",
@@ -2064,6 +2448,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importNewNameLabel: "New name",
       importSkip: "Skip",
       exportUnsavedWarning: "Please save before exporting.",
+      moveRow: "Move row",
+      removeField: "Remove field",
     },
     emailTemplates: {
       listTitle: "Email Templates",
