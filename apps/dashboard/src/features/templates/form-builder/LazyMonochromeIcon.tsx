@@ -1,5 +1,9 @@
-import type React from "react";
-import * as MonochromeIcons from "sf-symbols-lib/monochrome";
+import { useEffect, useState } from "react";
+
+import {
+  monochromeIconLoaders,
+  type MonochromeIconComponent,
+} from "@/features/templates/form-builder/buttonIconLoaders.generated.ts";
 
 type MonochromeIconProps = {
   className?: string;
@@ -9,12 +13,27 @@ type MonochromeIconProps = {
   title?: string;
   "aria-hidden"?: boolean;
 };
+const monochromeIconCache = new Map<string, MonochromeIconComponent | null>();
 
-type MonochromeIconComponent = React.ComponentType<MonochromeIconProps>;
+function getMonochromeIconLoader(name: string) {
+  return monochromeIconLoaders[name] ?? null;
+}
 
-function getMonochromeIcon(name: string): MonochromeIconComponent | null {
-  const icon = MonochromeIcons[name as keyof typeof MonochromeIcons];
-  return icon ? (icon as MonochromeIconComponent) : null;
+async function loadMonochromeIcon(name: string): Promise<MonochromeIconComponent | null> {
+  if (monochromeIconCache.has(name)) {
+    return monochromeIconCache.get(name) ?? null;
+  }
+
+  const loader = getMonochromeIconLoader(name);
+  if (!loader) {
+    monochromeIconCache.set(name, null);
+    return null;
+  }
+
+  const module = await loader();
+  const Icon = module.default ?? null;
+  monochromeIconCache.set(name, Icon);
+  return Icon;
 }
 
 interface LazyMonochromeIconProps extends MonochromeIconProps {
@@ -22,7 +41,23 @@ interface LazyMonochromeIconProps extends MonochromeIconProps {
 }
 
 export function LazyMonochromeIcon({ name, ...props }: LazyMonochromeIconProps) {
-  const Icon = getMonochromeIcon(name);
+  const [Icon, setIcon] = useState<MonochromeIconComponent | null>(() =>
+    monochromeIconCache.get(name) ?? null,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void loadMonochromeIcon(name).then((loadedIcon) => {
+      if (!cancelled) {
+        setIcon(() => loadedIcon);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [name]);
 
   if (!Icon) {
     return null;

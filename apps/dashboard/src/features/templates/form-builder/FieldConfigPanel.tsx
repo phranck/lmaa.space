@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import SFCalendar from "sf-symbols-lib/monochrome/SFCalendar";
 import SFEnvelopeFill from "sf-symbols-lib/monochrome/SFEnvelopeFill";
 import SFIphone from "sf-symbols-lib/monochrome/SFIphone";
@@ -17,9 +18,12 @@ import { MarkdownEditor } from "@lmaa/ui";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
-import { IconPicker } from "@/components/ui/IconPicker.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
+
+const IconPicker = lazy(() =>
+  import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),
+);
 
 // ---------------------------------------------------------------------------
 // Field type label helper
@@ -509,12 +513,18 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
 
       {/* Button icon picker */}
       {isButton && (
-        <IconPicker
-          value={field.buttonIcon}
-          onChange={(name) => set("buttonIcon", name)}
-          noneLabel={m.buttonIconNone}
-          label={m.buttonIcon}
-        />
+        <Suspense
+          fallback={
+            <div className="h-48 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+          }
+        >
+          <IconPicker
+            value={field.buttonIcon}
+            onChange={(name) => set("buttonIcon", name)}
+            noneLabel={m.buttonIconNone}
+            label={m.buttonIcon}
+          />
+        </Suspense>
       )}
 
       {/* Button display mode — only shown when an icon is selected */}

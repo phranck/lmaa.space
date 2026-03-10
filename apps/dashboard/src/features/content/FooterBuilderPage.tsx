@@ -22,6 +22,7 @@ import { resolveFooterHeightPx } from "@lmaa/shared";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 import { FooterBlockConfigPanel } from "./footer-builder/FooterBlockConfigPanel.tsx";
 import { FooterCanvas } from "./footer-builder/FooterCanvas.tsx";
@@ -84,7 +85,7 @@ function buildFooterPreviewUrl(token: string) {
 
 /**
  * Footer builder page with palette sidebar, per-column canvases, and a config panel.
- * Built to the same patterns as FormBuilderPage: drag from palette to canvas,
+ * Built to the same drag-and-drop builder patterns: drag from palette to canvas,
  * click block to configure, click preview header to open style settings.
  */
 export function FooterBuilderPage() {
@@ -311,6 +312,8 @@ export function FooterBuilderPage() {
       },
     });
   }
+
+  useKeyboardSave(handleSave, config !== null && !save.isPending);
 
   if (isLoading || config === null) {
     return (

@@ -39,6 +39,7 @@ import {
   useSaveFormConfig,
   useSetFormConfigActive,
 } from "@/features/templates/hooks/useFormConfig.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -336,6 +337,8 @@ export function FormBuilderEditPage() {
       },
     );
   }
+
+  useKeyboardSave(handleSave, !isLoading && !saveMutation.isPending);
 
   function handleExport() {
     if (!config) return;

@@ -188,7 +188,7 @@ export function FieldTypeIcon({ type }: { type: FieldType }) {
  * Draggable palette tile for a single field type.
  *
  * Registers itself with dnd-kit under the id `"palette:<type>"` so that
- * {@link FormBuilderPage} can identify palette drops in `handleDragEnd`.
+ * the form builder can identify palette drops in `handleDragEnd`.
  *
  * @param props       - Component props.
  * @param props.type  - The field type this tile represents.

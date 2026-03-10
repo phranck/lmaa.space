@@ -1,6 +1,5 @@
 import { markdown } from "@codemirror/lang-markdown";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
-import { languages } from "@codemirror/language-data";
 import { EditorSelection, Prec, type Extension } from "@codemirror/state";
 import { EditorView, keymap, placeholder as cmPlaceholder } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
@@ -175,7 +174,7 @@ export function MarkdownEditor({
 
   const extensions = React.useMemo(
     () => [
-      markdown({ codeLanguages: languages }),
+      markdown(),
       EditorView.lineWrapping,
       mdKeymap,
       ...(onPaste
