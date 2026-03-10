@@ -119,8 +119,7 @@ Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geol
         color-scheme: light;
       }
 
-      html,
-      body {
+      .widget-root {
         margin: 0;
         padding: 0;
         width: 100%;
@@ -128,11 +127,11 @@ Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geol
         background: transparent;
       }
 
-      body {
+      .widget-root {
         overflow: hidden;
       }
 
-      iframe {
+      .widget-frame {
         display: block;
         width: 100%;
         min-height: 100vh;
@@ -141,9 +140,10 @@ Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geol
       }
     </style>
   </head>
-  <body set:html={widget.type === "html" ? widget.snippetHtml : undefined}>
+  <body class="widget-root" set:html={widget.type === "html" ? widget.snippetHtml : undefined}>
     {widget.type === "iframe" ? (
       <iframe
+        class="widget-frame"
         src={widget.iframeUrl}
         title={iframeTitle}
         loading="lazy"
