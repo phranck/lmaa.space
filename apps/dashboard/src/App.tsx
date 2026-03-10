@@ -2,13 +2,34 @@ import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router";
 
 import { ContentEditorLoadingFallback } from "@/components/ContentEditorLoadingFallback.tsx";
-import { AdminLayout } from "@/components/layout/AdminLayout.tsx";
 import { I18nProvider } from "@/context/I18nContext.tsx";
 import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
-import { InvitePage } from "@/features/auth/InvitePage.tsx";
-import { LoginPage } from "@/features/auth/LoginPage.tsx";
-import { SetupPage } from "@/features/auth/SetupPage.tsx";
+import { KeyboardSaveProvider } from "@/lib/useKeyboardSave.ts";
+
+const AdminLayout = lazy(() =>
+  import("@/components/layout/AdminLayout.tsx").then((m) => ({
+    default: m.AdminLayout,
+  })),
+);
+
+const InvitePage = lazy(() =>
+  import("@/features/auth/InvitePage.tsx").then((m) => ({
+    default: m.InvitePage,
+  })),
+);
+
+const LoginPage = lazy(() =>
+  import("@/features/auth/LoginPage.tsx").then((m) => ({
+    default: m.LoginPage,
+  })),
+);
+
+const SetupPage = lazy(() =>
+  import("@/features/auth/SetupPage.tsx").then((m) => ({
+    default: m.SetupPage,
+  })),
+);
 
 const CategoriesPage = lazy(() =>
   import("@/features/content/categories/CategoriesPage.tsx").then((m) => ({
@@ -127,16 +148,49 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/setup"
-        element={needsSetup ? <SetupPage /> : <Navigate to={user ? "/" : "/login"} replace />}
+        element={
+          needsSetup ? (
+            <Suspense fallback={<ContentEditorLoadingFallback />}>
+              <SetupPage />
+            </Suspense>
+          ) : (
+            <Navigate to={user ? "/" : "/login"} replace />
+          )
+        }
       />
       <Route
         path="/invite/:token"
-        element={user ? <Navigate to="/" replace /> : <InvitePage />}
+        element={
+          user ? (
+            <Navigate to="/" replace />
+          ) : (
+            <Suspense fallback={<ContentEditorLoadingFallback />}>
+              <InvitePage />
+            </Suspense>
+          )
+        }
       />
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+      <Route
+        path="/login"
+        element={
+          user ? (
+            <Navigate to="/" replace />
+          ) : (
+            <Suspense fallback={<ContentEditorLoadingFallback />}>
+              <LoginPage />
+            </Suspense>
+          )
+        }
+      />
 
       {user ? (
-        <Route element={<AdminLayout />}>
+        <Route
+          element={
+            <Suspense fallback={<ContentEditorLoadingFallback />}>
+              <AdminLayout />
+            </Suspense>
+          }
+        >
           <Route
             index
             element={
@@ -316,7 +370,9 @@ export default function App() {
     <I18nProvider>
       <ThemeProvider>
         <AuthProvider>
-          <AppRoutes />
+          <KeyboardSaveProvider>
+            <AppRoutes />
+          </KeyboardSaveProvider>
         </AuthProvider>
       </ThemeProvider>
     </I18nProvider>

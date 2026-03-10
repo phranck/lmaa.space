@@ -1,11 +1,16 @@
+import { Suspense, lazy } from "react";
+
 import type { FooterBlock } from "@lmaa/contracts";
 import { MarkdownEditor } from "@lmaa/ui";
 
 import { Card } from "@/components/ui/Card.tsx";
-import { IconPicker } from "@/components/ui/IconPicker.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FooterBlockTypeIcon } from "@/features/content/footer-builder/FooterPalette.tsx";
+
+const IconPicker = lazy(() =>
+  import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),
+);
 
 const labelClass = "text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider";
 const inputClass =
@@ -91,12 +96,18 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
             />
           </label>
 
-          <IconPicker
-            value={block.icon}
-            onChange={(icon) => onChange({ ...block, icon })}
-            label={buttonMessages.buttonIcon}
-            noneLabel={buttonMessages.buttonIconNone}
-          />
+          <Suspense
+            fallback={
+              <div className="h-48 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+            }
+          >
+            <IconPicker
+              value={block.icon}
+              onChange={(icon) => onChange({ ...block, icon })}
+              label={buttonMessages.buttonIcon}
+              noneLabel={buttonMessages.buttonIconNone}
+            />
+          </Suspense>
 
           <label className="flex flex-col gap-1">
             <span className={labelClass}>URL</span>
