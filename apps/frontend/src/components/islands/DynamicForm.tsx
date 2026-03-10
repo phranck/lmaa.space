@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { useController, useForm } from "react-hook-form";
 import SFExclamationmarkSquareFill from "sf-symbols-lib/dualtone/SFExclamationmarkSquareFill";
 import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
@@ -7,11 +7,24 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
-import { CharCounter, MarkdownEditor, RegionSelect, createDefaultRegionOptions } from "@lmaa/ui";
 
-import { BUTTON_ICON_MAP } from "@/lib/buttonIconMap.tsx";
+import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { API_BASE } from "@/lib/client-api";
 import { renderMarkdown } from "@/lib/markdown";
+
+import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
+
+const MarkdownEditor = lazy(() =>
+  import("../../../../../packages/ui/src/MarkdownEditor.tsx").then((module) => ({
+    default: module.MarkdownEditor,
+  })),
+);
+
+const RegionSelect = lazy(() =>
+  import("../../../../../packages/ui/src/RegionSelect.tsx").then((module) => ({
+    default: module.RegionSelect,
+  })),
+);
 
 // ---------------------------------------------------------------------------
 // Types
@@ -32,7 +45,13 @@ type SimpleFields = Record<string, string>;
 // Constants
 // ---------------------------------------------------------------------------
 
-const REGION_OPTIONS = createDefaultRegionOptions("de");
+const REGION_OPTIONS = [
+  { code: "DE", flag: "🇩🇪", name: "Deutschland" },
+  { code: "AT", flag: "🇦🇹", name: "Österreich" },
+  { code: "CH", flag: "🇨🇭", name: "Schweiz" },
+  { code: "EU", flag: "🇪🇺", name: "Europa" },
+  { code: "WORLD", flag: "🌍", name: "Weltweit" },
+] as const;
 
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
@@ -280,14 +299,28 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
         )}
       </label>
       {field.allowMarkdown ? (
-        <MarkdownEditor
-          id={key}
-          value={rhfField.value}
-          onChange={(val) => rhfField.onChange(val)}
-          placeholder={field.placeholder}
-          rows={field.rows ?? 4}
-          resizable
-        />
+        <Suspense
+          fallback={
+            <textarea
+              id={key}
+              placeholder={field.placeholder}
+              rows={field.rows ?? 4}
+              maxLength={maxLen}
+              className={`${inputClass} h-auto py-2 resize-none`}
+              value={rhfField.value}
+              onChange={(event) => rhfField.onChange(event.target.value)}
+            />
+          }
+        >
+          <MarkdownEditor
+            id={key}
+            value={rhfField.value}
+            onChange={(val) => rhfField.onChange(val)}
+            placeholder={field.placeholder}
+            rows={field.rows ?? 4}
+            resizable
+          />
+        </Suspense>
       ) : (
         <textarea
           id={key}
@@ -722,17 +755,27 @@ interface RegionMultiSelectProps {
 
 function RegionMultiSelect({ field, selected, onChange, error }: RegionMultiSelectProps) {
   return (
-    <RegionSelect
-      value={selected}
-      onChange={onChange}
-      options={REGION_OPTIONS}
-      messages={{
-        label: field.label || "Versand-Regionen",
-        placeholder: field.placeholder ?? "Versand-Regionen wählen…",
-      }}
-      error={error}
-      variant="frontend"
-    />
+    <Suspense
+      fallback={
+        <div className="space-y-2">
+          <span className={labelClass}>{field.label || "Versand-Regionen"}</span>
+          <div className="h-11 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+          {error && <p className={errorClass}>{error}</p>}
+        </div>
+      }
+    >
+      <RegionSelect
+        value={selected}
+        onChange={onChange}
+        options={REGION_OPTIONS}
+        messages={{
+          label: field.label || "Versand-Regionen",
+          placeholder: field.placeholder ?? "Versand-Regionen wählen…",
+        }}
+        error={error}
+        variant="frontend"
+      />
+    </Suspense>
   );
 }
 
@@ -1173,8 +1216,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
             : btnAlign === "right"
               ? "justify-end"
               : "justify-start";
-        const ButtonIcon = field.buttonIcon ? BUTTON_ICON_MAP[field.buttonIcon] : null;
-        const displayMode = ButtonIcon ? (field.buttonDisplay ?? "both") : "text";
+        const displayMode = field.buttonIcon ? (field.buttonDisplay ?? "both") : "text";
 
         function handleButtonAction() {
           const action = field.buttonAction;
@@ -1216,7 +1258,9 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                   : "border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)]"
               }`}
             >
-              {displayMode !== "text" && ButtonIcon && <ButtonIcon width={15} height={15} />}
+              {displayMode !== "text" && field.buttonIcon && (
+                <LazyButtonIcon name={field.buttonIcon} width={15} height={15} />
+              )}
               {displayMode !== "icon" && (
                 <span className="truncate">
                   {isSubmit && submitting ? "Wird gesendet…" : field.label}

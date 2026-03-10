@@ -16,14 +16,14 @@ interface Props {
 
 const {
   title,
-  description = "Eine kuratierte Liste von Online-Shops als Alternativen zu Amazon – für den DACH-Raum.",
+  description = "Lokale Märkte. Alternative Anbieter.",
   canonicalUrl,
   ogImage,
   noindex = false,
   jsonLd,
 } = Astro.props;
 
-const siteTitle = title ? `${title} · lmaa.space` : "lmaa.space – Amazon-Alternativen";
+const siteTitle = title ? `${title} · lmaa.space` : "lmaa.space – Lokale Märkte. Alternative Anbieter.";
 const publicSite = Astro.site ?? new URL("https://lmaa.space");
 const canonical =
   canonicalUrl ?? new URL(`${Astro.url.pathname}${Astro.url.search}`, publicSite).href;

@@ -9,7 +9,7 @@ html {
   --accent-hover: var(--ds-accent-hover);
   --accent-active: var(--ds-accent-active);
   --accent-text: var(--ds-accent-fg);
-  --amazon-color: #ffb900;
+  --hero-highlight-color: #ffb900;
 }
 
 *:focus {

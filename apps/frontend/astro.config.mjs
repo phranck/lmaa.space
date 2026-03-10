@@ -32,6 +32,14 @@ export default defineConfig({
               return "button-icons";
             }
 
+            if (id.includes("/node_modules/@codemirror/")) {
+              return "codemirror";
+            }
+
+            if (id.includes("/node_modules/@lezer/")) {
+              return "lezer";
+            }
+
             if (id.includes("/node_modules/marked") || id.includes("/node_modules/marked-footnote")) {
               return "markdown";
             }
