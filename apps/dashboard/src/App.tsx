@@ -381,14 +381,14 @@ function AppRoutes() {
  */
 export default function App() {
   return (
-    <I18nProvider>
-      <ThemeProvider>
-        <AuthProvider>
+    <AuthProvider>
+      <I18nProvider>
+        <ThemeProvider>
           <KeyboardSaveProvider>
             <AppRoutes />
           </KeyboardSaveProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </I18nProvider>
+        </ThemeProvider>
+      </I18nProvider>
+    </AuthProvider>
   );
 }

@@ -1,5 +1,3 @@
-import type { AdminUser } from "@lmaa/shared";
-
 import {
   createAdminInviteToken,
   getAdminInviteExpiresAt,
@@ -22,15 +20,30 @@ import {
 } from "../repositories/admin-users.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
 
+interface ManagedAdminUser {
+  id: number;
+  username: string;
+  email: string;
+  locale: "de" | "en";
+  role: "owner" | "admin" | "moderator";
+  isOwner: boolean;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+  lastLoginAt: string | null;
+}
+
 function canModifyAdminUser(adminId: number, isOwner: boolean, targetId: number): boolean {
   return isOwner || adminId === targetId;
 }
 
-function toAdminUser(row: AdminUserRow): AdminUser {
+function toAdminUser(row: AdminUserRow): ManagedAdminUser {
   return {
     id: row.id,
     username: row.username,
     email: row.email,
+    locale: row.locale,
     role: row.role,
     isOwner: row.role === "owner",
     firstName: row.firstName,
@@ -63,11 +76,12 @@ interface UpdateManagedAdminUserInput {
   password?: string;
   firstName?: string;
   lastName?: string;
+  locale?: "de" | "en";
   role?: "admin" | "moderator";
 }
 
 interface CreateManagedAdminUserResult {
-  user: AdminUser;
+  user: ManagedAdminUser;
   inviteUrl: string;
 }
 
@@ -76,7 +90,7 @@ interface CreateManagedAdminUserResult {
  *
  * @returns Array of normalized admin users.
  */
-export async function getManagedAdminUsers(): Promise<AdminUser[]> {
+export async function getManagedAdminUsers(): Promise<ManagedAdminUser[]> {
   const rows = await listAdminUsers();
   return rows.map(toAdminUser);
 }
@@ -150,6 +164,7 @@ export async function updateManagedAdminUser(input: UpdateManagedAdminUserInput)
   if (input.password !== undefined) updates.passwordHash = await hashPassword(input.password);
   if (input.firstName !== undefined) updates.firstName = input.firstName;
   if (input.lastName !== undefined) updates.lastName = input.lastName;
+  if (input.locale !== undefined) updates.locale = input.locale;
 
   if (input.role !== undefined) {
     if (!input.actorIsOwner || input.actorAdminId === input.id) {

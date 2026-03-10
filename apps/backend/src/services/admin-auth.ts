@@ -76,6 +76,7 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
       admin: {
         id: admin.id,
         username: admin.username,
+        locale: "de" as const,
         role: admin.role,
         isOwner: admin.role === "owner",
       },
@@ -114,6 +115,7 @@ export async function loginAdmin(input: LoginAdminInput) {
     admin: {
       id: admin.id,
       username: admin.username,
+      locale: admin.locale,
       role: admin.role,
       isOwner: admin.role === "owner",
       avatarUrl: admin.avatarUrl,
@@ -168,6 +170,7 @@ export async function acceptAdminInvite(input: AcceptInviteInput) {
     admin: {
       id: activatedAdmin.id,
       username: activatedAdmin.username,
+      locale: activatedAdmin.locale,
       role: activatedAdmin.role,
       isOwner: activatedAdmin.role === "owner",
       avatarUrl: activatedAdmin.avatarUrl,

@@ -4,6 +4,7 @@ import type { AdminRole } from "../constants/domain.js";
  * Re-exported admin role union from domain constants.
  */
 export type { AdminRole };
+export type AdminLocale = "de" | "en";
 
 /**
  * Public admin user representation used by dashboard user management.
@@ -12,6 +13,7 @@ export interface AdminUser {
   id: number;
   username: string;
   email: string;
+  locale: AdminLocale;
   role: AdminRole;
   isOwner: boolean; // computed: role === "owner"
   firstName: string | null;

@@ -6,7 +6,7 @@ import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrow
 import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
-import type { AdminUser } from "@lmaa/shared";
+import type { AdminLocale, AdminUser } from "@lmaa/shared";
 import { FormLabel, formInputClass } from "@lmaa/ui";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
@@ -48,6 +48,7 @@ interface UserEditDraftState {
   password: string;
   firstName: string;
   lastName: string;
+  locale: AdminLocale;
   role: EditableRole;
   logoutConfirm: boolean;
   avatar: AvatarState;
@@ -57,6 +58,7 @@ type UserEditField = "username" | "email" | "password" | "firstName" | "lastName
 
 type UserEditDraftAction =
   | { type: "setField"; field: UserEditField; value: string }
+  | { type: "setLocale"; value: AdminLocale }
   | { type: "setRole"; value: EditableRole }
   | { type: "setLogoutConfirm"; value: boolean }
   | { type: "setAvatar"; value: AvatarState };
@@ -85,6 +87,8 @@ const userEditDraftReducer: Reducer<UserEditDraftState, UserEditDraftAction> = (
   switch (action.type) {
     case "setField":
       return { ...state, [action.field]: action.value };
+    case "setLocale":
+      return { ...state, locale: action.value };
     case "setRole":
       return { ...state, role: action.value };
     case "setLogoutConfirm":
@@ -103,6 +107,7 @@ function createInitialDraft(user: AdminUser): UserEditDraftState {
     password: "",
     firstName: user.firstName ?? "",
     lastName: user.lastName ?? "",
+    locale: user.locale,
     role: user.role === "moderator" ? "moderator" : "admin",
     logoutConfirm: localStorage.getItem("logout-skip-confirm") !== "true",
     avatar: { ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null },
@@ -188,6 +193,7 @@ function UserProfileFields({
   logoutConfirmLabel,
   me,
   onFieldChange,
+  onLocaleChange,
   onLogoutConfirmChange,
   onRoleChange,
   userId,
@@ -198,6 +204,7 @@ function UserProfileFields({
   logoutConfirmLabel: string;
   me: AdminUser | null;
   onFieldChange: (field: UserEditField, value: string) => void;
+  onLocaleChange: (value: AdminLocale) => void;
   onLogoutConfirmChange: (value: boolean) => void;
   onRoleChange: (value: EditableRole) => void;
   userId: number;
@@ -281,7 +288,7 @@ function UserProfileFields({
           <div>
             <FormLabel>{usersMessages.editCard.language}</FormLabel>
             <div className="inline-block">
-              <LanguageToggle />
+              <LanguageToggle value={draft.locale} onChange={onLocaleChange} />
             </div>
           </div>
 
@@ -337,6 +344,7 @@ function UserEditCardForm({
     draft.password.trim() !== "" ||
     draft.firstName !== (user.firstName ?? "") ||
     draft.lastName !== (user.lastName ?? "") ||
+    draft.locale !== user.locale ||
     roleChanged ||
     draft.avatar.pendingFile !== null ||
     draft.avatar.pendingGravatarUrl !== null ||
@@ -400,6 +408,7 @@ function UserEditCardForm({
       password?: string;
       firstName?: string;
       lastName?: string;
+      locale?: AdminLocale;
       role?: EditableRole;
     } = {};
 
@@ -408,6 +417,7 @@ function UserEditCardForm({
     if (draft.password.trim()) profileChanges.password = draft.password;
     if (draft.firstName !== (user.firstName ?? "")) profileChanges.firstName = draft.firstName;
     if (draft.lastName !== (user.lastName ?? "")) profileChanges.lastName = draft.lastName;
+    if (draft.locale !== user.locale) profileChanges.locale = draft.locale;
     if (roleChanged) profileChanges.role = draft.role;
 
     if (Object.keys(profileChanges).length > 0) {
@@ -477,6 +487,7 @@ function UserEditCardForm({
             logoutConfirmLabel={logoutConfirmLabel}
             me={me}
             onFieldChange={(field, value) => dispatch({ type: "setField", field, value })}
+            onLocaleChange={(value) => dispatch({ type: "setLocale", value })}
             onLogoutConfirmChange={(value) => dispatch({ type: "setLogoutConfirm", value })}
             onRoleChange={(value) => dispatch({ type: "setRole", value })}
             userId={user.id}

@@ -15,12 +15,18 @@ const LANGUAGE_OPTIONS = [
  *
  * @returns Language toggle control.
  */
-export function LanguageToggle() {
+export function LanguageToggle({
+  value,
+  onChange,
+}: {
+  value?: DashboardLocale;
+  onChange?: (locale: DashboardLocale) => void;
+}) {
   const { locale, setLocale } = useI18n();
   return (
     <SegmentedControl<DashboardLocale>
-      value={locale}
-      onChange={setLocale}
+      value={value ?? locale}
+      onChange={onChange ?? setLocale}
       options={LANGUAGE_OPTIONS}
     />
   );
