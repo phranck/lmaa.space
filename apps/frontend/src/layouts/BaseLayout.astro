@@ -24,7 +24,10 @@ const {
 } = Astro.props;
 
 const siteTitle = title ? `${title} · lmaa.space` : "lmaa.space – Amazon-Alternativen";
-const canonical = canonicalUrl ?? Astro.url.href;
+const publicSite = Astro.site ?? new URL("https://lmaa.space");
+const canonical =
+  canonicalUrl ?? new URL(`${Astro.url.pathname}${Astro.url.search}`, publicSite).href;
+const resolvedOgImage = ogImage ?? new URL("/og-image.jpg", publicSite).href;
 
 let headerNav: NavItem[] = [];
 let footerNav: NavItem[] = [];
@@ -85,9 +88,9 @@ try {
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="de_DE" />
     <meta property="og:site_name" content="lmaa.space" />
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={resolvedOgImage} />
     <meta name="twitter:card" content="summary_large_image" />
-    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    <meta name="twitter:image" content={resolvedOgImage} />
 
     <!-- JSON-LD -->
     {
