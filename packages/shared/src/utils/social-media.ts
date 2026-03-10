@@ -44,6 +44,10 @@ function isPinterestHost(host: string): boolean {
   return host.startsWith("pinterest.") || host.endsWith(".pinterest.com") || host === "pin.it";
 }
 
+function isFacebookHost(host: string): boolean {
+  return host === "facebook.com" || host === "fb.com" || host.endsWith(".facebook.com");
+}
+
 function extractPathUser(url: URL): string {
   return stripTrailingSlash(url.pathname).split("/").pop() ?? "";
 }
@@ -225,7 +229,7 @@ function normalizeFacebook(input: string): string | null {
   const url = tryParseUrl(trimmed);
   if (url) {
     const host = stripWww(url.hostname);
-    if (host !== "facebook.com" && host !== "fb.com") return null;
+    if (!isFacebookHost(host)) return null;
     const user = extractPathUser(url);
     if (!user) return null;
     return `https://facebook.com/${user}`;
@@ -330,6 +334,8 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
   // Direct domain match
   const direct = DOMAIN_TO_PLATFORM[host];
   if (direct) return direct;
+
+  if (isFacebookHost(host)) return "facebook";
 
   if (isPinterestHost(host)) return "pinterest";
 
