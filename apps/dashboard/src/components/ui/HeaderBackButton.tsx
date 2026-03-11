@@ -1,11 +1,16 @@
 import type { ButtonHTMLAttributes } from "react";
-import SFChevronLeft from "sf-symbols-lib/monochrome/SFChevronLeft";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 
 interface HeaderBackButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
 }
 
-export function HeaderBackButton({ className, label, type = "button", ...props }: HeaderBackButtonProps) {
+export function HeaderBackButton({
+  className,
+  label,
+  type = "button",
+  ...props
+}: HeaderBackButtonProps) {
   return (
     <button
       type={type}
@@ -17,7 +22,7 @@ export function HeaderBackButton({ className, label, type = "button", ...props }
         .join(" ")}
       {...props}
     >
-      <SFChevronLeft className="w-3.5 h-3.5 shrink-0" />
+      <CaretLeftIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
       <span>{label}</span>
     </button>
   );

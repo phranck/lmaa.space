@@ -1,13 +1,11 @@
 import { useState } from "react";
-import SFArrowUpRightSquareFill from "sf-symbols-lib/monochrome/SFArrowUpRightSquareFill";
-import SFCheckmark from "sf-symbols-lib/monochrome/SFCheckmark";
-import SFLink from "sf-symbols-lib/monochrome/SFLink";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
+import { ArrowSquareUpRightIcon, CheckIcon, LinkIcon, TrashIcon } from "@phosphor-icons/react";
+
 import {
   useDeadLinkReports,
   useDeleteShopFromDeadLinks,
@@ -39,7 +37,7 @@ export function DeadLinksTab() {
     return (
       <ContentUnavailableView
         className="flex-1"
-        icon={<SFLink aria-hidden />}
+        icon={<LinkIcon weight="duotone" aria-hidden />}
         title={submissionsMessages.deadLinks.none}
         subtitle={submissionsMessages.deadLinks.noneHint}
       />
@@ -59,7 +57,7 @@ export function DeadLinksTab() {
               className="inline-flex items-center gap-1 text-sm text-[var(--color-primary)] hover:underline truncate"
             >
               {r.shopUrl}
-              <SFArrowUpRightSquareFill className="w-3 h-3 shrink-0" />
+              <ArrowSquareUpRightIcon weight="duotone" className="w-3 h-3 shrink-0" />
             </a>
           </div>
 
@@ -88,7 +86,7 @@ export function DeadLinksTab() {
               disabled={dismissMutation.isPending || deleteMutation.isPending}
               className="px-3 py-1.5 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] text-sm rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
             >
-              <SFCheckmark className="w-3.5 h-3.5" />
+              <CheckIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.deadLinks.keep}
             </button>
             <button
@@ -97,7 +95,7 @@ export function DeadLinksTab() {
               disabled={dismissMutation.isPending || deleteMutation.isPending}
               className="px-3 py-1.5 flex items-center gap-2 bg-[var(--ds-badge-danger-bg)] border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm rounded-control hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors disabled:opacity-50"
             >
-              <SFTrashFill className="w-3.5 h-3.5" />
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.deadLinks.delete}
             </button>
           </div>

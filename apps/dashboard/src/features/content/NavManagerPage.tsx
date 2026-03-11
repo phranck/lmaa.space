@@ -16,10 +16,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState } from "react";
-import SFLine3Horizontal from "sf-symbols-lib/monochrome/SFLine3Horizontal";
-import SFPlusCircle from "sf-symbols-lib/monochrome/SFPlusCircle";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 
 import type { NavId } from "@lmaa/shared";
 
@@ -28,6 +24,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/content/hooks/useAdminNav.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
+import { DownloadIcon, ListIcon, PlusCircleIcon, XCircleIcon } from "@phosphor-icons/react";
 
 const NAV_TEXT = {
   de: {
@@ -139,7 +136,7 @@ function SortableNavItem({
         className="cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors touch-none"
         title={text.dragTitle}
       >
-        <SFLine3Horizontal className="w-4 h-4" />
+        <ListIcon weight="duotone" className="w-4 h-4" />
       </button>
 
       <div className="flex-1 min-w-0">
@@ -164,7 +161,7 @@ function SortableNavItem({
         className="p-1 text-[var(--ds-text-muted)] hover:text-red-500 transition-colors"
         title={text.remove}
       >
-        <SFXmark className="w-3.5 h-3.5" />
+        <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
       </button>
     </div>
   );
@@ -344,7 +341,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           disabled={!dirty || saveNav.isPending}
           className="flex items-center gap-1.5 h-7 px-3 text-xs border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
         >
-          <SFSquareAndArrowDownFill className="w-3 h-3" />
+          <DownloadIcon weight="duotone" className="w-3 h-3" />
           {saveNav.isPending ? text.saving : text.save}
         </button>
       </div>
@@ -438,7 +435,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
               className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
               title={text.add}
             >
-              <SFPlusCircle className="w-5 h-5" />
+              <PlusCircleIcon weight="duotone" className="w-5 h-5" />
             </button>
           </div>
         ) : (
@@ -480,7 +477,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                 className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
                 title={text.add}
               >
-                <SFPlusCircle className="w-5 h-5" />
+                <PlusCircleIcon weight="duotone" className="w-5 h-5" />
               </button>
             </div>
           </div>

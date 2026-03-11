@@ -1,5 +1,4 @@
 import { useState } from "react";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { Checkbox, FormLabel, FormOptional, MarkdownEditor, formInputClass } from "@lmaa/ui";
 
@@ -7,6 +6,7 @@ import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import { TrashIcon } from "@phosphor-icons/react";
 
 /**
  * Available delete strategies for shop removal flow.
@@ -52,7 +52,7 @@ export function ShopDeleteReasonCard({
     >
       <OverlayCard.Header>
         <div className="flex items-center gap-3">
-          <SFTrashFill className={dialogHeaderIconClass} />
+          <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
           <h2 className="text-base font-semibold text-[var(--ds-text)]">
             {shopsMessages.deleteCard.title}
           </h2>

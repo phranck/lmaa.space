@@ -1,6 +1,5 @@
-import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
-
 import { Dialog, dialogBtnPrimary, dialogHeaderIconClass } from "./Dialog.tsx";
+import { InfoIcon } from "@phosphor-icons/react";
 
 interface AlertDialogProps {
   open: boolean;
@@ -24,7 +23,7 @@ export function AlertDialog({
     <Dialog
       open={open}
       title={title}
-      titleIcon={<SFInfoCircleFill className={dialogHeaderIconClass} />}
+      titleIcon={<InfoIcon weight="duotone" className={dialogHeaderIconClass} />}
       onClose={onClose}
     >
       <div className="px-6 py-4 text-sm text-[var(--ds-text)]">{message}</div>

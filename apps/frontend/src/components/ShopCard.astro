@@ -2,8 +2,8 @@
 import { renderMarkdown, stripMarkdown } from "@/lib/markdown";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { REGION_CODES, type Shop } from "@lmaa/shared";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 import ShopCardHeader from "./ShopCardHeader.astro";
+import { XCircleIcon } from "@phosphor-icons/react";
 
 interface Props {
   shop: Shop;
@@ -233,46 +233,50 @@ const categoryAnalyticsSource =
   data-animated
   class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 m-auto"
 >
-<div class="flex flex-col gap-4">
-  <!-- Header: logo + name + domain + region badges + close -->
-  <ShopCardHeader shop={shop} domain={domain} sortedRegions={sortedRegions} headingId={`${detailsDialogId}-title`}>
-    <button
-      type="button"
-      data-dismiss
-      class="shrink-0 ml-1 text-stone-300 hover:text-stone-500 transition-colors"
-      aria-label="Details schließen"
+  <div class="flex flex-col gap-4">
+    <!-- Header: logo + name + domain + region badges + close -->
+    <ShopCardHeader
+      shop={shop}
+      domain={domain}
+      sortedRegions={sortedRegions}
+      headingId={`${detailsDialogId}-title`}
     >
-      <SFXmarkCircleFill className="w-5 h-5" />
-    </button>
-  </ShopCardHeader>
+      <button
+        type="button"
+        data-dismiss
+        class="shrink-0 ml-1 text-stone-300 hover:text-stone-500 transition-colors"
+        aria-label="Details schließen"
+      >
+        <XCircleIcon weight="duotone" className="w-6 h-6" />
+      </button>
+    </ShopCardHeader>
 
-  <!-- Full markdown description -->
-  {fullDescriptionHtml && (
-    <div
-      class="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-4 prose-a:text-amber-700"
-      set:html={fullDescriptionHtml}
-    />
-  )}
+    <!-- Full markdown description -->
+    {fullDescriptionHtml && (
+      <div
+        class="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-4 prose-a:text-amber-700"
+        set:html={fullDescriptionHtml}
+      />
+    )}
 
-
-  <!-- Category pills -->
-  {shop.categories?.length > 0 && (
-    <div class="flex flex-wrap gap-1.5">
-      {shop.categories.map((cat) => (
-        <a
-          href={`/category/${cat.slug}`}
-          class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
-          data-analytics-event="category-click"
-          data-analytics-source={categoryAnalyticsSource}
-          data-category-id={String(cat.id)}
-          data-category-slug={cat.slug}
-          data-category-name={cat.name}
-        >
-          {cat.name}
-        </a>
-      ))}
-    </div>
-  )}
+    <!-- Category pills -->
+    {shop.categories?.length > 0 && (
+      <div class="flex flex-wrap gap-1.5">
+        {shop.categories.map((cat) => (
+          <a
+            href={`/category/${cat.slug}`}
+            class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+            data-analytics-event="category-click"
+            data-analytics-source={categoryAnalyticsSource}
+            data-category-id={String(cat.id)}
+            data-category-slug={cat.slug}
+            data-category-name={cat.name}
+          >
+            {cat.name}
+          </a>
+        ))}
+      </div>
+    )}
 
   <!-- Footer (same as card) -->
   <div class="flex items-center justify-between pt-3 border-t border-stone-100">

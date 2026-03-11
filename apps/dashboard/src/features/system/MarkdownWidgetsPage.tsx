@@ -1,7 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import SFPlusCircle from "sf-symbols-lib/monochrome/SFPlusCircle";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
@@ -18,6 +15,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 import { useMarkdownWidgets, useSaveMarkdownWidgets } from "./hooks/useMarkdownWidgets.ts";
+import { DownloadIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 
 const EMPTY_CSP = {
   scriptSrc: [],
@@ -187,7 +185,9 @@ export function MarkdownWidgetsPage() {
     setConfig((current) => {
       if (!current) return current;
       return {
-        widgets: current.widgets.map((widget) => (widget.key === nextKey ? updater(widget) : widget)),
+        widgets: current.widgets.map((widget) =>
+          widget.key === nextKey ? updater(widget) : widget,
+        ),
       };
     });
     setSavedOk(false);
@@ -233,7 +233,7 @@ export function MarkdownWidgetsPage() {
           disabled={!config || save.isPending}
           className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
         >
-          <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
           {savedOk ? common.saved : save.isPending ? common.saving : common.save}
         </button>
       </PageHeader>
@@ -249,7 +249,9 @@ export function MarkdownWidgetsPage() {
               <Card className="h-full p-4 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.widgetsTitle}</h2>
+                    <h2 className="text-sm font-semibold text-[var(--ds-text)]">
+                      {widgetMessages.widgetsTitle}
+                    </h2>
                     <p className="text-xs text-[var(--ds-text-muted)]">
                       {widgetMessages.widgetsHint}
                     </p>
@@ -259,7 +261,7 @@ export function MarkdownWidgetsPage() {
                     onClick={handleAddWidget}
                     className="inline-flex h-8 items-center gap-1.5 rounded-control border border-[var(--ds-border)] px-3 text-xs font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
                   >
-                    <SFPlusCircle className="w-3.5 h-3.5" />
+                    <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                     {widgetMessages.newWidget}
                   </button>
                 </div>
@@ -272,7 +274,9 @@ export function MarkdownWidgetsPage() {
                   ) : (
                     config.widgets.map((widget) => {
                       const isSelected = widget.key === selectedKey;
-                      const typeLabel = widgetTypeOptions.find((option) => option.value === widget.type)?.label;
+                      const typeLabel = widgetTypeOptions.find(
+                        (option) => option.value === widget.type,
+                      )?.label;
                       return (
                         <button
                           key={widget.key}
@@ -301,7 +305,9 @@ export function MarkdownWidgetsPage() {
                           <div className="mt-1 truncate font-mono text-[0.6875rem] text-[var(--ds-text-muted)]">
                             [[widget:{widget.key}]]
                           </div>
-                          <div className="mt-1 text-[0.6875rem] text-[var(--ds-text-muted)]">{typeLabel}</div>
+                          <div className="mt-1 text-[0.6875rem] text-[var(--ds-text-muted)]">
+                            {typeLabel}
+                          </div>
                         </button>
                       );
                     })
@@ -316,7 +322,9 @@ export function MarkdownWidgetsPage() {
                   <Card className="p-4 space-y-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h2 className="text-lg font-semibold text-[var(--ds-text)]">{selectedWidget.label}</h2>
+                        <h2 className="text-lg font-semibold text-[var(--ds-text)]">
+                          {selectedWidget.label}
+                        </h2>
                         <p className="mt-1 text-sm text-[var(--ds-text-muted)]">
                           {widgetMessages.markdownLabel}:
                           <span className="ml-2 rounded bg-[var(--ds-bg-elevated)] px-2 py-1 font-mono text-xs">
@@ -329,7 +337,7 @@ export function MarkdownWidgetsPage() {
                         onClick={() => handleDeleteWidget(selectedWidget.key)}
                         className="inline-flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-danger-border)] px-3 text-sm font-medium text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                       >
-                        <SFTrashFill className="w-3.5 h-3.5" />
+                        <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                         {widgetMessages.deleteWidget}
                       </button>
                     </div>
@@ -380,7 +388,10 @@ export function MarkdownWidgetsPage() {
                         </select>
                       </Field>
 
-                      <Field label={widgetMessages.defaultHeightLabel} hint={widgetMessages.defaultHeightHint}>
+                      <Field
+                        label={widgetMessages.defaultHeightLabel}
+                        hint={widgetMessages.defaultHeightHint}
+                      >
                         <input
                           type="number"
                           min={80}
@@ -408,10 +419,15 @@ export function MarkdownWidgetsPage() {
                           }))
                         }
                       />
-                      <span className="text-sm text-[var(--ds-text)]">{widgetMessages.enabledLabel}</span>
+                      <span className="text-sm text-[var(--ds-text)]">
+                        {widgetMessages.enabledLabel}
+                      </span>
                     </label>
 
-                    <Field label={widgetMessages.descriptionLabel} hint={widgetMessages.descriptionHint}>
+                    <Field
+                      label={widgetMessages.descriptionLabel}
+                      hint={widgetMessages.descriptionHint}
+                    >
                       <textarea
                         rows={3}
                         value={selectedWidget.description}
@@ -426,9 +442,14 @@ export function MarkdownWidgetsPage() {
                     </Field>
 
                     <div className={insetCardClass}>
-                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.configurationTitle}</h3>
+                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">
+                        {widgetMessages.configurationTitle}
+                      </h3>
                       <p className={fieldHintClass}>
-                        {widgetTypeOptions.find((option) => option.value === selectedWidget.type)?.description}
+                        {
+                          widgetTypeOptions.find((option) => option.value === selectedWidget.type)
+                            ?.description
+                        }
                       </p>
 
                       {selectedWidget.type === "html" ? (
@@ -471,10 +492,10 @@ export function MarkdownWidgetsPage() {
 
                   <Card className="p-4 space-y-4">
                     <div className="space-y-1">
-                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.autoSecurityTitle}</h3>
-                      <p className={fieldHintClass}>
-                        {widgetMessages.autoSecurityHint}
-                      </p>
+                      <h3 className="text-sm font-semibold text-[var(--ds-text)]">
+                        {widgetMessages.autoSecurityTitle}
+                      </h3>
+                      <p className={fieldHintClass}>{widgetMessages.autoSecurityHint}</p>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-2">
@@ -516,7 +537,10 @@ export function MarkdownWidgetsPage() {
                             onChange={(event) =>
                               updateWidget(selectedWidget.key, (widget) => ({
                                 ...widget,
-                                csp: { ...widget.csp, scriptSrc: parseOriginsInput(event.target.value) },
+                                csp: {
+                                  ...widget.csp,
+                                  scriptSrc: parseOriginsInput(event.target.value),
+                                },
                               }))
                             }
                             className={`${textAreaClass} font-mono text-xs`}
@@ -529,7 +553,10 @@ export function MarkdownWidgetsPage() {
                             onChange={(event) =>
                               updateWidget(selectedWidget.key, (widget) => ({
                                 ...widget,
-                                csp: { ...widget.csp, styleSrc: parseOriginsInput(event.target.value) },
+                                csp: {
+                                  ...widget.csp,
+                                  styleSrc: parseOriginsInput(event.target.value),
+                                },
                               }))
                             }
                             className={`${textAreaClass} font-mono text-xs`}
@@ -542,7 +569,10 @@ export function MarkdownWidgetsPage() {
                             onChange={(event) =>
                               updateWidget(selectedWidget.key, (widget) => ({
                                 ...widget,
-                                csp: { ...widget.csp, imgSrc: parseOriginsInput(event.target.value) },
+                                csp: {
+                                  ...widget.csp,
+                                  imgSrc: parseOriginsInput(event.target.value),
+                                },
                               }))
                             }
                             className={`${textAreaClass} font-mono text-xs`}
@@ -555,7 +585,10 @@ export function MarkdownWidgetsPage() {
                             onChange={(event) =>
                               updateWidget(selectedWidget.key, (widget) => ({
                                 ...widget,
-                                csp: { ...widget.csp, connectSrc: parseOriginsInput(event.target.value) },
+                                csp: {
+                                  ...widget.csp,
+                                  connectSrc: parseOriginsInput(event.target.value),
+                                },
                               }))
                             }
                             className={`${textAreaClass} font-mono text-xs`}
@@ -568,7 +601,10 @@ export function MarkdownWidgetsPage() {
                             onChange={(event) =>
                               updateWidget(selectedWidget.key, (widget) => ({
                                 ...widget,
-                                csp: { ...widget.csp, frameSrc: parseOriginsInput(event.target.value) },
+                                csp: {
+                                  ...widget.csp,
+                                  frameSrc: parseOriginsInput(event.target.value),
+                                },
                               }))
                             }
                             className={`${textAreaClass} font-mono text-xs`}
@@ -581,7 +617,10 @@ export function MarkdownWidgetsPage() {
                             onChange={(event) =>
                               updateWidget(selectedWidget.key, (widget) => ({
                                 ...widget,
-                                csp: { ...widget.csp, formAction: parseOriginsInput(event.target.value) },
+                                csp: {
+                                  ...widget.csp,
+                                  formAction: parseOriginsInput(event.target.value),
+                                },
                               }))
                             }
                             className={`${textAreaClass} font-mono text-xs`}
@@ -594,7 +633,10 @@ export function MarkdownWidgetsPage() {
                             onChange={(event) =>
                               updateWidget(selectedWidget.key, (widget) => ({
                                 ...widget,
-                                csp: { ...widget.csp, fontSrc: parseOriginsInput(event.target.value) },
+                                csp: {
+                                  ...widget.csp,
+                                  fontSrc: parseOriginsInput(event.target.value),
+                                },
                               }))
                             }
                             className={`${textAreaClass} font-mono text-xs`}
@@ -605,7 +647,9 @@ export function MarkdownWidgetsPage() {
                   </Card>
 
                   <Card className="p-4 space-y-2">
-                    <h3 className="text-sm font-semibold text-[var(--ds-text)]">{widgetMessages.usageTitle}</h3>
+                    <h3 className="text-sm font-semibold text-[var(--ds-text)]">
+                      {widgetMessages.usageTitle}
+                    </h3>
                     <p className={`${fieldHintClass} leading-5`}>
                       {widgetMessages.widgetUsage}:
                       <span className="ml-2 font-mono">[[widget:{selectedWidget.key}]]</span>

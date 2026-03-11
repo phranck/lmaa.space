@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
+import { CheckCircleIcon } from "@phosphor-icons/react";
 
 type Phase = "hidden" | "entering" | "visible" | "exiting";
 
@@ -50,7 +50,7 @@ export function SaveNotification({ phase, label }: SaveNotificationProps) {
     <span
       className={`flex items-center gap-1.5 text-xs font-medium text-green-500 save-notification-${phase === "exiting" ? "exit" : "enter"}`}
     >
-      <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+      <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
       {label}
     </span>
   );

@@ -115,7 +115,7 @@ export interface FormField {
   /** Horizontal alignment of the button within its cell. Defaults to `"left"`. */
   buttonAlign?: "left" | "center" | "right";
   /**
-   * SF Symbol component name for the button icon (e.g. `"SFArrowRight"`).
+   * Button icon slug from the curated icon picker (e.g. `"arrow-right"`).
    * Omit or leave undefined for no icon.
    */
   buttonIcon?: string;

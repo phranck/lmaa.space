@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import SFExclamationmarkSquareFill from "sf-symbols-lib/dualtone/SFExclamationmarkSquareFill";
+import { SealWarningIcon } from "@phosphor-icons/react";
 
 import type { FormField } from "@lmaa/contracts";
 
@@ -102,7 +102,10 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
           <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
             {field.label || <span className="opacity-50 italic">Kein Label</span>}
             {field.required && field.type !== "richtext" && (
-              <SFExclamationmarkSquareFill className="inline-block ml-1 w-3 h-3 text-red-500 align-middle" />
+              <SealWarningIcon
+                weight="duotone"
+                className="inline-block ml-1 w-3 h-3 text-red-500 align-middle"
+              />
             )}
             {field.type === "richtext" && field.content && (
               <span className="ml-2 text-xs font-normal opacity-40 truncate">

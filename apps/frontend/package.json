@@ -22,14 +22,14 @@
     "@lmaa/contracts": "0.1.0",
     "@lmaa/shared": "0.1.0",
     "@lmaa/ui": "0.1.0",
+    "@phosphor-icons/react": "^2.1.10",
     "@unocss/astro": "^66.6.1",
     "astro": "^5.7.0",
     "marked": "^17.0.3",
     "marked-footnote": "^1.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.54.2",
-    "sf-symbols-lib": "^2.0.1"
+    "react-hook-form": "^7.54.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",

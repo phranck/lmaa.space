@@ -2,6 +2,10 @@
 export { CharCounter } from "./CharCounter.tsx";
 /** Re-exported props for `CharCounter`. */
 export type { CharCounterProps } from "./CharCounter.tsx";
+/** Shared duotone button icon catalog for dashboard picker and website rendering. */
+export { BUTTON_ICON_COMPONENTS, BUTTON_ICON_LIST, getButtonIconComponent } from "./ButtonIcons.tsx";
+/** Re-exported button icon types. */
+export type { ButtonIconComponent, ButtonIconEntry, ButtonIconName } from "./ButtonIcons.tsx";
 /** Shared checkbox component and props. */
 export { Checkbox } from "./Checkbox.tsx";
 /** Shared dashboard form primitives and class tokens. */

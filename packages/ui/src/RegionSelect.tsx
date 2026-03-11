@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import SFCheckmark from "sf-symbols-lib/monochrome/SFCheckmark";
-import SFChevronDown from "sf-symbols-lib/monochrome/SFChevronDown";
+import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 
 import { REGION_CODES, type RegionCode } from "@lmaa/shared";
 
@@ -198,7 +197,7 @@ export function RegionSelect({
                           : "border-[var(--ds-border-strong)]"
                       }`}
                     >
-                      {checked && <SFCheckmark className="w-2.5 h-2.5 text-white" />}
+                      {checked && <CheckIcon weight="duotone" className="w-2.5 h-2.5 text-white" />}
                     </span>
                     <span className="mr-1.5">{flag}</span>
                     <span>{name}</span>
@@ -238,9 +237,17 @@ export function RegionSelect({
         >
           {label ?? messages.placeholder}
         </span>
-        <SFChevronDown
-          className={`shrink-0 ml-2 w-3.5 h-3.5 text-[var(--ds-text-subtle)] transition-transform ${open ? "rotate-180" : ""}`}
-        />
+        {open ? (
+          <CaretUpIcon
+            weight="duotone"
+            className="shrink-0 ml-2 w-4 h-4 text-[var(--ds-text-subtle)]"
+          />
+        ) : (
+          <CaretDownIcon
+            weight="duotone"
+            className="shrink-0 ml-2 w-4 h-4 text-[var(--ds-text-subtle)]"
+          />
+        )}
       </button>
 
       {dropdown}

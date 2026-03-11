@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import SFArrowDownCircleFill from "sf-symbols-lib/monochrome/SFArrowDownCircleFill";
-import SFArrowUpCircleFill from "sf-symbols-lib/monochrome/SFArrowUpCircleFill";
-import SFClockFill from "sf-symbols-lib/monochrome/SFClockFill";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
-import SFTrayFill from "sf-symbols-lib/monochrome/SFTrayFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { type SubmissionStatus } from "@lmaa/shared";
 
@@ -19,6 +12,15 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import {
+  ArrowCircleDownIcon,
+  ArrowCircleUpIcon,
+  ClockIcon,
+  FileTextIcon,
+  PauseCircleIcon,
+  TrayIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
@@ -101,17 +103,17 @@ export function SuggestionsTab() {
             {
               value: "pending" as SubmissionStatus,
               label: statusLabels.pending,
-              icon: <SFClockFill className="w-3.5 h-3.5" />,
+              icon: <ClockIcon weight="duotone" className="w-3.5 h-3.5" />,
             },
             {
               value: "onhold" as SubmissionStatus,
               label: statusLabels.onhold,
-              icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
+              icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
             },
             {
               value: "rejected" as SubmissionStatus,
               label: statusLabels.rejected,
-              icon: <SFXmarkCircleFill className="w-3.5 h-3.5" />,
+              icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
             },
           ]}
         />
@@ -123,12 +125,12 @@ export function SuggestionsTab() {
             {
               value: "asc" as const,
               label: submissionsMessages.sort.oldFirst,
-              icon: <SFArrowUpCircleFill className="w-3.5 h-3.5" />,
+              icon: <ArrowCircleUpIcon weight="duotone" className="w-3.5 h-3.5" />,
             },
             {
               value: "desc" as const,
               label: submissionsMessages.sort.newFirst,
-              icon: <SFArrowDownCircleFill className="w-3.5 h-3.5" />,
+              icon: <ArrowCircleDownIcon weight="duotone" className="w-3.5 h-3.5" />,
             },
           ]}
         />
@@ -145,7 +147,7 @@ export function SuggestionsTab() {
       {!isLoading && submissions.length === 0 && (
         <ContentUnavailableView
           className="flex-1"
-          icon={<SFTrayFill aria-hidden />}
+          icon={<TrayIcon weight="duotone" aria-hidden />}
           title={`${submissionsMessages.suggestions.nonePrefix} ${statusLabels[filter].toLowerCase()} ${submissionsMessages.tabs.suggestions}.`}
           subtitle={submissionsMessages.suggestions.noneHint}
         />
@@ -178,7 +180,9 @@ export function SuggestionsTab() {
                   {submission.shopUrl}
                 </a>
                 {submission.description && (
-                  <p className="text-sm text-[var(--ds-text-muted)] mt-1">{submission.description}</p>
+                  <p className="text-sm text-[var(--ds-text-muted)] mt-1">
+                    {submission.description}
+                  </p>
                 )}
                 {submission.categoryIds && submission.categoryIds.length > 0 && (
                   <div className="mt-1">
@@ -210,7 +214,7 @@ export function SuggestionsTab() {
                   onClick={() => navigate(`/reports/suggestions/${submission.id}`)}
                   className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.edit}
                 </button>
               </div>

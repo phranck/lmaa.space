@@ -1,5 +1,6 @@
 import { type VariantProps, cva } from "class-variance-authority";
-import { CheckIcon, ChevronDown, XCircle, XIcon } from "lucide-react";
+import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
+import { CheckIcon, XCircle, XIcon } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -298,12 +299,14 @@ export function MultiSelect({
               <div className="w-px h-4 bg-[var(--ds-border)] mx-0.5" />
             </>
           )}
-          <ChevronDown
-            className={cn(
-              "h-4 w-4 mx-0.5 text-[var(--ds-text-subtle)] transition-transform duration-200",
-              isOpen && "rotate-180",
-            )}
-          />
+          {isOpen ? (
+            <CaretUpIcon weight="duotone" className="h-4 w-4 mx-0.5 text-[var(--ds-text-subtle)]" />
+          ) : (
+            <CaretDownIcon
+              weight="duotone"
+              className="h-4 w-4 mx-0.5 text-[var(--ds-text-subtle)]"
+            />
+          )}
         </div>
       </button>
 

@@ -1,8 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import SFLine3Horizontal from "sf-symbols-lib/monochrome/SFLine3Horizontal";
-import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
 
 import type { FooterColumn } from "@lmaa/contracts";
 
@@ -10,6 +8,7 @@ import { Dropdown } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 import { FooterBlockItem } from "./FooterBlockItem.tsx";
+import { ListIcon, XCircleIcon } from "@phosphor-icons/react";
 
 interface Props {
   column: FooterColumn;
@@ -61,7 +60,11 @@ export function FooterCanvas({
   const blockIds = column.blocks.map((b) => `block:${column.id}:${b.id}`);
 
   return (
-    <div ref={setSortableRef} style={sortableStyle} className="flex flex-col gap-2 min-w-[180px] flex-1">
+    <div
+      ref={setSortableRef}
+      style={sortableStyle}
+      className="flex flex-col gap-2 min-w-[180px] flex-1"
+    >
       {/* Column header */}
       <div className="flex items-center gap-2">
         <button
@@ -71,7 +74,7 @@ export function FooterCanvas({
           className="shrink-0 cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] touch-none"
           title={footerMessages.moveColumn}
         >
-          <SFLine3Horizontal className="w-3.5 h-3.5" />
+          <ListIcon weight="duotone" className="w-3.5 h-3.5" />
         </button>
         <div className="flex-1">
           <Dropdown
@@ -86,7 +89,7 @@ export function FooterCanvas({
           className="shrink-0 text-[var(--ds-text-muted)] hover:text-red-500 transition-colors"
           title={footerMessages.removeColumn}
         >
-          <SFXmark className="w-3.5 h-3.5" />
+          <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -101,7 +104,9 @@ export function FooterCanvas({
       >
         {column.blocks.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-48 p-8">
-            <p className="text-sm text-[var(--ds-text-subtle)] text-center">{footerMessages.dragBlockHere}</p>
+            <p className="text-sm text-[var(--ds-text-subtle)] text-center">
+              {footerMessages.dragBlockHere}
+            </p>
           </div>
         ) : (
           <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>

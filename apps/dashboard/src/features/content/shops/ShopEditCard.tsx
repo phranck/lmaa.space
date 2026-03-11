@@ -1,9 +1,7 @@
-import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
-
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { StorefrontIcon, XCircleIcon } from "@phosphor-icons/react";
 
 import {
   type ShopEditorModeProps,
@@ -68,7 +66,6 @@ function ShopEditCardLayout({
   onClose: () => void;
   onSaved: () => void;
 }) {
-
   return (
     <OverlayCard
       open
@@ -78,7 +75,7 @@ function ShopEditCardLayout({
     >
       <OverlayCard.Header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <SFStorefrontFill className={dialogHeaderIconClass} />
+          <StorefrontIcon weight="duotone" className={dialogHeaderIconClass} />
           <h2 className="text-base font-semibold text-[var(--ds-text)]">{controller.title}</h2>
         </div>
         <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
@@ -102,7 +99,7 @@ function ShopEditCardLayout({
             onClick={() => controller.handleOpenRejectCard(false)}
             className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
           >
-            <SFXmarkCircleFill className="w-3.5 h-3.5" />
+            <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             {controller.shopsMessages.editCard.rejectSubmit}
           </button>
         )}

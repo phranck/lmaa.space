@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { BUTTON_ICON_LIST, getButtonIconComponent } from "@lmaa/ui";
 
-import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { BUTTON_ICON_LIST } from "@/features/templates/form-builder/buttonIconMap.tsx";
-import { LazyMonochromeIcon } from "@/features/templates/form-builder/LazyMonochromeIcon.tsx";
 
 interface IconPickerProps {
   value: string | undefined;
@@ -15,48 +13,23 @@ interface IconPickerProps {
 export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
   const { messages } = useI18n();
   const mp = messages.formBuilder.panel;
-  const [variant, setVariant] = useState<"outline" | "filled">("outline");
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    if (!value) return;
-    const isFilled = BUTTON_ICON_LIST.some((entry) => entry.filledName === value);
-    setVariant(isFilled ? "filled" : "outline");
-  }, [value]);
-
-  function switchVariant(next: "outline" | "filled") {
-    if (value) {
-      const entry = BUTTON_ICON_LIST.find(
-        (candidate) => candidate.outlineName === value || candidate.filledName === value,
-      );
-      if (entry) onChange(next === "outline" ? entry.outlineName : entry.filledName);
-    }
-    setVariant(next);
-  }
-
   const q = query.toLowerCase();
-  const icons = BUTTON_ICON_LIST.filter((entry) => !q || entry.label.toLowerCase().includes(q)).map(
-    (entry) =>
-      variant === "outline"
-        ? { name: entry.outlineName, label: entry.label }
-        : { name: entry.filledName, label: entry.label },
-  );
+  const icons = BUTTON_ICON_LIST.filter((entry) => {
+    if (!q) {
+      return true;
+    }
+
+    const haystack = [entry.label, entry.name, ...(entry.keywords ?? [])].join(" ").toLowerCase();
+    return haystack.includes(q);
+  });
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
-          {label}
-        </span>
-        <SegmentSwitch
-          value={variant}
-          onChange={switchVariant}
-          options={[
-            { value: "outline" as const, label: mp.iconPickerVariantOutline },
-            { value: "filled" as const, label: mp.iconPickerVariantFilled },
-          ]}
-        />
-      </div>
+      <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+        {label}
+      </span>
       <input
         type="search"
         value={query}
@@ -84,21 +57,29 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
             {mp.iconPickerEmpty}
           </p>
         ) : (
-          icons.map(({ name, label: iconLabel }) => (
-            <button
-              key={name}
-              type="button"
-              title={iconLabel}
-              onClick={() => onChange(name)}
-              className={`h-9 flex items-center justify-center rounded-control border transition-colors ${
-                value === name
-                  ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                  : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
-              }`}
-            >
-              <LazyMonochromeIcon name={name} width={18} height={18} />
-            </button>
-          ))
+          icons.map((entry) => {
+            const Icon = getButtonIconComponent(entry.name);
+
+            if (!Icon) {
+              return null;
+            }
+
+            return (
+              <button
+                key={entry.name}
+                type="button"
+                title={entry.label}
+                onClick={() => onChange(entry.name)}
+                className={`h-9 flex items-center justify-center rounded-control border transition-colors ${
+                  value === entry.name
+                    ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                    : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
+                }`}
+              >
+                <Icon width={18} height={18} />
+              </button>
+            );
+          })
         )}
       </div>
     </div>

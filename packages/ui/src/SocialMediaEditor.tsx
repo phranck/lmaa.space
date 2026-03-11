@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import SFGlobe from "sf-symbols-lib/monochrome/SFGlobe";
-import SFMinus from "sf-symbols-lib/monochrome/SFMinus";
-import SFPlus from "sf-symbols-lib/monochrome/SFPlus";
+import { GlobeIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
 
 import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
 
@@ -240,7 +238,7 @@ export function SocialMediaEditor({
     <div className="flex flex-col gap-2">
       {entries.map((entry) => {
         const def = PLATFORM_MAP.get(entry.platform);
-        const Icon = def?.icon ?? SFGlobe;
+        const Icon = def?.icon ?? GlobeIcon;
 
         return (
           <div key={entry.id} className="flex gap-2">
@@ -281,7 +279,7 @@ export function SocialMediaEditor({
               aria-label={messages.removeAriaLabel}
               className={`${btnClass} text-[var(--ds-text-muted)] hover:border-red-400 hover:text-red-500`}
             >
-              <SFMinus className="w-3.5 h-3.5" />
+              <MinusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             </button>
 
             {/* Add entry */}
@@ -291,7 +289,7 @@ export function SocialMediaEditor({
               aria-label={messages.addAriaLabel}
               className={`${btnClass} text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]`}
             >
-              <SFPlus className="w-3.5 h-3.5" />
+              <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             </button>
           </div>
         );
@@ -303,7 +301,7 @@ export function SocialMediaEditor({
           onClick={addEntry}
           className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors self-start"
         >
-          <SFPlus className="w-3 h-3" />
+          <PlusCircleIcon weight="duotone" className="w-3 h-3" />
           {messages.addAriaLabel}
         </button>
       )}
