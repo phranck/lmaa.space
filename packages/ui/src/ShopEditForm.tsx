@@ -1,6 +1,7 @@
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
+import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
 import {
   FormErrorText,
   FormLabel,
@@ -29,6 +30,13 @@ export interface ShopEditFormValue {
   shipping: string;
   contactEmail: string;
   socialMedia: Record<string, string>;
+  headquartersStreet: string;
+  headquartersPostalCode: string;
+  headquartersCity: string;
+  headquartersState: string;
+  headquartersCountryCode: string;
+  headquartersLatitude: string;
+  headquartersLongitude: string;
 }
 
 /**
@@ -43,6 +51,13 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   shipping: "",
   contactEmail: "",
   socialMedia: {},
+  headquartersStreet: "",
+  headquartersPostalCode: "",
+  headquartersCity: "",
+  headquartersState: "",
+  headquartersCountryCode: "",
+  headquartersLatitude: "",
+  headquartersLongitude: "",
 };
 
 /**
@@ -62,6 +77,19 @@ export interface ShopEditFormMessages {
   shippingPlaceholder: string;
   contactEmailLabel: string;
   contactEmailPlaceholder: string;
+  headquartersLabel: string;
+  streetLabel: string;
+  streetPlaceholder: string;
+  postalCodeLabel: string;
+  postalCodePlaceholder: string;
+  cityLabel: string;
+  cityPlaceholder: string;
+  countryCodeLabel: string;
+  countryCodePlaceholder: string;
+  latitudeLabel: string;
+  latitudePlaceholder: string;
+  longitudeLabel: string;
+  longitudePlaceholder: string;
   regionSelect: RegionSelectMessages;
   categorySelect: MultiSelectMessages;
   socialMediaLabel?: string;
@@ -76,6 +104,7 @@ export interface ShopEditFormProps {
   onChange: (value: ShopEditFormValue) => void;
   categories: { id: number; name: string }[];
   regionOptions: ReadonlyArray<RegionSelectOption>;
+  countryCodeOptions: ReadonlyArray<CountryCodeOption>;
   messages: ShopEditFormMessages;
   errors?: Partial<Record<keyof ShopEditFormValue, string>>;
   onUrlBlur?: (url: string) => void;
@@ -92,6 +121,7 @@ export function ShopEditForm({
   onChange,
   categories,
   regionOptions,
+  countryCodeOptions,
   messages,
   errors,
   onUrlBlur,
@@ -106,87 +136,204 @@ export function ShopEditForm({
   return (
     <div className="flex flex-col gap-4">
       {/* Name + URL */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
-          <input
-            id="sef-name"
-            type="text"
-            value={value.name}
-            onChange={(e) => set("name", e.target.value)}
-            className={`${formInputClass}${errors?.name ? " border-red-400" : ""}`}
-          />
-          {errors?.name && <FormErrorText>{errors.name}</FormErrorText>}
+      <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
+        <div className="flex flex-col gap-4">
+          <div>
+            <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
+            <input
+              id="sef-name"
+              type="text"
+              value={value.name}
+              onChange={(e) => set("name", e.target.value)}
+              className={`${formInputClass}${errors?.name ? " border-red-400" : ""}`}
+            />
+            {errors?.name && <FormErrorText>{errors.name}</FormErrorText>}
+          </div>
+
+          <div>
+            <FormLabel htmlFor="sef-url">{messages.urlLabel}</FormLabel>
+            <div className="flex gap-2">
+              <input
+                id="sef-url"
+                type="url"
+                value={value.url}
+                onChange={(e) => set("url", e.target.value)}
+                onBlur={() => onUrlBlur?.(value.url)}
+                placeholder={messages.urlPlaceholder}
+                className={`flex-1 ${formInputClass}${errors?.url ? " border-red-400" : ""}`}
+              />
+              <a
+                href={value.url || undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={messages.openUrlAriaLabel}
+                title={messages.openUrlAriaLabel}
+                tabIndex={value.url ? 0 : -1}
+                className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
+                  value.url
+                    ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
+                    : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
+                }`}
+              >
+                <ArrowSquareOutIcon weight="duotone" className="w-4 h-4" />
+              </a>
+            </div>
+            {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}
+            {urlWarning}
+          </div>
         </div>
 
-        <div>
-          <FormLabel htmlFor="sef-url">{messages.urlLabel}</FormLabel>
-          <div className="flex gap-2">
-            <input
-              id="sef-url"
-              type="url"
-              value={value.url}
-              onChange={(e) => set("url", e.target.value)}
-              onBlur={() => onUrlBlur?.(value.url)}
-              placeholder={messages.urlPlaceholder}
-              className={`flex-1 ${formInputClass}${errors?.url ? " border-red-400" : ""}`}
-            />
-            <a
-              href={value.url || undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={messages.openUrlAriaLabel}
-              title={messages.openUrlAriaLabel}
-              tabIndex={value.url ? 0 : -1}
-              className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
-                value.url
-                  ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
-                  : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
-              }`}
-            >
-              <ArrowSquareOutIcon weight="duotone" className="w-4 h-4" />
-            </a>
-          </div>
-          {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}
-          {urlWarning}
-        </div>
+        <div></div>
       </div>
 
       {/* Contact Email + Social Media */}
-      <div className="grid grid-cols-[2fr_3fr] gap-4">
-        <div>
-          <FormLabel htmlFor="sef-contact-email">
-            <span className="flex items-center gap-1.5">
-              {messages.contactEmailLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
-            </span>
-          </FormLabel>
-          <input
-            id="sef-contact-email"
-            type="email"
-            value={value.contactEmail}
-            onChange={(e) => set("contactEmail", e.target.value)}
-            placeholder={messages.contactEmailPlaceholder}
-            className={`${formInputClass}${errors?.contactEmail ? " border-red-400" : ""}`}
-          />
-          {errors?.contactEmail && <FormErrorText>{errors.contactEmail}</FormErrorText>}
+      <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
+        <div className="flex flex-col gap-4">
+          <div>
+            <FormLabel htmlFor="sef-contact-email">
+              <span className="flex items-center gap-1.5">
+                {messages.contactEmailLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+              </span>
+            </FormLabel>
+            <input
+              id="sef-contact-email"
+              type="email"
+              value={value.contactEmail}
+              onChange={(e) => set("contactEmail", e.target.value)}
+              placeholder={messages.contactEmailPlaceholder}
+              className={`${formInputClass}${errors?.contactEmail ? " border-red-400" : ""}`}
+            />
+            {errors?.contactEmail && <FormErrorText>{errors.contactEmail}</FormErrorText>}
+          </div>
+
+          {messages.socialMediaLabel && messages.socialMedia && (
+            <div>
+              <FormLabelText>
+                <span className="flex items-center gap-1.5">
+                  {messages.socialMediaLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+                </span>
+              </FormLabelText>
+              <SocialMediaEditor
+                value={value.socialMedia}
+                onChange={(v) => set("socialMedia", v)}
+                messages={messages.socialMedia}
+                blurOnPaste={blurSocialMediaOnPaste}
+              />
+              {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
+            </div>
+          )}
         </div>
 
-        {messages.socialMediaLabel && messages.socialMedia && (
-          <div>
-            <FormLabelText>
-              <span className="flex items-center gap-1.5">
-                {messages.socialMediaLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
-              </span>
-            </FormLabelText>
-            <SocialMediaEditor
-              value={value.socialMedia}
-              onChange={(v) => set("socialMedia", v)}
-              messages={messages.socialMedia}
-              blurOnPaste={blurSocialMediaOnPaste}
-            />
-            {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
+        <div></div>
+      </div>
+
+      {/* Headquarters + Geo */}
+      <div className="flex flex-col gap-4">
+        <FormLabelText>
+          <span className="flex items-center gap-1.5">
+            {messages.headquartersLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+          </span>
+        </FormLabelText>
+
+        <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
+          <div className="flex flex-col gap-4">
+            <div>
+              <FormLabel htmlFor="sef-hq-street">{messages.streetLabel}</FormLabel>
+              <input
+                id="sef-hq-street"
+                type="text"
+                value={value.headquartersStreet}
+                onChange={(e) => set("headquartersStreet", e.target.value)}
+                placeholder={messages.streetPlaceholder}
+                className={`${formInputClass}${errors?.headquartersStreet ? " border-red-400" : ""}`}
+              />
+              {errors?.headquartersStreet && (
+                <FormErrorText>{errors.headquartersStreet}</FormErrorText>
+              )}
+            </div>
+
+            <div className="grid grid-cols-[140px_1fr_1.25fr] gap-4">
+              <div>
+                <CountryCodeSelect
+                  label={messages.countryCodeLabel}
+                  value={value.headquartersCountryCode}
+                  onChange={(code) => set("headquartersCountryCode", code)}
+                  options={countryCodeOptions}
+                  placeholder={messages.countryCodePlaceholder}
+                  error={errors?.headquartersCountryCode}
+                />
+              </div>
+
+              <div>
+                <FormLabel htmlFor="sef-hq-postal-code">{messages.postalCodeLabel}</FormLabel>
+                <input
+                  id="sef-hq-postal-code"
+                  type="text"
+                  value={value.headquartersPostalCode}
+                  onChange={(e) => set("headquartersPostalCode", e.target.value)}
+                  placeholder={messages.postalCodePlaceholder}
+                  className={`${formInputClass}${errors?.headquartersPostalCode ? " border-red-400" : ""}`}
+                />
+                {errors?.headquartersPostalCode && (
+                  <FormErrorText>{errors.headquartersPostalCode}</FormErrorText>
+                )}
+              </div>
+
+              <div>
+                <FormLabel htmlFor="sef-hq-city">{messages.cityLabel}</FormLabel>
+                <input
+                  id="sef-hq-city"
+                  type="text"
+                  value={value.headquartersCity}
+                  onChange={(e) => set("headquartersCity", e.target.value)}
+                  placeholder={messages.cityPlaceholder}
+                  className={`${formInputClass}${errors?.headquartersCity ? " border-red-400" : ""}`}
+                />
+                {errors?.headquartersCity && <FormErrorText>{errors.headquartersCity}</FormErrorText>}
+              </div>
+            </div>
           </div>
-        )}
+
+          <div></div>
+        </div>
+
+        <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <FormLabel htmlFor="sef-hq-lat">{messages.latitudeLabel}</FormLabel>
+              <input
+                id="sef-hq-lat"
+                type="text"
+                inputMode="decimal"
+                value={value.headquartersLatitude}
+                onChange={(e) => set("headquartersLatitude", e.target.value)}
+                placeholder={messages.latitudePlaceholder}
+                className={`${formInputClass}${errors?.headquartersLatitude ? " border-red-400" : ""}`}
+              />
+              {errors?.headquartersLatitude && (
+                <FormErrorText>{errors.headquartersLatitude}</FormErrorText>
+              )}
+            </div>
+
+            <div>
+              <FormLabel htmlFor="sef-hq-lng">{messages.longitudeLabel}</FormLabel>
+              <input
+                id="sef-hq-lng"
+                type="text"
+                inputMode="decimal"
+                value={value.headquartersLongitude}
+                onChange={(e) => set("headquartersLongitude", e.target.value)}
+                placeholder={messages.longitudePlaceholder}
+                className={`${formInputClass}${errors?.headquartersLongitude ? " border-red-400" : ""}`}
+              />
+              {errors?.headquartersLongitude && (
+                <FormErrorText>{errors.headquartersLongitude}</FormErrorText>
+              )}
+            </div>
+          </div>
+
+          <div></div>
+        </div>
       </div>
 
       {/* Description */}

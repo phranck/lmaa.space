@@ -27,6 +27,10 @@ export { MarkdownEditor } from "./MarkdownEditor.tsx";
 export type { MarkdownEditorProps } from "./MarkdownEditor.tsx";
 /** Re-exported props for `Checkbox`. */
 export type { CheckboxProps } from "./Checkbox.tsx";
+/** Shared single-select country code component and option helpers. */
+export { CountryCodeSelect, createDefaultCountryCodeOptions } from "./CountryCodeSelect.tsx";
+/** Re-exported contracts for `CountryCodeSelect`. */
+export type { CountryCodeOption, CountryCodeSelectProps } from "./CountryCodeSelect.tsx";
 /** Shared multi-select component and related contracts. */
 export { MultiSelect } from "./MultiSelect.tsx";
 /** Re-exported contracts for `MultiSelect`. */

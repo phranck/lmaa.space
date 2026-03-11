@@ -270,6 +270,73 @@ interface TextareaFieldProps {
   error: string | undefined;
 }
 
+interface TextInputFieldProps {
+  field: FormField;
+  control: ReturnType<typeof useForm<SimpleFields>>["control"];
+  error: string | undefined;
+}
+
+function FieldMeta({
+  subtext,
+  maxLen,
+  value,
+}: {
+  subtext?: string;
+  maxLen?: number;
+  value: string;
+}) {
+  if (!subtext && maxLen === undefined) {
+    return null;
+  }
+
+  return (
+    <div className="flex justify-between items-start gap-4">
+      <DynamicFormSubtext>{subtext}</DynamicFormSubtext>
+      {maxLen !== undefined && (
+        <CharCounter value={value} max={maxLen} className="shrink-0 mt-1.5" />
+      )}
+    </div>
+  );
+}
+
+function TextInputField({ field, control, error }: TextInputFieldProps) {
+  const maxLen = field.validation?.max;
+  const key = fieldKey(field);
+  const { field: rhfField } = useController({
+    name: key,
+    control,
+    rules: buildValidationRules(field),
+    defaultValue: "",
+  });
+
+  return (
+    <div>
+      <label htmlFor={key} className={labelClass}>
+        {field.label}
+        {field.required && (
+          <SealWarningIcon
+            weight="duotone"
+            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+          />
+        )}
+      </label>
+      <input
+        id={key}
+        type={
+          field.inputType ??
+          (field.type === "email" ? "email" : field.type === "password" ? "password" : "text")
+        }
+        placeholder={field.placeholder}
+        maxLength={maxLen}
+        className={inputClass}
+        {...rhfField}
+      />
+      <FieldMeta subtext={field.subtext} maxLen={maxLen} value={rhfField.value ?? ""} />
+      {error && <p className={errorClass}>{error}</p>}
+    </div>
+  );
+}
+
 /**
  * Textarea input with optional character counter and validation error.
  * Uses `useController` so both the plain textarea and `MarkdownEditor` share
@@ -336,14 +403,7 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
           {...rhfField}
         />
       )}
-      {(field.subtext || maxLen !== undefined) && (
-        <div className="flex justify-between items-start gap-4">
-          <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>
-          {maxLen !== undefined && (
-            <CharCounter value={rhfField.value} max={maxLen} className="shrink-0 mt-1.5" />
-          )}
-        </div>
-      )}
+      <FieldMeta subtext={field.subtext} maxLen={maxLen} value={rhfField.value ?? ""} />
       {error && <p className={errorClass}>{error}</p>}
     </div>
   );
@@ -378,6 +438,7 @@ interface UrlFieldProps {
  */
 function UrlField({ field, control, error }: UrlFieldProps) {
   const key = fieldKey(field);
+  const maxLen = field.validation?.max;
   const { field: rhfField } = useController({
     name: key,
     control,
@@ -453,6 +514,7 @@ function UrlField({ field, control, error }: UrlFieldProps) {
         id={key}
         type="url"
         placeholder={field.placeholder}
+        maxLength={maxLen}
         className={inputClass}
         {...rhfField}
         onChange={(e) => {
@@ -460,7 +522,7 @@ function UrlField({ field, control, error }: UrlFieldProps) {
           scheduleCheck(e.target.value);
         }}
       />
-      {field.subtext && <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>}
+      <FieldMeta subtext={field.subtext} maxLen={maxLen} value={rhfField.value ?? ""} />
       {urlCheck.status === "checking" && (
         <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-1">Wird geprüft…</p>
       )}
@@ -1119,31 +1181,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         if (field.inputType === "url") {
           return <UrlField key={field.id} field={field} control={control} error={fieldError} />;
         }
-        return (
-          <div key={field.id}>
-            <label htmlFor={key} className={labelClass}>
-              {field.label}
-              {field.required && (
-                <SealWarningIcon
-                  weight="duotone"
-                  className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
-                />
-              )}
-            </label>
-            <input
-              id={key}
-              type={
-                field.inputType ??
-                (field.type === "email" ? "email" : field.type === "password" ? "password" : "text")
-              }
-              placeholder={field.placeholder}
-              className={inputClass}
-              {...register(key, buildValidationRules(field))}
-            />
-            {field.subtext && <DynamicFormSubtext>{field.subtext}</DynamicFormSubtext>}
-            {fieldError && <p className={errorClass}>{fieldError}</p>}
-          </div>
-        );
+        return <TextInputField key={field.id} field={field} control={control} error={fieldError} />;
 
       case "textarea":
         return <TextareaField key={field.id} field={field} control={control} error={fieldError} />;
@@ -1279,7 +1317,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               }`}
             >
               {displayMode !== "text" && field.buttonIcon && (
-                <LazyButtonIcon name={field.buttonIcon} width={15} height={15} />
+                <LazyButtonIcon name={field.buttonIcon} width={18} height={18} />
               )}
               {displayMode !== "icon" && (
                 <span className="truncate">

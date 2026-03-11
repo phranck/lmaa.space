@@ -94,6 +94,19 @@ function getInitialFormValue(
     shipping: shopData.shipping ?? "",
     contactEmail: shopData.contactEmail ?? "",
     socialMedia: shopData.socialMedia ?? {},
+    headquartersStreet: shopData.headquarters?.street ?? "",
+    headquartersPostalCode: shopData.headquarters?.postalCode ?? "",
+    headquartersCity: shopData.headquarters?.city ?? "",
+    headquartersState: shopData.headquarters?.state ?? "",
+    headquartersCountryCode: shopData.headquarters?.countryCode ?? "",
+    headquartersLatitude:
+      shopData.headquarters?.latitude !== null && shopData.headquarters?.latitude !== undefined
+        ? String(shopData.headquarters.latitude)
+        : "",
+    headquartersLongitude:
+      shopData.headquarters?.longitude !== null && shopData.headquarters?.longitude !== undefined
+        ? String(shopData.headquarters.longitude)
+        : "",
   };
 }
 
@@ -404,6 +417,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           value={form}
           onChange={setForm}
           categories={categories}
+          countryCodeOptions={shopFormI18n.countryCodeOptions}
           regionOptions={shopFormI18n.regionOptions}
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
