@@ -446,7 +446,7 @@ function LoadedSubmissionEditorPage({
 
             <EditorToolbarButton
               onClick={() =>
-                void controller.handleSave({
+                void controller.handleSaveSafely({
                   onSuccess: () => {
                     controller.showSaved();
                   },
@@ -471,6 +471,7 @@ function LoadedSubmissionEditorPage({
         commentPlaceholder={submissionsMessages.suggestions.commentPlaceholder}
         copyUrlLabel={common.copyUrl}
         errorMessage={reviewMutation.error?.message ?? common.unknownError}
+        formSaveErrorMessage={controller.saveErrorMessage}
         errorPrefix={submissionsMessages.suggestions.reviewErrorPrefix}
         isError={reviewMutation.isError}
         onAdminNoteChange={(value) => dispatchReview({ type: "setAdminNote", value })}
@@ -599,6 +600,7 @@ interface ApproveSubmissionReviewCardProps {
   commentPlaceholder: string;
   copyUrlLabel: string;
   errorMessage: string;
+  formSaveErrorMessage: string | null;
   errorPrefix: string;
   isError: boolean;
   isPending: boolean;
@@ -621,6 +623,7 @@ function ApproveSubmissionReviewCard({
   commentPlaceholder,
   copyUrlLabel,
   errorMessage,
+  formSaveErrorMessage,
   errorPrefix,
   isError,
   isPending,
@@ -680,9 +683,9 @@ function ApproveSubmissionReviewCard({
           <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
         </div>
 
-        {isError && (
+        {(isError || formSaveErrorMessage) && (
           <p className="text-sm text-red-600">
-            {errorPrefix} {errorMessage}
+            {errorPrefix} {formSaveErrorMessage ?? errorMessage}
           </p>
         )}
       </OverlayCard.Body>

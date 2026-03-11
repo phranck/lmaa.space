@@ -172,7 +172,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
 
             <EditorToolbarButton
               onClick={() =>
-                void controller.handleSave({
+                void controller.handleSaveSafely({
                   onSuccess: (saved) => {
                     if (controller.isNew) {
                       const savedShopId = controller.getSavedShopId(saved);
