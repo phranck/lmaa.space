@@ -1,3 +1,4 @@
+import { DownloadIcon, FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 import { Marked } from "marked";
 import { useCallback, useMemo, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
@@ -11,7 +12,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { renderMarkdownToReact } from "@/lib/render-markdown-to-react.tsx";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { DownloadIcon, FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 
 /**
  * Local marked instance for rendering deletion reasons.

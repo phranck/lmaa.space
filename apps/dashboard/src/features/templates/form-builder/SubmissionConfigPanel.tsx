@@ -15,15 +15,6 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect, useRef, useState } from "react";
-
-import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
-import { MarkdownEditor } from "@lmaa/ui";
-
-import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
-import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
-import { useI18n } from "@/context/I18nContext.tsx";
-import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -33,6 +24,15 @@ import {
   StorefrontIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+
+import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
+import { MarkdownEditor } from "@lmaa/ui";
+
+import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
+import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
 // ---------------------------------------------------------------------------
 // Props

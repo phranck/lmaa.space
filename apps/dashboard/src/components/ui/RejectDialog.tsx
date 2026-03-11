@@ -1,3 +1,4 @@
+import { CopyIcon, XCircleIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
@@ -5,7 +6,6 @@ import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { CopyIcon, XCircleIcon } from "@phosphor-icons/react";
 
 export interface RejectDialogMessages {
   cancel: string;

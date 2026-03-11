@@ -1,3 +1,14 @@
+import {
+  ArrowCounterClockwiseIcon,
+  CheckCircleIcon,
+  CopyIcon,
+  DownloadIcon,
+  FileTextIcon,
+  InfoIcon,
+  PauseCircleIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 import { useMemo, useReducer, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 
@@ -25,17 +36,6 @@ import {
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import {
-  ArrowCounterClockwiseIcon,
-  CheckCircleIcon,
-  CopyIcon,
-  DownloadIcon,
-  FileTextIcon,
-  InfoIcon,
-  PauseCircleIcon,
-  TrashIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
 
 function resolveSubmissionRoute(submissionIdParam: string | undefined) {
   const parsed = Number(submissionIdParam);

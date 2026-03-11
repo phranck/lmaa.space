@@ -1,6 +1,6 @@
+import { GlobeIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { GlobeIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
 
 import { detectPlatformFromUrl, normalizeSocialMediaValue } from "@lmaa/shared";
 

@@ -1,7 +1,8 @@
+import { StorefrontIcon, XCircleIcon } from "@phosphor-icons/react";
+
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
-import { StorefrontIcon, XCircleIcon } from "@phosphor-icons/react";
 
 import {
   type ShopEditorModeProps,

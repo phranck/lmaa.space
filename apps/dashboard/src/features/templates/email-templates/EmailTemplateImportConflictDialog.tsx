@@ -1,8 +1,8 @@
+import { DownloadIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { Dialog, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { DownloadIcon } from "@phosphor-icons/react";
 
 interface EmailTemplateImportConflictDialogProps {
   templateName: string;

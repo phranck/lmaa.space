@@ -1,5 +1,5 @@
-import { type VariantProps, cva } from "class-variance-authority";
 import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
+import { type VariantProps, cva } from "class-variance-authority";
 import { CheckIcon, XCircle, XIcon } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";

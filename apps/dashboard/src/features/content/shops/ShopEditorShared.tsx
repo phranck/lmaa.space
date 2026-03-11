@@ -1,3 +1,11 @@
+import {
+  ArrowClockwiseIcon,
+  CopyIcon,
+  DownloadIcon,
+  FileTextIcon,
+  StorefrontIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 import { useEffect, useReducer, useState } from "react";
 
 import { generateRejectionToken, type AdminShopListItem, type Shop } from "@lmaa/shared";
@@ -22,14 +30,6 @@ import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
 import { getShopEditFormI18n } from "./shop-form-i18n.ts";
-import {
-  ArrowClockwiseIcon,
-  CopyIcon,
-  DownloadIcon,
-  FileTextIcon,
-  StorefrontIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
 
 export type ShopEditorModeProps = {
   initialData?: Partial<ShopEditFormValue>;

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircleIcon } from "@phosphor-icons/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Phase = "hidden" | "entering" | "visible" | "exiting";
 

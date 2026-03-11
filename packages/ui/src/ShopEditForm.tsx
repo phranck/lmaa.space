@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 
 import {
   FormErrorText,

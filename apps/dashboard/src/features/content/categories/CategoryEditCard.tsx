@@ -1,3 +1,10 @@
+import {
+  DownloadIcon,
+  MagnifyingGlassIcon,
+  TagIcon,
+  TrashIcon,
+  TrayArrowUpIcon,
+} from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { FormLabel, formInputClass } from "@lmaa/ui";
@@ -18,13 +25,6 @@ import type {
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import {
-  DownloadIcon,
-  MagnifyingGlassIcon,
-  TagIcon,
-  TrashIcon,
-  TrayArrowUpIcon,
-} from "@phosphor-icons/react";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";

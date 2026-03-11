@@ -1,5 +1,5 @@
-import type { ComponentType } from "react";
 import { GlobeIcon } from "@phosphor-icons/react";
+import type { ComponentType } from "react";
 import { FaFacebook, FaTwitter } from "react-icons/fa6";
 import {
   SiBluesky,

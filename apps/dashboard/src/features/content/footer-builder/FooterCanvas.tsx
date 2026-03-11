@@ -1,6 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ListIcon, XCircleIcon } from "@phosphor-icons/react";
 
 import type { FooterColumn } from "@lmaa/contracts";
 
@@ -8,7 +9,6 @@ import { Dropdown } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 import { FooterBlockItem } from "./FooterBlockItem.tsx";
-import { ListIcon, XCircleIcon } from "@phosphor-icons/react";
 
 interface Props {
   column: FooterColumn;

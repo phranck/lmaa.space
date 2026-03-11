@@ -1,3 +1,10 @@
+import {
+  CopyIcon,
+  PersonIcon,
+  PlusCircleIcon,
+  UserCheckIcon,
+  UserPlusIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { AdminUserInvite } from "@lmaa/shared";
@@ -13,13 +20,6 @@ import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 import { EMPTY_CREATE_USER_FORM, useCreateUser } from "./hooks/useAdminUsers.ts";
 import type { CreateUserFormData } from "./hooks/useAdminUsers.ts";
-import {
-  CopyIcon,
-  PersonIcon,
-  PlusCircleIcon,
-  UserCheckIcon,
-  UserPlusIcon,
-} from "@phosphor-icons/react";
 
 interface UserCreateCardProps {
   onClose: () => void;

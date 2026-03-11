@@ -1,11 +1,13 @@
+import {
+  CheckCircleIcon,
+  CircleIcon,
+  EyeSlashIcon,
+  FileIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
-import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
-import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
-import SFEyeSlashFill from "sf-symbols-lib/monochrome/SFEyeSlashFill";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -34,7 +36,7 @@ function StatusBadge({ status }: { status: string }) {
   if (status === "published") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-        <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+        <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
         {s.published}
       </span>
     );
@@ -42,14 +44,14 @@ function StatusBadge({ status }: { status: string }) {
   if (status === "hidden") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
-        <SFEyeSlashFill className="w-3.5 h-3.5" />
+        <EyeSlashIcon weight="duotone" className="w-3.5 h-3.5" />
         {s.hidden}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-      <SFCircle className="w-3.5 h-3.5" />
+      <CircleIcon weight="duotone" className="w-3.5 h-3.5" />
       {s.draft}
     </span>
   );
@@ -124,7 +126,7 @@ export function PagesListPage() {
             onClick={() => setShowCreate(true)}
             className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
           >
-            <SFPlusCircleFill className="w-3.5 h-3.5" />
+            <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             {text.newPage}
           </button>
         )}
@@ -184,7 +186,7 @@ export function PagesListPage() {
                 disabled={createPage.isPending || !slug || !title}
                 className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
               >
-                <SFPlusCircleFill className="w-3.5 h-3.5" />
+                <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {createPage.isPending ? text.creating : text.create}
               </button>
               <button
@@ -207,7 +209,7 @@ export function PagesListPage() {
         {!isLoading && pages.length === 0 && (
           <ContentUnavailableView
             className="flex-1 min-h-0"
-            icon={<SFDocumentFill aria-hidden />}
+            icon={<FileIcon weight="duotone" aria-hidden />}
             title={text.emptyPages}
             subtitle={text.emptyPagesHint}
           />
@@ -260,7 +262,7 @@ export function PagesListPage() {
                         disabled={deletePage.isPending}
                         className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
                       >
-                        <SFTrashFill className="w-3.5 h-3.5" />
+                        <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                         {text.deletePageTitle}
                       </button>
                     </td>

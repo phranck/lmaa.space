@@ -10,6 +10,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
+import { ArrowClockwiseIcon, DownloadIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
 
@@ -28,7 +29,6 @@ import { FooterPalette } from "./footer-builder/FooterPalette.tsx";
 import { FooterPreview } from "./footer-builder/FooterPreview.tsx";
 import { FooterStylePane } from "./footer-builder/FooterStylePane.tsx";
 import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "./hooks/useFooterConfig.ts";
-import { ArrowClockwiseIcon, DownloadIcon, PlusCircleIcon } from "@phosphor-icons/react";
 
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];

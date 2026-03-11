@@ -1,3 +1,25 @@
+import {
+  CaretCircleDoubleDownIcon,
+  CaretCircleDoubleUpIcon,
+  ChartBarIcon,
+  CheckCircleIcon,
+  CircleIcon,
+  CopyIcon,
+  EnvelopeOpenIcon,
+  EyeSlashIcon,
+  FileIcon,
+  ImageIcon,
+  LinkIcon,
+  ListBulletsIcon,
+  MarkdownLogoIcon,
+  NotebookIcon,
+  SquareHalfBottomIcon,
+  SquaresFourIcon,
+  StorefrontIcon,
+  TagIcon,
+  TrayIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
@@ -24,28 +46,6 @@ import {
   useEmailTemplates,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
-import {
-  CaretCircleDoubleDownIcon,
-  CaretCircleDoubleUpIcon,
-  ChartBarIcon,
-  CheckCircleIcon,
-  CircleIcon,
-  CopyIcon,
-  EnvelopeOpenIcon,
-  EyeSlashIcon,
-  FileIcon,
-  ImageIcon,
-  LinkIcon,
-  ListBulletsIcon,
-  MarkdownLogoIcon,
-  NotebookIcon,
-  SquareHalfBottomIcon,
-  SquaresFourIcon,
-  StorefrontIcon,
-  TagIcon,
-  TrayIcon,
-  UsersThreeIcon,
-} from "@phosphor-icons/react";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 const SIDEBAR_GROUP_STORAGE_KEYS = [

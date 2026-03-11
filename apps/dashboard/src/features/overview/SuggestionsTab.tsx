@@ -1,3 +1,12 @@
+import {
+  ArrowCircleDownIcon,
+  ArrowCircleUpIcon,
+  ClockIcon,
+  FileTextIcon,
+  PauseCircleIcon,
+  TrayIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -12,15 +21,6 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import {
-  ArrowCircleDownIcon,
-  ArrowCircleUpIcon,
-  ClockIcon,
-  FileTextIcon,
-  PauseCircleIcon,
-  TrayIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",

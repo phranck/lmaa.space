@@ -1,3 +1,10 @@
+import {
+  ListBulletsIcon,
+  PlusCircleIcon,
+  SquaresFourIcon,
+  TagIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -20,13 +27,6 @@ import {
   useDeleteCategory,
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import {
-  ListBulletsIcon,
-  PlusCircleIcon,
-  SquaresFourIcon,
-  TagIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
 
 type ViewMode = "list" | "grid";
 
