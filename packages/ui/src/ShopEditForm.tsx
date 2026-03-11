@@ -121,6 +121,7 @@ export interface ShopEditFormProps {
   urlWarning?: ReactNode;
   descriptionHint?: ReactNode;
   blurSocialMediaOnPaste?: boolean;
+  onSocialMediaValidationChange?: (message: string | null) => void;
   topAside?: ReactNode;
   detailsAside?: ReactNode;
 }
@@ -140,6 +141,7 @@ export function ShopEditForm({
   urlWarning,
   descriptionHint,
   blurSocialMediaOnPaste = false,
+  onSocialMediaValidationChange,
   topAside,
   detailsAside,
 }: ShopEditFormProps) {
@@ -232,6 +234,7 @@ export function ShopEditForm({
                 onChange={(v) => set("socialMedia", v)}
                 messages={messages.socialMedia}
                 blurOnPaste={blurSocialMediaOnPaste}
+                onValidationChange={onSocialMediaValidationChange}
               />
               {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
             </div>

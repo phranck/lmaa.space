@@ -71,6 +71,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
           addAriaLabel: "Add link",
           removeAriaLabel: "Remove link",
           selectPlatformAriaLabel: "Select platform",
+          invalidUrlMessage: (platformLabel) => `Invalid ${platformLabel} URL.`,
         },
         categorySelect: {
           selectAll: "(Select all)",
@@ -128,6 +129,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         addAriaLabel: "Link hinzufügen",
         removeAriaLabel: "Link entfernen",
         selectPlatformAriaLabel: "Plattform wählen",
+        invalidUrlMessage: (platformLabel) => `Ungültige ${platformLabel}-URL.`,
       },
       categorySelect: {
         selectAll: "(Alle auswählen)",
