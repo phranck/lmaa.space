@@ -155,6 +155,13 @@
       "when": 1773167379318,
       "tag": "0021_old_archangel",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1773188568278,
+      "tag": "0022_eminent_hellion",
+      "breakpoints": true
     }
   ]
 }

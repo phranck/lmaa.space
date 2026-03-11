@@ -113,7 +113,11 @@ export async function deleteManagedAdminShop(id: number, data: DeleteAdminShopDa
 export async function changeManagedAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
-  options?: { rejectionToken?: string | null; rejectionLongText?: string | null },
+  options?: {
+    rejectionToken?: string | null;
+    rejectionAdminNote?: string | null;
+    rejectionLongText?: string | null;
+  },
 ) {
   const found = await setAdminShopVisibility(id, visibility, options);
   if (!found) {

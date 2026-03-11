@@ -26,6 +26,7 @@ export interface ShopSummary {
   deletedByFirstName?: string | null;
   deletedByLastName?: string | null;
   rejectionToken?: string | null;
+  rejectionAdminNote?: string | null;
   rejectionLongText?: string | null;
 }
 
@@ -61,6 +62,7 @@ export interface Shop {
   createdAt: string;
   updatedAt: string;
   rejectionToken?: string | null;
+  rejectionAdminNote?: string | null;
   rejectionLongText?: string | null;
 }
 

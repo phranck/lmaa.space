@@ -1,10 +1,4 @@
 import { useEffect, useReducer, useState } from "react";
-import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
-import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { generateRejectionToken, type AdminShopListItem, type Shop } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, FormLabelText, ShopEditForm } from "@lmaa/ui";
@@ -28,6 +22,14 @@ import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
 import { getShopEditFormI18n } from "./shop-form-i18n.ts";
+import {
+  ArrowClockwiseIcon,
+  CopyIcon,
+  DownloadIcon,
+  FileTextIcon,
+  StorefrontIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 
 export type ShopEditorModeProps = {
   initialData?: Partial<ShopEditFormValue>;
@@ -143,7 +145,9 @@ export function useShopEditorController({
   const [imageState, setImageState] = useState<ShopImageState>(() =>
     getInitialImageState(initialData, initialOgImage, isSubmissionMode),
   );
-  const [showDeferredShopImage, setShowDeferredShopImage] = useState(() => initialShop === undefined);
+  const [showDeferredShopImage, setShowDeferredShopImage] = useState(
+    () => initialShop === undefined,
+  );
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
   const showLoadingSkeleton = isLoadingShop && !hasImmediateFormData;
@@ -227,7 +231,7 @@ export function useShopEditorController({
     setRejectState({
       editingRejection,
       open: true,
-      reason: "",
+      reason: editingRejection ? (activeShop?.rejectionAdminNote ?? "") : "",
       longText: editingRejection ? (activeShop?.rejectionLongText ?? "") : "",
       token: editingRejection ? (activeShop?.rejectionToken ?? null) : generateRejectionToken(),
     });
@@ -240,6 +244,7 @@ export function useShopEditorController({
         id,
         visibility: "rejected",
         rejectionToken: rejectState.token ?? undefined,
+        rejectionAdminNote: rejectState.reason || null,
         rejectionLongText: rejectState.longText || null,
       },
       {
@@ -254,7 +259,7 @@ export function useShopEditorController({
     setImageState((current) => ({
       ...current,
       draftOgImageInput: value,
-      previewOverride: isSubmissionMode ? (value.trim() || null) : current.previewOverride,
+      previewOverride: isSubmissionMode ? value.trim() || null : current.previewOverride,
     }));
   }
 
@@ -453,14 +458,14 @@ export function ShopEditorRejectOverlay({ controller }: { controller: ShopEditor
       submitVariant={rejectState.editingRejection ? "primary" : "danger"}
       submitIcon={
         rejectState.editingRejection ? (
-          <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
         ) : undefined
       }
       headerIcon={
         rejectState.editingRejection ? (
-          <SFLongTextPageAndPencilFill className={dialogHeaderIconClass} />
+          <FileTextIcon weight="duotone" className={dialogHeaderIconClass} />
         ) : (
-          <SFXmarkCircleFill className={dialogHeaderIconClass} />
+          <XCircleIcon weight="duotone" className={dialogHeaderIconClass} />
         )
       }
       storageKey="shops:reject-dialog-size"
@@ -525,7 +530,7 @@ function ShopPreviewImageSection({
               {name.charAt(0).toUpperCase()}
             </span>
           ) : (
-            <SFStorefrontFill className="w-5 h-5 text-[var(--ds-text-subtle)]" />
+            <StorefrontIcon weight="duotone" className="w-5 h-5 text-[var(--ds-text-subtle)]" />
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -546,7 +551,10 @@ function ShopPreviewImageSection({
           disabled={isRefetchPending || isLoading}
           className={buttonClass}
         >
-          <SFArrowClockwise className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`} />
+          <ArrowClockwiseIcon
+            weight="duotone"
+            className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`}
+          />
           {reloadImageLabel}
         </button>
         <button
@@ -555,7 +563,7 @@ function ShopPreviewImageSection({
           disabled={isSavingImage || isLoading}
           className={buttonClass}
         >
-          <SFDocumentOnDocumentFill className="w-3 h-3" />
+          <CopyIcon weight="duotone" className="w-3 h-3" />
           {setImageLabel}
         </button>
       </div>

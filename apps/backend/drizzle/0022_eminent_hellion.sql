@@ -1,0 +1,1 @@
+ALTER TABLE "shops" ADD COLUMN "rejection_admin_note" text;

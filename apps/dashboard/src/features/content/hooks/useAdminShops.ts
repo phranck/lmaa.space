@@ -42,15 +42,25 @@ export function useSetShopVisibility() {
       id,
       visibility,
       rejectionToken,
+      rejectionAdminNote,
       rejectionLongText,
     }: {
       id: number;
       visibility: ShopMutableVisibility;
       rejectionToken?: string;
+      rejectionAdminNote?: string | null;
       rejectionLongText?: string | null;
     }) =>
-      api.patch(`/admin/shops/${id}/visibility`, { visibility, rejectionToken, rejectionLongText }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
+      api.patch(`/admin/shops/${id}/visibility`, {
+        visibility,
+        rejectionToken,
+        rejectionAdminNote,
+        rejectionLongText,
+      }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["shops-admin"] });
+      qc.invalidateQueries({ queryKey: ["shop", variables.id] });
+    },
   });
 }
 

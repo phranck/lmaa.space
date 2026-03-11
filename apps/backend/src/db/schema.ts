@@ -61,6 +61,7 @@ export const shops = pgTable(
     deleteReason: text("delete_reason"),
     deletedWasReported: boolean("deleted_was_reported").notNull().default(false),
     rejectionToken: text("rejection_token").unique(),
+    rejectionAdminNote: text("rejection_admin_note"),
     rejectionLongText: text("rejection_long_text"),
   },
   (table) => [
