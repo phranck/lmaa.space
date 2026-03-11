@@ -215,10 +215,7 @@ function LoadedSubmissionEditorPage({
   const isPending = submission.status === "pending";
   const isOnHold = submission.status === "onhold";
 
-  const saveLabel = useMemo(
-    () => (controller.isPending ? common.saving : common.save),
-    [common.save, common.saving, controller.isPending],
-  );
+  const saveLabel = useMemo(() => common.save, [common.save]);
   const combinedSavedPhase =
     controller.savedPhase !== "hidden" ? controller.savedPhase : reviewSavedPhase;
   const isActionPending =
