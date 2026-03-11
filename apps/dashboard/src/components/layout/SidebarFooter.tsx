@@ -1,6 +1,4 @@
 import { useState } from "react";
-import SFPersonCropCircleFill from "sf-symbols-lib/monochrome/SFPersonCropCircleFill";
-import SFRectanglePortraitAndArrowRightFill from "sf-symbols-lib/monochrome/SFRectanglePortraitAndArrowRightFill";
 
 import type { AdminRole } from "@lmaa/shared";
 
@@ -12,6 +10,7 @@ import {
 } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UserAvatar } from "@/features/system/UserAvatar.tsx";
+import { SignOutIcon, UserCircleIcon } from "@phosphor-icons/react";
 
 const SKIP_KEY = "logout-skip-confirm";
 
@@ -90,7 +89,7 @@ export function SidebarFooter({
               aria-label={s.editProfile}
               className={btnClass}
             >
-              <SFPersonCropCircleFill className="w-3.5 h-3.5" />
+              <UserCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             </button>
           )}
           <button
@@ -99,7 +98,7 @@ export function SidebarFooter({
             aria-label={s.logout}
             className={btnClass}
           >
-            <SFRectanglePortraitAndArrowRightFill className="w-3.5 h-3.5" />
+            <SignOutIcon weight="duotone" className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -107,7 +106,7 @@ export function SidebarFooter({
       <Dialog
         open={confirmOpen}
         title={s.logoutConfirmTitle}
-        titleIcon={<SFRectanglePortraitAndArrowRightFill className={dialogHeaderIconClass} />}
+        titleIcon={<SignOutIcon weight="duotone" className={dialogHeaderIconClass} />}
         onClose={() => setConfirmOpen(false)}
       >
         <div className="px-6 py-3 space-y-3">

@@ -1,5 +1,4 @@
-import SFArrowshapeDownFill from "sf-symbols-lib/monochrome/SFArrowshapeDownFill";
-import SFArrowshapeRightFill from "sf-symbols-lib/monochrome/SFArrowshapeRightFill";
+import { ArrowFatLinesDownIcon, ArrowFatLinesRightIcon } from "@phosphor-icons/react";
 
 interface FlowConnectorProps {
   direction?: "vertical" | "horizontal";
@@ -8,7 +7,7 @@ interface FlowConnectorProps {
 
 export function FlowConnector({ direction = "vertical", className }: FlowConnectorProps) {
   const isVertical = direction === "vertical";
-  const Icon = isVertical ? SFArrowshapeDownFill : SFArrowshapeRightFill;
+  const Icon = isVertical ? ArrowFatLinesDownIcon : ArrowFatLinesRightIcon;
 
   return (
     <div
@@ -16,7 +15,10 @@ export function FlowConnector({ direction = "vertical", className }: FlowConnect
         isVertical ? "h-14 -my-px" : "w-14 -mx-px self-stretch"
       } ${className ?? ""}`}
     >
-      <Icon className="w-4 h-4 text-[var(--ds-color-neutral-400)]" />
+      <Icon
+        weight="duotone"
+        className={`${isVertical ? "w-5 h-5" : "w-5 h-5"} text-[var(--ds-text)]`}
+      />
     </div>
   );
 }

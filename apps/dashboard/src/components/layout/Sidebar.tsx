@@ -1,21 +1,5 @@
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import SFBookPagesFill from "sf-symbols-lib/monochrome/SFBookPagesFill";
-import SFChartBarFill from "sf-symbols-lib/monochrome/SFChartBarFill";
-import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
-import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
-import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
-import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
-import SFEnvelopeBadgeFill from "sf-symbols-lib/monochrome/SFEnvelopeBadgeFill";
-import SFEyeSlashFill from "sf-symbols-lib/monochrome/SFEyeSlashFill";
-import SFLink from "sf-symbols-lib/monochrome/SFLink";
-import SFListBulletRectanglePortraitFill from "sf-symbols-lib/monochrome/SFListBulletRectanglePortraitFill";
-import SFPerson3Fill from "sf-symbols-lib/monochrome/SFPerson3Fill";
-import SFPhotoOnRectangleAngledFill from "sf-symbols-lib/monochrome/SFPhotoOnRectangleAngledFill";
-import SFRectangleBottomhalfFilled from "sf-symbols-lib/monochrome/SFRectangleBottomhalfFilled";
-import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
-import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
-import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
-import SFTrayFill from "sf-symbols-lib/monochrome/SFTrayFill";
 
 import type { AdminRole } from "@lmaa/shared";
 
@@ -40,17 +24,44 @@ import {
   useEmailTemplates,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
+import {
+  CaretCircleDoubleDownIcon,
+  CaretCircleDoubleUpIcon,
+  ChartBarIcon,
+  CheckCircleIcon,
+  CircleIcon,
+  CopyIcon,
+  EnvelopeOpenIcon,
+  EyeSlashIcon,
+  FileIcon,
+  ImageIcon,
+  LinkIcon,
+  ListBulletsIcon,
+  MarkdownLogoIcon,
+  NotebookIcon,
+  SquareHalfBottomIcon,
+  SquaresFourIcon,
+  StorefrontIcon,
+  TagIcon,
+  TrayIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
+const SIDEBAR_GROUP_STORAGE_KEYS = [
+  "sidebar-pages-open",
+  "sidebar-forms-open",
+  "sidebar-email-templates-open",
+] as const;
 
 function StatusIcon({ status }: { status: string }) {
   if (status === "published") {
-    return <SFCheckmarkCircleFill className="w-3 h-3 text-green-500 shrink-0" />;
+    return <CheckCircleIcon weight="duotone" className="w-3 h-3 text-green-500 shrink-0" />;
   }
   if (status === "hidden") {
-    return <SFEyeSlashFill className="w-3 h-3 text-gray-400 shrink-0" />;
+    return <EyeSlashIcon weight="duotone" className="w-3 h-3 text-gray-400 shrink-0" />;
   }
-  return <SFCircle className="w-3 h-3 text-amber-500 shrink-0" />;
+  return <CircleIcon weight="duotone" className="w-3 h-3 text-amber-500 shrink-0" />;
 }
 
 interface SidebarProps {
@@ -64,7 +75,17 @@ interface SidebarProps {
   onEditProfile?: () => void;
 }
 
-function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
+function PagesGroup({
+  onItemClick,
+  globalOpenState,
+  globalOpenVersion,
+  onOpenChange,
+}: {
+  onItemClick?: () => void;
+  globalOpenState?: boolean | null;
+  globalOpenVersion?: number;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
   const { data: pages } = useContentPages();
@@ -73,9 +94,12 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
     <CollapsibleSidebarGroup
       routeMatch="/pages/*"
       storageKey="sidebar-pages-open"
-      icon={<SFDocumentOnDocumentFill className="w-4 h-4" />}
+      icon={<CopyIcon weight="duotone" className="w-4 h-4" />}
       label={s.pages}
       badge={pages?.length ?? 0}
+      globalOpenState={globalOpenState}
+      globalOpenVersion={globalOpenVersion}
+      onOpenChange={onOpenChange}
     >
       <NavLink to="/pages" end onClick={onItemClick} className={sidebarGroupItemClass}>
         {s.pagesOverview}
@@ -87,7 +111,7 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
           onClick={onItemClick}
           className={sidebarGroupItemClass}
         >
-          <SFDocumentFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+          <FileIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
           <StatusIcon status={page.status} />
           <span className="flex flex-col min-w-0">
             <span className="truncate">{page.title}</span>
@@ -99,7 +123,17 @@ function PagesGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
-function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
+function FormsGroup({
+  onItemClick,
+  globalOpenState,
+  globalOpenVersion,
+  onOpenChange,
+}: {
+  onItemClick?: () => void;
+  globalOpenState?: boolean | null;
+  globalOpenVersion?: number;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
   const { data: forms } = useFormConfigs();
@@ -108,9 +142,12 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
     <CollapsibleSidebarGroup
       routeMatch="/forms/*"
       storageKey="sidebar-forms-open"
-      icon={<SFBookPagesFill className="w-4 h-4" />}
+      icon={<NotebookIcon weight="duotone" className="w-4 h-4" />}
       label={s.formBuilder}
       badge={forms?.length ?? 0}
+      globalOpenState={globalOpenState}
+      globalOpenVersion={globalOpenVersion}
+      onOpenChange={onOpenChange}
     >
       <NavLink to="/forms" end onClick={onItemClick} className={sidebarGroupItemClass}>
         {s.formsOverview}
@@ -122,7 +159,7 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
           onClick={onItemClick}
           className={sidebarGroupItemClass}
         >
-          <SFListBulletRectanglePortraitFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+          <ListBulletsIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
           <span className="flex flex-col min-w-0">
             <span className="truncate">{form.name}</span>
             {form.slug && <span className="truncate text-xs opacity-50">/{form.slug}</span>}
@@ -133,7 +170,17 @@ function FormsGroup({ onItemClick }: { onItemClick?: () => void }) {
   );
 }
 
-function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
+function EmailTemplatesGroup({
+  onItemClick,
+  globalOpenState,
+  globalOpenVersion,
+  onOpenChange,
+}: {
+  onItemClick?: () => void;
+  globalOpenState?: boolean | null;
+  globalOpenVersion?: number;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const { messages } = useI18n();
   const common = messages.common;
   const s = messages.layout.sidebar;
@@ -145,9 +192,12 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
     <CollapsibleSidebarGroup
       routeMatch="/email-templates/*"
       storageKey="sidebar-email-templates-open"
-      icon={<SFEnvelopeBadgeFill className="w-4 h-4" />}
+      icon={<EnvelopeOpenIcon weight="duotone" className="w-4 h-4" />}
       label={s.emailTemplates}
       badge={templates?.length ?? 0}
+      globalOpenState={globalOpenState}
+      globalOpenVersion={globalOpenVersion}
+      onOpenChange={onOpenChange}
     >
       <NavLink to="/email-templates" end onClick={onItemClick} className={sidebarGroupItemClass}>
         {s.emailTemplatesOverview}
@@ -165,7 +215,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
               }`
             }
           >
-            <SFEnvelopeBadgeFill className="w-3.5 h-3.5 shrink-0 opacity-60" />
+            <EnvelopeOpenIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
             <span className="truncate">{tpl.name}</span>
           </NavLink>
           <button
@@ -197,7 +247,7 @@ function EmailTemplatesGroup({ onItemClick }: { onItemClick?: () => void }) {
             }}
             className="opacity-0 pointer-events-none group-hover/item:opacity-100 group-hover/item:pointer-events-auto shrink-0 p-1 mr-1 rounded text-[var(--ds-nav-text)] hover:text-[var(--ds-nav-hover-text)] hover:bg-[var(--ds-nav-hover-bg)]"
           >
-            <SFDocumentOnDocumentFill className="w-3.5 h-3.5" />
+            <CopyIcon weight="duotone" className="w-3.5 h-3.5" />
           </button>
         </div>
       ))}
@@ -237,26 +287,97 @@ export function Sidebar({
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
   const submissionsCount = pendingSubmissions.length + deadLinks.length + shopConcerns.length;
+  const [groupOpenVersion, setGroupOpenVersion] = useState(0);
+  const [groupOpenState, setGroupOpenState] = useState<boolean | null>(null);
+  const [groupStatus, setGroupStatus] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(
+      SIDEBAR_GROUP_STORAGE_KEYS.map((key) => [key, localStorage.getItem(key) === "true"]),
+    ),
+  );
+  const areAllGroupsOpen = SIDEBAR_GROUP_STORAGE_KEYS.every((key) => groupStatus[key]);
+
+  function handleToggleAllGroups(next: boolean) {
+    SIDEBAR_GROUP_STORAGE_KEYS.forEach((key) => localStorage.setItem(key, String(next)));
+    setGroupStatus(Object.fromEntries(SIDEBAR_GROUP_STORAGE_KEYS.map((key) => [key, next])));
+    setGroupOpenState(next);
+    setGroupOpenVersion((version) => version + 1);
+  }
+
+  function handleGroupOpenChange(storageKey: (typeof SIDEBAR_GROUP_STORAGE_KEYS)[number], open: boolean) {
+    setGroupStatus((current) => {
+      if (current[storageKey] === open) return current;
+      return { ...current, [storageKey]: open };
+    });
+  }
 
   return (
     <>
       <SidebarHeader />
 
       <nav className="flex-1 overflow-y-auto px-3">
+        <div className="sticky top-0 z-10 -mx-3 px-3 pt-3 pb-2 bg-[var(--ds-surface)]">
+          <button
+            type="button"
+            onClick={() => handleToggleAllGroups(!areAllGroupsOpen)}
+            className="flex w-full items-center justify-center gap-2 h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs font-medium text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+            aria-label={areAllGroupsOpen ? s.collapseAllAria : s.expandAllAria}
+            title={areAllGroupsOpen ? s.collapseAllAria : s.expandAllAria}
+          >
+            <span className="relative h-3.5 w-3.5 shrink-0 overflow-hidden">
+              <CaretCircleDoubleDownIcon
+                weight="duotone"
+                className={`absolute inset-0 h-3.5 w-3.5 transition-all duration-200 ease-out ${
+                  areAllGroupsOpen
+                    ? "-translate-y-1 opacity-0 scale-90"
+                    : "translate-y-0 opacity-100 scale-100"
+                }`}
+              />
+              <CaretCircleDoubleUpIcon
+                weight="duotone"
+                className={`absolute inset-0 h-3.5 w-3.5 transition-all duration-200 ease-out ${
+                  areAllGroupsOpen
+                    ? "translate-y-0 opacity-100 scale-100"
+                    : "translate-y-1 opacity-0 scale-90"
+                }`}
+              />
+            </span>
+            <span className="relative inline-grid overflow-hidden">
+              <span
+                className={`col-start-1 row-start-1 transition-all duration-200 ease-out ${
+                  areAllGroupsOpen
+                    ? "-translate-y-1 opacity-0"
+                    : "translate-y-0 opacity-100"
+                }`}
+              >
+                {s.expandAll}
+              </span>
+              <span
+                className={`col-start-1 row-start-1 transition-all duration-200 ease-out ${
+                  areAllGroupsOpen
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-1 opacity-0"
+                }`}
+              >
+                {s.collapseAll}
+              </span>
+            </span>
+          </button>
+        </div>
+
         {/* Allgemein */}
         <SidebarSection label={s.sectionGeneral} />
         <div className="space-y-0.5">
           <SidebarItem
             to="/"
             label={s.overview}
-            icon={<SFSquareGrid2x2Fill className="w-4 h-4" />}
+            icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
             end
             onClick={onItemClick}
           />
           <SidebarItem
             to="/reports"
             label={s.submissions}
-            icon={<SFTrayFill className="w-4 h-4" />}
+            icon={<TrayIcon weight="duotone" className="w-4 h-4" />}
             badge={submissionsCount}
             onClick={onItemClick}
           />
@@ -268,18 +389,25 @@ export function Sidebar({
           <SidebarItem
             to="/shops"
             label={s.shops}
-            icon={<SFStorefrontFill className="w-4 h-4" />}
+            icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
             badge={shops.length}
             onClick={onItemClick}
           />
           <SidebarItem
             to="/categories"
             label={s.categories}
-            icon={<SFTagFill className="w-4 h-4" />}
+            icon={<TagIcon weight="duotone" className="w-4 h-4" />}
             badge={categories.length}
             onClick={onItemClick}
           />
-          {isAdmin && <PagesGroup onItemClick={onItemClick} />}
+          {isAdmin && (
+            <PagesGroup
+              onItemClick={onItemClick}
+              globalOpenState={groupOpenState}
+              globalOpenVersion={groupOpenVersion}
+              onOpenChange={(open) => handleGroupOpenChange("sidebar-pages-open", open)}
+            />
+          )}
         </div>
 
         {/* Builders */}
@@ -287,12 +415,22 @@ export function Sidebar({
           <>
             <SidebarSection label={s.sectionTemplates} />
             <div className="space-y-0.5">
-              <FormsGroup onItemClick={onItemClick} />
-              <EmailTemplatesGroup onItemClick={onItemClick} />
+              <FormsGroup
+                onItemClick={onItemClick}
+                globalOpenState={groupOpenState}
+                globalOpenVersion={groupOpenVersion}
+                onOpenChange={(open) => handleGroupOpenChange("sidebar-forms-open", open)}
+              />
+              <EmailTemplatesGroup
+                onItemClick={onItemClick}
+                globalOpenState={groupOpenState}
+                globalOpenVersion={groupOpenVersion}
+                onOpenChange={(open) => handleGroupOpenChange("sidebar-email-templates-open", open)}
+              />
               <SidebarItem
                 to="/footer-builder"
                 label={s.footerBuilder}
-                icon={<SFRectangleBottomhalfFilled className="w-4 h-4" />}
+                icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
                 onClick={onItemClick}
               />
             </div>
@@ -307,7 +445,7 @@ export function Sidebar({
               <SidebarItem
                 to="/analytics"
                 label={s.analytics}
-                icon={<SFChartBarFill className="w-4 h-4" />}
+                icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
                 onClick={onItemClick}
               />
             </div>
@@ -322,27 +460,27 @@ export function Sidebar({
               <SidebarItem
                 to="/users"
                 label={s.users}
-                icon={<SFPerson3Fill className="w-4 h-4" />}
+                icon={<UsersThreeIcon weight="duotone" className="w-4 h-4" />}
                 badge={users.length}
                 onClick={onItemClick}
               />
               <SidebarItem
                 to="/media"
                 label={s.media}
-                icon={<SFPhotoOnRectangleAngledFill className="w-4 h-4" />}
+                icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
                 badge={media.length}
                 onClick={onItemClick}
               />
               <SidebarItem
                 to="/pages/navigations"
                 label={s.navigations}
-                icon={<SFLink className="w-4 h-4" />}
+                icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
                 onClick={onItemClick}
               />
               <SidebarItem
                 to="/markdown-widgets"
                 label={s.markdownWidgets}
-                icon={<SFDocumentOnDocumentFill className="w-4 h-4" />}
+                icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
                 onClick={onItemClick}
               />
             </div>

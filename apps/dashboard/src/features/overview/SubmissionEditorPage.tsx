@@ -1,14 +1,5 @@
 import { useMemo, useReducer, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
-import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
-import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
-import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
-import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { type Submission, generateRejectionToken } from "@lmaa/shared";
 import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
@@ -34,6 +25,17 @@ import {
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import {
+  ArrowCounterClockwiseIcon,
+  CheckCircleIcon,
+  CopyIcon,
+  DownloadIcon,
+  FileTextIcon,
+  InfoIcon,
+  PauseCircleIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 
 function resolveSubmissionRoute(submissionIdParam: string | undefined) {
   const parsed = Number(submissionIdParam);
@@ -141,8 +143,7 @@ function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }
             />
           }
         >
-          <div className="flex items-center gap-3">
-          </div>
+          <div className="flex items-center gap-3"></div>
         </PageHeader>
 
         <PageBody className="min-h-0 overflow-y-auto mb-3">
@@ -156,7 +157,9 @@ function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }
     return <Navigate to="/reports?tab=suggestions" replace />;
   }
 
-  return <LoadedSubmissionEditorPage submission={submission} isFetching={submissionQuery.isFetching} />;
+  return (
+    <LoadedSubmissionEditorPage submission={submission} isFetching={submissionQuery.isFetching} />
+  );
 }
 
 function LoadedSubmissionEditorPage({
@@ -188,14 +191,11 @@ function LoadedSubmissionEditorPage({
     reviewState.reviewMode === "approve",
   );
 
-  useKeyboardSave(
-    () => {
-      if (reviewState.reviewMode === "approve" && !reviewMutation.isPending) {
-        handleApprove(false);
-      }
-    },
-    reviewState.reviewMode === "approve",
-  );
+  useKeyboardSave(() => {
+    if (reviewState.reviewMode === "approve" && !reviewMutation.isPending) {
+      handleApprove(false);
+    }
+  }, reviewState.reviewMode === "approve");
 
   const headerBackLabel = submissionsMessages.title;
   const pageTitle = submission.shopName || submissionsMessages.suggestions.edit;
@@ -219,12 +219,10 @@ function LoadedSubmissionEditorPage({
     () => (controller.isPending ? common.saving : common.save),
     [common.save, common.saving, controller.isPending],
   );
-  const combinedSavedPhase = controller.savedPhase !== "hidden" ? controller.savedPhase : reviewSavedPhase;
+  const combinedSavedPhase =
+    controller.savedPhase !== "hidden" ? controller.savedPhase : reviewSavedPhase;
   const isActionPending =
-    controller.isPending ||
-    reviewMutation.isPending ||
-    deleteMutation.isPending ||
-    isFetching;
+    controller.isPending || reviewMutation.isPending || deleteMutation.isPending || isFetching;
 
   function navigateBack() {
     navigate("/reports?tab=suggestions");
@@ -316,9 +314,13 @@ function LoadedSubmissionEditorPage({
       <PageHeader
         title={pageTitle}
         titleContent={
-          <div className="min-w-0">
-            <p className="font-semibold text-sm text-[var(--ds-text)] truncate">{pageTitle}</p>
-            <p className="text-xs text-[var(--ds-text-muted)] truncate">{pageSubtitle}</p>
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-sm font-semibold leading-4 text-[var(--ds-text)]">
+              {pageTitle}
+            </p>
+            <p className="truncate text-[11px] leading-4 text-[var(--ds-text-muted)]">
+              {pageSubtitle}
+            </p>
           </div>
         }
         leading={<HeaderBackButton label={headerBackLabel} onClick={navigateBack} />}
@@ -344,7 +346,7 @@ function LoadedSubmissionEditorPage({
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
               >
-                <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+                <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.suggestions.approve}
               </button>
               <button
@@ -353,7 +355,7 @@ function LoadedSubmissionEditorPage({
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
               >
-                <SFPauseCircleFill className="w-3.5 h-3.5" />
+                <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.suggestions.onhold}
               </button>
               <button
@@ -362,7 +364,7 @@ function LoadedSubmissionEditorPage({
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
               >
-                <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.suggestions.reject}
               </button>
             </>
@@ -376,7 +378,7 @@ function LoadedSubmissionEditorPage({
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
               >
-                <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+                <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.suggestions.restore}
               </button>
               <button
@@ -385,7 +387,7 @@ function LoadedSubmissionEditorPage({
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
               >
-                <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.suggestions.reject}
               </button>
             </>
@@ -399,7 +401,7 @@ function LoadedSubmissionEditorPage({
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
               >
-                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.suggestions.editRejectionInfo}
               </button>
 
@@ -415,7 +417,7 @@ function LoadedSubmissionEditorPage({
                   disabled={isActionPending}
                   className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
                 >
-                  <SFInfoCircleFill className="w-3.5 h-3.5" />
+                  <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.info}
                 </button>
               ) : (
@@ -425,7 +427,7 @@ function LoadedSubmissionEditorPage({
                   disabled={isActionPending}
                   className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
                 >
-                  <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+                  <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.setToOpen}
                 </button>
               )}
@@ -439,7 +441,7 @@ function LoadedSubmissionEditorPage({
               disabled={isActionPending}
               className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
             >
-              <SFTrashFill className="w-3.5 h-3.5" />
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.suggestions.delete}
             </button>
           )}
@@ -456,7 +458,7 @@ function LoadedSubmissionEditorPage({
             disabled={!controller.canSave || isActionPending}
             className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
           >
-            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
             {saveLabel}
           </button>
         </div>
@@ -496,9 +498,9 @@ function LoadedSubmissionEditorPage({
         }
         headerIcon={
           reviewState.editingRejection ? (
-            <SFLongTextPageAndPencilFill className={dialogHeaderIconClass} />
+            <FileTextIcon weight="duotone" className={dialogHeaderIconClass} />
           ) : (
-            <SFXmarkCircleFill className={dialogHeaderIconClass} />
+            <XCircleIcon weight="duotone" className={dialogHeaderIconClass} />
           )
         }
         name={submission.shopName}
@@ -520,7 +522,7 @@ function LoadedSubmissionEditorPage({
         submitVariant={reviewState.editingRejection ? "primary" : "danger"}
         submitIcon={
           reviewState.editingRejection ? (
-            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
           ) : undefined
         }
         headerRight={<SaveNotification phase={combinedSavedPhase} label={common.saved} />}
@@ -548,7 +550,7 @@ function LoadedSubmissionEditorPage({
         >
           <OverlayCard.Header>
             <div className="flex items-center gap-3">
-              <SFTrashFill className={dialogHeaderIconClass} />
+              <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
               <h3 className="font-bold text-[var(--ds-text)]">
                 {submissionsMessages.suggestions.confirmDeleteTitle}
               </h3>
@@ -580,7 +582,7 @@ function LoadedSubmissionEditorPage({
               }
               className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
             >
-              <SFTrashFill className="w-3.5 h-3.5" />
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
               {deleteMutation.isPending ? "…" : common.delete}
             </button>
           </OverlayCard.Footer>
@@ -643,7 +645,7 @@ function ApproveSubmissionReviewCard({
       <OverlayCard.Header>
         <div className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <SFCheckmarkCircleFill className={dialogHeaderIconClass} />
+            <CheckCircleIcon weight="duotone" className={dialogHeaderIconClass} />
             <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
           </div>
           <SaveNotification phase={savedPhase} label={savedLabel} />
@@ -657,7 +659,7 @@ function ApproveSubmissionReviewCard({
             className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
             aria-label={copyUrlLabel}
           >
-            <SFDocumentOnDocumentFill className="w-4 h-4" />
+            <CopyIcon weight="duotone" className="w-4 h-4" />
           </button>
         </div>
       </OverlayCard.Header>
@@ -703,7 +705,7 @@ function ApproveSubmissionReviewCard({
             "…"
           ) : (
             <>
-              <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+              <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
               {submitLabel}
             </>
           )}

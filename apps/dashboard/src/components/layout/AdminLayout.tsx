@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import SFLine3Horizontal from "sf-symbols-lib/monochrome/SFLine3Horizontal";
 
 import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
@@ -10,6 +9,7 @@ import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/system/UserEditCard.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import { ListIcon } from "@phosphor-icons/react";
 
 const SIDEBAR_DEFAULT = 224;
 const SIDEBAR_MIN = 160;
@@ -155,7 +155,7 @@ function AdminLayoutInner() {
 
       {/* Fixed Header — full width on mobile, offset by sidebar on desktop */}
       <header
-        className={`sidebar-aware-header z-30 flex items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)] ${hasCustomTitleContent ? "min-h-[4.5rem] py-2" : "h-14"}`}
+        className="sidebar-aware-header z-30 flex h-14 items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]"
       >
         <div className="flex min-w-0 items-center gap-4">
           <button
@@ -164,13 +164,13 @@ function AdminLayoutInner() {
             className="md:hidden p-2 -ml-2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
             aria-label={messages.layout.menuOpen}
           >
-            <SFLine3Horizontal className="w-5 h-5" />
+            <ListIcon weight="duotone" className="w-5 h-5" />
           </button>
 
           <div ref={setLeadingEl} className="flex items-center shrink-0" />
 
           {hasCustomTitleContent ? (
-            <div className="min-w-0">{titleContent}</div>
+            <div className="min-w-0 overflow-hidden leading-tight">{titleContent}</div>
           ) : (
             <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
               {title || messages.layout.pageFallbackTitle}
@@ -185,10 +185,7 @@ function AdminLayoutInner() {
       </header>
 
       {/* Main — full width on mobile, offset by sidebar on desktop */}
-      <div
-        className="sidebar-aware-main flex flex-col min-h-screen"
-        style={{ paddingTop: hasCustomTitleContent ? "4.5rem" : "3.5rem" }}
-      >
+      <div className="sidebar-aware-main flex flex-col min-h-screen">
         <main className="flex-1 p-3 flex flex-col">
           <Outlet />
         </main>
