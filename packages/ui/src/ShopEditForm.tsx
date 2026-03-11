@@ -1,4 +1,5 @@
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import * as React from "react";
 import type { ReactNode } from "react";
 
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
@@ -132,6 +133,30 @@ export function ShopEditForm({
   blurSocialMediaOnPaste = false,
   topAside,
 }: ShopEditFormProps) {
+  const topFieldsRef = React.useRef<HTMLDivElement | null>(null);
+  const [topFieldsHeight, setTopFieldsHeight] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const node = topFieldsRef.current;
+    if (!node) return;
+
+    const updateHeight = () => {
+      setTopFieldsHeight(node.getBoundingClientRect().height);
+    };
+
+    updateHeight();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    resizeObserver.observe(node);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
   }
@@ -140,7 +165,7 @@ export function ShopEditForm({
     <div className="flex flex-col gap-4">
       {/* Name + URL + top aside tool */}
       <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
-        <div className="flex flex-col gap-4">
+        <div ref={topFieldsRef} className="flex flex-col gap-4">
           <div>
             <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
             <input
@@ -203,7 +228,9 @@ export function ShopEditForm({
           </div>
         </div>
 
-        <div className="min-h-0">{topAside}</div>
+        <div className="min-h-0 overflow-hidden" style={topFieldsHeight ? { height: `${topFieldsHeight}px` } : undefined}>
+          {topAside}
+        </div>
       </div>
 
       {/* Social Media */}

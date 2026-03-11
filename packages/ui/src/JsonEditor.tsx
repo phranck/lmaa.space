@@ -34,6 +34,23 @@ const editorTheme = EditorView.theme({
     overflowX: "auto",
     overscrollBehavior: "contain",
   },
+  ".cm-gutters": {
+    backgroundColor: "var(--ds-bg-elevated)",
+    color: "var(--ds-text-subtle)",
+    borderRight: "1px solid var(--ds-border)",
+    minHeight: "100%",
+  },
+  ".cm-gutter": {
+    minHeight: "100%",
+  },
+  ".cm-lineNumbers .cm-gutterElement": {
+    minWidth: "2.5rem",
+    padding: "0 0.625rem 0 0.75rem",
+  },
+  ".cm-activeLineGutter": {
+    backgroundColor: "transparent",
+    color: "var(--ds-text-muted)",
+  },
   ".cm-content": {
     padding: "0.375rem 0.75rem",
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
@@ -95,7 +112,12 @@ export function JsonEditor({
 
   const wrapperStyle: React.CSSProperties | undefined = resizable
     ? { height: minHeight, resize: "vertical", overflow: "hidden" }
-    : undefined;
+    : height
+      ? { height, overflow: "hidden" }
+      : undefined;
+
+  const hasBoundedHeight = resizable || Boolean(height);
+  const editorContainerClassName = hasBoundedHeight ? "h-full min-h-0" : undefined;
 
   return (
     <div
@@ -108,11 +130,12 @@ export function JsonEditor({
         onChange={(nextValue) => onChange(nextValue)}
         extensions={extensions}
         theme={jsonTheme}
-        height={resizable ? "100%" : height}
+        className={editorContainerClassName}
+        height={hasBoundedHeight ? "100%" : undefined}
         minHeight={resizable ? undefined : (height ? undefined : minHeight)}
         editable={!readOnly}
         basicSetup={{
-          lineNumbers: false,
+          lineNumbers: true,
           foldGutter: false,
           highlightActiveLine: false,
           highlightSelectionMatches: false,
