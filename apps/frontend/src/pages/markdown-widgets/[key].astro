@@ -1,5 +1,6 @@
 ---
 import type { MarkdownWidget } from "@lmaa/contracts";
+import { apiGet } from "@/lib/api";
 
 const { key } = Astro.params;
 
@@ -86,20 +87,18 @@ if (!key || !keyPattern.test(key)) {
   return Astro.rewrite("/404");
 }
 
-const apiUrl = new URL(`/api/v1/markdown-widgets/${encodeURIComponent(key)}`, Astro.url);
-const response = await fetch(apiUrl);
-
-if (!response.ok) {
-  Astro.response.status = response.status === 404 ? 404 : 502;
+let widget: MarkdownWidget | null = null;
+try {
+  widget = await apiGet<MarkdownWidget>(`/markdown-widgets/${encodeURIComponent(key)}`);
+} catch (error) {
+  const message = error instanceof Error ? error.message : "";
+  Astro.response.status = message.includes("404") ? 404 : 502;
   Astro.response.headers.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'self'");
   Astro.response.headers.set("X-Frame-Options", "SAMEORIGIN");
   Astro.response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   Astro.response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   return Astro.rewrite("/404");
 }
-
-const body = (await response.json()) as { data: MarkdownWidget };
-const widget = body.data;
 const iframeTitle = widget.label || "Markdown widget";
 
 Astro.response.headers.set("Content-Security-Policy", buildWidgetCsp(widget));
