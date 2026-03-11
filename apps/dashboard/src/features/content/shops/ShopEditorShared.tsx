@@ -8,10 +8,21 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useReducer, useState } from "react";
 
-import { generateRejectionToken, type AdminShopListItem, type Shop } from "@lmaa/shared";
-import { REGION_CODES } from "@lmaa/shared";
-import { EMPTY_SHOP_FORM_VALUE, FormLabelText, JsonEditor, ShopEditForm } from "@lmaa/ui";
+import {
+  generateRejectionToken,
+  REGION_CODES,
+  type AdminShopListItem,
+  type Shop,
+  type ShopCheckNotes,
+} from "@lmaa/shared";
+import {
+  EMPTY_SHOP_FORM_VALUE,
+  FormLabelText,
+  JsonEditor,
+  ShopEditForm,
+} from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
+import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
@@ -95,6 +106,7 @@ function getInitialFormValue(
     shipping: shopData.shipping ?? "",
     contactEmail: shopData.contactEmail ?? "",
     socialMedia: shopData.socialMedia ?? {},
+    shopCheckNotes: shopData.shopCheckNotes ?? null,
     headquartersStreet: shopData.headquarters?.street ?? "",
     headquartersPostalCode: shopData.headquarters?.postalCode ?? "",
     headquartersCity: shopData.headquarters?.city ?? "",
@@ -132,6 +144,7 @@ type ShopCheckJsonPayload = {
   contactEmail?: unknown;
   shippingRegions?: unknown;
   socialMedia?: unknown;
+  notes?: unknown;
   headquarters?: unknown;
   geo?: unknown;
 };
@@ -151,6 +164,29 @@ function getRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
+}
+
+function getShopCheckNotes(value: unknown): ShopCheckNotes | null {
+  const notes = getRecord(value);
+  if (notes === null) return null;
+
+  const focus = getStringArray(notes.focus);
+  const brandsOrProducts = getStringArray(notes.brandsOrProducts);
+  const companyPresentation = getString(notes.companyPresentation);
+
+  if (
+    focus.length === 0 &&
+    brandsOrProducts.length === 0 &&
+    companyPresentation === null
+  ) {
+    return null;
+  }
+
+  return {
+    focus: Array.from(new Set(focus)),
+    brandsOrProducts: Array.from(new Set(brandsOrProducts)),
+    companyPresentation,
+  };
 }
 
 function normalizeCategoryName(value: string) {
@@ -224,6 +260,12 @@ function applyShopCheckJsonToForm(
       nextForm.socialMedia = { ...nextForm.socialMedia, ...mappedSocialMedia };
       changed = true;
     }
+  }
+
+  const shopCheckNotes = getShopCheckNotes(payload.notes);
+  if (shopCheckNotes !== null) {
+    nextForm.shopCheckNotes = shopCheckNotes;
+    changed = true;
   }
 
   const headquarters = getRecord(payload.headquarters);
@@ -646,9 +688,11 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
           topAside={
-            <div className="grid h-full min-h-0 grid-rows-[auto_1fr]">
-              <div className="mb-1 flex items-center justify-between gap-3">
-                <FormLabelText className="mb-0">{shopFormI18n.messages.jsonToolTitle}</FormLabelText>
+            <div className="flex min-h-0 flex-col gap-1">
+              <div className="flex items-center justify-between gap-3">
+                <FormLabelText className="mb-0">
+                  {shopFormI18n.messages.jsonToolTitle}
+                </FormLabelText>
                 <button
                   type="button"
                   onClick={() => {
@@ -666,11 +710,19 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                 onChange={setShopCheckJson}
                 onPaste={handleShopCheckJsonPaste}
                 placeholder="{}"
-                height="100%"
-                className="h-full"
+                height="11rem"
               />
-              {jsonImportError && <p className="mt-1 text-xs text-red-500">{jsonImportError}</p>}
+              {jsonImportError && <p className="text-xs text-red-500">{jsonImportError}</p>}
             </div>
+          }
+          detailsAside={
+            <ShopLocationMap
+              latitude={form.headquartersLatitude}
+              longitude={form.headquartersLongitude}
+              standardLayerLabel={shopFormI18n.messages.mapStandardLabel}
+              satelliteLayerLabel={shopFormI18n.messages.mapSatelliteLabel}
+              className="h-full"
+            />
           }
         />
       )}

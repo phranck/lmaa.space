@@ -63,6 +63,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         jsonApplyLabel: "Apply JSON",
         jsonImportError: "JSON could not be mapped to the form.",
         jsonInvalidError: "Invalid JSON.",
+        mapStandardLabel: "Standard",
+        mapSatelliteLabel: "Satellite",
         socialMediaLabel: "Social Media",
         socialMedia: {
           urlPlaceholder: "Paste URL",
@@ -118,6 +120,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       jsonApplyLabel: "Aus JSON übernehmen",
       jsonImportError: "Das JSON konnte nicht auf das Formular abgebildet werden.",
       jsonInvalidError: "Ungültiges JSON.",
+      mapStandardLabel: "Standard",
+      mapSatelliteLabel: "Satellit",
       socialMediaLabel: "Social Media",
       socialMedia: {
         urlPlaceholder: "URL einfügen",
