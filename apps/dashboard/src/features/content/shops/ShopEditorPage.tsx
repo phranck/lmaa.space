@@ -9,12 +9,8 @@ import {
 import { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 
-import { Card } from "@/components/ui/Card.tsx";
-import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
-import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
-import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
@@ -76,139 +72,136 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
     controller.isPending || visibilityMutation.isPending || deleteMutation.isPending;
 
   return (
-    <PageLayout>
-      <PageHeader
+    <>
+      <EditorPageShell
         title={controller.title}
-        leading={<HeaderBackButton label={backLabel} onClick={() => navigate("/shops")} />}
-      >
-        <div className="flex items-center gap-3">
-          <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
-        </div>
-      </PageHeader>
-
-      <PageBody className="min-h-0 mb-3">
-        <Card className="flex-1 min-h-0 p-5 overflow-y-auto">
-          <ShopEditorFormContent controller={controller} />
-        </Card>
-      </PageBody>
-
-      <Toolbar className="sticky bottom-0 z-20 justify-end">
-        <div className="flex items-center gap-2">
-          {showRestore && controller.activeShop && (
-            <button
-              type="button"
-              onClick={() =>
-                visibilityMutation.mutate({
-                  id: controller.activeShop!.id,
-                  visibility: "public",
-                })
-              }
-              disabled={isActionPending}
-              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
-            >
-              <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
-              {controller.shopsMessages.table.restore}
-            </button>
-          )}
-
-          {showPutOnHold && controller.activeShop && (
-            <button
-              type="button"
-              onClick={() =>
-                visibilityMutation.mutate({
-                  id: controller.activeShop!.id,
-                  visibility: "onhold",
-                })
-              }
-              disabled={isActionPending}
-              className="h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
-            >
-              {controller.shopsMessages.table.putOnHold}
-            </button>
-          )}
-
-          {showReject && (
-            <button
-              type="button"
-              onClick={() => controller.handleOpenRejectCard(false)}
-              disabled={isActionPending}
-              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
-            >
-              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-              {controller.shopsMessages.editCard.rejectSubmit}
-            </button>
-          )}
-
-          {showEditRejection && (
-            <>
+        backLabel={backLabel}
+        onBack={() => navigate("/shops")}
+        headerContent={
+          <div className="flex items-center gap-3">
+            <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
+          </div>
+        }
+        toolbar={
+          <div className="flex items-center gap-2">
+            {showRestore && controller.activeShop && (
               <button
                 type="button"
-                onClick={() => controller.handleOpenRejectCard(true)}
+                onClick={() =>
+                  visibilityMutation.mutate({
+                    id: controller.activeShop!.id,
+                    visibility: "public",
+                  })
+                }
                 disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
               >
-                <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-                {messages.submissions.suggestions.editRejectionInfo}
+                <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
+                {controller.shopsMessages.table.restore}
               </button>
+            )}
 
-              {showRejectionInfo && (
+            {showPutOnHold && controller.activeShop && (
+              <button
+                type="button"
+                onClick={() =>
+                  visibilityMutation.mutate({
+                    id: controller.activeShop!.id,
+                    visibility: "onhold",
+                  })
+                }
+                disabled={isActionPending}
+                className="h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                {controller.shopsMessages.table.putOnHold}
+              </button>
+            )}
+
+            {showReject && (
+              <button
+                type="button"
+                onClick={() => controller.handleOpenRejectCard(false)}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+                {controller.shopsMessages.editCard.rejectSubmit}
+              </button>
+            )}
+
+            {showEditRejection && (
+              <>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!rejectionToken) {
-                      return;
-                    }
-                    window.open(
-                      `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${rejectionToken}`,
-                      "_blank",
-                    );
-                  }}
-                  disabled={isActionPending || !rejectionToken}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                  onClick={() => controller.handleOpenRejectCard(true)}
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
-                  <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
-                  {messages.submissions.suggestions.info}
+                  <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {messages.submissions.suggestions.editRejectionInfo}
                 </button>
-              )}
-            </>
-          )}
 
-          {showDelete && (
+                {showRejectionInfo && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!rejectionToken) {
+                        return;
+                      }
+                      window.open(
+                        `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${rejectionToken}`,
+                        "_blank",
+                      );
+                    }}
+                    disabled={isActionPending || !rejectionToken}
+                    className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                  >
+                    <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
+                    {messages.submissions.suggestions.info}
+                  </button>
+                )}
+              </>
+            )}
+
+            {showDelete && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+                {controller.shopsMessages.table.delete}
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={isActionPending}
-              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {controller.shopsMessages.table.delete}
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() =>
-              void controller.handleSave({
-                onSuccess: (saved) => {
-                  if (controller.isNew) {
-                    const savedShopId = controller.getSavedShopId(saved);
-                    if (savedShopId !== null) {
-                      navigate(`/shops/${savedShopId}`, { replace: true });
+              onClick={() =>
+                void controller.handleSave({
+                  onSuccess: (saved) => {
+                    if (controller.isNew) {
+                      const savedShopId = controller.getSavedShopId(saved);
+                      if (savedShopId !== null) {
+                        navigate(`/shops/${savedShopId}`, { replace: true });
+                      }
+                    } else {
+                      controller.showSaved();
                     }
-                  } else {
-                    controller.showSaved();
-                  }
-                },
-              })
-            }
-            disabled={!controller.canSave || isActionPending}
-            className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
-          >
-            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-            {saveLabel}
-          </button>
-        </div>
-      </Toolbar>
+                  },
+                })
+              }
+              disabled={!controller.canSave || isActionPending}
+              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+            >
+              <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+              {saveLabel}
+            </button>
+          </div>
+        }
+      >
+        <ShopEditorFormContent controller={controller} />
+      </EditorPageShell>
 
       <ShopEditorRejectOverlay controller={controller} />
 
@@ -231,6 +224,6 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
           onCancel={() => setShowDeleteDialog(false)}
         />
       )}
-    </PageLayout>
+    </>
   );
 }
