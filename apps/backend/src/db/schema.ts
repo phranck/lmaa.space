@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  doublePrecision,
   index,
   integer,
   jsonb,
@@ -73,6 +74,88 @@ export const shops = pgTable(
     ),
   ],
 );
+
+/**
+ * Normalized country lookup for imported shop headquarters data.
+ */
+export const shopGeoCountries = pgTable("shop_geo_countries", {
+  code: text("code").primaryKey(),
+  name: text("name").notNull().default(""),
+});
+
+/**
+ * Normalized state/region lookup for imported shop headquarters data.
+ */
+export const shopGeoRegions = pgTable(
+  "shop_geo_regions",
+  {
+    id: serial("id").primaryKey(),
+    countryCode: text("country_code")
+      .notNull()
+      .references(() => shopGeoCountries.code, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+  },
+  (table) => [
+    unique("shop_geo_regions_country_name_unique").on(table.countryCode, table.name),
+    index("idx_shop_geo_regions_country").on(table.countryCode),
+  ],
+);
+
+/**
+ * Normalized city lookup for imported shop headquarters data.
+ */
+export const shopGeoCities = pgTable(
+  "shop_geo_cities",
+  {
+    id: serial("id").primaryKey(),
+    countryCode: text("country_code")
+      .notNull()
+      .references(() => shopGeoCountries.code, { onDelete: "cascade" }),
+    regionId: integer("region_id").references(() => shopGeoRegions.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+  },
+  (table) => [
+    unique("shop_geo_cities_country_region_name_unique").on(
+      table.countryCode,
+      table.regionId,
+      table.name,
+    ),
+    index("idx_shop_geo_cities_country").on(table.countryCode),
+    index("idx_shop_geo_cities_region").on(table.regionId),
+  ],
+);
+
+/**
+ * Imported headquarters/address and geocoding data keyed by shop.
+ */
+export const shopHeadquarters = pgTable(
+  "shop_headquarters",
+  {
+    shopId: integer("shop_id")
+      .primaryKey()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    countryCode: text("country_code")
+      .notNull()
+      .references(() => shopGeoCountries.code, { onDelete: "restrict" }),
+    regionId: integer("region_id").references(() => shopGeoRegions.id, { onDelete: "set null" }),
+    cityId: integer("city_id").references(() => shopGeoCities.id, { onDelete: "set null" }),
+    street: text("street"),
+    postalCode: text("postal_code"),
+    latitude: doublePrecision("latitude"),
+    longitude: doublePrecision("longitude"),
+    addressSource: text("address_source"),
+    geoSource: text("geo_source"),
+    notes: text("notes").notNull().default(""),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_shop_headquarters_country").on(table.countryCode),
+    index("idx_shop_headquarters_region").on(table.regionId),
+    index("idx_shop_headquarters_city").on(table.cityId),
+  ],
+);
+
 
 /**
  * Join table linking shops to categories.
@@ -174,6 +257,37 @@ export const submissionCategories = pgTable(
   (table) => [
     primaryKey({ columns: [table.submissionId, table.categoryId] }),
     index("idx_scat_submission").on(table.submissionId),
+  ],
+);
+
+/**
+ * Imported or manually maintained headquarters/address data for submissions.
+ */
+export const submissionHeadquarters = pgTable(
+  "submission_headquarters",
+  {
+    submissionId: integer("submission_id")
+      .primaryKey()
+      .references(() => submissions.id, { onDelete: "cascade" }),
+    countryCode: text("country_code")
+      .notNull()
+      .references(() => shopGeoCountries.code, { onDelete: "restrict" }),
+    regionId: integer("region_id").references(() => shopGeoRegions.id, { onDelete: "set null" }),
+    cityId: integer("city_id").references(() => shopGeoCities.id, { onDelete: "set null" }),
+    street: text("street"),
+    postalCode: text("postal_code"),
+    latitude: doublePrecision("latitude"),
+    longitude: doublePrecision("longitude"),
+    addressSource: text("address_source"),
+    geoSource: text("geo_source"),
+    notes: text("notes").notNull().default(""),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_submission_headquarters_country").on(table.countryCode),
+    index("idx_submission_headquarters_region").on(table.regionId),
+    index("idx_submission_headquarters_city").on(table.cityId),
   ],
 );
 

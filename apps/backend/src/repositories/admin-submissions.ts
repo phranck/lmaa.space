@@ -2,6 +2,12 @@ import { desc, eq, inArray } from "drizzle-orm";
 
 import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
 
+import type { HeadquartersInput } from "./headquarters.js";
+import {
+  copySubmissionHeadquartersToShop,
+  loadSubmissionHeadquartersMap,
+  upsertSubmissionHeadquarters,
+} from "./headquarters.js";
 import { db } from "../db/index.js";
 import {
   type Shop,
@@ -24,6 +30,7 @@ export interface SubmissionEditData {
   shipping?: string;
   categoryIds: number[];
   contactEmail?: string;
+  headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
 }
 
@@ -104,7 +111,13 @@ async function hydrateSubmissionCategoryIds(
     categoryMap.set(row.submissionId, ids);
   }
 
-  return rows.map((row) => ({ ...row, categoryIds: categoryMap.get(row.id) ?? [] }));
+  const headquartersMap = await loadSubmissionHeadquartersMap(rows.map((row) => row.id));
+
+  return rows.map((row) => ({
+    ...row,
+    categoryIds: categoryMap.get(row.id) ?? [],
+    headquarters: headquartersMap.get(row.id) ?? null,
+  }));
 }
 
 /**
@@ -168,6 +181,8 @@ export async function reviewSubmission(
         .values(categoryRows.map((row) => ({ shopId: shop.id, categoryId: row.categoryId })));
     }
 
+    await copySubmissionHeadquartersToShop(tx, submission.id, shop.id);
+
     return { submission, newShop: shop };
   });
 }
@@ -212,6 +227,10 @@ export async function editSubmission(
       await tx
         .insert(submissionCategories)
         .values(data.categoryIds.map((categoryId) => ({ submissionId: id, categoryId })));
+    }
+
+    if (data.headquarters !== undefined) {
+      await upsertSubmissionHeadquarters(tx, id, data.headquarters);
     }
 
     return submission;

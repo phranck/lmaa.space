@@ -162,6 +162,20 @@
       "when": 1773188568278,
       "tag": "0022_eminent_hellion",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1773249840000,
+      "tag": "0023_shop_geo_hierarchy",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1773251160000,
+      "tag": "0024_submission_headquarters",
+      "breakpoints": true
     }
   ]
 }
