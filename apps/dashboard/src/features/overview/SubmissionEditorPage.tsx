@@ -303,7 +303,11 @@ function LoadedSubmissionEditorPage({
       {
         onSuccess: () => {
           dispatchReview({ type: "close" });
-          showReviewSaved();
+          if (reviewState.editingRejection) {
+            showReviewSaved();
+          } else {
+            navigateBack();
+          }
         },
       },
     );
