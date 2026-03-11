@@ -64,6 +64,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            u.first_name as "deletedByFirstName",
            u.last_name as "deletedByLastName",
            s.rejection_token as "rejectionToken",
+           s.rejection_admin_note as "rejectionAdminNote",
            s.rejection_long_text as "rejectionLongText",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
@@ -92,6 +93,7 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
            s.og_image as "ogImage", s.contact_email as "contactEmail",
            s.is_active as "isActive", s.visibility,
            s.rejection_token as "rejectionToken",
+           s.rejection_admin_note as "rejectionAdminNote",
            s.rejection_long_text as "rejectionLongText",
            s.social_media as "socialMedia",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
@@ -238,7 +240,8 @@ export async function markAdminShopDeleted(
 /**
  * Switches mutable visibility state and clears unrelated metadata.
  *
- * For `rejected`: stores `rejectionToken` and `rejectionLongText` from options.
+ * For `rejected`: stores `rejectionToken`, `rejectionAdminNote` and `rejectionLongText`
+ * from options.
  * For `public`/`onhold`: clears all deletion and rejection metadata.
  *
  * @param id - Shop id.
@@ -249,7 +252,11 @@ export async function markAdminShopDeleted(
 export async function setAdminShopVisibility(
   id: number,
   visibility: ShopMutableVisibility,
-  options?: { rejectionToken?: string | null; rejectionLongText?: string | null },
+  options?: {
+    rejectionToken?: string | null;
+    rejectionAdminNote?: string | null;
+    rejectionLongText?: string | null;
+  },
 ): Promise<boolean> {
   const isRejected = visibility === "rejected";
   const [updated] = await db
@@ -260,6 +267,7 @@ export async function setAdminShopVisibility(
       deletedWasReported: false,
       deleteReason: isRejected ? null : null,
       rejectionToken: isRejected ? (options?.rejectionToken ?? null) : null,
+      rejectionAdminNote: isRejected ? (options?.rejectionAdminNote ?? null) : null,
       rejectionLongText: isRejected ? (options?.rejectionLongText ?? null) : null,
       updatedAt: new Date(),
     })

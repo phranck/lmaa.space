@@ -111,10 +111,11 @@ shopsRoutes.patch("/shops/:id/visibility", requireAdmin, async (c) => {
   if (!parsedBody.success) {
     return fail(c, 400, "Use 'public', 'onhold' or 'rejected'; for deleting use DELETE");
   }
-  const { visibility, rejectionToken, rejectionLongText } = parsedBody.data;
+  const { visibility, rejectionToken, rejectionAdminNote, rejectionLongText } = parsedBody.data;
 
   const result = await changeManagedAdminShopVisibility(id, visibility, {
     rejectionToken,
+    rejectionAdminNote,
     rejectionLongText,
   });
   if (!result.ok) return fail(c, 404, "Shop not found");

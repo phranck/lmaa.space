@@ -57,11 +57,13 @@ export const visibilityFilterSchema = shopVisibilitySchema;
 
 /**
  * Visibility update payload contract for mutable visibility transitions.
- * When setting `rejected`, optionally pass `rejectionToken` and `rejectionLongText`.
+ * When setting `rejected`, optionally pass `rejectionToken`, `rejectionAdminNote`
+ * and `rejectionLongText`.
  */
 export const visibilityUpdateSchema = z.object({
   visibility: shopMutableVisibilitySchema,
   rejectionToken: z.string().optional(),
+  rejectionAdminNote: z.string().max(1200).nullable().optional(),
   rejectionLongText: z.string().nullable().optional(),
 });
 
