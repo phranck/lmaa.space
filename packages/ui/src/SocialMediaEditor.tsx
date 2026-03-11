@@ -20,6 +20,7 @@ export interface SocialMediaEditorMessages {
   addAriaLabel: string;
   removeAriaLabel: string;
   selectPlatformAriaLabel: string;
+  invalidUrlMessage: (platformLabel: string) => string;
 }
 
 /**
@@ -30,6 +31,14 @@ export interface SocialMediaEditorProps {
   onChange: (value: Record<string, string>) => void;
   messages: SocialMediaEditorMessages;
   blurOnPaste?: boolean;
+  onValidationChange?: (message: string | null) => void;
+}
+
+function getEntryError(entry: Entry, messages: SocialMediaEditorMessages): string | null {
+  if (!entry.platform || !entry.url.trim()) return null;
+  if (normalizeSocialMediaValue(entry.platform, entry.url)) return null;
+  const platformLabel = PLATFORM_MAP.get(entry.platform)?.label ?? entry.platform;
+  return messages.invalidUrlMessage(platformLabel);
 }
 
 let nextEntryId = 0;
@@ -68,6 +77,7 @@ export function SocialMediaEditor({
   onChange,
   messages,
   blurOnPaste = false,
+  onValidationChange,
 }: SocialMediaEditorProps) {
   const [entries, setEntries] = useState<Entry[]>(() => recordToEntries(value));
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -110,6 +120,14 @@ export function SocialMediaEditor({
     });
     return () => cancelAnimationFrame(frameId);
   }, [pendingFocusId]);
+
+  useEffect(() => {
+    const firstError =
+      entries
+        .map((entry) => getEntryError(entry, messages))
+        .find((message): message is string => message !== null) ?? null;
+    onValidationChange?.(firstError);
+  }, [entries, messages, onValidationChange]);
 
   function toggleDropdown(entryId: string) {
     if (openDropdownId === entryId) {
@@ -239,58 +257,68 @@ export function SocialMediaEditor({
       {entries.map((entry) => {
         const def = PLATFORM_MAP.get(entry.platform);
         const Icon = def?.icon ?? GlobeIcon;
+        const entryError = getEntryError(entry, messages);
 
         return (
-          <div key={entry.id} className="flex gap-2">
-            {/* Platform icon (click to override) + URL input */}
-            <div className="flex flex-1 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)] focus-within:ring-2 focus-within:ring-[var(--color-primary)]">
+          <div key={entry.id} className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              {/* Platform icon (click to override) + URL input */}
+              <div
+                className={`flex flex-1 border rounded-control bg-[var(--ds-input-bg)] transition-colors focus-within:ring-2 ${
+                  entryError
+                    ? "border-red-400 focus-within:ring-red-400/40"
+                    : "border-[var(--ds-border)] focus-within:ring-[var(--color-primary)]"
+                }`}
+              >
+                <button
+                  type="button"
+                  ref={(el) => {
+                    if (el) triggerRefs.current.set(entry.id, el);
+                    else triggerRefs.current.delete(entry.id);
+                  }}
+                  onClick={() => toggleDropdown(entry.id)}
+                  aria-label={messages.selectPlatformAriaLabel}
+                  className="shrink-0 w-10 flex items-center justify-center border-r border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
+                >
+                  <Icon size={16} />
+                </button>
+
+                <input
+                  ref={(el) => {
+                    if (el) inputRefs.current.set(entry.id, el);
+                    else inputRefs.current.delete(entry.id);
+                  }}
+                  type="text"
+                  value={entry.url}
+                  onChange={(e) => updateUrl(entry.id, e.target.value)}
+                  onPaste={handlePaste}
+                  onBlur={() => normalizeUrl(entry.id)}
+                  placeholder={messages.urlPlaceholder}
+                  className="flex-1 px-3 py-1.5 text-sm bg-transparent text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none"
+                />
+              </div>
+
+              {/* Remove entry */}
               <button
                 type="button"
-                ref={(el) => {
-                  if (el) triggerRefs.current.set(entry.id, el);
-                  else triggerRefs.current.delete(entry.id);
-                }}
-                onClick={() => toggleDropdown(entry.id)}
-                aria-label={messages.selectPlatformAriaLabel}
-                className="shrink-0 w-10 flex items-center justify-center border-r border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
+                onClick={() => removeEntry(entry.id)}
+                aria-label={messages.removeAriaLabel}
+                className={`${btnClass} text-[var(--ds-text-muted)] hover:border-red-400 hover:text-red-500`}
               >
-                <Icon size={16} />
+                <MinusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
               </button>
 
-              <input
-                ref={(el) => {
-                  if (el) inputRefs.current.set(entry.id, el);
-                  else inputRefs.current.delete(entry.id);
-                }}
-                type="text"
-                value={entry.url}
-                onChange={(e) => updateUrl(entry.id, e.target.value)}
-                onPaste={handlePaste}
-                onBlur={() => normalizeUrl(entry.id)}
-                placeholder={messages.urlPlaceholder}
-                className="flex-1 px-3 py-1.5 text-sm bg-transparent text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none"
-              />
+              {/* Add entry */}
+              <button
+                type="button"
+                onClick={addEntry}
+                aria-label={messages.addAriaLabel}
+                className={`${btnClass} text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]`}
+              >
+                <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+              </button>
             </div>
-
-            {/* Remove entry */}
-            <button
-              type="button"
-              onClick={() => removeEntry(entry.id)}
-              aria-label={messages.removeAriaLabel}
-              className={`${btnClass} text-[var(--ds-text-muted)] hover:border-red-400 hover:text-red-500`}
-            >
-              <MinusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Add entry */}
-            <button
-              type="button"
-              onClick={addEntry}
-              aria-label={messages.addAriaLabel}
-              className={`${btnClass} text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]`}
-            >
-              <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            </button>
+            {entryError && <p className="text-xs text-red-500">{entryError}</p>}
           </div>
         );
       })}

@@ -365,6 +365,7 @@ export function useShopEditorController({
   );
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>({});
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
   const showLoadingSkeleton = isLoadingShop && !hasImmediateFormData;
 
@@ -421,6 +422,10 @@ export function useShopEditorController({
 
   async function handleSave(options?: { onSuccess?: (saved: unknown) => void | Promise<void> }) {
     setSaveErrorMessage(null);
+    if (formErrors.socialMedia) {
+      setSaveErrorMessage(formErrors.socialMedia);
+      throw new Error(formErrors.socialMedia);
+    }
     try {
       if (isSubmissionMode && submissionId !== undefined) {
         const saved = await submissionMutation.mutateAsync({
@@ -561,6 +566,7 @@ export function useShopEditorController({
     setImageLabel: shopsMessages.editCard.setImage,
     setRejectState,
     setForm,
+    setFormErrors,
     shopFormI18n,
     shopsMessages,
     showLoadingSkeleton,
@@ -574,6 +580,7 @@ export function useShopEditorController({
       return isShopWithId(saved) ? saved.id : null;
     },
     saveErrorMessage,
+    formErrors,
     clearSaveError() {
       setSaveErrorMessage(null);
     },
@@ -605,6 +612,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     previewImageLabel,
     reloadImageLabel,
     setForm,
+    setFormErrors,
     setImageLabel,
     shopFormI18n,
     shopsMessages,
@@ -682,11 +690,18 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
         <ShopEditForm
           value={form}
           onChange={setForm}
+          errors={controller.formErrors}
           categories={categories}
           countryCodeOptions={shopFormI18n.countryCodeOptions}
           regionOptions={shopFormI18n.regionOptions}
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
+          onSocialMediaValidationChange={(message) =>
+            setFormErrors((current) => ({
+              ...current,
+              socialMedia: message ?? undefined,
+            }))
+          }
           topAside={
             <div className="flex min-h-0 flex-col gap-1">
               <div className="flex items-center justify-between gap-3">
