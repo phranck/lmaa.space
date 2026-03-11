@@ -423,14 +423,14 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
           topAside={
-            <div className="grid h-full min-h-[10.25rem] grid-rows-[auto_1fr]">
+            <div className="grid h-full min-h-0 grid-rows-[auto_1fr]">
               <FormLabelText className="mb-1">{shopFormI18n.messages.jsonToolTitle}</FormLabelText>
               <JsonEditor
                 id="shop-check-json"
                 value={shopCheckJson}
                 onChange={setShopCheckJson}
                 placeholder="{}"
-                minHeight="10rem"
+                height="100%"
                 className="h-full"
               />
             </div>
