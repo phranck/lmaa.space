@@ -90,6 +90,7 @@ export interface ShopEditFormMessages {
   latitudePlaceholder: string;
   longitudeLabel: string;
   longitudePlaceholder: string;
+  jsonToolTitle?: string;
   regionSelect: RegionSelectMessages;
   categorySelect: MultiSelectMessages;
   socialMediaLabel?: string;
@@ -111,6 +112,7 @@ export interface ShopEditFormProps {
   urlWarning?: ReactNode;
   descriptionHint?: ReactNode;
   blurSocialMediaOnPaste?: boolean;
+  topAside?: ReactNode;
 }
 
 /**
@@ -128,6 +130,7 @@ export function ShopEditForm({
   urlWarning,
   descriptionHint,
   blurSocialMediaOnPaste = false,
+  topAside,
 }: ShopEditFormProps) {
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
@@ -135,7 +138,7 @@ export function ShopEditForm({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Name + URL */}
+      {/* Name + URL + top aside tool */}
       <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
         <div className="flex flex-col gap-4">
           <div>
@@ -181,14 +184,7 @@ export function ShopEditForm({
             {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}
             {urlWarning}
           </div>
-        </div>
 
-        <div></div>
-      </div>
-
-      {/* Contact Email + Social Media */}
-      <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
-        <div className="flex flex-col gap-4">
           <div>
             <FormLabel htmlFor="sef-contact-email">
               <span className="flex items-center gap-1.5">
@@ -205,27 +201,32 @@ export function ShopEditForm({
             />
             {errors?.contactEmail && <FormErrorText>{errors.contactEmail}</FormErrorText>}
           </div>
-
-          {messages.socialMediaLabel && messages.socialMedia && (
-            <div>
-              <FormLabelText>
-                <span className="flex items-center gap-1.5">
-                  {messages.socialMediaLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
-                </span>
-              </FormLabelText>
-              <SocialMediaEditor
-                value={value.socialMedia}
-                onChange={(v) => set("socialMedia", v)}
-                messages={messages.socialMedia}
-                blurOnPaste={blurSocialMediaOnPaste}
-              />
-              {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
-            </div>
-          )}
         </div>
 
-        <div></div>
+        <div className="min-h-0">{topAside}</div>
       </div>
+
+      {/* Social Media */}
+      {messages.socialMediaLabel && messages.socialMedia && (
+        <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
+          <div>
+            <FormLabelText>
+              <span className="flex items-center gap-1.5">
+                {messages.socialMediaLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+              </span>
+            </FormLabelText>
+            <SocialMediaEditor
+              value={value.socialMedia}
+              onChange={(v) => set("socialMedia", v)}
+              messages={messages.socialMedia}
+              blurOnPaste={blurSocialMediaOnPaste}
+            />
+            {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
+          </div>
+
+          <div></div>
+        </div>
+      )}
 
       {/* Headquarters + Geo */}
       <div className="flex flex-col gap-4">
