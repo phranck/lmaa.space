@@ -17,6 +17,7 @@ import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
+import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -337,84 +338,76 @@ function LoadedSubmissionEditorPage({
           <div className="flex items-center gap-2">
             {isPending && (
               <>
-                <button
-                  type="button"
+                <EditorToolbarButton
                   onClick={openApproveReview}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                  variant="success"
+                  icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.approve}
-                </button>
-                <button
-                  type="button"
+                </EditorToolbarButton>
+                <EditorToolbarButton
                   onClick={() => handleSetStatus("onhold")}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                  variant="warning"
+                  icon={<PauseCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.onhold}
-                </button>
-                <button
-                  type="button"
+                </EditorToolbarButton>
+                <EditorToolbarButton
                   onClick={() => openRejectReview(false)}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+                  variant="danger"
+                  icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.reject}
-                </button>
+                </EditorToolbarButton>
               </>
             )}
 
             {isOnHold && (
               <>
-                <button
-                  type="button"
+                <EditorToolbarButton
                   onClick={() => handleSetStatus("pending")}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                  variant="success"
+                  icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.restore}
-                </button>
-                <button
-                  type="button"
+                </EditorToolbarButton>
+                <EditorToolbarButton
                   onClick={() => openRejectReview(false)}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+                  variant="danger"
+                  icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.reject}
-                </button>
+                </EditorToolbarButton>
               </>
             )}
 
             {isRejected && (
               <>
-                <button
-                  type="button"
+                <EditorToolbarButton
                   onClick={openApproveReview}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                  variant="success"
+                  icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.approve}
-                </button>
+                </EditorToolbarButton>
 
-                <button
-                  type="button"
+                <EditorToolbarButton
                   onClick={() => openRejectReview(true)}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  variant="neutral"
+                  icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                   {submissionsMessages.suggestions.editRejectionInfo}
-                </button>
+                </EditorToolbarButton>
 
                 {submission.rejectionToken ? (
-                  <button
-                    type="button"
+                  <EditorToolbarButton
                     onClick={() =>
                       window.open(
                         `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
@@ -422,39 +415,36 @@ function LoadedSubmissionEditorPage({
                       )
                     }
                     disabled={isActionPending}
-                    className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                    variant="warning"
+                    icon={<InfoIcon weight="duotone" className="h-3.5 w-3.5" />}
                   >
-                    <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
                     {submissionsMessages.suggestions.info}
-                  </button>
+                  </EditorToolbarButton>
                 ) : (
-                  <button
-                    type="button"
+                  <EditorToolbarButton
                     onClick={() => handleSetStatus("pending")}
                     disabled={isActionPending}
-                    className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                    variant="success"
+                    icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
                   >
-                    <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
                     {submissionsMessages.suggestions.setToOpen}
-                  </button>
+                  </EditorToolbarButton>
                 )}
               </>
             )}
 
             {showDelete && (
-              <button
-                type="button"
+              <EditorToolbarButton
                 onClick={() => setShowDeleteDialog(true)}
                 disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+                variant="danger"
+                icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
               >
-                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.suggestions.delete}
-              </button>
+              </EditorToolbarButton>
             )}
 
-            <button
-              type="button"
+            <EditorToolbarButton
               onClick={() =>
                 void controller.handleSave({
                   onSuccess: () => {
@@ -463,11 +453,11 @@ function LoadedSubmissionEditorPage({
                 })
               }
               disabled={!controller.canSave || isActionPending}
-              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+              variant="primary"
+              icon={<DownloadIcon weight="duotone" className="h-3.5 w-3.5" />}
             >
-              <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
               {saveLabel}
-            </button>
+            </EditorToolbarButton>
           </div>
         }
       >

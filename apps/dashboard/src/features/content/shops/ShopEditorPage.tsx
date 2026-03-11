@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
+import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
@@ -85,8 +86,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
         toolbar={
           <div className="flex items-center gap-2">
             {showRestore && controller.activeShop && (
-              <button
-                type="button"
+              <EditorToolbarButton
                 onClick={() =>
                   visibilityMutation.mutate({
                     id: controller.activeShop!.id,
@@ -94,16 +94,15 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                   })
                 }
                 disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                variant="success"
+                icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
               >
-                <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
                 {controller.shopsMessages.table.restore}
-              </button>
+              </EditorToolbarButton>
             )}
 
             {showPutOnHold && controller.activeShop && (
-              <button
-                type="button"
+              <EditorToolbarButton
                 onClick={() =>
                   visibilityMutation.mutate({
                     id: controller.activeShop!.id,
@@ -111,39 +110,36 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                   })
                 }
                 disabled={isActionPending}
-                className="h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                variant="warning"
               >
                 {controller.shopsMessages.table.putOnHold}
-              </button>
+              </EditorToolbarButton>
             )}
 
             {showReject && (
-              <button
-                type="button"
+              <EditorToolbarButton
                 onClick={() => controller.handleOpenRejectCard(false)}
                 disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+                variant="danger"
+                icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
               >
-                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {controller.shopsMessages.editCard.rejectSubmit}
-              </button>
+              </EditorToolbarButton>
             )}
 
             {showEditRejection && (
               <>
-                <button
-                  type="button"
+                <EditorToolbarButton
                   onClick={() => controller.handleOpenRejectCard(true)}
                   disabled={isActionPending}
-                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  variant="neutral"
+                  icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
                 >
-                  <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                   {messages.submissions.suggestions.editRejectionInfo}
-                </button>
+                </EditorToolbarButton>
 
                 {showRejectionInfo && (
-                  <button
-                    type="button"
+                  <EditorToolbarButton
                     onClick={() => {
                       if (!rejectionToken) {
                         return;
@@ -154,29 +150,27 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                       );
                     }}
                     disabled={isActionPending || !rejectionToken}
-                    className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                    variant="warning"
+                    icon={<InfoIcon weight="duotone" className="h-3.5 w-3.5" />}
                   >
-                    <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
                     {messages.submissions.suggestions.info}
-                  </button>
+                  </EditorToolbarButton>
                 )}
               </>
             )}
 
             {showDelete && (
-              <button
-                type="button"
+              <EditorToolbarButton
                 onClick={() => setShowDeleteDialog(true)}
                 disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+                variant="danger"
+                icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
               >
-                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                 {controller.shopsMessages.table.delete}
-              </button>
+              </EditorToolbarButton>
             )}
 
-            <button
-              type="button"
+            <EditorToolbarButton
               onClick={() =>
                 void controller.handleSave({
                   onSuccess: (saved) => {
@@ -192,11 +186,11 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 })
               }
               disabled={!controller.canSave || isActionPending}
-              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+              variant="primary"
+              icon={<DownloadIcon weight="duotone" className="h-3.5 w-3.5" />}
             >
-              <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
               {saveLabel}
-            </button>
+            </EditorToolbarButton>
           </div>
         }
       >
