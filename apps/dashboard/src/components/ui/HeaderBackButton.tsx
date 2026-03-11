@@ -1,5 +1,5 @@
-import type { ButtonHTMLAttributes } from "react";
 import { CaretLeftIcon } from "@phosphor-icons/react";
+import type { ButtonHTMLAttributes } from "react";
 
 interface HeaderBackButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;

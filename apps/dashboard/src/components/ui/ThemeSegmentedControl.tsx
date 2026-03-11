@@ -1,5 +1,6 @@
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { DesktopIcon, MoonStarsIcon, SunIcon } from "@phosphor-icons/react";
+
+import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 
 export type ThemeOption = "light" | "dark" | "system";
 

@@ -1,7 +1,8 @@
+import { FileTextIcon, TrashIcon } from "@phosphor-icons/react";
+
 import type { Category } from "@lmaa/shared";
 
 import { useI18n } from "@/context/I18nContext.tsx";
-import { FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 
 interface CategoryGridItemProps {
   category: Category;

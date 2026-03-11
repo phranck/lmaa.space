@@ -1,3 +1,4 @@
+import { ListIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
 
@@ -9,7 +10,6 @@ import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/system/UserEditCard.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import { ListIcon } from "@phosphor-icons/react";
 
 const SIDEBAR_DEFAULT = 224;
 const SIDEBAR_MIN = 160;

@@ -1,3 +1,13 @@
+import {
+  EyeIcon,
+  MagnifyingGlassIcon,
+  PauseCircleIcon,
+  PlusCircleIcon,
+  SquaresFourIcon,
+  StorefrontIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -11,16 +21,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
-import {
-  EyeIcon,
-  MagnifyingGlassIcon,
-  PauseCircleIcon,
-  PlusCircleIcon,
-  SquaresFourIcon,
-  StorefrontIcon,
-  TrashIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
 
 type VisibilityFilter = "all" | ShopVisibility;
 

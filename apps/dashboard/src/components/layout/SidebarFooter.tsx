@@ -1,3 +1,4 @@
+import { SignOutIcon, UserCircleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { AdminRole } from "@lmaa/shared";
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { UserAvatar } from "@/features/system/UserAvatar.tsx";
-import { SignOutIcon, UserCircleIcon } from "@phosphor-icons/react";
 
 const SKIP_KEY = "logout-skip-confirm";
 

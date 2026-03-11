@@ -1,3 +1,10 @@
+import {
+  DownloadIcon,
+  EyeIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useCallback, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -15,13 +22,6 @@ import {
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import {
-  DownloadIcon,
-  EyeIcon,
-  MinusCircleIcon,
-  PlusCircleIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
 
 const FONT_SIZE_KEY = "content-editor-source-font-size";
 const FONT_SIZE_MIN = 10;

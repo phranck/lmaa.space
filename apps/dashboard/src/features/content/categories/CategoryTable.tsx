@@ -1,10 +1,10 @@
+import { FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 
 import type { Category } from "@lmaa/shared";
 
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 
 interface CategoryTableProps {
   categories: Category[];

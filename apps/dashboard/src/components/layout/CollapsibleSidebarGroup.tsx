@@ -1,6 +1,6 @@
+import { CaretDownIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useMatch } from "react-router";
-import { CaretDownIcon } from "@phosphor-icons/react";
 
 function SidebarBadge({ count }: { count: number }) {
   if (count === 0) return null;

@@ -1,6 +1,7 @@
+import { CaretDownIcon, CaretUpIcon, IconContext } from "@phosphor-icons/react";
+import { SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { useController, useForm } from "react-hook-form";
-import { CaretDownIcon, CaretUpIcon, IconContext } from "@phosphor-icons/react";
 
 import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";
@@ -13,7 +14,7 @@ import { renderMarkdown } from "@/lib/markdown";
 import { getSafeActionUrl, getSafeConfigHref } from "@/lib/safe-url";
 
 import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
-import { SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
+
 
 const MarkdownEditor = lazy(() =>
   import("../../../../../packages/ui/src/MarkdownEditor.tsx").then((module) => ({

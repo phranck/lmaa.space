@@ -1,3 +1,10 @@
+import {
+  EyeIcon,
+  FileTextIcon,
+  PauseCircleIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 import { useMemo } from "react";
 
 import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
@@ -6,13 +13,6 @@ import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
-import {
-  EyeIcon,
-  FileTextIcon,
-  PauseCircleIcon,
-  TrashIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
 
 interface ShopTableProps {
   shops: AdminShopListItem[];

@@ -1,6 +1,6 @@
+import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
 
 import { REGION_CODES, type RegionCode } from "@lmaa/shared";
 

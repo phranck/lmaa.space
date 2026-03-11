@@ -1,11 +1,10 @@
+import { ArrowSquareUpRightIcon, CheckIcon, LinkIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
-import { ArrowSquareUpRightIcon, CheckIcon, LinkIcon, TrashIcon } from "@phosphor-icons/react";
-
 import {
   useDeadLinkReports,
   useDeleteShopFromDeadLinks,

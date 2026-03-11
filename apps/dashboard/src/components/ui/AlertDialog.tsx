@@ -1,5 +1,6 @@
-import { Dialog, dialogBtnPrimary, dialogHeaderIconClass } from "./Dialog.tsx";
 import { InfoIcon } from "@phosphor-icons/react";
+
+import { Dialog, dialogBtnPrimary, dialogHeaderIconClass } from "./Dialog.tsx";
 
 interface AlertDialogProps {
   open: boolean;

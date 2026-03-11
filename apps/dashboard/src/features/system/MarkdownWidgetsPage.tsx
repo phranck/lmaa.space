@@ -1,3 +1,4 @@
+import { DownloadIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 
 import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
@@ -15,7 +16,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 import { useMarkdownWidgets, useSaveMarkdownWidgets } from "./hooks/useMarkdownWidgets.ts";
-import { DownloadIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 
 const EMPTY_CSP = {
   scriptSrc: [],

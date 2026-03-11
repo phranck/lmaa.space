@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { DownloadIcon, ListIcon, PlusCircleIcon, XCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 import type { NavId } from "@lmaa/shared";
@@ -24,7 +25,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
-import { DownloadIcon, ListIcon, PlusCircleIcon, XCircleIcon } from "@phosphor-icons/react";
 
 const NAV_TEXT = {
   de: {

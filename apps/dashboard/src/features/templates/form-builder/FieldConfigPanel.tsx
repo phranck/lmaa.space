@@ -1,3 +1,12 @@
+import {
+  CalendarIcon,
+  DeviceMobileIcon,
+  EnvelopeOpenIcon,
+  HashStraightIcon,
+  LinkIcon,
+  LockIcon,
+  TextAaIcon,
+} from "@phosphor-icons/react";
 import { Suspense, lazy } from "react";
 
 import type {
@@ -13,15 +22,6 @@ import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
-import {
-  CalendarIcon,
-  DeviceMobileIcon,
-  EnvelopeOpenIcon,
-  HashStraightIcon,
-  LinkIcon,
-  LockIcon,
-  TextAaIcon,
-} from "@phosphor-icons/react";
 
 const IconPicker = lazy(() =>
   import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),

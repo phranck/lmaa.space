@@ -1,3 +1,4 @@
+import { FileTextIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
@@ -16,7 +17,6 @@ import { useAdminUsers, useDeleteUser } from "@/features/system/hooks/useAdminUs
 import { UserAvatar } from "./UserAvatar.tsx";
 import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
-import { FileTextIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 
 /**
  * User management route for admins/owners.

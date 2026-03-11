@@ -9,6 +9,13 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import {
+  CheckCircleIcon,
+  CircleIcon,
+  DownloadIcon,
+  HandTapIcon,
+  UploadIcon,
+} from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
@@ -35,13 +42,6 @@ import {
   useSetFormConfigActive,
 } from "@/features/templates/hooks/useFormConfig.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import {
-  CheckCircleIcon,
-  CircleIcon,
-  DownloadIcon,
-  HandTapIcon,
-  UploadIcon,
-} from "@phosphor-icons/react";
 
 /**
  * Returns the default human-readable label for a given field type.

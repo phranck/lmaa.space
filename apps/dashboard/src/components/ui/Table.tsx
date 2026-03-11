@@ -1,6 +1,6 @@
+import { CaretDownIcon, CaretUpIcon, CaretUpDownIcon } from "@phosphor-icons/react";
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
 import { useMemo, useState } from "react";
-import { CaretDownIcon, CaretUpIcon, CaretUpDownIcon } from "@phosphor-icons/react";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 

@@ -1,3 +1,13 @@
+import {
+  CopyIcon,
+  FileIcon,
+  ImageIcon,
+  LinkIcon,
+  ListBulletsIcon,
+  PlusCircleIcon,
+  SquaresFourIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
@@ -37,16 +47,6 @@ import {
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import { MediaTable } from "@/features/system/media/MediaTable.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-import {
-  CopyIcon,
-  FileIcon,
-  ImageIcon,
-  LinkIcon,
-  ListBulletsIcon,
-  PlusCircleIcon,
-  SquaresFourIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
 
 type ViewMode = "list" | "grid";
 

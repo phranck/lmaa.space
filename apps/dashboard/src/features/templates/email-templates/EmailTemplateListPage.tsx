@@ -1,3 +1,12 @@
+import {
+  DownloadIcon,
+  EnvelopeOpenIcon,
+  FileTextIcon,
+  LockIcon,
+  PlusCircleIcon,
+  TrashIcon,
+  UploadIcon,
+} from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -9,16 +18,6 @@ import { Dialog, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailTemplateImportConflictDialog } from "@/features/templates/email-templates/EmailTemplateImportConflictDialog.tsx";
-import {
-  DownloadIcon,
-  EnvelopeOpenIcon,
-  FileTextIcon,
-  LockIcon,
-  PlusCircleIcon,
-  TrashIcon,
-  UploadIcon,
-} from "@phosphor-icons/react";
-
 import {
   exportEmailTemplateAll,
   exportEmailTemplateSingle,

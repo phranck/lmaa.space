@@ -1,3 +1,4 @@
+import { TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { Checkbox, FormLabel, FormOptional, MarkdownEditor, formInputClass } from "@lmaa/ui";
@@ -6,7 +7,6 @@ import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-import { TrashIcon } from "@phosphor-icons/react";
 
 /**
  * Available delete strategies for shop removal flow.

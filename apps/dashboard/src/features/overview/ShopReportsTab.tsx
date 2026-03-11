@@ -1,3 +1,10 @@
+import {
+  ArrowCounterClockwiseIcon,
+  FileTextIcon,
+  StorefrontIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { generateRejectionToken } from "@lmaa/shared";
@@ -10,14 +17,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/content/shops/ShopEditCard.tsx";
-import {
-  ArrowCounterClockwiseIcon,
-  FileTextIcon,
-  StorefrontIcon,
-  TrashIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
-
 import {
   useDismissShopConcern,
   useShopConcernReports,

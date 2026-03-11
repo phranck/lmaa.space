@@ -1,9 +1,9 @@
+import { ArrowClockwiseIcon, MagnifyingGlassIcon, XCircleIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
-import { ArrowClockwiseIcon, MagnifyingGlassIcon, XCircleIcon } from "@phosphor-icons/react";
 
 interface UnsplashPhoto {
   id: string;

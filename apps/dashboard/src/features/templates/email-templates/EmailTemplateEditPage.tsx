@@ -1,3 +1,4 @@
+import { CheckCircleIcon, DownloadIcon, SealWarningIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -8,8 +9,6 @@ import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
-import { CheckCircleIcon, DownloadIcon, SealWarningIcon } from "@phosphor-icons/react";
-
 import {
   useCreateEmailTemplate,
   useEmailTemplate,

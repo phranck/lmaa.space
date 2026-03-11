@@ -1,3 +1,5 @@
+import { FileIcon, ImageIcon } from "@phosphor-icons/react";
+
 import type { MediaAsset } from "@lmaa/shared";
 
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -6,7 +8,6 @@ import {
   getMediaTypeLabel,
   isImageAsset,
 } from "@/features/system/media/media-utils.ts";
-import { FileIcon, ImageIcon } from "@phosphor-icons/react";
 
 interface MediaGridItemProps {
   asset: MediaAsset;

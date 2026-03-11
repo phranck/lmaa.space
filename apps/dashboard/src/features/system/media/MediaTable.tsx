@@ -1,11 +1,10 @@
+import { FileIcon, ImageIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
 
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { FileIcon, ImageIcon } from "@phosphor-icons/react";
-
 import {
   formatBytes,
   formatMediaDate,
