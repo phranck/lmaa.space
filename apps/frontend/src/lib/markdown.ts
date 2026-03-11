@@ -93,12 +93,12 @@ function renderWidgetShortcode(target: string, attrs: Record<string, string>): s
   const title = attrs.title?.trim() || `Widget ${key}`;
   const parsedHeight = Number(attrs.height ?? "");
   const height = Number.isFinite(parsedHeight)
-    ? Math.min(2400, Math.max(80, Math.round(parsedHeight)))
+    ? Math.min(2400, Math.max(40, Math.round(parsedHeight)))
     : 320;
 
   return `<div class="md-widget"><iframe src="/markdown-widgets/${encodeURIComponent(
     key,
-  )}" title="${escapeHtmlAttribute(title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" style="width:100%;height:${height}px;border:0;border-radius:1rem;overflow:hidden;"></iframe></div>`;
+  )}" title="${escapeHtmlAttribute(title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" style="width:100%;height:${height}px;border:0;overflow:hidden;"></iframe></div>`;
 }
 
 function renderImageShortcode(target: string, attrs: Record<string, string>): string {

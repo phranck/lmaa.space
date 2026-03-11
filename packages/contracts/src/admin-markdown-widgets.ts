@@ -21,7 +21,7 @@ export const markdownWidgetSchema = z
     description: z.string().max(500).optional().default(""),
     enabled: z.boolean().default(true),
     type: markdownWidgetTypeSchema.default("html"),
-    defaultHeight: z.coerce.number().int().min(80).max(2400).default(320),
+    defaultHeight: z.coerce.number().int().min(40).max(2400).default(320),
     snippetHtml: z.string().max(50_000).optional().default(""),
     iframeUrl: z.string().url().optional().or(z.literal("")).default(""),
     csp: z
