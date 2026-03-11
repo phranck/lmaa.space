@@ -398,6 +398,16 @@ function LoadedSubmissionEditorPage({
             <>
               <button
                 type="button"
+                onClick={openApproveReview}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.approve}
+              </button>
+
+              <button
+                type="button"
                 onClick={() => openRejectReview(true)}
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"

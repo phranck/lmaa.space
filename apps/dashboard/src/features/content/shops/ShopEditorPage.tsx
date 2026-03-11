@@ -60,7 +60,8 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
 
   const shopVisibility = controller.activeShop?.visibility;
   const isRejected = shopVisibility === "rejected";
-  const showRestore = shopVisibility === "onhold" || shopVisibility === "deleted";
+  const showRestore =
+    shopVisibility === "onhold" || shopVisibility === "deleted" || shopVisibility === "rejected";
   const showPutOnHold = shopVisibility === "public";
   const showReject = controller.canReject && !isRejected;
   const showEditRejection = isRejected;
