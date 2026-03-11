@@ -60,6 +60,9 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         longitudeLabel: "Longitude",
         longitudePlaceholder: "e.g. 13.4050",
         jsonToolTitle: "JSON from Shop-Check Skill",
+        jsonApplyLabel: "Apply JSON",
+        jsonImportError: "JSON could not be mapped to the form.",
+        jsonInvalidError: "Invalid JSON.",
         socialMediaLabel: "Social Media",
         socialMedia: {
           urlPlaceholder: "Paste URL",
@@ -112,6 +115,9 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       longitudeLabel: "Längengrad",
       longitudePlaceholder: "z.B. 13.4050",
       jsonToolTitle: "JSON aus Shop-Check Skill",
+      jsonApplyLabel: "Aus JSON übernehmen",
+      jsonImportError: "Das JSON konnte nicht auf das Formular abgebildet werden.",
+      jsonInvalidError: "Ungültiges JSON.",
       socialMediaLabel: "Social Media",
       socialMedia: {
         urlPlaceholder: "URL einfügen",
