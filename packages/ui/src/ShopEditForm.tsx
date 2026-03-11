@@ -92,6 +92,9 @@ export interface ShopEditFormMessages {
   longitudeLabel: string;
   longitudePlaceholder: string;
   jsonToolTitle?: string;
+  jsonApplyLabel?: string;
+  jsonImportError?: string;
+  jsonInvalidError?: string;
   regionSelect: RegionSelectMessages;
   categorySelect: MultiSelectMessages;
   socialMediaLabel?: string;

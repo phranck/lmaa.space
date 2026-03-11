@@ -10,6 +10,7 @@ export interface JsonEditorProps {
   id?: string;
   value: string;
   onChange: (value: string) => void;
+  onPaste?: (event: ClipboardEvent) => void;
   placeholder?: string;
   height?: string;
   minHeight?: string;
@@ -91,6 +92,7 @@ export function JsonEditor({
   id,
   value,
   onChange,
+  onPaste,
   placeholder,
   height,
   minHeight = "9rem",
@@ -103,11 +105,21 @@ export function JsonEditor({
     () => [
       json(),
       EditorView.lineWrapping,
+      ...(onPaste
+        ? [
+            EditorView.domEventHandlers({
+              paste(event) {
+                onPaste(event);
+                return event.defaultPrevented;
+              },
+            }),
+          ]
+        : []),
       ...(placeholder ? [cmPlaceholder(placeholder)] : []),
       EditorView.editable.of(!readOnly),
       ...extraExtensions,
     ],
-    [placeholder, readOnly, extraExtensions],
+    [onPaste, placeholder, readOnly, extraExtensions],
   );
 
   const wrapperStyle: React.CSSProperties | undefined = resizable

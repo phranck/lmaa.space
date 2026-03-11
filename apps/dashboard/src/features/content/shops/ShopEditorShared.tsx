@@ -9,6 +9,7 @@ import {
 import { useEffect, useReducer, useState } from "react";
 
 import { generateRejectionToken, type AdminShopListItem, type Shop } from "@lmaa/shared";
+import { REGION_CODES } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE, FormLabelText, JsonEditor, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 
@@ -121,6 +122,165 @@ function isShopWithId(value: unknown): value is Pick<Shop, "id"> {
     "id" in value &&
     typeof (value as { id?: unknown }).id === "number"
   );
+}
+
+type ShopCheckJsonPayload = {
+  name?: unknown;
+  url?: unknown;
+  description?: unknown;
+  categories?: unknown;
+  contactEmail?: unknown;
+  shippingRegions?: unknown;
+  socialMedia?: unknown;
+  headquarters?: unknown;
+  geo?: unknown;
+};
+
+function getString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+function getStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => getString(entry))
+    .filter((entry): entry is string => entry !== null);
+}
+
+function getRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function normalizeCategoryName(value: string) {
+  return value.trim().toLocaleLowerCase("de-DE");
+}
+
+function applyShopCheckJsonToForm(
+  currentForm: ShopEditFormValue,
+  payload: ShopCheckJsonPayload,
+  categories: { id: number; name: string }[],
+): ShopEditFormValue | null {
+  const nextForm: ShopEditFormValue = { ...currentForm };
+  let changed = false;
+
+  const name = getString(payload.name);
+  if (name !== null) {
+    nextForm.name = name;
+    changed = true;
+  }
+
+  const url = getString(payload.url);
+  if (url !== null) {
+    nextForm.url = url;
+    changed = true;
+  }
+
+  const description = getString(payload.description);
+  if (description !== null) {
+    nextForm.description = description;
+    changed = true;
+  }
+
+  const contactEmail = getString(payload.contactEmail);
+  if (contactEmail !== null) {
+    nextForm.contactEmail = contactEmail;
+    changed = true;
+  }
+
+  const categoryNames = getStringArray(payload.categories);
+  if (categoryNames.length > 0) {
+    const categoryIdByName = new Map(
+      categories.map((category) => [normalizeCategoryName(category.name), category.id] as const),
+    );
+    const categoryIds = categoryNames
+      .map((categoryName) => categoryIdByName.get(normalizeCategoryName(categoryName)) ?? null)
+      .filter((categoryId): categoryId is number => categoryId !== null);
+    if (categoryIds.length > 0) {
+      nextForm.categoryIds = Array.from(new Set(categoryIds));
+      changed = true;
+    }
+  }
+
+  const shippingRegions = getStringArray(payload.shippingRegions)
+    .map((region) => region.toUpperCase())
+    .filter((region): region is (typeof REGION_CODES)[number] =>
+      REGION_CODES.includes(region as (typeof REGION_CODES)[number]),
+    );
+  if (shippingRegions.length > 0) {
+    nextForm.region = Array.from(new Set(shippingRegions));
+    changed = true;
+  }
+
+  const socialMedia = getRecord(payload.socialMedia);
+  if (socialMedia !== null) {
+    const socialMediaEntries = Object.entries(socialMedia).flatMap(([platform, value]) => {
+      const normalizedValue = getString(value);
+      return normalizedValue === null ? [] : ([[platform, normalizedValue]] as const);
+    });
+    const mappedSocialMedia = Object.fromEntries(socialMediaEntries) as Record<string, string>;
+    if (Object.keys(mappedSocialMedia).length > 0) {
+      nextForm.socialMedia = { ...nextForm.socialMedia, ...mappedSocialMedia };
+      changed = true;
+    }
+  }
+
+  const headquarters = getRecord(payload.headquarters);
+  if (headquarters !== null) {
+    const street = getString(headquarters.street);
+    if (street !== null) {
+      nextForm.headquartersStreet = street;
+      changed = true;
+    }
+
+    const postalCode = getString(headquarters.postalCode);
+    if (postalCode !== null) {
+      nextForm.headquartersPostalCode = postalCode;
+      changed = true;
+    }
+
+    const city = getString(headquarters.city);
+    if (city !== null) {
+      nextForm.headquartersCity = city;
+      changed = true;
+    }
+
+    const state = getString(headquarters.state);
+    if (state !== null) {
+      nextForm.headquartersState = state;
+      changed = true;
+    }
+
+    const countryCode = getString(headquarters.countryCode);
+    if (countryCode !== null) {
+      nextForm.headquartersCountryCode = countryCode.toUpperCase();
+      changed = true;
+    }
+  }
+
+  const geo = getRecord(payload.geo);
+  if (geo !== null) {
+    const latitude =
+      typeof geo.latitude === "number"
+        ? String(geo.latitude)
+        : getString(geo.latitude);
+    if (latitude !== null) {
+      nextForm.headquartersLatitude = latitude;
+      changed = true;
+    }
+
+    const longitude =
+      typeof geo.longitude === "number"
+        ? String(geo.longitude)
+        : getString(geo.longitude);
+    if (longitude !== null) {
+      nextForm.headquartersLongitude = longitude;
+      changed = true;
+    }
+  }
+
+  return changed ? nextForm : null;
 }
 
 export function useShopEditorController({
@@ -363,6 +523,7 @@ type ShopEditorController = ReturnType<typeof useShopEditorController>;
 
 export function ShopEditorFormContent({ controller }: { controller: ShopEditorController }) {
   const [shopCheckJson, setShopCheckJson] = useState("");
+  const [jsonImportError, setJsonImportError] = useState<string | null>(null);
   const {
     categories,
     displayImage,
@@ -386,6 +547,47 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     shopsMessages,
     showLoadingSkeleton,
   } = controller;
+
+  function applyShopCheckJson(jsonText: string, options?: { showErrors?: boolean }) {
+    const trimmed = jsonText.trim();
+    if (trimmed === "") {
+      if (options?.showErrors) {
+        setJsonImportError(shopFormI18n.messages.jsonInvalidError ?? "Ungültiges JSON.");
+      }
+      return false;
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed) as ShopCheckJsonPayload;
+      const nextForm = applyShopCheckJsonToForm(form, parsed, categories);
+      if (!nextForm) {
+        if (options?.showErrors) {
+          setJsonImportError(
+            shopFormI18n.messages.jsonImportError ??
+              "Das JSON konnte nicht auf das Formular abgebildet werden.",
+          );
+        }
+        return false;
+      }
+      setForm(nextForm);
+      setJsonImportError(null);
+      return true;
+    } catch {
+      if (options?.showErrors) {
+        setJsonImportError(shopFormI18n.messages.jsonInvalidError ?? "Ungültiges JSON.");
+      }
+      return false;
+    }
+  }
+
+  function handleShopCheckJsonPaste(event: ClipboardEvent) {
+    const pastedText = event.clipboardData?.getData("text/plain")?.trim();
+    if (!pastedText) return;
+    setShopCheckJson(pastedText);
+    if (applyShopCheckJson(pastedText)) {
+      event.preventDefault();
+    }
+  }
 
   return (
     <>
@@ -424,15 +626,29 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
           topAside={
             <div className="grid h-full min-h-0 grid-rows-[auto_1fr]">
-              <FormLabelText className="mb-1">{shopFormI18n.messages.jsonToolTitle}</FormLabelText>
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <FormLabelText className="mb-0">{shopFormI18n.messages.jsonToolTitle}</FormLabelText>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void applyShopCheckJson(shopCheckJson, { showErrors: true });
+                  }}
+                  className="flex items-center gap-1.5 h-7 px-3 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-xs font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+                >
+                  <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {shopFormI18n.messages.jsonApplyLabel}
+                </button>
+              </div>
               <JsonEditor
                 id="shop-check-json"
                 value={shopCheckJson}
                 onChange={setShopCheckJson}
+                onPaste={handleShopCheckJsonPaste}
                 placeholder="{}"
                 height="100%"
                 className="h-full"
               />
+              {jsonImportError && <p className="mt-1 text-xs text-red-500">{jsonImportError}</p>}
             </div>
           }
         />
