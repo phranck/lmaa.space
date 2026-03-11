@@ -9,21 +9,17 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useReducer, useState } from "react";
+import { useReducer, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 
 import { type Submission, generateRejectionToken } from "@lmaa/shared";
 import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
 
-import { Card } from "@/components/ui/Card.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
-import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
+import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
-import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
-import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   ShopEditorFormContent,
@@ -147,23 +143,15 @@ function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }
 
   if (submissionQuery.isLoading) {
     return (
-      <PageLayout>
-        <PageHeader
-          title={submissionsMessages.suggestions.edit}
-          leading={
-            <HeaderBackButton
-              label={submissionsMessages.title}
-              onClick={() => navigate("/reports?tab=suggestions")}
-            />
-          }
-        >
-          <div className="flex items-center gap-3"></div>
-        </PageHeader>
-
-        <PageBody className="min-h-0 mb-3">
-          <Card className="flex-1 min-h-0 p-5 overflow-y-auto animate-pulse" />
-        </PageBody>
-      </PageLayout>
+      <EditorPageShell
+        title={submissionsMessages.suggestions.edit}
+        backLabel={submissionsMessages.title}
+        onBack={() => navigate("/reports?tab=suggestions")}
+        headerContent={<div className="flex items-center gap-3"></div>}
+        cardClassName="animate-pulse"
+      >
+        <div />
+      </EditorPageShell>
     );
   }
 
@@ -229,7 +217,7 @@ function LoadedSubmissionEditorPage({
   const isPending = submission.status === "pending";
   const isOnHold = submission.status === "onhold";
 
-  const saveLabel = useMemo(() => common.save, [common.save]);
+  const saveLabel = common.save;
   const combinedSavedPhase =
     controller.savedPhase !== "hidden" ? controller.savedPhase : reviewSavedPhase;
   const isActionPending =
@@ -325,8 +313,8 @@ function LoadedSubmissionEditorPage({
   }
 
   return (
-    <PageLayout>
-      <PageHeader
+    <>
+      <EditorPageShell
         title={pageTitle}
         titleContent={
           <div className="min-w-0 leading-tight">
@@ -338,114 +326,49 @@ function LoadedSubmissionEditorPage({
             </p>
           </div>
         }
-        leading={<HeaderBackButton label={headerBackLabel} onClick={navigateBack} />}
-      >
-        <div className="flex items-center gap-3">
-          <SaveNotification phase={combinedSavedPhase} label={common.saved} />
-        </div>
-      </PageHeader>
-
-      <PageBody className="min-h-0 mb-3">
-        <Card className="flex-1 min-h-0 p-5 overflow-y-auto">
-          <ShopEditorFormContent controller={controller} />
-        </Card>
-      </PageBody>
-
-      <Toolbar className="sticky bottom-0 z-20 justify-end">
-        <div className="flex items-center gap-2">
-          {isPending && (
-            <>
-              <button
-                type="button"
-                onClick={openApproveReview}
-                disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
-              >
-                <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.suggestions.approve}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSetStatus("onhold")}
-                disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
-              >
-                <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.suggestions.onhold}
-              </button>
-              <button
-                type="button"
-                onClick={() => openRejectReview(false)}
-                disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
-              >
-                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.suggestions.reject}
-              </button>
-            </>
-          )}
-
-          {isOnHold && (
-            <>
-              <button
-                type="button"
-                onClick={() => handleSetStatus("pending")}
-                disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
-              >
-                <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.suggestions.restore}
-              </button>
-              <button
-                type="button"
-                onClick={() => openRejectReview(false)}
-                disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
-              >
-                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.suggestions.reject}
-              </button>
-            </>
-          )}
-
-          {isRejected && (
-            <>
-              <button
-                type="button"
-                onClick={openApproveReview}
-                disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
-              >
-                <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.suggestions.approve}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => openRejectReview(true)}
-                disabled={isActionPending}
-                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-              >
-                <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.suggestions.editRejectionInfo}
-              </button>
-
-              {submission.rejectionToken ? (
+        backLabel={headerBackLabel}
+        onBack={navigateBack}
+        headerContent={
+          <div className="flex items-center gap-3">
+            <SaveNotification phase={combinedSavedPhase} label={common.saved} />
+          </div>
+        }
+        toolbar={
+          <div className="flex items-center gap-2">
+            {isPending && (
+              <>
                 <button
                   type="button"
-                  onClick={() =>
-                    window.open(
-                      `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
-                      "_blank",
-                    )
-                  }
+                  onClick={openApproveReview}
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                >
+                  <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.approve}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetStatus("onhold")}
                   disabled={isActionPending}
                   className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
                 >
-                  <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.info}
+                  <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.onhold}
                 </button>
-              ) : (
+                <button
+                  type="button"
+                  onClick={() => openRejectReview(false)}
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+                >
+                  <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.reject}
+                </button>
+              </>
+            )}
+
+            {isOnHold && (
+              <>
                 <button
                   type="button"
                   onClick={() => handleSetStatus("pending")}
@@ -453,41 +376,103 @@ function LoadedSubmissionEditorPage({
                   className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
                 >
                   <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.setToOpen}
+                  {submissionsMessages.suggestions.restore}
                 </button>
-              )}
-            </>
-          )}
+                <button
+                  type="button"
+                  onClick={() => openRejectReview(false)}
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+                >
+                  <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.reject}
+                </button>
+              </>
+            )}
 
-          {showDelete && (
+            {isRejected && (
+              <>
+                <button
+                  type="button"
+                  onClick={openApproveReview}
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                >
+                  <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.approve}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openRejectReview(true)}
+                  disabled={isActionPending}
+                  className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                >
+                  <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
+                  {submissionsMessages.suggestions.editRejectionInfo}
+                </button>
+
+                {submission.rejectionToken ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.open(
+                        `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
+                        "_blank",
+                      )
+                    }
+                    disabled={isActionPending}
+                    className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
+                  >
+                    <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
+                    {submissionsMessages.suggestions.info}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSetStatus("pending")}
+                    disabled={isActionPending}
+                    className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
+                  >
+                    <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
+                    {submissionsMessages.suggestions.setToOpen}
+                  </button>
+                )}
+              </>
+            )}
+
+            {showDelete && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={isActionPending}
+                className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+              >
+                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+                {submissionsMessages.suggestions.delete}
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={isActionPending}
-              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+              onClick={() =>
+                void controller.handleSave({
+                  onSuccess: () => {
+                    controller.showSaved();
+                  },
+                })
+              }
+              disabled={!controller.canSave || isActionPending}
+              className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
             >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {submissionsMessages.suggestions.delete}
+              <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+              {saveLabel}
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() =>
-              void controller.handleSave({
-                onSuccess: () => {
-                  controller.showSaved();
-                },
-              })
-            }
-            disabled={!controller.canSave || isActionPending}
-            className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
-          >
-            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-            {saveLabel}
-          </button>
-        </div>
-      </Toolbar>
+          </div>
+        }
+      >
+        <ShopEditorFormContent controller={controller} />
+      </EditorPageShell>
 
       <ApproveSubmissionReviewCard
         adminNote={reviewState.adminNote}
@@ -613,7 +598,7 @@ function LoadedSubmissionEditorPage({
           </OverlayCard.Footer>
         </OverlayCard>
       )}
-    </PageLayout>
+    </>
   );
 }
 
