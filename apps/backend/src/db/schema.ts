@@ -16,6 +16,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
+import type { ShopCheckNotes } from "@lmaa/shared";
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -49,6 +50,7 @@ export const shops = pgTable(
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
     contactEmail: text("contact_email"),
     /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
     isActive: boolean("is_active").notNull().default(true),
@@ -222,6 +224,7 @@ export const submissions = pgTable(
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
     contactEmail: text("contact_email"),
     submitterEmail: text("submitter_email"),
     submitterNote: text("submitter_note"),

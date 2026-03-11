@@ -1,6 +1,7 @@
 import { desc, eq, inArray } from "drizzle-orm";
 
 import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
+import type { ShopCheckNotes } from "@lmaa/shared";
 
 import type { HeadquartersInput } from "./headquarters.js";
 import {
@@ -31,6 +32,7 @@ export interface SubmissionEditData {
   categoryIds: number[];
   contactEmail?: string;
   headquarters?: HeadquartersInput | null;
+  shopCheckNotes?: ShopCheckNotes | null;
   socialMedia?: Record<string, string>;
 }
 
@@ -170,6 +172,7 @@ export async function reviewSubmission(
         shipping: submission.shipping,
         description: submission.description,
         ogImage: submission.ogImage,
+        shopCheckNotes: submission.shopCheckNotes,
         contactEmail: submission.contactEmail,
         socialMedia: submission.socialMedia,
       })
@@ -212,6 +215,7 @@ export async function editSubmission(
         shipping: data.shipping ?? "",
         contactEmail: data.contactEmail || null,
         socialMedia: data.socialMedia ?? {},
+        ...(data.shopCheckNotes !== undefined ? { shopCheckNotes: data.shopCheckNotes } : {}),
         updatedAt: new Date(),
       })
       .where(eq(submissions.id, id))

@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 
 import type { AdminShopListItem } from "@lmaa/shared";
 import type { Shop as SharedShop, ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
+import type { ShopCheckNotes } from "@lmaa/shared";
 
 import type { HeadquartersInput } from "./headquarters.js";
 import { loadShopHeadquartersMap, upsertShopHeadquarters } from "./headquarters.js";
@@ -27,6 +28,7 @@ export interface CreateAdminShopData {
   description?: string;
   contactEmail?: string;
   headquarters?: HeadquartersInput | null;
+  shopCheckNotes?: ShopCheckNotes | null;
   socialMedia?: Record<string, string>;
 }
 
@@ -43,6 +45,7 @@ export interface UpdateAdminShopData {
   description?: string;
   contactEmail?: string;
   headquarters?: HeadquartersInput | null;
+  shopCheckNotes?: ShopCheckNotes | null;
   socialMedia?: Record<string, string>;
 }
 
@@ -59,6 +62,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            s.shipping,
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
+           s.shop_check_notes as "shopCheckNotes",
            s.og_image as "ogImage",
            s.visibility,
            s.delete_reason as "deleteReason",
@@ -101,6 +105,7 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
   const [shop] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.shop_check_notes as "shopCheckNotes",
            s.is_active as "isActive", s.visibility,
            s.rejection_token as "rejectionToken",
            s.rejection_admin_note as "rejectionAdminNote",
@@ -138,10 +143,14 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
  */
 export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop> {
   return db.transaction(async (tx) => {
-    const { categoryIds, contactEmail, headquarters, ...shopData } = data;
+    const { categoryIds, contactEmail, headquarters, shopCheckNotes, ...shopData } = data;
     const [shop] = await tx
       .insert(shops)
-      .values({ ...shopData, contactEmail: contactEmail || null })
+      .values({
+        ...shopData,
+        contactEmail: contactEmail || null,
+        shopCheckNotes: shopCheckNotes ?? null,
+      })
       .returning();
 
     if (categoryIds.length > 0) {
@@ -171,11 +180,16 @@ export async function updateAdminShop(
   data: UpdateAdminShopData,
 ): Promise<DbShop | null> {
   return db.transaction(async (tx) => {
-    const { categoryIds, contactEmail, headquarters, ...shopData } = data;
+    const { categoryIds, contactEmail, headquarters, shopCheckNotes, ...shopData } = data;
 
     const [shop] = await tx
       .update(shops)
-      .set({ ...shopData, contactEmail: contactEmail || null, updatedAt: new Date() })
+      .set({
+        ...shopData,
+        contactEmail: contactEmail || null,
+        ...(shopCheckNotes !== undefined ? { shopCheckNotes } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(shops.id, id))
       .returning();
 

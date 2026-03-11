@@ -118,7 +118,7 @@ export function OverlayCard({
   className,
   style,
   backdropClose = false,
-  zIndex = 50,
+  zIndex = 2000,
   onEscape,
   children,
 }: OverlayCardProps) {

@@ -53,6 +53,7 @@ function toSubmissionFormData(submission: Submission) {
     shipping: submission.shipping ?? "",
     contactEmail: submission.contactEmail ?? "",
     socialMedia: submission.socialMedia ?? {},
+    shopCheckNotes: submission.shopCheckNotes ?? null,
     headquartersStreet: submission.headquarters?.street ?? "",
     headquartersPostalCode: submission.headquarters?.postalCode ?? "",
     headquartersCity: submission.headquarters?.city ?? "",

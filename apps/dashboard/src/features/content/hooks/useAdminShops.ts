@@ -40,6 +40,10 @@ function toHeadquartersPayload(data: ShopEditFormValue) {
   };
 }
 
+function toShopCheckNotesPayload(data: ShopEditFormValue) {
+  return data.shopCheckNotes ?? null;
+}
+
 /**
  * Loads admin shop summaries, optionally filtered by visibility.
  *
@@ -131,10 +135,12 @@ export function useSaveShop(editId: number | null) {
         ? api.patch<Shop>(`/admin/shops/${editId}`, {
             ...data,
             headquarters: toHeadquartersPayload(data),
+            shopCheckNotes: toShopCheckNotesPayload(data),
           })
         : api.post<Shop>("/admin/shops", {
             ...data,
             headquarters: toHeadquartersPayload(data),
+            shopCheckNotes: toShopCheckNotesPayload(data),
           }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["shops-admin"] });

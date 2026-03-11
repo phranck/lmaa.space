@@ -1,6 +1,7 @@
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
-import * as React from "react";
 import type { ReactNode } from "react";
+
+import type { ShopCheckNotes } from "@lmaa/shared";
 
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
 import {
@@ -31,6 +32,7 @@ export interface ShopEditFormValue {
   shipping: string;
   contactEmail: string;
   socialMedia: Record<string, string>;
+  shopCheckNotes: ShopCheckNotes | null;
   headquartersStreet: string;
   headquartersPostalCode: string;
   headquartersCity: string;
@@ -52,6 +54,7 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   shipping: "",
   contactEmail: "",
   socialMedia: {},
+  shopCheckNotes: null,
   headquartersStreet: "",
   headquartersPostalCode: "",
   headquartersCity: "",
@@ -95,6 +98,8 @@ export interface ShopEditFormMessages {
   jsonApplyLabel?: string;
   jsonImportError?: string;
   jsonInvalidError?: string;
+  mapStandardLabel?: string;
+  mapSatelliteLabel?: string;
   regionSelect: RegionSelectMessages;
   categorySelect: MultiSelectMessages;
   socialMediaLabel?: string;
@@ -117,6 +122,7 @@ export interface ShopEditFormProps {
   descriptionHint?: ReactNode;
   blurSocialMediaOnPaste?: boolean;
   topAside?: ReactNode;
+  detailsAside?: ReactNode;
 }
 
 /**
@@ -135,31 +141,8 @@ export function ShopEditForm({
   descriptionHint,
   blurSocialMediaOnPaste = false,
   topAside,
+  detailsAside,
 }: ShopEditFormProps) {
-  const topFieldsRef = React.useRef<HTMLDivElement | null>(null);
-  const [topFieldsHeight, setTopFieldsHeight] = React.useState<number | null>(null);
-
-  React.useEffect(() => {
-    const node = topFieldsRef.current;
-    if (!node) return;
-
-    const updateHeight = () => {
-      setTopFieldsHeight(node.getBoundingClientRect().height);
-    };
-
-    updateHeight();
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateHeight();
-    });
-
-    resizeObserver.observe(node);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
   }
@@ -168,7 +151,7 @@ export function ShopEditForm({
     <div className="flex flex-col gap-4">
       {/* Name + URL + top aside tool */}
       <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
-        <div ref={topFieldsRef} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <div>
             <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
             <input
@@ -231,43 +214,37 @@ export function ShopEditForm({
           </div>
         </div>
 
-        <div className="min-h-0 overflow-hidden" style={topFieldsHeight ? { height: `${topFieldsHeight}px` } : undefined}>
-          {topAside}
-        </div>
+        <div className="min-w-0">{topAside}</div>
       </div>
 
-      {/* Social Media */}
-      {messages.socialMediaLabel && messages.socialMedia && (
-        <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
-          <div>
+      <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
+        <div className="flex flex-col gap-4">
+          {/* Social Media */}
+          {messages.socialMediaLabel && messages.socialMedia && (
+            <div>
+              <FormLabelText>
+                <span className="flex items-center gap-1.5">
+                  {messages.socialMediaLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+                </span>
+              </FormLabelText>
+              <SocialMediaEditor
+                value={value.socialMedia}
+                onChange={(v) => set("socialMedia", v)}
+                messages={messages.socialMedia}
+                blurOnPaste={blurSocialMediaOnPaste}
+              />
+              {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
+            </div>
+          )}
+
+          {/* Headquarters + Geo */}
+          <div className="flex flex-col gap-4">
             <FormLabelText>
               <span className="flex items-center gap-1.5">
-                {messages.socialMediaLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+                {messages.headquartersLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
               </span>
             </FormLabelText>
-            <SocialMediaEditor
-              value={value.socialMedia}
-              onChange={(v) => set("socialMedia", v)}
-              messages={messages.socialMedia}
-              blurOnPaste={blurSocialMediaOnPaste}
-            />
-            {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
-          </div>
 
-          <div></div>
-        </div>
-      )}
-
-      {/* Headquarters + Geo */}
-      <div className="flex flex-col gap-4">
-        <FormLabelText>
-          <span className="flex items-center gap-1.5">
-            {messages.headquartersLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
-          </span>
-        </FormLabelText>
-
-        <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
-          <div className="flex flex-col gap-4">
             <div>
               <FormLabel htmlFor="sef-hq-street">{messages.streetLabel}</FormLabel>
               <input
@@ -323,48 +300,44 @@ export function ShopEditForm({
                 {errors?.headquartersCity && <FormErrorText>{errors.headquartersCity}</FormErrorText>}
               </div>
             </div>
-          </div>
 
-          <div></div>
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FormLabel htmlFor="sef-hq-lat">{messages.latitudeLabel}</FormLabel>
+                <input
+                  id="sef-hq-lat"
+                  type="text"
+                  inputMode="decimal"
+                  value={value.headquartersLatitude}
+                  onChange={(e) => set("headquartersLatitude", e.target.value)}
+                  placeholder={messages.latitudePlaceholder}
+                  className={`${formInputClass}${errors?.headquartersLatitude ? " border-red-400" : ""}`}
+                />
+                {errors?.headquartersLatitude && (
+                  <FormErrorText>{errors.headquartersLatitude}</FormErrorText>
+                )}
+              </div>
 
-        <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <FormLabel htmlFor="sef-hq-lat">{messages.latitudeLabel}</FormLabel>
-              <input
-                id="sef-hq-lat"
-                type="text"
-                inputMode="decimal"
-                value={value.headquartersLatitude}
-                onChange={(e) => set("headquartersLatitude", e.target.value)}
-                placeholder={messages.latitudePlaceholder}
-                className={`${formInputClass}${errors?.headquartersLatitude ? " border-red-400" : ""}`}
-              />
-              {errors?.headquartersLatitude && (
-                <FormErrorText>{errors.headquartersLatitude}</FormErrorText>
-              )}
-            </div>
-
-            <div>
-              <FormLabel htmlFor="sef-hq-lng">{messages.longitudeLabel}</FormLabel>
-              <input
-                id="sef-hq-lng"
-                type="text"
-                inputMode="decimal"
-                value={value.headquartersLongitude}
-                onChange={(e) => set("headquartersLongitude", e.target.value)}
-                placeholder={messages.longitudePlaceholder}
-                className={`${formInputClass}${errors?.headquartersLongitude ? " border-red-400" : ""}`}
-              />
-              {errors?.headquartersLongitude && (
-                <FormErrorText>{errors.headquartersLongitude}</FormErrorText>
-              )}
+              <div>
+                <FormLabel htmlFor="sef-hq-lng">{messages.longitudeLabel}</FormLabel>
+                <input
+                  id="sef-hq-lng"
+                  type="text"
+                  inputMode="decimal"
+                  value={value.headquartersLongitude}
+                  onChange={(e) => set("headquartersLongitude", e.target.value)}
+                  placeholder={messages.longitudePlaceholder}
+                  className={`${formInputClass}${errors?.headquartersLongitude ? " border-red-400" : ""}`}
+                />
+                {errors?.headquartersLongitude && (
+                  <FormErrorText>{errors.headquartersLongitude}</FormErrorText>
+                )}
+              </div>
             </div>
           </div>
-
-          <div></div>
         </div>
+
+        <div className="min-h-0">{detailsAside}</div>
       </div>
 
       {/* Description */}
