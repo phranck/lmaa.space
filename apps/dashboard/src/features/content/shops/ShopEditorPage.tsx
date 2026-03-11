@@ -86,13 +86,13 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
         </div>
       </PageHeader>
 
-      <PageBody className="min-h-0 overflow-y-auto mb-3">
+      <PageBody className="min-h-0 mb-3">
         <Card className="flex-1 min-h-0 p-5 overflow-y-auto">
           <ShopEditorFormContent controller={controller} />
         </Card>
       </PageBody>
 
-      <Toolbar className="justify-end">
+      <Toolbar className="sticky bottom-0 z-20 justify-end">
         <div className="flex items-center gap-2">
           {showRestore && controller.activeShop && (
             <button
