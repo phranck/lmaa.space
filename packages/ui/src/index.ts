@@ -25,6 +25,10 @@ export {
 export { MarkdownEditor } from "./MarkdownEditor.tsx";
 /** Re-exported props for `MarkdownEditor`. */
 export type { MarkdownEditorProps } from "./MarkdownEditor.tsx";
+/** CodeMirror-based JSON editor with syntax highlighting. */
+export { JsonEditor } from "./JsonEditor.tsx";
+/** Re-exported props for `JsonEditor`. */
+export type { JsonEditorProps } from "./JsonEditor.tsx";
 /** Re-exported props for `Checkbox`. */
 export type { CheckboxProps } from "./Checkbox.tsx";
 /** Shared single-select country code component and option helpers. */

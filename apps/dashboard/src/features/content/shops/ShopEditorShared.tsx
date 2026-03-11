@@ -9,7 +9,7 @@ import {
 import { useEffect, useReducer, useState } from "react";
 
 import { generateRejectionToken, type AdminShopListItem, type Shop } from "@lmaa/shared";
-import { EMPTY_SHOP_FORM_VALUE, FormLabelText, ShopEditForm } from "@lmaa/ui";
+import { EMPTY_SHOP_FORM_VALUE, FormLabelText, JsonEditor, ShopEditForm } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
@@ -362,6 +362,7 @@ export function useShopEditorController({
 type ShopEditorController = ReturnType<typeof useShopEditorController>;
 
 export function ShopEditorFormContent({ controller }: { controller: ShopEditorController }) {
+  const [shopCheckJson, setShopCheckJson] = useState("");
   const {
     categories,
     displayImage,
@@ -421,6 +422,19 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           regionOptions={shopFormI18n.regionOptions}
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
+          topAside={
+            <div className="grid h-full min-h-[10.25rem] grid-rows-[auto_1fr]">
+              <FormLabelText className="mb-1">{shopFormI18n.messages.jsonToolTitle}</FormLabelText>
+              <JsonEditor
+                id="shop-check-json"
+                value={shopCheckJson}
+                onChange={setShopCheckJson}
+                placeholder="{}"
+                minHeight="10rem"
+                className="h-full"
+              />
+            </div>
+          }
         />
       )}
 

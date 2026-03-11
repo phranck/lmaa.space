@@ -59,6 +59,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         latitudePlaceholder: "e.g. 52.5200",
         longitudeLabel: "Longitude",
         longitudePlaceholder: "e.g. 13.4050",
+        jsonToolTitle: "JSON from Shop-Check Skill",
         socialMediaLabel: "Social Media",
         socialMedia: {
           urlPlaceholder: "Paste URL",
@@ -110,6 +111,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       latitudePlaceholder: "z.B. 52.5200",
       longitudeLabel: "Längengrad",
       longitudePlaceholder: "z.B. 13.4050",
+      jsonToolTitle: "JSON aus Shop-Check Skill",
       socialMediaLabel: "Social Media",
       socialMedia: {
         urlPlaceholder: "URL einfügen",
