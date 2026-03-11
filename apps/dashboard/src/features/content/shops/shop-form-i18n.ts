@@ -1,4 +1,8 @@
-import { type ShopEditFormMessages, createDefaultRegionOptions } from "@lmaa/ui";
+import {
+  type ShopEditFormMessages,
+  createDefaultCountryCodeOptions,
+  createDefaultRegionOptions,
+} from "@lmaa/ui";
 
 import type { DashboardLocale } from "@/i18n/messages.ts";
 
@@ -20,9 +24,11 @@ export function getRegionOptions(locale: DashboardLocale) {
  */
 export function getShopEditFormI18n(locale: DashboardLocale): {
   messages: ShopEditFormMessages;
+  countryCodeOptions: ReturnType<typeof createDefaultCountryCodeOptions>;
   regionOptions: ReturnType<typeof getRegionOptions>;
 } {
   const regionOptions = getRegionOptions(locale);
+  const countryCodeOptions = createDefaultCountryCodeOptions(locale);
 
   if (locale === "en") {
     return {
@@ -40,6 +46,19 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         shippingPlaceholder: "e.g. Free shipping from €50",
         contactEmailLabel: "Contact Email",
         contactEmailPlaceholder: "e.g. info@example.com",
+        headquartersLabel: "Headquarters",
+        streetLabel: "Street",
+        streetPlaceholder: "e.g. Main Street 1",
+        postalCodeLabel: "Postal Code",
+        postalCodePlaceholder: "e.g. 10115",
+        cityLabel: "City",
+        cityPlaceholder: "e.g. Berlin",
+        countryCodeLabel: "Country Code",
+        countryCodePlaceholder: "e.g. DE",
+        latitudeLabel: "Latitude",
+        latitudePlaceholder: "e.g. 52.5200",
+        longitudeLabel: "Longitude",
+        longitudePlaceholder: "e.g. 13.4050",
         socialMediaLabel: "Social Media",
         socialMedia: {
           urlPlaceholder: "Paste URL",
@@ -58,6 +77,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
           placeholder: "Select shipping regions…",
         },
       },
+      countryCodeOptions,
       regionOptions,
     };
   }
@@ -77,6 +97,19 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       shippingPlaceholder: "z.B. Kostenlos ab 50 €",
       contactEmailLabel: "Kontakt-E-Mail",
       contactEmailPlaceholder: "z.B. info@beispiel.de",
+      headquartersLabel: "Anschrift",
+      streetLabel: "Straße",
+      streetPlaceholder: "z.B. Musterstraße 1",
+      postalCodeLabel: "PLZ",
+      postalCodePlaceholder: "z.B. 10115",
+      cityLabel: "Ort",
+      cityPlaceholder: "z.B. Berlin",
+      countryCodeLabel: "Ländercode",
+      countryCodePlaceholder: "z.B. DE",
+      latitudeLabel: "Breitengrad",
+      latitudePlaceholder: "z.B. 52.5200",
+      longitudeLabel: "Längengrad",
+      longitudePlaceholder: "z.B. 13.4050",
       socialMediaLabel: "Social Media",
       socialMedia: {
         urlPlaceholder: "URL einfügen",
@@ -95,6 +128,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         placeholder: "Versand-Regionen wählen…",
       },
     },
+    countryCodeOptions,
     regionOptions,
   };
 }

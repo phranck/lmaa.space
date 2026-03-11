@@ -56,6 +56,20 @@ function toSubmissionFormData(submission: Submission) {
     shipping: submission.shipping ?? "",
     contactEmail: submission.contactEmail ?? "",
     socialMedia: submission.socialMedia ?? {},
+    headquartersStreet: submission.headquarters?.street ?? "",
+    headquartersPostalCode: submission.headquarters?.postalCode ?? "",
+    headquartersCity: submission.headquarters?.city ?? "",
+    headquartersState: submission.headquarters?.state ?? "",
+    headquartersCountryCode: submission.headquarters?.countryCode ?? "",
+    headquartersLatitude:
+      submission.headquarters?.latitude !== null && submission.headquarters?.latitude !== undefined
+        ? String(submission.headquarters.latitude)
+        : "",
+    headquartersLongitude:
+      submission.headquarters?.longitude !== null &&
+      submission.headquarters?.longitude !== undefined
+        ? String(submission.headquarters.longitude)
+        : "",
   };
 }
 
