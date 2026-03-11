@@ -1,6 +1,19 @@
 import type { RegionCode, ShopVisibility } from "../constants/domain.js";
 
 /**
+ * Normalized headquarters/address snapshot exposed through API models.
+ */
+export interface ShopHeadquarters {
+  street: string | null;
+  postalCode: string | null;
+  city: string | null;
+  state: string | null;
+  countryCode: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+/**
  * Category subset embedded into shop responses.
  */
 export interface ShopCategory {
@@ -39,6 +52,7 @@ export interface AdminShopListItem extends ShopSummary {
   contactEmail?: string | null;
   socialMedia: Record<string, string>;
   ogImage?: string | null;
+  headquarters?: ShopHeadquarters | null;
 }
 
 /**
@@ -64,6 +78,7 @@ export interface Shop {
   rejectionToken?: string | null;
   rejectionAdminNote?: string | null;
   rejectionLongText?: string | null;
+  headquarters?: ShopHeadquarters | null;
 }
 
 /**
@@ -78,6 +93,7 @@ export interface ShopCreate {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  headquarters?: Partial<ShopHeadquarters> | null;
 }
 
 /**

@@ -15,6 +15,7 @@
     "db:migrate": "tsx --env-file=.env.local src/db/migrate.ts",
     "db:seed": "tsx --env-file=.env.local src/scripts/seed.ts",
     "db:seed-form-config": "tsx --env-file=.env.local src/scripts/seed-form-config.ts",
+    "db:import-shop-geo": "tsx --env-file=.env.local src/scripts/import-shop-geo-data.ts",
     "db:fetch-og": "tsx --env-file=.env.local src/scripts/fetch-og-images.ts",
     "test": "vitest run",
     "test:watch": "vitest",

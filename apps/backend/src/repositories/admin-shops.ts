@@ -3,6 +3,8 @@ import { eq, sql } from "drizzle-orm";
 import type { AdminShopListItem } from "@lmaa/shared";
 import type { Shop as SharedShop, ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
 
+import type { HeadquartersInput } from "./headquarters.js";
+import { loadShopHeadquartersMap, upsertShopHeadquarters } from "./headquarters.js";
 import { db } from "../db/index.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../db/schema.js";
 import type { Shop as DbShop } from "../db/schema.js";
@@ -24,6 +26,7 @@ export interface CreateAdminShopData {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
 }
 
@@ -39,6 +42,7 @@ export interface UpdateAdminShopData {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
 }
 
@@ -49,7 +53,7 @@ export interface UpdateAdminShopData {
  * @returns Shop summaries sorted by name.
  */
 export async function listAdminShops(visibility?: ShopVisibility): Promise<AdminShopListItem[]> {
-  return db.execute<AdminShopListItem & Record<string, unknown>>(sql`
+  const rows = await db.execute<AdminShopListItem & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region,
            s.description,
            s.shipping,
@@ -79,6 +83,12 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
     GROUP BY s.id, u.username, u.first_name, u.last_name
     ORDER BY s.name
   `);
+
+  const headquartersByShopId = await loadShopHeadquartersMap(rows.map((row) => row.id));
+  return rows.map((row) => ({
+    ...row,
+    headquarters: headquartersByShopId.get(row.id) ?? null,
+  }));
 }
 
 /**
@@ -109,7 +119,15 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
     GROUP BY s.id
   `);
 
-  return shop ?? null;
+  if (!shop) {
+    return null;
+  }
+
+  const headquartersByShopId = await loadShopHeadquartersMap([id]);
+  return {
+    ...shop,
+    headquarters: headquartersByShopId.get(id) ?? null,
+  };
 }
 
 /**
@@ -120,7 +138,7 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
  */
 export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop> {
   return db.transaction(async (tx) => {
-    const { categoryIds, contactEmail, ...shopData } = data;
+    const { categoryIds, contactEmail, headquarters, ...shopData } = data;
     const [shop] = await tx
       .insert(shops)
       .values({ ...shopData, contactEmail: contactEmail || null })
@@ -131,6 +149,8 @@ export async function createAdminShop(data: CreateAdminShopData): Promise<DbShop
         .insert(shopCategories)
         .values(categoryIds.map((categoryId) => ({ shopId: shop.id, categoryId })));
     }
+
+    await upsertShopHeadquarters(tx, shop.id, headquarters);
 
     return shop;
   });
@@ -151,7 +171,7 @@ export async function updateAdminShop(
   data: UpdateAdminShopData,
 ): Promise<DbShop | null> {
   return db.transaction(async (tx) => {
-    const { categoryIds, contactEmail, ...shopData } = data;
+    const { categoryIds, contactEmail, headquarters, ...shopData } = data;
 
     const [shop] = await tx
       .update(shops)
@@ -171,6 +191,10 @@ export async function updateAdminShop(
           .insert(shopCategories)
           .values(categoryIds.map((categoryId) => ({ shopId: id, categoryId })));
       }
+    }
+
+    if (headquarters !== undefined) {
+      await upsertShopHeadquarters(tx, id, headquarters);
     }
 
     return shop;

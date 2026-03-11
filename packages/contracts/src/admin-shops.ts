@@ -9,6 +9,16 @@ import {
   shopVisibilitySchema,
 } from "./common";
 
+const headquartersSchema = z.object({
+  street: z.string().max(200).optional(),
+  postalCode: z.string().max(32).optional(),
+  city: z.string().max(120).optional(),
+  state: z.string().max(120).optional(),
+  countryCode: z.string().trim().min(2).max(2).optional(),
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
+});
+
 /**
  * Shop create payload contract for admin routes.
  */
@@ -24,6 +34,7 @@ export const shopBodySchema = z.object({
     (v) => (v === "" ? undefined : v),
     z.string().email().max(200).optional(),
   ),
+  headquarters: headquartersSchema.optional(),
   socialMedia: socialMediaSchema,
 });
 
@@ -42,6 +53,7 @@ export const shopUpdateSchema = z.object({
     (v) => (v === "" ? undefined : v),
     z.string().email().max(200).optional(),
   ),
+  headquarters: headquartersSchema.optional(),
   socialMedia: socialMediaSchema,
 });
 
