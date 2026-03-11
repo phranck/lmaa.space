@@ -322,6 +322,7 @@ export function useShopEditorController({
     () => initialShop === undefined,
   );
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
   const showLoadingSkeleton = isLoadingShop && !hasImmediateFormData;
 
@@ -377,27 +378,41 @@ export function useShopEditorController({
   }
 
   async function handleSave(options?: { onSuccess?: (saved: unknown) => void | Promise<void> }) {
-    if (isSubmissionMode && submissionId !== undefined) {
-      const saved = await submissionMutation.mutateAsync({
-        id: submissionId,
-        data: form,
-        ogImage: getSubmissionOgImageValue(),
-      });
+    setSaveErrorMessage(null);
+    try {
+      if (isSubmissionMode && submissionId !== undefined) {
+        const saved = await submissionMutation.mutateAsync({
+          id: submissionId,
+          data: form,
+          ogImage: getSubmissionOgImageValue(),
+        });
+        if (options?.onSuccess) {
+          await options.onSuccess(saved);
+        } else {
+          showSaved();
+        }
+        return saved;
+      }
+
+      const saved = await shopMutation.mutateAsync(form);
       if (options?.onSuccess) {
         await options.onSuccess(saved);
       } else {
         showSaved();
       }
       return saved;
+    } catch (error) {
+      setSaveErrorMessage(error instanceof Error ? error.message : common.unknownError);
+      throw error;
     }
+  }
 
-    const saved = await shopMutation.mutateAsync(form);
-    if (options?.onSuccess) {
-      await options.onSuccess(saved);
-    } else {
-      showSaved();
+  async function handleSaveSafely(options?: { onSuccess?: (saved: unknown) => void | Promise<void> }) {
+    try {
+      return await handleSave(options);
+    } catch {
+      return null;
     }
-    return saved;
   }
 
   function handleOpenRejectCard(editingRejection = false) {
@@ -467,7 +482,7 @@ export function useShopEditorController({
   }
 
   useKeyboardSave(() => {
-    if (canSave) void handleSave();
+    if (canSave) void handleSaveSafely();
   });
 
   return {
@@ -516,6 +531,11 @@ export function useShopEditorController({
     getSavedShopId(saved: unknown) {
       return isShopWithId(saved) ? saved.id : null;
     },
+    saveErrorMessage,
+    clearSaveError() {
+      setSaveErrorMessage(null);
+    },
+    handleSaveSafely,
   };
 }
 
@@ -537,6 +557,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     isNew,
     isRefetchPending,
     isSavingImage,
+    saveErrorMessage,
     ogImageInput,
     placeholder,
     previewImageLabel,
@@ -652,6 +673,12 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
             </div>
           }
         />
+      )}
+
+      {saveErrorMessage && (
+        <div className="mt-4 rounded-control border border-[var(--ds-btn-danger-border)] bg-[var(--ds-btn-danger-hover-bg)] px-3 py-2 text-sm text-[var(--ds-btn-danger-text)]">
+          {saveErrorMessage}
+        </div>
       )}
 
       {isError && (

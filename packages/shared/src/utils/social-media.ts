@@ -48,6 +48,10 @@ function isFacebookHost(host: string): boolean {
   return host === "facebook.com" || host === "fb.com" || host.endsWith(".facebook.com");
 }
 
+function isLinkedinHost(host: string): boolean {
+  return host === "linkedin.com" || host.endsWith(".linkedin.com");
+}
+
 function extractPathUser(url: URL): string {
   return stripTrailingSlash(url.pathname).split("/").pop() ?? "";
 }
@@ -207,7 +211,7 @@ function normalizeLinkedin(input: string): string | null {
   const url = tryParseUrl(trimmed);
   if (url) {
     const host = stripWww(url.hostname);
-    if (host !== "linkedin.com") return null;
+    if (!isLinkedinHost(host)) return null;
     const path = stripTrailingSlash(url.pathname);
 
     // /in/slug or /company/slug
@@ -336,6 +340,7 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
   if (direct) return direct;
 
   if (isFacebookHost(host)) return "facebook";
+  if (isLinkedinHost(host)) return "linkedin";
 
   if (isPinterestHost(host)) return "pinterest";
 
