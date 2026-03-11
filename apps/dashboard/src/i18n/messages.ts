@@ -47,12 +47,16 @@ export interface DashboardMessages {
       formBuilder: string;
       formsOverview: string;
       emailTemplates: string;
-      emailTemplatesOverview: string;
-      footerBuilder: string;
-      markdownWidgets: string;
-      editProfile: string;
-      logout: string;
-      logoutConfirmTitle: string;
+        emailTemplatesOverview: string;
+        footerBuilder: string;
+        markdownWidgets: string;
+        expandAll: string;
+        collapseAll: string;
+        expandAllAria: string;
+        collapseAllAria: string;
+        editProfile: string;
+        logout: string;
+        logoutConfirmTitle: string;
       logoutConfirmDescription: string;
       logoutConfirmAction: string;
       logoutSkipConfirm: string;
@@ -881,6 +885,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
+        expandAll: "Alles aufklappen",
+        collapseAll: "Alles zuklappen",
+        expandAllAria: "Alle Gruppen aufklappen",
+        collapseAllAria: "Alle Gruppen zuklappen",
         editProfile: "Profil bearbeiten",
         logout: "Abmelden",
         logoutConfirmTitle: "Abmelden?",
@@ -1715,6 +1723,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
+        expandAll: "Expand all",
+        collapseAll: "Collapse all",
+        expandAllAria: "Expand all groups",
+        collapseAllAria: "Collapse all groups",
         editProfile: "Edit profile",
         logout: "Log out",
         logoutConfirmTitle: "Log out?",

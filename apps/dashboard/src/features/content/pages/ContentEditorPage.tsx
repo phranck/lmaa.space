@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
-import SFEyeCircleFill from "sf-symbols-lib/monochrome/SFEyeCircleFill";
-import SFMinus from "sf-symbols-lib/monochrome/SFMinus";
-import SFPlus from "sf-symbols-lib/monochrome/SFPlus";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { ContentPage } from "@lmaa/shared";
 import { MarkdownEditor } from "@lmaa/ui";
@@ -20,6 +15,13 @@ import {
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import {
+  DownloadIcon,
+  EyeIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 
 const FONT_SIZE_KEY = "content-editor-source-font-size";
 const FONT_SIZE_MIN = 10;
@@ -129,7 +131,9 @@ function Key({ children }: { children: string }) {
 function ShortcutHint({ keys, label }: { keys: string[]; label: string }) {
   return (
     <span className="flex items-center gap-1 text-xs">
-      {keys.map((k) => <Key key={k}>{k}</Key>)}
+      {keys.map((k) => (
+        <Key key={k}>{k}</Key>
+      ))}
       <span className="ml-0.5 text-[var(--ds-text-muted)]">{label}</span>
     </span>
   );
@@ -195,7 +199,7 @@ function EditorHeaderActions({
           className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
           title={editorMessages.decreaseFontSize}
         >
-          <SFMinus className="w-2.5 h-2.5" />
+          <MinusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
         </button>
         <span className="w-8 text-center text-xs tabular-nums select-none">{sourceFontSize}px</span>
         <button
@@ -205,7 +209,7 @@ function EditorHeaderActions({
           className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
           title={editorMessages.increaseFontSize}
         >
-          <SFPlus className="w-2.5 h-2.5" />
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -214,7 +218,7 @@ function EditorHeaderActions({
         onClick={onPreview}
         className="flex items-center gap-2 px-3 h-8 min-w-8 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
       >
-        <SFEyeCircleFill className="w-3.5 h-3.5" />
+        <EyeIcon weight="duotone" className="w-3.5 h-3.5" />
         {editorMessages.preview}
       </button>
 
@@ -224,7 +228,7 @@ function EditorHeaderActions({
         disabled={isSaving}
         className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
       >
-        <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+        <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
         {saved ? editorMessages.saved : common.save}
       </button>
 
@@ -235,7 +239,7 @@ function EditorHeaderActions({
           className="flex items-center justify-center w-8 h-8 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors"
           title={editorMessages.deletePage}
         >
-          <SFTrashFill className="w-3.5 h-3.5" />
+          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
         </button>
       ) : (
         <div className="flex items-center gap-2 px-3 h-8 border border-[var(--ds-btn-danger-border)] rounded-control bg-[var(--ds-btn-danger-hover-bg)]">
@@ -435,7 +439,6 @@ function EditorMetadataBar({
     </div>
   );
 }
-
 
 /**
  * Markdown content editor page for one content slug.

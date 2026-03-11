@@ -1,11 +1,5 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
-import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
-import SFInfoCircleFill from "sf-symbols-lib/monochrome/SFInfoCircleFill";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
@@ -14,11 +8,16 @@ import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import {
-  useDeleteShop,
-  useSetShopVisibility,
-} from "@/features/content/hooks/useAdminShops.ts";
+import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
+import {
+  ArrowCounterClockwiseIcon,
+  DownloadIcon,
+  FileTextIcon,
+  InfoIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 
 import {
   ShopEditorFormContent,
@@ -61,10 +60,11 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
 
   const shopVisibility = controller.activeShop?.visibility;
   const isRejected = shopVisibility === "rejected";
-  const showRestore =
-    shopVisibility === "onhold" || shopVisibility === "rejected" || shopVisibility === "deleted";
+  const showRestore = shopVisibility === "onhold" || shopVisibility === "deleted";
   const showPutOnHold = shopVisibility === "public";
   const showReject = controller.canReject && !isRejected;
+  const showEditRejection = isRejected;
+  const showRejectionInfo = isRejected;
   const showDelete = !controller.isNew;
   const backLabel = messages.layout.sidebar.shops;
   const rejectionToken = controller.activeShop?.rejectionToken ?? null;
@@ -105,7 +105,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               disabled={isActionPending}
               className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-success-border)] text-[var(--ds-btn-success-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-60 transition-colors"
             >
-              <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+              <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
               {controller.shopsMessages.table.restore}
             </button>
           )}
@@ -133,12 +133,12 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               disabled={isActionPending}
               className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
             >
-              <SFXmarkCircleFill className="w-3.5 h-3.5" />
+              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
               {controller.shopsMessages.editCard.rejectSubmit}
             </button>
           )}
 
-          {isRejected && (
+          {showEditRejection && (
             <>
               <button
                 type="button"
@@ -146,26 +146,29 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 disabled={isActionPending}
                 className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
               >
-                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                 {messages.submissions.suggestions.editRejectionInfo}
               </button>
 
-              {rejectionToken ? (
+              {showRejectionInfo && (
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={() => {
+                    if (!rejectionToken) {
+                      return;
+                    }
                     window.open(
                       `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${rejectionToken}`,
                       "_blank",
-                    )
-                  }
-                  disabled={isActionPending}
+                    );
+                  }}
+                  disabled={isActionPending || !rejectionToken}
                   className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-warning-border)] text-[var(--ds-btn-warning-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] disabled:opacity-60 transition-colors"
                 >
-                  <SFInfoCircleFill className="w-3.5 h-3.5" />
+                  <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
                   {messages.submissions.suggestions.info}
                 </button>
-              ) : null}
+              )}
             </>
           )}
 
@@ -176,7 +179,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               disabled={isActionPending}
               className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
             >
-              <SFTrashFill className="w-3.5 h-3.5" />
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
               {controller.shopsMessages.table.delete}
             </button>
           )}
@@ -200,7 +203,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
             disabled={!controller.canSave || isActionPending}
             className="flex items-center gap-2 h-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
           >
-            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
             {saveLabel}
           </button>
         </div>

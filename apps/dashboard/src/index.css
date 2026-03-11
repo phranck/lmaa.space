@@ -57,8 +57,8 @@
 .section-header {
   background-color: var(--ds-section-header-bg);
   color: var(--ds-text-muted);
-  font-size: var(--ds-text-xs);
-  line-height: var(--ds-leading-xs);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
