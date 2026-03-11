@@ -1,9 +1,4 @@
 import { useState } from "react";
-import SFArrowCounterclockwise from "sf-symbols-lib/monochrome/SFArrowCounterclockwise";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { generateRejectionToken } from "@lmaa/shared";
 
@@ -12,12 +7,17 @@ import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.t
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import {
-  useDeleteShop,
-  useSetShopVisibility,
-} from "@/features/content/hooks/useAdminShops.ts";
+import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/content/shops/ShopEditCard.tsx";
+import {
+  ArrowCounterClockwiseIcon,
+  FileTextIcon,
+  StorefrontIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
+
 import {
   useDismissShopConcern,
   useShopConcernReports,
@@ -96,7 +96,7 @@ export function ShopReportsTab() {
     return (
       <ContentUnavailableView
         className="flex-1"
-        icon={<SFStorefrontFill aria-hidden />}
+        icon={<StorefrontIcon weight="duotone" aria-hidden />}
         title={submissionsMessages.shopReports.none}
         subtitle={submissionsMessages.shopReports.noneHint}
       />
@@ -142,7 +142,7 @@ export function ShopReportsTab() {
                 disabled={dismiss.isPending || setVisibilityMutation.isPending}
                 className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
               >
-                <SFArrowCounterclockwise className="w-3.5 h-3.5" />
+                <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.done}
               </button>
               <button
@@ -150,7 +150,7 @@ export function ShopReportsTab() {
                 onClick={() => setEditShopId(r.shopId)}
                 className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
               >
-                <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.edit}
               </button>
               <button
@@ -166,7 +166,7 @@ export function ShopReportsTab() {
                 disabled={dismiss.isPending || setVisibilityMutation.isPending}
                 className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-50"
               >
-                <SFXmarkCircleFill className="w-3.5 h-3.5" />
+                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.reject}
               </button>
               <button
@@ -176,7 +176,7 @@ export function ShopReportsTab() {
                 }
                 className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
               >
-                <SFTrashFill className="w-3.5 h-3.5" />
+                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                 {submissionsMessages.shopReports.delete}
               </button>
             </div>
@@ -228,7 +228,7 @@ export function ShopReportsTab() {
         isError={setVisibilityMutation.isError}
         errorMessage={common.unknownError}
         submitLabel={shopsMessages.editCard.rejectSubmit}
-        headerIcon={<SFXmarkCircleFill className={dialogHeaderIconClass} />}
+        headerIcon={<XCircleIcon weight="duotone" className={dialogHeaderIconClass} />}
         storageKey="shop-reports:reject-dialog-size"
         adminNoteStorageKey="shop-reports:textarea:reject-note"
         rejectionLongStorageKey="shop-reports:textarea:reject-long"

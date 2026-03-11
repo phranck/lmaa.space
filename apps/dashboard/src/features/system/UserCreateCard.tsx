@@ -1,9 +1,4 @@
 import { useState } from "react";
-import SFDocumentOnDocument from "sf-symbols-lib/monochrome/SFDocumentOnDocument";
-import SFPersonBadgePlus from "sf-symbols-lib/monochrome/SFPersonBadgePlus";
-import SFPersonFill from "sf-symbols-lib/monochrome/SFPersonFill";
-import SFPersonFillCheckmark from "sf-symbols-lib/monochrome/SFPersonFillCheckmark";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
 
 import type { AdminUserInvite } from "@lmaa/shared";
 import { FormLabel, FormLabelText, formInputClass } from "@lmaa/ui";
@@ -18,6 +13,13 @@ import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 import { EMPTY_CREATE_USER_FORM, useCreateUser } from "./hooks/useAdminUsers.ts";
 import type { CreateUserFormData } from "./hooks/useAdminUsers.ts";
+import {
+  CopyIcon,
+  PersonIcon,
+  PlusCircleIcon,
+  UserCheckIcon,
+  UserPlusIcon,
+} from "@phosphor-icons/react";
 
 interface UserCreateCardProps {
   onClose: () => void;
@@ -39,12 +41,12 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
     {
       value: "admin" as const,
       label: usersMessages.role.admin,
-      icon: <SFPersonFill className="w-3.5 h-3.5" />,
+      icon: <PersonIcon weight="duotone" className="w-3.5 h-3.5" />,
     },
     {
       value: "moderator" as const,
       label: usersMessages.role.moderator,
-      icon: <SFPersonFillCheckmark className="w-3.5 h-3.5" />,
+      icon: <UserCheckIcon weight="duotone" className="w-3.5 h-3.5" />,
     },
   ] as const;
   const [form, setForm] = useState<CreateUserFormData>({
@@ -99,7 +101,8 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
     }
   }
 
-  const canSubmit = form.username.trim().length >= 3 && form.email.trim().length > 0 && !createMutation.isPending;
+  const canSubmit =
+    form.username.trim().length >= 3 && form.email.trim().length > 0 && !createMutation.isPending;
 
   return (
     <OverlayCard
@@ -110,7 +113,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
     >
       <OverlayCard.Header>
         <div className="flex items-center gap-3">
-          <SFPersonBadgePlus className={dialogHeaderIconClass} />
+          <UserPlusIcon weight="duotone" className={dialogHeaderIconClass} />
           <h2 className="font-semibold text-[var(--ds-text)]">{usersMessages.createCard.title}</h2>
         </div>
       </OverlayCard.Header>
@@ -243,7 +246,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             onClick={handleCopyInviteLink}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
           >
-            <SFDocumentOnDocument className="w-3.5 h-3.5" />
+            <CopyIcon weight="duotone" className="w-3.5 h-3.5" />
             {copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite}
           </button>
         ) : (
@@ -253,7 +256,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             disabled={!canSubmit}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
           >
-            <SFPlusCircleFill className="w-3.5 h-3.5" />
+            <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             {createMutation.isPending
               ? usersMessages.createCard.creating
               : usersMessages.createCard.create}

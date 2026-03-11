@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import SFExclamationmarkSquareFill from "sf-symbols-lib/dualtone/SFExclamationmarkSquareFill";
-import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
 import { MarkdownEditor } from "@lmaa/ui";
@@ -11,6 +8,8 @@ import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
+import { CheckCircleIcon, DownloadIcon, SealWarningIcon } from "@phosphor-icons/react";
+
 import {
   useCreateEmailTemplate,
   useEmailTemplate,
@@ -31,7 +30,10 @@ function Field({ label, htmlFor, required, hint, children }: FieldProps) {
       <label htmlFor={htmlFor} className="block text-xs font-medium text-[var(--ds-text-muted)]">
         {label}
         {required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3 h-3 text-red-500 align-middle" />
+          <SealWarningIcon
+            weight="duotone"
+            className="inline-block ml-1 w-3 h-3 text-red-500 align-middle"
+          />
         )}
       </label>
       {children}
@@ -161,7 +163,7 @@ export function EmailTemplateEditPage() {
         <div className="flex items-center gap-3">
           {savedIndicator && (
             <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-              <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+              <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
               {m.saved}
             </span>
           )}
@@ -172,7 +174,7 @@ export function EmailTemplateEditPage() {
             disabled={isPending}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
           >
-            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
             {isPending ? messages.common.saving : m.save}
           </button>
         </div>

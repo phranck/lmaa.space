@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { IconContext } from "@phosphor-icons/react";
 import { StrictMode, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
@@ -29,9 +30,20 @@ createRoot(rootEl).render(
   <StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <IconContext.Provider
+          value={{
+            weight: "duotone",
+            style: {
+              transform: "scale(1.16)",
+              transformBox: "fill-box",
+              transformOrigin: "center",
+            },
+          }}
+        >
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </IconContext.Provider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ErrorBoundary>

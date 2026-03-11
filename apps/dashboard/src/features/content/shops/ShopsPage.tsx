@@ -1,14 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
-import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
-import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
-import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
-import SFXmark from "sf-symbols-lib/monochrome/SFXmark";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import type { ShopVisibility } from "@lmaa/shared";
 
@@ -20,6 +11,16 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
+import {
+  EyeIcon,
+  MagnifyingGlassIcon,
+  PauseCircleIcon,
+  PlusCircleIcon,
+  SquaresFourIcon,
+  StorefrontIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 
 type VisibilityFilter = "all" | ShopVisibility;
 
@@ -55,27 +56,27 @@ export function ShopsPage() {
       {
         value: "all",
         label: shopsMessages.filters.all,
-        icon: <SFSquareGrid2x2Fill className="w-3.5 h-3.5" />,
+        icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
       },
       {
         value: "public",
         label: shopsMessages.filters.public,
-        icon: <SFEyeFill className="w-3.5 h-3.5" />,
+        icon: <EyeIcon weight="duotone" className="w-3.5 h-3.5" />,
       },
       {
         value: "onhold",
         label: shopsMessages.filters.onhold,
-        icon: <SFPauseCircleFill className="w-3.5 h-3.5" />,
+        icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
       },
       {
         value: "deleted",
         label: shopsMessages.filters.deleted,
-        icon: <SFTrashFill className="w-3.5 h-3.5" />,
+        icon: <TrashIcon weight="duotone" className="w-3.5 h-3.5" />,
       },
       {
         value: "rejected",
         label: shopsMessages.filters.rejected,
-        icon: <SFXmarkCircleFill className="w-3.5 h-3.5" />,
+        icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
       },
     ],
     [shopsMessages],
@@ -98,7 +99,7 @@ export function ShopsPage() {
               onClick={() => setSearch("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
             >
-              <SFXmark className="w-3.5 h-3.5" />
+              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -110,7 +111,7 @@ export function ShopsPage() {
           onClick={() => navigate("/shops/new")}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
-          <SFPlusCircleFill className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           {shopsMessages.newShop}
         </button>
       </PageHeader>
@@ -129,7 +130,7 @@ export function ShopsPage() {
 
         {!isLoading && shops.length === 0 && (
           <ContentUnavailableView
-            icon={<SFStorefrontFill aria-hidden />}
+            icon={<StorefrontIcon weight="duotone" aria-hidden />}
             title={shopsMessages.noShops}
             subtitle={shopsMessages.noShopsHint}
             className="flex-1 min-h-0"
@@ -138,7 +139,7 @@ export function ShopsPage() {
 
         {!isLoading && shops.length > 0 && filtered.length === 0 && (
           <ContentUnavailableView
-            icon={<SFMagnifyingglass aria-hidden />}
+            icon={<MagnifyingGlassIcon weight="duotone" aria-hidden />}
             title={`${shopsMessages.noResultsPrefix} „${search}".`}
             subtitle={shopsMessages.noResultsHint}
             className="flex-1 min-h-0"

@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
-import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
-import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFSquareAndArrowDown from "sf-symbols-lib/monochrome/SFSquareAndArrowDown";
-import SFSquareAndArrowUp from "sf-symbols-lib/monochrome/SFSquareAndArrowUp";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { FormConfig } from "@lmaa/contracts";
 
@@ -22,6 +14,17 @@ import {
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { ImportConflictDialog } from "@/features/templates/form-builder/ImportConflictDialog.tsx";
+import {
+  CheckCircleIcon,
+  CircleIcon,
+  DownloadIcon,
+  FileIcon,
+  FileTextIcon,
+  PlusCircleIcon,
+  TrashIcon,
+  UploadIcon,
+} from "@phosphor-icons/react";
+
 import {
   exportFormConfigAll,
   exportFormConfigSingle,
@@ -66,14 +69,14 @@ function ActiveBadge({
   if (isActive) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-        <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+        <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
         {activeLabel}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
-      <SFCircle className="w-3.5 h-3.5" />
+      <CircleIcon weight="duotone" className="w-3.5 h-3.5" />
       {inactiveLabel}
     </span>
   );
@@ -156,7 +159,7 @@ function NewFormDialog({
     <Dialog
       open={open}
       title={m.newForm}
-      titleIcon={<SFPlusCircleFill className={dialogHeaderIconClass} />}
+      titleIcon={<PlusCircleIcon weight="duotone" className={dialogHeaderIconClass} />}
       onClose={onClose}
       maxWidth="md"
     >
@@ -367,7 +370,7 @@ export function FormBuilderListPage() {
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
         >
-          <SFSquareAndArrowDown className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
           {m.importForm}
         </button>
         <button
@@ -376,7 +379,7 @@ export function FormBuilderListPage() {
           disabled={forms.length === 0}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
         >
-          <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+          <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
           {m.exportAll}
         </button>
         <button
@@ -384,7 +387,7 @@ export function FormBuilderListPage() {
           onClick={() => setShowDialog(true)}
           className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
-          <SFPlusCircleFill className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           {m.newForm}
         </button>
       </PageHeader>
@@ -399,7 +402,7 @@ export function FormBuilderListPage() {
         {!isLoading && forms.length === 0 && (
           <ContentUnavailableView
             className="flex-1"
-            icon={<SFDocumentFill aria-hidden />}
+            icon={<FileIcon weight="duotone" aria-hidden />}
             title={m.noForms}
             subtitle={m.noFormsHint}
           />
@@ -458,7 +461,7 @@ export function FormBuilderListPage() {
                           onClick={() => handleExportSingle(form)}
                           className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                         >
-                          <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+                          <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
                           {m.exportForm}
                         </button>
                         <button
@@ -466,7 +469,7 @@ export function FormBuilderListPage() {
                           onClick={() => navigate(`/forms/${form.name}`)}
                           className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                         >
-                          <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                          <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                           {m.editButton}
                         </button>
                         <button
@@ -475,7 +478,7 @@ export function FormBuilderListPage() {
                           disabled={deleteForm.isPending}
                           className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
                         >
-                          <SFTrashFill className="w-3.5 h-3.5" />
+                          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                           {messages.common.delete}
                         </button>
                       </div>
@@ -515,7 +518,7 @@ export function FormBuilderListPage() {
       <Dialog
         open={deleteTarget !== null}
         title={`${m.deleteConfirmPrefix}${deleteTarget}${m.deleteConfirmSuffix}`}
-        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
+        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
         onClose={() => setDeleteTarget(null)}
       >
         <div className="px-6 py-3">
@@ -543,7 +546,7 @@ export function FormBuilderListPage() {
       <Dialog
         open={alertMessage !== null}
         title={alertMessage ?? ""}
-        titleIcon={<SFSquareAndArrowDown className={dialogHeaderIconClass} />}
+        titleIcon={<DownloadIcon weight="duotone" className={dialogHeaderIconClass} />}
         onClose={() => setAlertMessage(null)}
       >
         <Dialog.Footer>

@@ -16,13 +16,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useRef, useState } from "react";
-import SFArrowRight from "sf-symbols-lib/monochrome/SFArrowRight";
-import SFCheckmark from "sf-symbols-lib/monochrome/SFCheckmark";
-import SFEnvelope from "sf-symbols-lib/monochrome/SFEnvelope";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFSquareAndArrowDown from "sf-symbols-lib/monochrome/SFSquareAndArrowDown";
-import SFStorefrontFill from "sf-symbols-lib/monochrome/SFStorefrontFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
 import { MarkdownEditor } from "@lmaa/ui";
@@ -31,6 +24,15 @@ import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  DownloadIcon,
+  EnvelopeOpenIcon,
+  PlusCircleIcon,
+  StorefrontIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -112,7 +114,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
           className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-danger-text)] transition-colors"
           aria-label={m.stepRemoveAria}
         >
-          <SFTrashFill className="w-3.5 h-3.5" />
+          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -327,16 +329,25 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
     "w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]";
 
   const stepOptions = [
-    { type: "store" as const, label: m.stepStore, Icon: SFSquareAndArrowDown },
-    { type: "email" as const, label: m.stepEmail, Icon: SFEnvelope },
+    {
+      type: "store" as const,
+      label: m.stepStore,
+      icon: <DownloadIcon weight="duotone" width={13} height={13} aria-hidden />,
+    },
+    {
+      type: "email" as const,
+      label: m.stepEmail,
+      icon: <EnvelopeOpenIcon weight="duotone" width={13} height={13} aria-hidden />,
+    },
     {
       type: "create-shop-suggestion" as const,
       label: m.stepCreateShopSuggestion,
-      Icon: SFStorefrontFill,
+      icon: <StorefrontIcon weight="duotone" width={13} height={13} aria-hidden />,
     },
   ];
-  const SelectedIcon =
-    stepOptions.find((o) => o.type === pendingStepType)?.Icon ?? SFSquareAndArrowDown;
+  const selectedStepIcon = stepOptions.find((o) => o.type === pendingStepType)?.icon ?? (
+    <DownloadIcon weight="duotone" width={13} height={13} aria-hidden />
+  );
 
   return (
     <div className={sectionClass}>
@@ -348,12 +359,9 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
           </h3>
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1.5 h-7 px-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)]">
-              <SelectedIcon
-                width={13}
-                height={13}
-                className="shrink-0 text-[var(--ds-color-neutral-400)]"
-                aria-hidden
-              />
+              <span className="shrink-0 text-[var(--ds-color-neutral-400)]">
+                {selectedStepIcon}
+              </span>
               <select
                 value={pendingStepType}
                 onChange={(e) => setPendingStepType(e.target.value as SubmissionStep["type"])}
@@ -371,7 +379,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
               onClick={() => addStep(pendingStepType)}
               className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
             >
-              <SFPlusCircleFill className="w-3 h-3" />
+              <PlusCircleIcon weight="duotone" className="w-3 h-3" />
               {m.addStepButton}
             </button>
           </div>
@@ -458,12 +466,12 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                 {
                   value: "message" as const,
                   label: m.successMessage,
-                  icon: <SFCheckmark width={13} height={13} aria-hidden />,
+                  icon: <CheckIcon weight="duotone" width={13} height={13} aria-hidden />,
                 },
                 {
                   value: "redirect" as const,
                   label: m.successRedirect,
-                  icon: <SFArrowRight width={13} height={13} aria-hidden />,
+                  icon: <ArrowRightIcon weight="duotone" width={13} height={13} aria-hidden />,
                 },
               ]}
             />

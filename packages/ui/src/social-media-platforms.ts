@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { GlobeIcon } from "@phosphor-icons/react";
 import { FaFacebook, FaTwitter } from "react-icons/fa6";
 import {
   SiBluesky,
@@ -12,7 +13,6 @@ import {
   SiTwitch,
   SiYoutube,
 } from "react-icons/si";
-import SFGlobe from "sf-symbols-lib/monochrome/SFGlobe";
 
 export interface PlatformDef {
   key: string;
@@ -33,7 +33,7 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "linkedin", label: "LinkedIn", icon: SiLinkedin },
   { key: "pinterest", label: "Pinterest", icon: SiPinterest },
   { key: "patreon", label: "Patreon", icon: SiPatreon },
-  { key: "website", label: "Website", icon: SFGlobe },
+  { key: "website", label: "Website", icon: GlobeIcon },
 ];
 
 export const PLATFORM_MAP = new Map(PLATFORMS.map((p) => [p.key, p]));

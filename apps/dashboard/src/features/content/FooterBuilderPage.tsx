@@ -12,9 +12,6 @@ import {
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
-import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
-import SFPlusCircle from "sf-symbols-lib/monochrome/SFPlusCircle";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
 
 import type { FooterBlock, FooterColumn, FooterConfig, FooterStyle } from "@lmaa/contracts";
 import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
@@ -31,6 +28,7 @@ import { FooterPalette } from "./footer-builder/FooterPalette.tsx";
 import { FooterPreview } from "./footer-builder/FooterPreview.tsx";
 import { FooterStylePane } from "./footer-builder/FooterStylePane.tsx";
 import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "./hooks/useFooterConfig.ts";
+import { ArrowClockwiseIcon, DownloadIcon, PlusCircleIcon } from "@phosphor-icons/react";
 
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];
@@ -42,7 +40,14 @@ function buildDefaultBlock(type: FooterBlockType): FooterBlock {
     case "text":
       return { id: nanoid(), type: "text", markdown: "" };
     case "button":
-      return { id: nanoid(), type: "button", label: "", href: "/", external: false, style: "filled" };
+      return {
+        id: nanoid(),
+        type: "button",
+        label: "",
+        href: "/",
+        external: false,
+        style: "filled",
+      };
     case "footer-nav":
       return { id: nanoid(), type: "footer-nav", direction: "vertical" };
     case "separator":
@@ -181,7 +186,9 @@ export function FooterBuilderPage() {
       setActiveDrag({ label: blockTypeLabels[type] });
     } else if (id.startsWith("block:")) {
       const [, colId, blockId] = id.split(":");
-      const block = config?.columns.find((c) => c.id === colId)?.blocks.find((b) => b.id === blockId);
+      const block = config?.columns
+        .find((c) => c.id === colId)
+        ?.blocks.find((b) => b.id === blockId);
       setActiveDrag({
         label:
           block?.type === "headline"
@@ -346,7 +353,7 @@ export function FooterBuilderPage() {
             disabled={save.isPending}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
           >
-            <SFSquareAndArrowDownFill className="w-4 h-4" />
+            <DownloadIcon weight="duotone" className="w-4 h-4" />
             {save.isPending ? common.saving : common.save}
           </button>
         </div>
@@ -372,21 +379,21 @@ export function FooterBuilderPage() {
               items={config.columns.map((c) => `col:${c.id}`)}
               strategy={horizontalListSortingStrategy}
             >
-            {config.columns.map((col) => (
-              <FooterCanvas
-                key={col.id}
-                column={col}
-                selectedBlockId={selectedBlockId}
-                onSelectBlock={(id) =>
-                  setSelection((prev) =>
-                    prev?.kind === "block" && prev.id === id ? null : { kind: "block", id },
-                  )
-                }
-                onDeleteBlock={(blockId) => handleDeleteBlock(col.id, blockId)}
-                onChangeSpan={(span) => handleChangeSpan(col.id, span)}
-                onRemoveColumn={() => handleRemoveColumn(col.id)}
-              />
-            ))}
+              {config.columns.map((col) => (
+                <FooterCanvas
+                  key={col.id}
+                  column={col}
+                  selectedBlockId={selectedBlockId}
+                  onSelectBlock={(id) =>
+                    setSelection((prev) =>
+                      prev?.kind === "block" && prev.id === id ? null : { kind: "block", id },
+                    )
+                  }
+                  onDeleteBlock={(blockId) => handleDeleteBlock(col.id, blockId)}
+                  onChangeSpan={(span) => handleChangeSpan(col.id, span)}
+                  onRemoveColumn={() => handleRemoveColumn(col.id)}
+                />
+              ))}
             </SortableContext>
 
             <button
@@ -394,7 +401,7 @@ export function FooterBuilderPage() {
               onClick={handleAddColumn}
               className="flex items-center gap-1.5 shrink-0 self-start px-3 py-2 rounded-control border border-dashed border-[var(--ds-border)] text-sm text-[var(--ds-text-secondary)] hover:text-[var(--ds-text)] hover:border-[var(--color-primary)] transition-colors whitespace-nowrap"
             >
-              <SFPlusCircle className="w-4 h-4" />
+              <PlusCircleIcon weight="duotone" className="w-4 h-4" />
               Spalte
             </button>
           </div>
@@ -441,7 +448,10 @@ export function FooterBuilderPage() {
             disabled={isPreviewPending}
             className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] disabled:opacity-50 transition-colors"
           >
-            <SFArrowClockwise className={`w-3.5 h-3.5 ${isPreviewPending ? "animate-spin" : ""}`} />
+            <ArrowClockwiseIcon
+              weight="duotone"
+              className={`w-3.5 h-3.5 ${isPreviewPending ? "animate-spin" : ""}`}
+            />
             Reload
           </button>
         </div>

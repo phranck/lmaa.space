@@ -1,7 +1,4 @@
 import { useState } from "react";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import {
@@ -19,6 +16,7 @@ import { useAdminUsers, useDeleteUser } from "@/features/system/hooks/useAdminUs
 import { UserAvatar } from "./UserAvatar.tsx";
 import { UserCreateCard } from "./UserCreateCard.tsx";
 import { UserEditCard } from "./UserEditCard.tsx";
+import { FileTextIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 
 /**
  * User management route for admins/owners.
@@ -47,7 +45,7 @@ export function UsersPage() {
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
-          <SFPlusCircleFill className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           {usersMessages.inviteUser}
         </button>
       </PageHeader>
@@ -98,7 +96,7 @@ export function UsersPage() {
                     onClick={() => setEditingUserId(user.id)}
                     className="py-1.5 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
                   >
-                    <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                    <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                     {usersMessages.editCard.editTooltip}
                   </button>
                 )}
@@ -108,7 +106,7 @@ export function UsersPage() {
                     onClick={() => setDeleteId(user.id)}
                     className="py-1.5 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                   >
-                    <SFTrashFill className="w-3.5 h-3.5" />
+                    <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                     {usersMessages.remove}
                   </button>
                 )}
@@ -121,7 +119,7 @@ export function UsersPage() {
       <Dialog
         open={deleteId !== null && !!deleteTarget}
         title={usersMessages.removeConfirmTitle}
-        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
+        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
         onClose={() => setDeleteId(null)}
       >
         <div className="px-6 py-3">
@@ -148,12 +146,7 @@ export function UsersPage() {
         </Dialog.Footer>
       </Dialog>
 
-      {showCreate && (
-        <UserCreateCard
-          onClose={() => setShowCreate(false)}
-          onCreated={() => {}}
-        />
-      )}
+      {showCreate && <UserCreateCard onClose={() => setShowCreate(false)} onCreated={() => {}} />}
 
       {editingUserId !== null && (
         <UserEditCard

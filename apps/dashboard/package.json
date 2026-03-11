@@ -19,6 +19,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@lmaa/shared": "0.1.0",
     "@lmaa/ui": "0.1.0",
+    "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-query-devtools": "^5.74.4",
     "blueimp-md5": "^2.19.0",
@@ -26,8 +27,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.6.2",
-    "recharts": "^3.7.0",
-    "sf-symbols-lib": "^2.0.1"
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@types/blueimp-md5": "^2.18.2",

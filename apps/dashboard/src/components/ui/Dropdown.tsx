@@ -1,3 +1,4 @@
+import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface DropdownOption<T extends string = string> {
@@ -128,22 +129,19 @@ export function Dropdown<T extends string = string>({
           <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
             {current?.label}
           </span>
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            aria-hidden="true"
-            className={`shrink-0 text-[var(--ds-text-muted)] transition-transform ${open ? "rotate-180" : ""}`}
-          >
-            <path
-              d="M2 4l4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {open ? (
+            <CaretUpIcon
+              weight="duotone"
+              aria-hidden="true"
+              className="h-4 w-4 shrink-0 text-[var(--ds-text-muted)]"
             />
-          </svg>
+          ) : (
+            <CaretDownIcon
+              weight="duotone"
+              aria-hidden="true"
+              className="h-4 w-4 shrink-0 text-[var(--ds-text-muted)]"
+            />
+          )}
         </button>
         {open && (
           // biome-ignore lint/a11y/useSemanticElements: custom dropdown, not a native select

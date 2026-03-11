@@ -1,15 +1,12 @@
-import SFDesktopcomputer from "sf-symbols-lib/monochrome/SFDesktopcomputer";
-import SFMoonFill from "sf-symbols-lib/monochrome/SFMoonFill";
-import SFSunMaxFill from "sf-symbols-lib/monochrome/SFSunMaxFill";
-
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
+import { DesktopIcon, MoonStarsIcon, SunIcon } from "@phosphor-icons/react";
 
 export type ThemeOption = "light" | "dark" | "system";
 
 const ALL_OPTIONS = [
-  { value: "light" as const, icon: <SFSunMaxFill className="w-3.5 h-3.5" /> },
-  { value: "dark" as const, icon: <SFMoonFill className="w-3.5 h-3.5" /> },
-  { value: "system" as const, icon: <SFDesktopcomputer className="w-3.5 h-3.5" /> },
+  { value: "light" as const, icon: <SunIcon weight="duotone" className="w-3.5 h-3.5" /> },
+  { value: "dark" as const, icon: <MoonStarsIcon weight="duotone" className="w-3.5 h-3.5" /> },
+  { value: "system" as const, icon: <DesktopIcon weight="duotone" className="w-3.5 h-3.5" /> },
 ] as const;
 
 interface ThemeSegmentedControlProps {

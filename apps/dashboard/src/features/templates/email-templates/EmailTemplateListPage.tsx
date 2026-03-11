@@ -1,12 +1,5 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import SFEnvelopeFill from "sf-symbols-lib/monochrome/SFEnvelopeFill";
-import SFLockFill from "sf-symbols-lib/monochrome/SFLockFill";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFSquareAndArrowDown from "sf-symbols-lib/monochrome/SFSquareAndArrowDown";
-import SFSquareAndArrowUp from "sf-symbols-lib/monochrome/SFSquareAndArrowUp";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
 
@@ -16,6 +9,16 @@ import { Dialog, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailTemplateImportConflictDialog } from "@/features/templates/email-templates/EmailTemplateImportConflictDialog.tsx";
+import {
+  DownloadIcon,
+  EnvelopeOpenIcon,
+  FileTextIcon,
+  LockIcon,
+  PlusCircleIcon,
+  TrashIcon,
+  UploadIcon,
+} from "@phosphor-icons/react";
+
 import {
   exportEmailTemplateAll,
   exportEmailTemplateSingle,
@@ -153,7 +156,7 @@ export function EmailTemplateListPage() {
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
         >
-          <SFSquareAndArrowDown className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
           {m.importTemplate}
         </button>
         <button
@@ -162,7 +165,7 @@ export function EmailTemplateListPage() {
           disabled={templates.length === 0}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
         >
-          <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+          <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
           {m.exportAll}
         </button>
         <button
@@ -170,7 +173,7 @@ export function EmailTemplateListPage() {
           onClick={() => navigate("/email-templates/new")}
           className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
-          <SFPlusCircleFill className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           {m.newTemplate}
         </button>
       </PageHeader>
@@ -184,7 +187,7 @@ export function EmailTemplateListPage() {
       {!isLoading && templates.length === 0 && (
         <ContentUnavailableView
           className="flex-1"
-          icon={<SFEnvelopeFill aria-hidden />}
+          icon={<EnvelopeOpenIcon weight="duotone" aria-hidden />}
           title={m.noTemplates}
           subtitle={m.noTemplatesHint}
         />
@@ -218,7 +221,7 @@ export function EmailTemplateListPage() {
                       </button>
                       {tpl.isSystemTemplate && (
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]">
-                          <SFLockFill className="w-2.5 h-2.5" />
+                          <LockIcon weight="duotone" className="w-2.5 h-2.5" />
                           {m.systemBadge}
                         </span>
                       )}
@@ -241,7 +244,7 @@ export function EmailTemplateListPage() {
                         onClick={() => exportEmailTemplateSingle(tpl)}
                         className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                       >
-                        <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+                        <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
                         {m.exportTemplate}
                       </button>
                       <button
@@ -249,7 +252,7 @@ export function EmailTemplateListPage() {
                         onClick={() => navigate(`/email-templates/${tpl.id}`)}
                         className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                       >
-                        <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                        <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                         {messages.common.edit}
                       </button>
                       <button
@@ -258,7 +261,7 @@ export function EmailTemplateListPage() {
                         disabled={deleteMutation.isPending || tpl.isSystemTemplate}
                         className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
                       >
-                        <SFTrashFill className="w-3.5 h-3.5" />
+                        <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                         {m.deleteTemplate}
                       </button>
                     </div>
@@ -283,7 +286,7 @@ export function EmailTemplateListPage() {
       <Dialog
         open={alertMessage !== null}
         title={alertMessage ?? ""}
-        titleIcon={<SFSquareAndArrowDown className={dialogHeaderIconClass} />}
+        titleIcon={<DownloadIcon weight="duotone" className={dialogHeaderIconClass} />}
         onClose={() => setAlertMessage(null)}
       >
         <Dialog.Footer>

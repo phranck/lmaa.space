@@ -1,9 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
-import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
 
 import { FormLabel, formInputClass } from "@lmaa/ui";
 
@@ -23,6 +18,13 @@ import type {
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import {
+  DownloadIcon,
+  MagnifyingGlassIcon,
+  TagIcon,
+  TrashIcon,
+  TrayArrowUpIcon,
+} from "@phosphor-icons/react";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";
@@ -203,7 +205,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
-              <SFMagnifyingglass className="w-10 h-10" />
+              <MagnifyingGlassIcon weight="duotone" className="w-10 h-10" />
             </div>
           )}
 
@@ -215,7 +217,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 onClick={handleDeleteImage}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium transition-colors w-full"
               >
-                <SFTrashFill className="w-3 h-3" />
+                <TrashIcon weight="duotone" className="w-3 h-3" />
                 {categoriesMessages.editCard.deleteImage}
               </button>
             )}
@@ -224,7 +226,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
             >
-              <SFTrayAndArrowUpFill className="w-3 h-3" />
+              <TrayArrowUpIcon weight="duotone" className="w-3 h-3" />
               {categoriesMessages.editCard.upload}
             </button>
             <button
@@ -250,9 +252,11 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         <div className="flex flex-col p-3 min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <SFTagFill className={dialogHeaderIconClass} />
+              <TagIcon weight="duotone" className={dialogHeaderIconClass} />
               <h2 id="category-edit-title" className="text-lg font-semibold text-[var(--ds-text)]">
-                {isNew ? categoriesMessages.editCard.titleNew : categoriesMessages.editCard.titleEdit}
+                {isNew
+                  ? categoriesMessages.editCard.titleNew
+                  : categoriesMessages.editCard.titleEdit}
               </h2>
             </div>
             <SaveNotification phase={savedPhase} label={common.saved} />
@@ -283,7 +287,9 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             </div>
 
             <div>
-              <FormLabel htmlFor="cat-description">{categoriesMessages.editCard.description}</FormLabel>
+              <FormLabel htmlFor="cat-description">
+                {categoriesMessages.editCard.description}
+              </FormLabel>
               <textarea
                 id="cat-description"
                 rows={4}
@@ -320,7 +326,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               disabled={!canSave}
               className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
             >
-              <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+              <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
               {saveMutation.isPending ? common.saving : common.save}
             </button>
           </div>

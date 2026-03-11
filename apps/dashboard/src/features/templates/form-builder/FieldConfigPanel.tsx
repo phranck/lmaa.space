@@ -1,11 +1,4 @@
 import { Suspense, lazy } from "react";
-import SFCalendar from "sf-symbols-lib/monochrome/SFCalendar";
-import SFEnvelopeFill from "sf-symbols-lib/monochrome/SFEnvelopeFill";
-import SFIphone from "sf-symbols-lib/monochrome/SFIphone";
-import SFLink from "sf-symbols-lib/monochrome/SFLink";
-import SFLockFill from "sf-symbols-lib/monochrome/SFLockFill";
-import SFNumbersign from "sf-symbols-lib/monochrome/SFNumbersign";
-import SFTextformat from "sf-symbols-lib/monochrome/SFTextformat";
 
 import type {
   ButtonActionType,
@@ -20,6 +13,15 @@ import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
+import {
+  CalendarIcon,
+  DeviceMobileIcon,
+  EnvelopeOpenIcon,
+  HashStraightIcon,
+  LinkIcon,
+  LockIcon,
+  TextAaIcon,
+} from "@phosphor-icons/react";
 
 const IconPicker = lazy(() =>
   import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),
@@ -63,13 +65,17 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
     (field.type === "email" ? "email" : field.type === "password" ? "password" : "text");
 
   const inputTypeOptions: DropdownOption<InputType>[] = [
-    { value: "text", label: m.inputTypeText, icon: <SFTextformat size={15} /> },
-    { value: "email", label: m.inputTypeEmail, icon: <SFEnvelopeFill size={15} /> },
-    { value: "password", label: m.inputTypePassword, icon: <SFLockFill size={15} /> },
-    { value: "url", label: m.inputTypeUrl, icon: <SFLink size={15} /> },
-    { value: "tel", label: m.inputTypeTel, icon: <SFIphone size={15} /> },
-    { value: "date", label: m.inputTypeDate, icon: <SFCalendar size={15} /> },
-    { value: "number", label: m.inputTypeNumber, icon: <SFNumbersign size={15} /> },
+    { value: "text", label: m.inputTypeText, icon: <TextAaIcon weight="duotone" size={15} /> },
+    { value: "email", label: m.inputTypeEmail, icon: <EnvelopeOpenIcon weight="duotone" size={15} /> },
+    { value: "password", label: m.inputTypePassword, icon: <LockIcon weight="duotone" size={15} /> },
+    { value: "url", label: m.inputTypeUrl, icon: <LinkIcon weight="duotone" size={15} /> },
+    { value: "tel", label: m.inputTypeTel, icon: <DeviceMobileIcon weight="duotone" size={15} /> },
+    { value: "date", label: m.inputTypeDate, icon: <CalendarIcon weight="duotone" size={15} /> },
+    {
+      value: "number",
+      label: m.inputTypeNumber,
+      icon: <HashStraightIcon weight="duotone" size={15} />,
+    },
   ];
   const hasOptions = field.type === "select" || field.type === "multi-select";
   const hasValidationMinMax =

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import SFArrowUpRight from "sf-symbols-lib/monochrome/SFArrowUpRight";
+import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 
 import {
   FormErrorText,
@@ -144,7 +144,7 @@ export function ShopEditForm({
                   : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
               }`}
             >
-              <SFArrowUpRight className="w-3 h-3" />
+              <ArrowSquareOutIcon weight="duotone" className="w-4 h-4" />
             </a>
           </div>
           {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}

@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import SFArrowClockwise from "sf-symbols-lib/monochrome/SFArrowClockwise";
-import SFMagnifyingglass from "sf-symbols-lib/monochrome/SFMagnifyingglass";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
+import { ArrowClockwiseIcon, MagnifyingGlassIcon, XCircleIcon } from "@phosphor-icons/react";
 
 interface UnsplashPhoto {
   id: string;
@@ -201,7 +199,10 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ds-border-subtle)] shrink-0">
         <div className="relative flex-1">
-          <SFMagnifyingglass className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] w-3.5 h-3.5" />
+          <MagnifyingGlassIcon
+            weight="duotone"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] w-3.5 h-3.5"
+          />
           <input
             type="text"
             value={query}
@@ -216,7 +217,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
           className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors rounded-control hover:bg-[var(--ds-bg-elevated)]"
           aria-label={categoriesMessages.unsplash.closeAria}
         >
-          <SFXmarkCircleFill className="w-5 h-5" />
+          <XCircleIcon weight="duotone" className="w-5 h-5" />
         </button>
       </div>
 
@@ -230,7 +231,10 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <SFArrowClockwise className="w-6 h-6 text-[var(--ds-text-subtle)] animate-spin" />
+            <ArrowClockwiseIcon
+              weight="duotone"
+              className="w-6 h-6 text-[var(--ds-text-subtle)] animate-spin"
+            />
           </div>
         )}
 
@@ -270,7 +274,10 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
             <div ref={sentinelRef} className="flex justify-center py-4">
               {isLoadingMore && (
                 <span title={common.loading} aria-label={common.loading}>
-                  <SFArrowClockwise className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin" />
+                  <ArrowClockwiseIcon
+                    weight="duotone"
+                    className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin"
+                  />
                 </span>
               )}
             </div>

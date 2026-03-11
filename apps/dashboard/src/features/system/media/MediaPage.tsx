@@ -1,12 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
-import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
-import SFLink from "sf-symbols-lib/monochrome/SFLink";
-import SFListBullet from "sf-symbols-lib/monochrome/SFListBullet";
-import SFPhotoFill from "sf-symbols-lib/monochrome/SFPhotoFill";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { MediaAsset } from "@lmaa/shared";
 
@@ -30,7 +22,12 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { useAdminMedia, useDeleteMedia, useRenameMedia, useUploadMedia } from "@/features/system/hooks/useAdminMedia.ts";
+import {
+  useAdminMedia,
+  useDeleteMedia,
+  useRenameMedia,
+  useUploadMedia,
+} from "@/features/system/hooks/useAdminMedia.ts";
 import {
   formatBytes,
   formatMediaDate,
@@ -40,10 +37,26 @@ import {
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import { MediaTable } from "@/features/system/media/MediaTable.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import {
+  CopyIcon,
+  FileIcon,
+  ImageIcon,
+  LinkIcon,
+  ListBulletsIcon,
+  PlusCircleIcon,
+  SquaresFourIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 
 type ViewMode = "list" | "grid";
 
-function MediaPreview({ asset, unsupportedPreview }: { asset: MediaAsset; unsupportedPreview: string }) {
+function MediaPreview({
+  asset,
+  unsupportedPreview,
+}: {
+  asset: MediaAsset;
+  unsupportedPreview: string;
+}) {
   if (isImageAsset(asset)) {
     return (
       <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--ds-bg-elevated)]">
@@ -54,7 +67,7 @@ function MediaPreview({ asset, unsupportedPreview }: { asset: MediaAsset; unsupp
 
   return (
     <div className="aspect-[4/3] rounded-xl bg-[var(--ds-bg-elevated)] border border-dashed border-[var(--ds-border)] flex flex-col items-center justify-center gap-3 text-[var(--ds-text-subtle)]">
-      <SFDocumentFill className="w-12 h-12" />
+      <FileIcon weight="duotone" className="w-12 h-12" />
       <div className="text-center">
         <p className="text-sm font-medium text-[var(--ds-text)]">{getMediaTypeLabel(asset)}</p>
         <p className="text-xs">{unsupportedPreview}</p>
@@ -189,8 +202,8 @@ export function MediaPage() {
           onChange={(value) => setViewMode(value as ViewMode)}
           storageKey={getSegmentedStorageKey(user?.id, "media:view")}
           options={[
-            { value: "list", icon: <SFListBullet className="w-4 h-4" /> },
-            { value: "grid", icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },
+            { value: "list", icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" /> },
+            { value: "grid", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
           ]}
         />
 
@@ -212,7 +225,7 @@ export function MediaPage() {
           disabled={uploadMedia.isPending}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60"
         >
-          <SFPlusCircleFill className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           {uploadMedia.isPending ? mediaMessages.uploading : mediaMessages.upload}
         </button>
       </PageHeader>
@@ -271,12 +284,17 @@ export function MediaPage() {
                 {selectedAsset ? (
                   <div className="space-y-4">
                     <SectionCard title={mediaMessages.previewTitle}>
-                      <MediaPreview asset={selectedAsset} unsupportedPreview={mediaMessages.unsupportedPreview} />
+                      <MediaPreview
+                        asset={selectedAsset}
+                        unsupportedPreview={mediaMessages.unsupportedPreview}
+                      />
                     </SectionCard>
 
                     <SectionCard title={mediaMessages.detailsTitle}>
                       <label className="block space-y-1.5">
-                        <span className="text-sm font-medium text-[var(--ds-text)]">{mediaMessages.displayName}</span>
+                        <span className="text-sm font-medium text-[var(--ds-text)]">
+                          {mediaMessages.displayName}
+                        </span>
                         <input
                           type="text"
                           value={draftName}
@@ -303,7 +321,7 @@ export function MediaPage() {
                           onClick={() => setDeleteTarget(selectedAsset)}
                           className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
                         >
-                          <SFTrashFill className="w-4 h-4" />
+                          <TrashIcon weight="duotone" className="w-4 h-4" />
                         </button>
                       </div>
                     </SectionCard>
@@ -311,8 +329,12 @@ export function MediaPage() {
                     <SectionCard title={mediaMessages.infoTitle}>
                       <div className="space-y-3 text-sm">
                         <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.originalName}</p>
-                          <p className="text-[var(--ds-text)] break-all">{selectedAsset.originalName}</p>
+                          <p className="text-[var(--ds-text-subtle)]">
+                            {mediaMessages.originalName}
+                          </p>
+                          <p className="text-[var(--ds-text)] break-all">
+                            {selectedAsset.originalName}
+                          </p>
                         </div>
                         <div>
                           <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileType}</p>
@@ -320,28 +342,42 @@ export function MediaPage() {
                         </div>
                         <div>
                           <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
-                          <p className="text-[var(--ds-text)]">{formatBytes(selectedAsset.sizeBytes, locale)}</p>
+                          <p className="text-[var(--ds-text)]">
+                            {formatBytes(selectedAsset.sizeBytes, locale)}
+                          </p>
                         </div>
                         {selectedAsset.width && selectedAsset.height && (
                           <div>
-                            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
-                            <p className="text-[var(--ds-text)]">{selectedAsset.width} × {selectedAsset.height}px</p>
+                            <p className="text-[var(--ds-text-subtle)]">
+                              {mediaMessages.dimensions}
+                            </p>
+                            <p className="text-[var(--ds-text)]">
+                              {selectedAsset.width} × {selectedAsset.height}px
+                            </p>
                           </div>
                         )}
                         <div>
                           <p className="text-[var(--ds-text-subtle)]">{mediaMessages.createdAt}</p>
-                          <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.createdAt, locale)}</p>
+                          <p className="text-[var(--ds-text)]">
+                            {formatMediaDate(selectedAsset.createdAt, locale)}
+                          </p>
                         </div>
                         <div>
                           <p className="text-[var(--ds-text-subtle)]">{mediaMessages.updatedAt}</p>
-                          <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.updatedAt, locale)}</p>
+                          <p className="text-[var(--ds-text)]">
+                            {formatMediaDate(selectedAsset.updatedAt, locale)}
+                          </p>
                         </div>
                         <div>
                           <p className="text-[var(--ds-text-subtle)]">{mediaMessages.uploadedBy}</p>
-                          <p className="text-[var(--ds-text)]">{selectedAsset.createdByUsername ?? "—"}</p>
+                          <p className="text-[var(--ds-text)]">
+                            {selectedAsset.createdByUsername ?? "—"}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
+                          <p className="text-[var(--ds-text-subtle)]">
+                            {mediaMessages.internalUrl}
+                          </p>
                           <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
                             {selectedAsset.url}
                           </div>
@@ -354,7 +390,7 @@ export function MediaPage() {
                           onClick={() => void handleCopyUrl()}
                           className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
                         >
-                          <SFDocumentOnDocumentFill className="w-4 h-4" />
+                          <CopyIcon weight="duotone" className="w-4 h-4" />
                           {copied ? mediaMessages.copied : mediaMessages.copyUrl}
                         </button>
                         <a
@@ -363,7 +399,7 @@ export function MediaPage() {
                           rel="noopener noreferrer"
                           className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
                         >
-                          <SFLink className="w-4 h-4" />
+                          <LinkIcon weight="duotone" className="w-4 h-4" />
                           {mediaMessages.openFile}
                         </a>
                       </div>
@@ -371,7 +407,7 @@ export function MediaPage() {
                   </div>
                 ) : (
                   <ContentUnavailableView
-                    icon={<SFDocumentFill aria-hidden />}
+                    icon={<FileIcon weight="duotone" aria-hidden />}
                     title={mediaMessages.detailsTitle}
                     subtitle={mediaMessages.selectPrompt}
                     className="flex-1 min-h-[22rem]"
@@ -383,7 +419,7 @@ export function MediaPage() {
         ) : (
           !isLoading && (
             <ContentUnavailableView
-              icon={<SFPhotoFill aria-hidden />}
+              icon={<ImageIcon weight="duotone" aria-hidden />}
               title={mediaMessages.empty}
               subtitle={mediaMessages.emptyHint}
               className="flex-1 min-h-0"
@@ -400,7 +436,10 @@ export function MediaPage() {
           }`}
         >
           <div className="rounded-2xl border border-[var(--ds-border)] bg-[var(--ds-surface)]/95 px-6 py-5 text-center shadow-lg backdrop-blur-sm">
-            <SFPlusCircleFill className="mx-auto mb-3 h-8 w-8 text-[var(--color-primary)]" />
+            <PlusCircleIcon
+              weight="duotone"
+              className="mx-auto mb-3 h-8 w-8 text-[var(--color-primary)]"
+            />
             <p className="text-sm font-medium text-[var(--ds-text)]">{mediaMessages.upload}</p>
             <p className="mt-1 text-xs text-[var(--ds-text-subtle)]">{mediaMessages.uploadHint}</p>
           </div>
@@ -414,16 +453,21 @@ export function MediaPage() {
       <Dialog
         open={deleteTarget !== null}
         title={mediaMessages.deleteTitle}
-        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
+        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
         onClose={() => setDeleteTarget(null)}
       >
         <div className="px-6 py-3">
           <p className="text-sm text-[var(--ds-text-muted)]">
-            <span className="font-medium">{deleteTarget?.displayName}</span> {mediaMessages.deleteDescription}
+            <span className="font-medium">{deleteTarget?.displayName}</span>{" "}
+            {mediaMessages.deleteDescription}
           </p>
         </div>
         <Dialog.Footer>
-          <button type="button" onClick={() => setDeleteTarget(null)} className={dialogBtnSecondary}>
+          <button
+            type="button"
+            onClick={() => setDeleteTarget(null)}
+            className={dialogBtnSecondary}
+          >
             {common.cancel}
           </button>
           <button

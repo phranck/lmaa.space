@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
-import SFPhotoFill from "sf-symbols-lib/monochrome/SFPhotoFill";
 
 import type { MediaAsset } from "@lmaa/shared";
 
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { FileIcon, ImageIcon } from "@phosphor-icons/react";
+
 import {
   formatBytes,
   formatMediaDate,
@@ -27,7 +27,7 @@ function MediaThumb({ asset }: { asset: MediaAsset }) {
       {imageAsset ? (
         <img src={asset.url} alt="" loading="lazy" className="block w-full h-full object-cover" />
       ) : (
-        <SFDocumentFill className="w-7 h-7 text-[var(--ds-text-subtle)]" />
+        <FileIcon weight="duotone" className="w-7 h-7 text-[var(--ds-text-subtle)]" />
       )}
     </div>
   );
@@ -59,7 +59,9 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
             className="text-left flex flex-col min-w-0"
           >
             <span className="font-medium text-[var(--ds-text)] truncate">{asset.displayName}</span>
-            <span className="text-xs text-[var(--ds-text-subtle)] truncate">{asset.originalName}</span>
+            <span className="text-xs text-[var(--ds-text-subtle)] truncate">
+              {asset.originalName}
+            </span>
           </button>
         ),
       },
@@ -70,9 +72,9 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
         cell: (asset) => (
           <span className="inline-flex items-center gap-2 text-[var(--ds-text-muted)]">
             {isImageAsset(asset) ? (
-              <SFPhotoFill className="w-3.5 h-3.5 shrink-0" />
+              <ImageIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
             ) : (
-              <SFDocumentFill className="w-3.5 h-3.5 shrink-0" />
+              <FileIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
             )}
             {getMediaTypeLabel(asset)}
           </span>
@@ -83,7 +85,11 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
         header: mediaMessages.table.size,
         className: "w-28",
         sortKey: (asset) => asset.sizeBytes,
-        cell: (asset) => <span className="text-[var(--ds-text-muted)]">{formatBytes(asset.sizeBytes, locale)}</span>,
+        cell: (asset) => (
+          <span className="text-[var(--ds-text-muted)]">
+            {formatBytes(asset.sizeBytes, locale)}
+          </span>
+        ),
       },
       {
         id: "updatedAt",
@@ -91,7 +97,9 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
         className: "w-52",
         sortKey: (asset) => asset.updatedAt,
         cell: (asset) => (
-          <span className="text-[var(--ds-text-muted)]">{formatMediaDate(asset.updatedAt, locale)}</span>
+          <span className="text-[var(--ds-text-muted)]">
+            {formatMediaDate(asset.updatedAt, locale)}
+          </span>
         ),
       },
     ],
@@ -104,7 +112,9 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
       data={assets}
       getRowKey={(asset) => asset.id}
       getRowClassName={(asset) =>
-        asset.id === selectedId ? "bg-[color-mix(in_srgb,var(--color-primary)_8%,var(--ds-surface))]" : ""
+        asset.id === selectedId
+          ? "bg-[color-mix(in_srgb,var(--color-primary)_8%,var(--ds-surface))]"
+          : ""
       }
       stickyHeader
     />

@@ -1,10 +1,12 @@
 import md5 from "blueimp-md5";
-import { type ChangeEvent, type Reducer, type RefObject, useEffect, useReducer, useRef } from "react";
-import SFPersonCropCircle from "sf-symbols-lib/monochrome/SFPersonCropCircle";
-import SFPersonCropCircleFill from "sf-symbols-lib/monochrome/SFPersonCropCircleFill";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
-import SFTrayAndArrowUpFill from "sf-symbols-lib/monochrome/SFTrayAndArrowUpFill";
+import {
+  type ChangeEvent,
+  type Reducer,
+  type RefObject,
+  useEffect,
+  useReducer,
+  useRef,
+} from "react";
 
 import type { AdminLocale, AdminUser } from "@lmaa/shared";
 import { FormLabel, formInputClass } from "@lmaa/ui";
@@ -18,6 +20,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { DownloadIcon, TrashIcon, TrayArrowUpIcon, UserCircleIcon } from "@phosphor-icons/react";
 
 import {
   useAdminUsers,
@@ -153,7 +156,7 @@ function UserAvatarEditor({
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
         >
-          <SFTrayAndArrowUpFill className="w-3.5 h-3.5 shrink-0" />
+          <TrayArrowUpIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           {usersMessages.editCard.uploadImage}
         </button>
         <button
@@ -161,7 +164,7 @@ function UserAvatarEditor({
           onClick={onUseGravatar}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
         >
-          <SFPersonCropCircle className="w-3.5 h-3.5 shrink-0" />
+          <UserCircleIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           {usersMessages.editCard.useGravatar}
         </button>
         {currentAvatarUrl && (
@@ -170,7 +173,7 @@ function UserAvatarEditor({
             onClick={onRemoveAvatar}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
           >
-            <SFTrashFill className="w-3.5 h-3.5 shrink-0" />
+            <TrashIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
             {usersMessages.editCard.removeAvatar}
           </button>
         )}
@@ -398,7 +401,12 @@ function UserEditCardForm({
   }
 
   function handleRemoveAvatar() {
-    setAvatarState({ previewUrl: null, pendingFile: null, pendingGravatarUrl: null, deleted: true });
+    setAvatarState({
+      previewUrl: null,
+      pendingFile: null,
+      pendingGravatarUrl: null,
+      deleted: true,
+    });
   }
 
   async function handleSave(close = true) {
@@ -461,7 +469,7 @@ function UserEditCardForm({
     >
       <OverlayCard.Header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <SFPersonCropCircleFill className={dialogHeaderIconClass} />
+          <UserCircleIcon weight="duotone" className={dialogHeaderIconClass} />
           <h2 className="text-base font-semibold text-[var(--ds-text)]">
             {usersMessages.editCard.title}
           </h2>
@@ -510,7 +518,7 @@ function UserEditCardForm({
           disabled={!canSave}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
         >
-          <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
           {isPending ? common.saving : common.save}
         </button>
       </OverlayCard.Footer>
@@ -556,7 +564,7 @@ export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
         aria-label={usersMessages.editCard.title}
       >
         <OverlayCard.Header className="flex items-center gap-3">
-          <SFPersonCropCircleFill className={dialogHeaderIconClass} />
+          <UserCircleIcon weight="duotone" className={dialogHeaderIconClass} />
           <h2 className="text-base font-semibold text-[var(--ds-text)]">
             {usersMessages.editCard.title}
           </h2>

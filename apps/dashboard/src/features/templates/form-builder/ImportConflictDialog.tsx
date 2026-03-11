@@ -1,8 +1,8 @@
 import { useState } from "react";
-import SFSquareAndArrowDown from "sf-symbols-lib/monochrome/SFSquareAndArrowDown";
 
 import { Dialog, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { DownloadIcon } from "@phosphor-icons/react";
 
 interface ImportConflictDialogProps {
   formName: string;
@@ -34,7 +34,7 @@ export function ImportConflictDialog({
     <Dialog
       open={true}
       title={fb.importConflictTitle.replace("{name}", formName)}
-      titleIcon={<SFSquareAndArrowDown className={dialogHeaderIconClass} />}
+      titleIcon={<DownloadIcon weight="duotone" className={dialogHeaderIconClass} />}
       onClose={onCancel}
     >
       <div className="px-6 py-3">

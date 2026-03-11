@@ -11,11 +11,6 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import SFCheckmarkCircleFill from "sf-symbols-lib/monochrome/SFCheckmarkCircleFill";
-import SFCircle from "sf-symbols-lib/monochrome/SFCircle";
-import SFHandTap from "sf-symbols-lib/monochrome/SFHandTap";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFSquareAndArrowUp from "sf-symbols-lib/monochrome/SFSquareAndArrowUp";
 
 import type {
   FieldOptionsSource,
@@ -40,6 +35,13 @@ import {
   useSetFormConfigActive,
 } from "@/features/templates/hooks/useFormConfig.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import {
+  CheckCircleIcon,
+  CircleIcon,
+  DownloadIcon,
+  HandTapIcon,
+  UploadIcon,
+} from "@phosphor-icons/react";
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -374,7 +376,7 @@ export function FormBuilderEditPage() {
             disabled={!config}
             className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
           >
-            <SFSquareAndArrowUp className="w-3.5 h-3.5" />
+            <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
             {m.exportForm}
           </button>
           {saveStatus === "saved" && (
@@ -392,7 +394,7 @@ export function FormBuilderEditPage() {
             disabled={saveMutation.isPending}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
           >
-            <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
             {saveMutation.isPending ? messages.common.saving : m.save}
           </button>
         </div>
@@ -433,12 +435,12 @@ export function FormBuilderEditPage() {
             >
               {config.isActive ? (
                 <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                  <SFCheckmarkCircleFill className="w-3.5 h-3.5" />
+                  <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                   {m.status.active}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
-                  <SFCircle className="w-3.5 h-3.5" />
+                  <CircleIcon weight="duotone" className="w-3.5 h-3.5" />
                   {m.status.inactive}
                 </span>
               )}
@@ -491,7 +493,7 @@ export function FormBuilderEditPage() {
                 <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64">
                   <ContentUnavailableView
                     className="h-64"
-                    icon={<SFHandTap aria-hidden />}
+                    icon={<HandTapIcon weight="duotone" aria-hidden />}
                     title={messages.formBuilder.noFieldSelected}
                     subtitle={messages.formBuilder.noFieldSelectedHint}
                   />

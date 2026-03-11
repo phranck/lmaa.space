@@ -28,10 +28,6 @@ export default defineConfig({
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes("/src/lib/buttonIconMap.tsx")) {
-              return "button-icons";
-            }
-
             if (id.includes("/node_modules/@codemirror/")) {
               return "codemirror";
             }

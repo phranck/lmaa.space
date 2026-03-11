@@ -1,9 +1,4 @@
 import { useState } from "react";
-import SFListBullet from "sf-symbols-lib/monochrome/SFListBullet";
-import SFPlusCircleFill from "sf-symbols-lib/monochrome/SFPlusCircleFill";
-import SFSquareGrid2x2Fill from "sf-symbols-lib/monochrome/SFSquareGrid2x2Fill";
-import SFTagFill from "sf-symbols-lib/monochrome/SFTagFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -25,6 +20,13 @@ import {
   useDeleteCategory,
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import {
+  ListBulletsIcon,
+  PlusCircleIcon,
+  SquaresFourIcon,
+  TagIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 
 type ViewMode = "list" | "grid";
 
@@ -55,8 +57,11 @@ export function CategoriesPage() {
           onChange={setViewMode}
           storageKey={getSegmentedStorageKey(me?.id, "categories:view")}
           options={[
-            { value: "list" as const, icon: <SFListBullet className="w-4 h-4" /> },
-            { value: "grid" as const, icon: <SFSquareGrid2x2Fill className="w-4 h-4" /> },
+            {
+              value: "list" as const,
+              icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" />,
+            },
+            { value: "grid" as const, icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
           ]}
         />
 
@@ -65,7 +70,7 @@ export function CategoriesPage() {
           onClick={() => setEditTarget("new")}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
         >
-          <SFPlusCircleFill className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           {categoriesMessages.newCategory}
         </button>
       </PageHeader>
@@ -90,7 +95,7 @@ export function CategoriesPage() {
 
         {!isLoading && categories.length === 0 && (
           <ContentUnavailableView
-            icon={<SFTagFill aria-hidden />}
+            icon={<TagIcon weight="duotone" aria-hidden />}
             title={categoriesMessages.empty}
             subtitle={categoriesMessages.emptyHint}
             className="flex-1 min-h-0"
@@ -133,7 +138,7 @@ export function CategoriesPage() {
       <Dialog
         open={deleteId !== null && !!deleteTarget}
         title={categoriesMessages.deleteTitle}
-        titleIcon={<SFTrashFill className={dialogHeaderIconClass} />}
+        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
         onClose={() => setDeleteId(null)}
       >
         <div className="px-6 py-3">

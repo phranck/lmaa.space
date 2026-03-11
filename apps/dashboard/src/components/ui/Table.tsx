@@ -1,8 +1,6 @@
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
 import { useMemo, useState } from "react";
-import SFChevronDown from "sf-symbols-lib/monochrome/SFChevronDown";
-import SFChevronUp from "sf-symbols-lib/monochrome/SFChevronUp";
-import SFChevronUpChevronDown from "sf-symbols-lib/monochrome/SFChevronUpChevronDown";
+import { CaretDownIcon, CaretUpIcon, CaretUpDownIcon } from "@phosphor-icons/react";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -148,12 +146,12 @@ export function DataTable<T>({
                   {col.header}
                   {sort?.id === col.id ? (
                     sort.dir === "asc" ? (
-                      <SFChevronUp className="w-3 h-3 shrink-0" />
+                      <CaretUpIcon weight="duotone" className="w-3 h-3 shrink-0" />
                     ) : (
-                      <SFChevronDown className="w-3 h-3 shrink-0" />
+                      <CaretDownIcon weight="duotone" className="w-3 h-3 shrink-0" />
                     )
                   ) : (
-                    <SFChevronUpChevronDown className="w-3 h-3 shrink-0 opacity-40" />
+                    <CaretUpDownIcon weight="duotone" className="w-3 h-3 shrink-0 opacity-40" />
                   )}
                 </button>
               ) : (

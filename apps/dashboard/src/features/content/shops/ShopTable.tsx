@@ -1,9 +1,4 @@
 import { useMemo } from "react";
-import SFEyeFill from "sf-symbols-lib/monochrome/SFEyeFill";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFPauseCircleFill from "sf-symbols-lib/monochrome/SFPauseCircleFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
 
@@ -11,6 +6,13 @@ import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
+import {
+  EyeIcon,
+  FileTextIcon,
+  PauseCircleIcon,
+  TrashIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 
 interface ShopTableProps {
   shops: AdminShopListItem[];
@@ -24,7 +26,7 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
   if (visibility === "onhold") {
     return (
       <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400">
-        <SFPauseCircleFill className="w-3 h-3" />
+        <PauseCircleIcon weight="duotone" className="w-3 h-3" />
         {shopsMessages.table.statusOnhold}
       </span>
     );
@@ -32,7 +34,7 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
   if (visibility === "deleted") {
     return (
       <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400">
-        <SFTrashFill className="w-3 h-3" />
+        <TrashIcon weight="duotone" className="w-3 h-3" />
         {shopsMessages.table.statusDeleted}
       </span>
     );
@@ -40,7 +42,7 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
   if (visibility === "rejected") {
     return (
       <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-500/10 text-orange-400">
-        <SFXmarkCircleFill className="w-3 h-3" />
+        <XCircleIcon weight="duotone" className="w-3 h-3" />
         {shopsMessages.table.statusRejected}
       </span>
     );
@@ -54,10 +56,7 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
  * @param props - Shop rows and row-level action callbacks.
  * @returns Data table with sticky header.
  */
-export function ShopTable({
-  shops,
-  onEdit,
-}: ShopTableProps) {
+export function ShopTable({ shops, onEdit }: ShopTableProps) {
   const { locale, messages } = useI18n();
   const shopsMessages = messages.shops;
   const regionOptions = getRegionOptions(locale);
@@ -71,7 +70,7 @@ export function ShopTable({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               {shop.visibility === "public" && (
-                <SFEyeFill className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                <EyeIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
               )}
               <p
                 className={`font-medium truncate ${
@@ -136,7 +135,7 @@ export function ShopTable({
               onClick={() => onEdit(shop)}
               className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
             >
-              <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
               {shopsMessages.table.edit}
             </button>
           </div>
@@ -147,6 +146,11 @@ export function ShopTable({
   );
 
   return (
-    <DataTable columns={columns} data={shops} getRowKey={(s: AdminShopListItem) => s.id} stickyHeader />
+    <DataTable
+      columns={columns}
+      data={shops}
+      getRowKey={(s: AdminShopListItem) => s.id}
+      stickyHeader
+    />
   );
 }

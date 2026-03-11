@@ -2,8 +2,8 @@
 import type { FooterConfig, FooterColumn } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
 import { FOOTER_STYLES_CSS, footerStyleVars } from "@lmaa/shared";
+import { getButtonIconComponent } from "@lmaa/ui";
 
-import { BUTTON_ICON_MAP } from "@/lib/buttonIconMap.tsx";
 import { renderMarkdown } from "@/lib/markdown";
 import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
 
@@ -46,7 +46,7 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
                 const href = getSafeConfigHref(block.href);
                 const isExternal = href !== null && block.external && isExternalHref(href);
                 const styleClass = `footer-btn footer-btn-${block.style}`;
-                const ButtonIcon = block.icon ? BUTTON_ICON_MAP[block.icon] : null;
+                const ButtonIcon = getButtonIconComponent(block.icon);
                 return (
                   href ? (
                     <a

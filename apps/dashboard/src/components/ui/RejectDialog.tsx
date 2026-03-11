@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
-import SFDocumentOnDocumentFill from "sf-symbols-lib/monochrome/SFDocumentOnDocumentFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
 
 import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import { CopyIcon, XCircleIcon } from "@phosphor-icons/react";
 
 export interface RejectDialogMessages {
   cancel: string;
@@ -100,7 +99,7 @@ export function RejectDialog({
       <OverlayCard.Header>
         <div className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            {headerIcon ?? <SFXmarkCircleFill className={dialogHeaderIconClass} />}
+            {headerIcon ?? <XCircleIcon weight="duotone" className={dialogHeaderIconClass} />}
             <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
           </div>
           {headerRight}
@@ -114,7 +113,7 @@ export function RejectDialog({
             className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
             aria-label={messages.copyUrl}
           >
-            <SFDocumentOnDocumentFill className="w-4 h-4" />
+            <CopyIcon weight="duotone" className="w-4 h-4" />
           </button>
         </div>
       </OverlayCard.Header>
@@ -122,8 +121,7 @@ export function RejectDialog({
       <OverlayCard.Body className="flex flex-col gap-3">
         <div>
           <FormLabel htmlFor="reject-note">
-            {messages.comment}{" "}
-            <FormOptional>{messages.optional}</FormOptional>
+            {messages.comment} <FormOptional>{messages.optional}</FormOptional>
           </FormLabel>
           <MarkdownEditor
             id="reject-note"
@@ -139,8 +137,7 @@ export function RejectDialog({
 
         <div>
           <FormLabel htmlFor="reject-long">
-            {messages.rejectionLongLabel}{" "}
-            <FormOptional>{messages.optional}</FormOptional>
+            {messages.rejectionLongLabel} <FormOptional>{messages.optional}</FormOptional>
           </FormLabel>
           <MarkdownEditor
             id="reject-long"
@@ -177,7 +174,7 @@ export function RejectDialog({
               : "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
           }`}
         >
-          {submitIcon ?? <SFXmarkCircleFill className="w-3.5 h-3.5" />}
+          {submitIcon ?? <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />}
           {isPending ? "…" : submitLabel}
         </button>
       </OverlayCard.Footer>

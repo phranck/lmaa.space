@@ -1,10 +1,12 @@
-import SFDocumentFill from "sf-symbols-lib/monochrome/SFDocumentFill";
-import SFPhotoFill from "sf-symbols-lib/monochrome/SFPhotoFill";
-
 import type { MediaAsset } from "@lmaa/shared";
 
 import { useI18n } from "@/context/I18nContext.tsx";
-import { formatBytes, getMediaTypeLabel, isImageAsset } from "@/features/system/media/media-utils.ts";
+import {
+  formatBytes,
+  getMediaTypeLabel,
+  isImageAsset,
+} from "@/features/system/media/media-utils.ts";
+import { FileIcon, ImageIcon } from "@phosphor-icons/react";
 
 interface MediaGridItemProps {
   asset: MediaAsset;
@@ -28,15 +30,10 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
     >
       <div className="aspect-[4/3] overflow-hidden rounded-t-[var(--radius-card)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
         {imageAsset ? (
-          <img
-            src={asset.url}
-            alt=""
-            loading="lazy"
-            className="w-full h-full object-cover"
-          />
+          <img src={asset.url} alt="" loading="lazy" className="w-full h-full object-cover" />
         ) : (
           <div className="flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
-            <SFDocumentFill className="w-10 h-10" />
+            <FileIcon weight="duotone" className="w-10 h-10" />
             <span className="text-xs font-semibold tracking-wide">{getMediaTypeLabel(asset)}</span>
           </div>
         )}
@@ -48,9 +45,9 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
         </div>
         <div className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
           {imageAsset ? (
-            <SFPhotoFill className="w-3.5 h-3.5 shrink-0" />
+            <ImageIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           ) : (
-            <SFDocumentFill className="w-3.5 h-3.5 shrink-0" />
+            <FileIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           )}
           <span>{getMediaTypeLabel(asset)}</span>
           <span>·</span>

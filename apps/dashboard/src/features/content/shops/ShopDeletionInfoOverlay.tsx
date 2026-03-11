@@ -1,9 +1,6 @@
 import { Marked } from "marked";
 import { useCallback, useMemo, useState } from "react";
 import { SiMarkdown } from "react-icons/si";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFSquareAndArrowDownFill from "sf-symbols-lib/monochrome/SFSquareAndArrowDownFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { ShopSummary } from "@lmaa/shared";
 
@@ -14,6 +11,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { renderMarkdownToReact } from "@/lib/render-markdown-to-react.tsx";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import { DownloadIcon, FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 
 /**
  * Local marked instance for rendering deletion reasons.
@@ -147,7 +145,7 @@ export function ShopDeletionInfoOverlay({
       <OverlayCard.Body className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <SFTrashFill className={dialogHeaderIconClass} />
+            <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
             <h2 className="text-sm font-semibold text-[var(--ds-text)]">{t.deletionInfo}</h2>
           </div>
           <SaveNotification phase={savedPhase} label={messages.common.saved} />
@@ -199,7 +197,7 @@ export function ShopDeletionInfoOverlay({
       <OverlayCard.Footer className="flex items-center justify-between gap-4">
         {shop.deletedWasReported ? (
           <span className="flex items-center gap-1.5 text-xs text-red-400">
-            <SFTrashFill className="w-3 h-3 shrink-0" />
+            <TrashIcon weight="duotone" className="w-3 h-3 shrink-0" />
             {t.wasReported}
           </span>
         ) : (
@@ -223,7 +221,7 @@ export function ShopDeletionInfoOverlay({
                 disabled={isSaving}
                 className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-50"
               >
-                <SFSquareAndArrowDownFill className="w-3.5 h-3.5" />
+                <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
                 {isSaving ? messages.common.saving : messages.common.save}
               </button>
             </>
@@ -235,7 +233,7 @@ export function ShopDeletionInfoOverlay({
                   onClick={() => setIsEditing(true)}
                   className="py-1.5 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
                 >
-                  <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+                  <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                   {messages.common.edit}
                 </button>
               )}

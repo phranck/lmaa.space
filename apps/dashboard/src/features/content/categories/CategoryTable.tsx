@@ -1,11 +1,10 @@
 import { useMemo } from "react";
-import SFLongTextPageAndPencilFill from "sf-symbols-lib/monochrome/SFLongTextPageAndPencilFill";
-import SFTrashFill from "sf-symbols-lib/monochrome/SFTrashFill";
 
 import type { Category } from "@lmaa/shared";
 
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 
 interface CategoryTableProps {
   categories: Category[];
@@ -75,7 +74,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
               onClick={() => onEdit(cat.id)}
               className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
             >
-              <SFLongTextPageAndPencilFill className="w-3.5 h-3.5" />
+              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
               {categoriesMessages.table.edit}
             </button>
             {onDelete && (
@@ -84,7 +83,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
                 onClick={() => onDelete(cat.id)}
                 className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
               >
-                <SFTrashFill className="w-3.5 h-3.5" />
+                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
                 {categoriesMessages.table.delete}
               </button>
             )}

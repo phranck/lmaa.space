@@ -1,7 +1,6 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { useController, useForm } from "react-hook-form";
-import SFExclamationmarkSquareFill from "sf-symbols-lib/dualtone/SFExclamationmarkSquareFill";
-import SFXmarkCircleFill from "sf-symbols-lib/monochrome/SFXmarkCircleFill";
+import { CaretDownIcon, CaretUpIcon, IconContext } from "@phosphor-icons/react";
 
 import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";
@@ -14,6 +13,7 @@ import { renderMarkdown } from "@/lib/markdown";
 import { getSafeActionUrl, getSafeConfigHref } from "@/lib/safe-url";
 
 import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
+import { SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
 
 const MarkdownEditor = lazy(() =>
   import("../../../../../packages/ui/src/MarkdownEditor.tsx").then((module) => ({
@@ -296,7 +296,10 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
       <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
+          <SealWarningIcon
+            weight="duotone"
+            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+          />
         )}
       </label>
       {field.allowMarkdown ? (
@@ -439,7 +442,10 @@ function UrlField({ field, control, error }: UrlFieldProps) {
       <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
+          <SealWarningIcon
+            weight="duotone"
+            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+          />
         )}
       </label>
       <input
@@ -489,7 +495,10 @@ function SelectField({ field, register, error }: SelectFieldProps) {
       <label htmlFor={key} className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
+          <SealWarningIcon
+            weight="duotone"
+            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+          />
         )}
       </label>
       <select id={key} className={inputClass} {...register(key, buildValidationRules(field))}>
@@ -590,7 +599,10 @@ function MultiSelectDropdown({
       <span className={labelClass}>
         {label}
         {required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
+          <SealWarningIcon
+            weight="duotone"
+            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+          />
         )}
       </span>
       <button
@@ -624,7 +636,7 @@ function MultiSelectDropdown({
                     className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
                     aria-label={`${o.label} entfernen`}
                   >
-                    <SFXmarkCircleFill width={13} height={13} />
+                    <XCircleIcon weight="duotone" width={13} height={13} />
                   </button>
                 </span>
               ))
@@ -642,27 +654,22 @@ function MultiSelectDropdown({
                 aria-label="Alle entfernen"
                 className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
               >
-                <SFXmarkCircleFill width={16} height={16} />
+                <XCircleIcon weight="duotone" width={16} height={16} />
               </button>
               <span className="w-px h-4 bg-[var(--ds-border)]" />
             </>
           )}
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            aria-hidden="true"
-            className={`shrink-0 transition-transform text-[var(--ds-text-muted)] ${open ? "rotate-180" : ""}`}
-          >
-            <path
-              d="M2 4l4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {open ? (
+            <CaretUpIcon
+              weight="duotone"
+              className="shrink-0 w-4 h-4 text-[var(--ds-text-muted)]"
             />
-          </svg>
+          ) : (
+            <CaretDownIcon
+              weight="duotone"
+              className="shrink-0 w-4 h-4 text-[var(--ds-text-muted)]"
+            />
+          )}
         </div>
       </button>
       {open && (
@@ -814,7 +821,10 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
       <span className={labelClass}>
         {field.label}
         {field.required && (
-          <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
+          <SealWarningIcon
+            weight="duotone"
+            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+          />
         )}
       </span>
       <div className="flex flex-col gap-2">
@@ -1113,7 +1123,10 @@ export default function DynamicForm({ formConfig, categories }: Props) {
             <label htmlFor={key} className={labelClass}>
               {field.label}
               {field.required && (
-                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
+                <SealWarningIcon
+                  weight="duotone"
+                  className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+                />
               )}
             </label>
             <input
@@ -1182,7 +1195,10 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               />
               {field.label}
               {field.required && (
-                <SFExclamationmarkSquareFill className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle" />
+                <SealWarningIcon
+                  weight="duotone"
+                  className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+                />
               )}
             </label>
             {fieldError && <p className={errorClass}>{fieldError}</p>}
@@ -1292,48 +1308,62 @@ export default function DynamicForm({ formConfig, categories }: Props) {
   // --- layout ---
 
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        void handleSubmit(onSubmit)(event);
+    <IconContext.Provider
+      value={{
+        weight: "duotone",
+        style: {
+          transform: "scale(1.14)",
+          transformBox: "fill-box",
+          transformOrigin: "center",
+        },
       }}
-      className="space-y-6"
     >
-      {(() => {
-        const hasRequiredFields = formConfig.rows.some((row) => row.fields.some((f) => f.required));
-        let legendRendered = false;
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSubmit(onSubmit)(event);
+        }}
+        className="space-y-6"
+      >
+        {(() => {
+          const hasRequiredFields = formConfig.rows.some((row) => row.fields.some((f) => f.required));
+          let legendRendered = false;
 
-        return formConfig.rows.map((row) => {
-          const isSubmitRow = row.fields.some(
-            (f) => f.type === "button" && f.buttonType === "submit",
-          );
-          const showLegend = isSubmitRow && hasRequiredFields && !legendRendered;
-          if (showLegend) legendRendered = true;
+          return formConfig.rows.map((row) => {
+            const isSubmitRow = row.fields.some(
+              (f) => f.type === "button" && f.buttonType === "submit",
+            );
+            const showLegend = isSubmitRow && hasRequiredFields && !legendRendered;
+            if (showLegend) legendRendered = true;
 
-          return (
-            <div key={row.id}>
-              {showLegend && (
-                <p className="flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)] mb-6 px-1">
-                  <SFExclamationmarkSquareFill className="shrink-0 w-3.5 h-3.5 text-[var(--ds-danger-text)]" />
-                  Mit diesem Symbol gekennzeichnete Felder sind Pflichtfelder und müssen ausgefüllt
-                  werden.
-                </p>
-              )}
-              <div className="grid grid-cols-12 gap-4">
-                {row.fields.map((field) => (
-                  <div key={field.id} style={{ gridColumn: `span ${field.span ?? 12}` }}>
-                    {renderField(field)}
-                  </div>
-                ))}
+            return (
+              <div key={row.id}>
+                {showLegend && (
+                  <p className="flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)] mb-6 px-1">
+                    <SealWarningIcon
+                      weight="duotone"
+                      className="shrink-0 w-3.5 h-3.5 text-[var(--ds-danger-text)]"
+                    />
+                    Mit diesem Symbol gekennzeichnete Felder sind Pflichtfelder und müssen ausgefüllt
+                    werden.
+                  </p>
+                )}
+                <div className="grid grid-cols-12 gap-4">
+                  {row.fields.map((field) => (
+                    <div key={field.id} style={{ gridColumn: `span ${field.span ?? 12}` }}>
+                      {renderField(field)}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        });
-      })()}
+            );
+          });
+        })()}
 
-      {submitError && (
-        <p className="text-[var(--ds-danger-text)] text-sm text-center">{submitError}</p>
-      )}
-    </form>
+        {submitError && (
+          <p className="text-[var(--ds-danger-text)] text-sm text-center">{submitError}</p>
+        )}
+      </form>
+    </IconContext.Provider>
   );
 }
