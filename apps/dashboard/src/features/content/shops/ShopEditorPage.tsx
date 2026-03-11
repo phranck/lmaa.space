@@ -69,7 +69,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const backLabel = messages.layout.sidebar.shops;
   const rejectionToken = controller.activeShop?.rejectionToken ?? null;
 
-  const saveLabel = controller.isPending ? controller.common.saving : controller.common.save;
+  const saveLabel = controller.common.save;
 
   const isActionPending =
     controller.isPending || visibilityMutation.isPending || deleteMutation.isPending;
