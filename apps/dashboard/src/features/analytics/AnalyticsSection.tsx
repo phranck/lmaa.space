@@ -1,5 +1,16 @@
-import { type ReactNode, Suspense, lazy, useCallback, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { IconType } from "react-icons";
+import { CaretDownIcon } from "@phosphor-icons/react";
 import {
   FaAndroid,
   FaApple,
@@ -48,12 +59,110 @@ const TrafficAreaChart = lazy(() =>
 );
 
 const PERIOD_VALUES: UmamiPeriod[] = ["today", "7d", "30d", "60d", "90d"];
+const COLLAPSIBLE_ROW_LIMIT = 10;
+const COLLAPSIBLE_ANIMATION_MS = 280;
 
 interface MetricTabConfig {
   label: string;
   value: UmamiMetricType;
   columnLabel: string;
   renderLabel?: (x: string) => string;
+}
+
+interface CollapsibleListProps {
+  collapsedContent: ReactNode;
+  expandedContent: ReactNode;
+  canCollapse: boolean;
+}
+
+function CollapsibleList({
+  collapsedContent,
+  expandedContent,
+  canCollapse,
+}: CollapsibleListProps) {
+  const { messages } = useI18n();
+  const analyticsMessages = messages.dashboard.analytics;
+  const [expanded, setExpanded] = useState(false);
+  const [animatedHeight, setAnimatedHeight] = useState<number | null>(null);
+  const collapsedMeasureRef = useRef<HTMLDivElement>(null);
+  const expandedMeasureRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<number | null>(null);
+  const [collapsedHeight, setCollapsedHeight] = useState(0);
+  const [expandedHeight, setExpandedHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    setCollapsedHeight(collapsedMeasureRef.current?.getBoundingClientRect().height ?? 0);
+    setExpandedHeight(expandedMeasureRef.current?.getBoundingClientRect().height ?? 0);
+  }, [collapsedContent, expandedContent]);
+
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!canCollapse) {
+      setExpanded(false);
+      setAnimatedHeight(null);
+    }
+  }, [canCollapse]);
+
+  function toggleExpanded() {
+    if (!canCollapse) return;
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+    }
+
+    const from = expanded ? expandedHeight : collapsedHeight;
+    const to = expanded ? collapsedHeight : expandedHeight;
+    setAnimatedHeight(from);
+    setExpanded((current) => !current);
+
+    requestAnimationFrame(() => {
+      setAnimatedHeight(to);
+    });
+
+    timeoutRef.current = window.setTimeout(() => {
+      setAnimatedHeight(null);
+    }, COLLAPSIBLE_ANIMATION_MS);
+  }
+
+  const visibleContent = expanded ? expandedContent : collapsedContent;
+
+  return (
+    <>
+      <div
+        className="overflow-hidden transition-[height] duration-300 ease-in-out"
+        style={animatedHeight === null ? undefined : { height: animatedHeight }}
+      >
+        {visibleContent}
+      </div>
+
+      <div className="sr-only pointer-events-none absolute -left-[9999px] top-0 opacity-0">
+        <div ref={collapsedMeasureRef}>{collapsedContent}</div>
+        <div ref={expandedMeasureRef}>{expandedContent}</div>
+      </div>
+
+      {canCollapse && (
+        <button
+          type="button"
+          onClick={toggleExpanded}
+          aria-expanded={expanded}
+          className="self-start inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
+        >
+          <CaretDownIcon
+            weight="duotone"
+            className={`w-3.5 h-3.5 transition-transform duration-200 ease-out ${expanded ? "rotate-180" : ""}`}
+          />
+          {expanded ? analyticsMessages.showLessRows : analyticsMessages.showAllRows}
+        </button>
+      )}
+    </>
+  );
 }
 
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {
@@ -545,6 +654,36 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
   const { data, isLoading } = useUmamiMetrics(type, period);
   const rows = data ?? [];
   const max = rows[0]?.y ?? 1;
+  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
+  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
+
+  const renderRows = (listRows: typeof rows) => (
+    <ul className="space-y-2">
+      {listRows.map((row) => {
+        const rowText = toMetricText(row.x);
+        const rowLabel = renderLabel ? renderLabel(rowText) : rowText || analyticsMessages.unknown;
+        return (
+          <li key={`${type}-${rowText}`} className="flex items-center gap-2 text-sm">
+            <span className="shrink-0 w-5 text-base leading-none">
+              {type === "country" && rowText ? countryFlag(rowText) : null}
+            </span>
+            <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={rowLabel}>
+              {rowLabel}
+            </span>
+            <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-amber-400 rounded-full"
+                style={{ width: `${Math.round((row.y / max) * 100)}%` }}
+              />
+            </div>
+            <span className="shrink-0 w-8 text-right text-sm text-[var(--ds-text-muted)]">
+              {formatNumber(row.y)}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
@@ -562,33 +701,11 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
         </p>
       )}
       {!isLoading && rows.length > 0 && (
-        <ul className="space-y-2">
-          {rows.map((row) => {
-            const rowText = toMetricText(row.x);
-            const rowLabel = renderLabel
-              ? renderLabel(rowText)
-              : rowText || analyticsMessages.unknown;
-            return (
-              <li key={`${type}-${rowText}`} className="flex items-center gap-2 text-sm">
-                <span className="shrink-0 w-5 text-base leading-none">
-                  {type === "country" && rowText ? countryFlag(rowText) : null}
-                </span>
-                <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={rowLabel}>
-                  {rowLabel}
-                </span>
-                <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full"
-                    style={{ width: `${Math.round((row.y / max) * 100)}%` }}
-                  />
-                </div>
-                <span className="shrink-0 w-8 text-right text-sm text-[var(--ds-text-muted)]">
-                  {formatNumber(row.y)}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+        <CollapsibleList
+          canCollapse={canCollapse}
+          collapsedContent={renderRows(collapsedRows)}
+          expandedContent={renderRows(rows)}
+        />
       )}
     </div>
   );
@@ -604,6 +721,29 @@ function EventListCard({ title, rows, isLoading }: EventListCardProps) {
   const { messages, formatNumber } = useI18n();
   const analyticsMessages = messages.dashboard.analytics;
   const max = rows[0]?.total ?? 1;
+  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
+  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
+
+  const renderRows = (listRows: UmamiEventValueRow[]) => (
+    <ul className="space-y-2">
+      {listRows.map((row) => (
+        <li key={`${title}-${row.value}`} className="flex items-center gap-2 text-sm">
+          <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={row.value}>
+            {row.value}
+          </span>
+          <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-amber-400 rounded-full"
+              style={{ width: `${Math.round((row.total / max) * 100)}%` }}
+            />
+          </div>
+          <span className="shrink-0 w-10 text-right text-sm text-[var(--ds-text-muted)]">
+            {formatNumber(row.total)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
@@ -619,24 +759,11 @@ function EventListCard({ title, rows, isLoading }: EventListCardProps) {
           {analyticsMessages.noData}
         </p>
       ) : (
-        <ul className="space-y-2">
-          {rows.map((row) => (
-            <li key={`${title}-${row.value}`} className="flex items-center gap-2 text-sm">
-              <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={row.value}>
-                {row.value}
-              </span>
-              <div className="w-20 h-1.5 bg-[var(--ds-bg-elevated)] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-amber-400 rounded-full"
-                  style={{ width: `${Math.round((row.total / max) * 100)}%` }}
-                />
-              </div>
-              <span className="shrink-0 w-10 text-right text-sm text-[var(--ds-text-muted)]">
-                {formatNumber(row.total)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <CollapsibleList
+          canCollapse={canCollapse}
+          collapsedContent={renderRows(collapsedRows)}
+          expandedContent={renderRows(rows)}
+        />
       )}
     </div>
   );
@@ -655,8 +782,57 @@ function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardP
   const [activeType, setActiveType] = useState<UmamiMetricType>(tabs[0]?.value ?? "country");
   const activeTab = tabs.find((tab) => tab.value === activeType) ?? tabs[0];
   const { data, isLoading } = useUmamiMetrics(activeTab.value, period);
-  const rows = (data ?? []).slice(0, 10);
+  const rows = data ?? [];
+  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
+  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
   const total = rows.reduce((sum, row) => sum + row.y, 0);
+
+  const renderRows = (listRows: typeof rows) => (
+    <ul className="pt-2 space-y-1.5">
+      {listRows.map((row) => {
+        const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
+        const rowText = toMetricText(row.x);
+        let label = activeTab.renderLabel
+          ? activeTab.renderLabel(rowText)
+          : rowText || analyticsMessages.unknown;
+        const EnvironmentIcon = getEnvironmentIcon(activeType, rowText);
+        let leadingVisual: ReactNode = null;
+
+        if (activeType === "country" || activeType === "region" || activeType === "city") {
+          const parsed = parseLocationDisplay(activeType, rowText, locale, analyticsMessages.unknown);
+          label = parsed.label;
+          leadingVisual = parsed.flag ? (
+            <span className="shrink-0 leading-none">{parsed.flag}</span>
+          ) : (
+            <FaGlobe className="w-3.5 h-3.5 shrink-0 opacity-70" />
+          );
+        } else if (EnvironmentIcon) {
+          leadingVisual = <EnvironmentIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />;
+        }
+
+        return (
+          <li
+            key={`${activeType}-${rowText}`}
+            className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5"
+          >
+            <span
+              className="min-w-0 flex items-center gap-2 text-[var(--ds-text-muted)]"
+              title={label}
+            >
+              {leadingVisual}
+              <span className="truncate">{label}</span>
+            </span>
+            <span className="text-right text-[var(--ds-text)] tabular-nums">
+              {formatNumber(row.y)}
+            </span>
+            <span className="text-right text-[var(--ds-text-subtle)] tabular-nums">
+              {percentage}%
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4">
@@ -687,55 +863,11 @@ function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardP
           {analyticsMessages.noData}
         </p>
       ) : (
-        <ul className="pt-2 space-y-1.5">
-          {rows.map((row) => {
-            const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
-            const rowText = toMetricText(row.x);
-            let label = activeTab.renderLabel
-              ? activeTab.renderLabel(rowText)
-              : rowText || analyticsMessages.unknown;
-            const EnvironmentIcon = getEnvironmentIcon(activeType, rowText);
-            let leadingVisual: ReactNode = null;
-
-            if (activeType === "country" || activeType === "region" || activeType === "city") {
-              const parsed = parseLocationDisplay(
-                activeType,
-                rowText,
-                locale,
-                analyticsMessages.unknown,
-              );
-              label = parsed.label;
-              leadingVisual = parsed.flag ? (
-                <span className="shrink-0 leading-none">{parsed.flag}</span>
-              ) : (
-                <FaGlobe className="w-3.5 h-3.5 shrink-0 opacity-70" />
-              );
-            } else if (EnvironmentIcon) {
-              leadingVisual = <EnvironmentIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />;
-            }
-
-            return (
-              <li
-                key={`${activeType}-${rowText}`}
-                className="grid grid-cols-[1fr_auto_auto] gap-3 text-base py-0.5"
-              >
-                <span
-                  className="min-w-0 flex items-center gap-2 text-[var(--ds-text-muted)]"
-                  title={label}
-                >
-                  {leadingVisual}
-                  <span className="truncate">{label}</span>
-                </span>
-                <span className="text-right text-[var(--ds-text)] tabular-nums">
-                  {formatNumber(row.y)}
-                </span>
-                <span className="text-right text-[var(--ds-text-subtle)] tabular-nums">
-                  {percentage}%
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+        <CollapsibleList
+          canCollapse={canCollapse}
+          collapsedContent={renderRows(collapsedRows)}
+          expandedContent={renderRows(rows)}
+        />
       )}
     </div>
   );
