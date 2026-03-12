@@ -2,16 +2,14 @@ import {
   FileTextIcon,
   TrayIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
 
 import { type SubmissionStatus } from "@lmaa/shared";
 
-import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
+import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
@@ -32,41 +30,10 @@ function useStatusLabels() {
   } satisfies Record<SubmissionStatus, string>;
 }
 
-function ShopImage({ url, name }: { url: string; name: string }) {
-  const [imgError, setImgError] = useState(false);
-  const domain = (() => {
-    try {
-      return new URL(url).hostname.replace(/^www\./, "");
-    } catch {
-      return "";
-    }
-  })();
-
-  return (
-    <div className="w-12 h-12 shrink-0 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-alt)] flex items-center justify-center overflow-hidden">
-      {domain && !imgError ? (
-        <img
-          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-          alt=""
-          aria-hidden="true"
-          className="w-8 h-8 object-contain"
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <span className="text-lg font-bold text-[var(--ds-text-subtle)] select-none">
-          {name.charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
-  );
-}
-
 export function SuggestionsTab({
   filter,
-  sortDir,
 }: {
   filter: "pending" | "onhold" | "rejected";
-  sortDir: "desc" | "asc";
 }) {
   const { locale, messages } = useI18n();
   const navigate = useNavigate();
@@ -74,25 +41,108 @@ export function SuggestionsTab({
   const submissionsMessages = messages.submissions;
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
-  const { data: categories = [] } = useAdminCategories();
-
-  const sorted = useMemo(
-    () =>
-      [...submissions].sort((a, b) => {
-        const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        return sortDir === "asc" ? diff : -diff;
-      }),
-    [submissions, sortDir],
+  const columns = useMemo<ColumnDef<(typeof submissions)[number]>[]>(
+    () => [
+      {
+        id: "shop",
+        header: messages.shops.table.shop,
+        className: "max-w-[30rem]",
+        sortKey: (submission) => submission.shopName.toLowerCase(),
+        cell: (submission) => (
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-medium truncate text-[var(--ds-text)]">{submission.shopName}</p>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${STATUS_COLORS[submission.status]}`}
+              >
+                {statusLabels[submission.status]}
+              </span>
+            </div>
+            <a
+              href={submission.shopUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[var(--color-primary)] hover:underline truncate block"
+            >
+              {submission.shopUrl}
+            </a>
+          </div>
+        ),
+      },
+      {
+        id: "submitted",
+        header: submissionsMessages.suggestions.submittedAt,
+        className: "w-52",
+        sortKey: (submission) => new Date(submission.createdAt).getTime(),
+        cell: (submission) => (
+          <div className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
+            <div>
+              {new Date(submission.createdAt).toLocaleString(locale, {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
+            {submission.submitterEmail && (
+              <div>{submission.submitterEmail}</div>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: "rejectedAt",
+        header: submissionsMessages.suggestions.rejectedAt,
+        className: "w-52",
+        sortKey: (submission) =>
+          submission.status === "rejected" && submission.reviewedAt
+            ? new Date(submission.reviewedAt).getTime()
+            : 0,
+        cell: (submission) =>
+          submission.status === "rejected" && submission.reviewedAt ? (
+            <span className="text-xs text-[var(--ds-text-subtle)]">
+              {new Date(submission.reviewedAt).toLocaleString(locale, {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          ) : (
+            <span className="text-xs text-[var(--ds-text-subtle)]">–</span>
+          ),
+      },
+      {
+        id: "actions",
+        className: "w-36",
+        cell: (submission) => (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => navigate(`/reports/suggestions/${submission.id}`)}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+            >
+              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
+              {submissionsMessages.suggestions.edit}
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [locale, messages.shops.table.shop, navigate, statusLabels, submissionsMessages],
   );
-
-  const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
   return (
     <>
       {isLoading && (
-        <div className="space-y-3">
+        <div className="space-y-px">
           {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
-            <ItemCard key={key} className="h-24 animate-pulse" />
+            <div
+              key={key}
+              className="h-14 bg-[var(--ds-surface)] animate-pulse border-b border-[var(--ds-border-subtle)]"
+            />
           ))}
         </div>
       )}
@@ -107,72 +157,15 @@ export function SuggestionsTab({
       )}
 
       {!isLoading && submissions.length > 0 && (
-        <div className="space-y-3">
-          {sorted.map((submission) => (
-            <div
-              key={submission.id}
-              className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] p-4 flex items-stretch gap-4"
-            >
-              <ShopImage url={submission.shopUrl} name={submission.shopName} />
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-[var(--ds-text)]">{submission.shopName}</p>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[submission.status]}`}
-                  >
-                    {statusLabels[submission.status]}
-                  </span>
-                </div>
-                <a
-                  href={submission.shopUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-[var(--color-primary)] hover:underline truncate block"
-                >
-                  {submission.shopUrl}
-                </a>
-                {submission.description && (
-                  <p className="text-sm text-[var(--ds-text-muted)] mt-1">
-                    {submission.description}
-                  </p>
-                )}
-                {submission.categoryIds && submission.categoryIds.length > 0 && (
-                  <div className="mt-1">
-                    <ShopCategoryBadges
-                      categories={submission.categoryIds.flatMap((id) => {
-                        const category = categoryMap.get(id);
-                        return category ? [{ id, name: category.name }] : [];
-                      })}
-                    />
-                  </div>
-                )}
-                <div className="flex gap-3 mt-1.5 text-xs text-[var(--ds-text-subtle)]">
-                  <span>
-                    {new Date(submission.createdAt).toLocaleString(locale, {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                  {submission.submitterEmail && <span>✉ {submission.submitterEmail}</span>}
-                </div>
-              </div>
-
-              <div className="flex flex-row items-end gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/reports/suggestions/${submission.id}`)}
-                  className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-                >
-                  <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-                  {submissionsMessages.suggestions.edit}
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="-mx-3 -mt-3">
+          <DataTable
+            columns={columns}
+            data={submissions}
+            getRowKey={(submission) => submission.id}
+            stickyHeader
+            initialSort={{ id: "shop", dir: "asc" }}
+            allowUnsorted={false}
+          />
         </div>
       )}
     </>

@@ -100,7 +100,20 @@ export function ShopTable({ shops, onEdit }: ShopTableProps) {
       {
         id: "categories",
         header: shopsMessages.table.categories,
-        cell: (shop) => <ShopCategoryBadges categories={shop.categories} emptyLabel="–" />,
+        cell: (shop) => {
+          const visibleCategories = shop.categories.slice(0, 3);
+          const remainingCount = shop.categories.length - visibleCategories.length;
+          return (
+            <div className="flex flex-wrap items-center gap-1">
+              <ShopCategoryBadges categories={visibleCategories} emptyLabel="–" />
+              {remainingCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-[color-mix(in_oklab,var(--ds-surface-hover)_65%,var(--ds-border)_35%)] text-[var(--ds-text-muted)] text-xs">
+                  {shopsMessages.table.categoriesMore.replace("{n}", String(remainingCount))}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         id: "region",

@@ -1,6 +1,4 @@
 import {
-  ArrowCircleDownIcon,
-  ArrowCircleUpIcon,
   ClockIcon,
   PauseCircleIcon,
   XCircleIcon,
@@ -49,7 +47,6 @@ export function SubmissionsPage() {
   const submissionsMessages = messages.submissions;
   const tab = resolveInitialTab(tabParam, location.search);
   const [statusFilter, setStatusFilter] = useState<SuggestionsStatusFilter>("pending");
-  const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
   const statusLabels = submissionsMessages.status;
 
   const filterOptions = useMemo<DropdownOption<SuggestionsStatusFilter>[]>(
@@ -72,22 +69,6 @@ export function SubmissionsPage() {
     ],
     [statusLabels],
   );
-  const sortOptions = useMemo<DropdownOption<"desc" | "asc">[]>(
-    () => [
-      {
-        value: "asc",
-        label: submissionsMessages.sort.oldFirst,
-        icon: <ArrowCircleUpIcon weight="duotone" className="w-3.5 h-3.5" />,
-      },
-      {
-        value: "desc",
-        label: submissionsMessages.sort.newFirst,
-        icon: <ArrowCircleDownIcon weight="duotone" className="w-3.5 h-3.5" />,
-      },
-    ],
-    [submissionsMessages.sort.newFirst, submissionsMessages.sort.oldFirst],
-  );
-
   return (
     <PageLayout>
       <PageHeader title={submissionsMessages.title}>
@@ -99,17 +80,11 @@ export function SubmissionsPage() {
               options={filterOptions}
               storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:status")}
             />
-            <FilterDropdown
-              value={sortDir}
-              onChange={setSortDir}
-              options={sortOptions}
-              storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:sort")}
-            />
           </>
         )}
       </PageHeader>
 
-      {tab === "suggestions" && <SuggestionsTab filter={statusFilter} sortDir={sortDir} />}
+      {tab === "suggestions" && <SuggestionsTab filter={statusFilter} />}
       {tab === "dead-links" && <DeadLinksTab />}
       {tab === "shop-reports" && <ShopReportsTab />}
     </PageLayout>

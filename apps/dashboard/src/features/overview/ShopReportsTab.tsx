@@ -5,14 +5,14 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { generateRejectionToken } from "@lmaa/shared";
 
-import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
+import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
@@ -49,6 +49,119 @@ export function ShopReportsTab() {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectLongText, setRejectLongText] = useState("");
   const [rejectToken, setRejectToken] = useState<string | null>(null);
+  const columns = useMemo<ColumnDef<(typeof reports)[number]>[]>(
+    () => [
+      {
+        id: "shop",
+        header: shopsMessages.table.shop,
+        sortKey: (report) => report.shopName.toLowerCase(),
+        cell: (report) => (
+          <div className="min-w-0">
+            <p className="font-medium text-[var(--ds-text)] truncate">{report.shopName}</p>
+            <a
+              href={report.shopUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[var(--color-primary)] hover:underline truncate block"
+            >
+              {report.shopUrl}
+            </a>
+          </div>
+        ),
+      },
+      {
+        id: "reason",
+        header: suggestionsMessages.comment,
+        className: "max-w-[34rem]",
+        cell: (report) => (
+          <p className="text-sm text-[var(--ds-text)] line-clamp-2 whitespace-pre-wrap break-all">
+            {report.reason}
+          </p>
+        ),
+      },
+      {
+        id: "reportedAt",
+        header: submissionsMessages.suggestions.submittedAt,
+        className: "w-52",
+        sortKey: (report) => new Date(report.reportedAt).getTime(),
+        cell: (report) => (
+          <span className="text-xs text-[var(--ds-text-subtle)]">
+            {new Date(report.reportedAt).toLocaleString(locale, {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        className: "w-[28rem]",
+        cell: (report) => (
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => dismiss.mutate(report.id)}
+              disabled={dismiss.isPending || setVisibilityMutation.isPending}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+            >
+              <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
+              {submissionsMessages.shopReports.done}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditShopId(report.shopId)}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+            >
+              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
+              {submissionsMessages.shopReports.edit}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                openRejectDialog({
+                  reportId: report.id,
+                  shopId: report.shopId,
+                  shopName: report.shopName,
+                  shopUrl: report.shopUrl,
+                })
+              }
+              disabled={dismiss.isPending || setVisibilityMutation.isPending}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-50"
+            >
+              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+              {submissionsMessages.shopReports.reject}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setDeleteTarget({
+                  reportId: report.id,
+                  shopId: report.shopId,
+                  shopName: report.shopName,
+                })
+              }
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+            >
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+              {submissionsMessages.shopReports.delete}
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [
+      dismiss,
+      locale,
+      setVisibilityMutation.isPending,
+      shopsMessages.table.shop,
+      submissionsMessages.shopReports,
+      submissionsMessages.suggestions.submittedAt,
+      suggestionsMessages.comment,
+    ],
+  );
 
   function openRejectDialog(report: RejectTarget) {
     setRejectTarget(report);
@@ -85,8 +198,13 @@ export function ShopReportsTab() {
 
   if (isLoading) {
     return (
-      <div className="p-3 text-center text-[var(--ds-text-subtle)] text-sm">
-        {submissionsMessages.shopReports.loading}
+      <div className="space-y-px">
+        {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
+          <div
+            key={key}
+            className="h-14 bg-[var(--ds-surface)] animate-pulse border-b border-[var(--ds-border-subtle)]"
+          />
+        ))}
       </div>
     );
   }
@@ -104,83 +222,8 @@ export function ShopReportsTab() {
 
   return (
     <>
-      <div className="p-3 space-y-3">
-        {reports.map((r) => (
-          <ItemCard key={r.id} className="p-4 flex flex-col gap-3">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="font-medium text-sm text-[var(--ds-text)] truncate">{r.shopName}</p>
-                <a
-                  href={r.shopUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-[var(--ds-text-muted)] hover:underline truncate block"
-                >
-                  {r.shopUrl}
-                </a>
-              </div>
-              <span className="shrink-0 text-xs text-[var(--ds-text-muted)]">
-                {new Date(r.reportedAt).toLocaleString(locale, {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-
-            <p className="text-sm text-[var(--ds-text)] bg-[var(--ds-surface-hover)] rounded-lg px-3 py-2 whitespace-pre-wrap">
-              {r.reason}
-            </p>
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => dismiss.mutate(r.id)}
-                disabled={dismiss.isPending || setVisibilityMutation.isPending}
-                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
-              >
-                <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.shopReports.done}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditShopId(r.shopId)}
-                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
-              >
-                <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.shopReports.edit}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  openRejectDialog({
-                    reportId: r.id,
-                    shopId: r.shopId,
-                    shopName: r.shopName,
-                    shopUrl: r.shopUrl,
-                  })
-                }
-                disabled={dismiss.isPending || setVisibilityMutation.isPending}
-                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-50"
-              >
-                <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.shopReports.reject}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setDeleteTarget({ reportId: r.id, shopId: r.shopId, shopName: r.shopName })
-                }
-                className="h-7 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-              >
-                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-                {submissionsMessages.shopReports.delete}
-              </button>
-            </div>
-          </ItemCard>
-        ))}
+      <div className="-mx-3 -mt-3">
+        <DataTable columns={columns} data={reports} getRowKey={(report) => report.id} stickyHeader />
       </div>
 
       {editShopId !== null && (

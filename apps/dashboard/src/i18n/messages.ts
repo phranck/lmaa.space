@@ -187,6 +187,7 @@ export interface DashboardMessages {
     table: {
       shop: string;
       categories: string;
+      categoriesMore: string;
       region: string;
       statusOnhold: string;
       statusDeleted: string;
@@ -329,11 +330,13 @@ export interface DashboardMessages {
       oldFirst: string;
       newFirst: string;
     };
-    suggestions: {
-      nonePrefix: string;
-      noneHint: string;
-      submittedAt: string;
-      submittedBy: string;
+      suggestions: {
+        nonePrefix: string;
+        noneHint: string;
+        categoriesMore: string;
+        rejectedAt: string;
+        submittedAt: string;
+        submittedBy: string;
       reject: string;
       onhold: string;
       edit: string;
@@ -1025,6 +1028,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       table: {
         shop: "Shop",
         categories: "Kategorien",
+        categoriesMore: "+{n} weitere",
         region: "Region",
         statusOnhold: "zurückgestellt",
         statusDeleted: "gelöscht",
@@ -1172,6 +1176,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       suggestions: {
         nonePrefix: "Keine",
         noneHint: "Sobald neue Vorschläge eingehen, erscheinen sie hier.",
+        categoriesMore: "+{n} weitere",
+        rejectedAt: "Abgelehnt am",
         submittedAt: "eingereicht am",
         submittedBy: "eingereicht von",
         reject: "Ablehnen",
@@ -1865,6 +1871,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       table: {
         shop: "Shop",
         categories: "Categories",
+        categoriesMore: "+{n} more",
         region: "Region",
         statusOnhold: "on hold",
         statusDeleted: "deleted",
@@ -2011,6 +2018,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       suggestions: {
         nonePrefix: "No",
         noneHint: "New suggestions will appear here once submitted.",
+        categoriesMore: "+{n} more",
+        rejectedAt: "Rejected at",
         submittedAt: "submitted at",
         submittedBy: "submitted by",
         reject: "Reject",
