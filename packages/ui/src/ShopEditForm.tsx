@@ -263,31 +263,33 @@ export function ShopEditForm({
               )}
             </div>
 
-            <div className="grid grid-cols-[140px_1fr_1.25fr] gap-4">
-              <div>
-                <CountryCodeSelect
-                  label={messages.countryCodeLabel}
-                  value={value.headquartersCountryCode}
-                  onChange={(code) => set("headquartersCountryCode", code)}
-                  options={countryCodeOptions}
-                  placeholder={messages.countryCodePlaceholder}
-                  error={errors?.headquartersCountryCode}
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-[140px_1fr] gap-4">
+                <div>
+                  <CountryCodeSelect
+                    label={messages.countryCodeLabel}
+                    value={value.headquartersCountryCode}
+                    onChange={(code) => set("headquartersCountryCode", code)}
+                    options={countryCodeOptions}
+                    placeholder={messages.countryCodePlaceholder}
+                    error={errors?.headquartersCountryCode}
+                  />
+                </div>
 
-              <div>
-                <FormLabel htmlFor="sef-hq-postal-code">{messages.postalCodeLabel}</FormLabel>
-                <input
-                  id="sef-hq-postal-code"
-                  type="text"
-                  value={value.headquartersPostalCode}
-                  onChange={(e) => set("headquartersPostalCode", e.target.value)}
-                  placeholder={messages.postalCodePlaceholder}
-                  className={`${formInputClass}${errors?.headquartersPostalCode ? " border-red-400" : ""}`}
-                />
-                {errors?.headquartersPostalCode && (
-                  <FormErrorText>{errors.headquartersPostalCode}</FormErrorText>
-                )}
+                <div>
+                  <FormLabel htmlFor="sef-hq-postal-code">{messages.postalCodeLabel}</FormLabel>
+                  <input
+                    id="sef-hq-postal-code"
+                    type="text"
+                    value={value.headquartersPostalCode}
+                    onChange={(e) => set("headquartersPostalCode", e.target.value)}
+                    placeholder={messages.postalCodePlaceholder}
+                    className={`${formInputClass}${errors?.headquartersPostalCode ? " border-red-400" : ""}`}
+                  />
+                  {errors?.headquartersPostalCode && (
+                    <FormErrorText>{errors.headquartersPostalCode}</FormErrorText>
+                  )}
+                </div>
               </div>
 
               <div>
