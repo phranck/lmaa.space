@@ -35,10 +35,6 @@ zerops:
         - node apps/backend/dist/db/doctor.js
         - node apps/backend/dist/db/migrate.js
       start: node apps/backend/dist/index.js
-      crontab:
-        - command: node apps/backend/dist/scripts/fetch-og-images.js
-          timing: "0 4 * * 0"
-          allContainers: false
 
   # WEBSITE SERVICE (Astro SSR → Node.js)
   - setup: website
