@@ -697,10 +697,16 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           messages={shopFormI18n.messages}
           blurSocialMediaOnPaste={controller.blurSocialMediaOnPaste}
           onSocialMediaValidationChange={(message) =>
-            setFormErrors((current) => ({
-              ...current,
-              socialMedia: message ?? undefined,
-            }))
+            setFormErrors((current) => {
+              const nextMessage = message ?? undefined;
+              if (current.socialMedia === nextMessage) {
+                return current;
+              }
+              return {
+                ...current,
+                socialMedia: nextMessage,
+              };
+            })
           }
           topAside={
             <div className="flex min-h-0 flex-col gap-1">

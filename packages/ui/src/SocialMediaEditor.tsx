@@ -84,6 +84,7 @@ export function SocialMediaEditor({
   const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
   const lastEmittedRef = useRef(JSON.stringify(value));
+  const lastValidationMessageRef = useRef<string | null | undefined>(undefined);
   const triggerRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
   const portalRef = useRef<HTMLDivElement>(null);
@@ -126,6 +127,10 @@ export function SocialMediaEditor({
       entries
         .map((entry) => getEntryError(entry, messages))
         .find((message): message is string => message !== null) ?? null;
+    if (lastValidationMessageRef.current === firstError) {
+      return;
+    }
+    lastValidationMessageRef.current = firstError;
     onValidationChange?.(firstError);
   }, [entries, messages, onValidationChange]);
 
