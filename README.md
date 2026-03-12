@@ -15,7 +15,7 @@
 
 
 <p align="center">
-  <img src=".github/assets/og-image.jpg" alt="LMAA - Lokale Märkte. Alternative Anbieter." width="720" />
+  <img src=".github/assets/og-image.jpg" alt="LMAA - Lokale Märkte. Alternative Anbieter." />
 </p>
 
 ## Lokale Märkte. Alternative Anbieter.
