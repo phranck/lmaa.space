@@ -1165,7 +1165,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       status: {
         pending: "Offen",
-        onhold: "zurückgestellten",
+        onhold: "Zurückgestellt",
         approved: "Angenommen",
         rejected: "Abgelehnt",
       },
