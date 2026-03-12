@@ -13,7 +13,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env.js";
 import { client, db } from "./db/index.js";
 import { runMigrations } from "./db/run-migrations.js";
-import { serveApiDocsUi, serveOpenApiJson } from "./docs/openapi.js";
+import { serveOpenApiJson, serveSwaggerUi } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
 import { logger } from "./lib/logger.js";
 import { startCacheCleanupJob } from "./middleware/cache.js";
@@ -96,8 +96,8 @@ app.route("/", sitemapRoutes);
 app.route("/api/v1", publicRoutes);
 app.route("/api/v1/admin", adminRoutes);
 
-app.get("/", serveApiDocsUi);
-app.get("/docs", serveApiDocsUi);
+app.get("/", serveSwaggerUi);
+app.get("/docs", serveSwaggerUi);
 app.get("/openapi.json", serveOpenApiJson);
 app.get("/health", async (c) => {
   try {
