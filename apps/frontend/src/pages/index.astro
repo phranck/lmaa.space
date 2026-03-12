@@ -6,7 +6,8 @@ import { apiGet } from "@/lib/api";
 import type { Category } from "@lmaa/shared";
 
 const categories = await apiGet<Category[]>("/categories");
-const shopCount = categories.reduce((sum, c) => sum + (c.shopCount ?? 0), 0);
+const stats = await apiGet<{ shopCount: number }>("/stats");
+const shopCount = stats.shopCount;
 
 const site = Astro.site?.origin ?? "https://lmaa.space";
 const jsonLd = {
