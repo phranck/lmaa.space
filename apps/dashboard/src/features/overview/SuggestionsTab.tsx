@@ -1,11 +1,6 @@
 import {
-  ArrowCircleDownIcon,
-  ArrowCircleUpIcon,
-  ClockIcon,
   FileTextIcon,
-  PauseCircleIcon,
   TrayIcon,
-  XCircleIcon,
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
@@ -14,13 +9,10 @@ import { type SubmissionStatus } from "@lmaa/shared";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]",
@@ -69,14 +61,17 @@ function ShopImage({ url, name }: { url: string; name: string }) {
   );
 }
 
-export function SuggestionsTab() {
+export function SuggestionsTab({
+  filter,
+  sortDir,
+}: {
+  filter: "pending" | "onhold" | "rejected";
+  sortDir: "desc" | "asc";
+}) {
   const { locale, messages } = useI18n();
-  const { user } = useAuth();
   const navigate = useNavigate();
   const statusLabels = useStatusLabels();
   const submissionsMessages = messages.submissions;
-  const [filter, setFilter] = useState<SubmissionStatus>("pending");
-  const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
 
   const { data: submissions = [], isLoading } = useAdminSubmissions(filter);
   const { data: categories = [] } = useAdminCategories();
@@ -94,48 +89,6 @@ export function SuggestionsTab() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <SegmentedControl
-          value={filter}
-          onChange={setFilter}
-          storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:status")}
-          options={[
-            {
-              value: "pending" as SubmissionStatus,
-              label: statusLabels.pending,
-              icon: <ClockIcon weight="duotone" className="w-3.5 h-3.5" />,
-            },
-            {
-              value: "onhold" as SubmissionStatus,
-              label: statusLabels.onhold,
-              icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
-            },
-            {
-              value: "rejected" as SubmissionStatus,
-              label: statusLabels.rejected,
-              icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
-            },
-          ]}
-        />
-        <SegmentedControl
-          value={sortDir}
-          onChange={setSortDir}
-          storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:sort")}
-          options={[
-            {
-              value: "asc" as const,
-              label: submissionsMessages.sort.oldFirst,
-              icon: <ArrowCircleUpIcon weight="duotone" className="w-3.5 h-3.5" />,
-            },
-            {
-              value: "desc" as const,
-              label: submissionsMessages.sort.newFirst,
-              icon: <ArrowCircleDownIcon weight="duotone" className="w-3.5 h-3.5" />,
-            },
-          ]}
-        />
-      </div>
-
       {isLoading && (
         <div className="space-y-3">
           {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (

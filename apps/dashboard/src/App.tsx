@@ -214,6 +214,14 @@ function AppRoutes() {
             }
           />
           <Route
+            path="reports/:tab"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <SubmissionsPage />
+              </Suspense>
+            }
+          />
+          <Route
             path="reports/suggestions/:submissionId"
             element={
               <Suspense fallback={<ContentEditorLoadingFallback />}>

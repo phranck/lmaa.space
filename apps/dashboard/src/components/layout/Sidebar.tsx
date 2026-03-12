@@ -3,6 +3,7 @@ import {
   CaretCircleDoubleUpIcon,
   ChartBarIcon,
   CheckCircleIcon,
+  ClockIcon,
   CircleIcon,
   CopyIcon,
   EnvelopeOpenIcon,
@@ -13,12 +14,14 @@ import {
   ListBulletsIcon,
   MarkdownLogoIcon,
   NotebookIcon,
+  PauseCircleIcon,
   SquareHalfBottomIcon,
   SquaresFourIcon,
   StorefrontIcon,
   TagIcon,
   TrayIcon,
   UsersThreeIcon,
+  XCircleIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
@@ -49,6 +52,7 @@ import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 const SIDEBAR_GROUP_STORAGE_KEYS = [
+  "sidebar-reports-open",
   "sidebar-pages-open",
   "sidebar-forms-open",
   "sidebar-email-templates-open",
@@ -255,6 +259,68 @@ function EmailTemplatesGroup({
   );
 }
 
+function SidebarSubItemBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+      {count}
+    </span>
+  );
+}
+
+function ReportsGroup({
+  onItemClick,
+  globalOpenState,
+  globalOpenVersion,
+  onOpenChange,
+  suggestionsCount,
+  pendingCount,
+  deadLinksCount,
+  shopReportsCount,
+}: {
+  onItemClick?: () => void;
+  globalOpenState?: boolean | null;
+  globalOpenVersion?: number;
+  onOpenChange?: (open: boolean) => void;
+  suggestionsCount: number;
+  pendingCount: number;
+  deadLinksCount: number;
+  shopReportsCount: number;
+}) {
+  const { messages } = useI18n();
+  const s = messages.layout.sidebar;
+  const submissions = messages.submissions;
+
+  return (
+    <CollapsibleSidebarGroup
+      routeMatch="/reports/*"
+      storageKey="sidebar-reports-open"
+      icon={<TrayIcon weight="duotone" className="w-4 h-4" />}
+      label={s.submissions}
+      badge={pendingCount + deadLinksCount + shopReportsCount}
+      globalOpenState={globalOpenState}
+      globalOpenVersion={globalOpenVersion}
+      onOpenChange={onOpenChange}
+    >
+      <NavLink to="/reports/suggestions" onClick={onItemClick} className={sidebarGroupItemClass}>
+        <ClockIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+        <span className="flex-1">{submissions.tabs.suggestions}</span>
+        <SidebarSubItemBadge count={suggestionsCount} />
+      </NavLink>
+      <NavLink to="/reports/dead-links" onClick={onItemClick} className={sidebarGroupItemClass}>
+        <XCircleIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+        <span className="flex-1">{submissions.tabs.deadLinks}</span>
+        <SidebarSubItemBadge count={deadLinksCount} />
+      </NavLink>
+      <NavLink to="/reports/shop-reports" onClick={onItemClick} className={sidebarGroupItemClass}>
+        <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+        <span className="flex-1">{submissions.tabs.shopReports}</span>
+        <SidebarSubItemBadge count={shopReportsCount} />
+      </NavLink>
+    </CollapsibleSidebarGroup>
+  );
+}
+
 function SidebarSection({ label }: { label: string }) {
   return <p className="section-header -mx-3 px-3 mt-3 first:mt-0">{label}</p>;
 }
@@ -284,9 +350,12 @@ export function Sidebar({
   const { data: users = [] } = useAdminUsers();
   const { data: media = [] } = useAdminMedia();
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
+  const { data: onHoldSubmissions = [] } = useAdminSubmissions("onhold");
+  const { data: rejectedSubmissions = [] } = useAdminSubmissions("rejected");
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
-  const submissionsCount = pendingSubmissions.length + deadLinks.length + shopConcerns.length;
+  const suggestionsCount =
+    pendingSubmissions.length + onHoldSubmissions.length + rejectedSubmissions.length;
   const [groupOpenVersion, setGroupOpenVersion] = useState(0);
   const [groupOpenState, setGroupOpenState] = useState<boolean | null>(null);
   const [groupStatus, setGroupStatus] = useState<Record<string, boolean>>(() =>
@@ -374,12 +443,15 @@ export function Sidebar({
             end
             onClick={onItemClick}
           />
-          <SidebarItem
-            to="/reports"
-            label={s.submissions}
-            icon={<TrayIcon weight="duotone" className="w-4 h-4" />}
-            badge={submissionsCount}
-            onClick={onItemClick}
+          <ReportsGroup
+            onItemClick={onItemClick}
+            globalOpenState={groupOpenState}
+            globalOpenVersion={groupOpenVersion}
+            onOpenChange={(open) => handleGroupOpenChange("sidebar-reports-open", open)}
+            suggestionsCount={suggestionsCount}
+            pendingCount={pendingSubmissions.length}
+            deadLinksCount={deadLinks.length}
+            shopReportsCount={shopConcerns.length}
           />
         </div>
 

@@ -130,7 +130,7 @@ export function SubmissionEditorPage() {
   const { submissionId, invalid } = resolveSubmissionRoute(submissionIdParam);
 
   if (invalid || submissionId === null) {
-    return <Navigate to="/reports?tab=suggestions" replace />;
+    return <Navigate to="/reports/suggestions" replace />;
   }
 
   return <ResolvedSubmissionEditorPage submissionId={submissionId} />;
@@ -148,7 +148,7 @@ function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }
       <EditorPageShell
         title={submissionsMessages.suggestions.edit}
         backLabel={submissionsMessages.title}
-        onBack={() => navigate("/reports?tab=suggestions")}
+        onBack={() => navigate("/reports/suggestions")}
         headerContent={<div className="flex items-center gap-3"></div>}
         cardClassName="animate-pulse"
       >
@@ -158,7 +158,7 @@ function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }
   }
 
   if (!submission || submission.status === "approved") {
-    return <Navigate to="/reports?tab=suggestions" replace />;
+    return <Navigate to="/reports/suggestions" replace />;
   }
 
   return (
@@ -226,7 +226,7 @@ function LoadedSubmissionEditorPage({
     controller.isPending || reviewMutation.isPending || deleteMutation.isPending || isFetching;
 
   function navigateBack() {
-    navigate("/reports?tab=suggestions");
+    navigate("/reports/suggestions");
   }
 
   function openApproveReview() {

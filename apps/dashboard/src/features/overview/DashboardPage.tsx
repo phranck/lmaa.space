@@ -49,7 +49,7 @@ export function DashboardPage() {
               ? dashboardMessages.cards.waitingForReview
               : undefined
           }
-          href={(stats?.pendingSubmissions ?? 0) > 0 ? "/reports" : undefined}
+          href={(stats?.pendingSubmissions ?? 0) > 0 ? "/reports/suggestions" : undefined}
         />
         <DashboardInfoCard
           label={dashboardMessages.cards.suggestionsTotal}
@@ -63,7 +63,7 @@ export function DashboardPage() {
           sub={
             (stats?.deadLinkReports ?? 0) > 0 ? dashboardMessages.cards.shopsReported : undefined
           }
-          href={(stats?.deadLinkReports ?? 0) > 0 ? "/reports?tab=dead-links" : undefined}
+          href={(stats?.deadLinkReports ?? 0) > 0 ? "/reports/dead-links" : undefined}
         />
       </div>
     </PageLayout>
