@@ -146,7 +146,7 @@ export function CountryCodeSelect({
               position: "fixed",
               top: dropdownRect.bottom + 4,
               left: dropdownRect.left,
-              width: Math.max(dropdownRect.width, 280),
+              width: Math.min(Math.max(dropdownRect.width, 360), window.innerWidth - 24),
               zIndex: 9999,
               backgroundColor: "var(--ds-surface)",
             }}
