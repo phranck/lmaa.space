@@ -14,7 +14,8 @@ import { useNavigate } from "react-router";
 import type { ShopVisibility } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
+import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
+import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -104,7 +105,11 @@ export function ShopsPage() {
           )}
         </div>
 
-        <Dropdown value={visibilityFilter} onChange={setVisibilityFilter} options={filterOptions} />
+        <FilterDropdown
+          value={visibilityFilter}
+          onChange={setVisibilityFilter}
+          options={filterOptions}
+        />
 
         <button
           type="button"

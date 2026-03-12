@@ -1,22 +1,36 @@
-import { useState } from "react";
+import {
+  ArrowCircleDownIcon,
+  ArrowCircleUpIcon,
+  ClockIcon,
+  PauseCircleIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
+import { useMemo, useState } from "react";
+import { useLocation, useParams } from "react-router";
 
+import { type SubmissionStatus } from "@lmaa/shared";
+
+import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
+import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageLayout } from "@/components/ui/PageLayout.tsx";
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { DeadLinksTab } from "@/features/overview/DeadLinksTab.tsx";
-import { useDeadLinkReports } from "@/features/overview/hooks/useDeadLinks.ts";
-import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
-import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
 import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type Tab = "suggestions" | "dead-links" | "shop-reports";
+type SuggestionsStatusFilter = Extract<SubmissionStatus, "pending" | "onhold" | "rejected">;
+type ReportTabParam = Tab | undefined;
 
-function getInitialTab(): Tab {
-  const params = new URLSearchParams(window.location.search);
+function resolveInitialTab(tabParam: ReportTabParam, search: string): Tab {
+  if (tabParam === "dead-links" || tabParam === "shop-reports" || tabParam === "suggestions") {
+    return tabParam;
+  }
+
+  const params = new URLSearchParams(search);
   const t = params.get("tab");
   if (t === "dead-links" || t === "shop-reports") return t;
   return "suggestions";
@@ -29,61 +43,73 @@ function getInitialTab(): Tab {
  */
 export function SubmissionsPage() {
   const { messages } = useI18n();
+  const location = useLocation();
+  const { tab: tabParam } = useParams<{ tab?: Tab }>();
   const { user } = useAuth();
   const submissionsMessages = messages.submissions;
-  const [tab, setTab] = useState<Tab>(getInitialTab);
+  const tab = resolveInitialTab(tabParam, location.search);
+  const [statusFilter, setStatusFilter] = useState<SuggestionsStatusFilter>("pending");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("asc");
+  const statusLabels = submissionsMessages.status;
 
-  const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
-  const { data: deadLinkReports = [] } = useDeadLinkReports();
-  const { data: shopConcerns = [] } = useShopConcernReports();
-
-  const pendingCount = pendingSubmissions.length;
-  const deadLinkCount = deadLinkReports.length;
-  const concernCount = shopConcerns.length;
+  const filterOptions = useMemo<DropdownOption<SuggestionsStatusFilter>[]>(
+    () => [
+      {
+        value: "pending",
+        label: statusLabels.pending,
+        icon: <ClockIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "onhold",
+        label: statusLabels.onhold,
+        icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "rejected",
+        label: statusLabels.rejected,
+        icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+    ],
+    [statusLabels],
+  );
+  const sortOptions = useMemo<DropdownOption<"desc" | "asc">[]>(
+    () => [
+      {
+        value: "asc",
+        label: submissionsMessages.sort.oldFirst,
+        icon: <ArrowCircleUpIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "desc",
+        label: submissionsMessages.sort.newFirst,
+        icon: <ArrowCircleDownIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+    ],
+    [submissionsMessages.sort.newFirst, submissionsMessages.sort.oldFirst],
+  );
 
   return (
     <PageLayout>
       <PageHeader title={submissionsMessages.title}>
-        <SegmentedControl
-          value={tab}
-          onChange={setTab}
-          storageKey={getSegmentedStorageKey(user?.id, "submissions:tab")}
-          options={[
-            {
-              value: "suggestions" as const,
-              label: submissionsMessages.tabs.suggestions,
-              badge:
-                pendingCount > 0 ? (
-                  <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-pending-bg)] text-[var(--ds-badge-pending-text)]">
-                    {pendingCount}
-                  </span>
-                ) : undefined,
-            },
-            {
-              value: "dead-links" as const,
-              label: submissionsMessages.tabs.deadLinks,
-              badge:
-                deadLinkCount > 0 ? (
-                  <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
-                    {deadLinkCount}
-                  </span>
-                ) : undefined,
-            },
-            {
-              value: "shop-reports" as const,
-              label: submissionsMessages.tabs.shopReports,
-              badge:
-                concernCount > 0 ? (
-                  <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-badge-danger-bg)] text-[var(--ds-badge-danger-text)]">
-                    {concernCount}
-                  </span>
-                ) : undefined,
-            },
-          ]}
-        />
+        {tab === "suggestions" && (
+          <>
+            <FilterDropdown
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={filterOptions}
+              storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:status")}
+            />
+            <FilterDropdown
+              value={sortDir}
+              onChange={setSortDir}
+              options={sortOptions}
+              storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:sort")}
+            />
+          </>
+        )}
       </PageHeader>
 
-      {tab === "suggestions" && <SuggestionsTab />}
+      {tab === "suggestions" && <SuggestionsTab filter={statusFilter} sortDir={sortDir} />}
       {tab === "dead-links" && <DeadLinksTab />}
       {tab === "shop-reports" && <ShopReportsTab />}
     </PageLayout>
