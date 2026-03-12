@@ -1,18 +1,7 @@
 import type { Context } from "hono";
 
-import { env } from "../config/env.js";
-
 function getOpenApiServers() {
-  const localServer = { url: "http://localhost:3000", description: "Local development" };
-
-  if (env.NODE_ENV === "production") {
-    return [
-      { url: "https://lmaa.space", description: "Production" },
-      localServer,
-    ];
-  }
-
-  return [localServer];
+  return [{ url: "https://lmaa.space", description: "Production" }];
 }
 
 const OPEN_API_DOCUMENT = {
@@ -30,21 +19,30 @@ const OPEN_API_DOCUMENT = {
   },
   servers: getOpenApiServers(),
   tags: [
-    { name: "Shops", description: "Browse and search the shop catalog." },
-    { name: "Categories", description: "Browse shop categories." },
-    { name: "Content", description: "Public content pages." },
-    { name: "System", description: "Operational endpoints." },
+    {
+      name: "Shops",
+      description:
+        "Endpoints for browsing and searching the shop catalog. All shops are manually curated and verified against the lmaa.space admission criteria.",
+    },
+    {
+      name: "Categories",
+      description:
+        "Endpoints for browsing shop categories. Each category groups related shops and includes a shop count and optional cover image.",
+    },
+    { name: "Content", description: "Public content pages and rejection notices." },
+    { name: "System", description: "Operational endpoints for monitoring and statistics." },
   ],
   paths: {
     "/api/v1/shops": {
       get: {
         tags: ["Shops"],
         summary: "List all shops",
-        description: "Returns every public/active shop with description, categories, shipping regions and social media links.",
+        description:
+          "Returns every active, publicly listed shop. Each shop object includes its name, URL, description, assigned categories, shipping regions (DE/AT/CH/EU/WORLD), pickup information, Open Graph image, contact email, social media links, and timestamps. The response is cached for 60 seconds.",
         operationId: "listShops",
         responses: {
           "200": {
-            description: "Shop list",
+            description: "Array of all active shops wrapped in a `data` envelope.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ShopListEnvelope" },
@@ -58,7 +56,8 @@ const OPEN_API_DOCUMENT = {
       get: {
         tags: ["Shops"],
         summary: "Search shops and categories",
-        description: "Full-text search across shop names, descriptions and category names.",
+        description:
+          "Performs a case-insensitive substring search across the catalog. **Searched fields (shops):** shop name, URL, description, and names of assigned categories. **Searched fields (categories):** category name. Shop results are ranked by relevance: name matches first, then URL, then description. Category results are limited to 5 matches. Returns empty arrays when the query is missing or shorter than 2 characters.",
         operationId: "search",
         parameters: [
           {
@@ -66,12 +65,14 @@ const OPEN_API_DOCUMENT = {
             name: "q",
             required: false,
             schema: { type: "string", minLength: 2 },
-            description: "Search query (minimum 2 characters)",
+            description:
+              "Search term (minimum 2 characters). Shorter or empty values return an empty result set without error.",
           },
         ],
         responses: {
           "200": {
-            description: "Search results",
+            description:
+              "Object containing the echoed query string, matching shops (sorted by relevance), matching categories (max 5), and a total count.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/SearchResultEnvelope" },
@@ -85,7 +86,8 @@ const OPEN_API_DOCUMENT = {
       get: {
         tags: ["Shops"],
         summary: "Check if a shop URL already exists",
-        description: "Checks whether a given URL is already listed. Useful before submitting a new shop.",
+        description:
+          "Checks whether a shop with the same hostname is already listed in the catalog. The comparison is performed on the normalized hostname (scheme and path are stripped, `www.` is removed). Returns `exists: false` for unknown URLs, or `exists: true` together with the matching shop's id, name, and categories.",
         operationId: "checkUrl",
         parameters: [
           {
@@ -93,12 +95,13 @@ const OPEN_API_DOCUMENT = {
             name: "url",
             required: true,
             schema: { type: "string", format: "uri" },
-            description: "Shop URL to check",
+            description: "Full shop URL to check (e.g. `https://www.example.com/shop`). Only the hostname is compared.",
           },
         ],
         responses: {
           "200": {
-            description: "Check result",
+            description:
+              "Either `{ exists: false }` when no match is found, or `{ exists: true, shop: { id, name, categories } }` when a shop with the same hostname exists.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/CheckUrlEnvelope" },
@@ -112,11 +115,12 @@ const OPEN_API_DOCUMENT = {
       get: {
         tags: ["Categories"],
         summary: "List all categories",
-        description: "Returns all categories with slug, image URL and number of listed shops.",
+        description:
+          "Returns all categories. Each category includes its id, name, URL-safe slug, an optional cover image URL (from Unsplash), and the number of publicly listed shops in that category.",
         operationId: "listCategories",
         responses: {
           "200": {
-            description: "Category list",
+            description: "Array of all categories with shop counts, wrapped in a `data` envelope.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/CategoryListEnvelope" },
@@ -129,8 +133,9 @@ const OPEN_API_DOCUMENT = {
     "/api/v1/categories/{slug}": {
       get: {
         tags: ["Categories"],
-        summary: "Get category with shops",
-        description: "Returns a single category including all shops assigned to it.",
+        summary: "Get category with its shops",
+        description:
+          "Returns a single category by its slug, including the full list of shops assigned to it. Each shop in the response contains the same fields as in the `/shops` endpoint. Use the slug values from the category list endpoint.",
         operationId: "getCategoryBySlug",
         parameters: [
           {
@@ -138,12 +143,12 @@ const OPEN_API_DOCUMENT = {
             name: "slug",
             required: true,
             schema: { type: "string" },
-            description: "Category slug (e.g. `bekleidung-textilien`)",
+            description: "URL-safe category slug as returned by the category list endpoint (e.g. `bekleidung-textilien`, `ernaehrung`).",
           },
         ],
         responses: {
           "200": {
-            description: "Category with shops",
+            description: "Category object with a nested `shops` array, wrapped in a `data` envelope.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/CategoryDetailEnvelope" },
@@ -165,11 +170,12 @@ const OPEN_API_DOCUMENT = {
       get: {
         tags: ["System"],
         summary: "Public counters",
-        description: "Returns aggregate counters (e.g. total number of listed shops).",
+        description:
+          "Returns aggregate statistics about the catalog. Currently provides the total number of active, publicly listed shops (`shopCount`). Cached for 60 seconds.",
         operationId: "getStats",
         responses: {
           "200": {
-            description: "Counters",
+            description: "Object with `shopCount`, wrapped in a `data` envelope.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/StatsEnvelope" },
@@ -183,7 +189,8 @@ const OPEN_API_DOCUMENT = {
       get: {
         tags: ["Content"],
         summary: "View rejection reason",
-        description: "Returns the public rejection page for a shop submission identified by its token.",
+        description:
+          "Returns the public rejection notice for a shop submission that was not accepted. Each rejected submission receives a unique 32-character hex token. The response contains the shop name and a detailed, factual explanation of the rejection reasons. Cached for 1 hour.",
         operationId: "getRejectionPage",
         parameters: [
           {
@@ -191,12 +198,12 @@ const OPEN_API_DOCUMENT = {
             name: "token",
             required: true,
             schema: { type: "string", pattern: "^[0-9a-f]{32}$" },
-            description: "32-character hex token",
+            description: "32-character lowercase hex token that uniquely identifies the rejection notice.",
           },
         ],
         responses: {
           "200": {
-            description: "Rejection page content",
+            description: "Object with `shopName` and `reason` (Markdown-formatted rejection text), wrapped in a `data` envelope.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/RejectionPageEnvelope" },
@@ -226,7 +233,8 @@ const OPEN_API_DOCUMENT = {
       get: {
         tags: ["System"],
         summary: "Health check",
-        description: "Returns `ok` when the backend and database are reachable.",
+        description:
+          "Returns `ok` when the backend is running and the database connection is healthy. Returns `degraded` with a reason when the database is unreachable. Useful for uptime monitoring.",
         operationId: "healthCheck",
         responses: {
           "200": {
