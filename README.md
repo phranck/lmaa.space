@@ -7,59 +7,49 @@
 ![npm](https://img.shields.io/badge/npm-11.x-CB3837?style=flat&logo=npm&logoColor=white)
 ![Hono](https://img.shields.io/badge/Hono-4.7.4-E36002?style=flat&logo=hono&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?style=flat&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat&logo=tailwindcss&logoColor=white)
+![Astro](https://img.shields.io/badge/Astro-5.7.0-BC52EE?style=flat&logo=astro&logoColor=white)
+![UnoCSS](https://img.shields.io/badge/UnoCSS-66.x-333333?style=flat&logo=unocss&logoColor=white)
+![GitHub issues](https://img.shields.io/github/issues/phranck/lmaa.space?style=flat)
 
 <!-- BADGES:END -->
 
-![GitHub issues](https://img.shields.io/github/issues/phranck/lmaa.space?style=flat)
 
----
+<p align="center">
+  <img src=".github/assets/og-image.jpg" alt="LMAA - Lokale Märkte. Alternative Anbieter." width="720" />
+</p>
 
-Eine community-kuratierte Liste von Online-Shops als Alternativen zu Amazon für den deutschsprachigen Raum.
+## Lokale Märkte. Alternative Anbieter.
 
-**Live:** [https://lmaa.space](https://lmaa.space) · **Ursprungsprojekt:** [Codeberg](https://codeberg.org/phranck/Amazon-Alternativen)
+[lmaa.space](https://lmaa.space) ist ein community-kuratiertes Verzeichnis unabhängiger Online-Shops als Alternativen zu Amazon und anderen Großkonzernen im deutschsprachigen Raum.
 
-## Monorepo-Struktur
+Aktuell sind über 540 Shops in 45+ Kategorien gelistet. Alle Einträge werden manuell geprüft und kuratiert. Das Projekt ist nicht kommerziell, werbefrei und unabhängig.
 
-```
-apps/
-  backend/    @lmaa/backend   – Hono + Node.js + PostgreSQL + Drizzle
-  frontend/   @lmaa/frontend  – Astro SSR + React Islands (öffentliche Seite)
-  dashboard/  @lmaa/dashboard – React + Vite (Admin)
-packages/
-  shared/     @lmaa/shared    – geteilte Domain-Typen, Konstanten, Utilities
-  contracts/  @lmaa/contracts – geteilte Zod-Verträge für API-Payloads
-  ui/         @lmaa/ui        – geteilte UI-Komponenten
-```
+## Shops vorschlagen
 
-## Entwicklung
+Einen neuen Shop kann jeder ohne Registrierung [direkt einreichen](https://lmaa.space/vorschlagen). Jeder Vorschlag wird anhand der [Aufnahmekriterien](https://lmaa.space/admissioncriteria) geprüft.
 
-```bash
-# Abhängigkeiten installieren
-npm install
+## Öffentliches API
 
-# Dev-Server starten
-npm run dev:backend    # Port 3000
-npm run dev:frontend   # Port 5173
-npm run dev:dashboard  # Port 5174
-```
+Die Shop- und Kategorie-Daten stehen über ein öffentliches REST-API zur Verfügung:
 
-## Qualität & Dokumentation
+| Endpoint | Beschreibung |
+| --- | --- |
+| `GET /api/v1/shops` | Alle gelisteten Shops mit Beschreibung, Kategorien, Versandregionen und Social-Media-Links |
+| `GET /api/v1/categories` | Alle Kategorien mit Slug, Bild-URL und Anzahl der zugehörigen Shops |
 
-```bash
-# Lint + Typprüfung + Build + Smoke
-npm run ci:quality
+Basis-URL: `https://lmaa.space`
 
-# API-/Code-Referenz aus TypeScript-Exports generieren
-npm run docs:code
-```
+## Quellcode
 
-- Doku-Standard: `docs/CODE-DOCUMENTATION.md`
-- Code-Referenz-Output: `docs/reference/code`
+Das Projekt ist als npm-Monorepo aufgebaut: Astro SSR + React Islands für die öffentliche Seite, ein React-Dashboard für die Administration, ein Hono-Backend mit PostgreSQL/Drizzle ORM und geteilte Pakete für Typen, API-Schemas und UI-Komponenten.
 
-## Mitmachen
+## Fehler melden und Anregungen
 
-Kein GitHub-Account nötig! Einfach auf [lmaa.space/vorschlagen](https://lmaa.space/vorschlagen) einen Shop vorschlagen.
+Fehler, Anregungen und Verbesserungsvorschläge sind willkommen. Bitte nutze dafür die [GitHub Issues](https://github.com/phranck/lmaa.space/issues).
+
+## Ursprungsprojekt
+
+lmaa.space basiert auf der ursprünglichen Liste [Amazon-Alternativen](https://codeberg.org/phranck/Amazon-Alternativen) auf Codeberg.
 
 ## Unterstützen
 
