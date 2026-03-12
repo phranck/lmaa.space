@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { ok, respondError } from "../../lib/http.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { requireAdmin, type AuthVariables } from "../../middleware/auth.js";
 import {
   searchManagedUnsplashPhotos,
   triggerManagedUnsplashDownload,
@@ -23,6 +23,7 @@ const unsplashDownloadSchema = z.object({
  * Admin Unsplash proxy routes (search + download tracking).
  */
 export const unsplashRoutes = new Hono<{ Variables: AuthVariables }>();
+unsplashRoutes.use("*", requireAdmin);
 
 // Unsplash proxy: search
 unsplashRoutes.get("/unsplash/search", async (c) => {

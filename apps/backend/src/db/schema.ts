@@ -311,6 +311,19 @@ export const sessions = pgTable(
 );
 
 /**
+ * Shared rate-limit bucket store used across backend instances.
+ */
+export const rateLimitEntries = pgTable(
+  "rate_limit_entries",
+  {
+    key: text("key").primaryKey(),
+    count: integer("count").notNull(),
+    resetAt: timestamp("reset_at").notNull(),
+  },
+  (table) => [index("idx_rate_limit_entries_reset_at").on(table.resetAt)],
+);
+
+/**
  * User-reported dead-link incidents grouped by shop.
  */
 export const deadLinkReports = pgTable(
@@ -439,6 +452,7 @@ export type AdminUserInsert = typeof adminUsers.$inferInsert;
  * Inferred select type for `sessions`.
  */
 export type Session = typeof sessions.$inferSelect;
+export type RateLimitEntryRow = typeof rateLimitEntries.$inferSelect;
 /**
  * Inferred select type for `dead_link_reports`.
  */

@@ -66,6 +66,14 @@ export const envSchema = z
         message: "IP_HASH_SALT is required in production",
       });
     }
+
+    if (data.NODE_ENV === "production" && data.TRUST_PROXY_IP_HEADER !== "cf-connecting-ip") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["TRUST_PROXY_IP_HEADER"],
+        message: "TRUST_PROXY_IP_HEADER must be cf-connecting-ip in production",
+      });
+    }
   })
   .transform((data) => ({
     ...data,

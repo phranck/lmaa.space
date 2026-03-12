@@ -183,6 +183,13 @@
       "when": 1773272400000,
       "tag": "0025_shop_check_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1773279600000,
+      "tag": "0026_shared_rate_limit_store",
+      "breakpoints": true
     }
   ]
 }
