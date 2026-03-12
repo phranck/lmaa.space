@@ -1,0 +1,91 @@
+# lmaa.space - Zerops deployment configuration
+zerops:
+  # BACKEND SERVICE (Hono + Node.js) — lmaa.space
+  - setup: backend
+    build:
+      base: nodejs@22
+      buildCommands:
+        - npm ci --cache .npm
+        - npm run build -w @lmaa/shared
+        - npm run build -w @lmaa/backend
+      deployFiles:
+        - apps/backend/dist
+        - apps/backend/drizzle
+        - node_modules/sharp
+        - node_modules/@img
+      cache: .npm
+    run:
+      base: nodejs@22
+      ports:
+        - port: 3000
+          httpSupport: true
+      envVariables:
+        HOST: 0.0.0.0
+        PORT: "3000"
+        NODE_ENV: production
+        DATABASE_URL: ${postgres_connectionString}
+        DATABASE_URL_MIGRATOR: ${postgres_connectionString}
+        RUN_MIGRATIONS_ON_STARTUP: "false"
+        # Secrets (set in Zerops dashboard):
+        # RESEND_API_KEY
+        # SESSION_SECRET
+        # EMAIL_FROM  (default: hallo@lmaa.space)
+        # OWNER_EMAIL (recipient for report/submission notifications)
+      initCommands:
+        - node apps/backend/dist/db/doctor.js
+        - node apps/backend/dist/db/migrate.js
+      start: node apps/backend/dist/index.js
+      crontab:
+        - command: node apps/backend/dist/scripts/fetch-og-images.js
+          timing: "0 4 * * 0"
+          allContainers: false
+
+  # WEBSITE SERVICE (Astro SSR → Node.js)
+  - setup: website
+    build:
+      base: nodejs@22
+      envVariables:
+        API_URL: http://backend:3000/api/v1
+        PUBLIC_API_URL: /api/v1
+      buildCommands:
+        # Build once with full deps, then reinstall only runtime deps for slimmer deploy artifacts.
+        - npm ci --cache .npm
+        - npm run build -w @lmaa/shared
+        - npm run build -w @lmaa/frontend
+        - rm -rf node_modules
+        - npm ci --omit=dev --omit=optional --workspace @lmaa/frontend --include-workspace-root=false --cache .npm
+      deployFiles:
+        - apps/frontend/dist
+        - node_modules
+        - package.json
+      cache: .npm
+    run:
+      base: nodejs@22
+      ports:
+        - port: 3000
+          httpSupport: true
+      envVariables:
+        HOST: 0.0.0.0
+        PORT: "3000"
+        API_URL: http://backend:3000/api/v1
+      start: node apps/frontend/dist/server/entry.mjs
+
+  # DASHBOARD SERVICE (React + Vite → Static)
+  - setup: dashboard
+    build:
+      base: nodejs@22
+      buildCommands:
+        - npm ci --cache .npm
+        - npm run build -w @lmaa/shared
+        - npm run build -w @lmaa/dashboard
+      deployFiles:
+        - apps/dashboard/dist
+        - apps/dashboard/nginx.tmpl
+      cache: .npm
+    run:
+      base: nginx@1.22
+      ports:
+        - port: 80
+          httpSupport: true
+      documentRoot: apps/dashboard/dist
+      siteConfigPath: apps/dashboard/nginx.tmpl
