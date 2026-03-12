@@ -319,7 +319,7 @@ function LoadedSubmissionEditorPage({
       <EditorPageShell
         title={pageTitle}
         titleContent={
-          <div className="min-w-0 leading-tight">
+          <div className="pointer-events-none min-w-0 leading-tight">
             <p className="truncate text-sm font-semibold leading-4 text-[var(--ds-text)]">
               {pageTitle}
             </p>
