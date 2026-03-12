@@ -20,6 +20,10 @@ export type SocialPlatformKey = (typeof SOCIAL_PLATFORM_KEYS)[number];
 
 const PLATFORM_SET = new Set<string>(SOCIAL_PLATFORM_KEYS);
 
+function canonicalizePlatformKey(platform: string): string {
+  return platform === "twitter" ? "x" : platform;
+}
+
 function stripTrailingSlash(s: string): string {
   return s.endsWith("/") ? s.slice(0, -1) : s;
 }
@@ -373,7 +377,8 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
 };
 
 export function normalizeSocialMediaValue(platform: string, input: string): string | null {
-  const fn = normalizers[platform as SocialPlatformKey];
+  const canonicalPlatform = canonicalizePlatformKey(platform);
+  const fn = normalizers[canonicalPlatform as SocialPlatformKey];
   if (!fn) return null;
   return fn(input);
 }
@@ -386,7 +391,9 @@ export const socialMediaSchema = z
 
     const result: Record<string, string> = {};
     for (const [key, value] of Object.entries(val)) {
-      if (!PLATFORM_SET.has(key)) {
+      const canonicalKey = canonicalizePlatformKey(key);
+
+      if (!PLATFORM_SET.has(canonicalKey)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `Unknown social media platform: ${key}`,
@@ -397,7 +404,7 @@ export const socialMediaSchema = z
 
       if (!value) continue;
 
-      const normalized = normalizeSocialMediaValue(key, value);
+      const normalized = normalizeSocialMediaValue(canonicalKey, value);
       if (!normalized) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -407,7 +414,7 @@ export const socialMediaSchema = z
         continue;
       }
 
-      result[key] = normalized;
+      result[canonicalKey] = normalized;
     }
 
     return Object.keys(result).length > 0 ? result : undefined;
