@@ -9,7 +9,6 @@
 ![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?style=flat&logo=vite&logoColor=white)
 ![Astro](https://img.shields.io/badge/Astro-5.7.0-BC52EE?style=flat&logo=astro&logoColor=white)
 ![UnoCSS](https://img.shields.io/badge/UnoCSS-66.x-333333?style=flat&logo=unocss&logoColor=white)
-![GitHub issues](https://img.shields.io/github/issues/phranck/lmaa.space?style=flat)
 
 <!-- BADGES:END -->
 
