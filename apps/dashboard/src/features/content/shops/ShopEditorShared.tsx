@@ -719,6 +719,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                   onChange={setShopCheckJson}
                   onPaste={handleShopCheckJsonPaste}
                   placeholder="{}"
+                  height="11rem"
                 />
                 {jsonImportError && <FormErrorText>{jsonImportError}</FormErrorText>}
               </div>

@@ -12,6 +12,10 @@ interface Entry {
   url: string;
 }
 
+function canonicalizePlatform(platform: string): string {
+  return platform === "twitter" ? "x" : platform;
+}
+
 /**
  * Localizable UI copy contract for the social media editor.
  */
@@ -49,7 +53,7 @@ function genId(): string {
 function recordToEntries(record: Record<string, string>): Entry[] {
   const entries = Object.entries(record).map(([platform, url]) => ({
     id: genId(),
-    platform,
+    platform: canonicalizePlatform(platform),
     url,
   }));
   if (entries.length === 0) entries.push({ id: genId(), platform: "", url: "" });
@@ -60,7 +64,7 @@ function entriesToRecord(entries: Entry[]): Record<string, string> {
   const record: Record<string, string> = {};
   for (const entry of entries) {
     if (entry.platform && entry.url) {
-      record[entry.platform] = entry.url;
+      record[canonicalizePlatform(entry.platform)] = entry.url;
     }
   }
   return record;
