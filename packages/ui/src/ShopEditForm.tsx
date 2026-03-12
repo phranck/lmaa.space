@@ -362,21 +362,20 @@ export function ShopEditForm({
         {descriptionHint}
       </div>
 
-      {/* Categories */}
-      <div>
-        <FormLabelText>{messages.categoriesLabel}</FormLabelText>
-        <MultiSelect
-          options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
-          value={value.categoryIds.map(String)}
-          onValueChange={(vals) => set("categoryIds", vals.map(Number))}
-          placeholder={messages.categoriesPlaceholder}
-          messages={messages.categorySelect}
-          error={errors?.categoryIds}
-        />
-      </div>
+      {/* Categories + Region + Shipping */}
+      <div className="grid grid-cols-[1.7fr_0.85fr_1fr] gap-4">
+        <div>
+          <FormLabelText>{messages.categoriesLabel}</FormLabelText>
+          <MultiSelect
+            options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
+            value={value.categoryIds.map(String)}
+            onValueChange={(vals) => set("categoryIds", vals.map(Number))}
+            placeholder={messages.categoriesPlaceholder}
+            messages={messages.categorySelect}
+            error={errors?.categoryIds}
+          />
+        </div>
 
-      {/* Region + Shipping */}
-      <div className="grid grid-cols-2 gap-4">
         <RegionSelect
           value={value.region}
           onChange={(v) => set("region", v)}
