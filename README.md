@@ -26,7 +26,7 @@ Aktuell sind über 540 Shops in 45+ Kategorien gelistet. Alle Einträge werden m
 
 ## Shops vorschlagen
 
-Einen neuen Shop kann jeder ohne Registrierung [direkt einreichen](https://lmaa.space/vorschlagen). Jeder Vorschlag wird anhand der [Aufnahmekriterien](https://lmaa.space/admissioncriteria) geprüft.
+Einen neuen Shop kann jeder ohne Registrierung [direkt einreichen](https://lmaa.space/suggestion). Jeder Vorschlag wird anhand der [Aufnahmekriterien](https://lmaa.space/admissioncriteria) geprüft.
 
 ## Öffentliches API
 
