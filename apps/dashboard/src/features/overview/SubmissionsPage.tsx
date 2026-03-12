@@ -15,9 +15,9 @@ import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { DeadLinksTab } from "@/features/overview/DeadLinksTab.tsx";
+import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
 import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
-import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type Tab = "suggestions" | "dead-links" | "shop-reports";
