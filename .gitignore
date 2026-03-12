@@ -16,7 +16,8 @@ dist/
 memory/
 papers/
 plans/
-scripts/
+scripts/*
+!scripts/smoke-prod.sh
 apps/frontend/image-originals/
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep
