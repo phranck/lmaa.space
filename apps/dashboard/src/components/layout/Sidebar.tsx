@@ -350,12 +350,9 @@ export function Sidebar({
   const { data: users = [] } = useAdminUsers();
   const { data: media = [] } = useAdminMedia();
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
-  const { data: onHoldSubmissions = [] } = useAdminSubmissions("onhold");
-  const { data: rejectedSubmissions = [] } = useAdminSubmissions("rejected");
   const { data: deadLinks = [] } = useDeadLinkReports();
   const { data: shopConcerns = [] } = useShopConcernReports();
-  const suggestionsCount =
-    pendingSubmissions.length + onHoldSubmissions.length + rejectedSubmissions.length;
+  const suggestionsCount = pendingSubmissions.length;
   const [groupOpenVersion, setGroupOpenVersion] = useState(0);
   const [groupOpenState, setGroupOpenState] = useState<boolean | null>(null);
   const [groupStatus, setGroupStatus] = useState<Record<string, boolean>>(() =>

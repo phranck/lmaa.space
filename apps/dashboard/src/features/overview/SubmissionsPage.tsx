@@ -17,6 +17,7 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { DeadLinksTab } from "@/features/overview/DeadLinksTab.tsx";
 import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
 import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
+import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type Tab = "suggestions" | "dead-links" | "shop-reports";
@@ -48,6 +49,9 @@ export function SubmissionsPage() {
   const tab = resolveInitialTab(tabParam, location.search);
   const [statusFilter, setStatusFilter] = useState<SuggestionsStatusFilter>("pending");
   const statusLabels = submissionsMessages.status;
+  const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
+  const { data: onholdSubmissions = [] } = useAdminSubmissions("onhold");
+  const { data: rejectedSubmissions = [] } = useAdminSubmissions("rejected");
 
   const filterOptions = useMemo<DropdownOption<SuggestionsStatusFilter>[]>(
     () => [
@@ -55,19 +59,22 @@ export function SubmissionsPage() {
         value: "pending",
         label: statusLabels.pending,
         icon: <ClockIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: pendingSubmissions.length,
       },
       {
         value: "onhold",
         label: statusLabels.onhold,
         icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: onholdSubmissions.length,
       },
       {
         value: "rejected",
         label: statusLabels.rejected,
         icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: rejectedSubmissions.length,
       },
     ],
-    [statusLabels],
+    [onholdSubmissions.length, pendingSubmissions.length, rejectedSubmissions.length, statusLabels],
   );
   return (
     <PageLayout>

@@ -6,6 +6,8 @@ export interface DropdownOption<T extends string = string> {
   label: string;
   /** Optional ReactNode rendered left of the label in trigger and list items. */
   icon?: React.ReactNode;
+  /** Optional numeric badge rendered right-aligned when > 0. */
+  count?: number;
 }
 
 interface DropdownProps<T extends string = string> {
@@ -129,6 +131,11 @@ export function Dropdown<T extends string = string>({
           <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
             {current?.label}
           </span>
+          {typeof current?.count === "number" && current.count > 0 && (
+            <span className="shrink-0 rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-text-muted)]">
+              {current.count}
+            </span>
+          )}
           {open ? (
             <CaretUpIcon
               weight="duotone"
@@ -152,7 +159,7 @@ export function Dropdown<T extends string = string>({
             id={listboxId}
             className="absolute z-20 right-0 mt-1 py-1 min-w-full w-max bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden"
           >
-            {options.map(({ value: v, label: l, icon }, index) => (
+            {options.map(({ value: v, label: l, icon, count }, index) => (
               // biome-ignore lint/a11y/useSemanticElements: option role on button is intentional
               <button
                 role="option"
@@ -172,6 +179,11 @@ export function Dropdown<T extends string = string>({
               >
                 {icon && <span className="shrink-0">{icon}</span>}
                 <span className="whitespace-nowrap">{l}</span>
+                {typeof count === "number" && count > 0 && (
+                  <span className="ml-auto shrink-0 rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-text-muted)]">
+                    {count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
