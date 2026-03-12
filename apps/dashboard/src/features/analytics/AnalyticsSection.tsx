@@ -1,3 +1,4 @@
+import { CaretDownIcon } from "@phosphor-icons/react";
 import {
   type ReactNode,
   Suspense,
@@ -10,7 +11,6 @@ import {
   useState,
 } from "react";
 import type { IconType } from "react-icons";
-import { CaretDownIcon } from "@phosphor-icons/react";
 import {
   FaAndroid,
   FaApple,
