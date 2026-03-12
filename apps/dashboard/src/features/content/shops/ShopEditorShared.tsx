@@ -17,6 +17,7 @@ import {
 } from "@lmaa/shared";
 import {
   EMPTY_SHOP_FORM_VALUE,
+  FormErrorText,
   FormLabelText,
   JsonEditor,
   ShopEditForm,
@@ -709,11 +710,19 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
             })
           }
           topAside={
-            <div className="flex min-h-0 flex-col gap-1">
-              <div className="flex items-center justify-between gap-3">
-                <FormLabelText className="mb-0">
-                  {shopFormI18n.messages.jsonToolTitle}
-                </FormLabelText>
+            <div className="flex min-h-0 flex-col">
+              <div>
+                <FormLabelText>{shopFormI18n.messages.jsonToolTitle}</FormLabelText>
+                <JsonEditor
+                  id="shop-check-json"
+                  value={shopCheckJson}
+                  onChange={setShopCheckJson}
+                  onPaste={handleShopCheckJsonPaste}
+                  placeholder="{}"
+                />
+                {jsonImportError && <FormErrorText>{jsonImportError}</FormErrorText>}
+              </div>
+              <div className="mt-2 flex justify-end">
                 <button
                   type="button"
                   onClick={() => {
@@ -725,15 +734,6 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                   {shopFormI18n.messages.jsonApplyLabel}
                 </button>
               </div>
-              <JsonEditor
-                id="shop-check-json"
-                value={shopCheckJson}
-                onChange={setShopCheckJson}
-                onPaste={handleShopCheckJsonPaste}
-                placeholder="{}"
-                height="11rem"
-              />
-              {jsonImportError && <p className="text-xs text-red-500">{jsonImportError}</p>}
             </div>
           }
           detailsAside={
@@ -879,37 +879,37 @@ function ShopPreviewImageSection({
         </div>
         <div className="flex-1 min-w-0">
           <FormLabelText>{previewImageLabel}</FormLabelText>
-          <input
-            type="text"
-            value={ogImageInput}
-            onChange={(e) => onChangeOgImageInput(e.target.value)}
-            placeholder={placeholder}
-            className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-          />
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              value={ogImageInput}
+              onChange={(e) => onChangeOgImageInput(e.target.value)}
+              placeholder={placeholder}
+              className="min-w-0 flex-1 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            />
+            <button
+              type="button"
+              onClick={onRefreshImage}
+              disabled={isRefetchPending || isLoading}
+              className={`${buttonClass} shrink-0`}
+            >
+              <ArrowClockwiseIcon
+                weight="duotone"
+                className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`}
+              />
+              {reloadImageLabel}
+            </button>
+            <button
+              type="button"
+              onClick={onApplyImage}
+              disabled={isSavingImage || isLoading}
+              className={`${buttonClass} shrink-0`}
+            >
+              <CopyIcon weight="duotone" className="w-3 h-3" />
+              {setImageLabel}
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="flex justify-end gap-1.5">
-        <button
-          type="button"
-          onClick={onRefreshImage}
-          disabled={isRefetchPending || isLoading}
-          className={buttonClass}
-        >
-          <ArrowClockwiseIcon
-            weight="duotone"
-            className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`}
-          />
-          {reloadImageLabel}
-        </button>
-        <button
-          type="button"
-          onClick={onApplyImage}
-          disabled={isSavingImage || isLoading}
-          className={buttonClass}
-        >
-          <CopyIcon weight="duotone" className="w-3 h-3" />
-          {setImageLabel}
-        </button>
       </div>
     </div>
   );
