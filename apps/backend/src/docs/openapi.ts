@@ -8,7 +8,7 @@ const OPEN_API_DOCUMENT = {
   openapi: "3.1.0",
   info: {
     title: "LMAA API",
-    version: "1.0.0",
+    version: "1.0.1",
     description: [
       "Public REST API for [lmaa.space](https://lmaa.space) -- a curated directory of independent online shops as alternatives to large platforms and marketplaces in Europe.",
       "",
