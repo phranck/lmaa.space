@@ -73,7 +73,8 @@ publicRoutes.get("/shops", publicReadLimit, async (c) => {
 
 // GET /api/search?q=...
 publicRoutes.get("/search", publicReadLimit, async (c) => {
-  const result = await searchManagedPublicCatalog(c.req.query("q"));
+  const q = c.req.query("q")?.slice(0, 200);
+  const result = await searchManagedPublicCatalog(q);
   return ok(c, result);
 });
 
