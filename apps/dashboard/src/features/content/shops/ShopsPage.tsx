@@ -20,7 +20,7 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
-import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
+import { useAdminShops, useShopVisibilityCounts } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 type VisibilityFilter = "all" | ShopVisibility;
@@ -36,11 +36,12 @@ export function ShopsPage() {
   const navigate = useNavigate();
   useAdminCategories();
   const [search, setSearch] = useState("");
-  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
 
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
   );
+  const { data: counts } = useShopVisibilityCounts();
 
   const searchLower = search.toLowerCase();
   const filtered = useMemo(
@@ -58,29 +59,34 @@ export function ShopsPage() {
         value: "all",
         label: shopsMessages.filters.all,
         icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: counts?.all,
       },
       {
         value: "public",
         label: shopsMessages.filters.public,
         icon: <EyeIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: counts?.public,
       },
       {
         value: "onhold",
         label: shopsMessages.filters.onhold,
         icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: counts?.onhold,
       },
       {
         value: "deleted",
         label: shopsMessages.filters.deleted,
         icon: <TrashIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: counts?.deleted,
       },
       {
         value: "rejected",
         label: shopsMessages.filters.rejected,
         icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        count: counts?.rejected,
       },
     ],
-    [shopsMessages],
+    [shopsMessages, counts],
   );
 
   return (
