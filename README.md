@@ -46,6 +46,4 @@ lmaa.space basiert auf der ursprünglichen Liste [Amazon-Alternativen](https://c
 ## Unterstützen
 
 lmaa.space ist ein privates Community-Projekt ohne kommerzielle Interessen.
-
-[![PayPal](https://img.shields.io/badge/PayPal-Spenden-0070BA?style=flat&logo=paypal&logoColor=white)](https://paypal.me/phranck)
 [![Ko-Fi](https://img.shields.io/badge/Ko--Fi-Spenden-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/layeredwork)
