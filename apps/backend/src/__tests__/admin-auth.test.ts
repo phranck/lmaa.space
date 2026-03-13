@@ -63,6 +63,7 @@ describe("setupOwnerAdmin", () => {
       admin: {
         id: 7,
         username: "owner",
+        locale: "de",
         role: "owner",
         isOwner: true,
       },

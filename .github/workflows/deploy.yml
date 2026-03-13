@@ -18,8 +18,20 @@ jobs:
           API_URL: http://localhost:3000/api/v1
           PUBLIC_API_URL: /api/v1
 
-  detect-changes:
+  test:
     needs: quality-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build -w @lmaa/shared
+      - run: npm test -w @lmaa/backend
+
+  detect-changes:
+    needs: [quality-gate, test]
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}

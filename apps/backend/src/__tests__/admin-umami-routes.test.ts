@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("../middleware/auth.js", () => ({
+  requireAdmin: vi.fn((_c: unknown, next: () => Promise<void>) => next()),
+}));
+
 const serviceMocks = vi.hoisted(() => ({
   getManagedUmamiStats: vi.fn(),
   getManagedUmamiPageviews: vi.fn(),

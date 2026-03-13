@@ -1,3 +1,11 @@
+/** Shared overlay stack for nested dialog/alert management. */
+export { getOverlayStackSnapshot, registerOverlay, subscribeOverlayStack } from "./overlay-stack.ts";
+/** Shared overlay card (fixed-size modal base). */
+export { OverlayCard } from "./OverlayCard.tsx";
+/** Shared dialog component with header, body, footer. */
+export { Dialog, dialogBtnDestructive, dialogBtnPrimary, dialogBtnSecondary, dialogHeaderIconClass } from "./Dialog.tsx";
+/** Shared alert dialog with variant icons (info, warning, error). */
+export { AlertDialog } from "./AlertDialog.tsx";
 /** Shared character counter component. */
 export { CharCounter } from "./CharCounter.tsx";
 /** Re-exported props for `CharCounter`. */

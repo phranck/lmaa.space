@@ -39,12 +39,14 @@ export type PublicShopRow = CategoryShopRow & { categories: ShopCategory[] };
  */
 type SearchShopRow = Shop & { categories: ShopCategory[]; rank: number };
 /**
- * Minimal shape returned by duplicate URL checks.
+ * Minimal shape returned by domain-based shop lookups.
  */
-interface CheckUrlRow {
+interface ShopByDomainRow {
   id: number;
   name: string;
-  categories: ShopCategory[];
+  url: string;
+  visibility: "public" | "onhold" | "deleted" | "rejected";
+  rejectionToken: string | null;
 }
 
 /**
@@ -224,28 +226,26 @@ export async function searchPublicCategoriesByEscapedQuery(escapedQuery: string)
 }
 
 /**
- * Finds a public shop by normalized hostname.
+ * Finds a shop by domain (DOMAIN.TLD) with visibility `public` or `rejected`.
  *
- * @param hostname - Hostname without scheme/path.
- * @returns Matching shop summary or `null`.
+ * Uses a SQL LIKE pre-filter on the raw URL column and then verifies the match
+ * in JS via `tldts.getDomain()` for accurate DOMAIN.TLD extraction.
+ *
+ * @param domain - Normalized domain (e.g. "example.com").
+ * @returns Matching shop row or `null`.
  */
-export async function findPublicShopByHostname(hostname: string) {
-  const [row] = await db.execute<CheckUrlRow & Record<string, unknown>>(sql`
-    SELECT s.id, s.name,
-           COALESCE(
-             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
-             FILTER (WHERE c.id IS NOT NULL),
-             '[]'::json
-           ) AS categories
+export async function findShopByDomain(domain: string) {
+  const { getDomain } = await import("tldts");
+
+  const candidates = await db.execute<ShopByDomainRow & Record<string, unknown>>(sql`
+    SELECT s.id, s.name, s.url, s.visibility, s.rejection_token AS "rejectionToken"
     FROM shops s
-    LEFT JOIN shop_categories sc ON sc.shop_id = s.id
-    LEFT JOIN categories c ON c.id = sc.category_id
-    WHERE replace(split_part(split_part(s.url, '://', 2), '/', 1), 'www.', '') = ${hostname}
-    GROUP BY s.id
-    LIMIT 1
+    WHERE s.url LIKE ${"%" + domain + "%"}
+      AND s.visibility IN ('public', 'rejected')
+    LIMIT 10
   `);
 
-  return row ?? null;
+  return candidates.find((row) => getDomain(row.url) === domain) ?? null;
 }
 
 /**

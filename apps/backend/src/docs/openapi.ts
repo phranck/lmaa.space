@@ -126,9 +126,9 @@ const OPEN_API_DOCUMENT = {
     "/api/v1/check-url": {
       get: {
         tags: ["Shops"],
-        summary: "Check if a shop URL already exists",
+        summary: "Check if a shop URL is available for submission",
         description:
-          "Checks whether a shop with the same hostname is already listed in the catalog. The comparison is performed on the normalized hostname (scheme and path are stripped, `www.` is removed). Returns `exists: false` for unknown URLs, or `exists: true` together with the matching shop's id, name, and categories.",
+          "Validates whether a shop with the same registered domain (DOMAIN.TLD) is already listed or was previously rejected. Domain extraction uses the Public Suffix List for accurate handling of multi-part TLDs (e.g. `.co.uk`). Returns `status: available` for unknown domains, `status: published` with the shop name when already listed, or `status: rejected` with the shop name and a link to the rejection page.",
         operationId: "checkUrl",
         parameters: [
           {
@@ -136,13 +136,12 @@ const OPEN_API_DOCUMENT = {
             name: "url",
             required: true,
             schema: { type: "string", format: "uri" },
-            description: "Full shop URL to check (e.g. `https://www.example.com/shop`). Only the hostname is compared.",
+            description: "Full shop URL to check (e.g. `https://www.example.com/shop`). Only the registered domain (DOMAIN.TLD) is compared.",
           },
         ],
         responses: {
           "200": {
-            description:
-              "Either `{ exists: false }` when no match is found, or `{ exists: true, shop: { id, name, categories } }` when a shop with the same hostname exists.",
+            description: "URL validation result.",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/CheckUrlEnvelope" },
@@ -503,27 +502,25 @@ const OPEN_API_DOCUMENT = {
             oneOf: [
               {
                 type: "object",
-                properties: { exists: { type: "boolean", const: false } },
-                required: ["exists"],
+                properties: { status: { type: "string", enum: ["available"] } },
+                required: ["status"],
               },
               {
                 type: "object",
                 properties: {
-                  exists: { type: "boolean", const: true },
-                  shop: {
-                    type: "object",
-                    properties: {
-                      id: { type: "integer" },
-                      name: { type: "string" },
-                      categories: {
-                        type: "array",
-                        items: { $ref: "#/components/schemas/ShopCategory" },
-                      },
-                    },
-                    required: ["id", "name", "categories"],
-                  },
+                  status: { type: "string", enum: ["published"] },
+                  shopName: { type: "string" },
                 },
-                required: ["exists", "shop"],
+                required: ["status", "shopName"],
+              },
+              {
+                type: "object",
+                properties: {
+                  status: { type: "string", enum: ["rejected"] },
+                  shopName: { type: "string" },
+                  rejectionUrl: { type: "string", nullable: true },
+                },
+                required: ["status", "shopName"],
               },
             ],
           },

@@ -15,7 +15,7 @@ import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
 import {
-  checkManagedPublicShopUrl,
+  validateShopUrl,
   createManagedDeadLinkReport,
   createManagedShopConcernReport,
   getManagedPublicCacheStats,
@@ -80,7 +80,7 @@ publicRoutes.get("/search", publicReadLimit, async (c) => {
 
 // GET /api/check-url?url= – check if a shop with the same domain already exists
 publicRoutes.get("/check-url", publicReadLimit, async (c) => {
-  const result = await checkManagedPublicShopUrl(c.req.query("url"));
+  const result = await validateShopUrl(c.req.query("url"));
   return ok(c, result);
 });
 
@@ -106,6 +106,30 @@ publicRoutes.post(
       }));
       c.status(400);
       return c.json({ error: { message: "Validation failed", issues } });
+    }
+
+    const shopUrl = typeof parsed.data.shopUrl === "string" ? parsed.data.shopUrl : undefined;
+    if (shopUrl) {
+      const urlCheck = await validateShopUrl(shopUrl);
+      if (urlCheck.status === "published") {
+        c.status(409);
+        return c.json({
+          error: {
+            message: "Der Shop ist bereits eingetragen.",
+            shopName: urlCheck.shopName,
+          },
+        });
+      }
+      if (urlCheck.status === "rejected") {
+        c.status(409);
+        return c.json({
+          error: {
+            message: "Dieser Shop wurde bereits geprüft und abgelehnt.",
+            shopName: urlCheck.shopName,
+            rejectionUrl: urlCheck.rejectionUrl,
+          },
+        });
+      }
     }
 
     await executeSubmissionChain(result.data.submissionConfig, parsed.data, result.data);
