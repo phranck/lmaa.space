@@ -4,6 +4,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
 import { acceptInviteSchema, loginSchema, setupSchema } from "@lmaa/contracts";
 
+import { env } from "../../config/env.js";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";
@@ -27,7 +28,9 @@ import { SESSION_COOKIE_OPTIONS } from "../../services/auth.js";
 export const authRoutes = new Hono<{ Variables: AuthVariables }>();
 
 // GET /api/admin/setup – check if initial setup is needed
+// Disabled in production: initial setup is complete.
 authRoutes.get("/setup", async (c) => {
+  if (env.NODE_ENV === "production") return fail(c, 403, "Setup disabled");
   const state = await getAdminSetupState();
   return ok(c, state);
 });
@@ -51,8 +54,14 @@ authRoutes.get("/invite/:token", async (c) => {
 });
 
 // POST /api/admin/setup (only if no admin exists)
-authRoutes.post("/setup", zValidator("json", setupSchema), async (c) => {
-  const { username, email, password } = c.req.valid("json");
+// Disabled in production: initial setup is complete.
+authRoutes.post("/setup", async (c) => {
+  if (env.NODE_ENV === "production") return fail(c, 403, "Setup disabled");
+
+  const parsed = setupSchema.safeParse(await c.req.json());
+  if (!parsed.success) return fail(c, 400, "Validation failed");
+
+  const { username, email, password } = parsed.data;
   const result = await setupOwnerAdmin({ username, email, password });
 
   if (!result.ok) {
