@@ -9,8 +9,34 @@ const OPEN_API_DOCUMENT = {
   info: {
     title: "LMAA API",
     version: "1.0.0",
-    description:
-      "Public REST API for lmaa.space -- a community-curated directory of independent online shops as alternatives to Amazon in the DACH region.",
+    description: [
+      "Public REST API for [lmaa.space](https://lmaa.space) -- a curated directory of independent online shops as alternatives to large platforms and marketplaces in the DACH region.",
+      "",
+      "## Overview",
+      "",
+      "This API provides read-only access to the lmaa.space shop catalog, categories, and public statistics. All endpoints return JSON wrapped in a `{ \"data\": ... }` envelope. Errors use a `{ \"error\": { \"message\": \"...\" } }` envelope.",
+      "",
+      "No authentication is required. The API is intended for integrations, research, and community tools.",
+      "",
+      "## Rate Limiting",
+      "",
+      "All endpoints are rate-limited to **100 requests per minute** per IP address. When the limit is exceeded, the API responds with `429 Too Many Requests`. The following headers are included in every response:",
+      "",
+      "| Header | Description |",
+      "|--------|-------------|",
+      "| `X-RateLimit-Limit` | Maximum requests allowed in the current window |",
+      "| `X-RateLimit-Remaining` | Requests remaining in the current window |",
+      "| `X-RateLimit-Reset` | Unix timestamp when the window resets |",
+      "| `Retry-After` | Seconds to wait before retrying (only on 429) |",
+      "",
+      "## Caching",
+      "",
+      "Most responses include `Cache-Control` headers. Shops and stats are cached for 60 seconds, categories for 30 seconds. Clients should respect these headers to reduce unnecessary requests.",
+      "",
+      "## Contact",
+      "",
+      "Questions, bug reports, or feature requests: [GitHub Issues](https://github.com/phranck/lmaa.space/issues) or [hallo@lmaa.space](mailto:hallo@lmaa.space).",
+    ].join("\n"),
     contact: {
       name: "LMAA",
       url: "https://lmaa.space",
@@ -49,6 +75,14 @@ const OPEN_API_DOCUMENT = {
               },
             },
           },
+          "429": {
+            description: "Rate limit exceeded",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorEnvelope" },
+              },
+            },
+          },
         },
       },
     },
@@ -76,6 +110,14 @@ const OPEN_API_DOCUMENT = {
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/SearchResultEnvelope" },
+              },
+            },
+          },
+          "429": {
+            description: "Rate limit exceeded",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorEnvelope" },
               },
             },
           },
@@ -108,6 +150,14 @@ const OPEN_API_DOCUMENT = {
               },
             },
           },
+          "429": {
+            description: "Rate limit exceeded",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorEnvelope" },
+              },
+            },
+          },
         },
       },
     },
@@ -124,6 +174,14 @@ const OPEN_API_DOCUMENT = {
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/CategoryListEnvelope" },
+              },
+            },
+          },
+          "429": {
+            description: "Rate limit exceeded",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorEnvelope" },
               },
             },
           },
@@ -163,6 +221,14 @@ const OPEN_API_DOCUMENT = {
               },
             },
           },
+          "429": {
+            description: "Rate limit exceeded",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorEnvelope" },
+              },
+            },
+          },
         },
       },
     },
@@ -179,6 +245,14 @@ const OPEN_API_DOCUMENT = {
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/StatsEnvelope" },
+              },
+            },
+          },
+          "429": {
+            description: "Rate limit exceeded",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorEnvelope" },
               },
             },
           },
@@ -220,6 +294,14 @@ const OPEN_API_DOCUMENT = {
           },
           "404": {
             description: "Token not found",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorEnvelope" },
+              },
+            },
+          },
+          "429": {
+            description: "Rate limit exceeded",
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/ErrorEnvelope" },

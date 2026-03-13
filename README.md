@@ -19,7 +19,7 @@
 
 ## Lokale Märkte. Alternative Anbieter.
 
-[lmaa.space](https://lmaa.space) ist ein community-kuratiertes Verzeichnis unabhängiger Online-Shops als Alternativen zu Amazon und anderen Großkonzernen im deutschsprachigen Raum.
+[lmaa.space](https://lmaa.space) ist ein kuratiertes Verzeichnis unabhängiger Online-Shops als Alternativen zu großen Plattformen und reinen Marktplätzen im deutschsprachigen Raum.
 
 Aktuell sind über 540 Shops in 45+ Kategorien gelistet. Alle Einträge werden manuell geprüft und kuratiert. Das Projekt ist nicht kommerziell, werbefrei und unabhängig.
 
