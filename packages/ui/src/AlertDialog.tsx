@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
-
 import { InfoIcon, SealWarningIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 
 import { Dialog, dialogBtnPrimary, dialogHeaderIconClass } from "./Dialog.tsx";
 
