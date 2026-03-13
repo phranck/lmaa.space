@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { hashIp, normalizeShopHostname } from "../services/public.js";
 
 describe("normalizeShopHostname", () => {
-  it("extracts hostname from full URL", () => {
+  it("extracts domain from full URL", () => {
     expect(normalizeShopHostname("https://example.com/path")).toBe("example.com");
   });
 
@@ -19,8 +19,12 @@ describe("normalizeShopHostname", () => {
     expect(normalizeShopHostname("http://shop.de")).toBe("shop.de");
   });
 
-  it("preserves subdomain", () => {
-    expect(normalizeShopHostname("https://shop.example.com")).toBe("shop.example.com");
+  it("extracts DOMAIN.TLD from subdomain URLs", () => {
+    expect(normalizeShopHostname("https://shop.example.com")).toBe("example.com");
+  });
+
+  it("handles multi-part TLDs like .co.uk", () => {
+    expect(normalizeShopHostname("https://www.shop.example.co.uk")).toBe("example.co.uk");
   });
 
   it("returns null for invalid URL", () => {

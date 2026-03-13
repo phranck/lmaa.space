@@ -1,5 +1,7 @@
 import { createHmac } from "node:crypto";
 
+import { getDomain } from "tldts";
+
 import { env } from "../config/env.js";
 import { failure, success } from "../lib/result.js";
 import {
@@ -11,7 +13,7 @@ import {
 import {
   type PublicShopRow,
   countPublicShops,
-  findPublicShopByHostname,
+  findShopByDomain,
   getPublicCategoryBySlug,
   getPublicShopById,
   getPublishedContentPageBySlug,
@@ -30,12 +32,8 @@ import {
 const SHOPS_CACHE_TTL_MS = 60 * 1000;
 
 export function normalizeShopHostname(url: string): string | null {
-  try {
-    const parsed = url.includes("://") ? new URL(url) : new URL(`https://${url}`);
-    return parsed.hostname.replace(/^www\./, "");
-  } catch {
-    return null;
-  }
+  const input = url.includes("://") ? url : `https://${url}`;
+  return getDomain(input) ?? null;
 }
 
 export function hashIp(ip: string): string {
@@ -115,32 +113,39 @@ export async function searchManagedPublicCatalog(queryRaw: string | undefined) {
 }
 
 /**
- * Checks whether a shop URL already exists in catalog by hostname.
+ * Validates whether a shop URL is available for submission.
  *
- * @param urlRaw - Raw URL query parameter.
- * @returns
- * - `{ exists: false }` for empty/invalid/non-matching URL.
- * - `{ exists: true, shop }` when hostname match is found.
+ * @param urlRaw - Raw URL string from form input.
+ * @returns Validation result with status and optional metadata.
  */
-export async function checkManagedPublicShopUrl(urlRaw: string | undefined) {
+export async function validateShopUrl(urlRaw: string | undefined) {
   const url = urlRaw?.trim();
   if (!url) {
-    return { exists: false as const };
+    return { status: "available" as const };
   }
 
-  const hostname = normalizeShopHostname(url);
-  if (!hostname) {
-    return { exists: false as const };
+  const domain = normalizeShopHostname(url);
+  if (!domain) {
+    return { status: "available" as const };
   }
 
-  const match = await findPublicShopByHostname(hostname);
+  const match = await findShopByDomain(domain);
   if (!match) {
-    return { exists: false as const };
+    return { status: "available" as const };
+  }
+
+  if (match.visibility === "rejected") {
+    const rejectionUrl = match.rejectionToken ? `/rejected/${match.rejectionToken}` : null;
+    return {
+      status: "rejected" as const,
+      shopName: match.name,
+      rejectionUrl,
+    };
   }
 
   return {
-    exists: true as const,
-    shop: { id: match.id, name: match.name, categories: match.categories },
+    status: "published" as const,
+    shopName: match.name,
   };
 }
 

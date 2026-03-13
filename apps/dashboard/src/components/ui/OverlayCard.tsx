@@ -13,7 +13,7 @@ import {
   getOverlayStackSnapshot,
   registerOverlay,
   subscribeOverlayStack,
-} from "./overlay-stack.ts";
+} from "@lmaa/ui";
 import { ResizableDialogCard } from "./ResizableDialogCard.tsx";
 
 // ---------------------------------------------------------------------------

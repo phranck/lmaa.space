@@ -31,6 +31,7 @@
     "postgres": "^3.4.5",
     "resend": "^4.2.0",
     "sharp": "^0.34.5",
+    "tldts": "^7.0.25",
     "zod": "^3.24.2"
   },
   "devDependencies": {

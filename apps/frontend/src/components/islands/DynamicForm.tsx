@@ -7,6 +7,7 @@ import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
+import { AlertDialog } from "@lmaa/ui";
 
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { API_BASE } from "@/lib/client-api";
@@ -410,14 +411,8 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
 }
 
 // ---------------------------------------------------------------------------
-// URL field with live duplicate-domain check
+// URL field (simple input, validation happens server-side on submit)
 // ---------------------------------------------------------------------------
-
-type UrlCheckState =
-  | { status: "idle" }
-  | { status: "checking" }
-  | { status: "found"; shop: { id: number; name: string } }
-  | { status: "notFound" };
 
 interface UrlFieldProps {
   field: FormField;
@@ -425,17 +420,6 @@ interface UrlFieldProps {
   error: string | undefined;
 }
 
-/**
- * Text input for URL fields that runs a debounced duplicate-domain check
- * against the public `/api/check-url` endpoint. Shows an amber warning when
- * the entered domain already exists in the shop catalog.
- *
- * @param props         - Component props.
- * @param props.field   - The field definition.
- * @param props.control - react-hook-form `control` object.
- * @param props.error   - Validation error message.
- * @returns URL input with inline duplicate warning.
- */
 function UrlField({ field, control, error }: UrlFieldProps) {
   const key = fieldKey(field);
   const maxLen = field.validation?.max;
@@ -445,59 +429,6 @@ function UrlField({ field, control, error }: UrlFieldProps) {
     rules: buildValidationRules(field),
     defaultValue: "",
   });
-  const [urlCheck, setUrlCheck] = useState<UrlCheckState>({ status: "idle" });
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastCheckedDomainRef = useRef<string>("");
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  function extractDomain(val: string): string {
-    const trimmed = val.trim();
-    if (!trimmed) return "";
-    try {
-      const withProtocol = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
-      return new URL(withProtocol).hostname.replace(/^www\./, "").toLowerCase();
-    } catch {
-      return "";
-    }
-  }
-
-  function scheduleCheck(val: string) {
-    if (timerRef.current) clearTimeout(timerRef.current);
-
-    const domain = extractDomain(val);
-
-    if (!domain) {
-      lastCheckedDomainRef.current = "";
-      setUrlCheck({ status: "idle" });
-      return;
-    }
-
-    // Only re-check when the domain portion actually changed
-    if (domain === lastCheckedDomainRef.current) return;
-
-    setUrlCheck({ status: "checking" });
-    timerRef.current = setTimeout(() => {
-      lastCheckedDomainRef.current = domain;
-      void fetch(`${API_BASE}/check-url?url=${encodeURIComponent(domain)}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then(
-          (envelope: { data: { exists: boolean; shop?: { id: number; name: string } } } | null) => {
-            const result = envelope?.data;
-            if (result?.exists && result.shop) {
-              setUrlCheck({ status: "found", shop: result.shop });
-            } else {
-              setUrlCheck({ status: "notFound" });
-            }
-          },
-        )
-        .catch(() => setUrlCheck({ status: "idle" }));
-    }, 600);
-  }
 
   return (
     <div>
@@ -517,20 +448,8 @@ function UrlField({ field, control, error }: UrlFieldProps) {
         maxLength={maxLen}
         className={inputClass}
         {...rhfField}
-        onChange={(e) => {
-          rhfField.onChange(e);
-          scheduleCheck(e.target.value);
-        }}
       />
       <FieldMeta subtext={field.subtext} maxLen={maxLen} value={rhfField.value ?? ""} />
-      {urlCheck.status === "checking" && (
-        <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5 px-1">Wird geprüft…</p>
-      )}
-      {urlCheck.status === "found" && (
-        <p className="text-xs text-[var(--ds-warning-text)] bg-[var(--ds-warning-bg)] border border-[var(--ds-warning-border)] rounded-lg px-3 py-2 mt-1.5">
-          Ein Shop mit dieser Domain ist bereits eingetragen: <strong>{urlCheck.shop.name}</strong>
-        </p>
-      )}
       {error && <p className={errorClass}>{error}</p>}
     </div>
   );
@@ -1001,7 +920,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
 
   // --- submission state ---
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<{ message: string; shopName?: string; rejectionUrl?: string } | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   // --- manual validation errors for multi-select fields ---
@@ -1114,6 +1033,17 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       });
 
       if (!res.ok) {
+        if (res.status === 409) {
+          const body = await res.json().catch(() => null);
+          const error = body && typeof body === "object" && "error" in body ? (body as Record<string, unknown>).error : null;
+          const errorObj = error && typeof error === "object" ? (error as Record<string, unknown>) : null;
+          setSubmitError({
+            message: typeof errorObj?.message === "string" ? errorObj.message : "Dieser Shop ist bereits bekannt.",
+            shopName: typeof errorObj?.shopName === "string" ? errorObj.shopName : undefined,
+            rejectionUrl: typeof errorObj?.rejectionUrl === "string" ? errorObj.rejectionUrl : undefined,
+          });
+          return;
+        }
         throw await createApiRequestError(res, "Submit failed");
       }
 
@@ -1124,7 +1054,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         setSubmitted(true);
       }
     } catch (error) {
-      setSubmitError(getSubmissionErrorMessage(error));
+      setSubmitError({ message: getSubmissionErrorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -1133,8 +1063,8 @@ export default function DynamicForm({ formConfig, categories }: Props) {
   /**
    * Resets all form state back to the initial empty state.
    *
-   * Clears react-hook-form values, all multi-select selections, the URL check
-   * result, and the submission error so the user can submit another entry.
+   * Clears react-hook-form values, all multi-select selections, and the
+   * submission error so the user can submit another entry.
    */
   function handleReset() {
     setSubmitted(false);
@@ -1399,9 +1329,28 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           });
         })()}
 
-        {submitError && (
-          <p className="text-[var(--ds-danger-text)] text-sm text-center">{submitError}</p>
-        )}
+        <AlertDialog
+          open={!!submitError}
+          title={submitError?.rejectionUrl ? "Shop abgelehnt" : "Shop bereits vorhanden"}
+          variant={submitError?.rejectionUrl ? "warning" : "error"}
+          buttonLabel="Verstanden"
+          onClose={() => setSubmitError(null)}
+        >
+          {submitError?.rejectionUrl ? (
+            <>
+              <p>Der Shop <strong>{submitError.shopName}</strong> wurde bereits geprüft und abgelehnt. Eine ausführliche Begründung für die Ablehnung kannst du {" "}
+                <a
+                  href={submitError.rejectionUrl}
+                  className="text-[var(--ds-accent)] underline hover:no-underline"
+                >
+                  hier einsehen
+                </a>.
+              </p>
+            </>
+          ) : (
+            <p>Da hatte wohl jemand bereits die gleiche Idee!<br />Der Shop <strong>{submitError?.shopName}</strong> ist schon eingetragen.</p>
+          )}
+        </AlertDialog>
       </form>
     </IconContext.Provider>
   );
