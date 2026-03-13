@@ -58,6 +58,20 @@ export function useAdminShops(visibility?: ShopVisibility) {
   });
 }
 
+type ShopVisibilityCounts = Record<ShopVisibility | "all", number>;
+
+/**
+ * Loads shop counts grouped by visibility.
+ *
+ * @returns React Query result with counts per visibility.
+ */
+export function useShopVisibilityCounts() {
+  return useQuery({
+    queryKey: ["shops-admin", "counts"],
+    queryFn: () => api.get<ShopVisibilityCounts>("/admin/shops/counts"),
+  });
+}
+
 /**
  * Updates visibility (`public`/`onhold`/`rejected`) for one shop.
  *

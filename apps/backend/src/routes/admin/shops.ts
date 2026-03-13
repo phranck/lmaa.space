@@ -15,7 +15,7 @@ import {
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { getAdminShopById, listAdminShops } from "../../repositories/admin-shops.js";
+import { getAdminShopById, getShopVisibilityCounts, listAdminShops } from "../../repositories/admin-shops.js";
 import {
   changeManagedAdminShopVisibility,
   createManagedAdminShop,
@@ -45,6 +45,11 @@ shopsRoutes.get("/shops", async (c) => {
   const visibilityValue = parsedVisibility?.success ? parsedVisibility.data : undefined;
   const rows = await listAdminShops(visibilityValue);
   return ok(c, rows);
+});
+
+shopsRoutes.get("/shops/counts", async (c) => {
+  const counts = await getShopVisibilityCounts();
+  return ok(c, counts);
 });
 
 shopsRoutes.get("/shops/:id", async (c) => {

@@ -216,6 +216,28 @@ export async function updateAdminShop(
 }
 
 /**
+ * Returns shop counts grouped by visibility.
+ *
+ * @returns Record mapping each visibility to its count plus a total.
+ */
+export async function getShopVisibilityCounts(): Promise<
+  Record<ShopVisibility | "all", number>
+> {
+  const rows = await db.execute<{ visibility: ShopVisibility; count: number } & Record<string, unknown>>(sql`
+    SELECT visibility, count(*)::int AS count
+    FROM shops
+    GROUP BY visibility
+  `);
+
+  const counts: Record<string, number> = { all: 0, public: 0, onhold: 0, deleted: 0, rejected: 0 };
+  for (const row of rows) {
+    counts[row.visibility] = row.count;
+    counts.all += row.count;
+  }
+  return counts as Record<ShopVisibility | "all", number>;
+}
+
+/**
  * Checks whether a shop exists.
  *
  * @param id - Shop id.
