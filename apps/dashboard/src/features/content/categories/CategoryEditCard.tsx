@@ -303,13 +303,12 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
           <AlertDialog
             open={saveMutation.isError}
             title={categoriesMessages.editCard.errorSaving}
-            message={
-              saveMutation.error instanceof Error
-                ? saveMutation.error.message
-                : categoriesMessages.editCard.errorSaving
-            }
             onClose={() => saveMutation.reset()}
-          />
+          >
+            {saveMutation.error instanceof Error
+              ? saveMutation.error.message
+              : categoriesMessages.editCard.errorSaving}
+          </AlertDialog>
 
           {/* Footer buttons */}
           <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
