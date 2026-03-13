@@ -481,9 +481,76 @@ export function serveSwaggerUi(c: Context) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LMAA API</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet" />
     <style>
-      body { margin: 0; background: #fafafa; }
-      .topbar { display: none; }
+      :root {
+        --lmaa-gold: #d4a843;
+        --lmaa-dark: #0b0f14;
+        --lmaa-gray: #1a1f28;
+        --lmaa-text: #e0e0e0;
+        --lmaa-text-muted: #9ca3af;
+      }
+      body {
+        margin: 0;
+        background: var(--lmaa-dark);
+        color: var(--lmaa-text);
+      }
+      .swagger-ui {
+        font-family: "Barlow", system-ui, sans-serif;
+      }
+      .swagger-ui .info .title,
+      .swagger-ui .opblock-tag,
+      .swagger-ui section.models h4,
+      .swagger-ui .responses-inner h4,
+      .swagger-ui .responses-inner h5,
+      .swagger-ui .opblock .opblock-summary-method {
+        font-family: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+      }
+      /* Hide topbar and server selector (single server) */
+      .topbar,
+      .swagger-ui .scheme-container { display: none; }
+      /* Info header */
+      .swagger-ui .info .title { color: var(--lmaa-gold); }
+      .swagger-ui .info .description,
+      .swagger-ui .info .description p { color: var(--lmaa-text); }
+      .swagger-ui .info a { color: var(--lmaa-gold); }
+      /* Dark background for main area */
+      .swagger-ui .wrapper { background: var(--lmaa-dark); }
+      .swagger-ui { background: var(--lmaa-dark); }
+      /* Tag headers */
+      .swagger-ui .opblock-tag { color: var(--lmaa-text); border-bottom-color: var(--lmaa-gray); }
+      .swagger-ui .opblock-tag small { color: var(--lmaa-text-muted); }
+      /* Operation blocks */
+      .swagger-ui .opblock .opblock-summary-description { color: var(--lmaa-text-muted); }
+      .swagger-ui .opblock .opblock-summary-operation-id { color: var(--lmaa-text-muted); }
+      /* Description text */
+      .swagger-ui .opblock-description-wrapper p,
+      .swagger-ui .opblock-external-docs-wrapper p,
+      .swagger-ui table thead tr td,
+      .swagger-ui table thead tr th,
+      .swagger-ui .response-col_description__inner p,
+      .swagger-ui .parameter__name,
+      .swagger-ui .parameter__type,
+      .swagger-ui .parameter__in { color: var(--lmaa-text); }
+      /* Models / Schemas */
+      .swagger-ui section.models { border-color: var(--lmaa-gray); }
+      .swagger-ui section.models h4 { color: var(--lmaa-text); }
+      .swagger-ui .model-title { color: var(--lmaa-text); }
+      .swagger-ui .model { color: var(--lmaa-text-muted); }
+      .swagger-ui .prop-type { color: var(--lmaa-gold); }
+      /* Response section */
+      .swagger-ui .responses-inner h4,
+      .swagger-ui .responses-inner h5,
+      .swagger-ui .response-col_status { color: var(--lmaa-text); }
+      .swagger-ui table.responses-table { background: transparent; }
+      /* Try it out button */
+      .swagger-ui .btn.try-out__btn { border-color: var(--lmaa-gold); color: var(--lmaa-gold); }
+      .swagger-ui .btn.try-out__btn:hover { background: var(--lmaa-gold); color: var(--lmaa-dark); }
+      .swagger-ui .btn.execute { background: var(--lmaa-gold); border-color: var(--lmaa-gold); color: var(--lmaa-dark); }
+      /* Limit content width for readability */
+      .swagger-ui .wrapper { max-width: 960px; margin: 0 auto; padding: 20px; }
     </style>
   </head>
   <body>
@@ -494,6 +561,11 @@ export function serveSwaggerUi(c: Context) {
         url: "/openapi.json",
         dom_id: "#swagger-ui",
         deepLinking: true,
+        docExpansion: "list",
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 1,
+        filter: true,
+        tryItOutEnabled: true,
         presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
         layout: "BaseLayout",
       });

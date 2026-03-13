@@ -29,14 +29,7 @@ Einen neuen Shop kann jeder ohne Registrierung [direkt einreichen](https://lmaa.
 
 ## Öffentliches API
 
-Die Shop- und Kategorie-Daten stehen über ein öffentliches REST-API zur Verfügung:
-
-| Endpoint | Beschreibung |
-| --- | --- |
-| `GET /api/v1/shops` | Alle gelisteten Shops mit Beschreibung, Kategorien, Versandregionen und Social-Media-Links |
-| `GET /api/v1/categories` | Alle Kategorien mit Slug, Bild-URL und Anzahl der zugehörigen Shops |
-
-Basis-URL: `https://lmaa.space`
+Die Shop- und Kategorie-Daten stehen über ein öffentliches REST-API zur Verfügung. Die vollständige Dokumentation mit allen Endpoints, Schemas und einer Try-it-out-Funktion gibt es unter [api.lmaa.space](https://api.lmaa.space).
 
 ## Quellcode
 
