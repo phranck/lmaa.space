@@ -526,7 +526,6 @@ function UserEditCardForm({
       <AlertDialog
         open={isError}
         title={usersMessages.editCard.errorSaving}
-        message={error instanceof Error ? error.message : usersMessages.editCard.errorSaving}
         onClose={() => {
           updateUser.reset();
           saveAvatar.reset();
@@ -534,7 +533,9 @@ function UserEditCardForm({
           deleteAvatar.reset();
         }}
         buttonLabel={common.close}
-      />
+      >
+        {error instanceof Error ? error.message : usersMessages.editCard.errorSaving}
+      </AlertDialog>
     </OverlayCard>
   );
 }
