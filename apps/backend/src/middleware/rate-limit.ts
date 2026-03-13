@@ -209,10 +209,6 @@ export function rateLimit(options: { max: number; windowMs: number; store?: Rate
   return createMiddleware(async (c, next) => {
     const ip = resolveClientIp(c.req.raw.headers);
 
-    if (env.NODE_ENV === "production" && ip === "unknown") {
-      return fail(c, 403, "Forbidden");
-    }
-
     const key = `${c.req.path}:${ip}`;
     const now = Date.now();
     const entry = (await store.get(key)) ?? { count: 0, resetAt: now + options.windowMs };
