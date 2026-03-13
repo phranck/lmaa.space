@@ -641,15 +641,32 @@ export function serveSwaggerUi(c: Context) {
         font-size: 0.88em;
         font-weight: 400;
       }
-      .swagger-ui .info .description table { border-collapse: collapse; margin: 1rem 0; }
+      .swagger-ui .info .description table {
+        margin: 1rem 0;
+        width: 100% !important;
+        display: table !important;
+        border: none;
+        border-collapse: collapse;
+        border-radius: 8px;
+        outline: 1px solid var(--border);
+        outline-offset: -1px;
+        -webkit-clip-path: inset(0 round 8px);
+        clip-path: inset(0 round 8px);
+      }
       .swagger-ui .info .description table th,
       .swagger-ui .info .description table td {
-        border: 1px solid var(--border);
         padding: 0.5rem 0.75rem;
         text-align: left;
         font-size: 1rem;
+        border: none;
+        border-bottom: 1px solid var(--border);
       }
-      .swagger-ui .info .description table th { color: var(--text); font-weight: 600; background: var(--elevated); }
+      .swagger-ui .info .description table tr:last-child td { border-bottom: none; }
+      .swagger-ui .info .description table th {
+        color: var(--text);
+        font-weight: 600;
+        background: var(--elevated);
+      }
       .swagger-ui .info .description table td { color: var(--text-muted); }
       .swagger-ui .info a { color: var(--accent); }
       .swagger-ui .info a:hover { color: var(--accent-hover); }
