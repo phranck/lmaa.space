@@ -1,6 +1,7 @@
 ---
 import type { NavItem } from "@lmaa/shared";
 import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
+import SupportButton from "@/components/SupportButton.astro";
 
 interface Props {
   navItems: NavItem[];
@@ -104,22 +105,7 @@ function navLinkClass(href: string, external = false) {
           </div>
         </form>
 
-        <!-- Donate (desktop) -->
-        <a
-          href="/support-me"
-          class="hidden md:flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-[var(--ds-accent)] border border-[var(--ds-accent)]/40 hover:bg-[var(--ds-accent-subtle)] transition-colors"
-          data-analytics-event="site-link-click"
-          data-analytics-kind="cta"
-          data-analytics-placement="header"
-          data-analytics-label="Unterstützen"
-          data-analytics-href="/support-me"
-        >
-          <!-- Heart icon -->
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-          <span class="hidden sm:inline">Unterstützen</span>
-        </a>
+        <SupportButton variant="desktop" />
 
         <!-- Mobile hamburger -->
         <details class="md:hidden" id="mobile-menu-details">
@@ -207,17 +193,7 @@ function navLinkClass(href: string, external = false) {
             })}
 
             <div class="pt-1 px-1">
-              <a
-                href="/support-me"
-                class="flex items-center gap-2 h-9 px-3 rounded-control bg-[var(--ds-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity w-full justify-center"
-                data-analytics-event="site-link-click"
-                data-analytics-kind="cta"
-                data-analytics-placement="header-mobile-menu"
-                data-analytics-label="Unterstützen"
-                data-analytics-href="/support-me"
-              >
-                Unterstützen
-              </a>
+              <SupportButton variant="mobile" />
             </div>
           </div>
         </details>
