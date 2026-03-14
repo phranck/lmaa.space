@@ -4,6 +4,7 @@ import { getDomain } from "tldts";
 
 import { env } from "../config/env.js";
 import { failure, success } from "../lib/result.js";
+import type { ShopFilterParams } from "../lib/shop-filters.js";
 import {
   SHOPS_CACHE_KEY,
   getCacheEntry,
@@ -11,6 +12,13 @@ import {
   setCacheEntry,
 } from "../middleware/cache.js";
 import { loadShopHeadquartersMap } from "../repositories/headquarters.js";
+import {
+  listAvailableFilterCountries,
+  listFilteredCategoriesWithCount,
+  listFilteredPublicShops,
+  listFilteredShopsByCategoryId,
+  searchFilteredPublicShops,
+} from "../repositories/public-filtered.js";
 import {
   type PublicShopRow,
   countPublicShops,
@@ -257,4 +265,55 @@ export async function getManagedPublicContentPageBySlug(slug: string) {
 
 export async function getManagedPublicRejectionPageByToken(token: string) {
   return getRejectionPageByToken(token);
+}
+
+// ---------------------------------------------------------------------------
+// Filtered public endpoints
+// ---------------------------------------------------------------------------
+
+export async function getFilteredPublicCategories(filters: ShopFilterParams) {
+  return listFilteredCategoriesWithCount(filters);
+}
+
+export async function getFilteredPublicCategoryBySlug(
+  slug: string,
+  filters: ShopFilterParams,
+) {
+  const category = await getPublicCategoryBySlug(slug);
+  if (!category) {
+    return failure("not_found");
+  }
+
+  const shops = await listFilteredShopsByCategoryId(category.id, filters);
+  return success({ data: { ...category, shops } });
+}
+
+export async function getFilteredPublicShops(filters: ShopFilterParams) {
+  return listFilteredPublicShops(filters);
+}
+
+export async function searchFilteredPublicCatalog(
+  queryRaw: string | undefined,
+  filters: ShopFilterParams,
+) {
+  const query = queryRaw?.trim();
+  if (!query || query.length < 2) {
+    return { shops: [], categories: [], query: query ?? "", total: 0 };
+  }
+
+  const matchingShops = await searchFilteredPublicShops(query, filters);
+  const escapedQuery = query.toLowerCase().replace(/[%_\\]/g, "\\$&");
+  const matchingCategories = await searchPublicCategoriesByEscapedQuery(escapedQuery);
+
+  return {
+    shops: matchingShops,
+    categories: matchingCategories,
+    query,
+    total: matchingShops.length + matchingCategories.length,
+  };
+}
+
+export async function getPublicFilterOptions() {
+  const countries = await listAvailableFilterCountries();
+  return { countries };
 }

@@ -6,6 +6,7 @@ import { decodeShopToken } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
 import { fail, ok } from "../lib/http.js";
+import { shopFilterSchema } from "../lib/shop-filters.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
 import { getFooterConfig } from "../repositories/footer-config.js";
 import { getEnabledMarkdownWidgetByKey } from "../repositories/markdown-widgets.js";
@@ -31,6 +32,11 @@ import {
   getManagedPublicShops,
   getManagedPublicStats,
   searchManagedPublicCatalog,
+  getFilteredPublicCategories,
+  getFilteredPublicCategoryBySlug,
+  getFilteredPublicShops,
+  getPublicFilterOptions,
+  searchFilteredPublicCatalog,
 } from "../services/public.js";
 
 /**
@@ -300,6 +306,71 @@ publicRoutes.get("/rejected/:token", publicReadLimit, async (c) => {
 
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
   return ok(c, page);
+});
+
+// ---------------------------------------------------------------------------
+// Filtered endpoints
+// ---------------------------------------------------------------------------
+
+// GET /api/filtered/categories?city=&radius=&country=&region=
+publicRoutes.get("/filtered/categories", publicReadLimit, async (c) => {
+  const filters = shopFilterSchema.parse({
+    city: c.req.query("city"),
+    radius: c.req.query("radius"),
+    country: c.req.query("country"),
+    region: c.req.query("region"),
+  });
+  const rows = await getFilteredPublicCategories(filters);
+  return ok(c, rows);
+});
+
+// GET /api/filtered/categories/:slug?city=&radius=&country=&region=
+publicRoutes.get("/filtered/categories/:slug", publicReadLimit, async (c) => {
+  const slug = c.req.param("slug");
+  const filters = shopFilterSchema.parse({
+    city: c.req.query("city"),
+    radius: c.req.query("radius"),
+    country: c.req.query("country"),
+    region: c.req.query("region"),
+  });
+  const result = await getFilteredPublicCategoryBySlug(slug, filters);
+  if (!result.ok) {
+    return fail(c, 404, "Category not found");
+  }
+  c.header("Cache-Control", "private, max-age=30");
+  return ok(c, result.data);
+});
+
+// GET /api/filtered/shops?city=&radius=&country=&region=
+publicRoutes.get("/filtered/shops", publicReadLimit, async (c) => {
+  const filters = shopFilterSchema.parse({
+    city: c.req.query("city"),
+    radius: c.req.query("radius"),
+    country: c.req.query("country"),
+    region: c.req.query("region"),
+  });
+  const data = await getFilteredPublicShops(filters);
+  return ok(c, data);
+});
+
+// GET /api/filtered/search?q=&city=&radius=&country=&region=
+publicRoutes.get("/filtered/search", publicReadLimit, async (c) => {
+  const q = c.req.query("q")?.slice(0, 200);
+  const filters = shopFilterSchema.parse({
+    city: c.req.query("city"),
+    radius: c.req.query("radius"),
+    country: c.req.query("country"),
+    region: c.req.query("region"),
+  });
+  const result = await searchFilteredPublicCatalog(q, filters);
+  return ok(c, result);
+});
+
+// GET /api/filter-options
+publicRoutes.get("/filter-options", publicReadLimit, async (c) => {
+  const options = await getPublicFilterOptions();
+  c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+  return ok(c, options);
 });
 
 // Debug endpoint: cache stats (dev only)
