@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const repoMocks = vi.hoisted(() => ({
   findShopByDomain: vi.fn(),
+  findRejectedSubmissionByDomain: vi.fn(),
 }));
 
 vi.mock("../repositories/public.js", async (importOriginal) => {
@@ -14,6 +15,7 @@ import { validateShopUrl } from "../services/public.js";
 describe("validateShopUrl", () => {
   beforeEach(() => {
     repoMocks.findShopByDomain.mockReset();
+    repoMocks.findRejectedSubmissionByDomain.mockReset();
   });
 
   it("returns available for undefined input", async () => {
@@ -34,12 +36,14 @@ describe("validateShopUrl", () => {
     expect(repoMocks.findShopByDomain).not.toHaveBeenCalled();
   });
 
-  it("returns available when no matching shop exists", async () => {
+  it("returns available when no matching shop or submission exists", async () => {
     repoMocks.findShopByDomain.mockResolvedValue(null);
+    repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
 
     const result = await validateShopUrl("https://new-shop.de");
     expect(result).toEqual({ status: "available" });
     expect(repoMocks.findShopByDomain).toHaveBeenCalledWith("new-shop.de");
+    expect(repoMocks.findRejectedSubmissionByDomain).toHaveBeenCalledWith("new-shop.de");
   });
 
   it("returns published when shop is public", async () => {
@@ -89,8 +93,26 @@ describe("validateShopUrl", () => {
     });
   });
 
+  it("returns rejected when submission was rejected", async () => {
+    repoMocks.findShopByDomain.mockResolvedValue(null);
+    repoMocks.findRejectedSubmissionByDomain.mockResolvedValue({
+      id: 10,
+      shopName: "Rejected Submission",
+      shopUrl: "https://rejected-sub.de",
+      rejectionToken: "token123",
+    });
+
+    const result = await validateShopUrl("https://rejected-sub.de");
+    expect(result).toEqual({
+      status: "rejected",
+      shopName: "Rejected Submission",
+      rejectionUrl: "/rejected/token123",
+    });
+  });
+
   it("normalizes subdomains to DOMAIN.TLD before lookup", async () => {
     repoMocks.findShopByDomain.mockResolvedValue(null);
+    repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
 
     await validateShopUrl("https://shop.store.example.com/path?q=1");
     expect(repoMocks.findShopByDomain).toHaveBeenCalledWith("example.com");
@@ -98,6 +120,7 @@ describe("validateShopUrl", () => {
 
   it("trims whitespace from input", async () => {
     repoMocks.findShopByDomain.mockResolvedValue(null);
+    repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
 
     await validateShopUrl("  https://example.de  ");
     expect(repoMocks.findShopByDomain).toHaveBeenCalledWith("example.de");

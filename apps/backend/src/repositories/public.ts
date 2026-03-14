@@ -248,6 +248,35 @@ export async function findShopByDomain(domain: string) {
   return candidates.find((row) => getDomain(row.url) === domain) ?? null;
 }
 
+interface RejectedSubmissionRow {
+  id: number;
+  shopName: string;
+  shopUrl: string;
+  rejectionToken: string | null;
+}
+
+/**
+ * Finds a rejected submission by domain (DOMAIN.TLD).
+ *
+ * Uses the same LIKE pre-filter + tldts verification as `findShopByDomain`.
+ *
+ * @param domain - Normalized domain (e.g. "modibodi.com").
+ * @returns Matching submission row or `null`.
+ */
+export async function findRejectedSubmissionByDomain(domain: string) {
+  const { getDomain } = await import("tldts");
+
+  const candidates = await db.execute<RejectedSubmissionRow & Record<string, unknown>>(sql`
+    SELECT s.id, s.shop_name AS "shopName", s.shop_url AS "shopUrl", s.rejection_token AS "rejectionToken"
+    FROM submissions s
+    WHERE s.shop_url LIKE ${"%" + domain + "%"}
+      AND s.status = 'rejected'
+    LIMIT 10
+  `);
+
+  return candidates.find((row) => getDomain(row.shopUrl) === domain) ?? null;
+}
+
 /**
  * Submission payload accepted from the public website.
  */
