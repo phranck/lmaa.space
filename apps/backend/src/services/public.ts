@@ -10,10 +10,12 @@ import {
   getCacheStats,
   setCacheEntry,
 } from "../middleware/cache.js";
+import { loadShopHeadquartersMap } from "../repositories/headquarters.js";
 import {
   type PublicShopRow,
   countPublicShops,
   findShopByDomain,
+  getFullPublicShopById,
   getPublicCategoryBySlug,
   getPublicShopById,
   getPublishedContentPageBySlug,
@@ -66,6 +68,30 @@ export async function getManagedPublicCategoryBySlug(slug: string) {
 
   const categoryShops = await listPublicShopsByCategoryId(category.id);
   return success({ data: { ...category, shops: categoryShops } });
+}
+
+/**
+ * Resolves a full public shop by id, enriched with headquarters data.
+ *
+ * @param id - Shop id.
+ * @returns
+ * - `{ ok: false, reason: "not_found" }` when shop does not exist.
+ * - `{ ok: true, data }` with the full shop payload.
+ */
+export async function getManagedPublicShopById(id: number) {
+  const shop = await getFullPublicShopById(id);
+  if (!shop) {
+    return failure("not_found");
+  }
+
+  const hqMap = await loadShopHeadquartersMap([id]);
+
+  return success({
+    data: {
+      ...shop,
+      headquarters: hqMap.get(id) ?? null,
+    },
+  });
 }
 
 /**

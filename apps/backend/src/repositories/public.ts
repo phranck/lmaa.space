@@ -417,6 +417,45 @@ export async function getPublicShopById(id: number) {
 }
 
 /**
+ * Fetches a full public shop record by id, including categories.
+ *
+ * @param id - Shop id.
+ * @returns Full shop row with aggregated categories, or `null`.
+ */
+export async function getFullPublicShopById(id: number) {
+  const rows = await db.execute<
+    CategoryShopRow & {
+      categories: ShopCategory[];
+      shopCheckNotes: Shop["shopCheckNotes"];
+      contactEmail: string | null;
+      pickup: string;
+      createdAt: string;
+      updatedAt: string;
+    }
+  >(sql`
+    SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
+           s.og_image as "ogImage",
+           s.contact_email as "contactEmail",
+           s.social_media as "socialMedia",
+           s.shop_check_notes as "shopCheckNotes",
+           s.created_at as "createdAt",
+           s.updated_at as "updatedAt",
+           COALESCE(
+             json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
+             FILTER (WHERE c.id IS NOT NULL),
+             '[]'::json
+           ) as categories
+    FROM shops s
+    LEFT JOIN shop_categories sc ON sc.shop_id = s.id
+    LEFT JOIN categories c ON c.id = sc.category_id
+    WHERE s.id = ${id} AND s.is_active = true AND s.visibility = 'public'
+    GROUP BY s.id
+  `);
+
+  return rows[0] ?? null;
+}
+
+/**
  * Stores a dead-link report event.
  *
  * @param shopId - Reported shop id.

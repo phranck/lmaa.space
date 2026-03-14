@@ -25,6 +25,7 @@ import {
   getManagedPublicContentPages,
   getManagedPublicNavItems,
   getManagedPublicRejectionPageByToken,
+  getManagedPublicShopById,
   getManagedPublicShops,
   getManagedPublicStats,
   searchManagedPublicCatalog,
@@ -67,6 +68,22 @@ publicRoutes.get("/categories/:slug", publicReadLimit, async (c) => {
 publicRoutes.get("/shops", publicReadLimit, async (c) => {
   const result = await getManagedPublicShops();
   c.header("X-Cache", result.cache);
+  c.header("Cache-Control", "public, max-age=60");
+  return ok(c, result.data);
+});
+
+// GET /api/shops/:id
+publicRoutes.get("/shops/:id", publicReadLimit, async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id) || id <= 0) {
+    return fail(c, 400, "Invalid shop id");
+  }
+
+  const result = await getManagedPublicShopById(id);
+  if (!result.ok) {
+    return fail(c, 404, "Shop not found");
+  }
+
   c.header("Cache-Control", "public, max-age=60");
   return ok(c, result.data);
 });
