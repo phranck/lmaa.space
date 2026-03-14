@@ -12,7 +12,7 @@ export const submissionSchema = z.object({
   categorySuggestion: z.string().max(100).optional(),
   region: defaultRegionArraySchema,
   shipping: z.string().max(200).optional(),
-  description: z.string().max(2000).optional(),
+  description: z.string().optional(),
   submitterEmail: z.string().email().optional(),
   submitterNote: z.string().max(500).optional(),
 });
