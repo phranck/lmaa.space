@@ -363,6 +363,12 @@ export interface DashboardMessages {
       setToOpen: string;
       rejectionLongLabel: string;
       rejectionLongPlaceholder: string;
+      exportButton: string;
+      importButton: string;
+      importSuccess: string;
+      importError: string;
+      importInvalidFile: string;
+      reviewBadge: string;
     };
     deadLinks: {
       none: string;
@@ -1206,6 +1212,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setToOpen: "Auf Neu setzen",
         rejectionLongLabel: "Langbegründung (öffentliche Seite)",
         rejectionLongPlaceholder: "Ausführliche Begründung für die Ablehnungsseite…",
+        exportButton: "Exportieren",
+        importButton: "Importieren",
+        importSuccess: "{imported} importiert, {skipped} übersprungen",
+        importError: "Fehler beim Import",
+        importInvalidFile: "Ungültige Datei",
+        reviewBadge: "Review",
       },
       deadLinks: {
         none: "Keine gemeldeten defekten Links.",
@@ -2048,6 +2060,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setToOpen: "Set to new",
         rejectionLongLabel: "Long reason (public page)",
         rejectionLongPlaceholder: "Detailed reason for the rejection page…",
+        exportButton: "Export",
+        importButton: "Import",
+        importSuccess: "{imported} imported, {skipped} skipped",
+        importError: "Import error",
+        importInvalidFile: "Invalid file",
+        reviewBadge: "Review",
       },
       deadLinks: {
         none: "No reported dead links.",

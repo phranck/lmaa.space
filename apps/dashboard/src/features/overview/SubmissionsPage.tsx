@@ -1,9 +1,11 @@
 import {
   ClockIcon,
+  DownloadSimpleIcon,
   PauseCircleIcon,
+  UploadSimpleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router";
 
 import { type SubmissionStatus } from "@lmaa/shared";
@@ -15,7 +17,11 @@ import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { DeadLinksTab } from "@/features/overview/DeadLinksTab.tsx";
-import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
+import {
+  useAdminSubmissions,
+  useExportSubmissions,
+  useImportSubmissions,
+} from "@/features/overview/hooks/useSubmissions.ts";
 import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
 import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
@@ -48,6 +54,10 @@ export function SubmissionsPage() {
   const submissionsMessages = messages.submissions;
   const tab = resolveInitialTab(tabParam, location.search);
   const [statusFilter, setStatusFilter] = useState<SuggestionsStatusFilter>("pending");
+  const [importFeedback, setImportFeedback] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const exportSubmissions = useExportSubmissions();
+  const importMutation = useImportSubmissions();
   const statusLabels = submissionsMessages.status;
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: onholdSubmissions = [] } = useAdminSubmissions("onhold");
@@ -87,6 +97,66 @@ export function SubmissionsPage() {
               options={filterOptions}
               storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:status")}
             />
+            <button
+              type="button"
+              onClick={exportSubmissions}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
+            >
+              <DownloadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+              {submissionsMessages.suggestions.exportButton}
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importMutation.isPending}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
+            >
+              <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+              {submissionsMessages.suggestions.importButton}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  try {
+                    const parsed = JSON.parse(reader.result as string);
+                    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.entries)) {
+                      setImportFeedback(submissionsMessages.suggestions.importInvalidFile);
+                      return;
+                    }
+                    const entries = parsed.entries;
+                    importMutation.mutate(entries, {
+                      onSuccess: (result) => {
+                        setImportFeedback(
+                          submissionsMessages.suggestions.importSuccess
+                            .replace("{imported}", String(result.imported))
+                            .replace("{skipped}", String(result.skipped)),
+                        );
+                        setTimeout(() => setImportFeedback(null), 5000);
+                      },
+                      onError: () => {
+                        setImportFeedback(submissionsMessages.suggestions.importError);
+                        setTimeout(() => setImportFeedback(null), 5000);
+                      },
+                    });
+                  } catch {
+                    setImportFeedback(submissionsMessages.suggestions.importInvalidFile);
+                    setTimeout(() => setImportFeedback(null), 5000);
+                  }
+                  e.target.value = "";
+                };
+                reader.readAsText(file);
+              }}
+            />
+            {importFeedback && (
+              <span className="text-xs text-[var(--ds-text-muted)]">{importFeedback}</span>
+            )}
           </>
         )}
       </PageHeader>

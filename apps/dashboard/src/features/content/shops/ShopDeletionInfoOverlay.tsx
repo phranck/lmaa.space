@@ -211,7 +211,7 @@ export function ShopDeletionInfoOverlay({
                 type="button"
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+                className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
               >
                 {messages.common.cancel}
               </button>
@@ -231,7 +231,7 @@ export function ShopDeletionInfoOverlay({
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="py-1.5 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                  className="py-1.5 px-4 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
                 >
                   <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                   {messages.common.edit}

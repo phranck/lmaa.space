@@ -236,6 +236,7 @@ export const submissions = pgTable(
     rejectionLongText: text("rejection_long_text"),
     rejectionToken: text("rejection_token").unique(),
     feedbackSent: boolean("feedback_sent").notNull().default(false),
+    readyForReview: boolean("ready_for_review").notNull().default(false),
     reviewedBy: integer("reviewed_by").references(() => adminUsers.id),
     reviewedAt: timestamp("reviewed_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -93,7 +93,7 @@
   /* Borders */
   --ds-border: #d0d7de; /* borderColor-default */
   --ds-border-strong: #6e7781; /* borderColor-emphasis */
-  --ds-border-subtle: rgba(175, 184, 193, 0.2); /* borderColor-muted */
+  --ds-border-subtle: hsl(210 14% 89%); /* borderColor-muted */
 
   /* Text — computed from lightness */
   --ds-text: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h));
@@ -108,19 +108,19 @@
   --ds-accent-subtle: var(--ds-color-brand-50);
   --ds-accent-fg: #ffffff;
 
-  /* Status — exact GitHub Light primer values */
-  --ds-success-bg: #dafbe1; /* bgColor-success-muted */
-  --ds-success-border: rgba(74, 194, 107, 0.4); /* borderColor-success */
-  --ds-success-text: #1a7f37; /* fgColor-success */
-  --ds-danger-bg: #ffebe9; /* bgColor-danger-muted */
-  --ds-danger-border: rgba(255, 129, 130, 0.4); /* borderColor-danger */
-  --ds-danger-text: #d1242f; /* fgColor-danger */
-  --ds-warning-bg: #fff8c5; /* bgColor-attention-muted */
-  --ds-warning-border: rgba(212, 167, 44, 0.4); /* borderColor-attention */
-  --ds-warning-text: #9a6700; /* fgColor-attention */
-  --ds-info-bg: #ddf4ff; /* bgColor-accent-muted */
-  --ds-info-border: rgba(84, 174, 255, 0.4); /* borderColor-accent */
-  --ds-info-text: #0969da; /* fgColor-accent */
+  /* Status */
+  --ds-success-bg: hsl(135 60% 92%);
+  --ds-success-border: hsl(130 40% 70%);
+  --ds-success-text: hsl(140 65% 30%);
+  --ds-danger-bg: hsl(0 80% 95%);
+  --ds-danger-border: hsl(0 60% 72%);
+  --ds-danger-text: hsl(0 75% 48%);
+  --ds-warning-bg: hsl(48 90% 90%);
+  --ds-warning-border: hsl(45 65% 55%);
+  --ds-warning-text: hsl(40 100% 30%);
+  --ds-info-bg: hsl(205 80% 93%);
+  --ds-info-border: hsl(210 70% 68%);
+  --ds-info-text: hsl(212 80% 44%);
 
   /* Typography — font families */
   --ds-font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -230,24 +230,24 @@
   /* Borders — borderColor-default #3d444d · muted rgba · emphasis #656c76 */
   --ds-border: #3d444d; /* borderColor-default */
   --ds-border-strong: #656c76; /* borderColor-emphasis */
-  --ds-border-subtle: rgba(61, 68, 77, 0.7); /* borderColor-muted (alpha) */
+  --ds-border-subtle: hsl(215 12% 28%);
 
-  /* Accent — bgColor-accent-muted (4184e41a) */
-  --ds-accent-subtle: rgba(65, 132, 228, 0.1); /* bgColor-accent-muted */
+  /* Accent */
+  --ds-accent-subtle: hsl(215 30% 20%);
 
-  /* Status — exact Primer dark_dimmed values */
-  --ds-success-bg: rgba(70, 149, 74, 0.15); /* bgColor-success-muted */
-  --ds-success-border: rgba(87, 171, 90, 0.4); /* borderColor-success */
-  --ds-success-text: #57ab5a; /* fgColor-success */
-  --ds-danger-bg: rgba(229, 83, 75, 0.1); /* bgColor-danger-muted */
-  --ds-danger-border: rgba(229, 83, 75, 0.4); /* borderColor-danger */
-  --ds-danger-text: #e5534b; /* fgColor-danger */
-  --ds-warning-bg: rgba(174, 124, 20, 0.15); /* bgColor-attention-muted */
-  --ds-warning-border: rgba(198, 144, 38, 0.4); /* borderColor-attention */
-  --ds-warning-text: #c69026; /* fgColor-attention */
-  --ds-info-bg: rgba(56, 139, 253, 0.1); /* bgColor-accent-muted */
-  --ds-info-border: rgba(56, 139, 253, 0.4); /* borderColor-accent */
-  --ds-info-text: #539bf5; /* fgColor-accent */
+  /* Status */
+  --ds-success-bg: hsl(135 25% 18%);
+  --ds-success-border: hsl(130 35% 35%);
+  --ds-success-text: hsl(135 50% 55%);
+  --ds-danger-bg: hsl(0 30% 20%);
+  --ds-danger-border: hsl(0 50% 38%);
+  --ds-danger-text: hsl(0 65% 62%);
+  --ds-warning-bg: hsl(40 35% 18%);
+  --ds-warning-border: hsl(40 50% 35%);
+  --ds-warning-text: hsl(38 60% 55%);
+  --ds-info-bg: hsl(215 30% 20%);
+  --ds-info-border: hsl(215 50% 38%);
+  --ds-info-text: hsl(212 70% 65%);
 
   /* Shadows — stronger for very dark surfaces */
   --ds-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -276,10 +276,10 @@
   --ds-btn-primary-fg: #ffffff;
 
   /* Outline action button: primary */
-  --ds-btn-primary-border: rgba(0, 174, 241, 0.4);
-  --ds-btn-primary-text: #0099d4;
-  --ds-btn-primary-hover-border: rgba(0, 174, 241, 0.7);
-  --ds-btn-primary-hover-bg: rgba(0, 174, 241, 0.08);
+  --ds-btn-primary-border: hsl(195 55% 75%);
+  --ds-btn-primary-text: hsl(195 100% 40%);
+  --ds-btn-primary-hover-border: hsl(195 65% 58%);
+  --ds-btn-primary-hover-bg: hsl(195 80% 96%);
 
   /* Segment controls */
   --ds-segment-bg: var(--ds-bg-elevated);
@@ -289,32 +289,37 @@
   --ds-btn-neutral-border: var(--ds-border);
   --ds-btn-neutral-text: var(--ds-text-muted);
   --ds-btn-neutral-hover-border: var(--ds-border-strong);
+  --ds-btn-neutral-hover-bg: hsl(210 10% 95%);
 
   /* Outline action button: danger */
-  --ds-btn-danger-border: rgba(209, 36, 47, 0.4);
-  --ds-btn-danger-text: #d1242f; /* fgColor-danger */
-  --ds-btn-danger-hover-bg: #ffebe9; /* bgColor-danger-muted */
-  --ds-btn-danger-hover-border: rgba(209, 36, 47, 0.7);
+  --ds-btn-danger-border: hsl(355 55% 75%);
+  --ds-btn-danger-text: hsl(0 75% 48%);
+  --ds-btn-danger-hover-bg: hsl(0 80% 95%);
+  --ds-btn-danger-hover-border: hsl(355 60% 58%);
 
   /* Outline action button: success */
-  --ds-btn-success-border: rgba(26, 127, 55, 0.4);
-  --ds-btn-success-text: #1a7f37; /* fgColor-success */
-  --ds-btn-success-hover-bg: #dafbe1; /* bgColor-success-muted */
-  --ds-btn-success-hover-border: rgba(26, 127, 55, 0.7);
+  --ds-btn-success-border: hsl(140 40% 72%);
+  --ds-btn-success-text: hsl(140 65% 30%);
+  --ds-btn-success-hover-bg: hsl(135 60% 92%);
+  --ds-btn-success-hover-border: hsl(140 50% 52%);
 
   /* Outline action button: warning */
-  --ds-btn-warning-border: rgba(154, 103, 0, 0.4);
-  --ds-btn-warning-text: #9a6700; /* fgColor-attention */
-  --ds-btn-warning-hover-bg: #fff8c5; /* bgColor-attention-muted */
-  --ds-btn-warning-hover-border: rgba(154, 103, 0, 0.7);
+  --ds-btn-warning-border: hsl(40 55% 68%);
+  --ds-btn-warning-text: hsl(40 100% 30%);
+  --ds-btn-warning-hover-bg: hsl(48 90% 90%);
+  --ds-btn-warning-hover-border: hsl(40 65% 48%);
 
   /* Status badges (inline chips) */
-  --ds-badge-pending-bg: #fff8c5; /* bgColor-attention-muted */
-  --ds-badge-pending-text: #9a6700; /* fgColor-attention */
-  --ds-badge-success-bg: #dafbe1; /* bgColor-success-muted */
-  --ds-badge-success-text: #1a7f37; /* fgColor-success */
-  --ds-badge-danger-bg: #ffebe9; /* bgColor-danger-muted */
-  --ds-badge-danger-text: #d1242f; /* fgColor-danger */
+  --ds-badge-pending-bg: hsl(48 90% 90%);
+  --ds-badge-pending-text: hsl(40 100% 30%);
+  --ds-badge-success-bg: hsl(135 60% 92%);
+  --ds-badge-success-text: hsl(140 65% 30%);
+  --ds-badge-danger-bg: hsl(0 80% 95%);
+  --ds-badge-danger-text: hsl(0 75% 48%);
+  --ds-badge-info-bg: hsl(205 80% 93%);
+  --ds-badge-info-text: hsl(212 80% 44%);
+  --ds-badge-review-bg: hsl(270 70% 93%);
+  --ds-badge-review-text: hsl(270 55% 50%);
 }
 
 /* ── COMPONENT TOKENS · Dark mode ────────────────────────────  */
@@ -325,12 +330,12 @@
   --ds-btn-filled-hover: var(--ds-color-neutral-600);
 
   /* Outline action button: primary */
-  --ds-btn-primary-border: rgba(0, 174, 241, 0.4);
-  --ds-btn-primary-text: #39bff3;
-  --ds-btn-primary-hover-border: rgba(0, 174, 241, 0.7);
-  --ds-btn-primary-hover-bg: rgba(0, 174, 241, 0.1);
+  --ds-btn-primary-border: hsl(195 40% 30%);
+  --ds-btn-primary-text: hsl(195 80% 62%);
+  --ds-btn-primary-hover-border: hsl(195 50% 45%);
+  --ds-btn-primary-hover-bg: hsl(195 30% 20%);
 
-  /* Segment controls — inherit from semantic tokens */
+  /* Segment controls -- inherit from semantic tokens */
   --ds-segment-bg: var(--ds-bg-elevated);
   --ds-segment-active-bg: var(--ds-surface);
 
@@ -338,32 +343,37 @@
   --ds-btn-neutral-border: var(--ds-border);
   --ds-btn-neutral-text: var(--ds-text-muted);
   --ds-btn-neutral-hover-border: var(--ds-border-strong);
+  --ds-btn-neutral-hover-bg: hsl(215 12% 24%);
 
   /* Outline action button: danger */
-  --ds-btn-danger-border: rgba(229, 83, 75, 0.4);
-  --ds-btn-danger-text: #e5534b;
-  --ds-btn-danger-hover-bg: rgba(229, 83, 75, 0.1);
-  --ds-btn-danger-hover-border: rgba(229, 83, 75, 0.7);
+  --ds-btn-danger-border: hsl(0 40% 30%);
+  --ds-btn-danger-text: hsl(0 65% 62%);
+  --ds-btn-danger-hover-bg: hsl(0 30% 20%);
+  --ds-btn-danger-hover-border: hsl(0 50% 42%);
 
   /* Outline action button: success */
-  --ds-btn-success-border: rgba(87, 171, 90, 0.4);
-  --ds-btn-success-text: #57ab5a;
-  --ds-btn-success-hover-bg: rgba(70, 149, 74, 0.15);
-  --ds-btn-success-hover-border: rgba(87, 171, 90, 0.7);
+  --ds-btn-success-border: hsl(130 30% 30%);
+  --ds-btn-success-text: hsl(135 50% 55%);
+  --ds-btn-success-hover-bg: hsl(135 25% 18%);
+  --ds-btn-success-hover-border: hsl(130 40% 42%);
 
   /* Outline action button: warning */
-  --ds-btn-warning-border: rgba(198, 144, 38, 0.4);
-  --ds-btn-warning-text: #c69026; /* fgColor-attention */
-  --ds-btn-warning-hover-bg: rgba(174, 124, 20, 0.15);
-  --ds-btn-warning-hover-border: rgba(198, 144, 38, 0.7);
+  --ds-btn-warning-border: hsl(40 40% 30%);
+  --ds-btn-warning-text: hsl(38 60% 55%);
+  --ds-btn-warning-hover-bg: hsl(40 35% 18%);
+  --ds-btn-warning-hover-border: hsl(40 50% 42%);
 
   /* Status badges */
-  --ds-badge-pending-bg: rgba(174, 124, 20, 0.15);
-  --ds-badge-pending-text: #c69026;
-  --ds-badge-success-bg: rgba(70, 149, 74, 0.15);
-  --ds-badge-success-text: #57ab5a;
-  --ds-badge-danger-bg: rgba(229, 83, 75, 0.1);
-  --ds-badge-danger-text: #e5534b;
+  --ds-badge-pending-bg: hsl(40 40% 20%);
+  --ds-badge-pending-text: hsl(40 70% 65%);
+  --ds-badge-success-bg: hsl(135 30% 18%);
+  --ds-badge-success-text: hsl(135 50% 60%);
+  --ds-badge-danger-bg: hsl(0 35% 20%);
+  --ds-badge-danger-text: hsl(0 70% 65%);
+  --ds-badge-info-bg: hsl(210 40% 22%);
+  --ds-badge-info-text: hsl(210 80% 72%);
+  --ds-badge-review-bg: hsl(270 30% 25%);
+  --ds-badge-review-text: hsl(270 80% 80%);
 
   /* Markdown editor syntax highlighting */
   --md-heading:     #79c0ff;

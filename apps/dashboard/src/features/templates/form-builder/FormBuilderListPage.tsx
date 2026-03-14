@@ -458,7 +458,7 @@ export function FormBuilderListPage() {
                         <button
                           type="button"
                           onClick={() => handleExportSingle(form)}
-                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
                         >
                           <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
                           {m.exportForm}
@@ -466,7 +466,7 @@ export function FormBuilderListPage() {
                         <button
                           type="button"
                           onClick={() => navigate(`/forms/${form.name}`)}
-                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
                         >
                           <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
                           {m.editButton}

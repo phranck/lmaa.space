@@ -190,6 +190,13 @@
       "when": 1773279600000,
       "tag": "0026_shared_rate_limit_store",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1773532800000,
+      "tag": "0027_add_ready_for_review",
+      "breakpoints": true
     }
   ]
 }

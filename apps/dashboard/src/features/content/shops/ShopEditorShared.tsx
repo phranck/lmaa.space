@@ -723,18 +723,6 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                 />
                 {jsonImportError && <FormErrorText>{jsonImportError}</FormErrorText>}
               </div>
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    void applyShopCheckJson(shopCheckJson, { showErrors: true });
-                  }}
-                  className="flex items-center gap-1.5 h-7 px-3 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-xs font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
-                >
-                  <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-                  {shopFormI18n.messages.jsonApplyLabel}
-                </button>
-              </div>
             </div>
           }
           detailsAside={
@@ -862,7 +850,7 @@ function ShopPreviewImageSection({
   setImageLabel,
 }: ShopPreviewImageSectionProps) {
   const buttonClass =
-    "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-40";
+    "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-btn-neutral-border)] rounded-control text-xs text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-40";
 
   return (
     <div className="mb-4 pb-4 border-b border-[var(--ds-border-subtle)]">

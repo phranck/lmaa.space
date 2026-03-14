@@ -446,7 +446,7 @@ export function FooterBuilderPage() {
             type="button"
             onClick={handleReloadPreview}
             disabled={isPreviewPending}
-            className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-50 transition-colors"
           >
             <ArrowClockwiseIcon
               weight="duotone"

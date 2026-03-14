@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { render, useApp } from "ink";
 import React, { useEffect, useState } from "react";
@@ -6,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import { ShopcheckEngine } from "./engine";
 import { parseArgs } from "./lib/utils";
 import { PATHS, SHOPCHECK_DIR } from "./paths";
-import type { PromptState } from "./types";
+import type { PromptState, Shop } from "./types";
 import { ShopcheckApp } from "./ui/App";
 import { useEngineRuntime } from "./ui/hooks/useEngineRuntime";
 
@@ -17,6 +18,7 @@ function printHelp(): void {
       "",
       "Options:",
       "  --url <url>      Check a single URL instead of loading from DB",
+      "  --import <file>  Load shops from a JSON file instead of the DB",
       "  --batch <n>      Max number of shops for this run",
       "  --status         Print current persisted status and exit",
       "  --reset          Remove local state/results/logs and exit",
@@ -78,7 +80,32 @@ export async function runCli(): Promise<void> {
 
   const engineOpts: { batchSize: number | null; singleUrl?: string } = { batchSize: args.batchSize };
   if (args.singleUrl) engineOpts.singleUrl = args.singleUrl;
-  const engine = new ShopcheckEngine(engineOpts);
+
+  const deps: ConstructorParameters<typeof ShopcheckEngine>[1] = {};
+  if (args.importFile) {
+    const filePath = resolve(args.importFile);
+    if (!existsSync(filePath)) {
+      process.stderr.write(`Error: file not found: ${filePath}\n`);
+      process.exitCode = 1;
+      return;
+    }
+    const raw = JSON.parse(readFileSync(filePath, "utf8")) as unknown;
+    if (!Array.isArray(raw) || !raw.every((entry): entry is Shop =>
+      typeof entry === "object" && entry !== null &&
+      typeof (entry as Record<string, unknown>).id === "number" &&
+      typeof (entry as Record<string, unknown>).name === "string" &&
+      typeof (entry as Record<string, unknown>).url === "string"
+    )) {
+      process.stderr.write("Error: file must contain an array of { id, name, url } objects\n");
+      process.exitCode = 1;
+      return;
+    }
+    const shops = raw as Shop[];
+    deps.loadShops = async () => shops;
+    process.stdout.write(`Loaded ${shops.length} shops from ${filePath}\n`);
+  }
+
+  const engine = new ShopcheckEngine(engineOpts, deps);
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
     process.on(signal, () => engine.requestShutdown(signal));
   }

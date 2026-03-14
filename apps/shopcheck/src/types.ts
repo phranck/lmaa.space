@@ -29,6 +29,7 @@ export type RunnerState = {
 export type Args = {
   batchSize: number | null;
   singleUrl: string | null;
+  importFile: string | null;
   help: boolean;
   statusOnly: boolean;
   resetOnly: boolean;
