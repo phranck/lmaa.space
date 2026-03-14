@@ -6,14 +6,11 @@ import { loadShops } from "./lib/db";
 import { appendNdjson, isResumableState, nowIso, readJson, writeJson } from "./lib/utils";
 import { LlmFatalError, getModelName } from "./llm/client";
 import { PATHS, SHOPCHECK_DIR } from "./paths";
-import { analyzeShopWithLlm } from "./pipeline/analyze";
+import { runShopCheckAgent } from "./pipeline/agent";
 import { loadCategoriesCached } from "./pipeline/categories";
 import { fetchAdmissionCriteria } from "./pipeline/criteria";
-import { extractFacts, normalizeShipping } from "./pipeline/extract";
-import { geocodeWithFallback } from "./pipeline/geocode";
-import { buildShopJson } from "./pipeline/output";
+import { extractFacts } from "./pipeline/extract";
 import { crawlRelevantPages } from "./pipeline/research";
-import { searchExternalContext, searchSocialMedia, webSearchFallback } from "./pipeline/web-search";
 import type { LogEntry, ResultsState, RunnerState, Shop } from "./types";
 
 export type EngineConfig = {
@@ -43,63 +40,6 @@ export class ShopcheckEngine extends EventEmitter {
     return this.results.entries
       .filter((entry) => entry.shopJson && typeof entry.shopJson === "object")
       .map((entry) => entry.shopJson as Record<string, unknown>);
-  }
-
-  mergeFacts(base: ReturnType<typeof extractFacts>, patch: Partial<ReturnType<typeof extractFacts>>): ReturnType<typeof extractFacts> {
-    const patchAddrFields = [patch.address?.street, patch.address?.postalCode, patch.address?.city].filter(Boolean).length;
-    const baseAddrFields = [base.address.street, base.address.postalCode, base.address.city].filter(Boolean).length;
-    const preferPatchAddr = patchAddrFields >= baseAddrFields && patchAddrFields > 0;
-
-    return {
-      legalEntity: patch.legalEntity ?? base.legalEntity ?? null,
-      legalEntityType: patch.legalEntityType ?? base.legalEntityType ?? null,
-      owners: [...new Set([...(base.owners ?? []), ...(patch.owners ?? [])])],
-      address: preferPatchAddr
-        ? {
-            street: patch.address?.street ?? base.address.street ?? null,
-            postalCode: patch.address?.postalCode ?? base.address.postalCode ?? null,
-            city: patch.address?.city ?? base.address.city ?? null,
-            state: patch.address?.state ?? base.address.state ?? null,
-            countryCode: patch.address?.countryCode ?? base.address.countryCode ?? null,
-            sourceUrl: base.address.sourceUrl ?? patch.address?.sourceUrl ?? null,
-          }
-        : {
-            street: base.address.street ?? patch.address?.street ?? null,
-            postalCode: base.address.postalCode ?? patch.address?.postalCode ?? null,
-            city: base.address.city ?? patch.address?.city ?? null,
-            state: base.address.state ?? patch.address?.state ?? null,
-            countryCode: base.address.countryCode ?? patch.address?.countryCode ?? null,
-            sourceUrl: base.address.sourceUrl ?? patch.address?.sourceUrl ?? null,
-          },
-      contact: {
-        emails: [...new Set([...(base.contact.emails ?? []), ...(patch.contact?.emails ?? [])])],
-        phones: [...new Set([...(base.contact.phones ?? []), ...(patch.contact?.phones ?? [])])],
-      },
-      shippingRegions: normalizeShipping([...(base.shippingRegions ?? []), ...(patch.shippingRegions ?? [])]),
-      languageGermanLikely: base.languageGermanLikely || Boolean(patch.languageGermanLikely),
-      exclusionSignals: [...new Set([...(base.exclusionSignals ?? []), ...(patch.exclusionSignals ?? [])])],
-      socialMedia: {
-        mastodon: base.socialMedia.mastodon ?? patch.socialMedia?.mastodon ?? null,
-        bluesky: base.socialMedia.bluesky ?? patch.socialMedia?.bluesky ?? null,
-        twitter: base.socialMedia.twitter ?? patch.socialMedia?.twitter ?? null,
-        instagram: base.socialMedia.instagram ?? patch.socialMedia?.instagram ?? null,
-        tiktok: base.socialMedia.tiktok ?? patch.socialMedia?.tiktok ?? null,
-        youtube: base.socialMedia.youtube ?? patch.socialMedia?.youtube ?? null,
-        twitch: base.socialMedia.twitch ?? patch.socialMedia?.twitch ?? null,
-        pinterest: base.socialMedia.pinterest ?? patch.socialMedia?.pinterest ?? null,
-        linkedin: base.socialMedia.linkedin ?? patch.socialMedia?.linkedin ?? null,
-        facebook: base.socialMedia.facebook ?? patch.socialMedia?.facebook ?? null,
-        threads: base.socialMedia.threads ?? patch.socialMedia?.threads ?? null,
-        patreon: base.socialMedia.patreon ?? patch.socialMedia?.patreon ?? null,
-      },
-      affiliateInfoUrl: base.affiliateInfoUrl ?? patch.affiliateInfoUrl ?? null,
-      notes: {
-        focus: [...new Set([...(base.notes.focus ?? []), ...(patch.notes?.focus ?? [])])],
-        brandsOrProducts: [...new Set([...(base.notes.brandsOrProducts ?? []), ...(patch.notes?.brandsOrProducts ?? [])])],
-        companyPresentation: patch.notes?.companyPresentation ?? base.notes.companyPresentation ?? null,
-      },
-      evidence: [...(base.evidence ?? []), ...(patch.evidence ?? [])],
-    };
   }
 
   constructor(config: EngineConfig, deps: EngineDeps = {}) {
@@ -156,7 +96,11 @@ export class ShopcheckEngine extends EventEmitter {
     this.state = { ...this.state, ...partial, updatedAt: nowIso() };
     if (this.deps.persist !== false) {
       writeJson(PATHS.state, this.state);
-      writeJson(PATHS.resultsState, this.results);
+      if (this.config.singleUrl && this.results.entries.length === 1 && this.results.entries[0].shopJson) {
+        writeJson(PATHS.resultsState, this.results.entries[0].shopJson);
+      } else {
+        writeJson(PATHS.resultsState, this.results);
+      }
       writeJson(PATHS.results, this.buildResultsArray());
     }
     this.emit("state", this.state);
@@ -218,129 +162,44 @@ export class ShopcheckEngine extends EventEmitter {
       return this.deps.processShop(shop);
     }
 
-    // Phase 1: Crawl (0-20%)
+    // Phase 1: Pre-crawl the shop website (robust, deterministic)
     this.persistState({ pipelineProgress: 0 });
-    this.emitLog(`[${shop.id}] Crawling shop pages...`);
+    this.emitLog(`[${shop.id}] Phase 1: Crawling shop pages...`);
     const pages = await crawlRelevantPages({
       shopUrl: shop.url,
       userAgent: SHOPCHECK_USER_AGENT,
       onProgress: (message) => this.emitLog(message),
     });
     if (pages.length === 0) {
-      return {
-        shopName: shop.name,
-        shopUrl: shop.url,
-        verdict: "error",
-        shopJson: null,
-      };
+      return { shopName: shop.name, shopUrl: shop.url, verdict: "error", shopJson: null };
     }
 
-    // Phase 2: Deterministic extraction (20-25%)
-    this.persistState({ pipelineProgress: 20 });
-    this.emitLog(`[${shop.id}] Deterministic fact extraction from ${pages.length} pages...`);
-    let allPages = [...pages];
-    let deterministicFacts = extractFacts(allPages);
+    // Phase 2: Deterministic fact extraction
+    this.persistState({ pipelineProgress: 15 });
+    this.emitLog(`[${shop.id}] Phase 2: Deterministic extraction from ${pages.length} pages...`);
+    const facts = extractFacts(pages);
 
-    // Phase 3: Web search for comprehensive coverage (25-35%)
+    // Phase 3: Agent-based analysis (with server-side web search)
     this.persistState({ pipelineProgress: 25 });
-    this.emitLog(`[${shop.id}] Running web search for additional pages...`);
-    const webPages = await webSearchFallback({
-      shopName: shop.name,
+    this.emitLog(`[${shop.id}] Phase 3: Agent analysis with ${pages.length} pre-crawled pages...`);
+    const result = await runShopCheckAgent({
       shopUrl: shop.url,
-      userAgent: SHOPCHECK_USER_AGENT,
-      onProgress: (message) => this.emitLog(message),
-    });
-    if (webPages.length > 0) {
-      allPages = [...allPages, ...webPages.filter((p) => !allPages.some((q) => q.url === p.url))];
-      deterministicFacts = extractFacts(allPages);
-    }
-
-    // Phase 3a: External counter-research (35-40%)
-    this.persistState({ pipelineProgress: 35 });
-    this.emitLog(`[${shop.id}] Running external counter-research...`);
-    const externalContext = await searchExternalContext({
       shopName: shop.name,
-      userAgent: SHOPCHECK_USER_AGENT,
-      onProgress: (message) => this.emitLog(message),
-    });
-    if (externalContext.length > 0) {
-      this.emitLog(`[${shop.id}] Found ${externalContext.length} external context result(s).`);
-    }
-
-    // Phase 3b: Active social media search (40-45%)
-    this.persistState({ pipelineProgress: 40 });
-    this.emitLog(`[${shop.id}] Searching for social media profiles...`);
-    const socialSearchResults = await searchSocialMedia({
-      shopName: shop.name,
-      existingSocial: deterministicFacts.socialMedia,
-      userAgent: SHOPCHECK_USER_AGENT,
-      onProgress: (message) => this.emitLog(message),
-    });
-    const socialFound = Object.keys(socialSearchResults).length;
-    if (socialFound > 0) {
-      this.emitLog(`[${shop.id}] Found ${socialFound} additional social profile(s) via search.`);
-      for (const [key, url] of Object.entries(socialSearchResults)) {
-        if (url) {
-          (deterministicFacts.socialMedia as Record<string, string | null>)[key] = url;
-        }
-      }
-    }
-
-    // Phase 4: Combined LLM analysis (45-75%)
-    this.persistState({ pipelineProgress: 45 });
-    this.emitLog(`[${shop.id}] LLM analysis (facts + criteria + categories) with ${allPages.length} pages...`);
-    const analysis = await analyzeShopWithLlm({
-      shopUrl: shop.url,
-      pages: allPages,
-      deterministicFacts,
-      availableCategories: this.categoryCatalog,
+      preCrawledPages: pages,
+      preCrawledFacts: facts,
       admissionCriteriaText: this.admissionCriteriaText,
-      externalContext,
+      categories: this.categoryCatalog,
       onProgress: (message) => this.emitLog(message),
     });
 
-    const llmAddr = analysis.factsPatch.address;
-    this.emitLog(`[${shop.id}] LLM address: street=${llmAddr?.street ?? "null"}, postalCode=${llmAddr?.postalCode ?? "null"}, city=${llmAddr?.city ?? "null"}, country=${llmAddr?.countryCode ?? "null"}`);
-
-    const facts = this.mergeFacts(deterministicFacts, analysis.factsPatch);
-    const decision = analysis.decision;
-    const matchedCategories = analysis.categories;
-
-    // Phase 5: Geocoding (70-80%)
-    this.persistState({ pipelineProgress: 70 });
-    const addr = facts.address;
-    this.emitLog(`[${shop.id}] Address data: street=${addr.street ?? "null"}, postalCode=${addr.postalCode ?? "null"}, city=${addr.city ?? "null"}, country=${addr.countryCode ?? "null"}`);
-    this.emitLog(`[${shop.id}] Geocoding...`);
-    const geo = await geocodeWithFallback({
-      street: facts.address.street,
-      postalCode: facts.address.postalCode,
-      city: facts.address.city,
-      countryCode: facts.address.countryCode,
-      userAgent: SHOPCHECK_USER_AGENT,
-    });
-    if (!facts.address.state && geo.resolvedState) facts.address.state = geo.resolvedState;
-    if (!facts.address.countryCode && geo.resolvedCountryCode) facts.address.countryCode = geo.resolvedCountryCode;
-    if (!facts.address.city && geo.resolvedCity) facts.address.city = geo.resolvedCity;
-    this.emitLog(`[${shop.id}] Geo result: ${geo.source}, lat=${geo.latitude ?? "null"}, lon=${geo.longitude ?? "null"}, country=${geo.resolvedCountryCode ?? "unknown"}, state=${geo.resolvedState ?? "unknown"}`);
-
-    // Phase 6: Build JSON + description (80-100%)
-    this.persistState({ pipelineProgress: 80 });
-    this.emitLog(`[${shop.id}] Building shop JSON (verdict: ${decision.verdict})...`);
-    const shopJson = await buildShopJson({
-      shopName: shop.name,
-      shopUrl: shop.url,
-      decision,
-      facts,
-      geo,
-      categories: matchedCategories,
-      pageTexts: allPages.map((p) => ({ url: p.url, text: p.text })),
-    });
+    this.emitLog(`[${shop.id}] Agent verdict: ${result.verdict}`);
+    this.persistState({ pipelineProgress: 100 });
 
     return {
-      shopName: shop.name,
-      shopUrl: shop.url,
-      verdict: decision.verdict,
-      shopJson,
+      shopName: result.shopName,
+      shopUrl: result.shopUrl,
+      verdict: result.verdict,
+      shopJson: result.shopJson,
     };
   }
 
