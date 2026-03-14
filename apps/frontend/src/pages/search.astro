@@ -112,9 +112,9 @@ const hasQuery = q.length >= 2;
         <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
           Shops
         </h2>
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {shopResults.map((shop) => (
-            <ShopCard shop={shop} analyticsSource="search-result" />
+            <ShopCard shop={shop} detailHref={`/shop/${shop.id}?from=search&q=${encodeURIComponent(q)}`} />
           ))}
         </div>
       </section>

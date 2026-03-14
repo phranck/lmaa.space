@@ -1,0 +1,84 @@
+---
+import { shopDomain } from "@/lib/shop";
+import { REGION_CODES, type Shop } from "@lmaa/shared";
+
+interface Props {
+  shop: Shop;
+  detailHref: string;
+}
+
+const { shop, detailHref } = Astro.props;
+
+const domain = shopDomain(shop.url);
+const sortedRegions = [...shop.region].sort(
+  (a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b),
+);
+
+const MAX_PILLS = 2;
+const visibleCategories = shop.categories?.slice(0, MAX_PILLS) ?? [];
+const extraCount = (shop.categories?.length ?? 0) - MAX_PILLS;
+---
+
+<a
+  href={detailHref}
+  class="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl hover:bg-stone-50 transition-colors group"
+  data-analytics-event="shop-list-click"
+  data-shop-id={String(shop.id)}
+  data-shop-name={shop.name}
+>
+  <!-- og:image -->
+  <div class="shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
+    {shop.ogImage ? (
+      <img
+        src={shop.ogImage}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        class="w-full h-full object-contain"
+        data-img-fallback
+      />
+      <span class="text-sm font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
+        {shop.name.charAt(0).toUpperCase()}
+      </span>
+    ) : (
+      <span class="text-sm font-bold text-stone-300 select-none">
+        {shop.name.charAt(0).toUpperCase()}
+      </span>
+    )}
+  </div>
+
+  <!-- Name + domain -->
+  <div class="flex-1 min-w-0">
+    <p class="font-serif font-semibold text-stone-900 text-sm leading-snug truncate group-hover:text-amber-800 transition-colors">
+      {shop.name}
+    </p>
+    <p class="text-xs text-stone-400 truncate">{domain}</p>
+  </div>
+
+  <!-- Category pills (hidden on mobile) -->
+  {visibleCategories.length > 0 && (
+    <div class="hidden md:flex flex-wrap gap-1 shrink-0">
+      {visibleCategories.map((cat) => (
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70">
+          {cat.name}
+        </span>
+      ))}
+      {extraCount > 0 && (
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-400">
+          +{extraCount}
+        </span>
+      )}
+    </div>
+  )}
+
+  <!-- Region badges (hidden on mobile) -->
+  {sortedRegions.length > 0 && (
+    <div class="hidden sm:flex gap-1 shrink-0">
+      {sortedRegions.map((r) => (
+        <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
+          {r}
+        </span>
+      ))}
+    </div>
+  )}
+</a>
