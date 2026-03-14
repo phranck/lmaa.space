@@ -1,0 +1,39 @@
+---
+/**
+ * Segmented control to switch between grid and list view.
+ * Works with the inline script in the parent page that manages
+ * the `data-view` attribute on the shop container.
+ */
+---
+
+<div class="inline-flex rounded-lg border border-stone-200 p-0.5 bg-stone-50" role="radiogroup" aria-label="Ansicht wechseln">
+  <button
+    type="button"
+    class="view-toggle-btn w-8 h-8 flex items-center justify-center rounded-md transition-colors"
+    data-view-toggle="grid"
+    aria-label="Rasteransicht"
+    aria-checked="true"
+    role="radio"
+  >
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5" />
+      <rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5" />
+      <rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5" />
+      <rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5" />
+    </svg>
+  </button>
+  <button
+    type="button"
+    class="view-toggle-btn w-8 h-8 flex items-center justify-center rounded-md transition-colors"
+    data-view-toggle="list"
+    aria-label="Listenansicht"
+    aria-checked="false"
+    role="radio"
+  >
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="1" y="2" width="14" height="3" rx="1" stroke="currentColor" stroke-width="1.5" />
+      <rect x="1" y="7" width="14" height="3" rx="1" stroke="currentColor" stroke-width="1.5" />
+      <rect x="1" y="12" width="14" height="3" rx="1" stroke="currentColor" stroke-width="1.5" />
+    </svg>
+  </button>
+</div>
