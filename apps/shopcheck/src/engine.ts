@@ -368,12 +368,13 @@ export class ShopcheckEngine extends EventEmitter {
       const pending = shops.filter((s) => !processedIds.has(s.id));
       const batchSize = await this.resolveBatchSize(pending.length);
       selected = batchSize ? pending.slice(0, batchSize) : pending;
-      this.persistState({ total: shops.length, completed: processedIds.size, processedShopIds: [...processedIds].sort((a, b) => a - b) });
+      this.persistState({ total: selected.length, completed: 0, processedShopIds: [...processedIds].sort((a, b) => a - b) });
       this.emitLog(
         `Running: mode=${mode}, total=${shops.length}, pending=${pending.length}, batch=${batchSize ?? "ALL"} (${selected.length}).`,
       );
     }
 
+    let batchCompleted = 0;
     for (const shop of selected) {
       if (this.shutdownRequested) break;
       this.persistState({ currentShop: shop });
@@ -398,7 +399,8 @@ export class ShopcheckEngine extends EventEmitter {
         this.emitLog(`Error on shop ${shop.id}: ${message}`, "error");
       }
       processedIds.add(shop.id);
-      this.persistState({ completed: processedIds.size, pipelineProgress: 0, processedShopIds: [...processedIds].sort((a, b) => a - b) });
+      batchCompleted += 1;
+      this.persistState({ completed: batchCompleted, pipelineProgress: 0, processedShopIds: [...processedIds].sort((a, b) => a - b) });
     }
 
     this.persistState({ status: this.shutdownRequested ? "stopped" : "completed", currentShop: null });

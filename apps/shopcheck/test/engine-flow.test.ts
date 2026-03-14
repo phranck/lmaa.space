@@ -32,7 +32,8 @@ test("engine run resumes and skips already processed shop ids", async () => {
   assert.deepEqual(calls, [2]);
   assert.equal(engine.state.mode, "resume");
   assert.deepEqual(engine.state.processedShopIds.sort((a, b) => a - b), [1, 2]);
-  assert.equal(engine.state.completed, 2);
+  assert.equal(engine.state.total, 1);
+  assert.equal(engine.state.completed, 1);
 });
 
 test("engine run reset starts from scratch", async () => {
