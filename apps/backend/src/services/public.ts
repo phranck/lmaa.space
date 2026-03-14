@@ -22,6 +22,7 @@ import {
 import {
   type PublicShopRow,
   countPublicShops,
+  findRejectedSubmissionByDomain,
   findShopByDomain,
   getFullPublicShopById,
   getPublicCategoryBySlug,
@@ -164,23 +165,32 @@ export async function validateShopUrl(urlRaw: string | undefined) {
   }
 
   const match = await findShopByDomain(domain);
-  if (!match) {
-    return { status: "available" as const };
+  if (match) {
+    if (match.visibility === "rejected") {
+      const rejectionUrl = match.rejectionToken ? `/rejected/${match.rejectionToken}` : null;
+      return {
+        status: "rejected" as const,
+        shopName: match.name,
+        rejectionUrl,
+      };
+    }
+    return {
+      status: "published" as const,
+      shopName: match.name,
+    };
   }
 
-  if (match.visibility === "rejected") {
-    const rejectionUrl = match.rejectionToken ? `/rejected/${match.rejectionToken}` : null;
+  const submission = await findRejectedSubmissionByDomain(domain);
+  if (submission) {
+    const rejectionUrl = submission.rejectionToken ? `/rejected/${submission.rejectionToken}` : null;
     return {
       status: "rejected" as const,
-      shopName: match.name,
+      shopName: submission.shopName,
       rejectionUrl,
     };
   }
 
-  return {
-    status: "published" as const,
-    shopName: match.name,
-  };
+  return { status: "available" as const };
 }
 
 /**
