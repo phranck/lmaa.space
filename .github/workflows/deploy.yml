@@ -46,6 +46,7 @@ jobs:
             backend:
               - 'apps/backend/**'
               - 'packages/shared/**'
+              - 'packages/contracts/**'
               - 'package.json'
               - 'package-lock.json'
               - 'zerops.yml'
@@ -53,6 +54,7 @@ jobs:
               - 'apps/frontend/**'
               - 'packages/shared/**'
               - 'packages/ui/**'
+              - 'packages/contracts/**'
               - 'package.json'
               - 'package-lock.json'
               - 'zerops.yml'
@@ -60,6 +62,7 @@ jobs:
               - 'apps/dashboard/**'
               - 'packages/shared/**'
               - 'packages/ui/**'
+              - 'packages/contracts/**'
               - 'package.json'
               - 'package-lock.json'
               - 'zerops.yml'
