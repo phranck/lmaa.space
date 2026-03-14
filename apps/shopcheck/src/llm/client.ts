@@ -16,9 +16,9 @@ export type LlmGenerateOptions = {
   temperature?: number;
 };
 
-const CLAUDE_EXTRACTION_MODEL = "claude-haiku-4-5-20251001";
+const CLAUDE_EXTRACTION_MODEL = "claude-sonnet-4-20250514";
 const CLAUDE_NARRATIVE_MODEL = "claude-sonnet-4-20250514";
-const CLAUDE_MAX_TOKENS_EXTRACTION = 4096;
+const CLAUDE_MAX_TOKENS_EXTRACTION = 8192;
 const CLAUDE_MAX_TOKENS_NARRATIVE = 2048;
 
 let anthropicClient: Anthropic | null = null;
