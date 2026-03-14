@@ -1,6 +1,6 @@
 ---
 import { shopDomain } from "@/lib/shop";
-import { REGION_CODES, type Shop } from "@lmaa/shared";
+import type { Shop } from "@lmaa/shared";
 
 interface Props {
   shop: Shop;
@@ -10,9 +10,6 @@ interface Props {
 const { shop, detailHref } = Astro.props;
 
 const domain = shopDomain(shop.url);
-const sortedRegions = [...shop.region].sort(
-  (a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b),
-);
 
 const MAX_PILLS = 2;
 const visibleCategories = shop.categories?.slice(0, MAX_PILLS) ?? [];
@@ -21,7 +18,7 @@ const extraCount = (shop.categories?.length ?? 0) - MAX_PILLS;
 
 <a
   href={detailHref}
-  class="block bg-white rounded-2xl border border-stone-200 p-4 hover:shadow-md hover:border-stone-300 transition-all duration-200"
+  class="block bg-white rounded-2xl border border-stone-200 p-3 sm:p-4 hover:shadow-md hover:border-stone-300 transition-all duration-200"
   data-analytics-event="shop-card-click"
   data-shop-id={String(shop.id)}
   data-shop-name={shop.name}
@@ -48,24 +45,13 @@ const extraCount = (shop.categories?.length ?? 0) - MAX_PILLS;
       )}
     </div>
 
-    <!-- Name + domain + regions -->
+    <!-- Name + domain -->
     <div class="flex-1 min-w-0">
       <h3 class="font-serif font-semibold text-stone-900 text-base leading-snug truncate">
         {shop.name}
       </h3>
       <p class="text-xs text-stone-400 mt-0.5 truncate">{domain}</p>
     </div>
-
-    <!-- Region badges (hidden on very small screens) -->
-    {sortedRegions.length > 0 && (
-      <div class="hidden sm:flex flex-wrap gap-1 shrink-0">
-        {sortedRegions.map((r) => (
-          <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
-            {r}
-          </span>
-        ))}
-      </div>
-    )}
   </div>
 
   <!-- Category pills -->
