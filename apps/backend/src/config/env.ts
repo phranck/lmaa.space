@@ -15,6 +15,10 @@ export const envSchema = z
     DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
     DATABASE_URL_MIGRATOR: z.string().optional(),
     IMAGE_PATH: z.string().default("./uploads"),
+    S3_ENDPOINT: z.string().optional(),
+    S3_BUCKET: z.string().optional(),
+    S3_ACCESS_KEY_ID: z.string().optional(),
+    S3_SECRET_ACCESS_KEY: z.string().optional(),
     SESSION_CLEANUP_INTERVAL_MS: z.coerce
       .number()
       .int()

@@ -18,6 +18,7 @@
     "email:preview": "npx react-email dev --dir src/emails --port 3001"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1009.0",
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.3",
     "@lmaa/contracts": "0.1.0",
