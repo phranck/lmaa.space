@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { socialMediaSchema } from "@lmaa/shared";
 
 import {
