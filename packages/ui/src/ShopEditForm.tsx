@@ -345,25 +345,6 @@ export function ShopEditForm({
         <div className="min-h-0">{detailsAside}</div>
       </div>
 
-      {/* Description */}
-      <div>
-        <FormLabel htmlFor="sef-description">
-          <span className="flex items-center gap-1.5">
-            {messages.descriptionLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
-          </span>
-        </FormLabel>
-        <MarkdownEditor
-          id="sef-description"
-          value={value.description}
-          onChange={(v) => set("description", v)}
-          rows={6}
-          resizable
-          className={errors?.description ? "border-red-400" : ""}
-        />
-        {errors?.description && <FormErrorText>{errors.description}</FormErrorText>}
-        {descriptionHint}
-      </div>
-
       {/* Categories + Region + Shipping */}
       <div className="grid grid-cols-[1.7fr_0.85fr_1fr] gap-4">
         <div>
@@ -399,6 +380,25 @@ export function ShopEditForm({
           />
           {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
         </div>
+      </div>
+
+      {/* Description */}
+      <div>
+        <FormLabel htmlFor="sef-description">
+          <span className="flex items-center gap-1.5">
+            {messages.descriptionLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+          </span>
+        </FormLabel>
+        <MarkdownEditor
+          id="sef-description"
+          value={value.description}
+          onChange={(v) => set("description", v)}
+          rows={6}
+          resizable
+          className={errors?.description ? "border-red-400" : ""}
+        />
+        {errors?.description && <FormErrorText>{errors.description}</FormErrorText>}
+        {descriptionHint}
       </div>
     </div>
   );
