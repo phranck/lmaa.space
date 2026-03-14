@@ -213,6 +213,7 @@ export default function FilterableSearchResults({
                 ogImage={shop.ogImage}
                 url={shop.url}
                 categories={shop.categories}
+                hasCoordinates={shop.headquarters?.latitude != null && shop.headquarters?.longitude != null}
                 detailHref={buildShopDetailHref(
                   shop.id,
                   query.trim(),

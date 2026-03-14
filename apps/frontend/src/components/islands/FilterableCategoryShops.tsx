@@ -145,6 +145,7 @@ export default function FilterableCategoryShops({
               url={shop.url}
               categories={shop.categories}
               detailHref={buildShopDetailHref(shop.id, slug, currentFilters)}
+              hasCoordinates={shop.headquarters?.latitude != null && shop.headquarters?.longitude != null}
             />
           ))}
         </div>
