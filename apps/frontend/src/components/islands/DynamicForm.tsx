@@ -153,12 +153,18 @@ function buildValidationRules(
     };
   }
 
-  // Auto email pattern when no custom pattern is set
+  // Auto patterns when no custom pattern is set
   const effectiveType = field.inputType ?? field.type;
   if (effectiveType === "email" && !rules.pattern) {
     rules.pattern = {
       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
       message: "Bitte eine gültige E-Mail-Adresse eingeben",
+    };
+  }
+  if (effectiveType === "url" && !rules.pattern) {
+    rules.pattern = {
+      value: /^(https?:\/\/)?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+([/?#].*)?$/,
+      message: "Bitte eine gültige URL eingeben (z.B. example.com)",
     };
   }
 
@@ -443,7 +449,8 @@ function UrlField({ field, control, error }: UrlFieldProps) {
       </label>
       <input
         id={key}
-        type="url"
+        type="text"
+        inputMode="url"
         placeholder={field.placeholder}
         maxLength={maxLen}
         className={inputClass}
