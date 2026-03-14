@@ -2,6 +2,8 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
+import { decodeShopToken } from "@lmaa/shared";
+
 import { env } from "../config/env.js";
 import { fail, ok } from "../lib/http.js";
 import { rateLimit, resolveClientIp } from "../middleware/rate-limit.js";
@@ -72,11 +74,11 @@ publicRoutes.get("/shops", publicReadLimit, async (c) => {
   return ok(c, result.data);
 });
 
-// GET /api/shops/:id
-publicRoutes.get("/shops/:id", publicReadLimit, async (c) => {
-  const id = Number(c.req.param("id"));
-  if (!Number.isInteger(id) || id <= 0) {
-    return fail(c, 400, "Invalid shop id");
+// GET /api/shops/:token
+publicRoutes.get("/shops/:token", publicReadLimit, async (c) => {
+  const id = decodeShopToken(c.req.param("token"));
+  if (id === null) {
+    return fail(c, 400, "Invalid shop token");
   }
 
   const result = await getManagedPublicShopById(id);

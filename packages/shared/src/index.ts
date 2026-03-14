@@ -20,5 +20,7 @@ export * from "./utils/api-error.js";
 export * from "./utils/social-media.js";
 /** Rejection token generation for public rejection pages. */
 export * from "./utils/rejection-token.js";
+/** Shop ID encoding/decoding for public URLs. */
+export * from "./utils/shop-token.js";
 /** Shared footer CSS and style-var helper for frontend and backend preview. */
 export { FOOTER_STYLES_CSS, footerStyleVars, resolveFooterHeightPx } from "./footer-styles.js";

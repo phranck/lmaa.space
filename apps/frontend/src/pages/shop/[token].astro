@@ -2,8 +2,9 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
+import { regionFlag } from "@/lib/region-flag";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
-import { REGION_CODES, type Shop } from "@lmaa/shared";
+import { REGION_CODES, type Shop, encodeShopToken } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 import {
   ArrowLeftIcon,
@@ -14,19 +15,20 @@ import {
   TagIcon,
 } from "@phosphor-icons/react";
 
-const { id } = Astro.params;
-const numericId = Number(id);
+const { token } = Astro.params;
 
-if (!id || !Number.isInteger(numericId) || numericId <= 0) {
+if (!token || !/^[a-z0-9]+$/.test(token)) {
   return Astro.redirect("/404");
 }
 
 let shop: Shop;
 try {
-  shop = await apiGet<Shop>(`/shops/${numericId}`);
+  shop = await apiGet<Shop>(`/shops/${token}`);
 } catch {
   return Astro.redirect("/404");
 }
+
+const shopToken = encodeShopToken(shop.id);
 
 const domain = shopDomain(shop.url);
 const visitUrl = shopRefUrl(shop.url);
@@ -110,7 +112,7 @@ const jsonLd = {
       "@type": "ListItem",
       position: breadcrumb.length + 1,
       name: shop.name,
-      item: `${site}/shop/${shop.id}`,
+      item: `${site}/shop/${shopToken}`,
     },
   ],
 };
@@ -189,8 +191,8 @@ const metaDescription = shop.description
           {sortedRegions.length > 0 && (
             <div class="flex flex-wrap gap-1.5 shrink-0">
               {sortedRegions.map((r) => (
-                <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
-                  {r}
+                <span class="text-xl leading-none" title={r}>
+                  {regionFlag(r)}
                 </span>
               ))}
             </div>
