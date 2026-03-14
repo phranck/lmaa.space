@@ -53,12 +53,12 @@ export function SuggestionsTab({
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-medium truncate text-[var(--ds-text)]">{submission.shopName}</p>
               <span
-                className={`px-2 py-px rounded-full text-[10px] font-medium ${STATUS_COLORS[submission.status]}`}
+                className={`px-2 rounded-full text-[10px] leading-[18px] font-medium ${STATUS_COLORS[submission.status]}`}
               >
                 {statusLabels[submission.status]}
               </span>
               {submission.readyForReview && (
-                <span className="px-2.5 py-px rounded-full text-[11px] font-semibold bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
+                <span className="px-2.5 rounded-full text-[11px] leading-[18px] font-semibold bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
                   {submissionsMessages.suggestions.reviewBadge}
                 </span>
               )}
