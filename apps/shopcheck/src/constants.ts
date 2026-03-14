@@ -1,6 +1,6 @@
 // Temperature: low for extraction/analysis, moderate for narratives
 export const TEMPERATURE_EXTRACTION = 0.1;
-export const TEMPERATURE_NARRATIVE = 0.3;
+export const TEMPERATURE_NARRATIVE = 0.55;
 
 // Timeouts
 export const TIMEOUT_PAGE_MS = 30_000;
