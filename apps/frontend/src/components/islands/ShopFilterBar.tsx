@@ -104,7 +104,18 @@ export default function ShopFilterBar({
     filters.region.length > 0;
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-5">
+    <div className="relative rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-5">
+      <button
+        type="button"
+        onClick={reset}
+        className={`absolute top-2 right-2 text-stone-300 hover:text-stone-500 transition-all duration-200 ${
+          hasActiveFilters ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        aria-label="Filter zurücksetzen"
+        title="Filter zurücksetzen"
+      >
+        <XCircleIcon weight="duotone" className="w-5 h-5" />
+      </button>
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-3">
         {/* City / PLZ */}
         <div className="flex-1 min-w-[180px]">
@@ -242,18 +253,6 @@ export default function ShopFilterBar({
         </div>
       </div>
 
-      {/* Actions */}
-      {hasActiveFilters && (
-        <div className="mt-3 pt-3 border-t border-stone-200 flex justify-end">
-          <button
-            type="button"
-            onClick={reset}
-            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
-          >
-            Filter zurücksetzen
-          </button>
-        </div>
-      )}
     </div>
   );
 }
