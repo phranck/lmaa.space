@@ -1246,7 +1246,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                   : undefined
               }
               className={`flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors ${
-                btnWidth === "full" ? "w-full justify-center" : ""
+                btnWidth === "full" ? "w-full justify-center" : isSubmit ? "max-sm:w-full max-sm:justify-center" : ""
               } ${
                 isSubmit
                   ? "bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-60"
@@ -1325,11 +1325,30 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                   </p>
                 )}
                 <div className="grid grid-cols-12 gap-4">
-                  {row.fields.map((field) => (
-                    <div key={field.id} style={{ gridColumn: `span ${field.span ?? 12}` }}>
-                      {renderField(field)}
-                    </div>
-                  ))}
+                  {(() => {
+                    const linkedFieldIds = new Set(
+                      row.fields
+                        .filter((f) => f.type === "button" && f.buttonAction?.sourceFieldId)
+                        .map((f) => f.buttonAction!.sourceFieldId),
+                    );
+                    const linkedFields = row.fields.filter(
+                      (f) => (f.type === "button" && !!f.buttonAction?.sourceFieldId) || linkedFieldIds.has(f.id),
+                    );
+                    const linkedTotal = linkedFields.reduce((sum, f) => sum + (f.span ?? 12), 0);
+                    const scale = linkedTotal > 0 && linkedTotal < 12 ? 12 / linkedTotal : 1;
+
+                    return row.fields.map((field) => {
+                      const span = field.span ?? 12;
+                      const hasLinkedButton = field.type === "button" && !!field.buttonAction?.sourceFieldId;
+                      const isLinked = hasLinkedButton || linkedFieldIds.has(field.id);
+                      const mobileSpan = isLinked ? Math.round(span * scale) : 12;
+                      return (
+                        <div key={field.id} className={isLinked ? "max-sm:![grid-column:var(--mobile-span)]" : "max-sm:!col-span-12"} style={{ gridColumn: `span ${span}`, "--mobile-span": `span ${mobileSpan}` } as React.CSSProperties}>
+                          {renderField(field)}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             );
