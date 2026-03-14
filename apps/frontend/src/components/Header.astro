@@ -68,43 +68,8 @@ function navLinkClass(href: string, external = false) {
         </div>
       </div>
 
-      <!-- Right: Search + Donate + Mobile toggle -->
+      <!-- Right: Donate + Mobile toggle -->
       <div class="flex items-center gap-2">
-
-        <!-- Desktop Search -->
-        <form
-          action="/search"
-          method="get"
-          class="hidden md:flex items-center"
-          data-analytics-search-source="header-desktop"
-        >
-          <div class="relative">
-            <input
-              name="q"
-              type="search"
-              placeholder="Suchen…"
-              aria-label="Shops suchen"
-              class="w-48 pl-9 pr-3 py-1.5 text-sm rounded-full border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
-            />
-            <!-- Magnifying glass icon -->
-            <svg
-              class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </div>
-        </form>
-
         <SupportButton variant="desktop" />
 
         <!-- Mobile hamburger -->

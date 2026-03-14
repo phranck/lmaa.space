@@ -107,13 +107,13 @@ export default function FilterableCategoryGrid({
     : categories.length;
 
   return (
-    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-16 pb-16">
       {/* Header row */}
-      <div className="flex items-center justify-between mb-6 px-[15px]">
-        <h2 className="font-serif text-2xl font-semibold text-stone-800">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-6 px-[15px]">
+        <h2 className="font-serif text-2xl font-semibold text-stone-800 text-center sm:text-left">
           Kategorien entdecken
         </h2>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between sm:justify-end sm:gap-4">
           <span className="text-sm text-stone-400">
             {shopCount} Shops in {categoryCount} Kategorien
           </span>

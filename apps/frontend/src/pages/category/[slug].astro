@@ -90,13 +90,6 @@ const jsonLd = {
   </div>
 
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-1.5 text-sm text-stone-400 mb-8" aria-label="Breadcrumb">
-      <a href="/" class="hover:text-amber-700 transition-colors">Start</a>
-      <span class="text-stone-300" aria-hidden="true">›</span>
-      <span class="text-stone-600">{category.name}</span>
-    </nav>
-
     {isFallback ? (
       <div class="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
         <p class="text-stone-500">
@@ -107,6 +100,7 @@ const jsonLd = {
       <FilterableCategoryShops
         client:load
         slug={slug}
+        categoryName={category.name}
         shops={category.shops}
         initialFilters={filters}
       />

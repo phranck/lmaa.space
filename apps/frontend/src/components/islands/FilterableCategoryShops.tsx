@@ -12,6 +12,7 @@ import ShopFilterBar from "./ShopFilterBar";
 
 interface FilterableCategoryShopsProps {
   slug: string;
+  categoryName: string;
   shops: Shop[];
   initialFilters: ShopFilters;
 }
@@ -28,6 +29,7 @@ function buildShopDetailHref(
 
 export default function FilterableCategoryShops({
   slug,
+  categoryName,
   shops: initialShops,
   initialFilters,
 }: FilterableCategoryShopsProps) {
@@ -86,8 +88,13 @@ export default function FilterableCategoryShops({
 
   return (
     <>
-      {/* Filter toggle */}
-      <div className="flex justify-end mb-4">
+      {/* Breadcrumb + Filter toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
+        <nav className="flex items-center gap-1.5 text-sm text-stone-400" aria-label="Breadcrumb">
+          <a href="/" className="hover:text-amber-700 transition-colors">Start</a>
+          <span className="text-stone-300" aria-hidden="true">›</span>
+          <span className="text-stone-600">{categoryName}</span>
+        </nav>
         <FilterToggleButton
           showFilter={showFilter}
           filtersActive={filtersActive}
@@ -129,7 +136,7 @@ export default function FilterableCategoryShops({
           )}
         </div>
       ) : (
-        <div ref={gridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div ref={gridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {shops.map((shop) => (
             <ShopCardReact
               key={shop.id}
