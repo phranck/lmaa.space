@@ -65,14 +65,14 @@ export function resolveFooterHeightPx(style?: Partial<FooterStyle>): string {
 export const FOOTER_STYLES_CSS = `
 .footer-root {
   margin-top: auto;
-  height: var(--footer-height, ${resolveFooterHeightPx(FOOTER_STYLE_DEFAULTS)});
+  min-height: var(--footer-height, ${resolveFooterHeightPx(FOOTER_STYLE_DEFAULTS)});
   background: var(--footer-bg, ${FOOTER_STYLE_DEFAULTS.bgColor});
   color: var(--footer-text, ${FOOTER_STYLE_DEFAULTS.textColor});
 }
 .footer-inner {
   max-width: 72rem;
   margin: 0 auto;
-  height: 100%;
+  min-height: 100%;
   box-sizing: border-box;
   padding: var(--footer-padding-y, ${FOOTER_PADDING_Y[FOOTER_STYLE_DEFAULTS.paddingY]}) 1rem;
 }
