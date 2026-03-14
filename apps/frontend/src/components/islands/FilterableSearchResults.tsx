@@ -220,7 +220,7 @@ export default function FilterableSearchResults({
           <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
             Shops
           </h2>
-          <div ref={shopGridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div ref={shopGridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             {results.shops.map((shop) => (
               <ShopCardReact
                 key={shop.id}

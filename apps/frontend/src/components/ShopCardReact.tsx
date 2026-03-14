@@ -35,7 +35,7 @@ export default function ShopCardReact({
   return (
     <a
       href={detailHref}
-      className="relative block bg-white rounded-2xl border border-stone-200 p-3 sm:p-4 hover:shadow-md hover:border-stone-300 transition-all duration-200"
+      className="relative block bg-white rounded-2xl border border-stone-200 p-2 sm:p-4 hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
       {hasCoordinates && (
         <span
