@@ -1,3 +1,5 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { XCircleIcon } from "@phosphor-icons/react";
 import { useCallback, useRef, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
@@ -51,6 +53,7 @@ export default function FilterableSearchResults({
   const [currentFilters, setCurrentFilters] =
     useState<ShopFilters>(initialFilters);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [shopGridRef] = useAutoAnimate({ duration: 250, easing: "ease-out" });
 
   const fetchResults = useCallback(
     (q: string, filters: ShopFilters) => {
@@ -79,10 +82,11 @@ export default function FilterableSearchResults({
       fetch(`${API_BASE}/filtered/search?${apiParams}`)
         .then((r) => r.json())
         .then((json) => {
+          const data = json.data ?? {};
           setResults({
-            shops: json.shops ?? [],
-            categories: json.categories ?? [],
-            total: json.total ?? 0,
+            shops: data.shops ?? [],
+            categories: data.categories ?? [],
+            total: data.total ?? 0,
           });
         })
         .catch(() => {});
@@ -127,14 +131,29 @@ export default function FilterableSearchResults({
         onSubmit={handleSubmit}
         className="flex flex-col items-center mb-6"
       >
-        <input
-          type="search"
-          value={query}
-          onChange={handleQueryChange}
-          aria-label="Shop oder Kategorie suchen"
-          placeholder="Shop oder Kategorie suchen…"
-          className="w-full max-w-xl px-4 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
-        />
+        <div className="relative w-full max-w-xl">
+          <input
+            type="text"
+            value={query}
+            onChange={handleQueryChange}
+            aria-label="Shop oder Kategorie suchen"
+            placeholder="Shop oder Kategorie suchen…"
+            className="w-full px-4 pr-10 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                scheduleSearch("", currentFilters);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors"
+              aria-label="Suchfeld löschen"
+            >
+              <XCircleIcon weight="duotone" className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </form>
 
       {/* Filter bar (always visible) */}
@@ -201,7 +220,7 @@ export default function FilterableSearchResults({
           <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
             Shops
           </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div ref={shopGridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {results.shops.map((shop) => (
               <ShopCardReact
                 key={shop.id}

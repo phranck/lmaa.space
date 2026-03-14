@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useCallback, useRef, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
@@ -41,6 +42,7 @@ export default function FilterableCategoryShops({
   const [currentFilters, setCurrentFilters] =
     useState<ShopFilters>(initialFilters);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [gridRef] = useAutoAnimate({ duration: 250, easing: "ease-out" });
 
   const fetchFiltered = useCallback(
     (filters: ShopFilters) => {
@@ -94,14 +96,20 @@ export default function FilterableCategoryShops({
       </div>
 
       {/* Filter bar */}
-      {showFilter && (
-        <div className="mb-6">
-          <ShopFilterBar
-            initialFilters={currentFilters}
-            onFilterChange={handleFilterChange}
-          />
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-out ${
+          showFilter ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="mb-6">
+            <ShopFilterBar
+              initialFilters={currentFilters}
+              onFilterChange={handleFilterChange}
+            />
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Shop grid */}
       {shops.length === 0 ? (
@@ -121,7 +129,7 @@ export default function FilterableCategoryShops({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div ref={gridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {shops.map((shop) => (
             <ShopCardReact
               key={shop.id}

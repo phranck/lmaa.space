@@ -55,12 +55,26 @@ const jsonLd = {
         data-analytics-search-source="home"
       >
         <div class="flex gap-2 bg-white/10 backdrop-blur-sm rounded-2xl p-2 border border-white/10">
-          <input
-            name="q"
-            type="search"
-            placeholder="Shop oder Kategorie suchen…"
-            class="flex-1 px-4 py-2.5 bg-transparent text-white placeholder-stone-400 text-sm focus:outline-none"
-          />
+          <div class="relative flex-1">
+            <input
+              id="hero-search"
+              name="q"
+              type="text"
+              placeholder="Shop oder Kategorie suchen…"
+              class="w-full px-4 pr-8 py-2.5 bg-transparent text-white placeholder-stone-400 text-sm focus:outline-none"
+            />
+            <button
+              type="button"
+              id="hero-search-clear"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 transition-colors hidden"
+              aria-label="Suchfeld löschen"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-5 h-5" fill="currentColor">
+                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z" opacity="0.2" />
+                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-130.34a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,85.66Z" />
+              </svg>
+            </button>
+          </div>
           <button
             type="submit"
             class="px-5 py-2.5 text-white rounded-lg font-medium text-sm transition-colors shrink-0 bg-[var(--accent-base)] hover:bg-[var(--accent-hover)]"
@@ -68,6 +82,16 @@ const jsonLd = {
             Suchen
           </button>
         </div>
+        <script is:inline>
+          (() => {
+            const input = document.getElementById('hero-search');
+            const btn = document.getElementById('hero-search-clear');
+            if (!input || !btn) return;
+            const toggle = () => btn.classList.toggle('hidden', !input.value);
+            input.addEventListener('input', toggle);
+            btn.addEventListener('click', () => { input.value = ''; toggle(); input.focus(); });
+          })();
+        </script>
       </form>
     </div>
   </section>
