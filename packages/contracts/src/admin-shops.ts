@@ -38,7 +38,7 @@ export const shopBodySchema = z.object({
   region: defaultRegionArraySchema,
   pickup: z.string().optional(),
   shipping: z.string().optional(),
-  description: z.string().max(2000).optional(),
+  description: z.string().optional(),
   contactEmail: z.preprocess(
     (v) => (v === "" ? undefined : v),
     z.string().email().max(200).optional(),
@@ -58,7 +58,7 @@ export const shopUpdateSchema = z.object({
   region: optionalRegionArraySchema,
   pickup: z.string().optional(),
   shipping: z.string().optional(),
-  description: z.string().max(2000).optional(),
+  description: z.string().optional(),
   contactEmail: z.preprocess(
     (v) => (v === "" ? undefined : v),
     z.string().email().max(200).optional(),

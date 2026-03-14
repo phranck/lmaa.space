@@ -96,12 +96,14 @@ export class ShopcheckEngine extends EventEmitter {
     this.state = { ...this.state, ...partial, updatedAt: nowIso() };
     if (this.deps.persist !== false) {
       writeJson(PATHS.state, this.state);
-      if (this.config.singleUrl && this.results.entries.length === 1 && this.results.entries[0].shopJson) {
-        writeJson(PATHS.resultsState, this.results.entries[0].shopJson);
-      } else {
-        writeJson(PATHS.resultsState, this.results);
+      if (this.results.entries.length > 0) {
+        if (this.config.singleUrl && this.results.entries.length === 1 && this.results.entries[0].shopJson) {
+          writeJson(PATHS.resultsState, this.results.entries[0].shopJson);
+        } else {
+          writeJson(PATHS.resultsState, this.results);
+        }
+        writeJson(PATHS.results, this.buildResultsArray());
       }
-      writeJson(PATHS.results, this.buildResultsArray());
     }
     this.emit("state", this.state);
   }
@@ -265,13 +267,17 @@ export class ShopcheckEngine extends EventEmitter {
       this.emitLog(`Processing shop ${shop.id}: ${shop.name} <${shop.url}>`);
       try {
         const result = await this.processShop(shop);
-        this.results.entries.push({ shopId: shop.id, ...result });
         this.state.metrics.succeeded += 1;
-        if (result.verdict === "reject" && this.deps.persist !== false) {
-          appendFileSync(PATHS.rejections, `${shop.url}\n`, "utf8");
+        if (result.verdict === "reject") {
+          if (this.deps.persist !== false) {
+            appendFileSync(PATHS.rejections, `${shop.url}\n`, "utf8");
+          }
+          this.results.skipped.push({ shopId: shop.id, existingName: shop.name, existingUrl: shop.url, verdict: "reject" });
           this.emitLog(`Shop ${shop.id} rejected — URL appended to rejection.txt`);
+        } else {
+          this.results.entries.push({ shopId: shop.id, ...result });
+          this.emitLog(`Processed shop ${shop.id} successfully.`);
         }
-        this.emitLog(`Processed shop ${shop.id} successfully.`);
       } catch (error) {
         if (error instanceof LlmFatalError) {
           this.emitLog(`FATAL: ${error.message}`, "error");
