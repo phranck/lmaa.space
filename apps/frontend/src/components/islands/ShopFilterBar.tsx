@@ -3,6 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { REGION_CODES } from "@lmaa/shared";
 
 import { API_BASE } from "@/lib/client-api";
+import type { ShopFilters } from "@/lib/filter-query";
+
+export type { ShopFilters };
 
 const RADIUS_PRESETS = [10, 25, 50, 100, 200];
 
@@ -13,13 +16,6 @@ const REGION_LABELS: Record<string, string> = {
   EU: "\u{1F1EA}\u{1F1FA}",
   WORLD: "\u{1F30D}",
 };
-
-export interface ShopFilters {
-  city: string;
-  radius: number;
-  country: string;
-  region: string[];
-}
 
 interface FilterOption {
   code: string;

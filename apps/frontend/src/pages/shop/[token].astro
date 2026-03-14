@@ -1,9 +1,12 @@
 ---
+import SectionLabel from "@/components/SectionLabel.astro";
+import ShopAvatar from "@/components/ShopAvatar.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
 import { regionFlag } from "@/lib/region-flag";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
+import { slugToTitle } from "@/lib/slug";
 import { REGION_CODES, type Shop, encodeShopToken } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 import {
@@ -66,11 +69,7 @@ if (from === "category" && fromSlug) {
   const matchedCategory = shop.categories.find((c) => c.slug === fromSlug);
   const categoryLabel = matchedCategory
     ? matchedCategory.name
-    : fromSlug
-        .split("-")
-        .filter(Boolean)
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(" ");
+    : slugToTitle(fromSlug);
   const categoryHref = `/category/${fromSlug}`;
   breadcrumb.push({ label: categoryLabel, href: categoryHref });
   backHref = categoryHref;
@@ -180,24 +179,7 @@ const metaDescription = shop.description
 
     <!-- Header -->
     <header class="flex flex-col sm:flex-row items-start gap-5 mb-8">
-      <div class="shrink-0 w-20 h-20 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border border-stone-200 bg-stone-50 flex items-center justify-center">
-        {shop.ogImage ? (
-          <img
-            src={shop.ogImage}
-            alt=""
-            aria-hidden="true"
-            class="w-full h-full object-contain"
-            data-img-fallback
-          />
-          <span class="text-3xl sm:text-4xl font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
-            {shop.name.charAt(0).toUpperCase()}
-          </span>
-        ) : (
-          <span class="text-3xl sm:text-4xl font-bold text-stone-300 select-none">
-            {shop.name.charAt(0).toUpperCase()}
-          </span>
-        )}
-      </div>
+      <ShopAvatar name={shop.name} imageUrl={shop.ogImage} size="md" />
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-start gap-3">
           <div class="min-w-0 flex-1">
@@ -263,7 +245,7 @@ const metaDescription = shop.description
     <!-- Categories -->
     {shop.categories?.length > 0 && (
       <section class="mb-8">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">Kategorien</h2>
+        <SectionLabel class="mb-3">Kategorien</SectionLabel>
         <div class="flex flex-wrap gap-2">
           {shop.categories.map((cat) => (
             <a
@@ -287,10 +269,10 @@ const metaDescription = shop.description
       <section class="mb-8 space-y-5">
         {hasFocus && (
           <div>
-            <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-2">
+            <SectionLabel class="mb-3 flex items-center gap-2">
               <TagIcon weight="duotone" className="w-4 h-4" />
               Schwerpunkte
-            </h2>
+            </SectionLabel>
             <div class="flex flex-wrap gap-2">
               {notes!.focus.map((tag) => (
                 <span class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200">
@@ -303,10 +285,10 @@ const metaDescription = shop.description
 
         {hasBrands && (
           <div>
-            <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-2">
+            <SectionLabel class="mb-3 flex items-center gap-2">
               <TagIcon weight="duotone" className="w-4 h-4" />
               Marken & Produkte
-            </h2>
+            </SectionLabel>
             <div class="flex flex-wrap gap-2">
               {notes!.brandsOrProducts.map((tag) => (
                 <span class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200">
@@ -322,10 +304,10 @@ const metaDescription = shop.description
     <!-- Headquarters -->
     {hasHq && (
       <section class="mb-8">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-2">
+        <SectionLabel class="mb-3 flex items-center gap-2">
           <MapPinIcon weight="duotone" className="w-4 h-4" />
           Standort
-        </h2>
+        </SectionLabel>
         <div class="flex items-start gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100">
           <GlobeIcon weight="duotone" className="w-5 h-5 text-stone-400 shrink-0 mt-0.5" />
           <address class="text-sm text-stone-700 not-italic leading-relaxed">

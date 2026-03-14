@@ -1,4 +1,5 @@
 ---
+import ShopAvatar from "@/components/ShopAvatar.astro";
 import { shopDomain } from "@/lib/shop";
 import type { Shop } from "@lmaa/shared";
 
@@ -24,26 +25,7 @@ const extraCount = (shop.categories?.length ?? 0) - MAX_PILLS;
   data-shop-name={shop.name}
 >
   <div class="flex items-center gap-3">
-    <!-- og:image -->
-    <div class="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
-      {shop.ogImage ? (
-        <img
-          src={shop.ogImage}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          class="w-full h-full object-contain"
-          data-img-fallback
-        />
-        <span class="text-lg font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
-          {shop.name.charAt(0).toUpperCase()}
-        </span>
-      ) : (
-        <span class="text-lg font-bold text-stone-300 select-none">
-          {shop.name.charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
+    <ShopAvatar name={shop.name} imageUrl={shop.ogImage} size="sm" />
 
     <!-- Name + domain -->
     <div class="flex-1 min-w-0">

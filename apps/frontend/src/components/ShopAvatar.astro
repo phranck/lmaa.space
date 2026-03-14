@@ -1,0 +1,39 @@
+---
+interface Props {
+  name: string;
+  imageUrl?: string | null;
+  size?: "sm" | "md" | "lg";
+}
+
+const { name, imageUrl, size = "sm" } = Astro.props;
+
+const letter = name.charAt(0).toUpperCase();
+
+const sizeClasses: Record<string, { container: string; letter: string }> = {
+  sm: { container: "w-12 h-12 rounded-lg", letter: "text-lg" },
+  md: { container: "w-20 h-20 sm:w-28 sm:h-28 rounded-2xl", letter: "text-3xl sm:text-4xl" },
+  lg: { container: "w-24 h-24 sm:w-32 sm:h-32 rounded-2xl", letter: "text-4xl sm:text-5xl" },
+};
+
+const s = sizeClasses[size];
+---
+
+<div class={`shrink-0 ${s.container} overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center`}>
+  {imageUrl ? (
+    <img
+      src={imageUrl}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      class="w-full h-full object-contain"
+      data-img-fallback
+    />
+    <span class={`${s.letter} font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full`}>
+      {letter}
+    </span>
+  ) : (
+    <span class={`${s.letter} font-bold text-stone-300 select-none`}>
+      {letter}
+    </span>
+  )}
+</div>
