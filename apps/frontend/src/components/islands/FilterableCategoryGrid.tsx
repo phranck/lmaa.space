@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useCallback, useRef, useState } from "react";
 
 import type { Category } from "@lmaa/shared";
@@ -51,6 +52,7 @@ export default function FilterableCategoryGrid({
     region: [],
   });
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [gridRef] = useAutoAnimate({ duration: 250, easing: "ease-out" });
 
   const fetchFiltered = useCallback((filters: ShopFilters) => {
     const hasFilters =
@@ -124,14 +126,20 @@ export default function FilterableCategoryGrid({
       </div>
 
       {/* Filter bar */}
-      {showFilter && (
-        <div className="mb-6">
-          <ShopFilterBar
-            initialFilters={currentFilters}
-            onFilterChange={handleFilterChange}
-          />
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          showFilter ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="mb-6">
+            <ShopFilterBar
+              initialFilters={currentFilters}
+              onFilterChange={handleFilterChange}
+            />
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Category grid */}
       {visibleCategories.length === 0 ? (
@@ -141,7 +149,10 @@ export default function FilterableCategoryGrid({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div
+          ref={gridRef}
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+        >
           {visibleCategories.map((cat) => (
             <CategoryCard
               key={cat.id}

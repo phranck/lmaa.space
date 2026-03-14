@@ -1,3 +1,4 @@
+import { XCircleIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
 
 import { REGION_CODES } from "@lmaa/shared";
@@ -72,9 +73,16 @@ export default function ShopFilterBar({
   const toggleRegion = useCallback(
     (code: string) => {
       setFilters((prev) => {
-        const next = prev.region.includes(code)
-          ? prev.region.filter((r) => r !== code)
-          : [...prev.region, code];
+        let next: string[];
+        if (prev.region.includes(code)) {
+          next = prev.region.filter((r) => r !== code);
+        } else if (code === "WORLD") {
+          next = ["WORLD"];
+        } else if (code === "EU") {
+          next = ["EU"];
+        } else {
+          next = [...prev.region.filter((r) => r !== "WORLD" && r !== "EU"), code];
+        }
         const updated = { ...prev, region: next };
         onFilterChange(updated);
         return updated;
@@ -106,14 +114,26 @@ export default function ShopFilterBar({
           >
             Stadt / PLZ
           </label>
-          <input
-            id="filter-city"
-            type="text"
-            value={filters.city}
-            onChange={(e) => update({ city: e.target.value })}
-            placeholder="z.B. Berlin, 10115"
-            className="w-full h-9 px-3 text-sm rounded-lg border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
-          />
+          <div className="relative">
+            <input
+              id="filter-city"
+              type="text"
+              value={filters.city}
+              onChange={(e) => update({ city: e.target.value })}
+              placeholder="z.B. Berlin, 10115"
+              className="w-full h-9 px-3 pr-8 text-sm rounded-lg border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
+            />
+            {filters.city && (
+              <button
+                type="button"
+                onClick={() => update({ city: "" })}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors"
+                aria-label="Stadt/PLZ löschen"
+              >
+                <XCircleIcon weight="duotone" className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Radius */}
