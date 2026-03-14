@@ -1,0 +1,9 @@
+state.json
+results.json
+results-state.json
+log.ndjson
+metrics-history.ndjson
+input-shops.json
+categories-cache.json
+reports/
+rejection.txt
