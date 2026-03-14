@@ -86,7 +86,7 @@ export const visibilityFilterSchema = shopVisibilitySchema;
 export const visibilityUpdateSchema = z.object({
   visibility: shopMutableVisibilitySchema,
   rejectionToken: z.string().optional(),
-  rejectionAdminNote: z.string().max(1200).nullable().optional(),
+  rejectionAdminNote: z.string().nullable().optional(),
   rejectionLongText: z.string().nullable().optional(),
 });
 

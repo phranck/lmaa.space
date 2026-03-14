@@ -32,7 +32,7 @@ const shopCheckNotesSchema = z.object({
  */
 export const reviewSchema = z.object({
   status: submissionReviewStatusSchema,
-  adminNote: z.string().max(1200).optional(),
+  adminNote: z.string().optional(),
   rejectionLongText: z.string().optional(),
   rejectionToken: z
     .string()
