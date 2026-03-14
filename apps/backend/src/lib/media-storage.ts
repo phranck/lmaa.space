@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
 import path from "node:path";
 
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 
 import { detectImageType } from "./validate.js";
@@ -59,6 +59,16 @@ type StoreMediaSuccess = {
   };
 };
 
+const s3 = new S3Client({
+  endpoint: env.S3_ENDPOINT,
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: env.S3_ACCESS_KEY_ID ?? "",
+    secretAccessKey: env.S3_SECRET_ACCESS_KEY ?? "",
+  },
+  forcePathStyle: true,
+});
+
 function sanitizeDisplayName(raw: string): string {
   const cleaned = raw
     .replace(/[/\\]/g, " ")
@@ -85,7 +95,14 @@ function inferDocumentExtension(fileName: string): keyof typeof DOCUMENT_MIME_BY
 }
 
 /**
- * Writes an uploaded media file to the configured uploads directory.
+ * Returns the public URL for a stored media file.
+ */
+export function getMediaPublicUrl(storedFilename: string): string {
+  return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${storedFilename}`;
+}
+
+/**
+ * Uploads a media file to S3-compatible object storage.
  */
 export async function storeUploadedMedia(file: unknown): Promise<StoreMediaFailure | StoreMediaSuccess> {
   if (!(file instanceof File)) {
@@ -136,10 +153,15 @@ export async function storeUploadedMedia(file: unknown): Promise<StoreMediaFailu
 
   const baseName = slugifyBase(path.basename(originalName, path.extname(originalName))) || "file";
   const storedFilename = `${crypto.randomUUID()}-${baseName}${extension}`;
-  const filePath = path.join(env.IMAGE_PATH, storedFilename);
 
-  await fs.promises.mkdir(env.IMAGE_PATH, { recursive: true });
-  await fs.promises.writeFile(filePath, buffer);
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: storedFilename,
+      Body: buffer,
+      ContentType: mimeType,
+    }),
+  );
 
   return {
     ok: true,
@@ -157,16 +179,20 @@ export async function storeUploadedMedia(file: unknown): Promise<StoreMediaFailu
 }
 
 /**
- * Deletes a stored media file from the uploads directory.
+ * Deletes a stored media file from S3-compatible object storage.
  */
 export async function removeStoredMedia(storedFilename: string) {
-  const filePath = path.join(env.IMAGE_PATH, storedFilename);
-
   try {
-    await fs.promises.unlink(filePath);
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: env.S3_BUCKET,
+        Key: storedFilename,
+      }),
+    );
   } catch (error) {
-    if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") {
-      throw error;
+    if (error instanceof Error && error.name === "NoSuchKey") {
+      return;
     }
+    throw error;
   }
 }

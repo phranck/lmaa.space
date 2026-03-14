@@ -1,8 +1,3 @@
-import { createReadStream } from "node:fs";
-import fs from "node:fs";
-import path from "node:path";
-import { Readable } from "node:stream";
-
 import { serve } from "@hono/node-server";
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
@@ -25,7 +20,6 @@ import { sitemapRoutes } from "./routes/sitemap.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 
 const app = new Hono<{ Variables: { requestId: string } }>();
-const imagePath = env.IMAGE_PATH;
 
 const allowedOrigins =
   env.NODE_ENV === "production"
@@ -64,41 +58,6 @@ app.use("*", async (c, next) => {
   );
 });
 
-const contentTypeMap: Record<string, string> = {
-  csv: "text/csv",
-  doc: "application/msword",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  md: "text/markdown",
-  pdf: "application/pdf",
-  ppt: "application/vnd.ms-powerpoint",
-  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  png: "image/png",
-  webp: "image/webp",
-  gif: "image/gif",
-  avif: "image/avif",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  txt: "text/plain",
-  xls: "application/vnd.ms-excel",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-};
-
-// Serve uploaded category images
-app.get("/uploads/:filename{[^/]+}", async (c) => {
-  const filename = c.req.param("filename");
-  if (filename.includes("..")) return fail(c, 404, "Not found");
-  const filepath = path.join(imagePath, filename);
-  try {
-    await fs.promises.access(filepath);
-    const ext = path.extname(filename).toLowerCase().slice(1);
-    const contentType = contentTypeMap[ext] ?? "application/octet-stream";
-    const stream = Readable.toWeb(createReadStream(filepath)) as ReadableStream;
-    return new Response(stream, { headers: { "Content-Type": contentType } });
-  } catch {
-    return fail(c, 404, "Not found");
-  }
-});
-
 app.route("/", sitemapRoutes);
 app.route("/api/v1", publicRoutes);
 app.route("/api/v1/admin", adminRoutes);
@@ -125,8 +84,6 @@ app.onError((err, c) => {
 });
 
 async function startServer() {
-  await fs.promises.mkdir(imagePath, { recursive: true });
-
   if (env.RUN_MIGRATIONS_ON_STARTUP) {
     await runMigrations();
   }

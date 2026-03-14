@@ -1,6 +1,6 @@
 import type { MediaAsset as SharedMediaAsset } from "@lmaa/shared";
 
-import { removeStoredMedia, storeUploadedMedia } from "../lib/media-storage.js";
+import { getMediaPublicUrl, removeStoredMedia, storeUploadedMedia } from "../lib/media-storage.js";
 import {
   createMediaAsset,
   deleteMediaAsset,
@@ -32,7 +32,7 @@ function mapMediaAsset(row: {
     sizeBytes: row.sizeBytes,
     width: row.width,
     height: row.height,
-    url: `/uploads/${row.storedFilename}`,
+    url: getMediaPublicUrl(row.storedFilename),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     createdByUsername: row.createdByUsername,
