@@ -1,3 +1,5 @@
+import { MapPinLineIcon } from "@phosphor-icons/react";
+
 import { shopDomain } from "@/lib/shop";
 
 interface ShopCategory {
@@ -12,6 +14,7 @@ interface ShopCardProps {
   url: string;
   categories?: ShopCategory[];
   detailHref: string;
+  hasCoordinates?: boolean;
 }
 
 const MAX_PILLS = 2;
@@ -22,6 +25,7 @@ export default function ShopCardReact({
   url,
   categories,
   detailHref,
+  hasCoordinates = false,
 }: ShopCardProps) {
   const domain = shopDomain(url);
   const letter = name.charAt(0).toUpperCase();
@@ -31,8 +35,16 @@ export default function ShopCardReact({
   return (
     <a
       href={detailHref}
-      className="block bg-white rounded-2xl border border-stone-200 p-3 sm:p-4 hover:shadow-md hover:border-stone-300 transition-all duration-200"
+      className="relative block bg-white rounded-2xl border border-stone-200 p-3 sm:p-4 hover:shadow-md hover:border-stone-300 transition-all duration-200"
     >
+      {hasCoordinates && (
+        <span
+          className="absolute top-2 right-2 text-stone-300"
+          title="Standort verfügbar"
+        >
+          <MapPinLineIcon weight="duotone" className="w-3.5 h-3.5" />
+        </span>
+      )}
       <div className="flex items-center gap-3">
         {/* Avatar */}
         <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
