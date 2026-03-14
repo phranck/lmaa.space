@@ -43,6 +43,17 @@ const from = Astro.url.searchParams.get("from");
 const fromSlug = Astro.url.searchParams.get("slug");
 const fromQuery = Astro.url.searchParams.get("q");
 
+// Category hero image (when navigating from a category page)
+let categoryImageUrl: string | null = null;
+if (from === "category" && fromSlug) {
+  try {
+    const cat = await apiGet<{ imageUrl?: string | null }>(`/categories/${fromSlug}`);
+    categoryImageUrl = cat.imageUrl ?? null;
+  } catch {
+    // ignore — no hero banner
+  }
+}
+
 interface BreadcrumbItem {
   label: string;
   href: string;
@@ -128,6 +139,20 @@ const metaDescription = shop.description
   ogImage={shop.ogImage ?? undefined}
   jsonLd={jsonLd}
 >
+  <!-- Hero Banner (category context) -->
+  {categoryImageUrl && (
+    <div class="relative h-52 sm:h-64 overflow-hidden">
+      <img
+        src={categoryImageUrl}
+        alt=""
+        aria-hidden="true"
+        fetchpriority="high"
+        class="w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-stone-900/65"></div>
+    </div>
+  )}
+
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
 
     <!-- Breadcrumb with back button -->
