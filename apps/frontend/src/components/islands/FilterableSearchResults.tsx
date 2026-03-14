@@ -4,7 +4,11 @@ import { encodeShopToken, type Shop } from "@lmaa/shared";
 
 import ShopCardReact from "@/components/ShopCardReact";
 import { API_BASE } from "@/lib/client-api";
-import { type ShopFilters, buildFilterQuery } from "@/lib/filter-query";
+import {
+  type ShopFilters,
+  buildCategoryHref,
+  buildFilterQuery,
+} from "@/lib/filter-query";
 
 import ShopFilterBar from "./ShopFilterBar";
 
@@ -35,11 +39,6 @@ function buildShopDetailHref(
   const filterQuery = buildFilterQuery(filters);
   const base = `/shop/${encodeShopToken(shopId)}?from=search&q=${encodeURIComponent(query)}`;
   return filterQuery ? `${base}&${filterQuery}` : base;
-}
-
-function buildCategoryHref(slug: string, filters: ShopFilters): string {
-  const query = buildFilterQuery(filters);
-  return query ? `/category/${slug}?${query}` : `/category/${slug}`;
 }
 
 export default function FilterableSearchResults({
@@ -106,10 +105,7 @@ export default function FilterableSearchResults({
   };
 
   const handleFilterChange = useCallback(
-    (filters: ShopFilters) => {
-      setCurrentFilters(filters);
-      scheduleSearch(query.trim(), filters);
-    },
+    (filters: ShopFilters) => scheduleSearch(query.trim(), filters),
     [query, scheduleSearch],
   );
 

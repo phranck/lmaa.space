@@ -14,6 +14,11 @@ export function buildFilterQuery(filters: ShopFilters): string {
   return params.toString();
 }
 
+export function buildCategoryHref(slug: string, filters: ShopFilters): string {
+  const query = buildFilterQuery(filters);
+  return query ? `/category/${slug}?${query}` : `/category/${slug}`;
+}
+
 export function parseFiltersFromUrl(url: URL): ShopFilters {
   return {
     city: url.searchParams.get("city") ?? "",
