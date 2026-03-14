@@ -1,0 +1,448 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import { renderMarkdown } from "@/lib/markdown";
+import { shopDomain, shopRefUrl } from "@/lib/shop";
+import { REGION_CODES, type Shop } from "@lmaa/shared";
+import { SocialMediaIcons } from "@lmaa/ui";
+import {
+  ArrowLeftIcon,
+  GlobeIcon,
+  MapPinIcon,
+  PackageIcon,
+  StorefrontIcon,
+  TagIcon,
+} from "@phosphor-icons/react";
+
+const { id } = Astro.params;
+const numericId = Number(id);
+
+if (!id || !Number.isInteger(numericId) || numericId <= 0) {
+  return Astro.redirect("/404");
+}
+
+let shop: Shop;
+try {
+  shop = await apiGet<Shop>(`/shops/${numericId}`);
+} catch {
+  return Astro.redirect("/404");
+}
+
+const domain = shopDomain(shop.url);
+const visitUrl = shopRefUrl(shop.url);
+const sortedRegions = [...shop.region].sort(
+  (a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b),
+);
+
+const descriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
+
+// Breadcrumb: flat, max 3 levels
+const from = Astro.url.searchParams.get("from");
+const fromSlug = Astro.url.searchParams.get("slug");
+const fromQuery = Astro.url.searchParams.get("q");
+
+interface BreadcrumbItem {
+  label: string;
+  href: string;
+}
+
+const breadcrumb: BreadcrumbItem[] = [{ label: "Start", href: "/" }];
+let backHref = "/";
+
+if (from === "category" && fromSlug) {
+  const matchedCategory = shop.categories.find((c) => c.slug === fromSlug);
+  const categoryLabel = matchedCategory
+    ? matchedCategory.name
+    : fromSlug
+        .split("-")
+        .filter(Boolean)
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(" ");
+  const categoryHref = `/category/${fromSlug}`;
+  breadcrumb.push({ label: categoryLabel, href: categoryHref });
+  backHref = categoryHref;
+} else if (from === "search" && fromQuery) {
+  const searchHref = `/search?q=${encodeURIComponent(fromQuery)}`;
+  breadcrumb.push({ label: `Suche: "${fromQuery}"`, href: searchHref });
+  backHref = searchHref;
+}
+
+// Dialog IDs
+const deadDialogId = `dialog-dead-${shop.id}`;
+const reportDialogId = `dialog-report-${shop.id}`;
+
+// HQ
+const hq = shop.headquarters;
+const hasHq = hq && (hq.street || hq.city || hq.state || hq.countryCode);
+const hqParts: string[] = [];
+if (hq) {
+  if (hq.street) hqParts.push(hq.street);
+  const cityLine = [hq.postalCode, hq.city].filter(Boolean).join(" ");
+  if (cityLine) hqParts.push(cityLine);
+  if (hq.state) hqParts.push(hq.state);
+  if (hq.countryCode) hqParts.push(hq.countryCode);
+}
+
+// Notes
+const notes = shop.shopCheckNotes;
+const hasFocus = notes?.focus && notes.focus.length > 0;
+const hasBrands = notes?.brandsOrProducts && notes.brandsOrProducts.length > 0;
+const hasNotes = hasFocus || hasBrands;
+
+// SEO
+const site = Astro.site?.origin ?? "https://lmaa.space";
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Start", item: `${site}/` },
+    ...(breadcrumb.length > 1
+      ? [
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: breadcrumb[1].label,
+            item: `${site}${breadcrumb[1].href}`,
+          },
+        ]
+      : []),
+    {
+      "@type": "ListItem",
+      position: breadcrumb.length + 1,
+      name: shop.name,
+      item: `${site}/shop/${shop.id}`,
+    },
+  ],
+};
+
+const metaDescription = shop.description
+  ? shop.description.replace(/\s+/g, " ").trim().slice(0, 160)
+  : `${shop.name} auf lmaa.space. Lokale Märkte. Alternative Anbieter.`;
+---
+
+<BaseLayout
+  title={shop.name}
+  description={metaDescription}
+  ogImage={shop.ogImage ?? undefined}
+  jsonLd={jsonLd}
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <!-- Breadcrumb with back button -->
+    <nav class="flex items-center gap-3 mb-8" aria-label="Breadcrumb">
+      <a
+        href={backHref}
+        class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+        aria-label="Zurück"
+      >
+        <ArrowLeftIcon weight="bold" className="w-4 h-4" />
+      </a>
+      <ol class="flex items-center gap-1.5 text-sm text-stone-400 min-w-0">
+        {breadcrumb.map((item, i) => (
+          <li class="flex items-center gap-1.5 min-w-0">
+            {i > 0 && <span class="text-stone-300 shrink-0" aria-hidden="true">›</span>}
+            <a href={item.href} class="hover:text-amber-700 transition-colors truncate">{item.label}</a>
+          </li>
+        ))}
+        <li class="flex items-center gap-1.5 min-w-0">
+          <span class="text-stone-300 shrink-0" aria-hidden="true">›</span>
+          <span class="text-stone-600 truncate">{shop.name}</span>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="flex flex-col sm:flex-row items-start gap-5 mb-8">
+      <div class="shrink-0 w-20 h-20 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border border-stone-200 bg-stone-50 flex items-center justify-center">
+        {shop.ogImage ? (
+          <img
+            src={shop.ogImage}
+            alt=""
+            aria-hidden="true"
+            class="w-full h-full object-contain"
+            data-img-fallback
+          />
+          <span class="text-3xl sm:text-4xl font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
+            {shop.name.charAt(0).toUpperCase()}
+          </span>
+        ) : (
+          <span class="text-3xl sm:text-4xl font-bold text-stone-300 select-none">
+            {shop.name.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-start gap-3">
+          <div class="min-w-0 flex-1">
+            <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-stone-900 leading-tight">
+              {shop.name}
+            </h1>
+            <a
+              href={visitUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sm text-stone-400 hover:text-amber-700 transition-colors mt-1 inline-block"
+            >
+              {domain}
+            </a>
+          </div>
+          {sortedRegions.length > 0 && (
+            <div class="flex flex-wrap gap-1.5 shrink-0">
+              {sortedRegions.map((r) => (
+                <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
+                  {r}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <SocialMediaIcons socialMedia={shop.socialMedia} />
+      </div>
+    </header>
+
+    <!-- Description -->
+    {descriptionHtml && (
+      <section class="mb-8">
+        <div
+          class="text-sm sm:text-base text-stone-600 leading-relaxed prose prose-stone max-w-none prose-p:my-3 prose-a:text-amber-700 prose-headings:font-serif"
+          set:html={descriptionHtml}
+        />
+      </section>
+    )}
+
+    <!-- Info grid -->
+    <div class="grid sm:grid-cols-2 gap-4 mb-8">
+      {shop.shipping && (
+        <div class="flex items-start gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100">
+          <PackageIcon weight="duotone" className="w-5 h-5 text-stone-400 shrink-0 mt-0.5" />
+          <div>
+            <p class="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1">Versand</p>
+            <p class="text-sm text-stone-700">{shop.shipping}</p>
+          </div>
+        </div>
+      )}
+
+      {shop.pickup && (
+        <div class="flex items-start gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100">
+          <StorefrontIcon weight="duotone" className="w-5 h-5 text-stone-400 shrink-0 mt-0.5" />
+          <div>
+            <p class="text-xs font-medium text-stone-400 uppercase tracking-wide mb-1">Abholung</p>
+            <p class="text-sm text-stone-700">{shop.pickup}</p>
+          </div>
+        </div>
+      )}
+    </div>
+
+    <!-- Categories -->
+    {shop.categories?.length > 0 && (
+      <section class="mb-8">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">Kategorien</h2>
+        <div class="flex flex-wrap gap-2">
+          {shop.categories.map((cat) => (
+            <a
+              href={`/category/${cat.slug}`}
+              class="px-3 py-1.5 rounded-full text-sm font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
+              data-analytics-event="category-click"
+              data-analytics-source="shop-detail"
+              data-category-id={String(cat.id)}
+              data-category-slug={cat.slug}
+              data-category-name={cat.name}
+            >
+              {cat.name}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Notes: focus + brands -->
+    {hasNotes && (
+      <section class="mb-8 space-y-5">
+        {hasFocus && (
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-2">
+              <TagIcon weight="duotone" className="w-4 h-4" />
+              Schwerpunkte
+            </h2>
+            <div class="flex flex-wrap gap-2">
+              {notes!.focus.map((tag) => (
+                <span class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {hasBrands && (
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-2">
+              <TagIcon weight="duotone" className="w-4 h-4" />
+              Marken & Produkte
+            </h2>
+            <div class="flex flex-wrap gap-2">
+              {notes!.brandsOrProducts.map((tag) => (
+                <span class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+    )}
+
+    <!-- Headquarters -->
+    {hasHq && (
+      <section class="mb-8">
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3 flex items-center gap-2">
+          <MapPinIcon weight="duotone" className="w-4 h-4" />
+          Standort
+        </h2>
+        <div class="flex items-start gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100">
+          <GlobeIcon weight="duotone" className="w-5 h-5 text-stone-400 shrink-0 mt-0.5" />
+          <address class="text-sm text-stone-700 not-italic leading-relaxed">
+            {hqParts.map((part, i) => (
+              <Fragment>
+                {i > 0 && <br />}
+                {part}
+              </Fragment>
+            ))}
+          </address>
+        </div>
+      </section>
+    )}
+
+    <!-- Actions footer -->
+    <footer class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-stone-200" data-shop-id={shop.id}>
+      <div class="flex items-center gap-4" data-shop-actions>
+        <button
+          type="button"
+          class="text-sm text-stone-400 hover:text-red-400 transition-colors"
+          data-action="dead-link"
+          data-shop-id={shop.id}
+          data-dialog={deadDialogId}
+          aria-label={`Defekten Link für ${shop.name} melden`}
+        >
+          Link defekt?
+        </button>
+        <button
+          type="button"
+          class="text-sm text-stone-400 hover:text-red-400 transition-colors"
+          data-action="report"
+          data-shop-id={shop.id}
+          data-dialog={reportDialogId}
+          aria-label={`${shop.name} melden`}
+        >
+          Shop melden
+        </button>
+      </div>
+      <a
+        href={visitUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-sm font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
+        data-analytics-event="shop-visit-click"
+        data-analytics-source="shop-detail"
+        data-shop-id={String(shop.id)}
+        data-shop-name={shop.name}
+        data-shop-domain={domain}
+      >
+        Shop besuchen ↗
+      </a>
+    </footer>
+  </div>
+
+  <!-- Dead link confirmation dialog -->
+  <dialog
+    id={deadDialogId}
+    aria-labelledby={`${deadDialogId}-title`}
+    aria-describedby={`${deadDialogId}-desc`}
+    aria-modal="true"
+    class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
+  >
+    <h2 id={`${deadDialogId}-title`} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+      Link defekt?
+    </h2>
+    <p id={`${deadDialogId}-desc`} class="text-sm text-[var(--ds-text-muted)] mb-6">
+      Ist der Link von <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> wirklich nicht mehr erreichbar?
+    </p>
+    <div class="flex gap-3 justify-end">
+      <button
+        type="button"
+        class="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+        data-dismiss
+      >
+        Abbrechen
+      </button>
+      <button
+        type="button"
+        class="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
+        data-confirm="dead-link"
+        data-shop-id={shop.id}
+      >
+        Ja, Link melden
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Report/concern dialog -->
+  <dialog
+    id={reportDialogId}
+    aria-labelledby={`${reportDialogId}-title`}
+    aria-describedby={`${reportDialogId}-desc`}
+    aria-modal="true"
+    class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
+  >
+    <div data-report-form>
+      <h2 id={`${reportDialogId}-title`} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
+        Shop melden
+      </h2>
+      <p id={`${reportDialogId}-desc`} class="text-sm text-[var(--ds-text-muted)] mb-5">
+        Du möchtest <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> melden? Beschreibe kurz, warum dieser Shop deiner Meinung nach nicht auf lmaa.space gehört.
+      </p>
+      <div class="space-y-4">
+        <textarea
+          rows="4"
+          placeholder="z. B. Shop verkauft keine fairen oder nachhaltigen Produkte, ist nicht mehr erreichbar, …"
+          class="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+          data-reason-input
+        ></textarea>
+        <p class="text-[var(--ds-danger-text)] text-xs hidden" data-error-msg></p>
+        <div class="flex gap-3 justify-end">
+          <button
+            type="button"
+            class="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+            data-dismiss
+          >
+            Abbrechen
+          </button>
+          <button
+            type="button"
+            class="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors disabled:opacity-50"
+            data-confirm="report"
+            data-shop-id={shop.id}
+          >
+            Melden
+          </button>
+        </div>
+      </div>
+    </div>
+    <div data-report-success class="text-center py-6 hidden">
+      <p class="text-2xl mb-3">🙏</p>
+      <h2 class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-2">
+        Danke für deinen Hinweis!
+      </h2>
+      <p class="text-sm text-[var(--ds-text-muted)] mb-6">
+        Wir prüfen deine Meldung und handeln bei Bedarf.
+      </p>
+      <button
+        type="button"
+        class="h-9 px-6 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
+        data-dismiss
+      >
+        Schließen
+      </button>
+    </div>
+  </dialog>
+</BaseLayout>
