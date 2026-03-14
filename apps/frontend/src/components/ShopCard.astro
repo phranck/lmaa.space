@@ -1,320 +1,86 @@
 ---
-import { renderMarkdown, stripMarkdown } from "@/lib/markdown";
-import { shopDomain, shopRefUrl } from "@/lib/shop";
+import { shopDomain } from "@/lib/shop";
 import { REGION_CODES, type Shop } from "@lmaa/shared";
-import ShopCardHeader from "./ShopCardHeader.astro";
-import { XCircleIcon } from "@phosphor-icons/react";
 
 interface Props {
   shop: Shop;
-  analyticsSource?: "shop-card" | "search-result" | "category-page";
+  detailHref: string;
 }
 
-const { shop, analyticsSource = "shop-card" } = Astro.props;
+const { shop, detailHref } = Astro.props;
 
 const domain = shopDomain(shop.url);
-const shopUrl = shopRefUrl(shop.url);
-
 const sortedRegions = [...shop.region].sort(
   (a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b),
 );
 
-const deadDialogId = `dialog-dead-${shop.id}`;
-const reportDialogId = `dialog-report-${shop.id}`;
-const detailsDialogId = `dialog-details-${shop.id}`;
-const deadTitleId = `${deadDialogId}-title`;
-const deadDescId = `${deadDialogId}-desc`;
-const reportTitleId = `${reportDialogId}-title`;
-const reportDescId = `${reportDialogId}-desc`;
-
-const MAX_DESC_CHARS = 120;
-const plainDescription = stripMarkdown(shop.description);
-const isLongDescription = plainDescription.length > MAX_DESC_CHARS;
-const descriptionPreview = plainDescription
-  ? isLongDescription
-    ? `${plainDescription.slice(0, MAX_DESC_CHARS).trimEnd()}\u2026`
-    : plainDescription
-  : null;
-
-const fullDescriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
-const categoryAnalyticsSource =
-  analyticsSource === "shop-card" ? "shop-card-pill" : analyticsSource;
+const MAX_PILLS = 2;
+const visibleCategories = shop.categories?.slice(0, MAX_PILLS) ?? [];
+const extraCount = (shop.categories?.length ?? 0) - MAX_PILLS;
 ---
 
-<div
-  class="bg-white rounded-3xl border border-stone-200 p-4 flex flex-col gap-3 hover:shadow-md hover:border-stone-300 transition-all duration-200"
-  data-shop-id={shop.id}
+<a
+  href={detailHref}
+  class="block bg-white rounded-2xl border border-stone-200 p-4 hover:shadow-md hover:border-stone-300 transition-all duration-200"
+  data-analytics-event="shop-card-click"
+  data-shop-id={String(shop.id)}
+  data-shop-name={shop.name}
 >
-  <!-- Top row: og:image + name + domain + region badges -->
-  <ShopCardHeader shop={shop} domain={domain} sortedRegions={sortedRegions} />
-
-  {descriptionPreview && (
-    <p class="text-sm text-stone-600 leading-relaxed">{descriptionPreview}</p>
-  )}
-
-  {shop.shipping && (
-    <div class="flex flex-wrap gap-1.5">
-      <span class="px-2.5 py-0.5 rounded-md bg-stone-50 text-stone-600 text-xs font-medium border border-stone-100">
-        Versand: {shop.shipping}
-      </span>
-    </div>
-  )}
-
-  <!-- Category pills -->
-  {shop.categories?.length > 0 && (
-    <div class="flex flex-wrap gap-1.5">
-      {shop.categories.map((cat) => (
-        <a
-          href={`/category/${cat.slug}`}
-          class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
-          data-analytics-event="category-click"
-          data-analytics-source={categoryAnalyticsSource}
-          data-category-id={String(cat.id)}
-          data-category-slug={cat.slug}
-          data-category-name={cat.name}
-        >
-          {cat.name}
-        </a>
-      ))}
-    </div>
-  )}
-
-  <!-- Footer: actions + (optional) shop details + visit button -->
-  <div class="flex items-center justify-between mt-auto">
-    <div class="flex items-center gap-3" data-shop-actions>
-      <button
-        type="button"
-        class="text-xs text-stone-400 hover:text-red-400 transition-colors"
-        data-action="dead-link"
-        data-shop-id={shop.id}
-        data-dialog={deadDialogId}
-        aria-label={`Defekten Link für ${shop.name} melden`}
-      >
-        Link defekt?
-      </button>
-      <button
-        type="button"
-        class="text-xs text-stone-400 hover:text-red-400 transition-colors"
-        data-action="report"
-        data-shop-id={shop.id}
-        data-dialog={reportDialogId}
-        aria-label={`${shop.name} melden`}
-      >
-        Shop melden
-      </button>
-    </div>
-    <div class="flex items-center gap-2">
-      {isLongDescription && (
-        <button
-          type="button"
-          class="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
-          data-action="details"
-          data-dialog={detailsDialogId}
-          aria-label={`Details für ${shop.name} anzeigen`}
-        >
-          Shop Details
-        </button>
+  <div class="flex items-center gap-3">
+    <!-- og:image -->
+    <div class="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
+      {shop.ogImage ? (
+        <img
+          src={shop.ogImage}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          class="w-full h-full object-contain"
+          data-img-fallback
+        />
+        <span class="text-lg font-bold text-stone-300 select-none hidden items-center justify-center w-full h-full">
+          {shop.name.charAt(0).toUpperCase()}
+        </span>
+      ) : (
+        <span class="text-lg font-bold text-stone-300 select-none">
+          {shop.name.charAt(0).toUpperCase()}
+        </span>
       )}
-      <a
-        href={shopUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
-        data-analytics-event="shop-visit-click"
-        data-analytics-source={analyticsSource}
-        data-shop-id={String(shop.id)}
-        data-shop-name={shop.name}
-        data-shop-domain={domain}
-      >
-        Besuchen ↗
-      </a>
     </div>
-  </div>
-</div>
 
-<!-- Dead link confirmation dialog -->
-<dialog
-  id={deadDialogId}
-  aria-labelledby={deadTitleId}
-  aria-describedby={deadDescId}
-  aria-modal="true"
-  class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
->
-  <h2 id={deadTitleId} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
-    Link defekt?
-  </h2>
-  <p id={deadDescId} class="text-sm text-[var(--ds-text-muted)] mb-6">
-    Ist der Link von <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> wirklich nicht mehr erreichbar?
-  </p>
-  <div class="flex gap-3 justify-end">
-    <button
-      type="button"
-      class="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-      data-dismiss
-    >
-      Abbrechen
-    </button>
-    <button
-      type="button"
-      class="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
-      data-confirm="dead-link"
-      data-shop-id={shop.id}
-    >
-      Ja, Link melden
-    </button>
-  </div>
-</dialog>
-
-<!-- Report/concern dialog -->
-<dialog
-  id={reportDialogId}
-  aria-labelledby={reportTitleId}
-  aria-describedby={reportDescId}
-  aria-modal="true"
-  class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-md p-6 m-auto"
->
-  <div data-report-form>
-    <h2 id={reportTitleId} class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-1">
-      Shop melden
-    </h2>
-    <p id={reportDescId} class="text-sm text-[var(--ds-text-muted)] mb-5">
-      Du möchtest <span class="font-medium text-[var(--ds-text)]">{shop.name}</span> melden? Beschreibe kurz, warum dieser Shop deiner Meinung nach nicht auf lmaa.space gehört.
-    </p>
-    <div class="space-y-4">
-      <textarea
-        rows="4"
-        placeholder="z. B. Shop verkauft keine fairen oder nachhaltigen Produkte, ist nicht mehr erreichbar, …"
-        class="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-        data-reason-input
-      ></textarea>
-      <p class="text-[var(--ds-danger-text)] text-xs hidden" data-error-msg></p>
-      <div class="flex gap-3 justify-end">
-        <button
-          type="button"
-          class="h-9 px-4 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-          data-dismiss
-        >
-          Abbrechen
-        </button>
-        <button
-          type="button"
-          class="h-9 px-5 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors disabled:opacity-50"
-          data-confirm="report"
-          data-shop-id={shop.id}
-        >
-          Melden
-        </button>
-      </div>
+    <!-- Name + domain + regions -->
+    <div class="flex-1 min-w-0">
+      <h3 class="font-serif font-semibold text-stone-900 text-base leading-snug truncate">
+        {shop.name}
+      </h3>
+      <p class="text-xs text-stone-400 mt-0.5 truncate">{domain}</p>
     </div>
-  </div>
-  <div data-report-success class="text-center py-6 hidden">
-    <p class="text-2xl mb-3">🙏</p>
-    <h2 class="font-serif text-xl font-semibold text-[var(--ds-text)] mb-2">
-      Danke für deinen Hinweis!
-    </h2>
-    <p class="text-sm text-[var(--ds-text-muted)] mb-6">
-      Wir prüfen deine Meldung und handeln bei Bedarf.
-    </p>
-    <button
-      type="button"
-      class="h-9 px-6 bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-filled-hover)] transition-colors"
-      data-dismiss
-    >
-      Schließen
-    </button>
-  </div>
-</dialog>
 
-<!-- Shop details dialog -->
-<dialog
-  id={detailsDialogId}
-  aria-labelledby={`${detailsDialogId}-title`}
-  aria-modal="true"
-  data-animated
-  class="bg-[var(--ds-surface)] rounded-[var(--ds-radius-3xl)] shadow-[var(--ds-shadow-xl)] w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 m-auto"
->
-  <div class="flex flex-col gap-4">
-    <!-- Header: logo + name + domain + region badges + close -->
-    <ShopCardHeader
-      shop={shop}
-      domain={domain}
-      sortedRegions={sortedRegions}
-      headingId={`${detailsDialogId}-title`}
-    >
-      <button
-        type="button"
-        data-dismiss
-        class="shrink-0 ml-1 text-stone-300 hover:text-stone-500 transition-colors"
-        aria-label="Details schließen"
-      >
-        <XCircleIcon weight="duotone" className="w-6 h-6" />
-      </button>
-    </ShopCardHeader>
-
-    <!-- Full markdown description -->
-    {fullDescriptionHtml && (
-      <div
-        class="text-sm text-stone-600 leading-relaxed prose prose-sm prose-stone max-w-none prose-p:my-4 prose-a:text-amber-700"
-        set:html={fullDescriptionHtml}
-      />
-    )}
-
-    <!-- Category pills -->
-    {shop.categories?.length > 0 && (
-      <div class="flex flex-wrap gap-1.5">
-        {shop.categories.map((cat) => (
-          <a
-            href={`/category/${cat.slug}`}
-            class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70 hover:bg-amber-100 hover:text-amber-700 transition-colors"
-            data-analytics-event="category-click"
-            data-analytics-source={categoryAnalyticsSource}
-            data-category-id={String(cat.id)}
-            data-category-slug={cat.slug}
-            data-category-name={cat.name}
-          >
-            {cat.name}
-          </a>
+    <!-- Region badges (hidden on very small screens) -->
+    {sortedRegions.length > 0 && (
+      <div class="hidden sm:flex flex-wrap gap-1 shrink-0">
+        {sortedRegions.map((r) => (
+          <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">
+            {r}
+          </span>
         ))}
       </div>
     )}
-
-  <!-- Footer (same as card) -->
-  <div class="flex items-center justify-between pt-3 border-t border-stone-100">
-    <div class="flex items-center gap-3">
-      <button
-        type="button"
-        class="text-xs text-stone-400 hover:text-red-400 transition-colors"
-        data-action="dead-link"
-        data-shop-id={shop.id}
-        data-dialog={deadDialogId}
-        aria-label={`Defekten Link für ${shop.name} melden`}
-      >
-        Link defekt?
-      </button>
-      <button
-        type="button"
-        class="text-xs text-stone-400 hover:text-red-400 transition-colors"
-        data-action="report"
-        data-shop-id={shop.id}
-        data-dialog={reportDialogId}
-        aria-label={`${shop.name} melden`}
-      >
-        Shop melden
-      </button>
-    </div>
-    <a
-      href={shopUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-colors bg-[var(--accent-hover)] text-[var(--accent-text)] hover:bg-[var(--accent-active)]"
-      data-analytics-event="shop-visit-click"
-      data-analytics-source="shop-details-dialog"
-      data-shop-id={String(shop.id)}
-      data-shop-name={shop.name}
-      data-shop-domain={domain}
-    >
-      Besuchen ↗
-    </a>
   </div>
-</div>
-</dialog>
+
+  <!-- Category pills -->
+  {visibleCategories.length > 0 && (
+    <div class="flex flex-wrap gap-1.5 mt-3">
+      {visibleCategories.map((cat) => (
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700/70">
+          {cat.name}
+        </span>
+      ))}
+      {extraCount > 0 && (
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-400">
+          +{extraCount}
+        </span>
+      )}
+    </div>
+  )}
+</a>
