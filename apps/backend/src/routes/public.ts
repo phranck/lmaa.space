@@ -108,6 +108,10 @@ publicRoutes.post(
       return c.json({ error: { message: "Validation failed", issues } });
     }
 
+    const rawShopUrl = typeof parsed.data.shopUrl === "string" ? parsed.data.shopUrl.trim() : undefined;
+    if (rawShopUrl && !/^https?:\/\//i.test(rawShopUrl)) {
+      parsed.data.shopUrl = `https://${rawShopUrl}`;
+    }
     const shopUrl = typeof parsed.data.shopUrl === "string" ? parsed.data.shopUrl : undefined;
     if (shopUrl) {
       const urlCheck = await validateShopUrl(shopUrl);
