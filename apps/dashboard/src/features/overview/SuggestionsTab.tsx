@@ -53,10 +53,15 @@ export function SuggestionsTab({
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-medium truncate text-[var(--ds-text)]">{submission.shopName}</p>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${STATUS_COLORS[submission.status]}`}
+                className={`px-2 py-px rounded-full text-[10px] font-medium ${STATUS_COLORS[submission.status]}`}
               >
                 {statusLabels[submission.status]}
               </span>
+              {submission.readyForReview && (
+                <span className="px-2.5 py-px rounded-full text-[11px] font-semibold bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
+                  {submissionsMessages.suggestions.reviewBadge}
+                </span>
+              )}
             </div>
             <a
               href={submission.shopUrl}
@@ -122,7 +127,7 @@ export function SuggestionsTab({
             <button
               type="button"
               onClick={() => navigate(`/reports/suggestions/${submission.id}`)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
             >
               <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.suggestions.edit}

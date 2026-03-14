@@ -142,6 +142,7 @@ export async function reviewSubmission(
         adminNote: data.adminNote ?? null,
         rejectionLongText: data.status === "rejected" ? (data.rejectionLongText ?? null) : null,
         rejectionToken: data.status === "rejected" ? (data.rejectionToken ?? null) : null,
+        readyForReview: false,
         reviewedBy: data.adminId,
         reviewedAt: new Date(),
         updatedAt: new Date(),
@@ -275,6 +276,13 @@ export async function deleteSubmission(id: number): Promise<void> {
  * @param data - Submitted field values keyed by variable name.
  * @returns The id of the created submission row.
  */
+export async function setReadyForReview(id: number, value: boolean): Promise<void> {
+  await db
+    .update(submissions)
+    .set({ readyForReview: value, updatedAt: new Date() })
+    .where(eq(submissions.id, id));
+}
+
 export async function createSubmissionFromFormData(data: Record<string, unknown>): Promise<number> {
   const str = (key: string) => (data[key] != null ? String(data[key]) : "");
   const strOrNull = (key: string) => (data[key] != null ? String(data[key]) : null);

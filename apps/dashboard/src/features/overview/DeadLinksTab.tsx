@@ -83,7 +83,7 @@ export function DeadLinksTab() {
               type="button"
               onClick={() => dismissMutation.mutate(report.shopId)}
               disabled={dismissMutation.isPending || deleteMutation.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] text-sm rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] text-sm rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
             >
               <CheckIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.deadLinks.keep}

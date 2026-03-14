@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
 
@@ -143,6 +144,34 @@ export function useDeleteSubmission() {
     onSuccess: (_result, id) => {
       qc.invalidateQueries({ queryKey: ["submissions"] });
       qc.removeQueries({ queryKey: ["submission", id] });
+    },
+  });
+}
+
+export function useExportSubmissions() {
+  return useCallback(async () => {
+    const data = await api.get<Array<{ id: number; name: string; url: string }>>("/admin/submissions/export");
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const date = new Date().toISOString().slice(0, 10);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `submissions-export-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+}
+
+type ImportResult = { imported: number; skipped: number; errors: string[] };
+
+export function useImportSubmissions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (entries: Array<Record<string, unknown>>) =>
+      api.post<ImportResult>("/admin/submissions/import", { entries }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["submissions"] });
     },
   });
 }

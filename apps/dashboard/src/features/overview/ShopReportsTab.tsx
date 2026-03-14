@@ -105,7 +105,7 @@ export function ShopReportsTab() {
               type="button"
               onClick={() => dismiss.mutate(report.id)}
               disabled={dismiss.isPending || setVisibilityMutation.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors disabled:opacity-50"
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
             >
               <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.shopReports.done}
@@ -113,7 +113,7 @@ export function ShopReportsTab() {
             <button
               type="button"
               onClick={() => setEditShopId(report.shopId)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] transition-colors"
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
             >
               <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.shopReports.edit}

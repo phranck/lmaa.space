@@ -29,6 +29,7 @@ export interface Submission {
   rejectionLongText: string | null;
   rejectionToken: string | null;
   feedbackSent: boolean;
+  readyForReview: boolean;
   reviewedBy: number | null;
   reviewedAt: string | null;
   createdAt: string;
