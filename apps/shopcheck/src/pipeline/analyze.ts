@@ -2,6 +2,7 @@ import { MAX_PAGES_PER_CHUNK, TEMPERATURE_EXTRACTION } from "../constants";
 import type { CriterionResult, DecisionOutcome } from "./decision";
 import { normalizeShipping, type ExtractedFacts } from "./extract";
 import type { FetchedPage } from "./research";
+import type { ExternalContext } from "./web-search";
 import { tryParseJson } from "../lib/utils";
 import { LlmFatalError, getModelName, llmGenerate } from "../llm/client";
 
@@ -154,6 +155,7 @@ function buildAnalysisPrompt(
   deterministicFacts: ExtractedFacts,
   availableCategories: string[],
   admissionCriteriaText: string,
+  externalContext: ExternalContext[],
   chunkInfo?: { current: number; total: number },
 ): string {
   const pagesJson = pages.map((p) => ({
@@ -215,6 +217,19 @@ function buildAnalysisPrompt(
     `## Shop-Seiten (${pages.length} Seiten)`,
     JSON.stringify(pagesJson),
     "",
+    ...(externalContext.length > 0
+      ? [
+          "## Externe Recherche-Ergebnisse",
+          "Die folgenden Snippets stammen aus externen Quellen (nicht von der Shop-Website).",
+          "Nutze sie als zusätzliche Evidenz bei der Kriterien-Bewertung, insbesondere für:",
+          "- Konzernzugehörigkeit (notLargeCorp)",
+          "- Dropshipping-Verdacht (notDropshipping)",
+          "- Rechtsextremistische Bezüge (noFarRight)",
+          "",
+          ...externalContext.map((ctx) => `Query: ${ctx.query}\n${ctx.snippets.map((s) => `  - ${s}`).join("\n")}`),
+          "",
+        ]
+      : []),
     "## Antwortformat",
     "Antworte ausschließlich als JSON mit exakt dieser Struktur:",
     "{",
@@ -402,6 +417,7 @@ export async function analyzeShopWithLlm({
   deterministicFacts,
   availableCategories,
   admissionCriteriaText = "",
+  externalContext = [],
   onProgress,
 }: {
   shopUrl: string;
@@ -409,6 +425,7 @@ export async function analyzeShopWithLlm({
   deterministicFacts: ExtractedFacts;
   availableCategories: string[];
   admissionCriteriaText?: string;
+  externalContext?: ExternalContext[];
   onProgress?: (message: string) => void;
 }): Promise<CombinedAnalysisResult> {
   const fallbackDecision: DecisionOutcome = {
@@ -441,7 +458,7 @@ export async function analyzeShopWithLlm({
   for (let i = 0; i < chunks.length; i += 1) {
     const chunk = chunks[i];
     const chunkInfo = chunks.length > 1 ? { current: i + 1, total: chunks.length } : undefined;
-    const prompt = buildAnalysisPrompt(shopUrl, chunk, deterministicFacts, availableCategories, admissionCriteriaText, chunkInfo);
+    const prompt = buildAnalysisPrompt(shopUrl, chunk, deterministicFacts, availableCategories, admissionCriteriaText, externalContext, chunkInfo);
     const promptTokens = estimateTokens(prompt);
     onProgress?.(`Chunk ${i + 1}/${chunks.length}: ${chunk.length} pages, ~${promptTokens} tokens...`);
 

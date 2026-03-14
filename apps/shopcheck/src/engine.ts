@@ -13,7 +13,7 @@ import { extractFacts, normalizeShipping } from "./pipeline/extract";
 import { geocodeWithFallback } from "./pipeline/geocode";
 import { buildShopJson } from "./pipeline/output";
 import { crawlRelevantPages } from "./pipeline/research";
-import { webSearchFallback } from "./pipeline/web-search";
+import { searchExternalContext, searchSocialMedia, webSearchFallback } from "./pipeline/web-search";
 import type { LogEntry, ResultsState, RunnerState, Shop } from "./types";
 
 export type EngineConfig = {
@@ -241,29 +241,53 @@ export class ShopcheckEngine extends EventEmitter {
     let allPages = [...pages];
     let deterministicFacts = extractFacts(allPages);
 
-    // Phase 3: Web search fallback if needed (25-35%)
+    // Phase 3: Web search for comprehensive coverage (25-35%)
     this.persistState({ pipelineProgress: 25 });
-    const needsFallback =
-      !deterministicFacts.address.postalCode ||
-      !deterministicFacts.address.city ||
-      deterministicFacts.shippingRegions.length === 0 ||
-      deterministicFacts.contact.emails.length === 0;
-    if (needsFallback) {
-      this.emitLog(`[${shop.id}] Primary crawl insufficient. Running web-search fallback...`);
-      const webPages = await webSearchFallback({
-        shopName: shop.name,
-        shopUrl: shop.url,
-        userAgent: SHOPCHECK_USER_AGENT,
-        onProgress: (message) => this.emitLog(message),
-      });
-      if (webPages.length > 0) {
-        allPages = [...allPages, ...webPages.filter((p) => !allPages.some((q) => q.url === p.url))];
-        deterministicFacts = extractFacts(allPages);
+    this.emitLog(`[${shop.id}] Running web search for additional pages...`);
+    const webPages = await webSearchFallback({
+      shopName: shop.name,
+      shopUrl: shop.url,
+      userAgent: SHOPCHECK_USER_AGENT,
+      onProgress: (message) => this.emitLog(message),
+    });
+    if (webPages.length > 0) {
+      allPages = [...allPages, ...webPages.filter((p) => !allPages.some((q) => q.url === p.url))];
+      deterministicFacts = extractFacts(allPages);
+    }
+
+    // Phase 3a: External counter-research (35-40%)
+    this.persistState({ pipelineProgress: 35 });
+    this.emitLog(`[${shop.id}] Running external counter-research...`);
+    const externalContext = await searchExternalContext({
+      shopName: shop.name,
+      userAgent: SHOPCHECK_USER_AGENT,
+      onProgress: (message) => this.emitLog(message),
+    });
+    if (externalContext.length > 0) {
+      this.emitLog(`[${shop.id}] Found ${externalContext.length} external context result(s).`);
+    }
+
+    // Phase 3b: Active social media search (40-45%)
+    this.persistState({ pipelineProgress: 40 });
+    this.emitLog(`[${shop.id}] Searching for social media profiles...`);
+    const socialSearchResults = await searchSocialMedia({
+      shopName: shop.name,
+      existingSocial: deterministicFacts.socialMedia,
+      userAgent: SHOPCHECK_USER_AGENT,
+      onProgress: (message) => this.emitLog(message),
+    });
+    const socialFound = Object.keys(socialSearchResults).length;
+    if (socialFound > 0) {
+      this.emitLog(`[${shop.id}] Found ${socialFound} additional social profile(s) via search.`);
+      for (const [key, url] of Object.entries(socialSearchResults)) {
+        if (url) {
+          (deterministicFacts.socialMedia as Record<string, string | null>)[key] = url;
+        }
       }
     }
 
-    // Phase 4: Combined LLM analysis (35-70%)
-    this.persistState({ pipelineProgress: 35 });
+    // Phase 4: Combined LLM analysis (45-75%)
+    this.persistState({ pipelineProgress: 45 });
     this.emitLog(`[${shop.id}] LLM analysis (facts + criteria + categories) with ${allPages.length} pages...`);
     const analysis = await analyzeShopWithLlm({
       shopUrl: shop.url,
@@ -271,6 +295,7 @@ export class ShopcheckEngine extends EventEmitter {
       deterministicFacts,
       availableCategories: this.categoryCatalog,
       admissionCriteriaText: this.admissionCriteriaText,
+      externalContext,
       onProgress: (message) => this.emitLog(message),
     });
 
