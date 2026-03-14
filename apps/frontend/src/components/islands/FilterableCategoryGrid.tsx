@@ -1,0 +1,176 @@
+import { useCallback, useRef, useState } from "react";
+
+import type { Category } from "@lmaa/shared";
+
+import CategoryCard from "@/components/CategoryCard";
+import { API_BASE } from "@/lib/client-api";
+import { type ShopFilters, buildFilterQuery } from "@/lib/filter-query";
+
+import ShopFilterBar from "./ShopFilterBar";
+
+interface FilterableCategoryGridProps {
+  /** SSR-rendered categories (initial state, no filters). */
+  categories: Category[];
+  /** Total shop count (from /api/stats). */
+  shopCount: number;
+}
+
+interface FilteredCategory {
+  id: number;
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+  shopCount: number;
+}
+
+function buildCategoryHref(slug: string, filters: ShopFilters): string {
+  const query = buildFilterQuery(filters);
+  return query ? `/category/${slug}?${query}` : `/category/${slug}`;
+}
+
+export default function FilterableCategoryGrid({
+  categories: initialCategories,
+  shopCount: initialShopCount,
+}: FilterableCategoryGridProps) {
+  const [showFilter, setShowFilter] = useState(false);
+  const [categories, setCategories] = useState<FilteredCategory[]>(
+    initialCategories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      imageUrl: c.imageUrl ?? null,
+      shopCount: c.shopCount ?? 0,
+    })),
+  );
+  const [shopCount, setShopCount] = useState(initialShopCount);
+  const [filtersActive, setFiltersActive] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState<ShopFilters>({
+    city: "",
+    radius: 50,
+    country: "",
+    region: [],
+  });
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const fetchFiltered = useCallback((filters: ShopFilters) => {
+    const hasFilters =
+      filters.city !== "" || filters.country !== "" || filters.region.length > 0;
+
+    setFiltersActive(hasFilters);
+    setCurrentFilters(filters);
+
+    if (!hasFilters) {
+      // Reset to initial data
+      setCategories(
+        initialCategories.map((c) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          imageUrl: c.imageUrl ?? null,
+          shopCount: c.shopCount ?? 0,
+        })),
+      );
+      setShopCount(initialShopCount);
+      return;
+    }
+
+    const query = buildFilterQuery(filters);
+    fetch(`${API_BASE}/filtered/categories?${query}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.data) {
+          const filtered = json.data as FilteredCategory[];
+          setCategories(filtered);
+          const total = filtered.reduce((sum, c) => sum + c.shopCount, 0);
+          setShopCount(total);
+        }
+      })
+      .catch(() => {});
+  }, [initialCategories, initialShopCount]);
+
+  const handleFilterChange = useCallback(
+    (filters: ShopFilters) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchFiltered(filters), 400);
+    },
+    [fetchFiltered],
+  );
+
+  const visibleCategories = filtersActive
+    ? categories.filter((c) => c.shopCount > 0)
+    : categories;
+
+  const categoryCount = filtersActive
+    ? visibleCategories.length
+    : categories.length;
+
+  return (
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-6 px-[15px]">
+        <h2 className="font-serif text-2xl font-semibold text-stone-800">
+          Kategorien entdecken
+        </h2>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-stone-400">
+            {shopCount} Shops in {categoryCount} Kategorien
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowFilter((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+              showFilter || filtersActive
+                ? "bg-amber-100 border-amber-300 text-amber-800"
+                : "bg-white border-stone-300 text-stone-500 hover:border-stone-400"
+            }`}
+            aria-expanded={showFilter}
+            aria-label="Filter ein-/ausblenden"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 256 256"
+              className="w-4 h-4"
+              fill="currentColor"
+            >
+              <path d="M200,136a8,8,0,0,1-8,8H64a8,8,0,0,1,0-16H192A8,8,0,0,1,200,136Zm32-56H24a8,8,0,0,0,0,16H232a8,8,0,0,0,0-16Zm-80,96H104a8,8,0,0,0,0,16h48a8,8,0,0,0,0-16Z" />
+            </svg>
+            Filter
+          </button>
+        </div>
+      </div>
+
+      {/* Filter bar */}
+      {showFilter && (
+        <div className="mb-6">
+          <ShopFilterBar
+            initialFilters={currentFilters}
+            onFilterChange={handleFilterChange}
+          />
+        </div>
+      )}
+
+      {/* Category grid */}
+      {visibleCategories.length === 0 ? (
+        <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
+          <p className="text-stone-500">
+            Keine Kategorien mit Shops für diesen Filter gefunden.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {visibleCategories.map((cat) => (
+            <CategoryCard
+              key={cat.id}
+              id={cat.id}
+              name={cat.name}
+              slug={cat.slug}
+              imageUrl={cat.imageUrl}
+              shopCount={cat.shopCount}
+              href={buildCategoryHref(cat.slug, currentFilters)}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}

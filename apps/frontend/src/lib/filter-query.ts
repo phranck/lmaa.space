@@ -1,0 +1,24 @@
+export interface ShopFilters {
+  city: string;
+  radius: number;
+  country: string;
+  region: string[];
+}
+
+export function buildFilterQuery(filters: ShopFilters): string {
+  const params = new URLSearchParams();
+  if (filters.city) params.set("city", filters.city);
+  if (filters.city && filters.radius) params.set("radius", String(filters.radius));
+  if (filters.country) params.set("country", filters.country);
+  if (filters.region.length > 0) params.set("region", filters.region.join(","));
+  return params.toString();
+}
+
+export function parseFiltersFromUrl(url: URL): ShopFilters {
+  return {
+    city: url.searchParams.get("city") ?? "",
+    radius: Number(url.searchParams.get("radius")) || 50,
+    country: url.searchParams.get("country") ?? "",
+    region: url.searchParams.get("region")?.split(",").filter(Boolean) ?? [],
+  };
+}

@@ -1,4 +1,5 @@
 ---
+import SectionLabel from "@/components/SectionLabel.astro";
 import ShopCard from "@/components/ShopCard.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
@@ -82,9 +83,7 @@ const hasQuery = q.length >= 2;
     <!-- Category results -->
     {categoryResults.length > 0 && (
       <section class="mb-10">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
-          Kategorien
-        </h2>
+        <SectionLabel class="mb-4">Kategorien</SectionLabel>
         <div class="flex flex-wrap gap-2">
           {categoryResults.map((cat) => (
             <a
@@ -109,9 +108,7 @@ const hasQuery = q.length >= 2;
     <!-- Shop results -->
     {shopResults.length > 0 && (
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-4">
-          Shops
-        </h2>
+        <SectionLabel class="mb-4">Shops</SectionLabel>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {shopResults.map((shop) => (
             <ShopCard shop={shop} detailHref={`/shop/${encodeShopToken(shop.id)}?from=search&q=${encodeURIComponent(q)}`} />
