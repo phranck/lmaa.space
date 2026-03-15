@@ -1,6 +1,7 @@
 import {
   EyeIcon,
   FileTextIcon,
+  MapPinIcon,
   PauseCircleIcon,
   TrashIcon,
   XCircleIcon,
@@ -83,6 +84,9 @@ export function ShopTable({ shops, onEdit }: ShopTableProps) {
               >
                 {shop.name}
               </p>
+              {shop.headquarters?.latitude != null && shop.headquarters?.longitude != null && (
+                <MapPinIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 text-[var(--color-primary)]" />
+              )}
               <VisibilityBadge visibility={shop.visibility} />
             </div>
             <a
