@@ -6,7 +6,7 @@ import {
   StorefrontIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 
 import {
   generateRejectionToken,
@@ -366,6 +366,7 @@ export function useShopEditorController({
   );
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const importJsonHandlerRef = useRef<((jsonText: string) => void) | null>(null);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>({});
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
   const showLoadingSkeleton = isLoadingShop && !hasImmediateFormData;
@@ -529,6 +530,10 @@ export function useShopEditorController({
     setOgImageMutation.mutate(ogImageInput || null);
   }
 
+  function handleImportJsonText(jsonText: string): void {
+    importJsonHandlerRef.current?.(jsonText);
+  }
+
   useKeyboardSave(() => {
     if (canSave) void handleSaveSafely();
   });
@@ -585,6 +590,8 @@ export function useShopEditorController({
     clearSaveError() {
       setSaveErrorMessage(null);
     },
+    handleImportJsonText,
+    importJsonHandlerRef,
     handleSaveSafely,
   };
 }
@@ -624,20 +631,16 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     const trimmed = jsonText.trim();
     if (trimmed === "") {
       if (options?.showErrors) {
-        setJsonImportError(shopFormI18n.messages.jsonInvalidError ?? "Ungültiges JSON.");
+        setJsonImportError(shopFormI18n.messages.jsonInvalidError ?? "Invalid JSON.");
       }
       return false;
     }
-
     try {
       const parsed = JSON.parse(trimmed) as ShopCheckJsonPayload;
       const nextForm = applyShopCheckJsonToForm(form, parsed, categories);
       if (!nextForm) {
         if (options?.showErrors) {
-          setJsonImportError(
-            shopFormI18n.messages.jsonImportError ??
-              "Das JSON konnte nicht auf das Formular abgebildet werden.",
-          );
+          setJsonImportError(shopFormI18n.messages.jsonImportError ?? "JSON could not be mapped.");
         }
         return false;
       }
@@ -646,11 +649,17 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
       return true;
     } catch {
       if (options?.showErrors) {
-        setJsonImportError(shopFormI18n.messages.jsonInvalidError ?? "Ungültiges JSON.");
+        setJsonImportError(shopFormI18n.messages.jsonInvalidError ?? "Invalid JSON.");
       }
       return false;
     }
   }
+
+  // Register handler so the header import button can set JsonEditor content + apply
+  controller.importJsonHandlerRef.current = (jsonText: string) => {
+    setShopCheckJson(jsonText);
+    applyShopCheckJson(jsonText, { showErrors: true });
+  };
 
   function handleShopCheckJsonPaste(event: ClipboardEvent) {
     const pastedText = event.clipboardData?.getData("text/plain")?.trim();

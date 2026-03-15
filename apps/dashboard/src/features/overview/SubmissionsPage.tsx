@@ -100,7 +100,7 @@ export function SubmissionsPage() {
             <button
               type="button"
               onClick={exportSubmissions}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-primary-border)] rounded-control text-[var(--ds-btn-primary-text)] text-sm hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
             >
               <DownloadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.suggestions.exportButton}
@@ -109,7 +109,7 @@ export function SubmissionsPage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={importMutation.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
             >
               <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
               {submissionsMessages.suggestions.importButton}
