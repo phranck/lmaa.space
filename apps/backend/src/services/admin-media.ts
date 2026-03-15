@@ -14,6 +14,7 @@ function mapMediaAsset(row: {
   displayName: string;
   originalName: string;
   storedFilename: string;
+  alias: string | null;
   mimeType: string;
   kind: "image" | "document";
   sizeBytes: number;
