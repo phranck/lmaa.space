@@ -35,7 +35,7 @@ export default function FilterableCategoryShops({
 }: FilterableCategoryShopsProps) {
   const hasInitialFilters =
     initialFilters.city !== "" ||
-    initialFilters.country !== "" ||
+    initialFilters.country.length > 0 ||
     initialFilters.region.length > 0;
 
   const [showFilter, setShowFilter] = useState(hasInitialFilters);
@@ -50,7 +50,7 @@ export default function FilterableCategoryShops({
     (filters: ShopFilters) => {
       const hasFilters =
         filters.city !== "" ||
-        filters.country !== "" ||
+        filters.country.length > 0 ||
         filters.region.length > 0;
 
       setFiltersActive(hasFilters);

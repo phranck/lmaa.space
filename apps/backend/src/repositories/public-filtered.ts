@@ -6,7 +6,7 @@ import type { CategoryShopRow } from "./public.js";
 import { db } from "../db/index.js";
 import { geocode } from "../lib/geocoding.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
-import { parseRegionFilter } from "../lib/shop-filters.js";
+import { parseCountryFilter, parseRegionFilter } from "../lib/shop-filters.js";
 
 /**
  * Public shop row enriched with geo coordinates from headquarters.
@@ -19,7 +19,7 @@ export type FilteredShopRow = CategoryShopRow & {
 
 interface ResolvedFilters {
   regionCodes: string[];
-  countryCode: string | undefined;
+  countryCodes: string[];
   centerLat: number | undefined;
   centerLng: number | undefined;
   radiusKm: number;
@@ -27,24 +27,24 @@ interface ResolvedFilters {
 
 async function resolveFilters(params: ShopFilterParams): Promise<ResolvedFilters> {
   const regionCodes = parseRegionFilter(params.region);
-  const countryCode = params.country;
+  const countryCodes = parseCountryFilter(params.country);
   let centerLat: number | undefined;
   let centerLng: number | undefined;
   const radiusKm = params.radius ?? 50;
 
   if (params.city) {
-    const geo = await geocode(params.city, params.country);
+    const geo = await geocode(params.city, countryCodes[0]);
     if (geo) {
       centerLat = geo.latitude;
       centerLng = geo.longitude;
     }
   }
 
-  return { regionCodes, countryCode, centerLat, centerLng, radiusKm };
+  return { regionCodes, countryCodes, centerLat, centerLng, radiusKm };
 }
 
 function hasActiveFilters(f: ResolvedFilters): boolean {
-  return f.regionCodes.length > 0 || !!f.countryCode || f.centerLat !== undefined;
+  return f.regionCodes.length > 0 || f.countryCodes.length > 0 || f.centerLat !== undefined;
 }
 
 function buildConditions(f: ResolvedFilters) {
@@ -59,8 +59,13 @@ function buildConditions(f: ResolvedFilters) {
     );
   }
 
-  if (f.countryCode) {
-    conditions.push(sql`hq.country_code = ${f.countryCode}`);
+  if (f.countryCodes.length > 0) {
+    conditions.push(
+      sql`hq.country_code IN (${sql.join(
+        f.countryCodes.map((c) => sql`${c}`),
+        sql`,`,
+      )})`,
+    );
   }
 
   if (f.centerLat !== undefined && f.centerLng !== undefined) {

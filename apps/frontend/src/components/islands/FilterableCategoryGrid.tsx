@@ -48,7 +48,7 @@ export default function FilterableCategoryGrid({
   const [currentFilters, setCurrentFilters] = useState<ShopFilters>({
     city: "",
     radius: 50,
-    country: "",
+    country: [],
     region: [],
   });
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -56,7 +56,7 @@ export default function FilterableCategoryGrid({
 
   const fetchFiltered = useCallback((filters: ShopFilters) => {
     const hasFilters =
-      filters.city !== "" || filters.country !== "" || filters.region.length > 0;
+      filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
 
     setFiltersActive(hasFilters);
     setCurrentFilters(filters);

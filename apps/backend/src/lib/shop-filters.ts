@@ -7,7 +7,7 @@ import { z } from "zod";
 export const shopFilterSchema = z.object({
   city: z.string().max(200).optional(),
   radius: z.coerce.number().int().min(1).max(500).optional(),
-  country: z.string().length(2).toUpperCase().optional(),
+  country: z.string().max(50).optional(),
   region: z.string().max(50).optional(),
 });
 
@@ -22,4 +22,15 @@ export function parseRegionFilter(raw: string | undefined): string[] {
     .split(",")
     .map((r) => r.trim().toUpperCase())
     .filter(Boolean);
+}
+
+/**
+ * Parses comma-separated country codes into an array.
+ */
+export function parseCountryFilter(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter((c) => c.length === 2);
 }
