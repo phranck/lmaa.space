@@ -1,5 +1,6 @@
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 const SITE_HOSTS = new Set(["lmaa.space", "www.lmaa.space"]);
+const TRUSTED_ASSET_HOSTS = new Set(["storage-prg1.zerops.io"]);
 
 function isLoopbackHost(hostname: string): boolean {
   return LOOPBACK_HOSTS.has(hostname.toLowerCase());
@@ -80,8 +81,13 @@ export function getSafeSiteAssetPath(raw: string | null | undefined): string | n
 
   try {
     const parsed = new URL(value);
-    if ((parsed.protocol === "https:" || parsed.protocol === "http:") && SITE_HOSTS.has(parsed.hostname.toLowerCase())) {
+    const hostname = parsed.hostname.toLowerCase();
+    if ((parsed.protocol === "https:" || parsed.protocol === "http:") && SITE_HOSTS.has(hostname)) {
       return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+
+    if (parsed.protocol === "https:" && TRUSTED_ASSET_HOSTS.has(hostname)) {
+      return parsed.toString();
     }
 
     if (parsed.protocol === "http:" && isLoopbackHost(parsed.hostname)) {
