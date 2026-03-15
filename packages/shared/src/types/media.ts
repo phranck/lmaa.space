@@ -11,6 +11,7 @@ export interface MediaAsset {
   displayName: string;
   originalName: string;
   storedFilename: string;
+  alias: string | null;
   mimeType: string;
   kind: MediaKind;
   sizeBytes: number;

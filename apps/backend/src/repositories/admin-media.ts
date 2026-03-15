@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 
 import { db } from "../db/index.js";
 import { adminUsers, mediaAssets } from "../db/schema.js";
@@ -8,6 +8,7 @@ const MEDIA_SELECT_FIELDS = {
   displayName: mediaAssets.displayName,
   originalName: mediaAssets.originalName,
   storedFilename: mediaAssets.storedFilename,
+  alias: mediaAssets.alias,
   mimeType: mediaAssets.mimeType,
   kind: mediaAssets.kind,
   sizeBytes: mediaAssets.sizeBytes,
@@ -66,14 +67,24 @@ export async function createMediaAsset(data: {
   return created ? getMediaAssetById(created.id) : null;
 }
 
-export async function updateMediaAssetDisplayName(id: number, displayName: string) {
+export async function updateMediaAssetMeta(
+  id: number,
+  data: { displayName: string; alias?: string | null },
+) {
   const [updated] = await db
     .update(mediaAssets)
-    .set({ displayName, updatedAt: new Date() })
+    .set({ displayName: data.displayName, alias: data.alias ?? null, updatedAt: new Date() })
     .where(eq(mediaAssets.id, id))
     .returning({ id: mediaAssets.id });
 
   return updated ? getMediaAssetById(updated.id) : null;
+}
+
+export async function listMediaAliases() {
+  return db
+    .select({ alias: mediaAssets.alias, storedFilename: mediaAssets.storedFilename })
+    .from(mediaAssets)
+    .where(and(isNotNull(mediaAssets.alias)));
 }
 
 export async function deleteMediaAsset(id: number) {

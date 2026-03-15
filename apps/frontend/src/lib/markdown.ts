@@ -1,12 +1,33 @@
 import { Marked } from "marked";
 import markedFootnote from "marked-footnote";
 
+import { apiGet } from "./api";
 import {
   escapeHtmlAttribute,
   getSafeConfigHref,
   getSafeSiteAssetPath,
   isExternalHref,
 } from "./safe-url";
+
+let cachedAliases: Record<string, string> | null = null;
+let cacheTimestamp = 0;
+const ALIAS_CACHE_TTL_MS = 60_000;
+
+async function loadMediaAliases(): Promise<Record<string, string>> {
+  const now = Date.now();
+  if (cachedAliases && now - cacheTimestamp < ALIAS_CACHE_TTL_MS) {
+    return cachedAliases;
+  }
+
+  try {
+    cachedAliases = await apiGet<Record<string, string>>("/media-aliases");
+    cacheTimestamp = now;
+  } catch {
+    cachedAliases ??= {};
+  }
+
+  return cachedAliases;
+}
 
 /**
  * Renders Markdown to HTML.
@@ -136,13 +157,17 @@ function renderPdfShortcode(target: string, attrs: Record<string, string>): stri
   return `<p class="md-pdf"><a href="${escapeHtmlAttribute(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></p>`;
 }
 
-function extractShortcodes(content: string): { content: string; tokens: MarkdownShortcodeToken[] } {
+function extractShortcodes(
+  content: string,
+  aliases?: Record<string, string>,
+): { content: string; tokens: MarkdownShortcodeToken[] } {
   const tokens: MarkdownShortcodeToken[] = [];
   let index = 0;
 
   const nextContent = content.replace(
     /\[\[(widget|image|pdf):([^\]\s]+)([^\]]*)\]\]/g,
-    (_match, kind: string, target: string, attrsInput: string) => {
+    (_match, kind: string, rawTarget: string, attrsInput: string) => {
+      const target = (kind !== "widget" && aliases?.[rawTarget]) || rawTarget;
       const attrs = parseShortcodeAttributes(attrsInput);
       const placeholder = `LMAA_SHORTCODE_${index}_TOKEN`;
       index += 1;
@@ -197,8 +222,9 @@ const markedSafe = new Marked({
  * @returns HTML string safe for insertion into trusted templates.
  */
 export async function renderMarkdown(content: string): Promise<string> {
+  const aliases = await loadMediaAliases();
   const normalized = normalizeFootnoteSourceHeadings(content);
-  const { content: withShortcodes, tokens } = extractShortcodes(normalized);
+  const { content: withShortcodes, tokens } = extractShortcodes(normalized, aliases);
   const html = (await markedSafe.parse(withShortcodes)) as string;
   return injectShortcodes(html, tokens);
 }

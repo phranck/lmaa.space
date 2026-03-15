@@ -84,6 +84,7 @@ export function MediaPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [draftName, setDraftName] = useState("");
+  const [draftAlias, setDraftAlias] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<MediaAsset | null>(null);
@@ -111,6 +112,7 @@ export function MediaPage() {
 
   useEffect(() => {
     setDraftName(selectedAsset?.displayName ?? "");
+    setDraftAlias(selectedAsset?.alias ?? "");
     setCopied(false);
   }, [selectedAsset]);
 
@@ -179,16 +181,21 @@ export function MediaPage() {
     setCopied(true);
   }
 
-  async function handleSaveName() {
+  async function handleSaveMeta() {
     if (!selectedAsset) return;
 
     const nextName = draftName.trim();
-    if (!nextName || nextName === selectedAsset.displayName) return;
+    const nextAlias = draftAlias.trim() || null;
+    if (!nextName) return;
+
+    const nameChanged = nextName !== selectedAsset.displayName;
+    const aliasChanged = nextAlias !== (selectedAsset.alias ?? null);
+    if (!nameChanged && !aliasChanged) return;
 
     setActionError(null);
 
     try {
-      await renameMedia.mutateAsync({ id: selectedAsset.id, displayName: nextName });
+      await renameMedia.mutateAsync({ id: selectedAsset.id, displayName: nextName, alias: nextAlias });
     } catch (error) {
       setActionError(error instanceof Error ? error.message : mediaMessages.renameError);
     }
@@ -303,14 +310,28 @@ export function MediaPage() {
                         />
                       </label>
 
+                      <label className="block space-y-1.5">
+                        <span className="text-sm font-medium text-[var(--ds-text)]">Alias</span>
+                        <input
+                          type="text"
+                          value={draftAlias}
+                          onChange={(event) => setDraftAlias(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                          placeholder="z.B. sepa-qr"
+                          className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm font-mono bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                        />
+                        <p className="text-xs text-[var(--ds-text-subtle)]">
+                          {draftAlias ? `Verwendung: [[image:${draftAlias}]] oder [[pdf:${draftAlias}]]` : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
+                        </p>
+                      </label>
+
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => void handleSaveName()}
+                          onClick={() => void handleSaveMeta()}
                           disabled={
                             renameMedia.isPending ||
                             draftName.trim().length === 0 ||
-                            draftName.trim() === selectedAsset.displayName
+                            (draftName.trim() === selectedAsset.displayName && (draftAlias.trim() || null) === (selectedAsset.alias ?? null))
                           }
                           className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60"
                         >

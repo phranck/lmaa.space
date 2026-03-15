@@ -372,11 +372,13 @@ export const mediaAssets = pgTable(
     height: integer("height"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    alias: text("alias"),
     createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
   },
   (table) => [
     index("idx_media_assets_kind").on(table.kind),
     index("idx_media_assets_created_at").on(table.createdAt),
+    uniqueIndex("idx_media_assets_alias").on(table.alias),
   ],
 );
 

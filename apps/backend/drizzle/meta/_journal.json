@@ -197,6 +197,13 @@
       "when": 1773532800000,
       "tag": "0027_add_ready_for_review",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1773536019507,
+      "tag": "0028_boring_blink",
+      "breakpoints": true
     }
   ]
 }
