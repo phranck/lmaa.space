@@ -47,7 +47,8 @@ export async function createMediaAsset(data: {
   sizeBytes: number;
   width: number | null;
   height: number | null;
-  createdBy: number;
+  createdBy: number | null;
+  alias?: string | null;
 }) {
   const [created] = await db
     .insert(mediaAssets)
@@ -61,6 +62,7 @@ export async function createMediaAsset(data: {
       width: data.width,
       height: data.height,
       createdBy: data.createdBy,
+      alias: data.alias ?? null,
     })
     .returning({ id: mediaAssets.id });
 
@@ -95,6 +97,15 @@ export async function deleteMediaAsset(id: number) {
       id: mediaAssets.id,
       storedFilename: mediaAssets.storedFilename,
     });
+
+  return deleted ?? null;
+}
+
+export async function deleteMediaAssetByFilename(storedFilename: string) {
+  const [deleted] = await db
+    .delete(mediaAssets)
+    .where(eq(mediaAssets.storedFilename, storedFilename))
+    .returning({ id: mediaAssets.id });
 
   return deleted ?? null;
 }

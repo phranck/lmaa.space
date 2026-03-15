@@ -38,6 +38,17 @@ export function useRenameMedia() {
   });
 }
 
+export function useSyncMedia() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.post<{ created: number; updated: number; removed: number }>("/admin/media/sync"),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["media-admin"] });
+    },
+  });
+}
+
 export function useDeleteMedia() {
   const qc = useQueryClient();
 

@@ -1,7 +1,14 @@
 import crypto from "node:crypto";
 import path from "node:path";
 
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import sharp from "sharp";
 
 import { detectImageType } from "./validate.js";
@@ -101,6 +108,39 @@ export function getMediaPublicUrl(storedFilename: string): string {
   return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${storedFilename}`;
 }
 
+export interface S3MediaMeta {
+  displayName: string;
+  originalName: string;
+  alias: string | null;
+  kind: MediaKind;
+  width: number | null;
+  height: number | null;
+}
+
+function buildS3Metadata(meta: S3MediaMeta): Record<string, string> {
+  const m: Record<string, string> = {
+    "display-name": meta.displayName,
+    "original-name": meta.originalName,
+    kind: meta.kind,
+  };
+  if (meta.alias) m.alias = meta.alias;
+  if (meta.width != null) m.width = String(meta.width);
+  if (meta.height != null) m.height = String(meta.height);
+  return m;
+}
+
+function parseS3Metadata(raw: Record<string, string> | undefined): Partial<S3MediaMeta> {
+  if (!raw) return {};
+  return {
+    displayName: raw["display-name"] || undefined,
+    originalName: raw["original-name"] || undefined,
+    alias: raw.alias || null,
+    kind: (raw.kind as MediaKind) || undefined,
+    width: raw.width ? Number(raw.width) : null,
+    height: raw.height ? Number(raw.height) : null,
+  };
+}
+
 /**
  * Uploads a media file to S3-compatible object storage.
  */
@@ -160,6 +200,14 @@ export async function storeUploadedMedia(file: unknown): Promise<StoreMediaFailu
       Key: storedFilename,
       Body: buffer,
       ContentType: mimeType,
+      Metadata: buildS3Metadata({
+        displayName: originalName,
+        originalName,
+        alias: null,
+        kind,
+        width,
+        height,
+      }),
     }),
   );
 
@@ -195,4 +243,67 @@ export async function removeStoredMedia(storedFilename: string) {
     }
     throw error;
   }
+}
+
+/**
+ * Updates S3 user-metadata on an existing object (requires copy-in-place).
+ */
+export async function updateStoredMediaMeta(storedFilename: string, meta: S3MediaMeta) {
+  const headResp = await s3.send(
+    new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: storedFilename }),
+  );
+
+  await s3.send(
+    new CopyObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: storedFilename,
+      CopySource: `${env.S3_BUCKET}/${storedFilename}`,
+      ContentType: headResp.ContentType,
+      Metadata: buildS3Metadata(meta),
+      MetadataDirective: "REPLACE",
+    }),
+  );
+}
+
+export interface S3ObjectEntry {
+  key: string;
+  size: number;
+  contentType: string;
+  metadata: Partial<S3MediaMeta>;
+}
+
+/**
+ * Lists all objects in the bucket with their user-metadata.
+ */
+export async function listAllStoredMedia(): Promise<S3ObjectEntry[]> {
+  const entries: S3ObjectEntry[] = [];
+  let continuationToken: string | undefined;
+
+  do {
+    const listResp = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: env.S3_BUCKET,
+        ContinuationToken: continuationToken,
+      }),
+    );
+
+    for (const obj of listResp.Contents ?? []) {
+      if (!obj.Key || !obj.Size) continue;
+
+      const head = await s3.send(
+        new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: obj.Key }),
+      );
+
+      entries.push({
+        key: obj.Key,
+        size: obj.Size,
+        contentType: head.ContentType ?? "application/octet-stream",
+        metadata: parseS3Metadata(head.Metadata),
+      });
+    }
+
+    continuationToken = listResp.IsTruncated ? listResp.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  return entries;
 }

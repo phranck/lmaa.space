@@ -1,9 +1,17 @@
 import type { MediaAsset as SharedMediaAsset } from "@lmaa/shared";
 
-import { getMediaPublicUrl, removeStoredMedia, storeUploadedMedia } from "../lib/media-storage.js";
+import {
+  type S3MediaMeta,
+  getMediaPublicUrl,
+  listAllStoredMedia,
+  removeStoredMedia,
+  storeUploadedMedia,
+  updateStoredMediaMeta,
+} from "../lib/media-storage.js";
 import {
   createMediaAsset,
   deleteMediaAsset,
+  deleteMediaAssetByFilename,
   listMediaAliases,
   listMediaAssets,
   updateMediaAssetMeta,
@@ -80,6 +88,21 @@ export async function updateManagedMediaAsset(
     return { ok: false as const, reason: "not_found" as const };
   }
 
+  const meta: S3MediaMeta = {
+    displayName: asset.displayName,
+    originalName: asset.originalName,
+    alias: asset.alias,
+    kind: asset.kind,
+    width: asset.width,
+    height: asset.height,
+  };
+
+  try {
+    await updateStoredMediaMeta(asset.storedFilename, meta);
+  } catch {
+    // S3 metadata update is best-effort; DB is the primary store
+  }
+
   return { ok: true as const, asset: mapMediaAsset(asset) };
 }
 
@@ -102,4 +125,79 @@ export async function deleteManagedMediaAsset(id: number) {
 
   await removeStoredMedia(deleted.storedFilename);
   return { ok: true as const };
+}
+
+const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"]);
+
+function inferKindFromContentType(contentType: string): "image" | "document" {
+  return contentType.startsWith("image/") ? "image" : "document";
+}
+
+function inferExtension(key: string): string {
+  const dot = key.lastIndexOf(".");
+  return dot >= 0 ? key.slice(dot).toLowerCase() : "";
+}
+
+export async function syncMediaFromStorage(): Promise<{
+  created: number;
+  updated: number;
+  removed: number;
+}> {
+  const [s3Objects, dbAssets] = await Promise.all([listAllStoredMedia(), listMediaAssets()]);
+
+  const dbByFilename = new Map(dbAssets.map((a) => [a.storedFilename, a]));
+  const s3Keys = new Set(s3Objects.map((o) => o.key));
+
+  let created = 0;
+  let updated = 0;
+  let removed = 0;
+
+  // Create or update DB entries from S3 objects
+  for (const obj of s3Objects) {
+    const existing = dbByFilename.get(obj.key);
+    const meta = obj.metadata;
+    const kind = (meta.kind as "image" | "document") || inferKindFromContentType(obj.contentType);
+    const displayName = meta.displayName || obj.key;
+    const originalName = meta.originalName || obj.key;
+    const alias = meta.alias || null;
+
+    if (!existing) {
+      await createMediaAsset({
+        displayName,
+        originalName,
+        storedFilename: obj.key,
+        mimeType: obj.contentType,
+        kind,
+        sizeBytes: obj.size,
+        width: meta.width ?? null,
+        height: meta.height ?? null,
+        createdBy: null,
+        alias,
+      });
+      created += 1;
+    } else {
+      // Update DB from S3 metadata if S3 has richer data
+      const needsUpdate =
+        (meta.displayName && meta.displayName !== existing.displayName) ||
+        (meta.alias !== undefined && meta.alias !== existing.alias);
+
+      if (needsUpdate) {
+        await updateMediaAssetMeta(existing.id, {
+          displayName: meta.displayName || existing.displayName,
+          alias: meta.alias !== undefined ? meta.alias : existing.alias,
+        });
+        updated += 1;
+      }
+    }
+  }
+
+  // Remove DB entries for files no longer in S3
+  for (const asset of dbAssets) {
+    if (!s3Keys.has(asset.storedFilename)) {
+      await deleteMediaAssetByFilename(asset.storedFilename);
+      removed += 1;
+    }
+  }
+
+  return { created, updated, removed };
 }
