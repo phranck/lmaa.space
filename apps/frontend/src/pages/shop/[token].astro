@@ -422,7 +422,17 @@ const metaDescription = shop.description
             var lng = parseFloat(el.dataset.lng);
             var name = el.dataset.name;
 
-            var map = L.map(el, { zoomControl: true }).setView([lat, lng], 15);
+            var STORAGE_KEY = "lmaa-map-prefs";
+            var prefs = {};
+            try { prefs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch {}
+            var savedZoom = typeof prefs.zoom === "number" ? prefs.zoom : 15;
+            var savedLayer = prefs.layer || "osm";
+
+            function savePrefs() {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify({ zoom: map.getZoom(), layer: activeId }));
+            }
+
+            var map = L.map(el, { zoomControl: true }).setView([lat, lng], savedZoom);
 
             var layers = [
               {
@@ -463,8 +473,12 @@ const metaDescription = shop.description
               },
             ];
 
-            layers[0].tile.addTo(map);
+            var initialLayer = layers.find(function (l) { return l.id === savedLayer; }) || layers[0];
+            var activeId = initialLayer.id;
+            initialLayer.tile.addTo(map);
             L.marker([lat, lng]).addTo(map).bindPopup(name);
+
+            map.on("zoomend", savePrefs);
 
             // Custom layer switcher
             var switcher = document.createElement("div");
@@ -481,8 +495,6 @@ const metaDescription = shop.description
             var panel = document.createElement("div");
             panel.className = "map-layer-panel";
 
-            var activeId = "osm";
-
             layers.forEach(function (layer) {
               var btn = document.createElement("button");
               btn.className = "map-layer-btn" + (layer.id === activeId ? " active" : "");
@@ -497,6 +509,7 @@ const metaDescription = shop.description
                 activeId = layer.id;
                 panel.querySelectorAll(".map-layer-btn").forEach(function (b) { b.classList.remove("active"); });
                 btn.classList.add("active");
+                savePrefs();
               });
               panel.appendChild(btn);
             });
