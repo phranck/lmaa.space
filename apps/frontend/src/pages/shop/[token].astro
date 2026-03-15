@@ -4,14 +4,12 @@ import ShopAvatar from "@/components/ShopAvatar.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { renderMarkdown } from "@/lib/markdown";
-import { regionFlag } from "@/lib/region-flag";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { slugToTitle } from "@/lib/slug";
-import { REGION_CODES, type Shop, encodeShopToken } from "@lmaa/shared";
+import { type Shop, encodeShopToken } from "@lmaa/shared";
 import { SocialMediaIcons } from "@lmaa/ui";
 import {
   ArrowLeftIcon,
-  GlobeIcon,
   MapPinIcon,
   PackageIcon,
   StorefrontIcon,
@@ -35,10 +33,6 @@ const shopToken = encodeShopToken(shop.id);
 
 const domain = shopDomain(shop.url);
 const visitUrl = shopRefUrl(shop.url);
-const sortedRegions = [...shop.region].sort(
-  (a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b),
-);
-
 const descriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
 
 // Breadcrumb: flat, max 3 levels
@@ -194,18 +188,19 @@ const metaDescription = shop.description
             >
               {domain}
             </a>
+            <SocialMediaIcons socialMedia={shop.socialMedia} />
           </div>
-          {sortedRegions.length > 0 && (
-            <div class="flex flex-wrap gap-1.5 shrink-0">
-              {sortedRegions.map((r) => (
-                <span class="text-xl leading-none" title={r}>
-                  {regionFlag(r)}
-                </span>
+          {hasHq && (
+            <address class="text-sm text-stone-500 not-italic leading-relaxed shrink-0 text-right">
+              {hqParts.map((part, i) => (
+                <Fragment>
+                  {i > 0 && <br />}
+                  {part}
+                </Fragment>
               ))}
-            </div>
+            </address>
           )}
         </div>
-        <SocialMediaIcons socialMedia={shop.socialMedia} />
       </div>
     </header>
 
@@ -301,24 +296,267 @@ const metaDescription = shop.description
       </section>
     )}
 
-    <!-- Headquarters -->
-    {hasHq && (
+    <!-- Standort (Map) -->
+    {hq?.latitude != null && hq?.longitude != null && (
       <section class="mb-8">
         <SectionLabel class="mb-3 flex items-center gap-2">
           <MapPinIcon weight="duotone" className="w-4 h-4" />
           Standort
         </SectionLabel>
-        <div class="flex items-start gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100">
-          <GlobeIcon weight="duotone" className="w-5 h-5 text-stone-400 shrink-0 mt-0.5" />
-          <address class="text-sm text-stone-700 not-italic leading-relaxed">
-            {hqParts.map((part, i) => (
-              <Fragment>
-                {i > 0 && <br />}
-                {part}
-              </Fragment>
-            ))}
-          </address>
-        </div>
+        <div
+          id="shop-map"
+          class="rounded-2xl overflow-hidden border border-stone-100"
+          style="height:400px"
+          data-lat={String(hq.latitude)}
+          data-lng={String(hq.longitude)}
+          data-name={shop.name}
+        ></div>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+          .leaflet-bar {
+            border: none !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+            box-shadow: none !important;
+          }
+          .leaflet-bar a,
+          .leaflet-bar a:hover {
+            background-color: rgba(0, 0, 0, 0.4) !important;
+            color: #fff !important;
+            border: none !important;
+          }
+          .leaflet-bar a:hover {
+            background-color: rgba(0, 0, 0, 0.6) !important;
+          }
+          .map-layer-switcher {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+          }
+          .map-layer-toggle {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: none;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background-color 0.15s;
+            flex-shrink: 0;
+          }
+          .map-layer-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+          }
+          .map-layer-panel {
+            display: flex;
+            gap: 6px;
+            overflow: hidden;
+            max-width: 0;
+            opacity: 0;
+            transition: max-width 0.3s ease, opacity 0.25s ease;
+          }
+          .map-layer-panel.open {
+            max-width: 280px;
+            opacity: 1;
+          }
+          .map-layer-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: border-color 0.15s, transform 0.15s;
+            flex-shrink: 0;
+            padding: 0;
+            background: none;
+          }
+          .map-layer-btn:hover {
+            transform: scale(1.05);
+          }
+          .map-layer-btn.active {
+            border-color: #fff;
+          }
+          .map-layer-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          .map-layer-btn span {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            font-size: 9px;
+            font-weight: 600;
+            text-align: center;
+            color: #fff;
+            background: rgba(0,0,0,0.55);
+            padding: 2px 0;
+            line-height: 1.2;
+          }
+          .leaflet-control-attribution {
+            background-color: rgba(0, 0, 0, 0.35) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+          }
+          .leaflet-control-attribution a {
+            color: rgba(255, 255, 255, 0.9) !important;
+          }
+        </style>
+        <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script is:inline>
+          (function () {
+            var el = document.getElementById("shop-map");
+            var lat = parseFloat(el.dataset.lat);
+            var lng = parseFloat(el.dataset.lng);
+            var name = el.dataset.name;
+
+            var map = L.map(el, { zoomControl: true }).setView([lat, lng], 15);
+
+            var layers = [
+              {
+                id: "osm",
+                label: "Karte",
+                tile: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                  maxZoom: 19,
+                }),
+                thumb: "https://a.tile.openstreetmap.org/12/2135/1407.png",
+              },
+              {
+                id: "satellite",
+                label: "Satellit",
+                tile: L.tileLayer(
+                  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                  { attribution: '&copy; <a href="https://www.esri.com/">Esri</a>', maxZoom: 19 }
+                ),
+                thumb: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/12/1407/2135",
+              },
+              {
+                id: "topo",
+                label: "Topo",
+                tile: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+                  attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
+                  maxZoom: 17,
+                }),
+                thumb: "https://a.tile.opentopomap.org/12/2135/1407.png",
+              },
+              {
+                id: "hot",
+                label: "HOT",
+                tile: L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+                  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://hot.openstreetmap.org/">HOT</a>',
+                  maxZoom: 19,
+                }),
+                thumb: "https://a.tile.openstreetmap.fr/hot/12/2135/1407.png",
+              },
+            ];
+
+            layers[0].tile.addTo(map);
+            L.marker([lat, lng]).addTo(map).bindPopup(name);
+
+            // Custom layer switcher
+            var switcher = document.createElement("div");
+            switcher.className = "map-layer-switcher";
+            L.DomEvent.disableClickPropagation(switcher);
+
+            var toggle = document.createElement("button");
+            toggle.className = "map-layer-toggle";
+            toggle.type = "button";
+            toggle.title = "Kartenstil";
+            toggle.setAttribute("aria-label", "Kartenstil wechseln");
+            toggle.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" fill="currentColor" style="margin-top:-3px"><path d="M230.91 124 128 180.07 25.09 124a8 8 0 0 0-10.18 12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-10.18-12ZM128 236.07 25.09 180a8 8 0 1 0-7.58 14.12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-7.58-14.12Zm-99.49-128 104-56a8 8 0 0 1 7.58 0l104 56a8 8 0 0 1 0 14.12l-104 56a8 8 0 0 1-7.58 0l-104-56a8 8 0 0 1 0-14.12Z"/></svg>';
+
+            var panel = document.createElement("div");
+            panel.className = "map-layer-panel";
+
+            var activeId = "osm";
+
+            layers.forEach(function (layer) {
+              var btn = document.createElement("button");
+              btn.className = "map-layer-btn" + (layer.id === activeId ? " active" : "");
+              btn.title = layer.label;
+              btn.type = "button";
+              btn.innerHTML = '<img src="' + layer.thumb + '" alt="' + layer.label + '"><span>' + layer.label + "</span>";
+              btn.addEventListener("click", function () {
+                startAutoClose();
+                if (activeId === layer.id) return;
+                layers.forEach(function (l) { map.removeLayer(l.tile); });
+                layer.tile.addTo(map);
+                activeId = layer.id;
+                panel.querySelectorAll(".map-layer-btn").forEach(function (b) { b.classList.remove("active"); });
+                btn.classList.add("active");
+              });
+              panel.appendChild(btn);
+            });
+
+            var autoCloseTimer = null;
+            function startAutoClose() {
+              clearTimeout(autoCloseTimer);
+              autoCloseTimer = setTimeout(function () { panel.classList.remove("open"); }, 5000);
+            }
+
+            toggle.addEventListener("click", function () {
+              var opening = !panel.classList.contains("open");
+              panel.classList.toggle("open");
+              clearTimeout(autoCloseTimer);
+              if (opening) startAutoClose();
+            });
+
+            switcher.appendChild(panel);
+            switcher.appendChild(toggle);
+            el.appendChild(switcher);
+
+            // Fullscreen control
+            var FullscreenControl = L.Control.extend({
+              options: { position: "topleft" },
+              onAdd: function () {
+                var btn = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+                var a = L.DomUtil.create("a", "", btn);
+                a.href = "#";
+                a.title = "Vollbild";
+                a.setAttribute("role", "button");
+                a.setAttribute("aria-label", "Vollbild");
+                a.innerHTML = "⛶";
+                a.style.cssText = "display:flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:18px;line-height:1;text-decoration:none;color:#fff";
+                L.DomEvent.disableClickPropagation(btn);
+                L.DomEvent.on(a, "click", function (e) {
+                  L.DomEvent.preventDefault(e);
+                  if (!document.fullscreenElement) {
+                    el.requestFullscreen();
+                  } else {
+                    document.exitFullscreen();
+                  }
+                });
+                return btn;
+              },
+            });
+            new FullscreenControl().addTo(map);
+
+            el.addEventListener("fullscreenchange", function () {
+              setTimeout(function () { map.invalidateSize(); }, 100);
+            });
+          })();
+        </script>
+        <a
+          href={`https://www.openstreetmap.org/directions?to=${hq.latitude},${hq.longitude}#map=15/${hq.latitude}/${hq.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-amber-700 transition-colors mt-2"
+        >
+          Route planen ↗
+        </a>
       </section>
     )}
 
