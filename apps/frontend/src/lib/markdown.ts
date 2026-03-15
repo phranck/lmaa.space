@@ -216,7 +216,7 @@ const markedSafe = new Marked({
 }).use(markedFootnote());
 
 /**
- * Renders Markdown into sanitized HTML.
+ * Renders Markdown into sanitized HTML with media alias resolution.
  *
  * @param content - Markdown source text.
  * @returns HTML string safe for insertion into trusted templates.
