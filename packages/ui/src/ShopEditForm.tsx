@@ -96,6 +96,7 @@ export interface ShopEditFormMessages {
   longitudePlaceholder: string;
   jsonToolTitle?: string;
   jsonApplyLabel?: string;
+  jsonImportFileLabel?: string;
   jsonImportError?: string;
   jsonInvalidError?: string;
   mapStandardLabel?: string;
