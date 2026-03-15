@@ -2,12 +2,12 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { render, useApp } from "ink";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 import { ShopcheckEngine } from "./engine";
 import { parseArgs } from "./lib/utils";
 import { PATHS, SHOPCHECK_DIR } from "./paths";
-import type { PromptState, Shop } from "./types";
+import type { Shop } from "./types";
 import { ShopcheckApp } from "./ui/App";
 import { useEngineRuntime } from "./ui/hooks/useEngineRuntime";
 
@@ -17,12 +17,13 @@ function printHelp(): void {
       "Usage: shopcheck [options]",
       "",
       "Options:",
-      "  --url <url>      Check a single URL instead of loading from DB",
-      "  --import <file>  Load shops from a JSON file instead of the DB",
-      "  --batch <n>      Max number of shops for this run",
-      "  --status         Print current persisted status and exit",
-      "  --reset          Remove local state/results/logs and exit",
-      "  --help           Show this help",
+      "  --url <url>              Check a single URL instead of loading from DB",
+      "  --import <file>          Load shops from a JSON file instead of the DB",
+      "  --batch <n>              Max number of shops for this run",
+      "  --provider <provider>    LLM provider: claude | ollama",
+      "  --status                 Print current persisted status and exit",
+      "  --reset                  Remove local state/results/logs and exit",
+      "  --help                   Show this help",
       "",
     ].join("\n"),
   );
@@ -42,20 +43,15 @@ function resetState(): void {
 function Root({ engine }: { engine: ShopcheckEngine }): React.ReactElement {
   const { exit } = useApp();
   const rawModeSupported = Boolean(process.stdin.isTTY && typeof process.stdin.setRawMode === "function");
-  const { state, logs, prompt, fatalError } = useEngineRuntime({ engine, rawModeSupported, exit });
-  const [localPrompt, setLocalPrompt] = useState<PromptState>(prompt);
-
-  useEffect(() => {
-    setLocalPrompt(prompt);
-  }, [prompt]);
+  const { state, logs, prompt, setPrompt, fatalError } = useEngineRuntime({ engine, rawModeSupported, exit });
 
   return (
     <ShopcheckApp
       engine={engine}
       state={state}
       logs={logs}
-      prompt={localPrompt}
-      setPrompt={setLocalPrompt}
+      prompt={prompt}
+      setPrompt={setPrompt}
       fatalError={fatalError}
       rawModeSupported={rawModeSupported}
     />
@@ -78,7 +74,10 @@ export async function runCli(): Promise<void> {
     return;
   }
 
-  const engineOpts: { batchSize: number | null; singleUrl?: string } = { batchSize: args.batchSize };
+  const engineOpts: { batchSize: number | null; singleUrl?: string; provider: "claude" | "ollama" | null } = {
+    batchSize: args.batchSize,
+    provider: args.provider,
+  };
   if (args.singleUrl) engineOpts.singleUrl = args.singleUrl;
 
   const deps: ConstructorParameters<typeof ShopcheckEngine>[1] = {};

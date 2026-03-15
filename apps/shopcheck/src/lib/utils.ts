@@ -11,7 +11,15 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function parseArgs(argv: string[]): Args {
-  const args: Args = { batchSize: null, singleUrl: null, importFile: null, help: false, statusOnly: false, resetOnly: false };
+  const args: Args = {
+    batchSize: null,
+    singleUrl: null,
+    importFile: null,
+    help: false,
+    statusOnly: false,
+    resetOnly: false,
+    provider: null,
+  };
   for (let i = 2; i < argv.length; i += 1) {
     const token = argv[i];
     if (token === "--batch") {
@@ -27,6 +35,12 @@ export function parseArgs(argv: string[]): Args {
     }
     if (token === "--import") {
       args.importFile = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (token === "--provider") {
+      const value = (argv[i + 1] ?? "").toLowerCase();
+      args.provider = value === "claude" || value === "ollama" ? value : null;
       i += 1;
       continue;
     }

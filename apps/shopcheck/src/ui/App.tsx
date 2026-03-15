@@ -64,7 +64,7 @@ export function ShopcheckApp({
   const header = useMemo(() => {
     const current = state.currentShop ? `${state.currentShop.id} ${state.currentShop.name}` : "none";
     return truncate(
-      `status=${state.status} | mode=${state.mode} | model=${state.model} | progress=${state.completed}/${state.total} | current=${current}`,
+      `status=${state.status} | mode=${state.mode} | provider=${state.provider} | model=${state.model} | progress=${state.completed}/${state.total} | current=${current}`,
       cols - 6,
     );
   }, [state, cols]);
@@ -106,12 +106,24 @@ export function ShopcheckApp({
         </Box>
       ) : null}
 
+      {prompt?.type === "provider" ? (
+        <Box marginTop={1} borderStyle="round" borderColor="magenta" flexDirection="column" paddingX={1}>
+          <Text color="magentaBright">Provider-Auswahl</Text>
+          <Text>Welchen LLM-Provider moechtest du fuer diesen Lauf verwenden?</Text>
+          {prompt.options.map((option, idx) => (
+            <Text key={option.value} color={idx === prompt.cursor ? "greenBright" : undefined}>
+              {idx === prompt.cursor ? ">" : " "} {option.label}
+            </Text>
+          ))}
+        </Box>
+      ) : null}
+
       {prompt?.type === "batchSize" ? (
         <Box marginTop={1} borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1}>
           <Text color="cyanBright">Batch-Auswahl</Text>
           <Text>Wie viele Shops im naechsten Lauf verarbeiten?</Text>
           {prompt.options.map((option, idx) => (
-            <Text key={`${option.label}-${idx}`} color={idx === prompt.cursor ? "greenBright" : undefined}>
+            <Text key={`${option.value ?? "all"}-${option.label}`} color={idx === prompt.cursor ? "greenBright" : undefined}>
               {idx === prompt.cursor ? ">" : " "} {option.label}
             </Text>
           ))}

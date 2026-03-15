@@ -4,30 +4,50 @@ import { appendFileSync, mkdirSync, rmSync } from "node:fs";
 import { SHOPCHECK_USER_AGENT } from "./constants";
 import { loadShops } from "./lib/db";
 import { appendNdjson, isResumableState, nowIso, readJson, writeJson } from "./lib/utils";
-import { LlmFatalError, getModelName } from "./llm/client";
+import { LlmFatalError, getModelName, resolveInitialLlmProvider, setLlmProvider } from "./llm/client";
 import { PATHS, SHOPCHECK_DIR } from "./paths";
 import { runShopCheckAgent } from "./pipeline/agent";
 import { loadCategoriesCached } from "./pipeline/categories";
 import { fetchAdmissionCriteria } from "./pipeline/criteria";
 import { extractFacts } from "./pipeline/extract";
 import { crawlRelevantPages } from "./pipeline/research";
-import type { LogEntry, ResultsState, RunnerState, Shop } from "./types";
+import type { LogEntry, LlmProvider, ResultsState, RunnerState, Shop } from "./types";
 
 export type EngineConfig = {
   batchSize: number | null;
   singleUrl?: string;
+  provider: LlmProvider | null;
 };
 
 export type EngineDeps = {
   persist?: boolean;
   isInteractive?: () => boolean;
   chooseStartMode?: () => Promise<"resume" | "reset">;
+  chooseProvider?: () => Promise<LlmProvider>;
   loadShops?: () => Promise<Shop[]>;
   processShop?: (shop: Shop) => Promise<Record<string, unknown>>;
   chooseBatchSize?: (pendingCount: number) => Promise<number | null>;
 };
 
+function createBaseState(provider: LlmProvider): RunnerState {
+  return {
+    status: "idle",
+    startedAt: null,
+    updatedAt: null,
+    completed: 0,
+    total: 0,
+    processedShopIds: [],
+    currentShop: null,
+    mode: "run",
+    provider,
+    model: getModelName("extraction", provider),
+    pipelineProgress: 0,
+    metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
+  };
+}
+
 export class ShopcheckEngine extends EventEmitter {
+  defaultProvider: LlmProvider;
   config: EngineConfig;
   deps: EngineDeps;
   shutdownRequested = false;
@@ -45,22 +65,11 @@ export class ShopcheckEngine extends EventEmitter {
   constructor(config: EngineConfig, deps: EngineDeps = {}) {
     super();
     this.config = config;
+    this.defaultProvider = resolveInitialLlmProvider(config.provider);
     this.deps = deps;
-    const extractionModel = getModelName("extraction");
     const baseResults: ResultsState = { generatedAt: nowIso(), entries: [], skipped: [] };
-    const baseState: RunnerState = {
-      status: "idle",
-      startedAt: null,
-      updatedAt: null,
-      completed: 0,
-      total: 0,
-      processedShopIds: [],
-      currentShop: null,
-      mode: "run",
-      model: extractionModel,
-      pipelineProgress: 0,
-      metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
-    };
+    const baseState = createBaseState(this.defaultProvider);
+
     if (this.deps.persist === false) {
       this.results = baseResults;
       this.state = baseState;
@@ -77,8 +86,18 @@ export class ShopcheckEngine extends EventEmitter {
       } else {
         this.results = baseResults;
       }
-      this.state = { ...baseState, ...readJson<Partial<RunnerState>>(PATHS.state, {}) };
+
+      const persisted = readJson<Partial<RunnerState>>(PATHS.state, {});
+      const provider = this.config.provider ?? persisted.provider ?? this.defaultProvider;
+      this.state = {
+        ...baseState,
+        ...persisted,
+        provider,
+        model: getModelName("extraction", provider),
+      };
     }
+
+    setLlmProvider(this.state.provider);
   }
 
   requestShutdown(source = "user"): void {
@@ -93,7 +112,9 @@ export class ShopcheckEngine extends EventEmitter {
   }
 
   persistState(partial: Partial<RunnerState> = {}): void {
-    this.state = { ...this.state, ...partial, updatedAt: nowIso() };
+    const nextProvider = partial.provider ?? this.state.provider;
+    const nextModel = partial.model ?? (partial.provider ? getModelName("extraction", nextProvider) : this.state.model);
+    this.state = { ...this.state, ...partial, provider: nextProvider, model: nextModel, updatedAt: nowIso() };
     if (this.deps.persist !== false) {
       writeJson(PATHS.state, this.state);
       if (this.results.entries.length > 0) {
@@ -108,7 +129,7 @@ export class ShopcheckEngine extends EventEmitter {
     this.emit("state", this.state);
   }
 
-  clearRuntimeState(): void {
+  clearRuntimeState(provider = this.config.provider ?? this.state.provider ?? this.defaultProvider): void {
     if (this.deps.persist !== false) {
       rmSync(PATHS.state, { force: true });
       rmSync(PATHS.results, { force: true });
@@ -118,21 +139,9 @@ export class ShopcheckEngine extends EventEmitter {
       rmSync(PATHS.reports, { force: true, recursive: true });
       rmSync(PATHS.rejections, { force: true });
     }
-    const extractionModel = getModelName("extraction");
     this.results = { generatedAt: nowIso(), entries: [], skipped: [] };
-    this.state = {
-      status: "idle",
-      startedAt: null,
-      updatedAt: null,
-      completed: 0,
-      total: 0,
-      processedShopIds: [],
-      currentShop: null,
-      mode: "run",
-      model: extractionModel,
-      pipelineProgress: 0,
-      metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
-    };
+    this.state = createBaseState(provider);
+    setLlmProvider(provider);
   }
 
   hasResumableState(): boolean {
@@ -142,6 +151,11 @@ export class ShopcheckEngine extends EventEmitter {
   async chooseStartModeInteractive(): Promise<"resume" | "reset"> {
     if (this.deps.chooseStartMode) return this.deps.chooseStartMode();
     return new Promise((resolve) => this.emit("prompt:start-mode", { resolve }));
+  }
+
+  async chooseProviderInteractive(): Promise<LlmProvider> {
+    if (this.deps.chooseProvider) return this.deps.chooseProvider();
+    return new Promise((resolve) => this.emit("prompt:provider", { resolve }));
   }
 
   async chooseBatchSizeInteractive(pendingCount: number): Promise<number | null> {
@@ -159,12 +173,20 @@ export class ShopcheckEngine extends EventEmitter {
     return this.chooseBatchSizeInteractive(pendingCount);
   }
 
+  async resolveProvider(mode: "run" | "resume", interactive: boolean): Promise<LlmProvider> {
+    if (mode === "resume" && !this.config.provider) {
+      return this.state.provider;
+    }
+    if (this.config.provider) return this.config.provider;
+    if (interactive) return this.chooseProviderInteractive();
+    return this.state.provider;
+  }
+
   async processShop(shop: Shop): Promise<Record<string, unknown>> {
     if (this.deps.processShop) {
       return this.deps.processShop(shop);
     }
 
-    // Phase 1: Pre-crawl the shop website (robust, deterministic)
     this.persistState({ pipelineProgress: 0 });
     this.emitLog(`[${shop.id}] Phase 1: Crawling shop pages...`);
     const pages = await crawlRelevantPages({
@@ -176,14 +198,12 @@ export class ShopcheckEngine extends EventEmitter {
       return { shopName: shop.name, shopUrl: shop.url, verdict: "error", shopJson: null };
     }
 
-    // Phase 2: Deterministic fact extraction
     this.persistState({ pipelineProgress: 15 });
     this.emitLog(`[${shop.id}] Phase 2: Deterministic extraction from ${pages.length} pages...`);
     const facts = extractFacts(pages);
 
-    // Phase 3: Agent-based analysis (with server-side web search)
     this.persistState({ pipelineProgress: 25 });
-    this.emitLog(`[${shop.id}] Phase 3: Agent analysis with ${pages.length} pre-crawled pages...`);
+    this.emitLog(`[${shop.id}] Phase 3: ${this.state.provider} analysis with ${pages.length} pre-crawled pages...`);
     const result = await runShopCheckAgent({
       shopUrl: shop.url,
       shopName: shop.name,
@@ -209,12 +229,12 @@ export class ShopcheckEngine extends EventEmitter {
     mkdirSync(SHOPCHECK_DIR, { recursive: true });
 
     let mode: "run" | "resume" = "run";
+    const interactive = this.deps.isInteractive ? this.deps.isInteractive() : process.stdin.isTTY;
     if (this.hasResumableState()) {
-      const interactive = this.deps.isInteractive ? this.deps.isInteractive() : process.stdin.isTTY;
       if (interactive) {
         const picked = await this.chooseStartModeInteractive();
         if (picked === "reset") {
-          this.clearRuntimeState();
+          this.clearRuntimeState(this.config.provider ?? this.state.provider);
           mode = "run";
         } else {
           mode = "resume";
@@ -224,12 +244,20 @@ export class ShopcheckEngine extends EventEmitter {
       }
     }
 
-    this.persistState({ status: "running", startedAt: this.state.startedAt ?? nowIso(), mode, currentShop: null });
+    const provider = await this.resolveProvider(mode, interactive);
+    setLlmProvider(provider);
+    this.persistState({
+      status: "running",
+      startedAt: this.state.startedAt ?? nowIso(),
+      mode,
+      currentShop: null,
+      provider,
+      model: getModelName("extraction", provider),
+    });
 
-    const extractionModel = getModelName("extraction");
-    const narrativeModel = getModelName("narrative");
-    this.emitLog(`LLM: extraction=${extractionModel}, narrative=${narrativeModel}`);
-    this.persistState({ model: extractionModel });
+    const extractionModel = getModelName("extraction", provider);
+    const narrativeModel = getModelName("narrative", provider);
+    this.emitLog(`LLM provider=${provider}: extraction=${extractionModel}, narrative=${narrativeModel}`);
 
     this.emitLog("Loading current admission criteria...");
     this.admissionCriteriaText = await fetchAdmissionCriteria(SHOPCHECK_USER_AGENT);
@@ -256,7 +284,7 @@ export class ShopcheckEngine extends EventEmitter {
       selected = batchSize ? pending.slice(0, batchSize) : pending;
       this.persistState({ total: selected.length, completed: 0, processedShopIds: [...processedIds].sort((a, b) => a - b) });
       this.emitLog(
-        `Running: mode=${mode}, total=${shops.length}, pending=${pending.length}, batch=${batchSize ?? "ALL"} (${selected.length}).`,
+        `Running: mode=${mode}, provider=${provider}, total=${shops.length}, pending=${pending.length}, batch=${batchSize ?? "ALL"} (${selected.length}).`,
       );
     }
 
