@@ -9,7 +9,7 @@ import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   deleteManagedMediaAsset,
   listManagedMediaAssets,
-  renameManagedMediaAsset,
+  updateManagedMediaAsset,
   uploadManagedMediaAsset,
 } from "../../services/admin-media.js";
 
@@ -48,8 +48,8 @@ mediaRoutes.patch(
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
 
-    const { displayName } = c.req.valid("json");
-    const result = await renameManagedMediaAsset(id, displayName);
+    const { displayName, alias } = c.req.valid("json");
+    const result = await updateManagedMediaAsset(id, { displayName, alias });
     if (!result.ok) return fail(c, 404, "Media asset not found");
 
     return ok(c, result.asset);

@@ -4,8 +4,9 @@ import { getMediaPublicUrl, removeStoredMedia, storeUploadedMedia } from "../lib
 import {
   createMediaAsset,
   deleteMediaAsset,
+  listMediaAliases,
   listMediaAssets,
-  updateMediaAssetDisplayName,
+  updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
 
 function mapMediaAsset(row: {
@@ -27,6 +28,7 @@ function mapMediaAsset(row: {
     displayName: row.displayName,
     originalName: row.originalName,
     storedFilename: row.storedFilename,
+    alias: row.alias,
     mimeType: row.mimeType,
     kind: row.kind,
     sizeBytes: row.sizeBytes,
@@ -68,13 +70,27 @@ export async function uploadManagedMediaAsset(input: { file: unknown; adminId: n
   }
 }
 
-export async function renameManagedMediaAsset(id: number, displayName: string) {
-  const asset = await updateMediaAssetDisplayName(id, displayName);
+export async function updateManagedMediaAsset(
+  id: number,
+  data: { displayName: string; alias?: string | null },
+) {
+  const asset = await updateMediaAssetMeta(id, data);
   if (!asset) {
     return { ok: false as const, reason: "not_found" as const };
   }
 
   return { ok: true as const, asset: mapMediaAsset(asset) };
+}
+
+export async function getMediaAliasMap(): Promise<Record<string, string>> {
+  const rows = await listMediaAliases();
+  const map: Record<string, string> = {};
+  for (const row of rows) {
+    if (row.alias) {
+      map[row.alias] = getMediaPublicUrl(row.storedFilename);
+    }
+  }
+  return map;
 }
 
 export async function deleteManagedMediaAsset(id: number) {

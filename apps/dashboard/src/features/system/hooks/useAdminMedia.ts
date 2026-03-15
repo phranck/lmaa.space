@@ -30,8 +30,8 @@ export function useRenameMedia() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, displayName }: { id: number; displayName: string }) =>
-      api.patch<MediaAsset>(`/admin/media/${id}`, { displayName }),
+    mutationFn: ({ id, displayName, alias }: { id: number; displayName: string; alias?: string | null }) =>
+      api.patch<MediaAsset>(`/admin/media/${id}`, { displayName, alias }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["media-admin"] });
     },

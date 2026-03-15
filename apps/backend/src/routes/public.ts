@@ -14,6 +14,7 @@ import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
 } from "../services/admin-form-config.js";
+import { getMediaAliasMap } from "../services/admin-media.js";
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
@@ -371,6 +372,13 @@ publicRoutes.get("/filter-options", publicReadLimit, async (c) => {
   const options = await getPublicFilterOptions();
   c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
   return ok(c, options);
+});
+
+// GET /api/media-aliases – alias → public URL map for markdown shortcodes
+publicRoutes.get("/media-aliases", publicReadLimit, async (c) => {
+  const map = await getMediaAliasMap();
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, map);
 });
 
 // Debug endpoint: cache stats (dev only)
