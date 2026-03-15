@@ -184,6 +184,11 @@ export interface DashboardMessages {
       deleted: string;
       rejected: string;
     };
+    geoFilter: {
+      all: string;
+      withGeo: string;
+      withoutGeo: string;
+    };
     table: {
       shop: string;
       categories: string;
@@ -1030,6 +1035,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         onhold: "Zurückgestellt",
         deleted: "Gelöscht markiert",
         rejected: "Abgelehnt",
+      },
+      geoFilter: {
+        all: "Geo: Alle",
+        withGeo: "Mit Koordinaten",
+        withoutGeo: "Ohne Koordinaten",
       },
       table: {
         shop: "Shop",
@@ -1879,6 +1889,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         onhold: "On hold",
         deleted: "Marked as deleted",
         rejected: "Rejected",
+      },
+      geoFilter: {
+        all: "Geo: All",
+        withGeo: "With coordinates",
+        withoutGeo: "Without coordinates",
       },
       table: {
         shop: "Shop",

@@ -1,6 +1,7 @@
 import {
   EyeIcon,
   MagnifyingGlassIcon,
+  MapPinIcon,
   PauseCircleIcon,
   PlusCircleIcon,
   SquaresFourIcon,
@@ -24,6 +25,7 @@ import { useAdminShops, useShopVisibilityCounts } from "@/features/content/hooks
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 type VisibilityFilter = "all" | ShopVisibility;
+type GeoFilter = "all" | "with" | "without";
 
 /**
  * Shop management route with filters and moderation actions.
@@ -37,6 +39,7 @@ export function ShopsPage() {
   useAdminCategories();
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
+  const [geoFilter, setGeoFilter] = useState<GeoFilter>("all");
 
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
@@ -46,11 +49,17 @@ export function ShopsPage() {
   const searchLower = search.toLowerCase();
   const filtered = useMemo(
     () =>
-      shops.filter(
-        (s) =>
-          s.name.toLowerCase().includes(searchLower) || s.url.toLowerCase().includes(searchLower),
-      ),
-    [shops, searchLower],
+      shops.filter((s) => {
+        const matchesSearch =
+          s.name.toLowerCase().includes(searchLower) || s.url.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+        if (geoFilter === "with")
+          return s.headquarters?.latitude != null && s.headquarters?.longitude != null;
+        if (geoFilter === "without")
+          return s.headquarters?.latitude == null || s.headquarters?.longitude == null;
+        return true;
+      }),
+    [shops, searchLower, geoFilter],
   );
 
   const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
@@ -89,6 +98,27 @@ export function ShopsPage() {
     [shopsMessages, counts],
   );
 
+  const geoFilterOptions = useMemo<DropdownOption<GeoFilter>[]>(
+    () => [
+      {
+        value: "all",
+        label: shopsMessages.geoFilter.all,
+        icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "with",
+        label: shopsMessages.geoFilter.withGeo,
+        icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+      {
+        value: "without",
+        label: shopsMessages.geoFilter.withoutGeo,
+        icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+    ],
+    [shopsMessages],
+  );
+
   return (
     <PageLayout>
       <PageHeader title={shopsMessages.title}>
@@ -110,6 +140,12 @@ export function ShopsPage() {
             </button>
           )}
         </div>
+
+        <FilterDropdown
+          value={geoFilter}
+          onChange={setGeoFilter}
+          options={geoFilterOptions}
+        />
 
         <FilterDropdown
           value={visibilityFilter}

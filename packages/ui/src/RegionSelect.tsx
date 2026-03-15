@@ -170,7 +170,7 @@ export function RegionSelect({
               position: "fixed",
               top: dropdownRect.bottom + 4,
               left: dropdownRect.left,
-              width: dropdownRect.width,
+              minWidth: dropdownRect.width,
               zIndex: 9999,
               backgroundColor: "var(--ds-surface)",
             }}

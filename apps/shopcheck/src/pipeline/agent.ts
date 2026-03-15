@@ -1,12 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-import { SHOPCHECK_USER_AGENT, TIMEOUT_PAGE_MS } from "../constants";
+import { analyzeShopWithLlm } from "./analyze";
+import type { DecisionOutcome } from "./decision";
 import type { ExtractedFacts } from "./extract";
-import { geocodeWithFallback } from "./geocode";
-import type { ShopJson } from "./output";
+import { geocodeWithFallback, type GeoResult } from "./geocode";
+import { buildShopJson, type ShopJson } from "./output";
 import { extractMainContent, type FetchedPage } from "./research";
+import { searchExternalContext, searchSocialMedia } from "./web-search";
+import { SHOPCHECK_USER_AGENT, TIMEOUT_PAGE_MS } from "../constants";
 import { tryParseJson } from "../lib/utils";
-import { LlmFatalError } from "../llm/client";
+import { LlmFatalError, getLlmProvider } from "../llm/client";
 
 const MAX_AGENT_TURNS = 50;
 const AGENT_MODEL = "claude-sonnet-4-20250514";
@@ -14,9 +17,30 @@ const AGENT_MAX_TOKENS = 16384;
 const PAGE_TEXT_LIMIT = 25000;
 const MAX_WEB_SEARCHES = 15;
 
-// ---------------------------------------------------------------------------
-// Tool definitions
-// ---------------------------------------------------------------------------
+const EMPTY_SOCIAL_MEDIA: ExtractedFacts["socialMedia"] = {
+  mastodon: null,
+  bluesky: null,
+  twitter: null,
+  instagram: null,
+  tiktok: null,
+  youtube: null,
+  twitch: null,
+  pinterest: null,
+  linkedin: null,
+  facebook: null,
+  threads: null,
+  patreon: null,
+};
+
+const EMPTY_GEO_RESULT: GeoResult = {
+  latitude: null,
+  longitude: null,
+  source: "not requested",
+  fallbackLevel: "none",
+  resolvedState: null,
+  resolvedCountryCode: null,
+  resolvedCity: null,
+};
 
 const AGENT_TOOLS: Anthropic.Messages.ToolUnion[] = [
   {
@@ -53,10 +77,6 @@ const AGENT_TOOLS: Anthropic.Messages.ToolUnion[] = [
     },
   },
 ];
-
-// ---------------------------------------------------------------------------
-// Tool implementations (custom tools only — web_search is server-side)
-// ---------------------------------------------------------------------------
 
 async function fetchPageImpl(url: string): Promise<string> {
   const controller = new AbortController();
@@ -118,10 +138,6 @@ async function executeTool(name: string, input: Record<string, unknown>): Promis
       return `Unknown tool: ${name}`;
   }
 }
-
-// ---------------------------------------------------------------------------
-// System prompt
-// ---------------------------------------------------------------------------
 
 function buildSystemPrompt(admissionCriteriaText: string, categories: string[]): string {
   return [
@@ -257,10 +273,6 @@ function buildSystemPrompt(admissionCriteriaText: string, categories: string[]):
   ].join("\n");
 }
 
-// ---------------------------------------------------------------------------
-// Build first user message with pre-crawled data
-// ---------------------------------------------------------------------------
-
 function buildUserMessage(
   shopUrl: string,
   shopName: string,
@@ -315,10 +327,6 @@ function buildUserMessage(
   ].join("\n");
 }
 
-// ---------------------------------------------------------------------------
-// JSON extraction
-// ---------------------------------------------------------------------------
-
 function parseShopJsonFromResponse(text: string): ShopJson | null {
   const jsonBlocks = [...text.matchAll(/```json\s*\n([\s\S]*?)\n```/g)];
   if (jsonBlocks.length === 0) return null;
@@ -326,19 +334,56 @@ function parseShopJsonFromResponse(text: string): ShopJson | null {
   return tryParseJson<ShopJson>(lastBlock);
 }
 
-// ---------------------------------------------------------------------------
-// Agent loop
-// ---------------------------------------------------------------------------
+function uniqueStrings(values: Array<string | null | undefined>): string[] {
+  return [...new Set(values.map((value) => String(value ?? "").trim()).filter(Boolean))];
+}
 
-export type AgentResult = {
-  shopName: string;
-  shopUrl: string;
-  verdict: "accept" | "reject";
-  shopJson: ShopJson | null;
-  fullResponse: string;
-};
+function mergeFacts(base: ExtractedFacts, patch: Partial<ExtractedFacts>): ExtractedFacts {
+  const patchSocial: Partial<ExtractedFacts["socialMedia"]> = patch.socialMedia ?? {};
+  return {
+    legalEntity: patch.legalEntity ?? base.legalEntity,
+    legalEntityType: patch.legalEntityType ?? base.legalEntityType,
+    owners: uniqueStrings([...(base.owners ?? []), ...(patch.owners ?? [])]),
+    address: {
+      street: patch.address?.street ?? base.address.street,
+      postalCode: patch.address?.postalCode ?? base.address.postalCode,
+      city: patch.address?.city ?? base.address.city,
+      state: patch.address?.state ?? base.address.state,
+      countryCode: patch.address?.countryCode ?? base.address.countryCode,
+      sourceUrl: patch.address?.sourceUrl ?? base.address.sourceUrl,
+    },
+    contact: {
+      emails: uniqueStrings([...(base.contact.emails ?? []), ...(patch.contact?.emails ?? [])]),
+      phones: uniqueStrings([...(base.contact.phones ?? []), ...(patch.contact?.phones ?? [])]),
+    },
+    shippingRegions: [...new Set([...(patch.shippingRegions ?? []), ...base.shippingRegions])],
+    languageGermanLikely: patch.languageGermanLikely ?? base.languageGermanLikely,
+    exclusionSignals: uniqueStrings([...(base.exclusionSignals ?? []), ...(patch.exclusionSignals ?? [])]),
+    socialMedia: {
+      mastodon: patchSocial.mastodon ?? base.socialMedia.mastodon,
+      bluesky: patchSocial.bluesky ?? base.socialMedia.bluesky,
+      twitter: patchSocial.twitter ?? base.socialMedia.twitter,
+      instagram: patchSocial.instagram ?? base.socialMedia.instagram,
+      tiktok: patchSocial.tiktok ?? base.socialMedia.tiktok,
+      youtube: patchSocial.youtube ?? base.socialMedia.youtube,
+      twitch: patchSocial.twitch ?? base.socialMedia.twitch,
+      pinterest: patchSocial.pinterest ?? base.socialMedia.pinterest,
+      linkedin: patchSocial.linkedin ?? base.socialMedia.linkedin,
+      facebook: patchSocial.facebook ?? base.socialMedia.facebook,
+      threads: patchSocial.threads ?? base.socialMedia.threads,
+      patreon: patchSocial.patreon ?? base.socialMedia.patreon,
+    },
+    affiliateInfoUrl: patch.affiliateInfoUrl ?? base.affiliateInfoUrl,
+    notes: {
+      focus: uniqueStrings([...(base.notes.focus ?? []), ...(patch.notes?.focus ?? [])]),
+      brandsOrProducts: uniqueStrings([...(base.notes.brandsOrProducts ?? []), ...(patch.notes?.brandsOrProducts ?? [])]),
+      companyPresentation: patch.notes?.companyPresentation ?? base.notes.companyPresentation,
+    },
+    evidence: [...(base.evidence ?? []), ...(patch.evidence ?? [])],
+  };
+}
 
-export async function runShopCheckAgent({
+async function runClaudeAgent({
   shopUrl,
   shopName,
   preCrawledPages,
@@ -361,27 +406,20 @@ export async function runShopCheckAgent({
   const client = new Anthropic({ apiKey });
   const systemPrompt = buildSystemPrompt(admissionCriteriaText, categories);
   const userMessage = buildUserMessage(shopUrl, shopName, preCrawledPages, preCrawledFacts);
-
-  // Cache system prompt + tools across agent turns and between shops in a batch.
-  // The cache_control breakpoint on the last tool means the entire prefix
-  // (system + all tools) is cached for 5 minutes after last use.
   const cachedSystem: Anthropic.TextBlockParam[] = [
     { type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } },
   ];
   const cachedTools: Anthropic.Messages.ToolUnion[] = AGENT_TOOLS.map((tool, i) =>
     i === AGENT_TOOLS.length - 1 ? { ...tool, cache_control: { type: "ephemeral" } } : tool,
   );
-
-  const messages: Anthropic.MessageParam[] = [
-    { role: "user", content: userMessage },
-  ];
+  const messages: Anthropic.MessageParam[] = [{ role: "user", content: userMessage }];
 
   let turns = 0;
   let finalText = "";
   let customToolCalls = 0;
   let webSearchCalls = 0;
 
-  onProgress?.(`Agent gestartet (Model: ${AGENT_MODEL}, ${preCrawledPages.length} vorgecrawlte Seiten, web_search: server-side, prompt caching: on)`);
+  onProgress?.(`Agent gestartet (Provider: claude, Model: ${AGENT_MODEL}, ${preCrawledPages.length} vorgecrawlte Seiten, web_search: server-side, prompt caching: on)`);
 
   while (turns < MAX_AGENT_TURNS) {
     turns++;
@@ -406,10 +444,8 @@ export async function runShopCheckAgent({
       throw error;
     }
 
-    // Add assistant response to conversation
     messages.push({ role: "assistant", content: response.content });
 
-    // Collect text and count server tool uses
     for (const block of response.content) {
       if (block.type === "text") finalText += block.text;
       if (block.type === "server_tool_use" && block.name === "web_search") {
@@ -418,13 +454,11 @@ export async function runShopCheckAgent({
       }
     }
 
-    // If no custom tool use needed, we're done
     if (response.stop_reason !== "tool_use") {
       onProgress?.(`Agent fertig nach ${turns} Runden (${customToolCalls} custom + ${webSearchCalls} web_search Aufrufe)`);
       break;
     }
 
-    // Execute only custom tool calls (server tools like web_search are already handled)
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
     for (const block of response.content) {
       if (block.type !== "tool_use") continue;
@@ -463,4 +497,128 @@ export async function runShopCheckAgent({
     shopJson,
     fullResponse: finalText,
   };
+}
+
+function buildResponseSummary(decision: DecisionOutcome, shopJson: ShopJson | null, categories: string[]): string {
+  return JSON.stringify(
+    {
+      provider: "ollama",
+      verdict: decision.verdict,
+      unclearPoints: decision.unclearPoints,
+      categories,
+      hasShopJson: Boolean(shopJson),
+    },
+    null,
+    2,
+  );
+}
+
+async function runOllamaFlow({
+  shopUrl,
+  shopName,
+  preCrawledPages,
+  preCrawledFacts,
+  admissionCriteriaText,
+  categories,
+  onProgress,
+}: {
+  shopUrl: string;
+  shopName: string;
+  preCrawledPages: FetchedPage[];
+  preCrawledFacts: ExtractedFacts;
+  admissionCriteriaText: string;
+  categories: string[];
+  onProgress?: (message: string) => void;
+}): Promise<AgentResult> {
+  onProgress?.(`Agent gestartet (Provider: ollama, Model: qwen3.5:397b-cloud, ${preCrawledPages.length} vorgecrawlte Seiten)`);
+
+  const externalContext = await searchExternalContext({
+    shopName,
+    userAgent: SHOPCHECK_USER_AGENT,
+    onProgress,
+  });
+
+  const analysis = await analyzeShopWithLlm({
+    shopUrl,
+    pages: preCrawledPages,
+    deterministicFacts: preCrawledFacts,
+    availableCategories: categories,
+    admissionCriteriaText,
+    externalContext,
+    onProgress,
+  });
+
+  let mergedFacts = mergeFacts(preCrawledFacts, analysis.factsPatch);
+  const socialSearch = await searchSocialMedia({
+    shopName,
+    existingSocial: mergedFacts.socialMedia,
+    userAgent: SHOPCHECK_USER_AGENT,
+    onProgress,
+  });
+  mergedFacts = mergeFacts(mergedFacts, {
+    socialMedia: { ...EMPTY_SOCIAL_MEDIA, ...socialSearch },
+  });
+
+  let geo = EMPTY_GEO_RESULT;
+  if (analysis.decision.verdict === "accept") {
+    geo = await geocodeWithFallback({
+      street: mergedFacts.address.street,
+      postalCode: mergedFacts.address.postalCode,
+      city: mergedFacts.address.city,
+      countryCode: mergedFacts.address.countryCode,
+      userAgent: SHOPCHECK_USER_AGENT,
+    });
+  }
+
+  const shopJson = analysis.decision.verdict === "accept"
+    ? await buildShopJson({
+        shopName,
+        shopUrl,
+        decision: analysis.decision,
+        facts: mergedFacts,
+        geo,
+        categories: analysis.categories,
+        pageTexts: preCrawledPages.map((page) => ({ url: page.url, text: page.text })),
+      })
+    : null;
+
+  onProgress?.("Ollama-Auswertung abgeschlossen.");
+
+  return {
+    shopName: shopJson?.name ?? shopName,
+    shopUrl,
+    verdict: analysis.decision.verdict,
+    shopJson,
+    fullResponse: buildResponseSummary(analysis.decision, shopJson, analysis.categories),
+  };
+}
+
+export type AgentResult = {
+  shopName: string;
+  shopUrl: string;
+  verdict: "accept" | "reject";
+  shopJson: ShopJson | null;
+  fullResponse: string;
+};
+
+export async function runShopCheckAgent({
+  shopUrl,
+  shopName,
+  preCrawledPages,
+  preCrawledFacts,
+  admissionCriteriaText,
+  categories,
+  onProgress,
+}: {
+  shopUrl: string;
+  shopName: string;
+  preCrawledPages: FetchedPage[];
+  preCrawledFacts: ExtractedFacts;
+  admissionCriteriaText: string;
+  categories: string[];
+  onProgress?: (message: string) => void;
+}): Promise<AgentResult> {
+  return getLlmProvider() === "ollama"
+    ? runOllamaFlow({ shopUrl, shopName, preCrawledPages, preCrawledFacts, admissionCriteriaText, categories, onProgress })
+    : runClaudeAgent({ shopUrl, shopName, preCrawledPages, preCrawledFacts, admissionCriteriaText, categories, onProgress });
 }

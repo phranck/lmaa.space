@@ -115,7 +115,7 @@ function CountryMultiSelect({ value, onChange, options }: CountryMultiSelectProp
               position: "fixed",
               top: rect.bottom + 4,
               left: rect.left,
-              width: Math.max(rect.width, 220),
+              minWidth: Math.max(rect.width, 220),
               zIndex: 9999,
               backgroundColor: "var(--ds-surface)",
             }}
@@ -145,7 +145,7 @@ function CountryMultiSelect({ value, onChange, options }: CountryMultiSelectProp
                       {checked && <CheckIcon weight="bold" className="w-2.5 h-2.5 text-white" />}
                     </span>
                     <span className="mr-2">{countryFlag(code)}</span>
-                    <span>{countryName(code)}</span>
+                    <span className="whitespace-nowrap">{countryName(code)}</span>
                   </button>
                 );
               })}
