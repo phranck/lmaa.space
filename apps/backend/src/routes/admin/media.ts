@@ -9,6 +9,7 @@ import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   deleteManagedMediaAsset,
   listManagedMediaAssets,
+  syncMediaFromStorage,
   updateManagedMediaAsset,
   uploadManagedMediaAsset,
 } from "../../services/admin-media.js";
@@ -55,6 +56,11 @@ mediaRoutes.patch(
     return ok(c, result.asset);
   },
 );
+
+mediaRoutes.post("/media/sync", requireAdmin, async (c) => {
+  const result = await syncMediaFromStorage();
+  return ok(c, result);
+});
 
 mediaRoutes.delete("/media/:id", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));

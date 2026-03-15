@@ -1,4 +1,5 @@
 import {
+  ArrowsClockwiseIcon,
   CopyIcon,
   FileIcon,
   ImageIcon,
@@ -36,6 +37,7 @@ import {
   useAdminMedia,
   useDeleteMedia,
   useRenameMedia,
+  useSyncMedia,
   useUploadMedia,
 } from "@/features/system/hooks/useAdminMedia.ts";
 import {
@@ -96,6 +98,7 @@ export function MediaPage() {
   const uploadMedia = useUploadMedia();
   const renameMedia = useRenameMedia();
   const deleteMedia = useDeleteMedia();
+  const syncMedia = useSyncMedia();
 
   const selectedAsset = assets.find((asset) => asset.id === selectedId) ?? null;
 
@@ -225,6 +228,16 @@ export function MediaPage() {
             event.currentTarget.value = "";
           }}
         />
+
+        <button
+          type="button"
+          onClick={() => syncMedia.mutate()}
+          disabled={syncMedia.isPending}
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-60"
+        >
+          <ArrowsClockwiseIcon weight="duotone" className={`w-3.5 h-3.5 ${syncMedia.isPending ? "animate-spin" : ""}`} />
+          Sync
+        </button>
 
         <button
           type="button"
