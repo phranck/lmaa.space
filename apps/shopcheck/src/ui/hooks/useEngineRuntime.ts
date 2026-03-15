@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 
 import { ShopcheckEngine } from "../../engine";
-import type { PromptState, RunnerState, LogEntry } from "../../types";
+import type { PromptState, RunnerState, LogEntry, LlmProvider } from "../../types";
 
 type RuntimeState = {
   state: RunnerState;
   logs: Array<{ id: string; line: string }>;
   prompt: PromptState;
+  setPrompt: (next: PromptState | ((prev: PromptState) => PromptState)) => void;
   fatalError: string | null;
 };
 
@@ -39,6 +40,22 @@ export function useEngineRuntime({
       setPrompt({ type: "startMode", cursor: 0, resolve });
     };
 
+    const onProviderPrompt = ({ resolve }: { resolve: (provider: LlmProvider) => void }) => {
+      if (!rawModeSupported) {
+        resolve("ollama");
+        return;
+      }
+      setPrompt({
+        type: "provider",
+        cursor: 0,
+        options: [
+          { label: "Ollama (qwen3.5:397b-cloud)", value: "ollama" },
+          { label: "Claude", value: "claude" },
+        ],
+        resolve,
+      });
+    };
+
     const onBatchPrompt = ({
       options,
       resolve,
@@ -56,6 +73,7 @@ export function useEngineRuntime({
     engine.on("state", onState);
     engine.on("log", onLog);
     engine.on("prompt:start-mode", onStartModePrompt);
+    engine.on("prompt:provider", onProviderPrompt);
     engine.on("prompt:batch-size", onBatchPrompt);
 
     let finished = false;
@@ -77,10 +95,11 @@ export function useEngineRuntime({
       engine.off("state", onState);
       engine.off("log", onLog);
       engine.off("prompt:start-mode", onStartModePrompt);
+      engine.off("prompt:provider", onProviderPrompt);
       engine.off("prompt:batch-size", onBatchPrompt);
       if (!finished) engine.requestShutdown("unmount");
     };
   }, [engine, exit, rawModeSupported]);
 
-  return { state, logs, prompt, fatalError };
+  return { state, logs, prompt, setPrompt, fatalError };
 }

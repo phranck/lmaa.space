@@ -1,5 +1,7 @@
 export type Level = "info" | "error";
 
+export type LlmProvider = "claude" | "ollama";
+
 export type Shop = {
   id: number;
   name: string;
@@ -21,6 +23,7 @@ export type RunnerState = {
   processedShopIds: number[];
   currentShop: Shop | null;
   mode: "run" | "resume";
+  provider: LlmProvider;
   model: string;
   pipelineProgress: number;
   metrics: { parseFailures: number; timeouts: number; succeeded: number };
@@ -33,10 +36,12 @@ export type Args = {
   help: boolean;
   statusOnly: boolean;
   resetOnly: boolean;
+  provider: LlmProvider | null;
 };
 
 export type PromptState =
   | { type: "startMode"; cursor: 0 | 1; resolve: (mode: "resume" | "reset") => void }
+  | { type: "provider"; cursor: number; options: Array<{ label: string; value: LlmProvider }>; resolve: (provider: LlmProvider) => void }
   | { type: "batchSize"; cursor: number; options: Array<{ label: string; value: number | null }>; resolve: (batchSize: number | null) => void }
   | null;
 

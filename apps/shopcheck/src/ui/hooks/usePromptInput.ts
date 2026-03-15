@@ -34,6 +34,17 @@ export function handlePromptInput({
     return true;
   }
 
+  if (prompt?.type === "provider") {
+    if (key.upArrow) setPrompt({ ...prompt, cursor: Math.max(0, prompt.cursor - 1) });
+    if (key.downArrow) setPrompt({ ...prompt, cursor: Math.min(prompt.options.length - 1, prompt.cursor + 1) });
+    if (key.return) {
+      const selected = prompt.options[prompt.cursor];
+      if (selected) prompt.resolve(selected.value);
+      setPrompt(null);
+    }
+    return true;
+  }
+
   if (prompt?.type === "batchSize") {
     if (key.upArrow) setPrompt({ ...prompt, cursor: Math.max(0, prompt.cursor - 1) });
     if (key.downArrow) setPrompt({ ...prompt, cursor: Math.min(prompt.options.length - 1, prompt.cursor + 1) });

@@ -17,6 +17,16 @@ test("parseArgs parses flags", () => {
   assert.equal(args.help, true);
 });
 
+test("parseArgs defaults to no explicit provider", () => {
+  const args = parseArgs(["node", "shopcheck"]);
+  assert.equal(args.provider, null);
+});
+
+test("parseArgs parses provider", () => {
+  const args = parseArgs(["node", "shopcheck", "--provider", "ollama"]);
+  assert.equal(args.provider, "ollama");
+});
+
 test("isResumableState true when progress exists and total unknown", () => {
   const state = {
     status: "stopped",
@@ -27,6 +37,7 @@ test("isResumableState true when progress exists and total unknown", () => {
     processedShopIds: [1, 2],
     currentShop: null,
     mode: "run",
+    provider: "claude",
     model: "claude-haiku-4-5-20251001",
     pipelineProgress: 0,
     metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
@@ -44,6 +55,7 @@ test("isResumableState false when completed equals total", () => {
     processedShopIds: [1, 2, 3],
     currentShop: null,
     mode: "run",
+    provider: "claude",
     model: "claude-haiku-4-5-20251001",
     pipelineProgress: 0,
     metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
