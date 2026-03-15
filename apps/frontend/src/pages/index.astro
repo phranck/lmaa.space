@@ -111,11 +111,14 @@ const jsonLd = {
             input.addEventListener('input', toggle);
             btn.addEventListener('click', () => { input.value = ''; toggle(); input.focus(); });
 
-            // Keyboard shortcut: Cmd+K (Mac) / Ctrl+K (Win/Linux)
+            // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
               if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 input.focus();
+              }
+              if (e.key === 'Escape' && document.activeElement === input) {
+                input.blur();
               }
             });
           })();
