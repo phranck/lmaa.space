@@ -69,6 +69,13 @@ export type RejectionMarkdown = {
   markdown: string;
 };
 
+function boldFirstMention(text: string, shopName: string): string {
+  if (!shopName) return text;
+  const escaped = shopName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (new RegExp(`\\*\\*${escaped}\\*\\*`, "i").test(text)) return text;
+  return text.replace(new RegExp(escaped, "i"), `**${shopName}**`);
+}
+
 /** Extract description from LLM response: try JSON first, then plain text. */
 function extractDescription(raw: string): string | null {
   // Try JSON: {"description": "..."}
@@ -124,11 +131,13 @@ async function generateDescription(input: ShopOutputInput): Promise<string> {
     "## Hard constraints (violations require a full rewrite)",
     "- Do not use em-dashes, en-dashes, or spaced hyphens mid-sentence. Formulate clear and understandable sentences instead.",
     "- German with real umlauts (ä, ö, ü) and ß.",
+    "- Determine the grammatical gender of the shop name from its final noun component and use the correct definite article consistently (e.g. '-rösterei' → die, '-handel' → der, '-laden' → der, '-markt' → der, '-shop' → der, '-haus' → das, '-werk' → das, '-manufaktur' → die, '-gärtnerei' → die).",
     "- Strictly based on the provided facts and source pages. No speculation, no invented details.",
     "- Every sentence must contain a concrete, verifiable fact specific to this shop. Generic sentences that could apply to any shop are forbidden.",
     "- No meta-statements about the website ('well-structured site', 'comprehensive information').",
     "- No generic filler ('transparent communication', 'modern approach', 'broad palette').",
     "- No mention of newsletter, privacy policy, imprint, ToS, cookies.",
+    "- No mention of VAT/tax IDs, trade register numbers, insurance details, or any other legal registration data.",
     "- No listing of social media presence as content.",
     "- No filler words in the German output: kontinuierlich, ständig, stets, umfassend, vielfältig.",
     "- Do not mention lmaa.space.",
@@ -170,7 +179,7 @@ async function generateDescription(input: ShopOutputInput): Promise<string> {
       temperature: TEMPERATURE_NARRATIVE,
     });
     const description = extractDescription(raw);
-    if (description) return description;
+    if (description) return boldFirstMention(description, input.shopName);
 
     // Retry once
     const retry = await llmGenerate({
@@ -179,7 +188,7 @@ async function generateDescription(input: ShopOutputInput): Promise<string> {
       temperature: TEMPERATURE_NARRATIVE,
     });
     const retryDescription = extractDescription(retry);
-    if (retryDescription) return retryDescription;
+    if (retryDescription) return boldFirstMention(retryDescription, input.shopName);
   } catch (error) {
     if (error instanceof LlmFatalError) throw error;
     const detail = error instanceof Error ? error.message : String(error);
@@ -190,10 +199,11 @@ async function generateDescription(input: ShopOutputInput): Promise<string> {
 }
 
 export async function buildShopJson(input: ShopOutputInput): Promise<ShopJson> {
-  const description = await generateDescription(input);
+  const resolvedName = input.facts.legalEntity ?? input.shopName;
+  const description = await generateDescription({ ...input, shopName: resolvedName });
 
   return {
-    name: input.shopName,
+    name: resolvedName,
     url: input.shopUrl,
     description,
     categories: input.categories,

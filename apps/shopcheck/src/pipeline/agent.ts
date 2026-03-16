@@ -2,11 +2,10 @@ import { analyzeShopWithLlm } from "./analyze";
 import type { DecisionOutcome } from "./decision";
 import type { ExtractedFacts } from "./extract";
 import { geocodeWithFallback, type GeoResult } from "./geocode";
-import type { RejectionMarkdown, ShopJson } from "./output";
+import { buildShopJson, type RejectionMarkdown, type ShopJson } from "./output";
 import type { FetchedPage } from "./research";
 import { searchExternalContext, searchSocialMedia } from "./web-search";
 import { SHOPCHECK_USER_AGENT } from "../constants";
-import { tryParseJson } from "../lib/utils";
 import { LlmFatalError, getLlmProvider, getModelName, llmGenerate } from "../llm/client";
 
 const EMPTY_SOCIAL_MEDIA: ExtractedFacts["socialMedia"] = {
@@ -88,187 +87,64 @@ function mergeFacts(base: ExtractedFacts, patch: Partial<ExtractedFacts>): Extra
   };
 }
 
-function renderCriteriaTable(decision: DecisionOutcome): string {
-  const lines = [
-    "| Kriterium | Ergebnis | Anmerkung |",
-    "| --- | --- | --- |",
-  ];
-  for (const criterion of decision.criteria) {
-    lines.push(`| ${criterion.label} | ${criterion.result} | ${criterion.note} |`);
-  }
-  return lines.join("\n");
-}
 
-function buildAcceptanceJsonSkeleton(input: {
-  shopName: string;
-  shopUrl: string;
-  facts: ExtractedFacts;
-  geo: GeoResult;
-  categories: string[];
-}): ShopJson {
-  return {
-    name: input.shopName,
-    url: input.shopUrl,
-    description: "Hier die finale Shopbeschreibung einsetzen.",
-    categories: input.categories,
-    contactEmail: input.facts.contact.emails[0] ?? null,
-    shippingRegions: input.facts.shippingRegions,
-    legal: {
-      entityName: input.facts.legalEntity,
-      entityType: input.facts.legalEntityType,
-      owners: input.facts.owners,
-      headquartersSource: input.facts.address.sourceUrl,
-    },
-    headquarters: {
-      street: input.facts.address.street,
-      postalCode: input.facts.address.postalCode,
-      city: input.facts.address.city,
-      state: input.facts.address.state,
-      countryCode: input.facts.address.countryCode,
-    },
-    geo: {
-      latitude: input.geo.latitude,
-      longitude: input.geo.longitude,
-    },
-    socialMedia: input.facts.socialMedia,
-    affiliate: {
-      infoUrl: input.facts.affiliateInfoUrl,
-    },
-    notes: {
-      focus: input.facts.notes.focus,
-      brandsOrProducts: input.facts.notes.brandsOrProducts,
-      companyPresentation: input.facts.notes.companyPresentation,
-    },
-  };
-}
-
-function buildFinalOutputPrompt(input: {
+function buildRejectionPrompt({
+  shopName,
+  shopUrl,
+  decision,
+  facts,
+}: {
   shopName: string;
   shopUrl: string;
   decision: DecisionOutcome;
   facts: ExtractedFacts;
-  geo: GeoResult;
-  categories: string[];
-  pageTexts: Array<{ url: string; text: string }>;
 }): string {
-  const preparedJson = buildAcceptanceJsonSkeleton(input);
-  const pageContext = input.pageTexts
-    .slice(0, 5)
-    .map((page) => `[${page.url}]\n${page.text.slice(0, 2200)}`)
-    .join("\n\n---\n\n");
-
   return [
-    "Du führst den finalen Output strikt nach dem Skill lmaa-shop-check aus.",
-    "Verwende die Skill-Vorgaben für Struktur, Sprache und Ausgabeformat so nah wie möglich 1:1.",
-    "Der Provider ist austauschbar. Prompt, Regeln und Ausgabeformat bleiben gleich.",
-    "Das Prüfergebnis ist bereits entschieden und darf nicht neu bewertet werden.",
+    "Verfasse eine strukturierte Ablehnungsbegründung für diesen Online-Shop.",
+    "Das Prüfergebnis ist endgültig entschieden und darf nicht neu bewertet werden.",
     "",
     "## Shop",
-    `Name: ${input.shopName}`,
-    `URL: ${input.shopUrl}`,
+    `Name: ${shopName}`,
+    `URL: ${shopUrl}`,
     "",
-    "## Bereits entschiedene Prüfung",
-    JSON.stringify(input.decision, null, 2),
+    "## Prüfergebnis",
+    JSON.stringify(decision, null, 2),
     "",
     "## Verifizierte Fakten",
     JSON.stringify({
-      legalEntity: input.facts.legalEntity,
-      legalEntityType: input.facts.legalEntityType,
-      owners: input.facts.owners,
-      address: input.facts.address,
-      contact: input.facts.contact,
-      shippingRegions: input.facts.shippingRegions,
-      socialMedia: input.facts.socialMedia,
-      affiliateInfoUrl: input.facts.affiliateInfoUrl,
-      notes: input.facts.notes,
-      evidence: input.facts.evidence.slice(0, 15),
-      geo: input.geo,
-      categories: input.categories,
+      legalEntity: facts.legalEntity,
+      legalEntityType: facts.legalEntityType,
+      address: facts.address,
+      evidence: facts.evidence.slice(0, 10),
     }, null, 2),
     "",
-    "## Relevante Quellseiten",
-    pageContext,
+    "## Regeln",
+    "- Deutsch mit echten Umlauten (ä, ö, ü, ß). Keine Em-Dashes.",
+    "- Neutral, sachlich, keine Spekulation.",
+    "- lmaa.space nicht erwähnen.",
     "",
-    "## Verbindliche Skill-Vorgaben für den finalen Output",
-    "Always return a complete, structured result.",
+    "## Ausgabe",
+    "Gib genau folgende Struktur aus, gefüllt mit dem tatsächlichen Inhalt. Kein Text davor oder danach.",
     "",
-    "### Header",
+    `### Shop-Prüfung: ${shopName}`,
+    "",
+    `**URL:** ${shopUrl}`,
+    "",
+    "## Kurzbegründung",
     "```md",
-    `### Shop-Prüfung: ${input.shopName}`,
-    "",
-    `**URL:** ${input.shopUrl}`,
+    "[1–2 Sätze: Hauptablehnungsgrund. Für Dashboard-Kommentarfeld.]",
     "```",
     "",
-    "### Criteria Checklist",
+    "## Langbegründung",
     "```md",
-    renderCriteriaTable(input.decision),
+    "[300–500 Wörter. Abschnitte: ## Einleitung / ## Ablehnungsgründe (### Unterabschnitt je Grund) / ## Schluss. Inline-Quellenangaben wenn nötig.]",
+    "",
+    REJECTION_LINK_BLOCK,
     "```",
-    "",
-    "### Verdict",
-    input.decision.verdict === "accept" ? "**✅ Aufnahme empfohlen**" : "**❌ Ablehnung empfohlen**",
-    "",
-    ...(input.decision.verdict === "reject"
-      ? [
-          "### Rejection Output",
-          "Directly below the verdict, output two code blocks:",
-          "- Short reason for dashboard field Kommentar",
-          "- 2 to 3 sentences why the shop should be rejected and why it does not fit the acceptance criteria",
-          "- State the main rejection reason clearly",
-          "- If facts are stated, place footnotes directly in the text",
-          "- Add a block-local source list at the end",
-          "- Do not mention lmaa.space in the description; keep the sentences neutral.",
-          "- Always end with this text in a separate line surrounded by newlines:",
-          REJECTION_LINK_BLOCK,
-          "",
-          "- Long reason for Langbegründung (öffentliche Seite)",
-          "- 300 to 500 words",
-          "- Structure: ## Einleitung, ## Ablehnungsgründe, ### Unterabschnitte je Grund, ## Schluss",
-          "- Neutral, factual, no speculation",
-          "- Use inline footnote markers",
-          "- Add a complete source list at the end of the same block, Format of a source: URL, Stand: $DATUM",
-        ]
-      : [
-          "### Acceptance Output",
-          "- Shop description as Markdown in a code block",
-          "- Brief information about the shop and its legal form",
-          "- For better search results, also mention a few brands and products from the portfolio",
-          "- Information about workshops, courses or similar events is interesting when evidenced",
-          "- Information about company history, origins, and amusing or interesting anecdotes is interesting when evidenced",
-          "- Use paragraphs for thematic separation",
-          "- No sources or footnotes in this block",
-          "- Do not mention lmaa.space in the description; keep the sentences neutral",
-          "- The description must be a newly written shop portrait and must not copy or closely paraphrase notes.companyPresentation",
-          "- Integrate legal form, owners, location, focus, products and shipping naturally into the prose when evidenced",
-          "",
-          "- Categories as a comma-separated list in a code block",
-          "- Social profiles as separate headings with one code block per cleaned URL",
-          "- Contact email in a separate code block",
-          "- Structured JSON in a final code block for direct copy/import",
-          "- Output this JSON block last in the acceptance section",
-          "- The JSON must include all gathered acceptance data",
-          "- Use this exact JSON structure as the final block and replace description with the full final shop description from the Markdown description block:",
-          "```json",
-          JSON.stringify(preparedJson, null, 2),
-          "```",
-          "",
-          "The Markdown shop description and the JSON field description must contain the same final shop description text.",
-        ]),
-    "",
-    "## Weitere Skill-Regeln",
-    "- Final user-facing texts must be in German.",
-    "- In all published German texts, always use real German umlauts (ä, ö, ü, Ä, Ö, Ü) and sharp s (ß, ẞ).",
-    "- Do not use Em-dashes.",
-    "- When lmaa.space appears in prose, italicize it.",
-    "- Always bold the shop name in generated texts.",
-    "- Use only evidenced facts from the verified facts and source pages.",
-    "- Exception for acceptance: description, categories, contact email, and social URL blocks stay source-free so they can be copied directly.",
-    "- Keep notes.companyPresentation as a short factual note. It is not the final description.",
-    "",
-    "Gib nur den finalen Output zurück. Keine Vorbemerkung. Keine Erklärung außerhalb des Skill-Outputs.",
   ].join("\n");
 }
 
-async function generateFinalOutput(prompt: string): Promise<string> {
+async function generateRejectionOutput(prompt: string): Promise<string> {
   let response = "";
   for (let attempt = 0; attempt < 2; attempt += 1) {
     response = await llmGenerate({
@@ -276,21 +152,11 @@ async function generateFinalOutput(prompt: string): Promise<string> {
       task: "narrative",
       temperature: 0.2,
     });
-    if (response.includes("### Shop-Prüfung:") && response.includes("**URL:**")) {
+    if (response.includes("## Kurzbegründung") && response.includes("## Langbegründung")) {
       return response;
     }
   }
   return response;
-}
-
-function parseShopJsonFromResponse(text: string): ShopJson | null {
-  const jsonBlocks = [...text.matchAll(/```json\s*\n([\s\S]*?)\n```/g)];
-  if (jsonBlocks.length > 0) {
-    const lastBlock = jsonBlocks[jsonBlocks.length - 1][1];
-    const parsed = tryParseJson<ShopJson>(lastBlock);
-    if (parsed) return parsed;
-  }
-  return tryParseJson<ShopJson>(text);
 }
 
 function parseRejectionMarkdownFromResponse(text: string): RejectionMarkdown | null {
@@ -390,36 +256,47 @@ async function runUnifiedCheckFlow({
     socialMedia: { ...EMPTY_SOCIAL_MEDIA, ...socialSearch },
   });
 
-  let geo = EMPTY_GEO_RESULT;
   if (analysis.decision.verdict === "accept") {
-    geo = await geocodeWithFallback({
+    const geo = await geocodeWithFallback({
       street: mergedFacts.address.street,
       postalCode: mergedFacts.address.postalCode,
       city: mergedFacts.address.city,
       countryCode: mergedFacts.address.countryCode,
       userAgent: SHOPCHECK_USER_AGENT,
     });
+    const shopJson = await buildShopJson({
+      shopName,
+      shopUrl,
+      decision: analysis.decision,
+      facts: mergedFacts,
+      geo,
+      categories: analysis.categories,
+      pageTexts: preCrawledPages.map((page) => ({ url: page.url, text: page.text })),
+    });
+    onProgress?.("Auswertung abgeschlossen.");
+    return {
+      shopName: shopJson.name,
+      shopUrl,
+      verdict: "accept",
+      shopJson,
+      rejectionMarkdown: null,
+      fullResponse: "",
+    };
   }
 
-  const fullResponse = await generateFinalOutput(buildFinalOutputPrompt({
+  const fullResponse = await generateRejectionOutput(buildRejectionPrompt({
     shopName,
     shopUrl,
     decision: analysis.decision,
     facts: mergedFacts,
-    geo,
-    categories: analysis.categories,
-    pageTexts: preCrawledPages.map((page) => ({ url: page.url, text: page.text })),
   }));
-  const shopJson = analysis.decision.verdict === "accept" ? parseShopJsonFromResponse(fullResponse) : null;
-  const rejectionMarkdown = analysis.decision.verdict === "reject" ? parseRejectionMarkdownFromResponse(fullResponse) : null;
-
+  const rejectionMarkdown = parseRejectionMarkdownFromResponse(fullResponse);
   onProgress?.("Auswertung abgeschlossen.");
-
   return {
-    shopName: shopJson?.name ?? shopName,
+    shopName,
     shopUrl,
-    verdict: analysis.decision.verdict,
-    shopJson,
+    verdict: "reject",
+    shopJson: null,
     rejectionMarkdown,
     fullResponse,
   };
