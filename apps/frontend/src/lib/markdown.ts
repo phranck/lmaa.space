@@ -1,33 +1,12 @@
 import { Marked } from "marked";
 import markedFootnote from "marked-footnote";
 
-import { apiGet } from "./api";
 import {
   escapeHtmlAttribute,
   getSafeConfigHref,
   getSafeSiteAssetPath,
   isExternalHref,
 } from "./safe-url";
-
-let cachedAliases: Record<string, string> | null = null;
-let cacheTimestamp = 0;
-const ALIAS_CACHE_TTL_MS = 60_000;
-
-async function loadMediaAliases(): Promise<Record<string, string>> {
-  const now = Date.now();
-  if (cachedAliases && now - cacheTimestamp < ALIAS_CACHE_TTL_MS) {
-    return cachedAliases;
-  }
-
-  try {
-    cachedAliases = await apiGet<Record<string, string>>("/media-aliases");
-    cacheTimestamp = now;
-  } catch {
-    cachedAliases ??= {};
-  }
-
-  return cachedAliases;
-}
 
 /**
  * Renders Markdown to HTML.
@@ -216,13 +195,16 @@ const markedSafe = new Marked({
 }).use(markedFootnote());
 
 /**
- * Renders Markdown into sanitized HTML with media alias resolution.
+ * Renders Markdown into sanitized HTML with optional media alias resolution.
  *
  * @param content - Markdown source text.
+ * @param aliases - Optional alias-to-URL map for `[[image:alias]]` shortcodes.
  * @returns HTML string safe for insertion into trusted templates.
  */
-export async function renderMarkdown(content: string): Promise<string> {
-  const aliases = await loadMediaAliases();
+export async function renderMarkdown(
+  content: string,
+  aliases: Record<string, string> = {},
+): Promise<string> {
   const normalized = normalizeFootnoteSourceHeadings(content);
   const { content: withShortcodes, tokens } = extractShortcodes(normalized, aliases);
   const html = (await markedSafe.parse(withShortcodes)) as string;

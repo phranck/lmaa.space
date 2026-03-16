@@ -3,7 +3,7 @@ import SectionLabel from "@/components/SectionLabel.astro";
 import ShopAvatar from "@/components/ShopAvatar.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { slugToTitle } from "@/lib/slug";
 import { type Shop, encodeShopToken } from "@lmaa/shared";

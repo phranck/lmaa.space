@@ -4,7 +4,7 @@ import type { NavItem } from "@lmaa/shared";
 import { FOOTER_STYLES_CSS, footerStyleVars } from "@lmaa/shared";
 import { getButtonIconComponent } from "@lmaa/ui";
 
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
 
 interface Props {
