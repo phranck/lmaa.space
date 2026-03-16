@@ -75,25 +75,79 @@ export function appendNdjson(file: string, value: unknown): void {
   appendFileSync(file, `${JSON.stringify(value)}\n`, "utf8");
 }
 
-export function tryParseJson<T = unknown>(raw: string): T | null {
-  // Extract JSON from between markdown code fences (```json ... ```)
-  const fenceMatch = raw.match(/```(?:json)?\s*\n([\s\S]*?)\n```/i);
-  const fenceContent = fenceMatch ? fenceMatch[1] : null;
+function stripThinkingBlocks(raw: string): string {
+  return raw
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, "")
+    .trim();
+}
 
-  for (const candidate of [raw, fenceContent].filter(Boolean) as string[]) {
-    try {
-      return JSON.parse(candidate) as T;
-    } catch {
-      // Common local-LLM JSON quirks: trailing commas, single-line comments, BOM
-      const cleaned = candidate
-        .replace(/^\uFEFF/, "")
-        .replace(/\/\/[^\n]*/g, "")
-        .replace(/,\s*([}\]])/g, "$1");
-      try {
-        return JSON.parse(cleaned) as T;
-      } catch {
-        // try next candidate
+function extractBalancedJsonObject(raw: string): string | null {
+  let start = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < raw.length; i += 1) {
+    const char = raw[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+
+    if (char === "{") {
+      if (depth === 0) start = i;
+      depth += 1;
+      continue;
+    }
+    if (char === "}") {
+      if (depth === 0) continue;
+      depth -= 1;
+      if (depth === 0 && start >= 0) {
+        return raw.slice(start, i + 1);
       }
+    }
+  }
+
+  return null;
+}
+
+function parseJsonCandidate<T>(candidate: string): T | null {
+  try {
+    return JSON.parse(candidate) as T;
+  } catch {
+    const cleaned = candidate
+      .replace(/^\uFEFF/, "")
+      .replace(/\/\/[^\n]*/g, "")
+      .replace(/,\s*([}\]])/g, "$1");
+    try {
+      return JSON.parse(cleaned) as T;
+    } catch {
+      return null;
+    }
+  }
+}
+
+export function tryParseJson<T = unknown>(raw: string): T | null {
+  const stripped = stripThinkingBlocks(raw);
+  const fenceMatch = stripped.match(/```(?:json)?\s*\n([\s\S]*?)\n```/i);
+  const fenceContent = fenceMatch ? fenceMatch[1] : null;
+  const embeddedJson = extractBalancedJsonObject(stripped);
+
+  for (const candidate of [raw, stripped, fenceContent, embeddedJson].filter(Boolean) as string[]) {
+    const parsed = parseJsonCandidate<T>(candidate);
+    if (parsed !== null) {
+      return parsed;
     }
   }
   return null;

@@ -63,6 +63,12 @@ export type ShopJson = {
   };
 };
 
+export type RejectionMarkdown = {
+  shortReason: string;
+  longReason: string;
+  markdown: string;
+};
+
 /** Extract description from LLM response: try JSON first, then plain text. */
 function extractDescription(raw: string): string | null {
   // Try JSON: {"description": "..."}

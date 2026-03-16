@@ -222,6 +222,7 @@ export class ShopcheckEngine extends EventEmitter {
       shopUrl: result.shopUrl,
       verdict: result.verdict,
       shopJson: result.shopJson,
+      rejectionMarkdown: result.rejectionMarkdown?.markdown ?? (result.verdict === "reject" ? result.fullResponse : null),
     };
   }
 
@@ -298,10 +299,13 @@ export class ShopcheckEngine extends EventEmitter {
         this.state.metrics.succeeded += 1;
         if (result.verdict === "reject") {
           if (this.deps.persist !== false) {
-            appendFileSync(PATHS.rejections, `${shop.url}\n`, "utf8");
+            const body = typeof result.rejectionMarkdown === "string" && result.rejectionMarkdown.trim().length > 0
+              ? result.rejectionMarkdown.trim()
+              : `### Shop-Prüfung: ${result.shopName ?? shop.name}\n\n**URL:** ${shop.url}\n\n${result.fullResponse ?? ""}`.trim();
+            appendFileSync(PATHS.rejections, `${body}\n\n---\n\n`, "utf8");
           }
           this.results.skipped.push({ shopId: shop.id, existingName: shop.name, existingUrl: shop.url, verdict: "reject" });
-          this.emitLog(`Shop ${shop.id} rejected — URL appended to rejection.txt`);
+          this.emitLog(`Shop ${shop.id} rejected — markdown appended to rejection.txt`);
         } else {
           this.results.entries.push({ shopId: shop.id, ...result });
           this.emitLog(`Processed shop ${shop.id} successfully.`);

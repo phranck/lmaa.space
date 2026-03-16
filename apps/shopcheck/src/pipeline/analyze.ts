@@ -393,7 +393,14 @@ function mergeCriteria(all: CriterionResult[][]): CriterionResult[] {
   });
 }
 
-async function runSingleAnalysis(prompt: string): Promise<LlmAnalysisPayload | null> {
+function snippetForLog(raw: string): string {
+  return raw.replace(/\s+/g, " ").trim().slice(0, 300);
+}
+
+async function runSingleAnalysis(
+  prompt: string,
+  onParseFailure?: (message: string) => void,
+): Promise<LlmAnalysisPayload | null> {
   const raw = await llmGenerate({
     prompt,
     task: "extraction",
@@ -401,6 +408,7 @@ async function runSingleAnalysis(prompt: string): Promise<LlmAnalysisPayload | n
   });
   const parsed = tryParseJson<LlmAnalysisPayload>(raw);
   if (parsed) return parsed;
+  onParseFailure?.(`Initial raw output snippet: ${snippetForLog(raw)}`);
 
   // Single retry
   const retry = await llmGenerate({
@@ -408,7 +416,10 @@ async function runSingleAnalysis(prompt: string): Promise<LlmAnalysisPayload | n
     task: "extraction",
     temperature: TEMPERATURE_EXTRACTION,
   });
-  return tryParseJson<LlmAnalysisPayload>(retry);
+  const retried = tryParseJson<LlmAnalysisPayload>(retry);
+  if (retried) return retried;
+  onParseFailure?.(`Retry raw output snippet: ${snippetForLog(retry)}`);
+  return null;
 }
 
 export async function analyzeShopWithLlm({
@@ -463,9 +474,15 @@ export async function analyzeShopWithLlm({
     onProgress?.(`Chunk ${i + 1}/${chunks.length}: ${chunk.length} pages, ~${promptTokens} tokens...`);
 
     try {
-      const parsed = await runSingleAnalysis(prompt);
+      const parseFailureLogs: string[] = [];
+      const parsed = await runSingleAnalysis(prompt, (message) => {
+        parseFailureLogs.push(message);
+      });
       if (!parsed) {
         onProgress?.(`Chunk ${i + 1}: LLM response not parseable (even after retry).`);
+        for (const message of parseFailureLogs) {
+          onProgress?.(`Chunk ${i + 1}: ${message}`);
+        }
         continue;
       }
 
