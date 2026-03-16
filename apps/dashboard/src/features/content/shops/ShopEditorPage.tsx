@@ -208,7 +208,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                   })
                 }
                 disabled={!controller.canSave || isActionPending}
-                variant="primary"
+                variant="review"
                 icon={<SealCheckIcon weight="duotone" className="h-3.5 w-3.5" />}
               >
                 {controller.shopsMessages.editCard.acceptReview}

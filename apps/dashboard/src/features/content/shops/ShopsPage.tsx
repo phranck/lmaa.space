@@ -4,6 +4,7 @@ import {
   MagnifyingGlassIcon,
   MapPinIcon,
   PauseCircleIcon,
+  SealWarningIcon,
   SquaresFourIcon,
   StorefrontIcon,
   TrashIcon,
@@ -30,7 +31,7 @@ import {
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 type VisibilityFilter = "all" | ShopVisibility;
-type GeoFilter = "all" | "with" | "without";
+type GeoFilter = "all" | "with" | "without" | "needsReview";
 
 const EXPORT_LIMITS = [10, 20, 30, 50, 100, 150, 200] as const;
 type ExportLimit = (typeof EXPORT_LIMITS)[number];
@@ -69,6 +70,7 @@ export function ShopsPage() {
           return s.headquarters?.latitude != null && s.headquarters?.longitude != null;
         if (geoFilter === "without")
           return s.headquarters?.latitude == null || s.headquarters?.longitude == null;
+        if (geoFilter === "needsReview") return s.needsReview === true;
         return true;
       }),
     [shops, searchLower, geoFilter],
@@ -118,6 +120,7 @@ export function ShopsPage() {
       const withoutGeo = shops.filter(
         (s) => s.headquarters?.latitude == null || s.headquarters?.longitude == null,
       ).length;
+      const needsReviewCount = shops.filter((s) => s.needsReview).length;
       return [
         {
           value: "all",
@@ -135,6 +138,12 @@ export function ShopsPage() {
           label: shopsMessages.geoFilter.withoutGeo,
           icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
           count: withoutGeo,
+        },
+        {
+          value: "needsReview",
+          label: shopsMessages.geoFilter.needsReview,
+          icon: <SealWarningIcon weight="duotone" className="w-3.5 h-3.5" />,
+          count: needsReviewCount,
         },
       ];
     },
