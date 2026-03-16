@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { isResumableState, parseArgs } from "../src/lib/utils";
+import { isResumableState, parseArgs, tryParseJson } from "../src/lib/utils";
 import type { RunnerState } from "../src/types";
 
 test("parseArgs parses batch", () => {
@@ -61,4 +61,14 @@ test("isResumableState false when completed equals total", () => {
     metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
   } satisfies RunnerState;
   assert.equal(isResumableState(state), false);
+});
+
+test("tryParseJson parses fenced json with surrounding text", () => {
+  const raw = 'Hier ist die Analyse.\n```json\n{"verdict":"accept"}\n```\nDanke.';
+  assert.deepEqual(tryParseJson(raw), { verdict: "accept" });
+});
+
+test("tryParseJson parses json after think block", () => {
+  const raw = '<think>internal reasoning</think>\n{"verdict":"reject"}';
+  assert.deepEqual(tryParseJson(raw), { verdict: "reject" });
 });
