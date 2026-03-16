@@ -1,4 +1,4 @@
-# lmaa.space — Zerops deployment configuration
+# lmaa.space — Zerops deployment configuration (2026-03-16)
 zerops:
   # BACKEND SERVICE (Hono + Node.js) — lmaa.space
   - setup: backend
