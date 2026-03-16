@@ -2,7 +2,7 @@
 import DynamicForm from "@/components/islands/DynamicForm";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { FormConfig } from "@lmaa/contracts";
 import type { Category } from "@lmaa/shared";
 
