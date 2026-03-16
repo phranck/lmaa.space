@@ -21,6 +21,9 @@
   /* Table row hover */
   --ds-row-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
+  /* Table row separator (subtler than --ds-border-subtle) */
+  --ds-table-row-separator: hsl(210 12% 94%);
+
   /* Subtle surface hover (icon buttons, section headers, inline notes) */
   --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
@@ -45,6 +48,7 @@
   --ds-nav-hover-text: var(--ds-text);
   --ds-brand-text: var(--ds-text);
   --ds-section-header-bg: var(--ds-bg-elevated);
+  --ds-table-row-separator: hsl(215 10% 18%);
 }
 
 /* Dark mode: CodeMirror selection (MarkdownEditor) */

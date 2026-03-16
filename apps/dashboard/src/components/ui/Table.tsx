@@ -19,7 +19,7 @@ function TableHead({ className = "", ...props }: HTMLAttributes<HTMLTableSection
 function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <tbody
-      className={`divide-y divide-[var(--ds-border-subtle)] bg-[var(--ds-surface)] ${className}`}
+      className={`divide-y divide-[var(--ds-table-row-separator)] bg-[var(--ds-surface)] ${className}`}
       {...props}
     />
   );
