@@ -1,5 +1,6 @@
 import {
   FileTextIcon,
+  SealWarningIcon,
   TrayIcon,
 } from "@phosphor-icons/react";
 import { useMemo } from "react";
@@ -58,7 +59,8 @@ export function SuggestionsTab({
                 {statusLabels[submission.status]}
               </span>
               {submission.readyForReview && (
-                <span className="px-2.5 rounded-full text-[11px] leading-[18px] font-semibold bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
+                  <SealWarningIcon weight="duotone" className="w-3 h-3" />
                   {submissionsMessages.suggestions.reviewBadge}
                 </span>
               )}

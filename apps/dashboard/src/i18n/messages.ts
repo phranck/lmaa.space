@@ -187,6 +187,7 @@ export interface DashboardMessages {
       all: string;
       withGeo: string;
       withoutGeo: string;
+      needsReview: string;
     };
     table: {
       shop: string;
@@ -1044,6 +1045,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         all: "Geo: Alle",
         withGeo: "Mit Koordinaten",
         withoutGeo: "Ohne Koordinaten",
+        needsReview: "Review ausstehend",
       },
       table: {
         shop: "Shop",
@@ -1903,6 +1905,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         all: "Geo: All",
         withGeo: "With coordinates",
         withoutGeo: "Without coordinates",
+        needsReview: "Review pending",
       },
       table: {
         shop: "Shop",

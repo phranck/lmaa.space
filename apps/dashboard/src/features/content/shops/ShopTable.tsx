@@ -89,7 +89,7 @@ export function ShopTable({ shops, onEdit }: ShopTableProps) {
                 <MapPinIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 text-[var(--color-primary)]" />
               )}
               {shop.needsReview && (
-                <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-500/10 text-sky-400">
+                <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
                   <SealWarningIcon weight="duotone" className="w-3 h-3" />
                   {shopsMessages.table.needsReview}
                 </span>
