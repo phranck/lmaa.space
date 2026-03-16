@@ -74,7 +74,7 @@ export function ShopReportsTab() {
         header: suggestionsMessages.comment,
         className: "max-w-[34rem]",
         cell: (report) => (
-          <p className="text-sm text-[var(--ds-text)] line-clamp-2 whitespace-pre-wrap break-all">
+          <p className="text-sm text-[var(--ds-text)] whitespace-pre-wrap break-words">
             {report.reason}
           </p>
         ),
