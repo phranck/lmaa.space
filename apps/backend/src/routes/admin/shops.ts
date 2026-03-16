@@ -8,14 +8,18 @@ import {
   shopBodySchema,
   shopDeleteBodySchema,
   shopUpdateSchema,
+  shopcheckImportSchema,
   visibilityFilterSchema,
   visibilityUpdateSchema,
 } from "@lmaa/contracts";
 
+import { db } from "../../db/index.js";
+import { categories } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
+import { mapShopJsonToShopData } from "../../lib/shopjson-mapper.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { getAdminShopById, getShopVisibilityCounts, listAdminShops } from "../../repositories/admin-shops.js";
+import { getAdminShopById, getShopVisibilityCounts, listAdminShops, shopExists } from "../../repositories/admin-shops.js";
 import {
   changeManagedAdminShopVisibility,
   createManagedAdminShop,
@@ -163,3 +167,58 @@ shopsRoutes.post("/preview-image", zValidator("json", previewImageSchema), async
   const result = await previewAdminShopImage(url);
   return ok(c, result);
 });
+
+// POST /admin/shops/import — apply shopcheck results-state.json to existing shops
+shopsRoutes.post(
+  "/shops/import",
+  requireAdmin,
+  zValidator("json", shopcheckImportSchema),
+  async (c) => {
+    const { entries } = c.req.valid("json");
+
+    const allCategories = await db
+      .select({ id: categories.id, name: categories.name })
+      .from(categories);
+    const categoryNameToId = new Map(
+      allCategories.map((cat) => [cat.name.trim().toLocaleLowerCase("de-DE"), cat.id] as const,
+    ));
+
+    let imported = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    for (const entry of entries) {
+      if (!entry.shopJson) {
+        skipped += 1;
+        continue;
+      }
+
+      const exists = await shopExists(entry.shopId);
+      if (!exists) {
+        skipped += 1;
+        continue;
+      }
+
+      try {
+        const mapped = mapShopJsonToShopData(
+          entry.shopJson as Record<string, unknown>,
+          categoryNameToId,
+        );
+        const result = await updateManagedAdminShop(entry.shopId, {
+          ...mapped,
+          needsReview: true,
+        });
+        if (!result.ok) {
+          skipped += 1;
+        } else {
+          imported += 1;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        errors.push(`Shop ${entry.shopId}: ${message}`);
+      }
+    }
+
+    return ok(c, { imported, skipped, errors });
+  },
+);

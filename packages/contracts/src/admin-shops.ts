@@ -66,6 +66,52 @@ export const shopUpdateSchema = z.object({
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.nullable().optional(),
   socialMedia: socialMediaSchema,
+  needsReview: z.boolean().optional(),
+});
+
+const shopJsonSchema = z.object({
+  name: z.string().optional(),
+  url: z.string().optional(),
+  description: z.string().optional(),
+  categories: z.array(z.string()).optional(),
+  contactEmail: z.string().nullable().optional(),
+  shippingRegions: z.array(z.string()).optional(),
+  headquarters: z
+    .object({
+      street: z.string().nullable().optional(),
+      postalCode: z.string().nullable().optional(),
+      city: z.string().nullable().optional(),
+      state: z.string().nullable().optional(),
+      countryCode: z.string().nullable().optional(),
+    })
+    .optional(),
+  geo: z
+    .object({
+      latitude: z.number().nullable().optional(),
+      longitude: z.number().nullable().optional(),
+    })
+    .optional(),
+  socialMedia: z.record(z.string().nullable()).optional(),
+  notes: z
+    .object({
+      focus: z.array(z.string()).optional(),
+      brandsOrProducts: z.array(z.string()).optional(),
+      companyPresentation: z.string().nullable().optional(),
+    })
+    .optional(),
+});
+
+const importEntrySchema = z.object({
+  shopId: z.number().int().positive(),
+  shopJson: shopJsonSchema.nullable().optional(),
+});
+
+/**
+ * Shopcheck results-state.json import payload for bulk shop updates.
+ */
+export const shopcheckImportSchema = z.object({
+  generatedAt: z.string().optional(),
+  entries: z.array(importEntrySchema),
 });
 
 /**

@@ -3,6 +3,7 @@ import {
   DownloadIcon,
   FileTextIcon,
   InfoIcon,
+  SealCheckIcon,
   TrashIcon,
   UploadSimpleIcon,
   XCircleIcon,
@@ -66,6 +67,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const showEditRejection = isRejected;
   const showRejectionInfo = isRejected;
   const showDelete = !controller.isNew;
+  const showAcceptReview = !controller.isNew && (controller.activeShop?.needsReview === true);
   const backLabel = messages.layout.sidebar.shops;
   const rejectionToken = controller.activeShop?.rejectionToken ?? null;
 
@@ -194,6 +196,22 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
               >
                 {controller.shopsMessages.table.delete}
+              </EditorToolbarButton>
+            )}
+
+            {showAcceptReview && (
+              <EditorToolbarButton
+                onClick={() =>
+                  void controller.handleSaveSafely({
+                    needsReview: false,
+                    onSuccess: () => controller.showSaved(),
+                  })
+                }
+                disabled={!controller.canSave || isActionPending}
+                variant="primary"
+                icon={<SealCheckIcon weight="duotone" className="h-3.5 w-3.5" />}
+              >
+                {controller.shopsMessages.editCard.acceptReview}
               </EditorToolbarButton>
             )}
 

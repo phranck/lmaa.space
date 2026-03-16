@@ -63,6 +63,7 @@ export interface AdminShopListItem extends ShopSummary {
   ogImage?: string | null;
   headquarters?: ShopHeadquarters | null;
   shopCheckNotes?: ShopCheckNotes | null;
+  needsReview: boolean;
 }
 
 /**

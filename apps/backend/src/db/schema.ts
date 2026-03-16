@@ -66,6 +66,7 @@ export const shops = pgTable(
     rejectionToken: text("rejection_token").unique(),
     rejectionAdminNote: text("rejection_admin_note"),
     rejectionLongText: text("rejection_long_text"),
+    needsReview: boolean("needs_review").notNull().default(false),
   },
   (table) => [
     index("idx_shops_active").on(table.isActive),

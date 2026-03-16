@@ -422,7 +422,10 @@ export function useShopEditorController({
     return previewImage?.trim() || null;
   }
 
-  async function handleSave(options?: { onSuccess?: (saved: unknown) => void | Promise<void> }) {
+  async function handleSave(options?: {
+    onSuccess?: (saved: unknown) => void | Promise<void>;
+    needsReview?: boolean;
+  }) {
     setSaveErrorMessage(null);
     if (formErrors.socialMedia) {
       setSaveErrorMessage(formErrors.socialMedia);
@@ -443,7 +446,10 @@ export function useShopEditorController({
         return saved;
       }
 
-      const saved = await shopMutation.mutateAsync(form);
+      const saved = await shopMutation.mutateAsync({
+        formData: form,
+        needsReview: options?.needsReview,
+      });
       if (options?.onSuccess) {
         await options.onSuccess(saved);
       } else {
@@ -456,7 +462,10 @@ export function useShopEditorController({
     }
   }
 
-  async function handleSaveSafely(options?: { onSuccess?: (saved: unknown) => void | Promise<void> }) {
+  async function handleSaveSafely(options?: {
+    onSuccess?: (saved: unknown) => void | Promise<void>;
+    needsReview?: boolean;
+  }) {
     try {
       return await handleSave(options);
     } catch {

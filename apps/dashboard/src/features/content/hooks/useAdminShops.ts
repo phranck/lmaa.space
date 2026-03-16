@@ -144,22 +144,40 @@ export function getAdminShopQueryOptions(id: number) {
 export function useSaveShop(editId: number | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: ShopEditFormValue) =>
+    mutationFn: ({ formData, needsReview }: { formData: ShopEditFormValue; needsReview?: boolean }) =>
       editId
         ? api.patch<Shop>(`/admin/shops/${editId}`, {
-            ...data,
-            headquarters: toHeadquartersPayload(data),
-            shopCheckNotes: toShopCheckNotesPayload(data),
+            ...formData,
+            headquarters: toHeadquartersPayload(formData),
+            shopCheckNotes: toShopCheckNotesPayload(formData),
+            ...(needsReview !== undefined ? { needsReview } : {}),
           })
         : api.post<Shop>("/admin/shops", {
-            ...data,
-            headquarters: toHeadquartersPayload(data),
-            shopCheckNotes: toShopCheckNotesPayload(data),
+            ...formData,
+            headquarters: toHeadquartersPayload(formData),
+            shopCheckNotes: toShopCheckNotesPayload(formData),
           }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
       if (editId) qc.invalidateQueries({ queryKey: ["shop", editId] });
     },
+  });
+}
+
+type ShopcheckImportResult = { imported: number; skipped: number; errors: string[] };
+
+/**
+ * Imports shopcheck results-state.json into the shop list.
+ * Each entry maps its ShopJson to the matching shop and sets needsReview=true.
+ *
+ * @returns React Query mutation returning import statistics.
+ */
+export function useImportShopcheckResults() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { entries: Array<{ shopId: number; shopJson?: Record<string, unknown> | null }> }) =>
+      api.post<ShopcheckImportResult>("/admin/shops/import", payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }
 

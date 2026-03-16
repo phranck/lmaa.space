@@ -238,14 +238,6 @@ function AppRoutes() {
             }
           />
           <Route
-            path="shops/new"
-            element={
-              <Suspense fallback={<ContentEditorLoadingFallback />}>
-                <ShopEditorPage />
-              </Suspense>
-            }
-          />
-          <Route
             path="shops/:shopId"
             element={
               <Suspense fallback={<ContentEditorLoadingFallback />}>
