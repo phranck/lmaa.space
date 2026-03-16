@@ -109,7 +109,25 @@ async function llmGenerateClaude(options: LlmGenerateOptions): Promise<string> {
 async function llmGenerateOllama(options: LlmGenerateOptions): Promise<string> {
   const { model, maxTokens } = modelForTask(options.task, "ollama");
   const host = process.env.OLLAMA_HOST?.trim() || OLLAMA_DEFAULT_HOST;
-  const url = new URL("/api/generate", host);
+  // Use /api/chat so the model's chat template is applied correctly.
+  // /api/generate (raw completion) skips the template and causes poor instruction-following.
+  const url = new URL("/api/chat", host);
+
+  // Set num_ctx large enough to fit the full prompt + response.
+  // Ollama defaults to 2048, which silently truncates large analysis prompts.
+  const estimatedInputTokens = Math.ceil(options.prompt.length / 3.5);
+  const numCtx = Math.min(131072, Math.max(8192, estimatedInputTokens + maxTokens + 512));
+
+  // For extraction tasks reinforce JSON-only output via system prompt.
+  const systemPrompt =
+    options.task === "extraction"
+      ? "You are a JSON-only assistant. Always respond with a single valid JSON object and nothing else. No prose, no markdown fences, no explanations outside the JSON."
+      : undefined;
+
+  const messages = [
+    ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+    { role: "user", content: options.prompt },
+  ];
 
   let response: Response;
   try {
@@ -118,11 +136,12 @@ async function llmGenerateOllama(options: LlmGenerateOptions): Promise<string> {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         model,
-        prompt: options.prompt,
+        messages,
         stream: false,
         options: {
           temperature: options.temperature ?? 0,
           num_predict: maxTokens,
+          num_ctx: numCtx,
         },
       }),
     });
@@ -140,10 +159,10 @@ async function llmGenerateOllama(options: LlmGenerateOptions): Promise<string> {
     throw new Error(message);
   }
 
-  const payload = await response.json() as { response?: string; error?: string };
+  const payload = await response.json() as { message?: { content?: string }; error?: string };
   if (payload.error) throw new Error(`Ollama API error: ${payload.error}`);
-  if (typeof payload.response !== "string") throw new Error("Ollama returned no text response.");
-  return payload.response;
+  if (typeof payload.message?.content !== "string") throw new Error("Ollama returned no text response.");
+  return payload.message.content;
 }
 
 export async function llmGenerate(options: LlmGenerateOptions): Promise<string> {
