@@ -272,7 +272,8 @@ export class ShopcheckEngine extends EventEmitter {
     if (this.config.singleUrl) {
       const raw = this.config.singleUrl;
       const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-      const hostname = new URL(url).hostname.replace(/^www\./, "");
+      const hostnameMatch = url.match(/^https?:\/\/(?:www\.)?([^/?#:]+)/i);
+      const hostname = hostnameMatch ? hostnameMatch[1] : new URL(url).hostname.replace(/^www\./, "");
       selected = [{ id: 0, name: hostname, url }];
       this.persistState({ total: 1, completed: 0, processedShopIds: [] });
       this.emitLog(`Single URL mode: ${url}`);

@@ -118,14 +118,13 @@ async function llmGenerateOllama(options: LlmGenerateOptions): Promise<string> {
   const estimatedInputTokens = Math.ceil(options.prompt.length / 3.5);
   const numCtx = Math.min(131072, Math.max(8192, estimatedInputTokens + maxTokens + 512));
 
-  // For extraction tasks reinforce JSON-only output via system prompt.
   const systemPrompt =
     options.task === "extraction"
       ? "You are a JSON-only assistant. Always respond with a single valid JSON object and nothing else. No prose, no markdown fences, no explanations outside the JSON."
-      : undefined;
+      : "You are a precise assistant writing in German. Follow the exact output format specified in the user message. Do not add preamble, commentary, or content outside the requested format.";
 
   const messages = [
-    ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+    { role: "system", content: systemPrompt },
     { role: "user", content: options.prompt },
   ];
 
@@ -138,6 +137,7 @@ async function llmGenerateOllama(options: LlmGenerateOptions): Promise<string> {
         model,
         messages,
         stream: false,
+        think: false,
         options: {
           temperature: options.temperature ?? 0,
           num_predict: maxTokens,
@@ -162,7 +162,7 @@ async function llmGenerateOllama(options: LlmGenerateOptions): Promise<string> {
   const payload = await response.json() as { message?: { content?: string }; error?: string };
   if (payload.error) throw new Error(`Ollama API error: ${payload.error}`);
   if (typeof payload.message?.content !== "string") throw new Error("Ollama returned no text response.");
-  return payload.message.content;
+  return payload.message.content.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
 }
 
 export async function llmGenerate(options: LlmGenerateOptions): Promise<string> {
