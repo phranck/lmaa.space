@@ -3,6 +3,7 @@ import {
   FileTextIcon,
   MapPinIcon,
   PauseCircleIcon,
+  SealWarningIcon,
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
@@ -86,6 +87,12 @@ export function ShopTable({ shops, onEdit }: ShopTableProps) {
               </p>
               {shop.headquarters?.latitude != null && shop.headquarters?.longitude != null && (
                 <MapPinIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 text-[var(--color-primary)]" />
+              )}
+              {shop.needsReview && (
+                <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-500/10 text-sky-400">
+                  <SealWarningIcon weight="duotone" className="w-3 h-3" />
+                  {shopsMessages.table.needsReview}
+                </span>
               )}
               <VisibilityBadge visibility={shop.visibility} />
             </div>

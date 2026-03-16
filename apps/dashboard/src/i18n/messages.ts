@@ -171,7 +171,6 @@ export interface DashboardMessages {
   };
   shops: {
     title: string;
-    newShop: string;
     searchPlaceholder: string;
     noShops: string;
     noShopsHint: string;
@@ -211,7 +210,12 @@ export interface DashboardMessages {
       deletionReason: string;
       noReason: string;
       wasReported: string;
+      needsReview: string;
     };
+    importResults: string;
+    importSuccess: string;
+    importError: string;
+    importInvalidFile: string;
     editCard: {
       titleSubmissionEdit: string;
       titleNew: string;
@@ -226,6 +230,7 @@ export interface DashboardMessages {
       errorSaving: string;
       rejectTitle: string;
       rejectSubmit: string;
+      acceptReview: string;
     };
     deleteCard: {
       title: string;
@@ -1023,7 +1028,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     shops: {
       title: "Shops",
-      newShop: "Neuer Shop",
       searchPlaceholder: "Suchen…",
       noShops: "Keine Shops gefunden.",
       noShopsHint: "Füge deinen ersten Shop über den +-Button hinzu.",
@@ -1064,7 +1068,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deletionReason: "Begründung",
         noReason: "Kein Grund angegeben",
         wasReported: "Shop wurde gemeldet",
+        needsReview: "Review",
       },
+      importResults: "Ergebnisse importieren",
+      importSuccess: "{imported} importiert, {skipped} übersprungen",
+      importError: "Fehler beim Import",
+      importInvalidFile: "Ungültige Datei",
       editCard: {
         titleSubmissionEdit: "Vorschlag bearbeiten",
         titleNew: "Neuer Shop",
@@ -1079,6 +1088,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         errorSaving: "Fehler beim Speichern.",
         rejectTitle: "Shop ablehnen",
         rejectSubmit: "Ablehnen",
+        acceptReview: "Review akzeptieren",
       },
       deleteCard: {
         title: "Shop löschen",
@@ -1877,7 +1887,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     shops: {
       title: "Shops",
-      newShop: "New shop",
       searchPlaceholder: "Search…",
       noShops: "No shops found.",
       noShopsHint: "Add your first shop using the + button.",
@@ -1918,7 +1927,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deletionReason: "Reason",
         noReason: "No reason provided",
         wasReported: "Shop was reported",
+        needsReview: "Review",
       },
+      importResults: "Import Results",
+      importSuccess: "{imported} imported, {skipped} skipped",
+      importError: "Import error",
+      importInvalidFile: "Invalid file",
       editCard: {
         titleSubmissionEdit: "Edit suggestion",
         titleNew: "New shop",
@@ -1933,6 +1947,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         errorSaving: "Error while saving.",
         rejectTitle: "Reject shop",
         rejectSubmit: "Reject",
+        acceptReview: "Accept Review",
       },
       deleteCard: {
         title: "Delete shop",

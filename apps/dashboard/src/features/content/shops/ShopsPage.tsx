@@ -4,13 +4,13 @@ import {
   MagnifyingGlassIcon,
   MapPinIcon,
   PauseCircleIcon,
-  PlusCircleIcon,
   SquaresFourIcon,
   StorefrontIcon,
   TrashIcon,
+  UploadSimpleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { ShopVisibility } from "@lmaa/shared";
@@ -22,7 +22,11 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
-import { useAdminShops, useShopVisibilityCounts } from "@/features/content/hooks/useAdminShops.ts";
+import {
+  useAdminShops,
+  useImportShopcheckResults,
+  useShopVisibilityCounts,
+} from "@/features/content/hooks/useAdminShops.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 type VisibilityFilter = "all" | ShopVisibility;
@@ -45,6 +49,9 @@ export function ShopsPage() {
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
   const [geoFilter, setGeoFilter] = useState<GeoFilter>("all");
   const [exportLimit, setExportLimit] = useState<ExportLimit>(50);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const importMutation = useImportShopcheckResults();
 
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
@@ -134,6 +141,40 @@ export function ShopsPage() {
     [shopsMessages, shops],
   );
 
+  function handleImportFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string) as {
+          entries?: Array<{ shopId?: unknown; shopJson?: unknown }>;
+        };
+        if (!parsed.entries || !Array.isArray(parsed.entries)) {
+          setImportStatus(shopsMessages.importInvalidFile);
+          return;
+        }
+        const entries = parsed.entries
+          .filter((e) => typeof e.shopId === "number")
+          .map((e) => ({ shopId: e.shopId as number, shopJson: (e.shopJson ?? null) as Record<string, unknown> | null }));
+        importMutation.mutate(
+          { entries },
+          {
+            onSuccess: (result) => {
+              setImportStatus(
+                shopsMessages.importSuccess
+                  .replace("{imported}", String(result.imported))
+                  .replace("{skipped}", String(result.skipped)),
+              );
+            },
+            onError: () => setImportStatus(shopsMessages.importError),
+          },
+        );
+      } catch {
+        setImportStatus(shopsMessages.importInvalidFile);
+      }
+    };
+    reader.readAsText(file);
+  }
+
   function handleExport() {
     const rows = filtered
       .slice(0, exportLimit)
@@ -183,6 +224,31 @@ export function ShopsPage() {
           options={filterOptions}
         />
 
+        <button
+          type="button"
+          onClick={() => {
+            setImportStatus(null);
+            importFileInputRef.current?.click();
+          }}
+          disabled={importMutation.isPending}
+          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
+          title={shopsMessages.importResults}
+        >
+          <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+          {shopsMessages.importResults}
+        </button>
+        <input
+          ref={importFileInputRef}
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleImportFile(file);
+            e.target.value = "";
+          }}
+        />
+
         <div className="flex items-center rounded-control border border-[var(--ds-border)] overflow-hidden">
           <select
             value={exportLimit}
@@ -206,15 +272,13 @@ export function ShopsPage() {
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/shops/new")}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
-        >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-          {shopsMessages.newShop}
-        </button>
       </PageHeader>
+
+      {importStatus && (
+        <div className="mx-3 mt-2 px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm text-[var(--ds-text-muted)]">
+          {importStatus}
+        </div>
+      )}
 
       <PageBody>
         {isLoading && (
