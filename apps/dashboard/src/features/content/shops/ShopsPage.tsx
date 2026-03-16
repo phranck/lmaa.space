@@ -1,4 +1,5 @@
 import {
+  DownloadSimpleIcon,
   EyeIcon,
   MagnifyingGlassIcon,
   MapPinIcon,
@@ -27,6 +28,9 @@ import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 type VisibilityFilter = "all" | ShopVisibility;
 type GeoFilter = "all" | "with" | "without";
 
+const EXPORT_LIMITS = [10, 20, 30, 50, 100, 150, 200] as const;
+type ExportLimit = (typeof EXPORT_LIMITS)[number];
+
 /**
  * Shop management route with filters and moderation actions.
  *
@@ -40,6 +44,7 @@ export function ShopsPage() {
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
   const [geoFilter, setGeoFilter] = useState<GeoFilter>("all");
+  const [exportLimit, setExportLimit] = useState<ExportLimit>(50);
 
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
@@ -99,25 +104,50 @@ export function ShopsPage() {
   );
 
   const geoFilterOptions = useMemo<DropdownOption<GeoFilter>[]>(
-    () => [
-      {
-        value: "all",
-        label: shopsMessages.geoFilter.all,
-        icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
-      },
-      {
-        value: "with",
-        label: shopsMessages.geoFilter.withGeo,
-        icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
-      },
-      {
-        value: "without",
-        label: shopsMessages.geoFilter.withoutGeo,
-        icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
-      },
-    ],
-    [shopsMessages],
+    () => {
+      const withGeo = shops.filter(
+        (s) => s.headquarters?.latitude != null && s.headquarters?.longitude != null,
+      ).length;
+      const withoutGeo = shops.filter(
+        (s) => s.headquarters?.latitude == null || s.headquarters?.longitude == null,
+      ).length;
+      return [
+        {
+          value: "all",
+          label: shopsMessages.geoFilter.all,
+          icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
+        },
+        {
+          value: "with",
+          label: shopsMessages.geoFilter.withGeo,
+          icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
+          count: withGeo,
+        },
+        {
+          value: "without",
+          label: shopsMessages.geoFilter.withoutGeo,
+          icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
+          count: withoutGeo,
+        },
+      ];
+    },
+    [shopsMessages, shops],
   );
+
+  function handleExport() {
+    const rows = filtered
+      .slice(0, exportLimit)
+      .map((s) => ({ id: s.id, name: s.name, url: s.url }));
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `shops-export-${rows.length}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <PageLayout>
@@ -152,6 +182,29 @@ export function ShopsPage() {
           onChange={setVisibilityFilter}
           options={filterOptions}
         />
+
+        <div className="flex items-center rounded-control border border-[var(--ds-border)] overflow-hidden">
+          <select
+            value={exportLimit}
+            onChange={(e) => setExportLimit(Number(e.target.value) as ExportLimit)}
+            className="py-1.5 pl-3 pr-1 text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none border-r border-[var(--ds-border)]"
+            aria-label="Anzahl zu exportierender Shops"
+          >
+            {EXPORT_LIMITS.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={filtered.length === 0}
+            className="flex items-center gap-1.5 py-1.5 px-3 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title={`${Math.min(exportLimit, filtered.length)} Shops als JSON exportieren`}
+          >
+            <DownloadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+            Export JSON
+          </button>
+        </div>
 
         <button
           type="button"
