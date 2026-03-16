@@ -161,10 +161,18 @@ function buildValidationRules(
       message: "Bitte eine gültige E-Mail-Adresse eingeben",
     };
   }
-  if (effectiveType === "url" && !rules.pattern) {
-    rules.pattern = {
-      value: /^(https?:\/\/)?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+([/?#].*)?$/,
-      message: "Bitte eine gültige URL eingeben (z.B. example.com)",
+  if (effectiveType === "url" && !rules.pattern && !rules.validate) {
+    rules.validate = (value: unknown) => {
+      if (!value) return true;
+      const str = String(value).trim();
+      if (!str) return true;
+      const withScheme = /^https?:\/\//i.test(str) ? str : `https://${str}`;
+      try {
+        new URL(withScheme);
+        return true;
+      } catch {
+        return "Bitte eine gültige URL eingeben (z.B. example.com)";
+      }
     };
   }
 
