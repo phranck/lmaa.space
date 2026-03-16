@@ -11,6 +11,7 @@ import { loadCategoriesCached } from "./pipeline/categories";
 import { fetchAdmissionCriteria } from "./pipeline/criteria";
 import { extractFacts } from "./pipeline/extract";
 import { crawlRelevantPages } from "./pipeline/research";
+import { webSearchFallback } from "./pipeline/web-search";
 import type { LogEntry, LlmProvider, ResultsState, RunnerState, Shop } from "./types";
 
 export type EngineConfig = {
@@ -198,6 +199,23 @@ export class ShopcheckEngine extends EventEmitter {
       return { shopName: shop.name, shopUrl: shop.url, verdict: "error", shopJson: null };
     }
 
+    const totalText = pages.reduce((sum, p) => sum + p.text.length, 0);
+    const hasLegalPage = pages.some((p) =>
+      ["impressum", "imprint", "legal-notice", "legal"].some((kw) => p.url.toLowerCase().includes(kw)),
+    );
+    if (totalText < 500 || !hasLegalPage) {
+      const reason = totalText < 500 ? `thin content (${totalText} chars)` : "no legal/impressum page found";
+      this.emitLog(`[${shop.id}] ${reason} — trying web search fallback...`);
+      const fallbackPages = await webSearchFallback({
+        shopName: shop.name,
+        shopUrl: shop.url,
+        userAgent: SHOPCHECK_USER_AGENT,
+        onProgress: (message) => this.emitLog(message),
+      });
+      pages.push(...fallbackPages);
+      this.emitLog(`[${shop.id}] Web search fallback yielded ${fallbackPages.length} additional pages (total now: ${pages.length}).`);
+    }
+
     this.persistState({ pipelineProgress: 15 });
     this.emitLog(`[${shop.id}] Phase 2: Deterministic extraction from ${pages.length} pages...`);
     const facts = extractFacts(pages);
@@ -260,9 +278,9 @@ export class ShopcheckEngine extends EventEmitter {
     const narrativeModel = getModelName("narrative", provider);
     this.emitLog(`LLM provider=${provider}: extraction=${extractionModel}, narrative=${narrativeModel}`);
 
-    this.emitLog("Loading current admission criteria...");
+    this.emitLog("Loading current admission criteria from lmaa.space/admissioncriteria...");
     this.admissionCriteriaText = await fetchAdmissionCriteria(SHOPCHECK_USER_AGENT);
-    if (!this.admissionCriteriaText) this.emitLog("Admission criteria could not be loaded. Continuing with local fallback signals.", "error");
+    if (!this.admissionCriteriaText) this.emitLog("Admission criteria could not be loaded — shops will not be rejected without verified criteria.", "error");
     this.emitLog("Loading categories API (session cache enabled)...");
     this.categoryCatalog = await loadCategoriesCached(SHOPCHECK_USER_AGENT);
     this.emitLog(`Categories loaded: ${this.categoryCatalog.length}`);

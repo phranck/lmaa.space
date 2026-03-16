@@ -54,14 +54,13 @@ function uniqueStrings(values: string[] | undefined): string[] {
 }
 
 const CRITERION_KEYS = [
-  "independent", "german", "shipping", "notLargeCorp",
+  "independent", "shipping", "notLargeCorp",
   "notMarketplace", "notDropshipping", "notChain", "notAffiliate", "noFarRight",
 ] as const;
 
 const CRITERION_LABELS: Record<string, string> = {
   independent: "Eigenständiger Online-Auftritt",
-  german: "Deutschsprachiges Angebot",
-  shipping: "Versand DACH/EU/weltweit",
+  shipping: "Versand in mindestens ein europäisches Land",
   notLargeCorp: "Kein Großkonzern / keine Konzernmarke",
   notMarketplace: "Keine Handelsplattform",
   notDropshipping: "Kein reines Dropshipping",
@@ -70,17 +69,6 @@ const CRITERION_LABELS: Record<string, string> = {
   noFarRight: "Kein rechtsextremistischer Bezug",
 };
 
-const HARDCODED_CRITERIA = [
-  "- independent: Eigenständiger Online-Auftritt (eigene Domain, kein Marktplatz-Untershop)",
-  "- german: Deutschsprachiges Angebot (deutsche Texte, deutsche Oberfläche)",
-  "- shipping: Versand in DACH/EU/weltweit. WICHTIG: Versand nach DE oder AT bedeutet automatisch EU (da EU-Mitglieder). Versand nach CH ist NICHT EU (Schweiz ist EFTA). Dieses Kriterium ist erfüllt (✓) wenn der Shop nach DE oder AT versendet.",
-  "- notLargeCorp: Kein Großkonzern / keine Konzernmarke (Amazon, Zalando, Otto etc.)",
-  "- notMarketplace: Keine Handelsplattform mit mehreren Händlern",
-  "- notDropshipping: Kein reines Dropshipping-Modell (Hinweise: extrem breites Sortiment ohne Fokus, generische Produktbeschreibungen, unrealistische Lieferzeiten aus China)",
-  "- notChain: Kein Filialist / kein Kaufhaus (keine große Ladenkette mit vielen Filialen)",
-  "- notAffiliate: Kein reines Affiliate-Portal (eigener Shop, nicht nur Verlinkungen)",
-  "- noFarRight: Kein rechtsextremistischer Bezug (Symbolik, Marken, Inhalte)",
-].join("\n");
 
 // Token budgeting
 const TOKEN_BUDGET_OVERHEAD = 4000;
@@ -165,15 +153,15 @@ function buildAnalysisPrompt(
 
   const criteriaSection = admissionCriteriaText
     ? [
-        "## Aufnahmekriterien (von lmaa.space/admissioncriteria)",
+        "## Aufnahmekriterien (Quelle: lmaa.space/admissioncriteria — maßgeblich, vollständig lesen!)",
         admissionCriteriaText,
         "",
-        "Bewerte jedes der folgenden 9 Kriterien mit \u2713, \u2717 oder ~:",
-        HARDCODED_CRITERIA,
+        "Bewerte ausschließlich anhand der obigen Kriterien. Wende KEIN Kriterium an, das nicht explizit dort steht.",
       ].join("\n")
     : [
-        "## Aufnahmekriterien (bewerte jedes mit \u2713, \u2717 oder ~)",
-        HARDCODED_CRITERIA,
+        "## Aufnahmekriterien",
+        "FEHLER: Die Aufnahmekriterien konnten nicht von lmaa.space/admissioncriteria geladen werden.",
+        "Ohne verifizierte Kriterien darfst du KEINEN Shop ablehnen. Setze das verdict auf 'accept' und markiere alle Kriterien als '~'.",
       ].join("\n");
 
   const chunkNote = chunkInfo && chunkInfo.total > 1
@@ -505,7 +493,7 @@ export async function analyzeShopWithLlm({
 
   const criteria = allCriteria.length > 0 ? mergeCriteria(allCriteria) : fallbackDecision.criteria;
   const hasExclusion = criteria.some((c) => c.result === "\u2717");
-  const requiredMet = ["independent", "german", "shipping"].every(
+  const requiredMet = ["independent", "shipping"].every(
     (key) => criteria.find((c) => c.key === key)?.result === "\u2713",
   );
   const computedVerdict: "accept" | "reject" = !hasExclusion && requiredMet ? "accept" : "reject";
