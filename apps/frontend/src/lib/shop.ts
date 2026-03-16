@@ -5,8 +5,12 @@
  * @returns Hostname without `www.` or the original input when parsing fails.
  */
 export function shopDomain(url: string): string {
+  // Extract host directly from the raw string to preserve Unicode/IDN characters.
+  // new URL().hostname would convert e.g. "kaffeerösterei-cochem.de" → Punycode.
+  const match = url.match(/^https?:\/\/(?:www\.)?([^/?#:]+)/i);
+  if (match) return match[1];
   try {
-    return new URL(url).hostname.replace("www.", "");
+    return new URL(url).hostname.replace(/^www\./, "");
   } catch {
     return url;
   }
