@@ -1,4 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
 import {
@@ -14,12 +15,12 @@ import {
 } from "@lmaa/contracts";
 
 import { db } from "../../db/index.js";
-import { categories } from "../../db/schema.js";
+import { categories, shops } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { mapShopJsonToShopData } from "../../lib/shopjson-mapper.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { getAdminShopById, getShopVisibilityCounts, listAdminShops, shopExists } from "../../repositories/admin-shops.js";
+import { getAdminShopById, getShopVisibilityCounts, listAdminShops } from "../../repositories/admin-shops.js";
 import {
   changeManagedAdminShopVisibility,
   createManagedAdminShop,
@@ -168,13 +169,13 @@ shopsRoutes.post("/preview-image", zValidator("json", previewImageSchema), async
   return ok(c, result);
 });
 
-// POST /admin/shops/import — apply shopcheck results-state.json to existing shops
+// POST /admin/shops/import — apply shopcheck results.json (flat array of shopJson) to existing shops
 shopsRoutes.post(
   "/shops/import",
   requireAdmin,
   zValidator("json", shopcheckImportSchema),
   async (c) => {
-    const { entries } = c.req.valid("json");
+    const entries = c.req.valid("json");
 
     const allCategories = await db
       .select({ id: categories.id, name: categories.name })
@@ -187,24 +188,23 @@ shopsRoutes.post(
     let skipped = 0;
     const errors: string[] = [];
 
-    for (const entry of entries) {
-      if (!entry.shopJson) {
-        skipped += 1;
-        continue;
-      }
-
-      const exists = await shopExists(entry.shopId);
-      if (!exists) {
+    for (const item of entries) {
+      const [shopRow] = await db
+        .select({ id: shops.id })
+        .from(shops)
+        .where(eq(shops.url, item.url))
+        .limit(1);
+      if (!shopRow) {
         skipped += 1;
         continue;
       }
 
       try {
         const mapped = mapShopJsonToShopData(
-          entry.shopJson as Record<string, unknown>,
+          item as Record<string, unknown>,
           categoryNameToId,
         );
-        const result = await updateManagedAdminShop(entry.shopId, {
+        const result = await updateManagedAdminShop(shopRow.id, {
           ...mapped,
           needsReview: true,
         });
@@ -215,7 +215,7 @@ shopsRoutes.post(
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        errors.push(`Shop ${entry.shopId}: ${message}`);
+        errors.push(`Shop ${item.url}: ${message}`);
       }
     }
 

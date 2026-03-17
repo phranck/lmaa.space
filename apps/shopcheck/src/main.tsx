@@ -89,17 +89,42 @@ export async function runCli(): Promise<void> {
       return;
     }
     const raw = JSON.parse(readFileSync(filePath, "utf8")) as unknown;
-    if (!Array.isArray(raw) || !raw.every((entry): entry is Shop =>
-      typeof entry === "object" && entry !== null &&
-      typeof (entry as Record<string, unknown>).id === "number" &&
-      typeof (entry as Record<string, unknown>).name === "string" &&
-      typeof (entry as Record<string, unknown>).url === "string"
-    )) {
-      process.stderr.write("Error: file must contain an array of { id, name, url } objects\n");
+    if (!Array.isArray(raw)) {
+      process.stderr.write("Error: file must contain a JSON array\n");
       process.exitCode = 1;
       return;
     }
-    const shops = raw as Shop[];
+
+    function deriveShopName(url: string): string {
+      const match = url.match(/^https?:\/\/(?:www\.)?([^/?#:]+)/i);
+      return match ? match[1] : new URL(url).hostname.replace(/^www\./, "");
+    }
+
+    function normalizeUrl(raw: string): string {
+      return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    }
+
+    const invalidIdx = (raw as unknown[]).findIndex(
+      (entry) => typeof entry !== "string" && !(typeof entry === "object" && entry !== null && typeof (entry as Record<string, unknown>).url === "string"),
+    );
+    if (invalidIdx !== -1) {
+      process.stderr.write(`Error: invalid entry at index ${invalidIdx} — expected a URL string or { url } object\n`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const shops: Shop[] = (raw as unknown[]).map((entry, idx) => {
+      if (typeof entry === "string") {
+        const url = normalizeUrl(entry);
+        return { id: idx, name: deriveShopName(url), url };
+      }
+      const obj = entry as Record<string, unknown>;
+      const url = normalizeUrl(obj.url as string);
+      const name = typeof obj.name === "string" ? obj.name : deriveShopName(url);
+      const id = typeof obj.id === "number" ? obj.id : idx;
+      return { id, name, url };
+    });
+
     deps.loadShops = async () => shops;
     process.stdout.write(`Loaded ${shops.length} shops from ${filePath}\n`);
   }
