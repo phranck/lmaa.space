@@ -41,7 +41,7 @@ const extraCount = (shop.categories?.length ?? 0) - MAX_PILLS;
       <h3 class="font-serif font-semibold text-stone-900 text-base leading-snug truncate">
         {shop.name}
       </h3>
-      <p class="text-xs text-stone-400 mt-0.5 truncate">{domain}</p>
+      <p class="text-xs text-stone-600 mt-0.5 truncate">{domain}</p>
     </div>
   </div>
 
@@ -54,7 +54,7 @@ const extraCount = (shop.categories?.length ?? 0) - MAX_PILLS;
         </span>
       ))}
       {extraCount > 0 && (
-        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-400">
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-600">
           +{extraCount}
         </span>
       )}

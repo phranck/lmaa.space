@@ -44,10 +44,10 @@ const rejectedAt = page.reviewedAt
   description={`Begründung für die Ablehnung von ${page.shopName} im lmaa.space-Verzeichnis.`}
 >
   <div class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
-    <p class="text-sm text-stone-500 mb-2">Ablehnungsbegründung</p>
+    <p class="text-sm text-stone-700 mb-2">Ablehnungsbegründung</p>
     <h1 class="font-serif text-3xl font-semibold text-stone-900 mb-1">{page.shopName}</h1>
-    <p class="text-sm text-stone-400 break-all">{page.shopUrl}</p>
-    {rejectedAt && <p class="text-sm text-stone-400 mt-1 mb-10">Abgelehnt am {rejectedAt}</p>}
+    <p class="text-sm text-stone-600 break-all">{page.shopUrl}</p>
+    {rejectedAt && <p class="text-sm text-stone-600 mt-1 mb-10">Abgelehnt am {rejectedAt}</p>}
     {!rejectedAt && <div class="mb-10" />}
     <article
       class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif"
