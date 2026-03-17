@@ -101,18 +101,14 @@ const shopJsonSchema = z.object({
     .optional(),
 });
 
-const importEntrySchema = z.object({
-  shopId: z.number().int().positive(),
-  shopJson: shopJsonSchema.nullable().optional(),
-});
-
 /**
- * Shopcheck results-state.json import payload for bulk shop updates.
+ * Shopcheck results.json flat-array import payload for bulk shop updates.
+ * Each entry is a raw shopJson object produced by the shopcheck tool.
+ * Shops are matched by their URL field.
  */
-export const shopcheckImportSchema = z.object({
-  generatedAt: z.string().optional(),
-  entries: z.array(importEntrySchema),
-});
+export const shopcheckImportSchema = z.array(
+  shopJsonSchema.extend({ url: z.string() }),
+);
 
 /**
  * URL preview payload contract used to validate and fetch OG previews.
