@@ -15,7 +15,7 @@ function navLinkClass(href: string, external = false) {
   const isActive =
     !external && (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
   return `font-serif text-lg tracking-wide transition-colors ${
-    isActive ? "text-amber-700 font-semibold" : "text-stone-500 hover:text-stone-900"
+    isActive ? "text-amber-700 font-semibold" : "text-stone-900 hover:text-stone-950"
   }`;
 }
 ---
@@ -74,7 +74,7 @@ function navLinkClass(href: string, external = false) {
 
         <!-- Mobile hamburger -->
         <details class="md:hidden" id="mobile-menu-details">
-          <summary class="p-2 rounded-md text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer" aria-label="Menü öffnen/schließen">
+          <summary class="p-2 rounded-md text-stone-800 hover:text-stone-950 hover:bg-stone-100 transition-colors cursor-pointer" aria-label="Menü öffnen/schließen">
             <!-- Hamburger icon (shows when closed, hidden via CSS when open) -->
             <svg class="block open:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
               <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -100,7 +100,7 @@ function navLinkClass(href: string, external = false) {
                   class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                 />
                 <svg
-                  class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
+                  class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none"
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -123,7 +123,7 @@ function navLinkClass(href: string, external = false) {
               const external = href !== null && (item.target === "_blank" || isExternalHref(href));
               const isActive = href !== null && (currentPath === href || (href !== "/" && currentPath.startsWith(href)));
               return href === null ? (
-                <span class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-600">
+                <span class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-800">
                   {label}
                 </span>
               ) : external ? (
@@ -131,7 +131,7 @@ function navLinkClass(href: string, external = false) {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-600 hover:bg-stone-100"
+                  class="block px-3 py-2 rounded-md font-serif text-lg transition-colors text-stone-800 hover:bg-stone-100"
                   data-analytics-event="site-link-click"
                   data-analytics-kind="nav"
                   data-analytics-placement="header-mobile-menu"
@@ -144,7 +144,7 @@ function navLinkClass(href: string, external = false) {
                 <a
                   href={href}
                   class={`block px-3 py-2 rounded-md font-serif text-lg transition-colors ${
-                    isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-600 hover:bg-stone-100"
+                    isActive ? "text-amber-700 bg-amber-50 font-semibold" : "text-stone-800 hover:bg-stone-100"
                   }`}
                   data-analytics-event="site-link-click"
                   data-analytics-kind="nav"

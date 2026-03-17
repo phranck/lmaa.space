@@ -45,10 +45,10 @@ export default function CategoryCard({
       </div>
 
       <div className="px-4 py-3">
-        <p className="font-serif font-semibold text-stone-800 text-base leading-snug truncate group-hover:text-amber-700 transition-colors">
+        <p className="font-serif font-semibold text-stone-800 text-lg leading-snug truncate group-hover:text-amber-700 transition-colors">
           {name}
         </p>
-        <p className="text-stone-400 text-sm mt-0.5">
+        <p className="text-stone-600 text-xs mt-0.5">
           {shopCount} {shopCount === 1 ? "Shop" : "Shops"}
         </p>
       </div>

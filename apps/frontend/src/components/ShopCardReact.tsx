@@ -68,7 +68,7 @@ export default function ShopCardReact({
           <h3 className="font-serif font-semibold text-stone-900 text-base leading-snug truncate">
             {name}
           </h3>
-          <p className="text-xs text-stone-400 mt-0.5 truncate">{domain}</p>
+          <p className="text-xs text-stone-600 mt-0.5 truncate">{domain}</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function ShopCardReact({
             </span>
           ))}
           {extraCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-400">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-600">
               +{extraCount}
             </span>
           )}

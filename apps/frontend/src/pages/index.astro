@@ -65,13 +65,13 @@ const jsonLd = {
             />
             <span
               id="hero-search-shortcut"
-              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-medium pointer-events-none hidden"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs font-medium pointer-events-none hidden"
               aria-hidden="true"
             ></span>
             <button
               type="button"
               id="hero-search-clear"
-              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 transition-colors hidden"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-200 transition-colors hidden"
               aria-label="Suchfeld löschen"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-5 h-5" fill="currentColor">
@@ -104,12 +104,18 @@ const jsonLd = {
 
             const toggle = () => {
               const hasValue = !!input.value;
-              btn.classList.toggle('hidden', !hasValue);
-              if (shortcut) shortcut.classList.toggle('hidden', hasValue || isTouchDevice);
+              if (hasValue) {
+                btn.classList.remove('hidden');
+                shortcut.classList.add('hidden');
+              } else {
+                btn.classList.add('hidden');
+                if (!isTouchDevice) shortcut.classList.remove('hidden');
+              }
             };
 
             input.addEventListener('input', toggle);
             btn.addEventListener('click', () => { input.value = ''; toggle(); input.focus(); });
+            toggle();
 
             // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
@@ -143,7 +149,7 @@ const jsonLd = {
       <h2 class="font-serif text-2xl font-semibold text-stone-800 mb-3">
         Vermisst du einen Shop?
       </h2>
-      <p class="text-stone-500 mb-6 text-sm leading-relaxed">
+      <p class="text-stone-700 mb-6 text-sm leading-relaxed">
         Hilf der Community und schlage deinen Shop vor. Schnell und ohne Anmeldung.
       </p>
       <a

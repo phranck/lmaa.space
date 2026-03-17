@@ -114,7 +114,7 @@ export default function FilterableCategoryGrid({
           Kategorien entdecken
         </h2>
         <div className="flex items-center justify-between sm:justify-end sm:gap-4">
-          <span className="text-sm text-stone-400">
+          <span className="text-sm text-stone-600">
             {shopCount} Shops in {categoryCount} Kategorien
           </span>
           <FilterToggleButton
