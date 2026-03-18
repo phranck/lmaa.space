@@ -371,8 +371,11 @@ export function useShopEditorController({
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
   const showLoadingSkeleton = isLoadingShop && !hasImmediateFormData;
 
+  const formInitializedRef = useRef(false);
   useEffect(() => {
-    if (isNew || isSubmissionMode || hasImmediateFormData || shopData === null) return;
+    if (isNew || isSubmissionMode || hasImmediateFormData || shopData == null) return;
+    if (formInitializedRef.current) return; // don't overwrite local edits on background refetch
+    formInitializedRef.current = true;
     setForm(getInitialFormValue(initialData, shopData));
   }, [hasImmediateFormData, initialData, isNew, isSubmissionMode, shopData]);
 
@@ -674,7 +677,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     const pastedText = event.clipboardData?.getData("text/plain")?.trim();
     if (!pastedText) return;
     setShopCheckJson(pastedText);
-    if (applyShopCheckJson(pastedText)) {
+    if (applyShopCheckJson(pastedText, { showErrors: true })) {
       event.preventDefault();
     }
   }
