@@ -101,15 +101,22 @@ export function JsonEditor({
   extensions: extraExtensions = [],
   className = "",
 }: JsonEditorProps) {
+  // Ref so the stable extension closure always calls the latest handler
+  // without recreating the extension (and re-registering the event listener)
+  // on every render.
+  const onPasteRef = React.useRef(onPaste);
+  onPasteRef.current = onPaste;
+
+  const hasPasteHandler = onPaste !== undefined;
   const extensions = React.useMemo(
     () => [
       json(),
       EditorView.lineWrapping,
-      ...(onPaste
+      ...(hasPasteHandler
         ? [
             EditorView.domEventHandlers({
               paste(event) {
-                onPaste(event);
+                onPasteRef.current?.(event);
                 return event.defaultPrevented;
               },
             }),
@@ -119,7 +126,7 @@ export function JsonEditor({
       EditorView.editable.of(!readOnly),
       ...extraExtensions,
     ],
-    [onPaste, placeholder, readOnly, extraExtensions],
+    [hasPasteHandler, placeholder, readOnly, extraExtensions],
   );
 
   const wrapperStyle: React.CSSProperties | undefined = resizable
