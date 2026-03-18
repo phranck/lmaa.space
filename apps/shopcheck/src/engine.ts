@@ -1,17 +1,13 @@
 import { EventEmitter } from "node:events";
-import { appendFileSync, mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 
 import { SHOPCHECK_USER_AGENT } from "./constants";
 import { loadShops } from "./lib/db";
 import { appendNdjson, isResumableState, nowIso, readJson, writeJson } from "./lib/utils";
 import { LlmFatalError, getModelName, resolveInitialLlmProvider, setLlmProvider } from "./llm/client";
 import { PATHS, SHOPCHECK_DIR } from "./paths";
-import { runShopCheckAgent } from "./pipeline/agent";
-import { loadCategoriesCached } from "./pipeline/categories";
-import { fetchAdmissionCriteria } from "./pipeline/criteria";
-import { extractFacts } from "./pipeline/extract";
-import { crawlRelevantPages } from "./pipeline/research";
-import { webSearchFallback } from "./pipeline/web-search";
+import { runAgentLoop } from "./agent-loop/index";
+import { geocodeWithFallback } from "./pipeline/geocode";
 import type { LogEntry, LlmProvider, ResultsState, RunnerState, Shop } from "./types";
 
 export type EngineConfig = {
@@ -54,8 +50,6 @@ export class ShopcheckEngine extends EventEmitter {
   shutdownRequested = false;
   results: ResultsState;
   state: RunnerState;
-  admissionCriteriaText = "";
-  categoryCatalog: string[] = [];
 
   buildResultsArray(): Array<Record<string, unknown>> {
     return this.results.entries
@@ -138,7 +132,7 @@ export class ShopcheckEngine extends EventEmitter {
       rmSync(PATHS.log, { force: true });
       rmSync(PATHS.metricsHistory, { force: true });
       rmSync(PATHS.reports, { force: true, recursive: true });
-      rmSync(PATHS.rejections, { force: true });
+      rmSync(PATHS.rejections, { force: true, recursive: true });
     }
     this.results = { generatedAt: nowIso(), entries: [], skipped: [] };
     this.state = createBaseState(provider);
@@ -189,50 +183,33 @@ export class ShopcheckEngine extends EventEmitter {
     }
 
     this.persistState({ pipelineProgress: 0 });
-    this.emitLog(`[${shop.id}] Phase 1: Crawling shop pages...`);
-    const pages = await crawlRelevantPages({
-      shopUrl: shop.url,
-      userAgent: SHOPCHECK_USER_AGENT,
-      onProgress: (message) => this.emitLog(message),
-    });
-    if (pages.length === 0) {
-      return { shopName: shop.name, shopUrl: shop.url, verdict: "error", shopJson: null };
-    }
+    this.emitLog(`[${shop.id}] Starting agent loop for ${shop.url}...`);
 
-    const totalText = pages.reduce((sum, p) => sum + p.text.length, 0);
-    const hasLegalPage = pages.some((p) =>
-      ["impressum", "imprint", "legal-notice", "legal"].some((kw) => p.url.toLowerCase().includes(kw)),
-    );
-    if (totalText < 500 || !hasLegalPage) {
-      const reason = totalText < 500 ? `thin content (${totalText} chars)` : "no legal/impressum page found";
-      this.emitLog(`[${shop.id}] ${reason} — trying web search fallback...`);
-      const fallbackPages = await webSearchFallback({
-        shopName: shop.name,
-        shopUrl: shop.url,
-        userAgent: SHOPCHECK_USER_AGENT,
-        onProgress: (message) => this.emitLog(message),
-      });
-      pages.push(...fallbackPages);
-      this.emitLog(`[${shop.id}] Web search fallback yielded ${fallbackPages.length} additional pages (total now: ${pages.length}).`);
-    }
-
-    this.persistState({ pipelineProgress: 15 });
-    this.emitLog(`[${shop.id}] Phase 2: Deterministic extraction from ${pages.length} pages...`);
-    const facts = extractFacts(pages);
-
-    this.persistState({ pipelineProgress: 25 });
-    this.emitLog(`[${shop.id}] Phase 3: ${this.state.provider} analysis with ${pages.length} pre-crawled pages...`);
-    const result = await runShopCheckAgent({
+    const result = await runAgentLoop({
       shopUrl: shop.url,
       shopName: shop.name,
-      preCrawledPages: pages,
-      preCrawledFacts: facts,
-      admissionCriteriaText: this.admissionCriteriaText,
-      categories: this.categoryCatalog,
       onProgress: (message) => this.emitLog(message),
     });
 
     this.emitLog(`[${shop.id}] Agent verdict: ${result.verdict}`);
+    this.persistState({ pipelineProgress: 90 });
+
+    // For accept results: run geocoding if the agent didn't resolve coordinates
+    if (result.verdict === "accept" && result.shopJson) {
+      if (!result.shopJson.geo?.latitude) {
+        const hq = result.shopJson.headquarters;
+        const geo = await geocodeWithFallback({
+          street: hq.street,
+          postalCode: hq.postalCode,
+          city: hq.city,
+          countryCode: hq.countryCode,
+          userAgent: SHOPCHECK_USER_AGENT,
+        });
+        result.shopJson = { ...result.shopJson, geo };
+        this.emitLog(`[${shop.id}] Geocoded: ${geo.latitude}, ${geo.longitude}`);
+      }
+    }
+
     this.persistState({ pipelineProgress: 100 });
 
     return {
@@ -240,7 +217,7 @@ export class ShopcheckEngine extends EventEmitter {
       shopUrl: result.shopUrl,
       verdict: result.verdict,
       shopJson: result.shopJson,
-      rejectionMarkdown: result.rejectionMarkdown?.markdown ?? (result.verdict === "reject" ? result.fullResponse : null),
+      rejectionMarkdown: result.rejectionMarkdown,
     };
   }
 
@@ -278,12 +255,6 @@ export class ShopcheckEngine extends EventEmitter {
     const narrativeModel = getModelName("narrative", provider);
     this.emitLog(`LLM provider=${provider}: extraction=${extractionModel}, narrative=${narrativeModel}`);
 
-    this.emitLog("Loading current admission criteria from lmaa.space/admissioncriteria...");
-    this.admissionCriteriaText = await fetchAdmissionCriteria(SHOPCHECK_USER_AGENT);
-    if (!this.admissionCriteriaText) this.emitLog("Admission criteria could not be loaded — shops will not be rejected without verified criteria.", "error");
-    this.emitLog("Loading categories API (session cache enabled)...");
-    this.categoryCatalog = await loadCategoriesCached(SHOPCHECK_USER_AGENT);
-    this.emitLog(`Categories loaded: ${this.categoryCatalog.length}`);
 
     let selected: Shop[];
     const processedIds = new Set<number>();
@@ -318,13 +289,20 @@ export class ShopcheckEngine extends EventEmitter {
         this.state.metrics.succeeded += 1;
         if (result.verdict === "reject") {
           if (this.deps.persist !== false) {
-            const body = typeof result.rejectionMarkdown === "string" && result.rejectionMarkdown.trim().length > 0
-              ? result.rejectionMarkdown.trim()
-              : `### Shop-Prüfung: ${result.shopName ?? shop.name}\n\n**URL:** ${shop.url}\n\n${result.fullResponse ?? ""}`.trim();
-            appendFileSync(PATHS.rejections, `${body}\n\n---\n\n`, "utf8");
+            // processShop resolves rejectionMarkdown to a plain string
+            // (parsed markdown or raw fullResponse as fallback).
+            const rejMd = result.rejectionMarkdown as string | null;
+            const body = rejMd?.trim()
+              || `### Shop-Prüfung: ${result.shopName ?? shop.name}\n\n**URL:** ${shop.url}`;
+            const hostname = new URL(shop.url).hostname.replace(/^www\./, "");
+            mkdirSync(PATHS.rejections, { recursive: true });
+            writeFileSync(`${PATHS.rejections}/${hostname}.txt`, `${body}\n`, "utf8");
+            if (!rejMd?.trim()) {
+              this.emitLog(`Warning: rejection markdown parse failed — raw LLM output saved.`, "error");
+            }
           }
           this.results.skipped.push({ shopId: shop.id, existingName: shop.name, existingUrl: shop.url, verdict: "reject" });
-          this.emitLog(`Shop ${shop.id} rejected — markdown appended to rejection.txt`);
+          this.emitLog(`Shop ${shop.id} rejected — written to rejections/${new URL(shop.url).hostname.replace(/^www\./, "")}.txt`);
         } else {
           this.results.entries.push({ shopId: shop.id, ...result });
           this.emitLog(`Processed shop ${shop.id} successfully.`);

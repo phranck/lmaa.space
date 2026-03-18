@@ -13,5 +13,5 @@ export const PATHS = {
   inputFallback: path.join(SHOPCHECK_DIR, "input-shops.json"),
   categoriesCache: path.join(SHOPCHECK_DIR, "categories-cache.json"),
   reports: path.join(SHOPCHECK_DIR, "reports"),
-  rejections: path.join(SHOPCHECK_DIR, "rejection.txt"),
+  rejections: path.join(SHOPCHECK_DIR, "rejections"),
 } as const;

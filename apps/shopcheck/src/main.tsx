@@ -36,7 +36,7 @@ function resetState(): void {
   rmSync(PATHS.log, { force: true });
   rmSync(PATHS.metricsHistory, { force: true });
   rmSync(PATHS.reports, { force: true, recursive: true });
-  rmSync(PATHS.rejections, { force: true });
+  rmSync(PATHS.rejections, { force: true, recursive: true });
   process.stdout.write(`Reset shopcheck state in ${SHOPCHECK_DIR}\n`);
 }
 

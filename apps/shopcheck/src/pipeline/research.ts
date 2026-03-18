@@ -1,9 +1,8 @@
-import { setTimeout as sleep } from "node:timers/promises";
-
 import { Readability } from "@mozilla/readability";
 import { parseHTML } from "linkedom";
 
-import { CONCURRENT_FETCHES, CRAWL_DELAY_MS, MAX_DISCOVERED_LINKS, MAX_PAGES, TIMEOUT_PAGE_MS } from "../constants";
+import { MAX_DISCOVERED_LINKS, MAX_PAGES } from "../constants";
+import { crawl4aiPage, crawl4aiPages, describeCrawl4AIResult, extractMarkdown, type Crawl4AILink, type Crawl4AIResult } from "./crawl4ai";
 
 export type FetchedPage = {
   url: string;
@@ -88,34 +87,6 @@ export function extractMainContent(html: string): string {
   return fixGluedAddresses(stripBoilerplate(toTextFallback(html)));
 }
 
-function normalizeUrl(baseUrl: URL, href: string): string | null {
-  const trimmed = href.trim();
-  if (!trimmed) return null;
-  if (trimmed.startsWith("#") || trimmed.startsWith("mailto:") || trimmed.startsWith("tel:") || trimmed.startsWith("javascript:")) return null;
-  try {
-    const url = new URL(trimmed, baseUrl);
-    if (!/^https?:$/.test(url.protocol)) return null;
-    if (url.hostname !== baseUrl.hostname) return null;
-    url.hash = "";
-    url.search = "";
-    return url.toString().replace(/\/+$/, "") || url.toString();
-  } catch {
-    return null;
-  }
-}
-
-function extractInternalLinks(baseUrl: URL, html: string): string[] {
-  const links: string[] = [];
-  const re = /href\s*=\s*["']([^"']+)["']/gi;
-  let m: RegExpExecArray | null = re.exec(html);
-  while (m) {
-    const normalized = normalizeUrl(baseUrl, m[1]);
-    if (normalized) links.push(normalized);
-    m = re.exec(html);
-  }
-  return [...new Set(links)];
-}
-
 /** Classify a URL into a page category, or null if unrecognized. */
 function classifyUrl(url: string): PageCategory | null {
   const lower = url.toLowerCase();
@@ -125,62 +96,57 @@ function classifyUrl(url: string): PageCategory | null {
   return null;
 }
 
-async function fetchPage(url: string, userAgent: string): Promise<FetchedPage | null> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_PAGE_MS);
-  try {
-    const res = await fetch(url, {
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "user-agent": userAgent,
-        accept: "text/html,application/xhtml+xml",
-      },
-    });
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.includes("text/html")) return null;
-    const html = await res.text();
-    return { url, status: res.status, html, text: extractMainContent(html) };
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-/** Fetch multiple URLs concurrently with a concurrency limit. */
-async function fetchConcurrent(
-  urls: string[],
-  userAgent: string,
-  concurrency: number,
-  onFetched?: (url: string, index: number, total: number) => void,
-): Promise<FetchedPage[]> {
-  const results: FetchedPage[] = [];
-  let nextIndex = 0;
-
-  async function worker(): Promise<void> {
-    while (nextIndex < urls.length) {
-      const i = nextIndex++;
-      const url = urls[i];
-      onFetched?.(url, i, urls.length);
-      const page = await fetchPage(url, userAgent);
-      if (page) results.push(page);
-      if (i < urls.length - 1) await sleep(CRAWL_DELAY_MS);
+/** Extract same-host links from Crawl4AI's pre-parsed internal links list.
+ *  Handles both absolute and relative hrefs by resolving against the base origin. */
+function internalLinksFromCrawl4AI(baseUrl: URL, links: Crawl4AILink[]): string[] {
+  const result: string[] = [];
+  for (const link of links) {
+    try {
+      const url = new URL(link.href, baseUrl.origin);
+      if (url.hostname !== baseUrl.hostname) continue;
+      url.hash = "";
+      url.search = "";
+      const normalized = url.toString().replace(/\/+$/, "") || url.toString();
+      result.push(normalized);
+    } catch {
+      // ignore invalid URLs
     }
   }
+  return [...new Set(result)];
+}
 
-  const workers = Array.from({ length: Math.min(concurrency, urls.length) }, () => worker());
-  await Promise.all(workers);
-  return results;
+/** Convert a Crawl4AI result to FetchedPage, preferring Crawl4AI markdown for text. */
+function crawl4aiResultToPage(result: Crawl4AIResult): FetchedPage {
+  const markdown = extractMarkdown(result);
+  const text = markdown.length > 100 ? markdown : extractMainContent(result.html);
+  return {
+    url: result.url,
+    status: result.status_code ?? 200,
+    html: result.html,
+    text,
+  };
+}
+
+async function fetchPagesBatch(
+  urls: string[],
+  onProgress?: (msg: string) => void,
+): Promise<FetchedPage[]> {
+  if (urls.length === 0) return [];
+  const results = await crawl4aiPages(urls);
+  const pages: FetchedPage[] = [];
+  for (const r of results) {
+    onProgress?.(`  Crawl4AI ${r.url}: ${describeCrawl4AIResult(r)}`);
+    if (r.success && r.html) pages.push(crawl4aiResultToPage(r));
+  }
+  return pages;
 }
 
 export async function crawlRelevantPages({
   shopUrl,
-  userAgent,
   onProgress,
 }: {
   shopUrl: string;
-  userAgent: string;
+  userAgent?: string;
   onProgress?: (message: string) => void;
 }): Promise<FetchedPage[]> {
   const host = new URL(shopUrl);
@@ -188,22 +154,30 @@ export async function crawlRelevantPages({
   const seen = new Set<string>();
   const pages: FetchedPage[] = [];
 
-  // --- Phase 1: Fetch homepage ---
-  onProgress?.("Phase 1: Fetching homepage...");
-  const homepage = await fetchPage(rootUrl, userAgent);
-  if (!homepage) {
-    onProgress?.("Homepage unreachable. Aborting crawl.");
+  // --- Phase 1: Fetch homepage via Crawl4AI ---
+  onProgress?.(`Phase 1: Fetching homepage via Crawl4AI... ${rootUrl}`);
+  const homepageResult = await crawl4aiPage(rootUrl);
+  if (!homepageResult) {
+    onProgress?.("Homepage unreachable: Crawl4AI request timed out or returned no result.");
     return [];
   }
+  onProgress?.(`Homepage crawl result: ${describeCrawl4AIResult(homepageResult)}`);
+  if (!homepageResult.success || !homepageResult.html) {
+    onProgress?.("Homepage unreachable: crawl failed, aborting.");
+    return [];
+  }
+  const homepage = crawl4aiResultToPage(homepageResult);
   pages.push(homepage);
   seen.add(rootUrl);
 
   // --- Phase 2: Discover & classify links from homepage ---
-  const discoveredLinks = extractInternalLinks(host, homepage.html);
+  const rawInternalLinks = homepageResult.links?.internal ?? [];
+  onProgress?.(`Phase 2: Crawl4AI returned ${rawInternalLinks.length} internal links from homepage.`);
+  const internalLinks = internalLinksFromCrawl4AI(host, rawInternalLinks);
   const categorizedUrls = new Map<PageCategory, string[]>();
   const uncategorized: string[] = [];
 
-  for (const link of discoveredLinks) {
+  for (const link of internalLinks) {
     if (seen.has(link)) continue;
     const cat = classifyUrl(link);
     if (cat) {
@@ -215,7 +189,6 @@ export async function crawlRelevantPages({
     }
   }
 
-  // Pick best URLs per category (first match, max 2 per category)
   const targetUrls: string[] = [];
   const coveredCategories = new Set<PageCategory>();
 
@@ -234,12 +207,11 @@ export async function crawlRelevantPages({
   const fallbackUrls: string[] = [];
 
   for (const cat of missingCategories) {
-    const paths = STATIC_FALLBACKS[cat];
-    for (const path of paths) {
+    for (const path of STATIC_FALLBACKS[cat]) {
       const url = new URL(path, host).toString().replace(/\/+$/, "");
       if (!seen.has(url) && !targetUrls.includes(url)) {
         fallbackUrls.push(url);
-        break; // One fallback per missing category is enough to start
+        break;
       }
     }
   }
@@ -248,33 +220,24 @@ export async function crawlRelevantPages({
     onProgress?.(`Phase 3: Trying ${fallbackUrls.length} static fallback(s) for: ${missingCategories.join(", ")}.`);
   }
 
-  // --- Phase 4: Fetch all target URLs concurrently ---
-  const allTargets = [...targetUrls, ...fallbackUrls].filter((url) => !seen.has(url));
-  // Deduplicate
-  const uniqueTargets = [...new Set(allTargets)].slice(0, MAX_DISCOVERED_LINKS);
-
-  onProgress?.(`Phase 4: Fetching ${uniqueTargets.length} targeted pages (${CONCURRENT_FETCHES} concurrent)...`);
-  let fetchCount = 0;
-  const fetched = await fetchConcurrent(uniqueTargets, userAgent, CONCURRENT_FETCHES, (url, _i, total) => {
-    fetchCount++;
-    onProgress?.(`Fetching [${pages.length + fetchCount}] ${url}`);
-  });
-
+  // --- Phase 4: Batch-fetch all target URLs via Crawl4AI ---
+  const allTargets = [...new Set([...targetUrls, ...fallbackUrls].filter((url) => !seen.has(url)))].slice(0, MAX_DISCOVERED_LINKS);
+  onProgress?.(`Phase 4: Batch-fetching ${allTargets.length} targeted pages via Crawl4AI...`);
+  const fetched = await fetchPagesBatch(allTargets, onProgress);
+  onProgress?.(`Phase 4 result: ${fetched.length}/${allTargets.length} pages returned content.`);
   for (const page of fetched) {
     if (pages.length >= MAX_PAGES) break;
     seen.add(page.url);
     pages.push(page);
+    onProgress?.(`  [${pages.length}] ${page.url} (${page.text.length}b text)`);
   }
 
   // --- Phase 5: If critical categories still missing, try more static fallbacks ---
   const fetchedUrls = new Set(pages.map((p) => p.url.toLowerCase()));
-  const stillMissing: PageCategory[] = [];
-
-  for (const cat of missingCategories) {
+  const stillMissing = missingCategories.filter((cat) => {
     const keywords = CATEGORY_KEYWORDS[cat];
-    const found = [...fetchedUrls].some((url) => keywords.some((kw) => url.includes(kw)));
-    if (!found) stillMissing.push(cat);
-  }
+    return ![...fetchedUrls].some((url) => keywords.some((kw) => url.includes(kw)));
+  });
 
   if (stillMissing.length > 0 && pages.length < MAX_PAGES) {
     const extraFallbacks: string[] = [];
@@ -287,12 +250,11 @@ export async function crawlRelevantPages({
         }
       }
     }
-
     if (extraFallbacks.length > 0) {
       const remaining = MAX_PAGES - pages.length;
       const batch = extraFallbacks.slice(0, remaining);
       onProgress?.(`Phase 5: Trying ${batch.length} additional fallback(s) for: ${stillMissing.join(", ")}.`);
-      const extraPages = await fetchConcurrent(batch, userAgent, CONCURRENT_FETCHES);
+      const extraPages = await fetchPagesBatch(batch, onProgress);
       for (const page of extraPages) {
         if (pages.length >= MAX_PAGES) break;
         pages.push(page);
@@ -300,13 +262,13 @@ export async function crawlRelevantPages({
     }
   }
 
-  // --- Phase 6: Fill remaining slots with high-value uncategorized links ---
+  // --- Phase 6: Fill remaining slots with uncategorized links ---
   if (pages.length < MAX_PAGES && uncategorized.length > 0) {
     const remaining = Math.min(MAX_PAGES - pages.length, 5);
     const extras = uncategorized.filter((url) => !seen.has(url)).slice(0, remaining);
     if (extras.length > 0) {
       onProgress?.(`Phase 6: Fetching ${extras.length} additional uncategorized pages...`);
-      const extraPages = await fetchConcurrent(extras, userAgent, CONCURRENT_FETCHES);
+      const extraPages = await fetchPagesBatch(extras, onProgress);
       for (const page of extraPages) {
         if (pages.length >= MAX_PAGES) break;
         pages.push(page);

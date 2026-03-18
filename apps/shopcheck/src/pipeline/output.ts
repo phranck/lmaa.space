@@ -78,17 +78,28 @@ function boldFirstMention(text: string, shopName: string): string {
 
 /** Extract description from LLM response: try JSON first, then plain text. */
 function extractDescription(raw: string): string | null {
-  // Try JSON: {"description": "..."}
+  // Try direct JSON parse
   const parsed = tryParseJson<{ description?: string }>(raw);
   if (parsed?.description) return parsed.description;
 
-  // Claude might return plain text or markdown - use it directly if it looks like a description
+  // Try JSON inside a code fence
+  const fenceMatch = raw.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+  if (fenceMatch) {
+    const fenceParsed = tryParseJson<{ description?: string }>(fenceMatch[1]);
+    if (fenceParsed?.description) return fenceParsed.description;
+  }
+
+  // Try extracting the description value from a partial/malformed JSON blob
+  const valueMatch = raw.match(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
+  if (valueMatch?.[1] && valueMatch[1].length > 100) {
+    return valueMatch[1].replace(/\\n/g, "\n").replace(/\\"/g, '"');
+  }
+
+  // Plain text fallback: strip fences and use if long enough
   const stripped = raw
     .replace(/^```(?:json)?\s*\n?/i, "")
     .replace(/\n?```\s*$/i, "")
     .trim();
-
-  // If it's long enough and doesn't look like JSON/code, treat as plain text description
   if (stripped.length > 200 && !stripped.startsWith("{")) return stripped;
 
   return null;

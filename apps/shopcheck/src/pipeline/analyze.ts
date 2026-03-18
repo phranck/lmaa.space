@@ -1,4 +1,4 @@
-import { MAX_PAGES_PER_CHUNK, TEMPERATURE_EXTRACTION } from "../constants";
+import { MAX_CHUNK_TOKENS, MAX_PAGES_PER_CHUNK, TEMPERATURE_EXTRACTION } from "../constants";
 import type { CriterionResult, DecisionOutcome } from "./decision";
 import { normalizeShipping, type ExtractedFacts } from "./extract";
 import type { FetchedPage } from "./research";
@@ -124,7 +124,7 @@ function chunkPages(pages: FetchedPage[]): FetchedPage[][] {
   for (const page of sorted) {
     const pageTokens = estimateTokens(page.text);
     const chunkFull = current.length >= MAX_PAGES_PER_CHUNK;
-    const budgetExceeded = current.length > 0 && currentTokens + pageTokens > TOKEN_BUDGET_PAGES;
+    const budgetExceeded = current.length > 0 && currentTokens + pageTokens > MAX_CHUNK_TOKENS;
     if (chunkFull || budgetExceeded) {
       chunks.push(current);
       current = [];
@@ -144,6 +144,7 @@ function buildAnalysisPrompt(
   availableCategories: string[],
   admissionCriteriaText: string,
   externalContext: ExternalContext[],
+  externalPages: FetchedPage[],
   chunkInfo?: { current: number; total: number },
 ): string {
   const pagesJson = pages.map((p) => ({
@@ -177,6 +178,11 @@ function buildAnalysisPrompt(
     "2. Bewerte alle 9 Aufnahmekriterien anhand der Evidenz",
     "3. Ordne passende Kategorien aus der vorgegebenen Liste zu",
     "",
+    "## WICHTIG: Umgang mit technischen Crawling-Einschränkungen",
+    "Wenn gecrawlte Seiten leer oder inhaltlich dünn sind (z.B. weil die Website JavaScript für das Rendering benötigt), ist das KEIN Ablehnungsgrund.",
+    "Nutze in diesem Fall alle verfügbaren Quellen — insbesondere die Snippets im Abschnitt 'Externe Recherche-Ergebnisse' — als primäre Datenquelle.",
+    "Lehne einen Shop NIEMALS mit der Begründung ab, dass die Website technisch nicht crawlbar war.",
+    "",
     criteriaSection,
     "",
     "\u2713 = Kriterium klar erfüllt (belastbare Evidenz)",
@@ -205,14 +211,20 @@ function buildAnalysisPrompt(
     `## Shop-Seiten (${pages.length} Seiten)`,
     JSON.stringify(pagesJson),
     "",
+    ...(externalPages.length > 0
+      ? [
+          `## Gecrawlte externe Quellen (${externalPages.length} Seiten von externen Domains)`,
+          "Diese Seiten wurden von Wikipedia, Unternehmensregistern, Presse etc. abgerufen.",
+          "Nutze sie als primäre Evidenz für Adress-, Rechtsform- und Konzernstruktur-Daten.",
+          "",
+          ...externalPages.map((p) => `### ${p.url}\n${p.text.slice(0, 2000)}`),
+          "",
+        ]
+      : []),
     ...(externalContext.length > 0
       ? [
-          "## Externe Recherche-Ergebnisse",
-          "Die folgenden Snippets stammen aus externen Quellen (nicht von der Shop-Website).",
-          "Nutze sie als zusätzliche Evidenz bei der Kriterien-Bewertung, insbesondere für:",
-          "- Konzernzugehörigkeit (notLargeCorp)",
-          "- Dropshipping-Verdacht (notDropshipping)",
-          "- Rechtsextremistische Bezüge (noFarRight)",
+          "## Externe Recherche-Snippets (DuckDuckGo-Index)",
+          "Nutze sie als Evidenz — bei dünnem direktem Seiteninhalt als zusätzliche Datenquelle:",
           "",
           ...externalContext.map((ctx) => `Query: ${ctx.query}\n${ctx.snippets.map((s) => `  - ${s}`).join("\n")}`),
           "",
@@ -417,6 +429,7 @@ export async function analyzeShopWithLlm({
   availableCategories,
   admissionCriteriaText = "",
   externalContext = [],
+  externalPages = [],
   onProgress,
 }: {
   shopUrl: string;
@@ -425,6 +438,7 @@ export async function analyzeShopWithLlm({
   availableCategories: string[];
   admissionCriteriaText?: string;
   externalContext?: ExternalContext[];
+  externalPages?: FetchedPage[];
   onProgress?: (message: string) => void;
 }): Promise<CombinedAnalysisResult> {
   const fallbackDecision: DecisionOutcome = {
@@ -457,7 +471,7 @@ export async function analyzeShopWithLlm({
   for (let i = 0; i < chunks.length; i += 1) {
     const chunk = chunks[i];
     const chunkInfo = chunks.length > 1 ? { current: i + 1, total: chunks.length } : undefined;
-    const prompt = buildAnalysisPrompt(shopUrl, chunk, deterministicFacts, availableCategories, admissionCriteriaText, externalContext, chunkInfo);
+    const prompt = buildAnalysisPrompt(shopUrl, chunk, deterministicFacts, availableCategories, admissionCriteriaText, externalContext, externalPages, chunkInfo);
     const promptTokens = estimateTokens(prompt);
     onProgress?.(`Chunk ${i + 1}/${chunks.length}: ${chunk.length} pages, ~${promptTokens} tokens...`);
 
