@@ -137,6 +137,43 @@ function isShopWithId(value: unknown): value is Pick<Shop, "id"> {
   );
 }
 
+/**
+ * Escapes unescaped control characters (newlines, tabs, etc.) inside JSON string
+ * values. Necessary when the user copies JSON from a terminal that renders \n
+ * escape sequences as literal line breaks, making the clipboard text invalid JSON.
+ */
+function sanitizeJsonControlChars(text: string): string {
+  let inString = false;
+  let escaped = false;
+  let result = "";
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (escaped) {
+      result += char;
+      escaped = false;
+    } else if (char === "\\" && inString) {
+      result += char;
+      escaped = true;
+    } else if (char === '"') {
+      result += char;
+      inString = !inString;
+    } else if (inString) {
+      const code = char.charCodeAt(0);
+      if (code < 0x20) {
+        if (char === "\n") result += "\\n";
+        else if (char === "\r") result += "\\r";
+        else if (char === "\t") result += "\\t";
+        else result += `\\u${code.toString(16).padStart(4, "0")}`;
+      } else {
+        result += char;
+      }
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
+
 type ShopCheckJsonPayload = {
   name?: unknown;
   url?: unknown;
@@ -648,7 +685,14 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
       return false;
     }
     try {
-      const parsed = JSON.parse(trimmed) as ShopCheckJsonPayload;
+      // First try direct parse; fall back to sanitized version for JSON copied
+      // from a terminal where \n sequences may have been rendered as literal newlines.
+      let parsed: ShopCheckJsonPayload;
+      try {
+        parsed = JSON.parse(trimmed) as ShopCheckJsonPayload;
+      } catch {
+        parsed = JSON.parse(sanitizeJsonControlChars(trimmed)) as ShopCheckJsonPayload;
+      }
       const nextForm = applyShopCheckJsonToForm(form, parsed, categories);
       if (!nextForm) {
         if (options?.showErrors) {
@@ -659,9 +703,10 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
       setForm(nextForm);
       setJsonImportError(null);
       return true;
-    } catch {
+    } catch (err) {
       if (options?.showErrors) {
-        setJsonImportError(shopFormI18n.messages.jsonInvalidError ?? "Invalid JSON.");
+        const detail = err instanceof SyntaxError ? `: ${err.message}` : "";
+        setJsonImportError((shopFormI18n.messages.jsonInvalidError ?? "Invalid JSON.") + detail);
       }
       return false;
     }
