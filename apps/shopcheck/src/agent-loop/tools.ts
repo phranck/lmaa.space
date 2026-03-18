@@ -1,5 +1,6 @@
 import { SHOPCHECK_USER_AGENT, TIMEOUT_PAGE_MS } from "../constants";
 import type { ToolDefinition } from "../llm/client";
+import type { Crawl4AILink } from "../pipeline/crawl4ai";
 import { crawl4aiPage, extractMarkdown } from "../pipeline/crawl4ai";
 import { extractMainContent } from "../pipeline/research";
 
@@ -111,7 +112,7 @@ async function fetchPageTool(url: string): Promise<string> {
       const md = extractMarkdown(result);
       const text = md.length > 100 ? md : extractMainContent(result.html);
       if (text.length > 50) {
-        const content = truncate(text, MAX_PAGE_CHARS);
+        let content = truncate(text, MAX_PAGE_CHARS);
         // Append internal links so the agent can discover actual page URLs
         // instead of guessing standard paths like /impressum.
         const internalLinks = result.links?.internal ?? [];
@@ -124,7 +125,13 @@ async function fetchPageTool(url: string): Promise<string> {
               return label ? `- ${l.href} (${label})` : `- ${l.href}`;
             })
             .join("\n");
-          return `${content}\n\n--- Interne Links auf dieser Seite ---\n${linkLines}`;
+          content += `\n\n--- Interne Links auf dieser Seite ---\n${linkLines}`;
+        }
+        // Social media links are usually in the footer — stripped by PruningContentFilter.
+        // Extract them explicitly from the external link list so the agent never misses them.
+        const socialLinks = extractSocialLinks(result.links?.external ?? []);
+        if (socialLinks.length > 0) {
+          content += `\n\n--- Social Media Links ---\n${socialLinks.join("\n")}`;
         }
         return content;
       }
@@ -210,4 +217,17 @@ async function searchWebTool(query: string): Promise<string> {
 
 function truncate(text: string, max: number): string {
   return text.length <= max ? text : `${text.slice(0, max)}\n[... truncated]`;
+}
+
+const SOCIAL_DOMAINS = [
+  "instagram.com", "facebook.com", "twitter.com", "x.com",
+  "youtube.com", "tiktok.com", "pinterest.com", "linkedin.com",
+  "mastodon.", "bsky.app", "bluesky.app", "threads.net",
+  "twitch.tv", "patreon.com",
+];
+
+function extractSocialLinks(links: Crawl4AILink[]): string[] {
+  return links
+    .map((l) => l.href)
+    .filter((href) => SOCIAL_DOMAINS.some((d) => href.includes(d)));
 }
