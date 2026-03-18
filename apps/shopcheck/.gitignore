@@ -6,4 +6,5 @@ metrics-history.ndjson
 input-shops.json
 categories-cache.json
 reports/
+rejections/
 rejection.txt

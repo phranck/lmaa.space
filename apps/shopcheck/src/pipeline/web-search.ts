@@ -24,7 +24,23 @@ function extractLinksFromSearchHtml(html: string): string[] {
   return [...new Set(links)];
 }
 
-async function runSearch(query: string, userAgent: string): Promise<string[]> {
+function extractSnippetsFromSearchHtml(html: string): string[] {
+  const snippets: string[] = [];
+  const re = /<a[^>]+class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/gi;
+  let m = re.exec(html);
+  while (m) {
+    const text = m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    if (text.length > 20) snippets.push(text);
+    m = re.exec(html);
+  }
+  return snippets;
+}
+
+/** Run ONE DuckDuckGo search and return both URLs and snippets from the same response. */
+async function runSearchForResults(
+  query: string,
+  userAgent: string,
+): Promise<{ urls: string[]; snippets: string[] }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_SEARCH_MS);
   try {
@@ -38,13 +54,22 @@ async function runSearch(query: string, userAgent: string): Promise<string[]> {
         "content-type": "application/x-www-form-urlencoded",
       },
     });
-    if (!res.ok) return [];
-    return extractLinksFromSearchHtml(await res.text());
+    if (!res.ok) return { urls: [], snippets: [] };
+    const html = await res.text();
+    return {
+      urls: extractLinksFromSearchHtml(html),
+      snippets: extractSnippetsFromSearchHtml(html),
+    };
   } catch {
-    return [];
+    return { urls: [], snippets: [] };
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function runSearch(query: string, userAgent: string): Promise<string[]> {
+  const { urls } = await runSearchForResults(query, userAgent);
+  return urls;
 }
 
 async function fetchPage(url: string, userAgent: string): Promise<FetchedPage | null> {
@@ -109,51 +134,49 @@ export async function webSearchFallback({
   return out;
 }
 
-/** Extract short text snippets from DuckDuckGo search result HTML. */
-function extractSnippetsFromSearchHtml(html: string): string[] {
-  const snippets: string[] = [];
-  const re = /<a[^>]+class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/gi;
-  let m = re.exec(html);
-  while (m) {
-    const text = m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-    if (text.length > 20) snippets.push(text);
-    m = re.exec(html);
-  }
-  return snippets;
-}
-
-/** Run a search and return snippets (not full pages) for context. */
-async function runSearchForSnippets(query: string, userAgent: string): Promise<string[]> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_SEARCH_MS);
-  try {
-    const body = new URLSearchParams({ q: query, kl: "de-de" });
-    const res = await fetch(DUCKDUCKGO_HTML_URL, {
-      method: "POST",
-      body,
-      signal: controller.signal,
-      headers: {
-        "user-agent": userAgent,
-        "content-type": "application/x-www-form-urlencoded",
-      },
-    });
-    if (!res.ok) return [];
-    return extractSnippetsFromSearchHtml(await res.text());
-  } catch {
-    return [];
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 export type ExternalContext = {
   query: string;
   snippets: string[];
+  urls: string[];
 };
 
 /**
+ * Collect text snippets for a specific shop via site-targeted DuckDuckGo searches.
+ * Used as a data fallback when crawled pages have thin content (e.g. JS-heavy sites).
+ */
+export async function collectSiteSnippets({
+  shopName,
+  shopUrl,
+  userAgent,
+  onProgress,
+}: {
+  shopName: string;
+  shopUrl: string;
+  userAgent: string;
+  onProgress?: (message: string) => void;
+}): Promise<ExternalContext[]> {
+  const hostname = new URL(shopUrl).hostname.replace(/^www\./, "");
+  const queries = [
+    `site:${hostname} impressum`,
+    `site:${hostname} versand kontakt`,
+    `"${shopName}" impressum`,
+    `"${shopName}" shop`,
+  ];
+  const results: ExternalContext[] = [];
+  for (const query of queries) {
+    onProgress?.(`Snippet fallback: ${query}`);
+    const { snippets, urls } = await runSearchForResults(query, userAgent);
+    if (snippets.length > 0 || urls.length > 0) {
+      results.push({ query, snippets: snippets.slice(0, 5), urls: urls.slice(0, 3) });
+    }
+  }
+  return results;
+}
+
+/**
  * Run counter-research queries to find external signals about corporate ties,
- * dropshipping, far-right associations etc. Returns snippets for LLM context.
+ * dropshipping, far-right associations, and address/legal data.
+ * Returns snippets + source URLs for LLM context and external crawling.
  */
 export async function searchExternalContext({
   shopName,
@@ -168,14 +191,17 @@ export async function searchExternalContext({
     `"${shopName}" Konzern OR Tochterunternehmen OR Holding`,
     `"${shopName}" Dropshipping`,
     `"${shopName}" rechtsextrem OR rechts OR Neonazi OR Identitaer`,
+    `"${shopName}" Impressum`,
+    `"${shopName}" Inhaber OR Geschäftsführer`,
+    `"${shopName}" Handelsregister`,
   ];
 
   const results: ExternalContext[] = [];
   for (const query of queries) {
     onProgress?.(`External research: ${query}`);
-    const snippets = await runSearchForSnippets(query, userAgent);
-    if (snippets.length > 0) {
-      results.push({ query, snippets: snippets.slice(0, 5) });
+    const { snippets, urls } = await runSearchForResults(query, userAgent);
+    if (snippets.length > 0 || urls.length > 0) {
+      results.push({ query, snippets: snippets.slice(0, 5), urls: urls.slice(0, 4) });
     }
   }
   return results;
@@ -254,4 +280,3 @@ export async function searchSocialMedia({
 
   return found;
 }
-

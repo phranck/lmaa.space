@@ -50,10 +50,6 @@ export type GeoResult = {
   latitude: number | null;
   longitude: number | null;
   source: string;
-  fallbackLevel: "structured" | "free_text" | "postal_city" | "city_only" | "none";
-  resolvedState: string | null;
-  resolvedCountryCode: string | null;
-  resolvedCity: string | null;
 };
 
 /** Structured Nominatim query with addressdetails for maximum accuracy. */
@@ -241,10 +237,6 @@ export async function geocodeWithFallback({
     latitude: null,
     longitude: null,
     source: "no reliable hit",
-    fallbackLevel: "none",
-    resolvedState: null,
-    resolvedCountryCode: null,
-    resolvedCity: null,
   };
 
   // Infer country from postal code format if not provided
@@ -297,25 +289,20 @@ export async function geocodeWithFallback({
 
 function buildResult(
   hit: GeoHit,
-  fallbackLevel: GeoResult["fallbackLevel"],
+  fallbackLevel: "structured" | "free_text" | "postal_city" | "city_only",
   postalCode: string | null,
   inferredCountry: string | null,
 ): GeoResult {
-  // Prefer address details from the geocoding provider, with fallback inference
   const resolvedCountryCode = hit.addressDetails.countryCode ?? inferredCountry ?? null;
   let resolvedState = hit.addressDetails.state;
-  // For German addresses: infer state from PLZ if geocoding didn't provide it
   if (!resolvedState && resolvedCountryCode === "DE" && postalCode && /^\d{5}$/.test(postalCode)) {
     resolvedState = inferGermanState(postalCode);
   }
-
+  // Build a human-readable source label without leaking debug fields
+  const detail = resolvedState ?? hit.addressDetails.city ?? resolvedCountryCode ?? fallbackLevel;
   return {
     latitude: hit.lat,
     longitude: hit.lon,
-    source: `${hit.source} (${fallbackLevel})`,
-    fallbackLevel,
-    resolvedState: resolvedState ?? null,
-    resolvedCountryCode: resolvedCountryCode ?? null,
-    resolvedCity: hit.addressDetails.city ?? null,
+    source: `${hit.source} (${detail})`,
   };
 }
