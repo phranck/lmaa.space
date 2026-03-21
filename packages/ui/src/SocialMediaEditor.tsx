@@ -1,4 +1,4 @@
-import { GlobeIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, GlobeIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -23,6 +23,7 @@ export interface SocialMediaEditorMessages {
   urlPlaceholder: string;
   addAriaLabel: string;
   removeAriaLabel: string;
+  openAriaLabel: string;
   selectPlatformAriaLabel: string;
   invalidUrlMessage: (platformLabel: string) => string;
 }
@@ -68,6 +69,18 @@ function entriesToRecord(entries: Entry[]): Record<string, string> {
     }
   }
   return record;
+}
+
+function getOpenUrl(entry: Entry): string | null {
+  const trimmed = entry.url.trim();
+  if (!trimmed) return null;
+  const normalized = entry.platform ? normalizeSocialMediaValue(entry.platform, trimmed) : null;
+  const candidate = normalized ?? trimmed;
+  try {
+    return new URL(candidate).toString();
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -267,6 +280,7 @@ export function SocialMediaEditor({
         const def = PLATFORM_MAP.get(entry.platform);
         const Icon = def?.icon ?? GlobeIcon;
         const entryError = getEntryError(entry, messages);
+        const openUrl = getOpenUrl(entry);
 
         return (
           <div key={entry.id} className="flex flex-col gap-1">
@@ -325,6 +339,24 @@ export function SocialMediaEditor({
                 className={`${btnClass} text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]`}
               >
                 <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!openUrl) return;
+                  window.open(openUrl, "_blank", "noopener,noreferrer");
+                }}
+                aria-label={messages.openAriaLabel}
+                title={messages.openAriaLabel}
+                disabled={!openUrl}
+                className={`${btnClass} ${
+                  openUrl
+                    ? "text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
+                    : "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] cursor-not-allowed"
+                }`}
+              >
+                <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
               </button>
             </div>
             {entryError && <p className="text-xs text-red-500">{entryError}</p>}

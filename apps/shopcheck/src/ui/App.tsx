@@ -106,18 +106,6 @@ export function ShopcheckApp({
         </Box>
       ) : null}
 
-      {prompt?.type === "provider" ? (
-        <Box marginTop={1} borderStyle="round" borderColor="magenta" flexDirection="column" paddingX={1}>
-          <Text color="magentaBright">Provider-Auswahl</Text>
-          <Text>Welchen LLM-Provider moechtest du fuer diesen Lauf verwenden?</Text>
-          {prompt.options.map((option, idx) => (
-            <Text key={option.value} color={idx === prompt.cursor ? "greenBright" : undefined}>
-              {idx === prompt.cursor ? ">" : " "} {option.label}
-            </Text>
-          ))}
-        </Box>
-      ) : null}
-
       {prompt?.type === "batchSize" ? (
         <Box marginTop={1} borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1}>
           <Text color="cyanBright">Batch-Auswahl</Text>

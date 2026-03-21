@@ -4,12 +4,12 @@ import {
   TrayIcon,
 } from "@phosphor-icons/react";
 import { useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import { type SubmissionStatus } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 
@@ -33,10 +33,15 @@ function useStatusLabels() {
 
 export function SuggestionsTab({
   filter,
+  sort,
+  onSortChange,
 }: {
   filter: "pending" | "onhold" | "rejected";
+  sort: SortState;
+  onSortChange: (sort: SortState | null) => void;
 }) {
   const { locale, messages } = useI18n();
+  const location = useLocation();
   const navigate = useNavigate();
   const statusLabels = useStatusLabels();
   const submissionsMessages = messages.submissions;
@@ -128,7 +133,11 @@ export function SuggestionsTab({
           <div className="flex justify-end">
             <button
               type="button"
-              onClick={() => navigate(`/reports/suggestions/${submission.id}`)}
+              onClick={() =>
+                navigate(`/reports/suggestions/${submission.id}`, {
+                  state: { returnTo: `${location.pathname}${location.search}` },
+                })
+              }
               className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
             >
               <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
@@ -138,7 +147,7 @@ export function SuggestionsTab({
         ),
       },
     ],
-    [locale, messages.shops.table.shop, navigate, statusLabels, submissionsMessages],
+    [locale, location.pathname, location.search, messages.shops.table.shop, navigate, statusLabels, submissionsMessages],
   );
 
   return (
@@ -170,7 +179,8 @@ export function SuggestionsTab({
             data={submissions}
             getRowKey={(submission) => submission.id}
             stickyHeader
-            initialSort={{ id: "shop", dir: "asc" }}
+            sort={sort}
+            onSortChange={onSortChange}
             allowUnsorted={false}
           />
         </div>

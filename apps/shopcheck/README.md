@@ -2,7 +2,6 @@
 
 ![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
-![Claude API](https://img.shields.io/badge/Claude_API-Haiku_&_Sonnet-cc785c)
 [![Shopcheck CI](https://github.com/phranck/lmaa.space/actions/workflows/shopcheck.yml/badge.svg)](https://github.com/phranck/lmaa.space/actions/workflows/shopcheck.yml)
 
 Terminal-basiertes Evaluierungs-Tool fuer Online-Shops im [lmaa.space](https://lmaa.space)-Verzeichnis. Prueft Shops automatisiert gegen die aktuellen Aufnahmekriterien und erzeugt strukturierte JSON-Ergebnisse, die direkt ins Dashboard importiert werden koennen.
@@ -17,7 +16,7 @@ Shopcheck nimmt eine Liste offener Shop-Vorschlaege aus der Datenbank (oder eine
 
 3. **Web-Search Fallback** - Wenn die direkte Crawling-Phase nicht genuegend Informationen liefert (fehlende Adresse, keine E-Mail, keine Versandregionen), wird eine gezielte Web-Suche als Ergaenzung gestartet.
 
-4. **LLM-Analyse** - Je nach Provider wird entweder der bestehende Claude-Agent oder ein Ollama-basierter Qwen-Flow genutzt. Beide analysieren die gesammelten Seiten und extrahieren, was deterministisch nicht zuverlaessig moeglich ist: Adresse, Inhaber, Sortiment-Fokus, Marken, Unternehmensdarstellung. Gleichzeitig bewertet das LLM jeden Shop gegen die 9 Aufnahmekriterien von lmaa.space und ordnet passende Kategorien aus dem aktuellen Katalog zu.
+4. **LLM-Analyse** - Ein Ollama-basierter Qwen-Flow analysiert die gesammelten Seiten und extrahiert, was deterministisch nicht zuverlaessig moeglich ist: Adresse, Inhaber, Sortiment-Fokus, Marken, Unternehmensdarstellung. Gleichzeitig bewertet das LLM jeden Shop gegen die 9 Aufnahmekriterien von lmaa.space und ordnet passende Kategorien aus dem aktuellen Katalog zu.
 
 5. **Geocoding** - Die ermittelte Adresse wird ueber Nominatim geocodiert. Bei unvollstaendiger Adresse greift eine Fallback-Kaskade: volle Adresse, dann PLZ+Ort, dann nur Ort.
 
@@ -25,25 +24,15 @@ Shopcheck nimmt eine Liste offener Shop-Vorschlaege aus der Datenbank (oder eine
 
 Die Ergebnisse (Fakten, Kriterien-Bewertung, Kategorien, Beschreibung, Geodaten) werden als strukturiertes JSON in `results.json` geschrieben und als Markdown-Report pro Shop in `reports/` abgelegt.
 
-## Provider
+## Modell
 
-Unterstuetzte Provider:
-
-| Provider | Modell(e) | Besonderheiten |
-| --- | --- | --- |
-| `claude` | `claude-sonnet-4-20250514` | Nutzt den bestehenden Agent-Flow inklusive serverseitiger `web_search`-Tools |
-| `ollama` | `qwen3.5:397b-cloud` | Nutzt den lokalen Ollama-API-Endpunkt mit Cloud-Modell |
-
-Ollama ist der Default, wenn kein Provider angegeben wird. Im TUI kannst du den Provider interaktiv waehlen. Alternativ geht das per CLI mit `--provider claude|ollama`.
+Shopcheck verwendet ausschliesslich Ollama mit `qwen3.5:397b-cloud`. Es gibt keine Provider-Auswahl mehr.
 
 ## Benutzung
 
 ```bash
-# Einzelne URL pruefen (Default: Ollama)
+# Einzelne URL pruefen
 shopcheck --url https://example-shop.de
-
-# Einzelne URL explizit mit Ollama pruefen
-shopcheck --url https://example-shop.de --provider ollama
 
 # Batch aus der Datenbank (z.B. 5 Shops)
 shopcheck --batch 5
@@ -55,15 +44,9 @@ shopcheck --status
 shopcheck --reset
 ```
 
-Die TUI zeigt Fortschritt pro Shop mit Pipeline-Phasen, Live-Log, interaktiver Batch-Auswahl und Provider-Auswahl. Wenn kein Provider gesetzt ist, ist Ollama vorausgewaehlt. Bei vorhandenem Zwischenstand wird Resume angeboten.
+Die TUI zeigt Fortschritt pro Shop mit Pipeline-Phasen, Live-Log und interaktiver Batch-Auswahl. Bei vorhandenem Zwischenstand wird Resume angeboten.
 
 ## Voraussetzungen
-
-### Claude
-
-- `ANTHROPIC_API_KEY` als Umgebungsvariable
-
-### Ollama
 
 - lokaler oder entfernter Ollama-API-Endpunkt, standardmaessig `http://127.0.0.1:11434`
 - optional `OLLAMA_HOST`, falls der Endpunkt woanders laeuft

@@ -20,7 +20,6 @@ function printHelp(): void {
       "  --url <url>              Check a single URL instead of loading from DB",
       "  --import <file>          Load shops from a JSON file instead of the DB",
       "  --batch <n>              Max number of shops for this run",
-      "  --provider <provider>    LLM provider: claude | ollama",
       "  --status                 Print current persisted status and exit",
       "  --reset                  Remove local state/results/logs and exit",
       "  --help                   Show this help",
@@ -74,9 +73,8 @@ export async function runCli(): Promise<void> {
     return;
   }
 
-  const engineOpts: { batchSize: number | null; singleUrl?: string; provider: "claude" | "ollama" | null } = {
+  const engineOpts: { batchSize: number | null; singleUrl?: string; provider?: "ollama" } = {
     batchSize: args.batchSize,
-    provider: args.provider,
   };
   if (args.singleUrl) engineOpts.singleUrl = args.singleUrl;
 

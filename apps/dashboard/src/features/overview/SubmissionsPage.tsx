@@ -6,7 +6,7 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
-import { useLocation, useParams } from "react-router";
+import { useLocation, useParams, useSearchParams } from "react-router";
 
 import { type SubmissionStatus } from "@lmaa/shared";
 
@@ -14,6 +14,7 @@ import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageLayout } from "@/components/ui/PageLayout.tsx";
+import { type SortState } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { DeadLinksTab } from "@/features/overview/DeadLinksTab.tsx";
@@ -29,6 +30,7 @@ import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 type Tab = "suggestions" | "dead-links" | "shop-reports";
 type SuggestionsStatusFilter = Extract<SubmissionStatus, "pending" | "onhold" | "rejected">;
 type ReportTabParam = Tab | undefined;
+const SUGGESTIONS_SORTABLE_COLUMNS = new Set(["shop", "submitted", "rejectedAt"]);
 
 function resolveInitialTab(tabParam: ReportTabParam, search: string): Tab {
   if (tabParam === "dead-links" || tabParam === "shop-reports" || tabParam === "suggestions") {
@@ -41,6 +43,15 @@ function resolveInitialTab(tabParam: ReportTabParam, search: string): Tab {
   return "suggestions";
 }
 
+function parseSuggestionsSort(searchParams: URLSearchParams): SortState {
+  const id = searchParams.get("sort");
+  const dir = searchParams.get("dir");
+  if (id && dir && SUGGESTIONS_SORTABLE_COLUMNS.has(id) && (dir === "asc" || dir === "desc")) {
+    return { id, dir };
+  }
+  return { id: "shop", dir: "asc" };
+}
+
 /**
  * Submissions hub with tabs for suggestions, dead links and concern reports.
  *
@@ -49,6 +60,7 @@ function resolveInitialTab(tabParam: ReportTabParam, search: string): Tab {
 export function SubmissionsPage() {
   const { messages } = useI18n();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { tab: tabParam } = useParams<{ tab?: Tab }>();
   const { user } = useAuth();
   const submissionsMessages = messages.submissions;
@@ -59,6 +71,7 @@ export function SubmissionsPage() {
   const exportSubmissions = useExportSubmissions();
   const importMutation = useImportSubmissions();
   const statusLabels = submissionsMessages.status;
+  const suggestionsSort = useMemo(() => parseSuggestionsSort(searchParams), [searchParams]);
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: onholdSubmissions = [] } = useAdminSubmissions("onhold");
   const { data: rejectedSubmissions = [] } = useAdminSubmissions("rejected");
@@ -86,6 +99,19 @@ export function SubmissionsPage() {
     ],
     [onholdSubmissions.length, pendingSubmissions.length, rejectedSubmissions.length, statusLabels],
   );
+
+  function handleSuggestionsSortChange(nextSort: SortState | null) {
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextSort) {
+      nextParams.set("sort", nextSort.id);
+      nextParams.set("dir", nextSort.dir);
+    } else {
+      nextParams.delete("sort");
+      nextParams.delete("dir");
+    }
+    setSearchParams(nextParams, { replace: true });
+  }
+
   return (
     <PageLayout>
       <PageHeader title={submissionsMessages.title}>
@@ -161,7 +187,13 @@ export function SubmissionsPage() {
         )}
       </PageHeader>
 
-      {tab === "suggestions" && <SuggestionsTab filter={statusFilter} />}
+      {tab === "suggestions" && (
+        <SuggestionsTab
+          filter={statusFilter}
+          sort={suggestionsSort}
+          onSortChange={handleSuggestionsSortChange}
+        />
+      )}
       {tab === "dead-links" && <DeadLinksTab />}
       {tab === "shop-reports" && <ShopReportsTab />}
     </PageLayout>

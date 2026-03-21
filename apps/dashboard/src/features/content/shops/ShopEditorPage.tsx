@@ -9,7 +9,7 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
@@ -50,6 +50,7 @@ export function ShopEditorPage() {
 
 function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const { messages } = useI18n();
+  const location = useLocation();
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const visibilityMutation = useSetShopVisibility();
@@ -70,6 +71,13 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const showAcceptReview = !controller.isNew && (controller.activeShop?.needsReview === true);
   const backLabel = messages.layout.sidebar.shops;
   const rejectionToken = controller.activeShop?.rejectionToken ?? null;
+  const returnTo =
+    typeof location.state === "object" &&
+    location.state !== null &&
+    "returnTo" in location.state &&
+    typeof location.state.returnTo === "string"
+      ? location.state.returnTo
+      : "/shops";
 
   const saveLabel = controller.common.save;
 
@@ -81,7 +89,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
       <EditorPageShell
         title={controller.title}
         backLabel={backLabel}
-        onBack={() => navigate("/shops")}
+        onBack={() => navigate(returnTo)}
         headerContent={
           <div className="flex items-center gap-3">
             <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
@@ -255,7 +263,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               {
                 onSuccess: () => {
                   setShowDeleteDialog(false);
-                  navigate("/shops");
+                  navigate(returnTo);
                 },
               },
             );

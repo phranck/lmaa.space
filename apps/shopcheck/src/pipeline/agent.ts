@@ -475,6 +475,7 @@ async function runUnifiedCheckFlow({
   let mergedFacts = mergeFacts(preCrawledFacts, analysis.factsPatch);
   const socialSearch = await searchSocialMedia({
     shopName,
+    shopUrl,
     existingSocial: mergedFacts.socialMedia,
     userAgent: SHOPCHECK_USER_AGENT,
     onProgress,

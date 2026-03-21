@@ -17,14 +17,10 @@ test("parseArgs parses flags", () => {
   assert.equal(args.help, true);
 });
 
-test("parseArgs defaults to no explicit provider", () => {
-  const args = parseArgs(["node", "shopcheck"]);
-  assert.equal(args.provider, null);
-});
-
-test("parseArgs parses provider", () => {
-  const args = parseArgs(["node", "shopcheck", "--provider", "ollama"]);
-  assert.equal(args.provider, "ollama");
+test("parseArgs ignores unknown flags", () => {
+  const args = parseArgs(["node", "shopcheck", "--foo", "bar"]);
+  assert.equal("provider" in args, false);
+  assert.equal(args.batchSize, null);
 });
 
 test("isResumableState true when progress exists and total unknown", () => {
@@ -37,8 +33,8 @@ test("isResumableState true when progress exists and total unknown", () => {
     processedShopIds: [1, 2],
     currentShop: null,
     mode: "run",
-    provider: "claude",
-    model: "claude-haiku-4-5-20251001",
+    provider: "ollama",
+    model: "qwen3.5:397b-cloud",
     pipelineProgress: 0,
     metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
   } satisfies RunnerState;
@@ -55,8 +51,8 @@ test("isResumableState false when completed equals total", () => {
     processedShopIds: [1, 2, 3],
     currentShop: null,
     mode: "run",
-    provider: "claude",
-    model: "claude-haiku-4-5-20251001",
+    provider: "ollama",
+    model: "qwen3.5:397b-cloud",
     pipelineProgress: 0,
     metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
   } satisfies RunnerState;

@@ -12,13 +12,15 @@ import { useMemo } from "react";
 import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
 
 import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
-import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
 
 interface ShopTableProps {
   shops: AdminShopListItem[];
   onEdit: (shop: AdminShopListItem) => void;
+  sort: SortState | null;
+  onSortChange: (sort: SortState | null) => void;
 }
 
 function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"] }) {
@@ -58,7 +60,7 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
  * @param props - Shop rows and row-level action callbacks.
  * @returns Data table with sticky header.
  */
-export function ShopTable({ shops, onEdit }: ShopTableProps) {
+export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps) {
   const { locale, messages } = useI18n();
   const shopsMessages = messages.shops;
   const regionOptions = getRegionOptions(locale);
@@ -175,6 +177,8 @@ export function ShopTable({ shops, onEdit }: ShopTableProps) {
       data={shops}
       getRowKey={(s: AdminShopListItem) => s.id}
       stickyHeader
+      sort={sort}
+      onSortChange={onSortChange}
     />
   );
 }

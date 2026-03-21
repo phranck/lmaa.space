@@ -12,7 +12,7 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react";
 import { useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import type { ShopVisibility } from "@lmaa/shared";
 
@@ -21,6 +21,7 @@ import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { type SortState } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
@@ -32,6 +33,16 @@ import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 type VisibilityFilter = "all" | ShopVisibility;
 type GeoFilter = "all" | "with" | "without" | "needsReview";
+const SHOP_SORTABLE_COLUMNS = new Set(["name", "region"]);
+
+function parseShopsSort(searchParams: URLSearchParams): SortState | null {
+  const id = searchParams.get("sort");
+  const dir = searchParams.get("dir");
+  if (!id || !dir) return null;
+  if (!SHOP_SORTABLE_COLUMNS.has(id)) return null;
+  if (dir !== "asc" && dir !== "desc") return null;
+  return { id, dir };
+}
 
 const EXPORT_LIMITS = [10, 20, 30, 50, 100, 150, 200] as const;
 type ExportLimit = (typeof EXPORT_LIMITS)[number];
@@ -45,6 +56,8 @@ export function ShopsPage() {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   useAdminCategories();
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
@@ -53,6 +66,7 @@ export function ShopsPage() {
   const importFileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const importMutation = useImportShopcheckResults();
+  const sort = useMemo(() => parseShopsSort(searchParams), [searchParams]);
 
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
@@ -149,6 +163,18 @@ export function ShopsPage() {
     },
     [shopsMessages, shops],
   );
+
+  function handleSortChange(nextSort: SortState | null) {
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextSort) {
+      nextParams.set("sort", nextSort.id);
+      nextParams.set("dir", nextSort.dir);
+    } else {
+      nextParams.delete("sort");
+      nextParams.delete("dir");
+    }
+    setSearchParams(nextParams, { replace: true });
+  }
 
   function handleImportFile(file: File) {
     const reader = new FileReader();
@@ -321,7 +347,16 @@ export function ShopsPage() {
 
         {!isLoading && filtered.length > 0 && (
           <div className="-mx-3 -mt-3">
-            <ShopTable shops={filtered} onEdit={(shop) => navigate(`/shops/${shop.id}`)} />
+            <ShopTable
+              shops={filtered}
+              sort={sort}
+              onSortChange={handleSortChange}
+              onEdit={(shop) =>
+                navigate(`/shops/${shop.id}`, {
+                  state: { returnTo: `${location.pathname}${location.search}` },
+                })
+              }
+            />
           </div>
         )}
       </PageBody>

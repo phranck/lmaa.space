@@ -58,7 +58,7 @@ export interface ColumnDef<T> {
 }
 
 type SortDir = "asc" | "desc";
-interface SortState {
+export interface SortState {
   id: string;
   dir: SortDir;
 }
@@ -96,6 +96,10 @@ interface DataTableProps<T> {
   stickyHeader?: boolean;
   /** Optional default sort applied on first render. */
   initialSort?: SortState | null;
+  /** Optional controlled sort state. */
+  sort?: SortState | null;
+  /** Called when the sort state changes. */
+  onSortChange?: (sort: SortState | null) => void;
   /** If false, sorting toggles between asc/desc and never resets to unsorted. */
   allowUnsorted?: boolean;
 }
@@ -116,6 +120,8 @@ export function DataTable<T>({
   getRowClassName,
   stickyHeader = false,
   initialSort = null,
+  sort: controlledSort,
+  onSortChange,
   allowUnsorted = true,
 }: DataTableProps<T>) {
   const columnIds = useMemo(() => columns.map((col) => col.id), [columns]);
@@ -123,7 +129,8 @@ export function DataTable<T>({
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() =>
     loadColumnWidths(columnStorageKey),
   );
-  const [sort, setSort] = useState<SortState | null>(initialSort);
+  const [uncontrolledSort, setUncontrolledSort] = useState<SortState | null>(initialSort);
+  const sort = controlledSort ?? uncontrolledSort;
   const mouseMoveHandlerRef = useRef<(event: MouseEvent) => void>(() => {});
   const resizeStateRef = useRef<{
     leftColId: string;
@@ -138,6 +145,11 @@ export function DataTable<T>({
   }, [columnStorageKey]);
 
   useEffect(() => {
+    if (controlledSort !== undefined) return;
+    setUncontrolledSort(initialSort);
+  }, [controlledSort, initialSort]);
+
+  useEffect(() => {
     if (!columnStorageKey || typeof window === "undefined") return;
     try {
       window.localStorage.setItem(columnStorageKey, JSON.stringify(columnWidths));
@@ -146,11 +158,20 @@ export function DataTable<T>({
 
   function handleSort(col: ColumnDef<T>) {
     if (!col.sortKey) return;
-    setSort((prev) => {
-      if (!prev || prev.id !== col.id) return { id: col.id, dir: "asc" };
-      if (prev.dir === "asc") return { id: col.id, dir: "desc" };
-      return allowUnsorted ? null : { id: col.id, dir: "asc" };
-    });
+    const nextSort =
+      !sort || sort.id !== col.id
+        ? { id: col.id, dir: "asc" as const }
+        : sort.dir === "asc"
+          ? { id: col.id, dir: "desc" as const }
+          : allowUnsorted
+            ? null
+            : { id: col.id, dir: "asc" as const };
+    if (controlledSort !== undefined) {
+      onSortChange?.(nextSort);
+      return;
+    }
+    setUncontrolledSort(nextSort);
+    onSortChange?.(nextSort);
   }
 
   const stopResize = useCallback(() => {
