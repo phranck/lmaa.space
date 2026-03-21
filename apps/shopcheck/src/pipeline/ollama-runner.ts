@@ -1,10 +1,10 @@
 import { SHOPCHECK_USER_AGENT } from "../constants";
-import { crawlRelevantPages } from "./research";
-import { extractFacts } from "./extract";
-import { fetchAdmissionCriteria } from "./criteria";
-import { loadCategoriesCached } from "./categories";
 import { runShopCheckAgent } from "./agent";
+import { loadCategoriesCached } from "./categories";
+import { fetchAdmissionCriteria } from "./criteria";
+import { extractFacts } from "./extract";
 import type { ShopJson } from "./output";
+import { crawlRelevantPages } from "./research";
 
 export type DeterministicRunnerResult = {
   shopName: string;

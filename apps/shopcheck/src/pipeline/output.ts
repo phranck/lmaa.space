@@ -2,8 +2,8 @@ import { TEMPERATURE_NARRATIVE } from "../constants";
 import type { DecisionOutcome } from "./decision";
 import type { ExtractedFacts } from "./extract";
 import type { GeoResult } from "./geocode";
-import { tryParseJson } from "../lib/utils";
 import { getForbiddenDashViolation, getGermanSpellingViolation } from "../lib/text-rules";
+import { tryParseJson } from "../lib/utils";
 import { LlmFatalError, llmGenerate } from "../llm/client";
 
 export type ShopOutputInput = {
