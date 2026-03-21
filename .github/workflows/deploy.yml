@@ -3,6 +3,20 @@ name: Deploy to Zerops
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      backend:
+        description: "Deploy backend"
+        type: boolean
+        default: false
+      website:
+        description: "Deploy website"
+        type: boolean
+        default: false
+      dashboard:
+        description: "Deploy dashboard"
+        type: boolean
+        default: false
 
 jobs:
   quality-gate:
@@ -34,12 +48,21 @@ jobs:
     needs: [quality-gate, test]
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      website: ${{ steps.filter.outputs.website }}
-      dashboard: ${{ steps.filter.outputs.dashboard }}
+      backend: ${{ steps.manual.outputs.backend || steps.filter.outputs.backend }}
+      website: ${{ steps.manual.outputs.website || steps.filter.outputs.website }}
+      dashboard: ${{ steps.manual.outputs.dashboard || steps.filter.outputs.dashboard }}
     steps:
+      - name: Resolve manual deploy targets
+        if: github.event_name == 'workflow_dispatch'
+        id: manual
+        run: |
+          echo "backend=${{ inputs.backend && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
+          echo "website=${{ inputs.website && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
+          echo "dashboard=${{ inputs.dashboard && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v6
+        if: github.event_name != 'workflow_dispatch'
       - uses: dorny/paths-filter@v4
+        if: github.event_name != 'workflow_dispatch'
         id: filter
         with:
           filters: |
