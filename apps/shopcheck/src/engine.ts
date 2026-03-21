@@ -4,25 +4,25 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { SHOPCHECK_USER_AGENT } from "./constants";
 import { loadShops } from "./lib/db";
 import { appendNdjson, isResumableState, nowIso, readJson, writeJson } from "./lib/utils";
-import { LlmFatalError, getModelName, resolveInitialLlmProvider, setLlmProvider } from "./llm/client";
+import { LlmFatalError, getModelName, setLlmProvider } from "./llm/client";
 import { PATHS, SHOPCHECK_DIR } from "./paths";
-import { runAgentLoop } from "./agent-loop/index";
 import { geocodeWithFallback } from "./pipeline/geocode";
+import { runDeterministicOllamaFlow } from "./pipeline/ollama-runner";
 import type { LogEntry, LlmProvider, ResultsState, RunnerState, Shop } from "./types";
 
 export type EngineConfig = {
   batchSize: number | null;
   singleUrl?: string;
-  provider: LlmProvider | null;
+  provider?: LlmProvider;
 };
 
 export type EngineDeps = {
   persist?: boolean;
   isInteractive?: () => boolean;
   chooseStartMode?: () => Promise<"resume" | "reset">;
-  chooseProvider?: () => Promise<LlmProvider>;
   loadShops?: () => Promise<Shop[]>;
   processShop?: (shop: Shop) => Promise<Record<string, unknown>>;
+  runDeterministicOllamaFlow?: typeof runDeterministicOllamaFlow;
   chooseBatchSize?: (pendingCount: number) => Promise<number | null>;
 };
 
@@ -37,7 +37,7 @@ function createBaseState(provider: LlmProvider): RunnerState {
     currentShop: null,
     mode: "run",
     provider,
-    model: getModelName("extraction", provider),
+    model: getModelName("extraction"),
     pipelineProgress: 0,
     metrics: { parseFailures: 0, timeouts: 0, succeeded: 0 },
   };
@@ -57,10 +57,20 @@ export class ShopcheckEngine extends EventEmitter {
       .map((entry) => entry.shopJson as Record<string, unknown>);
   }
 
+  buildResultsPayload(): Record<string, unknown> | Array<Record<string, unknown>> {
+    const resultsArray = this.buildResultsArray();
+    if (this.config.singleUrl && resultsArray.length === 1) return resultsArray[0];
+    return resultsArray;
+  }
+
+  hasPersistableResults(): boolean {
+    return this.results.entries.length > 0 || this.results.skipped.length > 0;
+  }
+
   constructor(config: EngineConfig, deps: EngineDeps = {}) {
     super();
     this.config = config;
-    this.defaultProvider = resolveInitialLlmProvider(config.provider);
+    this.defaultProvider = "ollama";
     this.deps = deps;
     const baseResults: ResultsState = { generatedAt: nowIso(), entries: [], skipped: [] };
     const baseState = createBaseState(this.defaultProvider);
@@ -83,12 +93,12 @@ export class ShopcheckEngine extends EventEmitter {
       }
 
       const persisted = readJson<Partial<RunnerState>>(PATHS.state, {});
-      const provider = this.config.provider ?? persisted.provider ?? this.defaultProvider;
+      const provider = "ollama";
       this.state = {
         ...baseState,
         ...persisted,
         provider,
-        model: getModelName("extraction", provider),
+        model: getModelName("extraction"),
       };
     }
 
@@ -108,23 +118,23 @@ export class ShopcheckEngine extends EventEmitter {
 
   persistState(partial: Partial<RunnerState> = {}): void {
     const nextProvider = partial.provider ?? this.state.provider;
-    const nextModel = partial.model ?? (partial.provider ? getModelName("extraction", nextProvider) : this.state.model);
+    const nextModel = partial.model ?? (partial.provider ? getModelName("extraction") : this.state.model);
     this.state = { ...this.state, ...partial, provider: nextProvider, model: nextModel, updatedAt: nowIso() };
     if (this.deps.persist !== false) {
       writeJson(PATHS.state, this.state);
-      if (this.results.entries.length > 0) {
+      if (this.hasPersistableResults()) {
         if (this.config.singleUrl && this.results.entries.length === 1 && this.results.entries[0].shopJson) {
           writeJson(PATHS.resultsState, this.results.entries[0].shopJson);
         } else {
           writeJson(PATHS.resultsState, this.results);
         }
-        writeJson(PATHS.results, this.buildResultsArray());
+        writeJson(PATHS.results, this.buildResultsPayload());
       }
     }
     this.emit("state", this.state);
   }
 
-  clearRuntimeState(provider = this.config.provider ?? this.state.provider ?? this.defaultProvider): void {
+  clearRuntimeState(provider: LlmProvider = "ollama"): void {
     if (this.deps.persist !== false) {
       rmSync(PATHS.state, { force: true });
       rmSync(PATHS.results, { force: true });
@@ -148,11 +158,6 @@ export class ShopcheckEngine extends EventEmitter {
     return new Promise((resolve) => this.emit("prompt:start-mode", { resolve }));
   }
 
-  async chooseProviderInteractive(): Promise<LlmProvider> {
-    if (this.deps.chooseProvider) return this.deps.chooseProvider();
-    return new Promise((resolve) => this.emit("prompt:provider", { resolve }));
-  }
-
   async chooseBatchSizeInteractive(pendingCount: number): Promise<number | null> {
     const preset = [1, 3, 5, 10, 25, 50, 100]
       .filter((n) => n < pendingCount)
@@ -168,24 +173,17 @@ export class ShopcheckEngine extends EventEmitter {
     return this.chooseBatchSizeInteractive(pendingCount);
   }
 
-  async resolveProvider(mode: "run" | "resume", interactive: boolean): Promise<LlmProvider> {
-    if (mode === "resume" && !this.config.provider) {
-      return this.state.provider;
-    }
-    if (this.config.provider) return this.config.provider;
-    if (interactive) return this.chooseProviderInteractive();
-    return this.state.provider;
-  }
-
   async processShop(shop: Shop): Promise<Record<string, unknown>> {
     if (this.deps.processShop) {
       return this.deps.processShop(shop);
     }
 
     this.persistState({ pipelineProgress: 0 });
-    this.emitLog(`[${shop.id}] Starting agent loop for ${shop.url}...`);
+    const runDeterministic = this.deps.runDeterministicOllamaFlow ?? runDeterministicOllamaFlow;
 
-    const result = await runAgentLoop({
+    this.emitLog(`[${shop.id}] Starting deterministic ollama pipeline for ${shop.url}...`);
+
+    const result = await runDeterministic({
       shopUrl: shop.url,
       shopName: shop.name,
       onProgress: (message) => this.emitLog(message),
@@ -230,7 +228,7 @@ export class ShopcheckEngine extends EventEmitter {
       if (interactive) {
         const picked = await this.chooseStartModeInteractive();
         if (picked === "reset") {
-          this.clearRuntimeState(this.config.provider ?? this.state.provider);
+          this.clearRuntimeState("ollama");
           mode = "run";
         } else {
           mode = "resume";
@@ -240,7 +238,7 @@ export class ShopcheckEngine extends EventEmitter {
       }
     }
 
-    const provider = await this.resolveProvider(mode, interactive);
+    const provider: LlmProvider = "ollama";
     setLlmProvider(provider);
     this.persistState({
       status: "running",
@@ -248,11 +246,11 @@ export class ShopcheckEngine extends EventEmitter {
       mode,
       currentShop: null,
       provider,
-      model: getModelName("extraction", provider),
+      model: getModelName("extraction"),
     });
 
-    const extractionModel = getModelName("extraction", provider);
-    const narrativeModel = getModelName("narrative", provider);
+    const extractionModel = getModelName("extraction");
+    const narrativeModel = getModelName("narrative");
     this.emitLog(`LLM provider=${provider}: extraction=${extractionModel}, narrative=${narrativeModel}`);
 
 
@@ -280,13 +278,13 @@ export class ShopcheckEngine extends EventEmitter {
     }
 
     let batchCompleted = 0;
+    let hadErrors = false;
     for (const shop of selected) {
       if (this.shutdownRequested) break;
       this.persistState({ currentShop: shop });
       this.emitLog(`Processing shop ${shop.id}: ${shop.name} <${shop.url}>`);
       try {
         const result = await this.processShop(shop);
-        this.state.metrics.succeeded += 1;
         if (result.verdict === "reject") {
           if (this.deps.persist !== false) {
             // processShop resolves rejectionMarkdown to a plain string
@@ -303,9 +301,14 @@ export class ShopcheckEngine extends EventEmitter {
           }
           this.results.skipped.push({ shopId: shop.id, existingName: shop.name, existingUrl: shop.url, verdict: "reject" });
           this.emitLog(`Shop ${shop.id} rejected — written to rejections/${new URL(shop.url).hostname.replace(/^www\./, "")}.txt`);
-        } else {
+        } else if (result.verdict === "accept") {
+          this.state.metrics.succeeded += 1;
           this.results.entries.push({ shopId: shop.id, ...result });
           this.emitLog(`Processed shop ${shop.id} successfully.`);
+        } else {
+          hadErrors = true;
+          this.results.skipped.push({ shopId: shop.id, existingName: shop.name, existingUrl: shop.url, verdict: "error" });
+          this.emitLog(`Shop ${shop.id} ended with verdict=error. No shopJson written.`, "error");
         }
       } catch (error) {
         if (error instanceof LlmFatalError) {
@@ -313,6 +316,7 @@ export class ShopcheckEngine extends EventEmitter {
           this.emitLog("Stopping run due to fatal LLM error.", "error");
           break;
         }
+        hadErrors = true;
         const message = error instanceof Error ? error.message : String(error);
         this.results.skipped.push({ shopId: shop.id, existingName: shop.name, existingUrl: shop.url, verdict: "error", notes: message });
         this.emitLog(`Error on shop ${shop.id}: ${message}`, "error");
@@ -322,7 +326,7 @@ export class ShopcheckEngine extends EventEmitter {
       this.persistState({ completed: batchCompleted, pipelineProgress: 0, processedShopIds: [...processedIds].sort((a, b) => a - b) });
     }
 
-    this.persistState({ status: this.shutdownRequested ? "stopped" : "completed", currentShop: null });
+    this.persistState({ status: this.shutdownRequested ? "stopped" : hadErrors ? "failed" : "completed", currentShop: null });
     if (this.deps.persist !== false) {
       appendNdjson(PATHS.metricsHistory, {
         ts: nowIso(),

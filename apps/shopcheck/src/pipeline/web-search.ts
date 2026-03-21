@@ -213,21 +213,91 @@ export type SocialSearchResult = Partial<Record<
   string
 >>;
 
+function normalizeSearchHostname(url: string): string {
+  return new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+}
+
+function shopNameSearchVariants(shopName: string, shopUrl: string): string[] {
+  const hostname = normalizeSearchHostname(shopUrl).replace(/\.[a-z]{2,}$/i, "");
+  const hostWords = hostname
+    .split(/[.\-_]+/)
+    .map((value) => value.trim())
+    .filter((value) => value.length >= 3);
+  const variants = [
+    shopName,
+    normalizeSearchHostname(shopUrl),
+    hostname,
+    hostWords.join(" "),
+  ];
+  return [...new Set(variants.map((value) => value.trim()).filter(Boolean))];
+}
+
+function cleanSocialUrl(raw: string): string {
+  const url = new URL(raw);
+  url.hash = "";
+  const removeParams = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "fbclid", "gclid", "si", "trk"];
+  for (const key of removeParams) url.searchParams.delete(key);
+  return url.toString().replace(/\/+$/, "");
+}
+
+export function sanitizeSocialProfileUrl(platform: keyof SocialSearchResult, raw: string): string | null {
+  try {
+    const cleaned = cleanSocialUrl(raw);
+    const url = new URL(cleaned);
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+    const path = url.pathname.replace(/\/+$/, "");
+    const lower = `${host}${path}`.toLowerCase();
+
+    if (platform === "instagram") {
+      if (!host.includes("instagram.com") || /^\/(p|reel|stories|explore)\//i.test(path) || path === "") return null;
+    } else if (platform === "facebook") {
+      if (!host.includes("facebook.com") || /\/(sharer|share|dialog)\b/i.test(path) || lower.includes("sharer.php")) return null;
+    } else if (platform === "tiktok") {
+      if (!host.includes("tiktok.com") || !/^\/@[^/]+/i.test(path)) return null;
+    } else if (platform === "youtube") {
+      if (!(host.includes("youtube.com") || host.includes("youtu.be"))) return null;
+      if (/^\/(watch|shorts|live)\b/i.test(path)) return null;
+      if (!( /^\/(@|channel\/|c\/|user\/)/i.test(path) || host.includes("youtu.be") )) return null;
+    } else if (platform === "linkedin") {
+      if (!host.includes("linkedin.com") || !/^\/(company|in)\//i.test(path)) return null;
+    } else if (platform === "twitter") {
+      if (!(host === "x.com" || host === "twitter.com")) return null;
+      if (/^\/(share|search|hashtag|intent|i\/)/i.test(path)) return null;
+    } else if (platform === "bluesky") {
+      if (!host.includes("bsky.app") || !/^\/profile\//i.test(path)) return null;
+    } else if (platform === "mastodon") {
+      if (!/^\/@[^/\s]+/i.test(path)) return null;
+    } else if (platform === "pinterest") {
+      if (!host.includes("pinterest.") || /^\/pin\//i.test(path) || path === "") return null;
+    } else if (platform === "threads") {
+      if (!host.includes("threads.net") || !/^\/@[^/\s]+/i.test(path)) return null;
+    } else if (platform === "twitch") {
+      if (!host.includes("twitch.tv") || /^\/(directory|downloads|jobs)\b/i.test(path) || path === "") return null;
+    } else if (platform === "patreon") {
+      if (!host.includes("patreon.com") || /^\/(login|join|posts)\b/i.test(path) || path === "") return null;
+    }
+
+    return cleaned;
+  } catch {
+    return null;
+  }
+}
+
 const SOCIAL_SEARCH_CONFIGS: Array<{
   key: keyof SocialSearchResult;
   domains: string[];
-  query: (name: string) => string;
+  queries: (term: string) => string[];
 }> = [
-  { key: "instagram", domains: ["instagram.com"], query: (n) => `"${n}" site:instagram.com` },
-  { key: "facebook", domains: ["facebook.com"], query: (n) => `"${n}" site:facebook.com` },
-  { key: "tiktok", domains: ["tiktok.com"], query: (n) => `"${n}" site:tiktok.com` },
-  { key: "youtube", domains: ["youtube.com", "youtu.be"], query: (n) => `"${n}" site:youtube.com` },
-  { key: "linkedin", domains: ["linkedin.com"], query: (n) => `"${n}" site:linkedin.com` },
-  { key: "twitter", domains: ["x.com", "twitter.com"], query: (n) => `"${n}" site:x.com OR site:twitter.com` },
-  { key: "bluesky", domains: ["bsky.app"], query: (n) => `"${n}" site:bsky.app` },
-  { key: "mastodon", domains: [], query: (n) => `"${n}" mastodon` },
-  { key: "pinterest", domains: ["pinterest.com", "pinterest.de"], query: (n) => `"${n}" site:pinterest.com OR site:pinterest.de` },
-  { key: "threads", domains: ["threads.net"], query: (n) => `"${n}" site:threads.net` },
+  { key: "instagram", domains: ["instagram.com"], queries: (term) => [`"${term}" site:instagram.com`, `"${term}" instagram`] },
+  { key: "facebook", domains: ["facebook.com"], queries: (term) => [`"${term}" site:facebook.com`, `"${term}" facebook`] },
+  { key: "tiktok", domains: ["tiktok.com"], queries: (term) => [`"${term}" site:tiktok.com`, `"${term}" tiktok`] },
+  { key: "youtube", domains: ["youtube.com", "youtu.be"], queries: (term) => [`"${term}" site:youtube.com OR site:youtu.be`, `"${term}" youtube`] },
+  { key: "linkedin", domains: ["linkedin.com"], queries: (term) => [`"${term}" site:linkedin.com`, `"${term}" linkedin`] },
+  { key: "twitter", domains: ["x.com", "twitter.com"], queries: (term) => [`"${term}" site:x.com OR site:twitter.com`, `"${term}" twitter`] },
+  { key: "bluesky", domains: ["bsky.app"], queries: (term) => [`"${term}" site:bsky.app`, `"${term}" bluesky`] },
+  { key: "mastodon", domains: [], queries: (term) => [`"${term}" mastodon`] },
+  { key: "pinterest", domains: ["pinterest.com", "pinterest.de"], queries: (term) => [`"${term}" site:pinterest.com OR site:pinterest.de`, `"${term}" pinterest`] },
+  { key: "threads", domains: ["threads.net"], queries: (term) => [`"${term}" site:threads.net`, `"${term}" threads`] },
 ];
 
 /**
@@ -236,44 +306,47 @@ const SOCIAL_SEARCH_CONFIGS: Array<{
  */
 export async function searchSocialMedia({
   shopName,
+  shopUrl,
   existingSocial,
   userAgent,
   onProgress,
 }: {
   shopName: string;
+  shopUrl: string;
   existingSocial: Record<string, string | null>;
   userAgent: string;
   onProgress?: (message: string) => void;
 }): Promise<SocialSearchResult> {
   const found: SocialSearchResult = {};
   let searchCount = 0;
-  const maxSearches = 10;
+  const maxSearches = 24;
+  const queryTerms = shopNameSearchVariants(shopName, shopUrl);
 
   for (const config of SOCIAL_SEARCH_CONFIGS) {
     if (searchCount >= maxSearches) break;
     if (existingSocial[config.key]) continue;
 
-    const query = config.query(shopName);
-    onProgress?.(`Social search: ${query}`);
-    searchCount++;
+    for (const term of queryTerms) {
+      if (searchCount >= maxSearches || found[config.key]) break;
+      for (const query of config.queries(term)) {
+        if (searchCount >= maxSearches || found[config.key]) break;
+        onProgress?.(`Social search: ${query}`);
+        searchCount++;
 
-    const links = await runSearch(query, userAgent);
-    for (const link of links.slice(0, 3)) {
-      const lower = link.toLowerCase();
-      const domainMatch = config.domains.length === 0
-        ? /https?:\/\/[^/]+\/@[^/\s]+/i.test(link) // Mastodon pattern
-        : config.domains.some((d) => lower.includes(d));
-      if (domainMatch) {
-        try {
-          const u = new URL(link);
-          u.hash = "";
-          const removeParams = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "fbclid", "gclid", "si", "trk"];
-          for (const key of removeParams) u.searchParams.delete(key);
-          found[config.key] = u.toString().replace(/\/+$/, "");
-        } catch {
-          found[config.key] = link;
+        const links = await runSearch(query, userAgent);
+        for (const link of links.slice(0, 5)) {
+          const lower = link.toLowerCase();
+          const domainMatch = config.domains.length === 0
+            ? /https?:\/\/[^/]+\/@[^/\s]+/i.test(link)
+            : config.domains.some((domain) => lower.includes(domain));
+          if (!domainMatch) continue;
+
+          const sanitized = sanitizeSocialProfileUrl(config.key, link);
+          if (sanitized) {
+            found[config.key] = sanitized;
+            break;
+          }
         }
-        break;
       }
     }
   }

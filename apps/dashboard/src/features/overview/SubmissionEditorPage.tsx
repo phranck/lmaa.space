@@ -10,7 +10,7 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react";
 import { useReducer, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import { type Submission, generateRejectionToken } from "@lmaa/shared";
 import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
@@ -138,17 +138,25 @@ export function SubmissionEditorPage() {
 
 function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }) {
   const { messages } = useI18n();
+  const location = useLocation();
   const navigate = useNavigate();
   const submissionsMessages = messages.submissions;
   const submissionQuery = useAdminSubmission(submissionId);
   const submission = submissionQuery.data ?? null;
+  const returnTo =
+    typeof location.state === "object" &&
+    location.state !== null &&
+    "returnTo" in location.state &&
+    typeof location.state.returnTo === "string"
+      ? location.state.returnTo
+      : "/reports/suggestions";
 
   if (submissionQuery.isLoading) {
     return (
       <EditorPageShell
         title={submissionsMessages.suggestions.edit}
         backLabel={submissionsMessages.title}
-        onBack={() => navigate("/reports/suggestions")}
+        onBack={() => navigate(returnTo)}
         headerContent={<div className="flex items-center gap-3"></div>}
         cardClassName="animate-pulse"
       >
@@ -162,16 +170,22 @@ function ResolvedSubmissionEditorPage({ submissionId }: { submissionId: number }
   }
 
   return (
-    <LoadedSubmissionEditorPage submission={submission} isFetching={submissionQuery.isFetching} />
+    <LoadedSubmissionEditorPage
+      submission={submission}
+      isFetching={submissionQuery.isFetching}
+      returnTo={returnTo}
+    />
   );
 }
 
 function LoadedSubmissionEditorPage({
   submission,
   isFetching,
+  returnTo,
 }: {
   submission: Submission;
   isFetching: boolean;
+  returnTo: string;
 }) {
   const { locale, messages } = useI18n();
   const navigate = useNavigate();
@@ -226,7 +240,7 @@ function LoadedSubmissionEditorPage({
     controller.isPending || reviewMutation.isPending || deleteMutation.isPending || isFetching;
 
   function navigateBack() {
-    navigate("/reports/suggestions");
+    navigate(returnTo);
   }
 
   function openApproveReview() {

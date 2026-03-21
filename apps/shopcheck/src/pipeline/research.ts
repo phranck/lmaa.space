@@ -14,6 +14,11 @@ export type FetchedPage = {
 /** Page categories we care about, in priority order. */
 const PAGE_CATEGORIES = ["legal", "contact", "about", "shipping", "privacy"] as const;
 type PageCategory = (typeof PAGE_CATEGORIES)[number];
+type DiscoveredInternalLink = {
+  url: string;
+  text: string;
+  title: string;
+};
 
 const CATEGORY_KEYWORDS: Record<PageCategory, string[]> = {
   legal: [
@@ -88,31 +93,75 @@ export function extractMainContent(html: string): string {
 }
 
 /** Classify a URL into a page category, or null if unrecognized. */
-function classifyUrl(url: string): PageCategory | null {
-  const lower = url.toLowerCase();
-  for (const cat of PAGE_CATEGORIES) {
-    if (CATEGORY_KEYWORDS[cat].some((kw) => lower.includes(kw))) return cat;
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizedMatchText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss");
+}
+
+function keywordBoundaryRegex(keyword: string): RegExp {
+  const escaped = escapeRegex(normalizedMatchText(keyword));
+  return new RegExp(`(^|[\\s\\-_/.])${escaped}($|[\\s\\-_/.])`, "i");
+}
+
+export function categorizeInternalLink(link: DiscoveredInternalLink): { category: PageCategory | null; score: number } {
+  const path = normalizedMatchText(new URL(link.url).pathname);
+  const text = normalizedMatchText(link.text);
+  const title = normalizedMatchText(link.title);
+
+  let best: { category: PageCategory | null; score: number } = { category: null, score: 0 };
+  for (const category of PAGE_CATEGORIES) {
+    let score = 0;
+    for (const keyword of CATEGORY_KEYWORDS[category]) {
+      const boundary = keywordBoundaryRegex(keyword);
+      if (boundary.test(path)) score = Math.max(score, 4);
+      if (boundary.test(text)) score = Math.max(score, 6);
+      if (boundary.test(title)) score = Math.max(score, 5);
+    }
+    if (score > best.score) best = { category, score };
   }
-  return null;
+
+  return best;
+}
+
+function normalizeHost(hostname: string): string {
+  return hostname.trim().toLowerCase().replace(/^www\./, "");
+}
+
+function normalizeComparableUrl(raw: string, fallbackBase?: URL): string {
+  const url = fallbackBase ? new URL(raw, fallbackBase.origin) : new URL(raw);
+  url.hash = "";
+  url.search = "";
+  url.hostname = normalizeHost(url.hostname);
+  return url.toString().replace(/\/+$/, "") || url.toString();
 }
 
 /** Extract same-host links from Crawl4AI's pre-parsed internal links list.
  *  Handles both absolute and relative hrefs by resolving against the base origin. */
-function internalLinksFromCrawl4AI(baseUrl: URL, links: Crawl4AILink[]): string[] {
-  const result: string[] = [];
+function internalLinksFromCrawl4AI(baseUrl: URL, links: Crawl4AILink[]): DiscoveredInternalLink[] {
+  const result: DiscoveredInternalLink[] = [];
+  const normalizedBaseHost = normalizeHost(baseUrl.hostname);
   for (const link of links) {
     try {
       const url = new URL(link.href, baseUrl.origin);
-      if (url.hostname !== baseUrl.hostname) continue;
-      url.hash = "";
-      url.search = "";
-      const normalized = url.toString().replace(/\/+$/, "") || url.toString();
-      result.push(normalized);
+      if (normalizeHost(url.hostname) !== normalizedBaseHost) continue;
+      result.push({
+        url: normalizeComparableUrl(url.toString()),
+        text: String(link.text ?? "").trim(),
+        title: String((link as Crawl4AILink & { title?: string | null }).title ?? "").trim(),
+      });
     } catch {
       // ignore invalid URLs
     }
   }
-  return [...new Set(result)];
+  return result.filter((link, index, list) => list.findIndex((entry) => entry.url === link.url) === index);
 }
 
 /** Convert a Crawl4AI result to FetchedPage, preferring Crawl4AI markdown for text. */
@@ -150,7 +199,7 @@ export async function crawlRelevantPages({
   onProgress?: (message: string) => void;
 }): Promise<FetchedPage[]> {
   const host = new URL(shopUrl);
-  const rootUrl = host.toString().replace(/\/+$/, "");
+  const rootUrl = normalizeComparableUrl(host.toString());
   const seen = new Set<string>();
   const pages: FetchedPage[] = [];
 
@@ -174,18 +223,18 @@ export async function crawlRelevantPages({
   const rawInternalLinks = homepageResult.links?.internal ?? [];
   onProgress?.(`Phase 2: Crawl4AI returned ${rawInternalLinks.length} internal links from homepage.`);
   const internalLinks = internalLinksFromCrawl4AI(host, rawInternalLinks);
-  const categorizedUrls = new Map<PageCategory, string[]>();
+  const categorizedUrls = new Map<PageCategory, Array<{ url: string; score: number }>>();
   const uncategorized: string[] = [];
 
   for (const link of internalLinks) {
-    if (seen.has(link)) continue;
-    const cat = classifyUrl(link);
-    if (cat) {
-      const list = categorizedUrls.get(cat) ?? [];
-      list.push(link);
-      categorizedUrls.set(cat, list);
+    if (seen.has(link.url)) continue;
+    const categorized = categorizeInternalLink(link);
+    if (categorized.category) {
+      const list = categorizedUrls.get(categorized.category) ?? [];
+      list.push({ url: link.url, score: categorized.score });
+      categorizedUrls.set(categorized.category, list);
     } else {
-      uncategorized.push(link);
+      uncategorized.push(link.url);
     }
   }
 
@@ -193,7 +242,9 @@ export async function crawlRelevantPages({
   const coveredCategories = new Set<PageCategory>();
 
   for (const cat of PAGE_CATEGORIES) {
-    const urls = categorizedUrls.get(cat);
+    const urls = categorizedUrls.get(cat)
+      ?.sort((a, b) => b.score - a.score || a.url.length - b.url.length)
+      .map((entry) => entry.url);
     if (urls && urls.length > 0) {
       coveredCategories.add(cat);
       targetUrls.push(...urls.slice(0, 2));
@@ -208,7 +259,7 @@ export async function crawlRelevantPages({
 
   for (const cat of missingCategories) {
     for (const path of STATIC_FALLBACKS[cat]) {
-      const url = new URL(path, host).toString().replace(/\/+$/, "");
+      const url = normalizeComparableUrl(path, host);
       if (!seen.has(url) && !targetUrls.includes(url)) {
         fallbackUrls.push(url);
         break;
@@ -243,7 +294,7 @@ export async function crawlRelevantPages({
     const extraFallbacks: string[] = [];
     for (const cat of stillMissing) {
       for (const path of STATIC_FALLBACKS[cat]) {
-        const url = new URL(path, host).toString().replace(/\/+$/, "");
+        const url = normalizeComparableUrl(path, host);
         if (!seen.has(url)) {
           extraFallbacks.push(url);
           seen.add(url);
