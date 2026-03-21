@@ -336,11 +336,13 @@ export function SocialMediaEditor({
                 type="button"
                 onClick={addEntry}
                 aria-label={messages.addAriaLabel}
+                title={messages.addAriaLabel}
                 className={`${btnClass} text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]`}
               >
                 <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
               </button>
 
+              {/* Open URL */}
               <button
                 type="button"
                 onClick={() => {
@@ -353,7 +355,7 @@ export function SocialMediaEditor({
                 className={`${btnClass} ${
                   openUrl
                     ? "text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-                    : "bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] cursor-not-allowed"
+                    : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] cursor-not-allowed"
                 }`}
               >
                 <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />

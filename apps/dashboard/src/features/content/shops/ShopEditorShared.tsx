@@ -568,15 +568,16 @@ export function useShopEditorController({
   }
 
   function handleApplyImage() {
+    const nextOgImage = ogImageInput.trim() || null;
     if (isSubmissionMode) {
       setImageState((current) => ({
         ...current,
-        previewOverride: ogImageInput || null,
+        previewOverride: nextOgImage,
       }));
       return;
     }
 
-    setOgImageMutation.mutate(ogImageInput || null);
+    setOgImageMutation.mutate(nextOgImage);
   }
 
   function handleImportJsonText(jsonText: string): void {
