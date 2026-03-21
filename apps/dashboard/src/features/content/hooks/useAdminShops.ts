@@ -259,7 +259,10 @@ export function useRefetchShopImage(shopId: number) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => api.post<{ ogImage: string | null }>(`/admin/shops/${shopId}/refetch-image`),
-    onSuccess: () => {
+    onSuccess: ({ ogImage }) => {
+      qc.setQueryData<Shop | undefined>(["shop", shopId], (current) =>
+        current ? { ...current, ogImage } : current,
+      );
       qc.invalidateQueries({ queryKey: ["shop", shopId] });
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
     },
@@ -271,7 +274,10 @@ export function useSetShopOgImage(shopId: number) {
   return useMutation({
     mutationFn: (ogImage: string | null) =>
       api.patch<{ ogImage: string | null }>(`/admin/shops/${shopId}/og-image`, { ogImage }),
-    onSuccess: () => {
+    onSuccess: ({ ogImage }) => {
+      qc.setQueryData<Shop | undefined>(["shop", shopId], (current) =>
+        current ? { ...current, ogImage } : current,
+      );
       qc.invalidateQueries({ queryKey: ["shop", shopId] });
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
     },
