@@ -3,6 +3,7 @@ import {
   CircleIcon,
   EyeSlashIcon,
   FileIcon,
+  FileTextIcon,
   PlusCircleIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
@@ -192,9 +193,17 @@ export function PagesListPage() {
       },
       {
         id: "actions",
-        className: "w-36",
+        className: "w-48",
         cell: (page) => (
           <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => navigate(`/pages/${page.slug}`)}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
+            >
+              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
+              {common.edit}
+            </button>
             <button
               type="button"
               onClick={() => setDeleteTarget({ slug: page.slug, title: page.title })}
@@ -202,7 +211,7 @@ export function PagesListPage() {
               className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-50"
             >
               <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {text.deletePageTitle}
+              {common.delete}
             </button>
           </div>
         ),
