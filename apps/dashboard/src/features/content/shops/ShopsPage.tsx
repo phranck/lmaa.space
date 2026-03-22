@@ -180,29 +180,22 @@ export function ShopsPage() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const parsed = JSON.parse(reader.result as string) as {
-          entries?: Array<{ shopId?: unknown; shopJson?: unknown }>;
-        };
-        if (!parsed.entries || !Array.isArray(parsed.entries)) {
+        const parsed = JSON.parse(reader.result as string) as unknown;
+        if (!Array.isArray(parsed)) {
           setImportStatus(shopsMessages.importInvalidFile);
           return;
         }
-        const entries = parsed.entries
-          .filter((e) => typeof e.shopId === "number")
-          .map((e) => ({ shopId: e.shopId as number, shopJson: (e.shopJson ?? null) as Record<string, unknown> | null }));
-        importMutation.mutate(
-          { entries },
-          {
-            onSuccess: (result) => {
-              setImportStatus(
-                shopsMessages.importSuccess
-                  .replace("{imported}", String(result.imported))
-                  .replace("{skipped}", String(result.skipped)),
-              );
-            },
-            onError: () => setImportStatus(shopsMessages.importError),
+        const entries = parsed as Array<Record<string, unknown>>;
+        importMutation.mutate(entries, {
+          onSuccess: (result) => {
+            setImportStatus(
+              shopsMessages.importSuccess
+                .replace("{imported}", String(result.imported))
+                .replace("{skipped}", String(result.skipped)),
+            );
           },
-        );
+          onError: () => setImportStatus(shopsMessages.importError),
+        });
       } catch {
         setImportStatus(shopsMessages.importInvalidFile);
       }

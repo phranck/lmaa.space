@@ -48,6 +48,7 @@ export interface UpdateAdminShopData {
   shopCheckNotes?: ShopCheckNotes | null;
   socialMedia?: Record<string, string>;
   needsReview?: boolean;
+  reviewData?: Record<string, unknown> | null;
 }
 
 /**
@@ -76,6 +77,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            s.rejection_admin_note as "rejectionAdminNote",
            s.rejection_long_text as "rejectionLongText",
            s.needs_review as "needsReview",
+           s.review_data as "reviewData",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -113,6 +115,7 @@ export async function getAdminShopById(id: number): Promise<AdminShopDetail | nu
            s.rejection_admin_note as "rejectionAdminNote",
            s.rejection_long_text as "rejectionLongText",
            s.needs_review as "needsReview",
+           s.review_data as "reviewData",
            s.social_media as "socialMedia",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
@@ -183,7 +186,7 @@ export async function updateAdminShop(
   data: UpdateAdminShopData,
 ): Promise<DbShop | null> {
   return db.transaction(async (tx) => {
-    const { categoryIds, contactEmail, headquarters, shopCheckNotes, needsReview, ...shopData } = data;
+    const { categoryIds, contactEmail, headquarters, shopCheckNotes, needsReview, reviewData, ...shopData } = data;
 
     const [shop] = await tx
       .update(shops)
@@ -192,6 +195,7 @@ export async function updateAdminShop(
         contactEmail: contactEmail || null,
         ...(shopCheckNotes !== undefined ? { shopCheckNotes } : {}),
         ...(needsReview !== undefined ? { needsReview } : {}),
+        ...(reviewData !== undefined ? { reviewData } : {}),
         updatedAt: new Date(),
       })
       .where(eq(shops.id, id))

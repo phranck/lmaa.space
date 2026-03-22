@@ -4,12 +4,16 @@ import {
   fetchShopPreviewImageFromHomepage,
   hydrateShopOgImageInBackground,
 } from "./preview-images.js";
+import { db } from "../db/index.js";
+import { categories } from "../db/schema.js";
 import { failure, success } from "../lib/result.js";
+import { mapShopJsonToShopData } from "../lib/shopjson-mapper.js";
 import { SHOPS_CACHE_KEY, invalidateCache } from "../middleware/cache.js";
 import {
   type CreateAdminShopData,
   type UpdateAdminShopData,
   createAdminShop,
+  getAdminShopById,
   getAdminShopUrl,
   markAdminShopDeleted,
   permanentlyDeleteAdminShop,
@@ -178,4 +182,48 @@ export async function updateManagedAdminShopDeleteReason(id: number, reason: str
   if (!found) return failure("not_found");
   invalidateCache(SHOPS_CACHE_KEY);
   return success();
+}
+
+/**
+ * Stages raw shop review JSON without touching live fields.
+ *
+ * @param id - Shop id.
+ * @param rawShopJson - Raw shopcheck JSON to stage.
+ * @returns Update result.
+ */
+export async function stageShopReviewData(id: number, rawShopJson: Record<string, unknown>) {
+  const shop = await updateAdminShop(id, { reviewData: rawShopJson, needsReview: true });
+  if (!shop) return failure("not_found");
+  invalidateCache(SHOPS_CACHE_KEY);
+  return success({ shop });
+}
+
+/**
+ * Applies staged reviewData to live shop fields and clears the staging area.
+ *
+ * @param id - Shop id.
+ * @returns Updated shop or failure reason.
+ */
+export async function acceptShopReview(id: number) {
+  const shop = await getAdminShopById(id);
+  if (!shop) return failure("not_found" as const);
+  if (!shop.reviewData) return failure("no_review_data" as const);
+
+  const allCategories = await db
+    .select({ id: categories.id, name: categories.name })
+    .from(categories);
+  const categoryNameToId = new Map(
+    allCategories.map((cat) => [cat.name.trim().toLocaleLowerCase("de-DE"), cat.id] as const),
+  );
+
+  const mapped = mapShopJsonToShopData(shop.reviewData, categoryNameToId);
+  const updated = await updateAdminShop(id, {
+    ...mapped,
+    needsReview: false,
+    reviewData: null,
+  });
+  if (!updated) return failure("not_found" as const);
+
+  invalidateCache(SHOPS_CACHE_KEY);
+  return success({ shop: { ...updated, categories: [] } });
 }

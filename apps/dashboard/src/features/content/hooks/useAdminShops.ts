@@ -175,9 +175,20 @@ type ShopcheckImportResult = { imported: number; skipped: number; errors: string
 export function useImportShopcheckResults() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { entries: Array<{ shopId: number; shopJson?: Record<string, unknown> | null }> }) =>
-      api.post<ShopcheckImportResult>("/admin/shops/import", payload),
+    mutationFn: (entries: Array<Record<string, unknown>>) =>
+      api.post<ShopcheckImportResult>("/admin/shops/import", entries),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
+  });
+}
+
+export function useAcceptShopReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.post<Shop>(`/admin/shops/${id}/accept-review`),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ["shops-admin"] });
+      qc.invalidateQueries({ queryKey: ["shop", id] });
+    },
   });
 }
 

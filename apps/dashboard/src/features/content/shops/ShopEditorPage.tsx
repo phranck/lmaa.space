@@ -15,7 +15,7 @@ import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
+import { useAcceptShopReview, useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 
 import {
@@ -55,6 +55,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const visibilityMutation = useSetShopVisibility();
   const deleteMutation = useDeleteShop();
+  const acceptReviewMutation = useAcceptShopReview();
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
 
   const controller = useShopEditorController({ shopId });
@@ -82,7 +83,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const saveLabel = controller.common.save;
 
   const isActionPending =
-    controller.isPending || visibilityMutation.isPending || deleteMutation.isPending;
+    controller.isPending || visibilityMutation.isPending || deleteMutation.isPending || acceptReviewMutation.isPending;
 
   return (
     <>
@@ -210,12 +211,11 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
             {showAcceptReview && (
               <EditorToolbarButton
                 onClick={() =>
-                  void controller.handleSaveSafely({
-                    needsReview: false,
+                  acceptReviewMutation.mutate(controller.activeShop!.id, {
                     onSuccess: () => controller.showSaved(),
                   })
                 }
-                disabled={!controller.canSave || isActionPending}
+                disabled={isActionPending}
                 variant="review"
                 icon={<SealCheckIcon weight="duotone" className="h-3.5 w-3.5" />}
               >

@@ -64,6 +64,7 @@ export interface AdminShopListItem extends ShopSummary {
   headquarters?: ShopHeadquarters | null;
   shopCheckNotes?: ShopCheckNotes | null;
   needsReview: boolean;
+  reviewData?: Record<string, unknown> | null;
 }
 
 /**
@@ -92,6 +93,7 @@ export interface Shop {
   headquarters?: ShopHeadquarters | null;
   shopCheckNotes?: ShopCheckNotes | null;
   needsReview: boolean;
+  reviewData?: Record<string, unknown> | null;
 }
 
 /**
