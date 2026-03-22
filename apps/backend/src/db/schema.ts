@@ -67,6 +67,7 @@ export const shops = pgTable(
     rejectionAdminNote: text("rejection_admin_note"),
     rejectionLongText: text("rejection_long_text"),
     needsReview: boolean("needs_review").notNull().default(false),
+    reviewData: jsonb("review_data").$type<Record<string, unknown> | null>(),
   },
   (table) => [
     index("idx_shops_active").on(table.isActive),

@@ -15,19 +15,20 @@ import {
 } from "@lmaa/contracts";
 
 import { db } from "../../db/index.js";
-import { categories, shops } from "../../db/schema.js";
+import { shops } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
-import { mapShopJsonToShopData } from "../../lib/shopjson-mapper.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { getAdminShopById, getShopVisibilityCounts, listAdminShops } from "../../repositories/admin-shops.js";
 import {
+  acceptShopReview,
   changeManagedAdminShopVisibility,
   createManagedAdminShop,
   deleteManagedAdminShop,
   previewAdminShopImage,
   refetchAdminShopImage,
   setManagedAdminShopOgImage,
+  stageShopReviewData,
   updateManagedAdminShop,
   updateManagedAdminShopDeleteReason,
 } from "../../services/admin-shops.js";
@@ -169,20 +170,13 @@ shopsRoutes.post("/preview-image", zValidator("json", previewImageSchema), async
   return ok(c, result);
 });
 
-// POST /admin/shops/import — apply shopcheck results.json (flat array of shopJson) to existing shops
+// POST /admin/shops/import — stage shopcheck results.json (flat array of shopJson) for review
 shopsRoutes.post(
   "/shops/import",
   requireAdmin,
   zValidator("json", shopcheckImportSchema),
   async (c) => {
     const entries = c.req.valid("json");
-
-    const allCategories = await db
-      .select({ id: categories.id, name: categories.name })
-      .from(categories);
-    const categoryNameToId = new Map(
-      allCategories.map((cat) => [cat.name.trim().toLocaleLowerCase("de-DE"), cat.id] as const,
-    ));
 
     let imported = 0;
     let skipped = 0;
@@ -200,14 +194,7 @@ shopsRoutes.post(
       }
 
       try {
-        const mapped = mapShopJsonToShopData(
-          item as Record<string, unknown>,
-          categoryNameToId,
-        );
-        const result = await updateManagedAdminShop(shopRow.id, {
-          ...mapped,
-          needsReview: true,
-        });
+        const result = await stageShopReviewData(shopRow.id, item as Record<string, unknown>);
         if (!result.ok) {
           skipped += 1;
         } else {
@@ -222,3 +209,15 @@ shopsRoutes.post(
     return ok(c, { imported, skipped, errors });
   },
 );
+
+// POST /admin/shops/:id/accept-review — apply staged reviewData to live fields
+shopsRoutes.post("/shops/:id/accept-review", requireAdmin, async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+  const result = await acceptShopReview(id);
+  if (!result.ok) {
+    if (result.reason === "no_review_data") return fail(c, 400, "No pending review data");
+    return fail(c, 404, "Shop not found");
+  }
+  return ok(c, result.shop);
+});
