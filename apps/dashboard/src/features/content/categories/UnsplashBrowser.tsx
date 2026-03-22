@@ -194,7 +194,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
       onClose={onClose}
       size="fullscreen"
       aria-label={categoriesMessages.editCard.unsplash}
-      zIndex={60}
+
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ds-border-subtle)] shrink-0">
