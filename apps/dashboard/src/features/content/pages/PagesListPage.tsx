@@ -6,18 +6,28 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import type { ColumnDef } from "@/components/ui/Table.tsx";
+import { DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   useContentPages,
   useCreateContentPage,
   useDeleteContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
+
+interface ContentPage {
+  slug: string;
+  title: string;
+  status: string;
+  createdByUsername: string | null;
+  updatedAt: string | null;
+}
 
 function slugify(str: string): string {
   return str
@@ -57,13 +67,24 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function formatDate(isoDate: string | null, locale: string): string {
+  if (!isoDate) return "—";
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString(locale === "de" ? "de-DE" : "en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 /**
  * Content pages overview with create/delete navigation actions.
  *
  * @returns Content list route component.
  */
 export function PagesListPage() {
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const text = messages.content.pages;
   const cancel = messages.common.cancel;
   const { data: pages = [], isLoading } = useContentPages();
@@ -112,10 +133,77 @@ export function PagesListPage() {
     setCreateError(null);
   }
 
-  async function handleDelete(slug: string, title: string) {
-    if (!confirm(`${text.confirmDeletePrefix}${title}${text.confirmDeleteSuffix}`)) return;
-    await deletePage.mutateAsync(slug);
+  async function handleDelete(pageSlug: string, pageTitle: string) {
+    if (!confirm(`${text.confirmDeletePrefix}${pageTitle}${text.confirmDeleteSuffix}`)) return;
+    await deletePage.mutateAsync(pageSlug);
   }
+
+  const columns = useMemo<ColumnDef<ContentPage>[]>(
+    () => [
+      {
+        id: "title",
+        header: text.table.title,
+        sortKey: (page) => page.title.toLowerCase(),
+        cell: (page) => (
+          <button
+            type="button"
+            onClick={() => navigate(`/pages/${page.slug}`)}
+            className="font-medium text-[var(--ds-text)] hover:underline text-left truncate"
+          >
+            {page.title}
+          </button>
+        ),
+      },
+      {
+        id: "slug",
+        header: text.table.slug,
+        cell: (page) => (
+          <span className="font-mono text-xs text-[var(--ds-text-muted)]">/{page.slug}</span>
+        ),
+      },
+      {
+        id: "status",
+        header: text.table.status,
+        cell: (page) => <StatusBadge status={page.status} />,
+      },
+      {
+        id: "createdBy",
+        header: text.table.createdBy,
+        cell: (page) => (
+          <span className="text-xs text-[var(--ds-text-muted)]">
+            {page.createdByUsername ?? "—"}
+          </span>
+        ),
+      },
+      {
+        id: "updatedAt",
+        header: text.table.updatedAt,
+        sortKey: (page) => page.updatedAt ?? "",
+        cell: (page) => (
+          <span className="text-xs text-[var(--ds-text-muted)]">
+            {formatDate(page.updatedAt, locale)}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "",
+        className: "w-12",
+        cell: (page) => (
+          <button
+            type="button"
+            onClick={() => handleDelete(page.slug, page.title)}
+            disabled={deletePage.isPending}
+            className="p-1.5 text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
+            title={text.deletePageTitle}
+          >
+            <TrashIcon weight="duotone" className="w-4 h-4" />
+          </button>
+        ),
+      },
+    ],
+    [text, locale, navigate, deletePage.isPending],
+  );
 
   return (
     <PageLayout>
@@ -216,61 +304,12 @@ export function PagesListPage() {
         )}
 
         {!isLoading && pages.length > 0 && (
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
-                  <th className="text-left px-4 py-3">{text.table.title}</th>
-                  <th className="text-left px-4 py-3">{text.table.slug}</th>
-                  <th className="text-left px-4 py-3">{text.table.status}</th>
-                  <th className="text-left px-4 py-3">{text.table.createdBy}</th>
-                  <th className="text-left px-4 py-3">{text.table.updatedBy}</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {pages.map((page) => (
-                  <tr
-                    key={page.slug}
-                    className="border-b border-[var(--ds-border)] last:border-0 hover:bg-[var(--ds-surface-hover)] transition-colors"
-                  >
-                    <td className="px-4 py-3 font-medium text-[var(--ds-text)]">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/pages/${page.slug}`)}
-                        className="hover:underline text-left"
-                      >
-                        {page.title}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-text-muted)]">
-                      /{page.slug}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={page.status} />
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[var(--ds-text-muted)]">
-                      {page.createdByUsername ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[var(--ds-text-muted)]">
-                      {page.updatedByUsername ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(page.slug, page.title)}
-                        disabled={deletePage.isPending}
-                        className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
-                      >
-                        <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-                        {text.deletePageTitle}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={columns}
+            data={pages}
+            getRowKey={(page) => page.slug}
+            stickyHeader
+          />
         )}
       </PageBody>
     </PageLayout>

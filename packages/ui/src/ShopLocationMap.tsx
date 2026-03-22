@@ -1,9 +1,6 @@
 import type { LatLngBoundsExpression, LatLngExpression, LatLngLiteral } from "leaflet";
-import { Control, DomEvent, DomUtil, Icon } from "leaflet";
+import { Control, DomEvent, DomUtil, DivIcon } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import markerIcon2xUrl from "leaflet/dist/images/marker-icon-2x.png";
-import markerIconUrl from "leaflet/dist/images/marker-icon.png";
-import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
 import * as React from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
@@ -15,14 +12,14 @@ const DACH_BOUNDS: LatLngBoundsExpression = [
 const DETAIL_ZOOM = 15;
 const STORAGE_KEY = "lmaa-map-prefs";
 
-const markerIcon = new Icon({
-  iconRetinaUrl: markerIcon2xUrl,
-  iconUrl: markerIconUrl,
-  shadowUrl: markerShadowUrl,
+const MARKER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41"><path d="M12.5 0C5.6 0 0 5.6 0 12.5 0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="#d97706"/><circle cx="12.5" cy="12.5" r="6" fill="#fff"/></svg>`;
+
+const markerIcon = new DivIcon({
+  html: MARKER_SVG,
+  className: "",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 41],
 });
 
 const LAYERS = [

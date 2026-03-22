@@ -640,7 +640,7 @@ export interface DashboardMessages {
         slug: string;
         status: string;
         createdBy: string;
-        updatedBy: string;
+        updatedAt: string;
       };
       status: {
         published: string;
@@ -1505,7 +1505,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           slug: "Slug",
           status: "Status",
           createdBy: "Erstellt von",
-          updatedBy: "Geändert von",
+          updatedAt: "Geändert am",
         },
         status: {
           published: "Veröffentlicht",
@@ -2361,7 +2361,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           slug: "Slug",
           status: "Status",
           createdBy: "Created by",
-          updatedBy: "Updated by",
+          updatedAt: "Updated at",
         },
         status: {
           published: "Published",
