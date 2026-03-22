@@ -271,9 +271,12 @@ const metaDescription = shop.description
             </SectionLabel>
             <div class="flex flex-wrap gap-2">
               {notes!.focus.map((tag) => (
-                <span class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200">
+                <a
+                  href={`/search?q=${encodeURIComponent(tag)}`}
+                  class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 transition-colors"
+                >
                   {tag}
-                </span>
+                </a>
               ))}
             </div>
           </div>
@@ -287,9 +290,12 @@ const metaDescription = shop.description
             </SectionLabel>
             <div class="flex flex-wrap gap-2">
               {notes!.brandsOrProducts.map((tag) => (
-                <span class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200">
+                <a
+                  href={`/search?q=${encodeURIComponent(tag)}`}
+                  class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 transition-colors"
+                >
                   {tag}
-                </span>
+                </a>
               ))}
             </div>
           </div>
