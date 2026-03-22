@@ -18,8 +18,9 @@
   /* Brand name in sidebar */
   --ds-brand-text: var(--ds-text);
 
-  /* Table row hover */
+  /* Table row hover + alternating stripe */
   --ds-row-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
+  --ds-row-stripe: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.025);
 
   /* Table row separator (subtler than --ds-border-subtle) */
   --ds-table-row-separator: hsl(210 12% 94%);
