@@ -629,8 +629,7 @@ export interface DashboardMessages {
       create: string;
       creating: string;
       createError: string;
-      confirmDeletePrefix: string;
-      confirmDeleteSuffix: string;
+      confirmDeleteDescription: string;
       loadPages: string;
       emptyPages: string;
       emptyPagesHint: string;
@@ -1494,8 +1493,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         create: "Erstellen",
         creating: "Wird erstellt…",
         createError: "Fehler beim Erstellen",
-        confirmDeletePrefix: "Seite „",
-        confirmDeleteSuffix: '" wirklich löschen?',
+        confirmDeleteDescription: "Soll die folgende Seite wirklich gelöscht werden?",
         loadPages: "Lade Seiten…",
         emptyPages: "Noch keine Seiten vorhanden.",
         emptyPagesHint: "Erstelle deine erste Seite über den +-Button.",
@@ -2350,8 +2348,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         create: "Create",
         creating: "Creating…",
         createError: "Error while creating",
-        confirmDeletePrefix: 'Delete page "',
-        confirmDeleteSuffix: '" for sure?',
+        confirmDeleteDescription: "Do you really want to delete the following page?",
         loadPages: "Loading pages…",
         emptyPages: "No pages available yet.",
         emptyPagesHint: "Create your first page using the + button.",

@@ -10,6 +10,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
@@ -86,7 +88,7 @@ function formatDate(isoDate: string | null, locale: string): string {
 export function PagesListPage() {
   const { locale, messages } = useI18n();
   const text = messages.content.pages;
-  const cancel = messages.common.cancel;
+  const common = messages.common;
   const { data: pages = [], isLoading } = useContentPages();
   const createPage = useCreateContentPage();
   const deletePage = useDeleteContentPage();
@@ -97,6 +99,7 @@ export function PagesListPage() {
   const [slug, setSlug] = useState("");
   const [slugManual, setSlugManual] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ slug: string; title: string } | null>(null);
 
   function handleTitleChange(val: string) {
     setTitle(val);
@@ -133,9 +136,11 @@ export function PagesListPage() {
     setCreateError(null);
   }
 
-  async function handleDelete(pageSlug: string, pageTitle: string) {
-    if (!confirm(`${text.confirmDeletePrefix}${pageTitle}${text.confirmDeleteSuffix}`)) return;
-    await deletePage.mutateAsync(pageSlug);
+  function handleDeleteConfirm() {
+    if (!deleteTarget) return;
+    deletePage.mutate(deleteTarget.slug, {
+      onSuccess: () => setDeleteTarget(null),
+    });
   }
 
   const columns = useMemo<ColumnDef<ContentPage>[]>(
@@ -192,9 +197,9 @@ export function PagesListPage() {
           <div className="flex gap-2 justify-end">
             <button
               type="button"
-              onClick={() => handleDelete(page.slug, page.title)}
+              onClick={() => setDeleteTarget({ slug: page.slug, title: page.title })}
               disabled={deletePage.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-50"
             >
               <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
               {text.deletePageTitle}
@@ -283,7 +288,7 @@ export function PagesListPage() {
                 onClick={handleCancelCreate}
                 className="px-4 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
               >
-                {cancel}
+                {common.cancel}
               </button>
             </div>
           </form>
@@ -315,6 +320,48 @@ export function PagesListPage() {
           </div>
         )}
       </PageBody>
+
+      {deleteTarget !== null && (
+        <OverlayCard
+          open={deleteTarget !== null}
+          onClose={() => setDeleteTarget(null)}
+          size={{ storageKey: "pages:delete-size", defaultWidth: 480 }}
+          aria-label={text.deletePageTitle}
+        >
+          <OverlayCard.Header>
+            <div className="flex items-center gap-3">
+              <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
+              <h3 className="font-bold text-[var(--ds-text)]">{text.deletePageTitle}</h3>
+            </div>
+          </OverlayCard.Header>
+
+          <OverlayCard.Body>
+            <p className="text-sm text-[var(--ds-text-muted)]">
+              {text.confirmDeleteDescription}{" "}
+              <span className="font-medium">{deleteTarget.title}</span>
+            </p>
+          </OverlayCard.Body>
+
+          <OverlayCard.Footer className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setDeleteTarget(null)}
+              className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+            >
+              {common.cancel}
+            </button>
+            <button
+              type="button"
+              disabled={deletePage.isPending}
+              onClick={handleDeleteConfirm}
+              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+            >
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+              {deletePage.isPending ? "…" : common.delete}
+            </button>
+          </OverlayCard.Footer>
+        </OverlayCard>
+      )}
     </PageLayout>
   );
 }
