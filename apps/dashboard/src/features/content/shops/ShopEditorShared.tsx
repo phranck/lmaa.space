@@ -413,8 +413,14 @@ export function useShopEditorController({
     if (isNew || isSubmissionMode || hasImmediateFormData || shopData == null) return;
     if (formInitializedRef.current) return; // don't overwrite local edits on background refetch
     formInitializedRef.current = true;
-    setForm(getInitialFormValue(initialData, shopData));
-  }, [hasImmediateFormData, initialData, isNew, isSubmissionMode, shopData]);
+    const baseForm = getInitialFormValue(initialData, shopData);
+    if (shopData.reviewData && shopData.needsReview) {
+      const withReview = applyShopCheckJsonToForm(baseForm, shopData.reviewData as ShopCheckJsonPayload, categories);
+      setForm(withReview ?? baseForm);
+    } else {
+      setForm(baseForm);
+    }
+  }, [hasImmediateFormData, initialData, isNew, isSubmissionMode, shopData, categories]);
 
   useEffect(() => {
     if (initialShop === undefined) return;
@@ -654,7 +660,12 @@ export function useShopEditorController({
 type ShopEditorController = ReturnType<typeof useShopEditorController>;
 
 export function ShopEditorFormContent({ controller }: { controller: ShopEditorController }) {
-  const [shopCheckJson, setShopCheckJson] = useState("");
+  const initialJsonRef = useRef<string | null>(null);
+  const activeReviewData = controller.activeShop?.reviewData;
+  if (initialJsonRef.current === null && activeReviewData) {
+    initialJsonRef.current = JSON.stringify(activeReviewData, null, 2);
+  }
+  const [shopCheckJson, setShopCheckJson] = useState(initialJsonRef.current ?? "");
   const [jsonImportError, setJsonImportError] = useState<string | null>(null);
   const {
     categories,
@@ -801,9 +812,8 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
             <ShopLocationMap
               latitude={form.headquartersLatitude}
               longitude={form.headquartersLongitude}
-              standardLayerLabel={shopFormI18n.messages.mapStandardLabel}
-              satelliteLayerLabel={shopFormI18n.messages.mapSatelliteLabel}
-              className="h-full"
+              name={form.name}
+              className="h-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)]"
             />
           }
         />
