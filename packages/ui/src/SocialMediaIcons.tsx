@@ -27,7 +27,7 @@ export function SocialMediaIcons({ socialMedia, className, linkable = true }: So
             aria-label={label}
             title={label}
           >
-            <Icon size={16} />
+            <Icon size={20} />
           </a>
         ) : (
           <span
