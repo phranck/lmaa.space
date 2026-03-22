@@ -220,7 +220,7 @@ export function PagesListPage() {
         )}
       </PageHeader>
 
-      <PageBody className="space-y-6">
+      <PageBody>
         {showCreate && (
           <form
             onSubmit={handleCreate}
@@ -304,12 +304,14 @@ export function PagesListPage() {
         )}
 
         {!isLoading && pages.length > 0 && (
-          <DataTable
-            columns={columns}
-            data={pages}
-            getRowKey={(page) => page.slug}
-            stickyHeader
-          />
+          <div className="-mx-3 -mt-3">
+            <DataTable
+              columns={columns}
+              data={pages}
+              getRowKey={(page) => page.slug}
+              stickyHeader
+            />
+          </div>
         )}
       </PageBody>
     </PageLayout>
