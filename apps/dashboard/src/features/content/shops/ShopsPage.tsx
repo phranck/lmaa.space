@@ -180,7 +180,14 @@ export function ShopsPage() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const parsed = JSON.parse(reader.result as string) as unknown;
+        // Fix broken German typographic quotes: „text" where the closing " is
+        // ASCII U+0022 instead of the correct U+201C. Replace such pairs with
+        // properly matched Unicode quotes so JSON.parse succeeds.
+        const raw = (reader.result as string).replace(
+          /\u201E([^\u201E\u201C\u201D\u0022\n]{1,200})"/g,
+          "\u201E$1\u201C",
+        );
+        const parsed = JSON.parse(raw) as unknown;
         if (!Array.isArray(parsed)) {
           setImportStatus(shopsMessages.importInvalidFile);
           return;
