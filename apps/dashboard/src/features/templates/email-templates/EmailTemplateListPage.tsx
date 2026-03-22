@@ -10,7 +10,7 @@ import {
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
-import type { EmailTemplateInput } from "@lmaa/contracts";
+import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -36,14 +36,6 @@ import {
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 
 type ImportTemplateData = EmailTemplateInput;
-
-interface TemplateRow {
-  id: number;
-  name: string;
-  subject: string | null;
-  isSystemTemplate: boolean;
-  createdAt: string;
-}
 
 /**
  * List page showing all email templates with create, delete, import and export actions.
@@ -166,7 +158,7 @@ export function EmailTemplateListPage() {
     processImportQueue(remaining, imported);
   }
 
-  const columns = useMemo<ColumnDef<TemplateRow>[]>(
+  const columns = useMemo<ColumnDef<EmailTemplate>[]>(
     () => [
       {
         id: "name",
