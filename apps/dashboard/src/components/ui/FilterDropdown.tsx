@@ -8,6 +8,8 @@ interface FilterDropdownProps<T extends string = string> {
   options: DropdownOption<T>[];
   storageKey?: string;
   className?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
 }
 
 /**
@@ -19,6 +21,8 @@ export function FilterDropdown<T extends string = string>({
   options,
   storageKey,
   className,
+  searchable,
+  searchPlaceholder,
 }: FilterDropdownProps<T>) {
   const restoredRef = useRef(false);
 
@@ -49,5 +53,5 @@ export function FilterDropdown<T extends string = string>({
     } catch {}
   }, [options, storageKey, value]);
 
-  return <Dropdown value={value} onChange={onChange} options={options} className={className ?? "w-52"} />;
+  return <Dropdown value={value} onChange={onChange} options={options} className={className ?? "w-52"} searchable={searchable} searchPlaceholder={searchPlaceholder} />;
 }

@@ -263,6 +263,8 @@ export function ShopsPage() {
           onChange={setCategoryFilter}
           options={categoryFilterOptions}
           storageKey="shops-filter-category"
+          searchable
+          searchPlaceholder={shopsMessages.searchPlaceholder}
         />
 
         <FilterDropdown

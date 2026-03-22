@@ -80,6 +80,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
           clearAllAriaLabel: "Clear all selected categories",
           clearSelectionAriaLabel: "Remove selected category",
           moreSelected: (count) => `+ ${count} more`,
+          searchPlaceholder: "Search…",
         },
         regionSelect: {
           label: "Shipping Regions",
@@ -140,6 +141,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         clearAllAriaLabel: "Alle ausgewählten Kategorien entfernen",
         clearSelectionAriaLabel: "Ausgewählte Kategorie entfernen",
         moreSelected: (count) => `+ ${count} weitere`,
+        searchPlaceholder: "Suchen…",
       },
       regionSelect: {
         label: "Versand-Regionen",

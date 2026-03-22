@@ -17,6 +17,10 @@ interface DropdownProps<T extends string = string> {
   /** Optional section label rendered above the trigger button. */
   label?: string;
   className?: string;
+  /** When true, shows a search input at the top of the dropdown list. */
+  searchable?: boolean;
+  /** Placeholder text for the search input (only used when searchable is true). */
+  searchPlaceholder?: string;
 }
 
 /**
@@ -34,11 +38,15 @@ export function Dropdown<T extends string = string>({
   options,
   label,
   className,
+  searchable,
+  searchPlaceholder,
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [searchQuery, setSearchQuery] = useState("");
   const ref = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -50,11 +58,19 @@ export function Dropdown<T extends string = string>({
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
+  const filteredOptions = searchable && searchQuery
+    ? options.filter((o) => o.label.toLowerCase().includes(searchQuery.toLowerCase()))
+    : options;
+
   useEffect(() => {
     if (open) {
+      setSearchQuery("");
       setHighlightIndex(options.findIndex((o) => o.value === value));
+      if (searchable) {
+        requestAnimationFrame(() => searchInputRef.current?.focus());
+      }
     }
-  }, [open, options, value]);
+  }, [open, options, value, searchable]);
 
   const selectOption = useCallback(
     (v: T) => {
@@ -77,17 +93,24 @@ export function Dropdown<T extends string = string>({
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          setHighlightIndex((i) => (i + 1) % options.length);
+          setHighlightIndex((i) => (i + 1) % filteredOptions.length);
           break;
         case "ArrowUp":
           e.preventDefault();
-          setHighlightIndex((i) => (i - 1 + options.length) % options.length);
+          setHighlightIndex((i) => (i - 1 + filteredOptions.length) % filteredOptions.length);
           break;
         case "Enter":
-        case " ":
           e.preventDefault();
-          if (highlightIndex >= 0 && highlightIndex < options.length) {
-            selectOption(options[highlightIndex].value);
+          if (highlightIndex >= 0 && highlightIndex < filteredOptions.length) {
+            selectOption(filteredOptions[highlightIndex].value);
+          }
+          break;
+        case " ":
+          if (!searchable) {
+            e.preventDefault();
+            if (highlightIndex >= 0 && highlightIndex < filteredOptions.length) {
+              selectOption(filteredOptions[highlightIndex].value);
+            }
           }
           break;
         case "Escape":
@@ -100,11 +123,11 @@ export function Dropdown<T extends string = string>({
           break;
         case "End":
           e.preventDefault();
-          setHighlightIndex(options.length - 1);
+          setHighlightIndex(filteredOptions.length - 1);
           break;
       }
     },
-    [open, options, highlightIndex, selectOption],
+    [open, filteredOptions, highlightIndex, selectOption, searchable],
   );
 
   const current = options.find((o) => o.value === value);
@@ -157,9 +180,26 @@ export function Dropdown<T extends string = string>({
             ref={listRef}
             tabIndex={-1}
             id={listboxId}
-            className="absolute z-20 right-0 mt-1 py-1 min-w-full w-max bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden"
+            className="absolute z-20 right-0 mt-1 min-w-full w-max bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden"
           >
-            {options.map(({ value: v, label: l, icon, count }, index) => (
+            {searchable && (
+              <div className="px-2 pt-2 pb-1">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setHighlightIndex(0);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder={searchPlaceholder}
+                  className="w-full py-1.5 px-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+            )}
+            <div className="py-1 max-h-64 overflow-y-auto">
+            {filteredOptions.map(({ value: v, label: l, icon, count }, index) => (
               // biome-ignore lint/a11y/useSemanticElements: option role on button is intentional
               <button
                 role="option"
@@ -186,6 +226,7 @@ export function Dropdown<T extends string = string>({
                 )}
               </button>
             ))}
+            </div>
           </div>
         )}
       </div>

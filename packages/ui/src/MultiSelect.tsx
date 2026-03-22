@@ -44,6 +44,7 @@ export interface MultiSelectMessages {
   clearAllAriaLabel: string;
   clearSelectionAriaLabel: string;
   moreSelected: (count: number) => string;
+  searchPlaceholder?: string;
 }
 
 /**
@@ -79,8 +80,14 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [dropdownRect, setDropdownRect] = React.useState<DOMRect | null>(null);
+  const [searchQuery, setSearchQuery] = React.useState("");
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+  const filteredOptions = searchQuery
+    ? options.filter((o) => o.label.toLowerCase().includes(searchQuery.toLowerCase()))
+    : options;
 
   // Close on click outside
   React.useEffect(() => {
@@ -109,6 +116,8 @@ export function MultiSelect({
   function handleToggle() {
     if (!isOpen && triggerRef.current) {
       setDropdownRect(triggerRef.current.getBoundingClientRect());
+      setSearchQuery("");
+      requestAnimationFrame(() => searchInputRef.current?.focus());
     }
     setIsOpen((prev) => !prev);
   }
@@ -121,11 +130,11 @@ export function MultiSelect({
   }
 
   function handleToggleAll() {
-    const all = options.map((o) => o.value);
-    if (value.length === options.length) {
-      onValueChange([]);
+    const filteredValues = filteredOptions.map((o) => o.value);
+    if (allSelected) {
+      onValueChange(value.filter((v) => !filteredValues.includes(v)));
     } else {
-      onValueChange(all);
+      onValueChange([...new Set([...value, ...filteredValues])]);
     }
   }
 
@@ -158,7 +167,7 @@ export function MultiSelect({
     handleToggle();
   }
 
-  const allSelected = options.length > 0 && value.length === options.length;
+  const allSelected = filteredOptions.length > 0 && filteredOptions.every((o) => value.includes(o.value));
 
   const dropdown =
     isOpen && dropdownRect
@@ -175,6 +184,23 @@ export function MultiSelect({
             }}
             className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
           >
+            {/* Search */}
+            <div className="px-2 pt-2 pb-1">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                  }
+                }}
+                placeholder={messages.searchPlaceholder}
+                className="w-full py-1.5 px-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              />
+            </div>
             {/* List */}
             <div style={{ maxHeight: "300px", overflowY: "auto" }}>
               {/* Select all */}
@@ -197,7 +223,7 @@ export function MultiSelect({
               </button>
 
               {/* Options */}
-              {options.map((opt) => {
+              {filteredOptions.map((opt) => {
                 const isSelected = value.includes(opt.value);
                 return (
                   <button
