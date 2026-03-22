@@ -187,18 +187,19 @@ export function PagesListPage() {
       },
       {
         id: "actions",
-        header: "",
-        className: "w-12",
+        className: "w-36",
         cell: (page) => (
-          <button
-            type="button"
-            onClick={() => handleDelete(page.slug, page.title)}
-            disabled={deletePage.isPending}
-            className="p-1.5 text-[var(--ds-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors disabled:opacity-40"
-            title={text.deletePageTitle}
-          >
-            <TrashIcon weight="duotone" className="w-4 h-4" />
-          </button>
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => handleDelete(page.slug, page.title)}
+              disabled={deletePage.isPending}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
+            >
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+              {text.deletePageTitle}
+            </button>
+          </div>
         ),
       },
     ],
