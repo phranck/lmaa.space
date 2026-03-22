@@ -8,7 +8,7 @@ import {
   TrashIcon,
   UploadIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { FormConfig } from "@lmaa/contracts";
@@ -18,10 +18,13 @@ import {
   Dialog,
   dialogBtnDestructive,
   dialogBtnPrimary,
-  dialogHeaderIconClass,
   dialogBtnSecondary,
+  dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import type { ColumnDef } from "@/components/ui/Table.tsx";
+import { DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { ImportConflictDialog } from "@/features/templates/form-builder/ImportConflictDialog.tsx";
 import {
@@ -223,11 +226,12 @@ function NewFormDialog({
 /**
  * Form builder list page showing all form configurations.
  *
- * @returns List page with table of forms and "New Form" button.
+ * @returns List page with DataTable of forms and "New Form" button.
  */
 export function FormBuilderListPage() {
   const { messages } = useI18n();
   const m = messages.formBuilder;
+  const common = messages.common;
   const navigate = useNavigate();
   const { data: forms = [], isLoading } = useFormConfigs();
   const deleteForm = useDeleteFormConfig();
@@ -243,14 +247,11 @@ export function FormBuilderListPage() {
     imported: number;
   } | null>(null);
 
-  function handleDelete(name: string) {
-    setDeleteTarget(name);
-  }
-
-  async function confirmDelete() {
+  function confirmDelete() {
     if (!deleteTarget) return;
-    await deleteForm.mutateAsync(deleteTarget);
-    setDeleteTarget(null);
+    deleteForm.mutate(deleteTarget, {
+      onSuccess: () => setDeleteTarget(null),
+    });
   }
 
   function handleCreated(name: string) {
@@ -298,7 +299,6 @@ export function FormBuilderListPage() {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Reset input so the same file can be re-imported
     e.target.value = "";
 
     const reader = new FileReader();
@@ -325,7 +325,7 @@ export function FormBuilderListPage() {
 
         processImportQueue(queue, 0);
       } catch {
-        alert(m.importInvalidFile);
+        setAlertMessage(m.importInvalidFile);
       }
     };
     reader.readAsText(file);
@@ -340,7 +340,7 @@ export function FormBuilderListPage() {
       {
         onSuccess: () => processImportQueue(remaining, imported + 1),
         onError: () => {
-          alert(m.importError);
+          setAlertMessage(m.importError);
           processImportQueue(remaining, imported);
         },
       },
@@ -361,8 +361,89 @@ export function FormBuilderListPage() {
     processImportQueue(remaining, imported);
   }
 
+  const columns = useMemo<ColumnDef<FormConfig>[]>(
+    () => [
+      {
+        id: "name",
+        header: m.tableColumns.name,
+        sortKey: (form) => form.name.toLowerCase(),
+        cell: (form) => (
+          <button
+            type="button"
+            onClick={() => navigate(`/forms/${form.name}`)}
+            className="font-medium text-[var(--ds-text)] hover:underline text-left truncate font-mono"
+          >
+            {form.name}
+          </button>
+        ),
+      },
+      {
+        id: "slug",
+        header: m.slugLabel,
+        cell: (form) => (
+          <span className="font-mono text-xs text-[var(--ds-text-muted)]">
+            {form.slug ? `/${form.slug}` : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        header: m.tableColumns.status,
+        cell: (form) => (
+          <button
+            type="button"
+            title={form.isActive ? m.status.deactivate : m.status.activate}
+            disabled={setActive.isPending}
+            onClick={() => setActive.mutate({ name: form.name, isActive: !form.isActive })}
+            className="disabled:opacity-40 transition-opacity"
+          >
+            <ActiveBadge
+              isActive={form.isActive}
+              activeLabel={m.status.active}
+              inactiveLabel={m.status.inactive}
+            />
+          </button>
+        ),
+      },
+      {
+        id: "actions",
+        className: "w-[28rem]",
+        cell: (form) => (
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => handleExportSingle(form)}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
+            >
+              <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
+              {m.exportForm}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/forms/${form.name}`)}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
+            >
+              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
+              {m.editButton}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeleteTarget(form.name)}
+              disabled={deleteForm.isPending}
+              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
+            >
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+              {common.delete}
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [m, common, navigate, deleteForm.isPending, setActive.isPending],
+  );
+
   return (
-    <>
+    <PageLayout>
       <PageHeader title={m.listTitle}>
         <button
           type="button"
@@ -391,16 +472,16 @@ export function FormBuilderListPage() {
         </button>
       </PageHeader>
 
-      <div className="space-y-6">
+      <PageBody>
         {isLoading && (
           <div className="flex items-center justify-center h-32 text-[var(--ds-text-muted)] text-sm">
-            {messages.common.loading}
+            {common.loading}
           </div>
         )}
 
         {!isLoading && forms.length === 0 && (
           <ContentUnavailableView
-            className="flex-1"
+            className="flex-1 min-h-0"
             icon={<FileIcon weight="duotone" aria-hidden />}
             title={m.noForms}
             subtitle={m.noFormsHint}
@@ -408,87 +489,16 @@ export function FormBuilderListPage() {
         )}
 
         {!isLoading && forms.length > 0 && (
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text-muted)] uppercase tracking-wide">
-                  <th className="text-left px-4 py-3">{m.tableColumns.name}</th>
-                  <th className="text-left px-4 py-3">{m.slugLabel}</th>
-                  <th className="text-left px-4 py-3">{m.tableColumns.status}</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {forms.map((form) => (
-                  <tr
-                    key={form.id}
-                    className="border-b border-[var(--ds-border)] last:border-0 hover:bg-[var(--ds-surface-hover)] transition-colors"
-                  >
-                    <td className="px-4 py-3 font-medium text-[var(--ds-text)]">
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/forms/${form.name}`)}
-                        className="hover:underline text-left font-mono"
-                      >
-                        {form.name}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-text-muted)]">
-                      {form.slug ? `/${form.slug}` : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        title={form.isActive ? m.status.deactivate : m.status.activate}
-                        disabled={setActive.isPending}
-                        onClick={() =>
-                          setActive.mutate({ name: form.name, isActive: !form.isActive })
-                        }
-                        className="disabled:opacity-40 transition-opacity"
-                      >
-                        <ActiveBadge
-                          isActive={form.isActive}
-                          activeLabel={m.status.active}
-                          inactiveLabel={m.status.inactive}
-                        />
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleExportSingle(form)}
-                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-                        >
-                          <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
-                          {m.exportForm}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/forms/${form.name}`)}
-                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-                        >
-                          <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-                          {m.editButton}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(form.name)}
-                          disabled={deleteForm.isPending}
-                          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
-                        >
-                          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-                          {messages.common.delete}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="-mx-3 -mt-3">
+            <DataTable
+              columns={columns}
+              data={forms}
+              getRowKey={(form) => form.id}
+              stickyHeader
+            />
           </div>
         )}
-      </div>
+      </PageBody>
 
       {/* Hidden file input for import */}
       <input
@@ -514,6 +524,7 @@ export function FormBuilderListPage() {
         />
       )}
 
+      {/* Delete confirmation dialog */}
       <Dialog
         open={deleteTarget !== null}
         title={`${m.deleteConfirmPrefix}${deleteTarget}${m.deleteConfirmSuffix}`}
@@ -529,19 +540,21 @@ export function FormBuilderListPage() {
             onClick={() => setDeleteTarget(null)}
             className={dialogBtnSecondary}
           >
-            {messages.common.cancel}
+            {common.cancel}
           </button>
           <button
             type="button"
             disabled={deleteForm.isPending}
-            onClick={() => void confirmDelete()}
-            className={dialogBtnDestructive}
+            onClick={confirmDelete}
+            className={`${dialogBtnDestructive} flex items-center gap-2`}
           >
-            {deleteForm.isPending ? "…" : messages.common.delete}
+            <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+            {deleteForm.isPending ? "…" : common.delete}
           </button>
         </Dialog.Footer>
       </Dialog>
 
+      {/* Import alert dialog */}
       <Dialog
         open={alertMessage !== null}
         title={alertMessage ?? ""}
@@ -554,10 +567,10 @@ export function FormBuilderListPage() {
             onClick={() => setAlertMessage(null)}
             className={dialogBtnSecondary}
           >
-            {messages.common.close}
+            {common.close}
           </button>
         </Dialog.Footer>
       </Dialog>
-    </>
+    </PageLayout>
   );
 }
