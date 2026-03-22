@@ -22,6 +22,7 @@ import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type SortState } from "@/components/ui/Table.tsx";
+import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
@@ -58,8 +59,9 @@ export function ShopsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  useAdminCategories();
-  const [search, setSearch] = useState("");
+  const { data: categories = [] } = useAdminCategories();
+  const search = searchParams.get("q") ?? "";
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
   const [geoFilter, setGeoFilter] = useState<GeoFilter>("all");
   const [exportLimit, setExportLimit] = useState<ExportLimit>(50);
@@ -67,6 +69,16 @@ export function ShopsPage() {
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const importMutation = useImportShopcheckResults();
   const sort = useMemo(() => parseShopsSort(searchParams), [searchParams]);
+
+  function setSearch(value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value) {
+      next.set("q", value);
+    } else {
+      next.delete("q");
+    }
+    setSearchParams(next, { replace: true });
+  }
 
   const { data: shops = [], isLoading } = useAdminShops(
     visibilityFilter === "all" ? undefined : visibilityFilter,
@@ -80,6 +92,9 @@ export function ShopsPage() {
         const matchesSearch =
           s.name.toLowerCase().includes(searchLower) || s.url.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
+        if (categoryFilter !== "all") {
+          if (!s.categories.some((c) => c.slug === categoryFilter)) return false;
+        }
         if (geoFilter === "with")
           return s.headquarters?.latitude != null && s.headquarters?.longitude != null;
         if (geoFilter === "without")
@@ -87,7 +102,7 @@ export function ShopsPage() {
         if (geoFilter === "needsReview") return s.needsReview === true;
         return true;
       }),
-    [shops, searchLower, geoFilter],
+    [shops, searchLower, categoryFilter, geoFilter],
   );
 
   const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
@@ -164,6 +179,21 @@ export function ShopsPage() {
     [shopsMessages, shops],
   );
 
+  const categoryFilterOptions = useMemo<DropdownOption<string>[]>(
+    () => [
+      {
+        value: "all",
+        label: shopsMessages.categoryFilter.all,
+        icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
+      },
+      ...categories.map((cat) => ({
+        value: cat.slug,
+        label: cat.name,
+      })),
+    ],
+    [shopsMessages, categories],
+  );
+
   function handleSortChange(nextSort: SortState | null) {
     const nextParams = new URLSearchParams(searchParams);
     if (nextSort) {
@@ -228,35 +258,25 @@ export function ShopsPage() {
   return (
     <PageLayout>
       <PageHeader title={shopsMessages.title}>
-        <div className="relative">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={shopsMessages.searchPlaceholder}
-            className="py-1.5 w-52 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
-            >
-              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        <FilterDropdown
+          value={categoryFilter}
+          onChange={setCategoryFilter}
+          options={categoryFilterOptions}
+          storageKey="shops-filter-category"
+        />
 
         <FilterDropdown
           value={geoFilter}
           onChange={setGeoFilter}
           options={geoFilterOptions}
+          storageKey="shops-filter-geo"
         />
 
         <FilterDropdown
           value={visibilityFilter}
           onChange={setVisibilityFilter}
           options={filterOptions}
+          storageKey="shops-filter-visibility"
         />
 
         <button
@@ -360,6 +380,27 @@ export function ShopsPage() {
           </div>
         )}
       </PageBody>
+
+      <Toolbar className="sticky bottom-0 z-10">
+        <div className="relative">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={shopsMessages.searchPlaceholder}
+            className="py-1.5 w-104 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
+            >
+              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </Toolbar>
     </PageLayout>
   );
 }
