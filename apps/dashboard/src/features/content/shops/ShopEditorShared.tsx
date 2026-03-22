@@ -490,6 +490,11 @@ export function useShopEditorController({
         formData: form,
         needsReview: options?.needsReview,
       });
+      const nextOgImage = ogImageInput.trim() || null;
+      const currentOgImage = activeShop?.ogImage?.trim() || null;
+      if (!isNew && nextOgImage !== currentOgImage) {
+        await setOgImageMutation.mutateAsync(nextOgImage);
+      }
       if (options?.onSuccess) {
         await options.onSuccess(saved);
       } else {
