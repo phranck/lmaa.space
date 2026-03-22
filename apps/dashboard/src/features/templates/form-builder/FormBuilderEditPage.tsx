@@ -17,7 +17,7 @@ import {
   UploadIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import type {
   FieldOptionsSource,
@@ -29,6 +29,7 @@ import type {
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
@@ -137,6 +138,7 @@ function makeNewRow(field: FormField): FormRow {
 export function FormBuilderEditPage() {
   const { name } = useParams<{ name: string }>();
   const formName = name ?? "";
+  const navigate = useNavigate();
 
   const { messages } = useI18n();
   const m = messages.formBuilder;
@@ -355,7 +357,10 @@ export function FormBuilderEditPage() {
   if (isLoading) {
     return (
       <div>
-        <PageHeader title={m.title} />
+        <PageHeader
+          title={m.title}
+          leading={<HeaderBackButton label={m.listTitle} onClick={() => navigate("/forms")} />}
+        />
         <div className="flex items-center justify-center py-24">
           <div className="w-8 h-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
         </div>
@@ -365,7 +370,10 @@ export function FormBuilderEditPage() {
 
   return (
     <div>
-      <PageHeader title={`${m.title}: ${formName}`}>
+      <PageHeader
+        title={`${m.title}: ${formName}`}
+        leading={<HeaderBackButton label={m.listTitle} onClick={() => navigate("/forms")} />}
+      >
         <div className="flex items-center gap-3">
           {showExportWarning && (
             <span className="text-sm text-amber-600 font-medium">{m.exportUnsavedWarning}</span>

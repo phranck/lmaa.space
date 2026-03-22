@@ -11,6 +11,7 @@ import { useNavigate, useParams } from "react-router";
 import type { ContentPage } from "@lmaa/shared";
 import { MarkdownEditor } from "@lmaa/ui";
 
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
@@ -525,7 +526,10 @@ export function ContentEditorPage() {
 
   return (
     <PageLayout>
-      <PageHeader title={title}>
+      <PageHeader
+        title={title}
+        leading={<HeaderBackButton label={messages.content.pages.title} onClick={() => navigate("/pages")} />}
+      >
         <EditorHeaderActions
           sourceFontSize={state.sourceFontSize}
           canIncreaseFont={state.sourceFontSize < FONT_SIZE_MAX}

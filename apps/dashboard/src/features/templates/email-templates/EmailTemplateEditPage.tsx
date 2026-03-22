@@ -6,6 +6,7 @@ import type { EmailTemplateInput } from "@lmaa/contracts";
 import { MarkdownEditor } from "@lmaa/ui";
 
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
+import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
@@ -158,7 +159,10 @@ export function EmailTemplateEditPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title={name || m.newTemplate}>
+      <PageHeader
+        title={name || m.newTemplate}
+        leading={<HeaderBackButton label={messages.emailTemplates.listTitle} onClick={() => navigate("/email-templates")} />}
+      >
         <div className="flex items-center gap-3">
           {savedIndicator && (
             <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
