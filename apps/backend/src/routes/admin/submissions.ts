@@ -1,8 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { z } from "zod";
 
-import { reviewSchema, submissionEditSchema, submissionStatusFilterSchema } from "@lmaa/contracts";
+import { reviewSchema, submissionEditSchema, submissionReviewImportSchema, submissionStatusFilterSchema } from "@lmaa/contracts";
 
 import { db } from "../../db/index.js";
 import { categories } from "../../db/schema.js";
@@ -41,17 +40,6 @@ submissionsRoutes.get("/submissions", async (c) => {
   const status = parsedStatus?.success ? parsedStatus.data : undefined;
   const submissions = await listAdminSubmissions(status);
   return ok(c, submissions);
-});
-
-// GET /api/admin/submissions/export – export pending submissions for shopcheck
-submissionsRoutes.get("/submissions/export", async (c) => {
-  const submissions = await listAdminSubmissions("pending");
-  const exportData = submissions.map((s) => ({
-    id: s.id,
-    name: s.shopName,
-    url: s.shopUrl,
-  }));
-  return ok(c, exportData);
 });
 
 // GET /api/admin/submissions/:id
@@ -145,24 +133,12 @@ function mapShopJsonToSubmissionEditData(
   };
 }
 
-const importEntrySchema = z.object({
-  shopId: z.number().int().positive(),
-  shopName: z.string(),
-  shopUrl: z.string(),
-  verdict: z.string(),
-  shopJson: z.record(z.unknown()).nullable().optional(),
-});
-
-const importBodySchema = z.object({
-  entries: z.array(importEntrySchema),
-});
-
-// POST /api/admin/submissions/import – import shopcheck results
+// POST /api/admin/submissions/import – import shopcheck review results
 submissionsRoutes.post(
   "/submissions/import",
-  zValidator("json", importBodySchema),
+  zValidator("json", submissionReviewImportSchema),
   async (c) => {
-    const { entries } = c.req.valid("json");
+    const entries = c.req.valid("json");
 
     const allCategories = await db.select({ id: categories.id, name: categories.name }).from(categories);
     const categoryNameToId = new Map(
@@ -173,26 +149,23 @@ submissionsRoutes.post(
     let skipped = 0;
     const errors: string[] = [];
 
-    for (const entry of entries) {
-      if (entry.verdict !== "accept" || !entry.shopJson) {
-        skipped += 1;
-        continue;
-      }
+    for (const item of entries) {
+      const { submissionId, ...shopJson } = item;
 
-      const submission = await getAdminSubmissionById(entry.shopId);
+      const submission = await getAdminSubmissionById(submissionId);
       if (!submission || (submission.status !== "pending" && submission.status !== "onhold")) {
         skipped += 1;
         continue;
       }
 
       try {
-        const editData = mapShopJsonToSubmissionEditData(entry.shopJson, categoryNameToId);
-        await editSubmission(entry.shopId, editData);
-        await setReadyForReview(entry.shopId, true);
+        const editData = mapShopJsonToSubmissionEditData(shopJson as Record<string, unknown>, categoryNameToId);
+        await editSubmission(submissionId, editData);
+        await setReadyForReview(submissionId, true);
         imported += 1;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        errors.push(`Submission ${entry.shopId}: ${message}`);
+        errors.push(`Submission ${submissionId}: ${message}`);
       }
     }
 

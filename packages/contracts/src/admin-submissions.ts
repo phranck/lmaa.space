@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { socialMediaSchema } from "@lmaa/shared";
 
+import { shopJsonSchema } from "./admin-shops";
 import {
   defaultRegionArraySchema,
   submissionReviewStatusSchema,
@@ -67,3 +68,11 @@ export const submissionEditSchema = z.object({
  * Submission status filter schema for list endpoints.
  */
 export const submissionStatusFilterSchema = submissionStatusSchema;
+
+/**
+ * Shopcheck review-results import payload for bulk submission updates.
+ * Each entry is a raw shopJson object with an embedded submissionId.
+ */
+export const submissionReviewImportSchema = z.array(
+  shopJsonSchema.extend({ submissionId: z.number().int().positive() }),
+);

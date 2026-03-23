@@ -1,5 +1,4 @@
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
 import {
@@ -14,8 +13,6 @@ import {
   visibilityUpdateSchema,
 } from "@lmaa/contracts";
 
-import { db } from "../../db/index.js";
-import { shops } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
@@ -183,18 +180,10 @@ shopsRoutes.post(
     const errors: string[] = [];
 
     for (const item of entries) {
-      const [shopRow] = await db
-        .select({ id: shops.id })
-        .from(shops)
-        .where(eq(shops.url, item.url))
-        .limit(1);
-      if (!shopRow) {
-        skipped += 1;
-        continue;
-      }
+      const { shopId, ...shopJson } = item;
 
       try {
-        const result = await stageShopReviewData(shopRow.id, item as Record<string, unknown>);
+        const result = await stageShopReviewData(shopId, shopJson as Record<string, unknown>);
         if (!result.ok) {
           skipped += 1;
         } else {
@@ -202,7 +191,7 @@ shopsRoutes.post(
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        errors.push(`Shop ${item.url}: ${message}`);
+        errors.push(`Shop ${shopId}: ${message}`);
       }
     }
 
