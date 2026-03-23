@@ -216,8 +216,10 @@ export interface DashboardMessages {
       wasReported: string;
       needsReview: string;
     };
-    importResults: string;
-    importSuccess: string;
+    exportLabel: string;
+    exportTooltip: string;
+    importLabel: string;
+    importTooltip: string;
     importError: string;
     importInvalidFile: string;
     editCard: {
@@ -377,9 +379,10 @@ export interface DashboardMessages {
       setToOpen: string;
       rejectionLongLabel: string;
       rejectionLongPlaceholder: string;
-      exportButton: string;
-      importButton: string;
-      importSuccess: string;
+      exportLabel: string;
+      exportTooltip: string;
+      importLabel: string;
+      importTooltip: string;
       importError: string;
       importInvalidFile: string;
       reviewBadge: string;
@@ -1077,8 +1080,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         wasReported: "Shop wurde gemeldet",
         needsReview: "Review",
       },
-      importResults: "Ergebnisse importieren",
-      importSuccess: "{imported} importiert, {skipped} übersprungen",
+      exportLabel: "Exportieren",
+      exportTooltip: "Shops als JSON für Shopcheck exportieren",
+      importLabel: "Importieren",
+      importTooltip: "Shopcheck-Ergebnisse importieren",
       importError: "Fehler beim Import",
       importInvalidFile: "Ungültige Datei",
       editCard: {
@@ -1239,9 +1244,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setToOpen: "Auf Neu setzen",
         rejectionLongLabel: "Langbegründung (öffentliche Seite)",
         rejectionLongPlaceholder: "Ausführliche Begründung für die Ablehnungsseite…",
-        exportButton: "Exportieren",
-        importButton: "Importieren",
-        importSuccess: "{imported} importiert, {skipped} übersprungen",
+        exportLabel: "Exportieren",
+        exportTooltip: "Submissions als JSON für Shopcheck exportieren",
+        importLabel: "Importieren",
+        importTooltip: "Shopcheck-Ergebnisse importieren",
         importError: "Fehler beim Import",
         importInvalidFile: "Ungültige Datei",
         reviewBadge: "Review",
@@ -1939,8 +1945,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         wasReported: "Shop was reported",
         needsReview: "Review",
       },
-      importResults: "Import Results",
-      importSuccess: "{imported} imported, {skipped} skipped",
+      exportLabel: "Export",
+      exportTooltip: "Export shops as JSON for shopcheck",
+      importLabel: "Import",
+      importTooltip: "Import shopcheck results",
       importError: "Import error",
       importInvalidFile: "Invalid file",
       editCard: {
@@ -2100,9 +2108,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setToOpen: "Set to new",
         rejectionLongLabel: "Long reason (public page)",
         rejectionLongPlaceholder: "Detailed reason for the rejection page…",
-        exportButton: "Export",
-        importButton: "Import",
-        importSuccess: "{imported} imported, {skipped} skipped",
+        exportLabel: "Export",
+        exportTooltip: "Export submissions as JSON for shopcheck",
+        importLabel: "Import",
+        importTooltip: "Import shopcheck results",
         importError: "Import error",
         importInvalidFile: "Invalid file",
         reviewBadge: "Review",

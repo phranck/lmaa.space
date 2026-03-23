@@ -102,12 +102,17 @@ const shopJsonSchema = z.object({
 });
 
 /**
- * Shopcheck results.json flat-array import payload for bulk shop updates.
- * Each entry is a raw shopJson object produced by the shopcheck tool.
- * Shops are matched by their URL field.
+ * Shared shopJson schema used by both shop and submission import routes.
+ */
+export { shopJsonSchema };
+
+/**
+ * Shopcheck review-results import payload for bulk shop updates.
+ * Each entry is a raw shopJson object produced by the shopcheck tool,
+ * identified by shopId for direct matching.
  */
 export const shopcheckImportSchema = z.array(
-  shopJsonSchema.extend({ url: z.string() }),
+  shopJsonSchema.extend({ shopId: z.number().int().positive() }),
 );
 
 /**

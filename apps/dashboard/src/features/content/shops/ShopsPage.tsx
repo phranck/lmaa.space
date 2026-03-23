@@ -1,5 +1,4 @@
 import {
-  DownloadSimpleIcon,
   EyeIcon,
   MagnifyingGlassIcon,
   MapPinIcon,
@@ -8,17 +7,19 @@ import {
   SquaresFourIcon,
   StorefrontIcon,
   TrashIcon,
-  UploadSimpleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import type { ShopVisibility } from "@lmaa/shared";
 
+import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
+import { ExportButton } from "@/components/ui/ExportButton.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
+import { ImportButton } from "@/components/ui/ImportButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type SortState } from "@/components/ui/Table.tsx";
@@ -65,8 +66,7 @@ export function ShopsPage() {
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
   const [geoFilter, setGeoFilter] = useState<GeoFilter>("all");
   const [exportLimit, setExportLimit] = useState<ExportLimit>(50);
-  const importFileInputRef = useRef<HTMLInputElement>(null);
-  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
   const importMutation = useImportShopcheckResults();
   const sort = useMemo(() => parseShopsSort(searchParams), [searchParams]);
 
@@ -210,31 +210,17 @@ export function ShopsPage() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        // Fix broken German typographic quotes: „text" where the closing " is
-        // ASCII U+0022 instead of the correct U+201C. Replace such pairs with
-        // properly matched Unicode quotes so JSON.parse succeeds.
-        const raw = (reader.result as string).replace(
-          /\u201E([^\u201E\u201C\u201D\u0022\n]{1,200})"/g,
-          "\u201E$1\u201C",
-        );
-        const parsed = JSON.parse(raw) as unknown;
+        const parsed = JSON.parse(reader.result as string) as unknown;
         if (!Array.isArray(parsed)) {
-          setImportStatus(shopsMessages.importInvalidFile);
+          setImportError(shopsMessages.importInvalidFile);
           return;
         }
         const entries = parsed as Array<Record<string, unknown>>;
         importMutation.mutate(entries, {
-          onSuccess: (result) => {
-            setImportStatus(
-              shopsMessages.importSuccess
-                .replace("{imported}", String(result.imported))
-                .replace("{skipped}", String(result.skipped)),
-            );
-          },
-          onError: () => setImportStatus(shopsMessages.importError),
+          onError: () => setImportError(shopsMessages.importError),
         });
       } catch {
-        setImportStatus(shopsMessages.importInvalidFile);
+        setImportError(shopsMessages.importInvalidFile);
       }
     };
     reader.readAsText(file);
@@ -243,12 +229,12 @@ export function ShopsPage() {
   function handleExport() {
     const rows = filtered
       .slice(0, exportLimit)
-      .map((s) => ({ id: s.id, name: s.name, url: s.url }));
+      .map((s) => ({ shopId: s.id, shopUrl: s.url }));
     const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `shops-export-${rows.length}.json`;
+    a.download = "shops-export.json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -281,61 +267,41 @@ export function ShopsPage() {
           storageKey="shops-filter-visibility"
         />
 
-        <button
-          type="button"
-          onClick={() => {
-            setImportStatus(null);
-            importFileInputRef.current?.click();
-          }}
+        <ImportButton
+          onFileSelected={handleImportFile}
           disabled={importMutation.isPending}
-          className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
-          title={shopsMessages.importResults}
-        >
-          <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
-          {shopsMessages.importResults}
-        </button>
-        <input
-          ref={importFileInputRef}
-          type="file"
-          accept=".json"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleImportFile(file);
-            e.target.value = "";
-          }}
+          tooltip={shopsMessages.importTooltip}
+          label={shopsMessages.importLabel}
         />
 
-        <div className="flex items-center rounded-control border border-[var(--ds-border)] overflow-hidden">
+        <ExportButton
+          onClick={handleExport}
+          disabled={filtered.length === 0}
+          tooltip={shopsMessages.exportTooltip}
+          label={shopsMessages.exportLabel}
+        >
           <select
             value={exportLimit}
             onChange={(e) => setExportLimit(Number(e.target.value) as ExportLimit)}
-            className="py-1.5 pl-3 pr-1 text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none border-r border-[var(--ds-border)]"
+            className="py-1.5 pl-3 pr-1 text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none border-r border-[var(--ds-btn-primary-border)]"
             aria-label="Anzahl zu exportierender Shops"
           >
             {EXPORT_LIMITS.map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={filtered.length === 0}
-            className="flex items-center gap-1.5 py-1.5 px-3 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            title={`${Math.min(exportLimit, filtered.length)} Shops als JSON exportieren`}
-          >
-            <DownloadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
-            Export JSON
-          </button>
-        </div>
+        </ExportButton>
 
       </PageHeader>
 
-      {importStatus && (
-        <div className="mx-3 mt-2 px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm text-[var(--ds-text-muted)]">
-          {importStatus}
-        </div>
-      )}
+      <AlertDialog
+        open={importError !== null}
+        title={shopsMessages.importError}
+        variant="error"
+        onClose={() => setImportError(null)}
+      >
+        {importError}
+      </AlertDialog>
 
       <PageBody>
         {isLoading && (
