@@ -1,18 +1,12 @@
 import { eq, sql } from "drizzle-orm";
 
-import type { AdminShopListItem } from "@lmaa/shared";
-import type { Shop as SharedShop, ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
+import type { AdminShopListItem, Shop as SharedShop, ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
 
 import type { HeadquartersInput } from "./headquarters.js";
 import { loadShopHeadquartersMap, upsertShopHeadquarters } from "./headquarters.js";
 import { db } from "../db/index.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../db/schema.js";
 import type { Shop as DbShop } from "../db/schema.js";
-
-/**
- * Expanded shop detail shape used by admin edit views.
- */
-type AdminShopDetail = SharedShop;
 
 /**
  * Payload used when creating a shop from dashboard.
@@ -101,8 +95,8 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
  * @param id - Shop id.
  * @returns Shop detail or `null` when missing.
  */
-export async function getAdminShopById(id: number): Promise<AdminShopDetail | null> {
-  const [shop] = await db.execute<AdminShopDetail & Record<string, unknown>>(sql`
+export async function getAdminShopById(id: number): Promise<SharedShop | null> {
+  const [shop] = await db.execute<SharedShop & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.contact_email as "contactEmail",
            s.is_active as "isActive", s.visibility,
