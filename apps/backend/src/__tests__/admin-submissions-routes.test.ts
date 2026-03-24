@@ -1,0 +1,161 @@
+import { Hono } from "hono";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../config/env.js", () => ({
+  env: { NODE_ENV: "development" },
+}));
+
+vi.mock("../middleware/auth.js", () => ({
+  requireAdmin: vi.fn((_c: unknown, next: () => Promise<void>) => next()),
+}));
+
+const repoMocks = vi.hoisted(() => ({
+  editSubmission: vi.fn(),
+  getAdminSubmissionById: vi.fn(),
+  listAdminSubmissions: vi.fn(),
+  setReadyForReview: vi.fn(),
+}));
+
+const serviceMocks = vi.hoisted(() => ({
+  deleteModeratedAdminSubmission: vi.fn(),
+  reviewAdminSubmission: vi.fn(),
+}));
+
+const dbMock = vi.hoisted(() => ({
+  db: { select: vi.fn() },
+}));
+
+vi.mock("../repositories/admin-submissions.js", () => repoMocks);
+vi.mock("../services/admin-submissions.js", () => serviceMocks);
+vi.mock("../db/index.js", () => dbMock);
+vi.mock("../db/schema.js", () => ({
+  categories: { id: "categories.id", name: "categories.name" },
+}));
+vi.mock("../lib/shopjson-mapper.js", () => ({
+  mapShopJsonToShopData: vi.fn(() => ({
+    name: "Shop",
+    url: "https://shop.de",
+    categoryIds: [],
+  })),
+}));
+
+import { submissionsRoutes } from "../routes/admin/submissions.js";
+
+describe("submissionsRoutes", () => {
+  const app = new Hono();
+  app.route("/", submissionsRoutes);
+
+  beforeEach(() => vi.clearAllMocks());
+
+  describe("GET /submissions", () => {
+    it("returns all submissions", async () => {
+      repoMocks.listAdminSubmissions.mockResolvedValue([{ id: 1 }]);
+
+      const res = await app.request("/submissions");
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ data: [{ id: 1 }] });
+    });
+
+    it("filters by status", async () => {
+      repoMocks.listAdminSubmissions.mockResolvedValue([]);
+
+      const res = await app.request("/submissions?status=pending");
+
+      expect(res.status).toBe(200);
+      expect(repoMocks.listAdminSubmissions).toHaveBeenCalledWith("pending");
+    });
+
+    it("returns 400 for invalid status", async () => {
+      const res = await app.request("/submissions?status=bogus");
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe("GET /submissions/:id", () => {
+    it("returns submission by id", async () => {
+      repoMocks.getAdminSubmissionById.mockResolvedValue({ id: 1, shopName: "Shop" });
+
+      const res = await app.request("/submissions/1");
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ data: { id: 1, shopName: "Shop" } });
+    });
+
+    it("returns 404 when not found", async () => {
+      repoMocks.getAdminSubmissionById.mockResolvedValue(null);
+
+      const res = await app.request("/submissions/99");
+
+      expect(res.status).toBe(404);
+    });
+
+    it("returns 400 for invalid id", async () => {
+      const res = await app.request("/submissions/abc");
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe("PATCH /submissions/:id (review)", () => {
+    it("reviews and returns submission", async () => {
+      serviceMocks.reviewAdminSubmission.mockResolvedValue({
+        ok: true,
+        submission: { id: 1, status: "approved" },
+      });
+
+      const res = await app.request("/submissions/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "approved" }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ data: { id: 1, status: "approved" } });
+    });
+
+    it("returns 404 when submission not found", async () => {
+      serviceMocks.reviewAdminSubmission.mockResolvedValue({ ok: false, reason: "not_found" });
+
+      const res = await app.request("/submissions/99", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "rejected" }),
+      });
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe("DELETE /submissions/:id", () => {
+    it("deletes submission successfully", async () => {
+      serviceMocks.deleteModeratedAdminSubmission.mockResolvedValue({ ok: true });
+
+      const res = await app.request("/submissions/1", { method: "DELETE" });
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ data: { message: "Submission deleted" } });
+    });
+
+    it("returns 404 when not found", async () => {
+      serviceMocks.deleteModeratedAdminSubmission.mockResolvedValue({
+        ok: false,
+        reason: "not_found",
+      });
+
+      const res = await app.request("/submissions/99", { method: "DELETE" });
+
+      expect(res.status).toBe(404);
+    });
+
+    it("returns 400 when status is invalid for deletion", async () => {
+      serviceMocks.deleteModeratedAdminSubmission.mockResolvedValue({
+        ok: false,
+        reason: "invalid_status",
+      });
+
+      const res = await app.request("/submissions/1", { method: "DELETE" });
+
+      expect(res.status).toBe(400);
+    });
+  });
+});

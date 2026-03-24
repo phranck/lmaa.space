@@ -9,6 +9,19 @@ const setAdminShopOgImage = vi.fn();
 async function loadServiceModule() {
   vi.resetModules();
 
+  vi.doMock("../config/env.js", () => ({
+    env: {
+      NODE_ENV: "test",
+      RESEND_API_KEY: "",
+      EMAIL_FROM: "test@test.com",
+      LOG_LEVEL: "silent",
+    },
+  }));
+
+  vi.doMock("../lib/logger.js", () => ({
+    logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  }));
+
   vi.doMock("../repositories/admin-submissions.js", () => ({
     deleteSubmission,
     getSubmissionStatus,
