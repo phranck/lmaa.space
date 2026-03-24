@@ -921,6 +921,7 @@ export interface DashboardMessages {
       running: string;
       progress: string;
       cancel: string;
+      cancelling: string;
       completed: string;
       failed: string;
       cancelled: string;
@@ -1877,6 +1878,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         running: "Batch-Scan läuft",
         progress: "{completed}/{total} abgeschlossen",
         cancel: "Abbrechen",
+        cancelling: "Wird abgebrochen…",
         completed: "Scan abgeschlossen",
         failed: "Scan fehlgeschlagen",
         cancelled: "Scan abgebrochen",
@@ -2824,6 +2826,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         running: "Batch scan running",
         progress: "{completed}/{total} completed",
         cancel: "Cancel",
+        cancelling: "Cancelling…",
         completed: "Scan completed",
         failed: "Scan failed",
         cancelled: "Scan cancelled",

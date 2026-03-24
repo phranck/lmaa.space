@@ -12,6 +12,7 @@ export function useStartBatchScan() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["affiliate-scans"] });
       qc.invalidateQueries({ queryKey: ["affiliate-stats"] });
+      qc.invalidateQueries({ queryKey: ["affiliate-job-active"] });
     },
   });
 }
@@ -37,8 +38,12 @@ export function useAffiliateScanJob(jobId: number | null) {
 }
 
 export function useCancelBatchScan() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (jobId: number) =>
       api.post(`/admin/affiliate/jobs/${jobId}/cancel`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["affiliate-job-active"] });
+    },
   });
 }
