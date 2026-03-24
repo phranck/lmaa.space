@@ -2,7 +2,6 @@ import {
   ArrowCounterClockwiseIcon,
   DownloadIcon,
   FileTextIcon,
-  InfoIcon,
   SealCheckIcon,
   TrashIcon,
   UploadSimpleIcon,
@@ -67,11 +66,9 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const showPutOnHold = shopVisibility === "public";
   const showReject = controller.canReject && !isRejected;
   const showEditRejection = isRejected;
-  const showRejectionInfo = isRejected;
   const showDelete = !controller.isNew;
   const showAcceptReview = !controller.isNew && (controller.activeShop?.needsReview === true);
   const backLabel = messages.layout.sidebar.shops;
-  const rejectionToken = controller.activeShop?.rejectionToken ?? null;
   const returnTo =
     typeof location.state === "object" &&
     location.state !== null &&
@@ -166,35 +163,14 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
             )}
 
             {showEditRejection && (
-              <>
-                <EditorToolbarButton
-                  onClick={() => controller.handleOpenRejectCard(true)}
-                  disabled={isActionPending}
-                  variant="neutral"
-                  icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {messages.submissions.suggestions.editRejectionInfo}
-                </EditorToolbarButton>
-
-                {showRejectionInfo && (
-                  <EditorToolbarButton
-                    onClick={() => {
-                      if (!rejectionToken) {
-                        return;
-                      }
-                      window.open(
-                        `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${rejectionToken}`,
-                        "_blank",
-                      );
-                    }}
-                    disabled={isActionPending || !rejectionToken}
-                    variant="warning"
-                    icon={<InfoIcon weight="duotone" className="h-3.5 w-3.5" />}
-                  >
-                    {messages.submissions.suggestions.info}
-                  </EditorToolbarButton>
-                )}
-              </>
+              <EditorToolbarButton
+                onClick={() => controller.handleOpenRejectCard(true)}
+                disabled={isActionPending}
+                variant="neutral"
+                icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
+              >
+                {messages.submissions.suggestions.editRejectionInfo}
+              </EditorToolbarButton>
             )}
 
             {showDelete && (
