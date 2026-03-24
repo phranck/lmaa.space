@@ -14,6 +14,8 @@ export * from "./types/api.js";
 export * from "./types/content.js";
 /** Media library domain models. */
 export * from "./types/media.js";
+/** Affiliate scan domain models. */
+export * from "./types/affiliate.js";
 /** API error parsing and normalization helpers. */
 export * from "./utils/api-error.js";
 /** Social media validation and normalization. */
