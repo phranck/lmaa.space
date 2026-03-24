@@ -129,12 +129,11 @@ function mapShopJsonToSubmissionEditData(
     categoryIds: mapped.categoryIds,
     contactEmail: mapped.contactEmail,
     headquarters: mapped.headquarters,
-    shopCheckNotes: mapped.shopCheckNotes,
     socialMedia: mapped.socialMedia,
   };
 }
 
-// POST /api/admin/submissions/import – import shopcheck review results
+// POST /api/admin/submissions/import – import review results
 submissionsRoutes.post(
   "/submissions/import",
   zValidator("json", submissionReviewImportSchema),

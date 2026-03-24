@@ -14,7 +14,6 @@ import {
   MapPinIcon,
   PackageIcon,
   StorefrontIcon,
-  TagIcon,
 } from "@phosphor-icons/react";
 
 const { token } = Astro.params;
@@ -89,12 +88,6 @@ if (hq) {
   if (hq.state) hqParts.push(hq.state);
   if (hq.countryCode) hqParts.push(hq.countryCode);
 }
-
-// Notes
-const notes = shop.shopCheckNotes;
-const hasFocus = notes?.focus && notes.focus.length > 0;
-const hasBrands = notes?.brandsOrProducts && notes.brandsOrProducts.length > 0;
-const hasNotes = hasFocus || hasBrands;
 
 // SEO
 const site = Astro.site?.origin ?? "https://lmaa.space";
@@ -260,48 +253,6 @@ const metaDescription = shop.description
       </section>
     )}
 
-    <!-- Notes: focus + brands -->
-    {hasNotes && (
-      <section class="mb-8 space-y-5">
-        {hasFocus && (
-          <div>
-            <SectionLabel class="mb-3 flex items-center gap-2">
-              <TagIcon weight="duotone" className="w-5 h-5" />
-              Schwerpunkte
-            </SectionLabel>
-            <div class="flex flex-wrap gap-2">
-              {notes!.focus.map((tag) => (
-                <a
-                  href={`/search?q=${encodeURIComponent(tag)}`}
-                  class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 transition-colors"
-                >
-                  {tag}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {hasBrands && (
-          <div>
-            <SectionLabel class="mb-3 flex items-center gap-2">
-              <TagIcon weight="duotone" className="w-5 h-5" />
-              Marken & Produkte
-            </SectionLabel>
-            <div class="flex flex-wrap gap-2">
-              {notes!.brandsOrProducts.map((tag) => (
-                <a
-                  href={`/search?q=${encodeURIComponent(tag)}`}
-                  class="px-3 py-1.5 rounded-full text-sm bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200 hover:text-stone-800 transition-colors"
-                >
-                  {tag}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-    )}
 
     <!-- Standort (Map) -->
     {hq?.latitude != null && hq?.longitude != null && (

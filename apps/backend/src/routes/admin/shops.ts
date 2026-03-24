@@ -167,7 +167,7 @@ shopsRoutes.post("/preview-image", zValidator("json", previewImageSchema), async
   return ok(c, result);
 });
 
-// POST /admin/shops/import — stage shopcheck results.json (flat array of shopJson) for review
+// POST /admin/shops/import — stage review JSON (flat array of shopJson) for review
 shopsRoutes.post(
   "/shops/import",
   requireAdmin,

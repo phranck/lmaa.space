@@ -40,10 +40,6 @@ function toHeadquartersPayload(data: ShopEditFormValue) {
   };
 }
 
-function toShopCheckNotesPayload(data: ShopEditFormValue) {
-  return data.shopCheckNotes ?? null;
-}
-
 /**
  * Loads admin shop summaries, optionally filtered by visibility.
  *
@@ -149,13 +145,11 @@ export function useSaveShop(editId: number | null) {
         ? api.patch<Shop>(`/admin/shops/${editId}`, {
             ...formData,
             headquarters: toHeadquartersPayload(formData),
-            shopCheckNotes: toShopCheckNotesPayload(formData),
             ...(needsReview !== undefined ? { needsReview } : {}),
           })
         : api.post<Shop>("/admin/shops", {
             ...formData,
             headquarters: toHeadquartersPayload(formData),
-            shopCheckNotes: toShopCheckNotesPayload(formData),
           }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
@@ -164,19 +158,19 @@ export function useSaveShop(editId: number | null) {
   });
 }
 
-type ShopcheckImportResult = { imported: number; skipped: number; errors: string[] };
+type ShopReviewImportResult = { imported: number; skipped: number; errors: string[] };
 
 /**
- * Imports shopcheck results-state.json into the shop list.
+ * Imports shop review JSON into the shop list.
  * Each entry maps its ShopJson to the matching shop and sets needsReview=true.
  *
  * @returns React Query mutation returning import statistics.
  */
-export function useImportShopcheckResults() {
+export function useImportShopReviewResults() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (entries: Array<Record<string, unknown>>) =>
-      api.post<ShopcheckImportResult>("/admin/shops/import", entries),
+      api.post<ShopReviewImportResult>("/admin/shops/import", entries),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["shops-admin"] }),
   });
 }

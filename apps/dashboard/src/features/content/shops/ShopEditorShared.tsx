@@ -13,7 +13,6 @@ import {
   REGION_CODES,
   type AdminShopListItem,
   type Shop,
-  type ShopCheckNotes,
 } from "@lmaa/shared";
 import {
   EMPTY_SHOP_FORM_VALUE,
@@ -107,7 +106,6 @@ function getInitialFormValue(
     shipping: shopData.shipping ?? "",
     contactEmail: shopData.contactEmail ?? "",
     socialMedia: shopData.socialMedia ?? {},
-    shopCheckNotes: shopData.shopCheckNotes ?? null,
     headquartersStreet: shopData.headquarters?.street ?? "",
     headquartersPostalCode: shopData.headquarters?.postalCode ?? "",
     headquartersCity: shopData.headquarters?.city ?? "",
@@ -204,29 +202,6 @@ function getRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function getShopCheckNotes(value: unknown): ShopCheckNotes | null {
-  const notes = getRecord(value);
-  if (notes === null) return null;
-
-  const focus = getStringArray(notes.focus);
-  const brandsOrProducts = getStringArray(notes.brandsOrProducts);
-  const companyPresentation = getString(notes.companyPresentation);
-
-  if (
-    focus.length === 0 &&
-    brandsOrProducts.length === 0 &&
-    companyPresentation === null
-  ) {
-    return null;
-  }
-
-  return {
-    focus: Array.from(new Set(focus)),
-    brandsOrProducts: Array.from(new Set(brandsOrProducts)),
-    companyPresentation,
-  };
-}
-
 function normalizeCategoryName(value: string) {
   return value.trim().toLocaleLowerCase("de-DE");
 }
@@ -298,12 +273,6 @@ function applyShopCheckJsonToForm(
       nextForm.socialMedia = { ...nextForm.socialMedia, ...mappedSocialMedia };
       changed = true;
     }
-  }
-
-  const shopCheckNotes = getShopCheckNotes(payload.notes);
-  if (shopCheckNotes !== null) {
-    nextForm.shopCheckNotes = shopCheckNotes;
-    changed = true;
   }
 
   const headquarters = getRecord(payload.headquarters);
