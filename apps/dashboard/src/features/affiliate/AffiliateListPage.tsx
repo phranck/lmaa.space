@@ -163,7 +163,7 @@ export function AffiliateListPage() {
   }
 
   return (
-    <PageLayout className="overflow-hidden -mx-3 -mb-3">
+    <PageLayout className="overflow-hidden -m-3">
       <PageHeader title={t.title}>
         <FilterDropdown
           value={sortOrder}
@@ -193,11 +193,11 @@ export function AffiliateListPage() {
           ) : (
             <table className="w-full text-sm">
               {/* Sticky: Cards + Progress + Column Headers */}
-              <thead className="sticky top-0 z-[5]">
+              <thead className="sticky top-0 z-[5] bg-[var(--ds-surface)]">
                 {/* Stat Cards row */}
                 <tr>
-                  <th colSpan={COL_COUNT} className="p-0 bg-[var(--ds-bg)]">
-                    <div className="grid grid-cols-5 gap-3 px-4 pt-1 pb-3">
+                  <th colSpan={COL_COUNT} className="p-0 bg-[var(--ds-surface)]">
+                    <div className="grid grid-cols-5 gap-3 px-4 pt-3 pb-3">
                       {STAT_CARDS.map((card) => {
                         const isActive = statusFilter === card.filterValue;
                         return (
@@ -207,8 +207,8 @@ export function AffiliateListPage() {
                             onClick={() => setStatusFilter(isActive && card.filterValue !== "" ? "" : card.filterValue)}
                             className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all cursor-pointer ${
                               isActive
-                                ? `${card.activeBorder} ${card.activeGlow} bg-[var(--ds-surface)]`
-                                : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:border-[var(--ds-border)]"
+                                ? `${card.activeBorder} ${card.activeGlow} bg-[var(--ds-bg-elevated)]`
+                                : "border-[var(--ds-border-subtle)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border)]"
                             }`}
                           >
                             <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
