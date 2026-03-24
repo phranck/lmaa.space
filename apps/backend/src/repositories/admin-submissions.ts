@@ -133,6 +133,19 @@ export async function reviewSubmission(
   data: SubmissionReviewData,
 ): Promise<SubmissionReviewResult> {
   return db.transaction(async (tx) => {
+    const [current] = await tx
+      .select({ status: submissions.status })
+      .from(submissions)
+      .where(eq(submissions.id, data.id));
+
+    if (!current) {
+      return { submission: null, newShop: null };
+    }
+
+    if (current.status === "approved" || current.status === "rejected") {
+      return { submission: null, newShop: null };
+    }
+
     const [submission] = await tx
       .update(submissions)
       .set({
