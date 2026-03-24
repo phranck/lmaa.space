@@ -32,6 +32,7 @@ import {
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
+import type { DashboardMessages } from "@/i18n/messages.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
@@ -379,7 +380,6 @@ function LoadedSubmissionEditorPage({
         toolbar={
           <SubmissionToolbar
             submission={submission}
-            isPending={reviewMutation.isPending}
             isActionPending={isActionPending}
             canSave={controller.canSave}
             saveLabel={saveLabel}
@@ -395,9 +395,6 @@ function LoadedSubmissionEditorPage({
                 },
               })
             }
-            controller={controller}
-            combinedSavedPhase={combinedSavedPhase}
-            savedLabel={common.saved}
           />
         }
       >
@@ -520,24 +517,19 @@ function LoadedSubmissionEditorPage({
 
 interface SubmissionToolbarProps {
   submission: Submission;
-  isPending: boolean;
   isActionPending: boolean;
   canSave: boolean;
   saveLabel: string;
-  messages: typeof import("@/i18n/messages.ts").messages.en.submissions;
+  messages: DashboardMessages["submissions"];
   onApprove: () => void;
   onReject: (editingRejection: boolean) => void;
   onSetStatus: (status: "pending" | "onhold", options?: { navigateBack?: boolean }) => void;
   onDelete: () => void;
   onSave: () => void;
-  controller: ReturnType<typeof useShopEditorController>;
-  combinedSavedPhase: ReturnType<typeof useSaveNotification>["phase"];
-  savedLabel: string;
 }
 
 function SubmissionToolbar({
   submission,
-  isPending: isPendingProp,
   isActionPending,
   canSave,
   saveLabel,
