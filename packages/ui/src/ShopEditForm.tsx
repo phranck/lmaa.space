@@ -1,8 +1,6 @@
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
-import type { ShopCheckNotes } from "@lmaa/shared";
-
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
 import {
   FormErrorText,
@@ -32,7 +30,6 @@ export interface ShopEditFormValue {
   shipping: string;
   contactEmail: string;
   socialMedia: Record<string, string>;
-  shopCheckNotes: ShopCheckNotes | null;
   headquartersStreet: string;
   headquartersPostalCode: string;
   headquartersCity: string;
@@ -54,7 +51,6 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   shipping: "",
   contactEmail: "",
   socialMedia: {},
-  shopCheckNotes: null,
   headquartersStreet: "",
   headquartersPostalCode: "",
   headquartersCity: "",

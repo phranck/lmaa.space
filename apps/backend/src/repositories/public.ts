@@ -455,7 +455,6 @@ export async function getFullPublicShopById(id: number) {
   const rows = await db.execute<
     CategoryShopRow & {
       categories: ShopCategory[];
-      shopCheckNotes: Shop["shopCheckNotes"];
       contactEmail: string | null;
       pickup: string;
       createdAt: string;
@@ -466,7 +465,6 @@ export async function getFullPublicShopById(id: number) {
            s.og_image as "ogImage",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
-           s.shop_check_notes as "shopCheckNotes",
            s.created_at as "createdAt",
            s.updated_at as "updatedAt",
            COALESCE(

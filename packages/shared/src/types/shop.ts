@@ -14,15 +14,6 @@ export interface ShopHeadquarters {
 }
 
 /**
- * Structured research notes imported from the shop-check workflow.
- */
-export interface ShopCheckNotes {
-  focus: string[];
-  brandsOrProducts: string[];
-  companyPresentation: string | null;
-}
-
-/**
  * Category subset embedded into shop responses.
  */
 export interface ShopCategory {
@@ -62,7 +53,7 @@ export interface AdminShopListItem extends ShopSummary {
   socialMedia: Record<string, string>;
   ogImage?: string | null;
   headquarters?: ShopHeadquarters | null;
-  shopCheckNotes?: ShopCheckNotes | null;
+
   needsReview: boolean;
   reviewData?: Record<string, unknown> | null;
 }
@@ -91,7 +82,7 @@ export interface Shop {
   rejectionAdminNote?: string | null;
   rejectionLongText?: string | null;
   headquarters?: ShopHeadquarters | null;
-  shopCheckNotes?: ShopCheckNotes | null;
+
   needsReview: boolean;
   reviewData?: Record<string, unknown> | null;
 }
@@ -109,7 +100,7 @@ export interface ShopCreate {
   description?: string;
   contactEmail?: string;
   headquarters?: Partial<ShopHeadquarters> | null;
-  shopCheckNotes?: ShopCheckNotes | null;
+
 }
 
 /**

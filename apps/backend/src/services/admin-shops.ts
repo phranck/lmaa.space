@@ -188,7 +188,7 @@ export async function updateManagedAdminShopDeleteReason(id: number, reason: str
  * Stages raw shop review JSON without touching live fields.
  *
  * @param id - Shop id.
- * @param rawShopJson - Raw shopcheck JSON to stage.
+ * @param rawShopJson - Raw shop JSON to stage.
  * @returns Update result.
  */
 export async function stageShopReviewData(id: number, rawShopJson: Record<string, unknown>) {

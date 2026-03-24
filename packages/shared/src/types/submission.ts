@@ -1,4 +1,4 @@
-import type { ShopCheckNotes, ShopHeadquarters } from "./shop.js";
+import type { ShopHeadquarters } from "./shop.js";
 import type { RegionCode, SubmissionReviewStatus, SubmissionStatus } from "../constants/domain.js";
 
 /**
@@ -35,7 +35,6 @@ export interface Submission {
   createdAt: string;
   updatedAt: string;
   headquarters?: ShopHeadquarters | null;
-  shopCheckNotes?: ShopCheckNotes | null;
 }
 
 /**

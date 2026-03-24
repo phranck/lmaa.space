@@ -1,5 +1,3 @@
-import type { ShopCheckNotes } from "@lmaa/shared";
-
 import type { HeadquartersInput } from "../repositories/headquarters.js";
 
 const REGION_CODES = ["DE", "AT", "CH", "EU", "WORLD"] as const;
@@ -21,22 +19,6 @@ function getRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function getShopCheckNotes(value: unknown): ShopCheckNotes | null {
-  const notes = getRecord(value);
-  if (notes === null) return null;
-  const focus = getStringArray(notes.focus);
-  const brandsOrProducts = getStringArray(notes.brandsOrProducts);
-  const companyPresentation = getString(notes.companyPresentation);
-  if (focus.length === 0 && brandsOrProducts.length === 0 && companyPresentation === null) {
-    return null;
-  }
-  return {
-    focus: Array.from(new Set(focus)),
-    brandsOrProducts: Array.from(new Set(brandsOrProducts)),
-    companyPresentation,
-  };
-}
-
 export interface MappedShopData {
   name: string;
   url: string;
@@ -45,7 +27,6 @@ export interface MappedShopData {
   categoryIds: number[];
   contactEmail?: string;
   headquarters?: HeadquartersInput;
-  shopCheckNotes?: ShopCheckNotes;
   socialMedia: Record<string, string>;
 }
 
@@ -85,8 +66,6 @@ export function mapShopJsonToShopData(
     }
   }
 
-  const shopCheckNotes = getShopCheckNotes(shopJson.notes) ?? undefined;
-
   const hqRaw = getRecord(shopJson.headquarters);
   const geoRaw = getRecord(shopJson.geo);
   let headquarters: HeadquartersInput | undefined;
@@ -110,7 +89,6 @@ export function mapShopJsonToShopData(
     categoryIds: Array.from(new Set(categoryIds)),
     contactEmail,
     headquarters,
-    shopCheckNotes,
     socialMedia,
   };
 }

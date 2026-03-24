@@ -29,10 +29,6 @@ function toHeadquartersPayload(data: ShopEditFormValue) {
   };
 }
 
-function toShopCheckNotesPayload(data: ShopEditFormValue) {
-  return data.shopCheckNotes ?? null;
-}
-
 /**
  * Loads submissions by moderation status.
  *
@@ -124,7 +120,6 @@ export function useEditSubmission() {
         categoryIds: data.categoryIds,
         contactEmail: data.contactEmail,
         headquarters: toHeadquartersPayload(data),
-        shopCheckNotes: toShopCheckNotesPayload(data),
         socialMedia: data.socialMedia,
       }),
     onSuccess: (_submission, variables) => {

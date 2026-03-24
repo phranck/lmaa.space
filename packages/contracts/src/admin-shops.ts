@@ -19,15 +19,6 @@ const headquartersSchema = z.object({
   longitude: z.number().min(-180).max(180).nullable().optional(),
 });
 
-const shopCheckNotesSchema = z.object({
-  focus: z.array(z.string().trim().min(1).max(200)).optional().default([]),
-  brandsOrProducts: z.array(z.string().trim().min(1).max(200)).optional().default([]),
-  companyPresentation: z.preprocess(
-    (v) => (v === "" || typeof v === "undefined" ? null : v),
-    z.string().max(4000).nullable(),
-  ),
-});
-
 /**
  * Shop create payload contract for admin routes.
  */
@@ -44,7 +35,6 @@ export const shopBodySchema = z.object({
     z.string().email().max(200).optional(),
   ),
   headquarters: headquartersSchema.optional(),
-  shopCheckNotes: shopCheckNotesSchema.nullable().optional(),
   socialMedia: socialMediaSchema,
 });
 
@@ -64,7 +54,6 @@ export const shopUpdateSchema = z.object({
     z.string().email().max(200).optional(),
   ),
   headquarters: headquartersSchema.optional(),
-  shopCheckNotes: shopCheckNotesSchema.nullable().optional(),
   socialMedia: socialMediaSchema,
   needsReview: z.boolean().optional(),
 });
