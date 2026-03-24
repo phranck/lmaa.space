@@ -9,7 +9,7 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import type { ShopVisibility } from "@lmaa/shared";
@@ -28,7 +28,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
   useAdminShops,
-  useImportShopcheckResults,
+  useImportShopReviewResults,
   useShopVisibilityCounts,
 } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
@@ -49,6 +49,44 @@ function parseShopsSort(searchParams: URLSearchParams): SortState | null {
 const EXPORT_LIMITS = [10, 20, 30, 50, 100, 150, 200] as const;
 type ExportLimit = (typeof EXPORT_LIMITS)[number];
 
+type ShopsFilterState = {
+  categoryFilter: string;
+  visibilityFilter: VisibilityFilter;
+  geoFilter: GeoFilter;
+  exportLimit: ExportLimit;
+  importError: string | null;
+};
+
+type ShopsFilterAction =
+  | { type: "setCategoryFilter"; value: string }
+  | { type: "setVisibilityFilter"; value: VisibilityFilter }
+  | { type: "setGeoFilter"; value: GeoFilter }
+  | { type: "setExportLimit"; value: ExportLimit }
+  | { type: "setImportError"; value: string | null };
+
+const INITIAL_FILTER_STATE: ShopsFilterState = {
+  categoryFilter: "all",
+  visibilityFilter: "public",
+  geoFilter: "all",
+  exportLimit: 50,
+  importError: null,
+};
+
+function shopsFilterReducer(state: ShopsFilterState, action: ShopsFilterAction): ShopsFilterState {
+  switch (action.type) {
+    case "setCategoryFilter":
+      return { ...state, categoryFilter: action.value };
+    case "setVisibilityFilter":
+      return { ...state, visibilityFilter: action.value };
+    case "setGeoFilter":
+      return { ...state, geoFilter: action.value };
+    case "setExportLimit":
+      return { ...state, exportLimit: action.value };
+    case "setImportError":
+      return { ...state, importError: action.value };
+  }
+}
+
 /**
  * Shop management route with filters and moderation actions.
  *
@@ -62,12 +100,9 @@ export function ShopsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: categories = [] } = useAdminCategories();
   const search = searchParams.get("q") ?? "";
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("public");
-  const [geoFilter, setGeoFilter] = useState<GeoFilter>("all");
-  const [exportLimit, setExportLimit] = useState<ExportLimit>(50);
-  const [importError, setImportError] = useState<string | null>(null);
-  const importMutation = useImportShopcheckResults();
+  const [filterState, dispatch] = useReducer(shopsFilterReducer, INITIAL_FILTER_STATE);
+  const { categoryFilter, visibilityFilter, geoFilter, exportLimit, importError } = filterState;
+  const importMutation = useImportShopReviewResults();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -224,15 +259,15 @@ export function ShopsPage() {
       try {
         const parsed = JSON.parse(reader.result as string) as unknown;
         if (!Array.isArray(parsed)) {
-          setImportError(shopsMessages.importInvalidFile);
+          dispatch({ type: "setImportError", value: shopsMessages.importInvalidFile });
           return;
         }
         const entries = parsed as Array<Record<string, unknown>>;
         importMutation.mutate(entries, {
-          onError: () => setImportError(shopsMessages.importError),
+          onError: () => dispatch({ type: "setImportError", value: shopsMessages.importError }),
         });
       } catch {
-        setImportError(shopsMessages.importInvalidFile);
+        dispatch({ type: "setImportError", value: shopsMessages.importInvalidFile });
       }
     };
     reader.readAsText(file);
@@ -258,7 +293,7 @@ export function ShopsPage() {
       <PageHeader title={shopsMessages.title}>
         <FilterDropdown
           value={categoryFilter}
-          onChange={setCategoryFilter}
+          onChange={(v: string) => dispatch({ type: "setCategoryFilter", value: v })}
           options={categoryFilterOptions}
           storageKey="shops-filter-category"
           searchable
@@ -267,14 +302,14 @@ export function ShopsPage() {
 
         <FilterDropdown
           value={geoFilter}
-          onChange={setGeoFilter}
+          onChange={(v: GeoFilter) => dispatch({ type: "setGeoFilter", value: v })}
           options={geoFilterOptions}
           storageKey="shops-filter-geo"
         />
 
         <FilterDropdown
           value={visibilityFilter}
-          onChange={setVisibilityFilter}
+          onChange={(v: VisibilityFilter) => dispatch({ type: "setVisibilityFilter", value: v })}
           options={filterOptions}
           storageKey="shops-filter-visibility"
         />
@@ -294,7 +329,7 @@ export function ShopsPage() {
         >
           <select
             value={exportLimit}
-            onChange={(e) => setExportLimit(Number(e.target.value) as ExportLimit)}
+            onChange={(e) => dispatch({ type: "setExportLimit", value: Number(e.target.value) as ExportLimit })}
             className="py-1.5 pl-3 pr-1 text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none border-r border-[var(--ds-btn-primary-border)]"
             aria-label="Anzahl zu exportierender Shops"
           >
@@ -310,7 +345,7 @@ export function ShopsPage() {
         open={importError !== null}
         title={shopsMessages.importError}
         variant="error"
-        onClose={() => setImportError(null)}
+        onClose={() => dispatch({ type: "setImportError", value: null })}
       >
         {importError}
       </AlertDialog>
