@@ -172,19 +172,18 @@ function CountryMultiSelect({ value, onChange, options }: CountryMultiSelectProp
         <div className="flex items-center shrink-0 ml-2 gap-0.5">
           {value.length > 0 && (
             <>
-              <span
+              <button
+                type="button"
                 className="cursor-pointer text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] p-0.5"
                 aria-label="Auswahl aufheben"
+                tabIndex={-1}
                 onClick={(e) => {
                   e.stopPropagation();
                   onChange([]);
                 }}
-                onKeyDown={() => {}}
-                role="button"
-                tabIndex={-1}
               >
                 <XCircleIcon weight="duotone" className="w-4 h-4" />
-              </span>
+              </button>
               <div className="w-px h-4 bg-[var(--ds-border)] mx-0.5" />
             </>
           )}

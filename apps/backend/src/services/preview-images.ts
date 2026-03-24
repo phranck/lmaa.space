@@ -1,3 +1,4 @@
+import { logger } from "../lib/logger.js";
 import { extractHomepage, fetchPreviewImage } from "../lib/og.js";
 
 /**
@@ -41,5 +42,7 @@ export function hydrateShopOgImageInBackground(
         await onImageResolved(result.url);
       }
     })
-    .catch(() => {});
+    .catch((err) => {
+      logger.error({ err, shopUrl }, "background OG image hydration failed");
+    });
 }
