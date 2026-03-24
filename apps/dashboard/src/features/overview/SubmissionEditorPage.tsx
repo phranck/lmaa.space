@@ -54,7 +54,6 @@ function toSubmissionFormData(submission: Submission) {
     shipping: submission.shipping ?? "",
     contactEmail: submission.contactEmail ?? "",
     socialMedia: submission.socialMedia ?? {},
-    shopCheckNotes: submission.shopCheckNotes ?? null,
     headquartersStreet: submission.headquarters?.street ?? "",
     headquartersPostalCode: submission.headquarters?.postalCode ?? "",
     headquartersCity: submission.headquarters?.city ?? "",
@@ -259,11 +258,6 @@ function LoadedSubmissionEditorPage({
   const pageSubtitle = submitterEmail
     ? `${submissionsMessages.suggestions.submittedBy}: ${submitterEmail} · ${submissionsMessages.suggestions.submittedAt}: ${submittedAt}`
     : `${submissionsMessages.suggestions.submittedAt}: ${submittedAt}`;
-  const showDelete = submission.status === "onhold" || submission.status === "rejected";
-  const isRejected = submission.status === "rejected";
-  const isPending = submission.status === "pending";
-  const isOnHold = submission.status === "onhold";
-
   const saveLabel = common.save;
   const combinedSavedPhase =
     controller.savedPhase !== "hidden" ? controller.savedPhase : reviewSavedPhase;
@@ -383,130 +377,28 @@ function LoadedSubmissionEditorPage({
           </div>
         }
         toolbar={
-          <div className="flex items-center gap-2">
-            {isPending && (
-              <>
-                <EditorToolbarButton
-                  onClick={openApproveReview}
-                  disabled={isActionPending}
-                  variant="success"
-                  icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {submissionsMessages.suggestions.approve}
-                </EditorToolbarButton>
-                <EditorToolbarButton
-                  onClick={() => handleSetStatus("onhold")}
-                  disabled={isActionPending}
-                  variant="warning"
-                  icon={<PauseCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {submissionsMessages.suggestions.onhold}
-                </EditorToolbarButton>
-                <EditorToolbarButton
-                  onClick={() => openRejectReview(false)}
-                  disabled={isActionPending}
-                  variant="danger"
-                  icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {submissionsMessages.suggestions.reject}
-                </EditorToolbarButton>
-              </>
-            )}
-
-            {isOnHold && (
-              <>
-                <EditorToolbarButton
-                  onClick={() => handleSetStatus("pending")}
-                  disabled={isActionPending}
-                  variant="success"
-                  icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {submissionsMessages.suggestions.restore}
-                </EditorToolbarButton>
-                <EditorToolbarButton
-                  onClick={() => openRejectReview(false)}
-                  disabled={isActionPending}
-                  variant="danger"
-                  icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {submissionsMessages.suggestions.reject}
-                </EditorToolbarButton>
-              </>
-            )}
-
-            {isRejected && (
-              <>
-                <EditorToolbarButton
-                  onClick={openApproveReview}
-                  disabled={isActionPending}
-                  variant="success"
-                  icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {submissionsMessages.suggestions.approve}
-                </EditorToolbarButton>
-
-                <EditorToolbarButton
-                  onClick={() => openRejectReview(true)}
-                  disabled={isActionPending}
-                  variant="neutral"
-                  icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
-                >
-                  {submissionsMessages.suggestions.editRejectionInfo}
-                </EditorToolbarButton>
-
-                {submission.rejectionToken ? (
-                  <EditorToolbarButton
-                    onClick={() =>
-                      window.open(
-                        `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
-                        "_blank",
-                      )
-                    }
-                    disabled={isActionPending}
-                    variant="warning"
-                    icon={<InfoIcon weight="duotone" className="h-3.5 w-3.5" />}
-                  >
-                    {submissionsMessages.suggestions.info}
-                  </EditorToolbarButton>
-                ) : (
-                  <EditorToolbarButton
-                    onClick={() => handleSetStatus("pending")}
-                    disabled={isActionPending}
-                    variant="success"
-                    icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
-                  >
-                    {submissionsMessages.suggestions.setToOpen}
-                  </EditorToolbarButton>
-                )}
-              </>
-            )}
-
-            {showDelete && (
-              <EditorToolbarButton
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={isActionPending}
-                variant="danger"
-                icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
-              >
-                {submissionsMessages.suggestions.delete}
-              </EditorToolbarButton>
-            )}
-
-            <EditorToolbarButton
-              onClick={() =>
-                void controller.handleSaveSafely({
-                  onSuccess: () => {
-                    controller.showSaved();
-                  },
-                })
-              }
-              disabled={!controller.canSave || isActionPending}
-              variant="primary"
-              icon={<DownloadIcon weight="duotone" className="h-3.5 w-3.5" />}
-            >
-              {saveLabel}
-            </EditorToolbarButton>
-          </div>
+          <SubmissionToolbar
+            submission={submission}
+            isPending={reviewMutation.isPending}
+            isActionPending={isActionPending}
+            canSave={controller.canSave}
+            saveLabel={saveLabel}
+            messages={submissionsMessages}
+            onApprove={openApproveReview}
+            onReject={openRejectReview}
+            onSetStatus={handleSetStatus}
+            onDelete={() => setShowDeleteDialog(true)}
+            onSave={() =>
+              void controller.handleSaveSafely({
+                onSuccess: () => {
+                  controller.showSaved();
+                },
+              })
+            }
+            controller={controller}
+            combinedSavedPhase={combinedSavedPhase}
+            savedLabel={common.saved}
+          />
         }
       >
         <ShopEditorFormContent controller={controller} />
@@ -609,54 +501,243 @@ function LoadedSubmissionEditorPage({
         }}
       />
 
-      {showDeleteDialog && (
-        <OverlayCard
-          open={showDeleteDialog}
-          onClose={() => setShowDeleteDialog(false)}
-          size={{ storageKey: "submissions:delete-size", defaultWidth: 480 }}
-          aria-label={submissionsMessages.suggestions.confirmDeleteTitle}
-        >
-          <OverlayCard.Header>
-            <div className="flex items-center gap-3">
-              <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
-              <h3 className="font-bold text-[var(--ds-text)]">
-                {submissionsMessages.suggestions.confirmDeleteTitle}
-              </h3>
-            </div>
-          </OverlayCard.Header>
-
-          <OverlayCard.Body>
-            <p className="text-sm text-[var(--ds-text-muted)]">
-              <span className="font-medium">{submission.shopName}</span>{" "}
-              {submissionsMessages.suggestions.confirmDeleteDescription}
-            </p>
-          </OverlayCard.Body>
-
-          <OverlayCard.Footer className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setShowDeleteDialog(false)}
-              className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
-            >
-              {common.cancel}
-            </button>
-            <button
-              type="button"
-              disabled={deleteMutation.isPending}
-              onClick={() =>
-                deleteMutation.mutate(submission.id, {
-                  onSuccess: navigateBack,
-                })
-              }
-              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {deleteMutation.isPending ? "…" : common.delete}
-            </button>
-          </OverlayCard.Footer>
-        </OverlayCard>
-      )}
+      <DeleteSubmissionDialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        shopName={submission.shopName}
+        isPending={deleteMutation.isPending}
+        onDelete={() =>
+          deleteMutation.mutate(submission.id, {
+            onSuccess: navigateBack,
+          })
+        }
+        messages={submissionsMessages.suggestions}
+        common={common}
+      />
     </>
+  );
+}
+
+interface SubmissionToolbarProps {
+  submission: Submission;
+  isPending: boolean;
+  isActionPending: boolean;
+  canSave: boolean;
+  saveLabel: string;
+  messages: typeof import("@/i18n/messages.ts").messages.en.submissions;
+  onApprove: () => void;
+  onReject: (editingRejection: boolean) => void;
+  onSetStatus: (status: "pending" | "onhold", options?: { navigateBack?: boolean }) => void;
+  onDelete: () => void;
+  onSave: () => void;
+  controller: ReturnType<typeof useShopEditorController>;
+  combinedSavedPhase: ReturnType<typeof useSaveNotification>["phase"];
+  savedLabel: string;
+}
+
+function SubmissionToolbar({
+  submission,
+  isPending: isPendingProp,
+  isActionPending,
+  canSave,
+  saveLabel,
+  messages: submissionsMessages,
+  onApprove,
+  onReject,
+  onSetStatus,
+  onDelete,
+  onSave,
+}: SubmissionToolbarProps) {
+  const isRejected = submission.status === "rejected";
+  const isPending = submission.status === "pending";
+  const isOnHold = submission.status === "onhold";
+  const showDelete = submission.status === "onhold" || submission.status === "rejected";
+
+  return (
+    <div className="flex items-center gap-2">
+      {isPending && (
+        <>
+          <EditorToolbarButton
+            onClick={onApprove}
+            disabled={isActionPending}
+            variant="success"
+            icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.approve}
+          </EditorToolbarButton>
+          <EditorToolbarButton
+            onClick={() => onSetStatus("onhold")}
+            disabled={isActionPending}
+            variant="warning"
+            icon={<PauseCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.onhold}
+          </EditorToolbarButton>
+          <EditorToolbarButton
+            onClick={() => onReject(false)}
+            disabled={isActionPending}
+            variant="danger"
+            icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.reject}
+          </EditorToolbarButton>
+        </>
+      )}
+
+      {isOnHold && (
+        <>
+          <EditorToolbarButton
+            onClick={() => onSetStatus("pending")}
+            disabled={isActionPending}
+            variant="success"
+            icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.restore}
+          </EditorToolbarButton>
+          <EditorToolbarButton
+            onClick={() => onReject(false)}
+            disabled={isActionPending}
+            variant="danger"
+            icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.reject}
+          </EditorToolbarButton>
+        </>
+      )}
+
+      {isRejected && (
+        <>
+          <EditorToolbarButton
+            onClick={onApprove}
+            disabled={isActionPending}
+            variant="success"
+            icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.approve}
+          </EditorToolbarButton>
+
+          <EditorToolbarButton
+            onClick={() => onReject(true)}
+            disabled={isActionPending}
+            variant="neutral"
+            icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.editRejectionInfo}
+          </EditorToolbarButton>
+
+          {submission.rejectionToken ? (
+            <EditorToolbarButton
+              onClick={() =>
+                window.open(
+                  `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
+                  "_blank",
+                )
+              }
+              disabled={isActionPending}
+              variant="warning"
+              icon={<InfoIcon weight="duotone" className="h-3.5 w-3.5" />}
+            >
+              {submissionsMessages.suggestions.info}
+            </EditorToolbarButton>
+          ) : (
+            <EditorToolbarButton
+              onClick={() => onSetStatus("pending")}
+              disabled={isActionPending}
+              variant="success"
+              icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
+            >
+              {submissionsMessages.suggestions.setToOpen}
+            </EditorToolbarButton>
+          )}
+        </>
+      )}
+
+      {showDelete && (
+        <EditorToolbarButton
+          onClick={onDelete}
+          disabled={isActionPending}
+          variant="danger"
+          icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
+        >
+          {submissionsMessages.suggestions.delete}
+        </EditorToolbarButton>
+      )}
+
+      <EditorToolbarButton
+        onClick={onSave}
+        disabled={!canSave || isActionPending}
+        variant="primary"
+        icon={<DownloadIcon weight="duotone" className="h-3.5 w-3.5" />}
+      >
+        {saveLabel}
+      </EditorToolbarButton>
+    </div>
+  );
+}
+
+interface DeleteSubmissionDialogProps {
+  open: boolean;
+  onClose: () => void;
+  shopName: string;
+  isPending: boolean;
+  onDelete: () => void;
+  messages: { confirmDeleteTitle: string; confirmDeleteDescription: string };
+  common: { cancel: string; delete: string };
+}
+
+function DeleteSubmissionDialog({
+  open,
+  onClose,
+  shopName,
+  isPending,
+  onDelete,
+  messages: submissionsMessages,
+  common,
+}: DeleteSubmissionDialogProps) {
+  if (!open) return null;
+
+  return (
+    <OverlayCard
+      open={open}
+      onClose={onClose}
+      size={{ storageKey: "submissions:delete-size", defaultWidth: 480 }}
+      aria-label={submissionsMessages.confirmDeleteTitle}
+    >
+      <OverlayCard.Header>
+        <div className="flex items-center gap-3">
+          <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
+          <h3 className="font-bold text-[var(--ds-text)]">
+            {submissionsMessages.confirmDeleteTitle}
+          </h3>
+        </div>
+      </OverlayCard.Header>
+
+      <OverlayCard.Body>
+        <p className="text-sm text-[var(--ds-text-muted)]">
+          <span className="font-medium">{shopName}</span>{" "}
+          {submissionsMessages.confirmDeleteDescription}
+        </p>
+      </OverlayCard.Body>
+
+      <OverlayCard.Footer className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+        >
+          {common.cancel}
+        </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={onDelete}
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+        >
+          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+          {isPending ? "..." : common.delete}
+        </button>
+      </OverlayCard.Footer>
+    </OverlayCard>
   );
 }
 
