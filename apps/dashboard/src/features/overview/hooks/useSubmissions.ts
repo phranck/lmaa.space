@@ -74,18 +74,21 @@ export function useReviewSubmission() {
       adminNote,
       rejectionLongText,
       rejectionToken,
+      notificationTemplateId,
     }: {
       id: number;
       status: "approved" | "rejected" | "onhold" | "pending";
       adminNote?: string;
       rejectionLongText?: string;
       rejectionToken?: string;
+      notificationTemplateId?: number;
     }) =>
       api.patch<Submission>(`/admin/submissions/${id}`, {
         status,
         adminNote: adminNote || undefined,
         rejectionLongText: rejectionLongText || undefined,
         rejectionToken: rejectionToken || undefined,
+        notificationTemplateId: notificationTemplateId || undefined,
       }),
     onSuccess: (_submission, variables) => {
       qc.invalidateQueries({ queryKey: ["submissions"] });

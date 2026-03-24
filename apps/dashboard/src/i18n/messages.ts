@@ -386,6 +386,11 @@ export interface DashboardMessages {
       importError: string;
       importInvalidFile: string;
       reviewBadge: string;
+      notificationLabel: string;
+      notificationApproved: string;
+      notificationRejected: string;
+      notificationNone: string;
+      notificationHint: string;
     };
     deadLinks: {
       none: string;
@@ -1251,6 +1256,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         importError: "Fehler beim Import",
         importInvalidFile: "Ungültige Datei",
         reviewBadge: "Review",
+        notificationLabel: "E-Mail-Benachrichtigung",
+        notificationApproved: "Template bei Freischaltung",
+        notificationRejected: "Template bei Ablehnung",
+        notificationNone: "Keine E-Mail senden",
+        notificationHint: "Nur wenn eine Einreicher-E-Mail vorhanden ist.",
       },
       deadLinks: {
         none: "Keine gemeldeten defekten Links.",
@@ -2115,6 +2125,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         importError: "Import error",
         importInvalidFile: "Invalid file",
         reviewBadge: "Review",
+        notificationLabel: "Email notification",
+        notificationApproved: "Template on approval",
+        notificationRejected: "Template on rejection",
+        notificationNone: "Don't send email",
+        notificationHint: "Only when a submitter email is available.",
       },
       deadLinks: {
         none: "No reported dead links.",

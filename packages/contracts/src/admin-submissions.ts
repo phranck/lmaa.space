@@ -39,6 +39,7 @@ export const reviewSchema = z.object({
     .string()
     .regex(/^[0-9a-f]{32}$/)
     .optional(),
+  notificationTemplateId: z.number().int().positive().optional(),
 });
 
 /**

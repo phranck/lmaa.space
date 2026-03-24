@@ -42,6 +42,7 @@ export const envSchema = z
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("hallo@lmaa.space"),
     DASHBOARD_URL: z.string().url().optional(),
+    FRONTEND_URL: z.string().url().optional(),
     OWNER_EMAIL: z.string().email().optional(),
     UMAMI_URL: z.string().optional().default(""),
     UMAMI_USERNAME: z.string().optional().default(""),
@@ -89,6 +90,11 @@ export const envSchema = z
       (data.NODE_ENV === "production"
         ? "https://dashboard.lmaa.space"
         : "http://localhost:5174"),
+    FRONTEND_URL:
+      data.FRONTEND_URL ??
+      (data.NODE_ENV === "production"
+        ? "https://lmaa.space"
+        : "http://localhost:4321"),
   }));
 
 /**

@@ -1,6 +1,10 @@
 import type { SubmissionReviewStatus } from "@lmaa/shared";
 
+import { renderEmailTemplate } from "./email-renderer.js";
+import { sendMail } from "./email.js";
 import { hydrateShopOgImageInBackground } from "./preview-images.js";
+import { env } from "../config/env.js";
+import { logger } from "../lib/logger.js";
 import { failure, success } from "../lib/result.js";
 import { setAdminShopOgImage } from "../repositories/admin-shops.js";
 import {
@@ -8,6 +12,7 @@ import {
   getSubmissionStatus,
   reviewSubmission,
 } from "../repositories/admin-submissions.js";
+import { getEmailTemplateById } from "../repositories/email-templates.js";
 
 /**
  * Input contract for submission moderation action.
@@ -19,6 +24,7 @@ interface ReviewAdminSubmissionInput {
   rejectionLongText?: string;
   rejectionToken?: string;
   adminId: number;
+  notificationTemplateId?: number;
 }
 
 /**
@@ -54,6 +60,22 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     });
   }
 
+  if (input.notificationTemplateId && submission.submitterEmail) {
+    sendReviewNotification(
+      submission.submitterEmail,
+      input.notificationTemplateId,
+      {
+        shopName: submission.shopName,
+        shopUrl: submission.shopUrl,
+        adminNote: input.adminNote ?? "",
+        rejectionToken: submission.rejectionToken ?? "",
+        rejectionUrl: submission.rejectionToken
+          ? `${env.FRONTEND_URL}/rejected/${submission.rejectionToken}`
+          : "",
+      },
+    );
+  }
+
   return success({ submission });
 }
 
@@ -76,4 +98,29 @@ export async function deleteModeratedAdminSubmission(id: number) {
 
   await deleteSubmission(id);
   return success();
+}
+
+/**
+ * Sends a review notification email in the background (fire-and-forget).
+ *
+ * Template variables: `{{shopName}}`, `{{shopUrl}}`, `{{adminNote}}`, `{{rejectionToken}}`, `{{rejectionUrl}}`.
+ */
+function sendReviewNotification(
+  to: string,
+  templateId: number,
+  variables: Record<string, string>,
+): void {
+  void (async () => {
+    try {
+      const template = await getEmailTemplateById(templateId);
+      if (!template) {
+        logger.warn({ templateId }, "review notification template not found, skipping email");
+        return;
+      }
+      const { html, subject } = await renderEmailTemplate(template, variables);
+      await sendMail(to, subject, html);
+    } catch (err) {
+      logger.error({ err, to, templateId }, "failed to send review notification");
+    }
+  })();
 }

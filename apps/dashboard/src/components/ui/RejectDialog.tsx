@@ -1,4 +1,4 @@
-import { CopyIcon, XCircleIcon } from "@phosphor-icons/react";
+import { CopyIcon, EnvelopeSimpleIcon, XCircleIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
@@ -16,6 +16,16 @@ export interface RejectDialogMessages {
   rejectionLongLabel: string;
   rejectionLongPlaceholder: string;
   errorPrefix: string;
+}
+
+export interface RejectDialogNotificationProps {
+  emailTemplates: Array<{ id: number; name: string }>;
+  notificationTemplateId: number | undefined;
+  onNotificationTemplateChange: (value: number | undefined) => void;
+  notificationLabel: string;
+  notificationNoneLabel: string;
+  notificationHint: string;
+  hasSubmitterEmail: boolean;
 }
 
 export interface RejectDialogProps {
@@ -42,6 +52,7 @@ export interface RejectDialogProps {
   adminNoteStorageKey?: string;
   rejectionLongStorageKey?: string;
   messages: RejectDialogMessages;
+  notification?: RejectDialogNotificationProps;
 }
 
 export function RejectDialog({
@@ -68,6 +79,7 @@ export function RejectDialog({
   adminNoteStorageKey,
   rejectionLongStorageKey,
   messages,
+  notification,
 }: RejectDialogProps) {
   const isDanger = submitVariant === "danger";
 
@@ -149,6 +161,18 @@ export function RejectDialog({
           />
         </div>
 
+        {notification && (
+          <NotificationTemplateSelect
+            emailTemplates={notification.emailTemplates}
+            notificationTemplateId={notification.notificationTemplateId}
+            onNotificationTemplateChange={notification.onNotificationTemplateChange}
+            notificationLabel={notification.notificationLabel}
+            notificationNoneLabel={notification.notificationNoneLabel}
+            notificationHint={notification.notificationHint}
+            hasSubmitterEmail={notification.hasSubmitterEmail}
+          />
+        )}
+
         {isError && (
           <p className="text-sm text-red-600">
             {messages.errorPrefix} {errorMessage}
@@ -179,5 +203,53 @@ export function RejectDialog({
         </button>
       </OverlayCard.Footer>
     </OverlayCard>
+  );
+}
+
+export interface NotificationTemplateSelectProps {
+  emailTemplates: Array<{ id: number; name: string }>;
+  notificationTemplateId: number | undefined;
+  onNotificationTemplateChange: (value: number | undefined) => void;
+  notificationLabel: string;
+  notificationNoneLabel: string;
+  notificationHint: string;
+  hasSubmitterEmail: boolean;
+}
+
+export function NotificationTemplateSelect({
+  emailTemplates,
+  notificationTemplateId,
+  onNotificationTemplateChange,
+  notificationLabel,
+  notificationNoneLabel,
+  notificationHint,
+  hasSubmitterEmail,
+}: NotificationTemplateSelectProps) {
+  return (
+    <div className="rounded-lg border border-[var(--ds-border)] p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <EnvelopeSimpleIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-muted)]" />
+        <span className="text-sm font-medium text-[var(--ds-text)]">{notificationLabel}</span>
+      </div>
+      <select
+        value={notificationTemplateId ?? ""}
+        onChange={(e) => {
+          const val = e.target.value;
+          onNotificationTemplateChange(val ? Number(val) : undefined);
+        }}
+        disabled={!hasSubmitterEmail}
+        className="w-full h-9 px-3 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] disabled:opacity-50"
+      >
+        <option value="">{notificationNoneLabel}</option>
+        {emailTemplates.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
+        ))}
+      </select>
+      {!hasSubmitterEmail && (
+        <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">{notificationHint}</p>
+      )}
+    </div>
   );
 }
