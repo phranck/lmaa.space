@@ -490,6 +490,14 @@ export async function getFullPublicShopById(id: number) {
  * @returns Resolves when report row is inserted.
  */
 export async function insertDeadLinkReport(shopId: number, ipHash: string): Promise<void> {
+  const [existing] = await db
+    .select({ id: deadLinkReports.id })
+    .from(deadLinkReports)
+    .where(and(eq(deadLinkReports.shopId, shopId), eq(deadLinkReports.ipHash, ipHash)))
+    .limit(1);
+
+  if (existing) return;
+
   await db.insert(deadLinkReports).values({ shopId, ipHash });
 }
 

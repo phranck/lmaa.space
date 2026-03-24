@@ -122,12 +122,14 @@ export function resolveClientIp(
 
   switch (config.trustedHeader) {
     case "cf-connecting-ip": {
-      const ip = headers.get("CF-Connecting-IP");
-      return ip?.trim() || "unknown";
+      const ip = headers.get("CF-Connecting-IP")?.trim() || "";
+      if (ip && isIP(ip)) return ip;
+      return "unknown";
     }
     case "x-real-ip": {
-      const ip = headers.get("X-Real-IP");
-      return ip?.trim() || "unknown";
+      const ip = headers.get("X-Real-IP")?.trim() || "";
+      if (ip && isIP(ip)) return ip;
+      return "unknown";
     }
     case "x-forwarded-for": {
       const xForwardedFor = headers.get("X-Forwarded-For");
@@ -136,7 +138,7 @@ export function resolveClientIp(
       const hops = xForwardedFor
         .split(",")
         .map((part) => part.trim())
-        .filter(Boolean);
+        .filter((part) => part && isIP(part));
       if (hops.length === 0) return "unknown";
 
       const trustedIndex = Math.max(0, hops.length - config.trustedHops - 1);
