@@ -353,14 +353,14 @@ function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
           </span>
           <span className="flex-1">{s.affiliate}</span>
           {isScanning && (
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+            <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/15 text-red-400 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
               Live
             </span>
           )}
-          {!isScanning && scans.length > 0 && (
+          {scans.length > 0 && (
             <>
-              <span className="ml-auto h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+              <span className={`h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0 ${!isScanning ? "ml-auto" : ""}`}>
                 {scans.length}
               </span>
               <span className="w-3.5 shrink-0" />
