@@ -7,6 +7,7 @@ zerops:
       buildCommands:
         - npm ci --cache .npm
         - npm run build -w @lmaa/shared
+        - npm run build -w @lmaa/llm
         - npm run build -w @lmaa/backend
       deployFiles:
         - apps/backend/dist
