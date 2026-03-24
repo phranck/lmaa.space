@@ -22,6 +22,7 @@
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.3",
     "@lmaa/contracts": "0.1.0",
+    "@lmaa/llm": "0.1.0",
     "@lmaa/shared": "0.1.0",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.38.4",

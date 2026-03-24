@@ -49,6 +49,7 @@ export const envSchema = z
     UMAMI_PASSWORD: z.string().optional().default(""),
     UMAMI_WEBSITE_ID: z.string().optional().default(""),
     UNSPLASH_ACCESS_KEY: z.string().optional(),
+    OLLAMA_HOST: z.string().optional(),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
     RUN_MIGRATIONS_ON_STARTUP: z.enum(["true", "false"]).default("true"),
   })
