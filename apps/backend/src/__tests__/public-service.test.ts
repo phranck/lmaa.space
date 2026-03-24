@@ -1,0 +1,401 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const publicRepoMocks = vi.hoisted(() => ({
+  countPublicShops: vi.fn(),
+  findRejectedSubmissionByDomain: vi.fn(),
+  findShopByDomain: vi.fn(),
+  getFullPublicShopById: vi.fn(),
+  getPublicCategoryBySlug: vi.fn(),
+  getPublicShopById: vi.fn(),
+  getPublishedContentPageBySlug: vi.fn(),
+  getRejectionPageByToken: vi.fn(),
+  insertDeadLinkReport: vi.fn(),
+  insertShopConcernReport: vi.fn(),
+  listAllPublicShopsWithCategories: vi.fn(),
+  listPublicCategoriesWithShopCount: vi.fn(),
+  listPublicNavItems: vi.fn(),
+  listPublicShopsByCategoryId: vi.fn(),
+  listPublishedContentPages: vi.fn(),
+  searchPublicCategoriesByEscapedQuery: vi.fn(),
+  searchPublicShops: vi.fn(),
+}));
+
+const filteredRepoMocks = vi.hoisted(() => ({
+  listAvailableFilterCountries: vi.fn(),
+  listFilteredCategoriesWithCount: vi.fn(),
+  listFilteredPublicShops: vi.fn(),
+  listFilteredShopsByCategoryId: vi.fn(),
+  searchFilteredPublicShops: vi.fn(),
+}));
+
+const headquartersMocks = vi.hoisted(() => ({
+  loadShopHeadquartersMap: vi.fn(),
+}));
+
+const cacheMocks = vi.hoisted(() => ({
+  SHOPS_CACHE_KEY: "shops:all",
+  getCacheEntry: vi.fn(),
+  getCacheStats: vi.fn(),
+  setCacheEntry: vi.fn(),
+  invalidateCache: vi.fn(),
+}));
+
+const envMock = vi.hoisted(() => ({
+  env: { NODE_ENV: "development", IP_HASH_SALT: "test-salt-1234567890" },
+}));
+
+vi.mock("../repositories/public.js", () => publicRepoMocks);
+vi.mock("../repositories/public-filtered.js", () => filteredRepoMocks);
+vi.mock("../repositories/headquarters.js", () => headquartersMocks);
+vi.mock("../middleware/cache.js", () => cacheMocks);
+vi.mock("../config/env.js", () => envMock);
+vi.mock("../lib/result.js", async (importOriginal) => importOriginal());
+
+import {
+  createManagedDeadLinkReport,
+  createManagedShopConcernReport,
+  getFilteredPublicCategoryBySlug,
+  getManagedPublicCacheStats,
+  getManagedPublicCategoryBySlug,
+  getManagedPublicShopById,
+  getManagedPublicShops,
+  getManagedPublicStats,
+  getPublicFilterOptions,
+  hashIp,
+  normalizeShopHostname,
+  searchFilteredPublicCatalog,
+  searchManagedPublicCatalog,
+  validateShopUrl,
+} from "../services/public.js";
+
+describe("normalizeShopHostname", () => {
+  it("extracts root domain from full URL", () => {
+    expect(normalizeShopHostname("https://www.example.com/path")).toBe("example.com");
+  });
+
+  it("adds protocol when missing", () => {
+    expect(normalizeShopHostname("example.com")).toBe("example.com");
+  });
+
+  it("returns null for invalid input", () => {
+    expect(normalizeShopHostname("not-a-domain")).toBeNull();
+  });
+});
+
+describe("hashIp", () => {
+  it("returns consistent hash", () => {
+    const a = hashIp("127.0.0.1");
+    const b = hashIp("127.0.0.1");
+    expect(a).toBe(b);
+    expect(a).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("returns different hashes for different IPs", () => {
+    expect(hashIp("1.2.3.4")).not.toBe(hashIp("5.6.7.8"));
+  });
+});
+
+describe("getManagedPublicStats", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns shop count", async () => {
+    publicRepoMocks.countPublicShops.mockResolvedValue(42);
+    const result = await getManagedPublicStats();
+    expect(result).toEqual({ shopCount: 42 });
+  });
+});
+
+describe("getManagedPublicCategoryBySlug", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns failure when category not found", async () => {
+    publicRepoMocks.getPublicCategoryBySlug.mockResolvedValue(null);
+    const result = await getManagedPublicCategoryBySlug("unknown");
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("returns category with shops", async () => {
+    publicRepoMocks.getPublicCategoryBySlug.mockResolvedValue({ id: 1, name: "Mode", slug: "mode" });
+    publicRepoMocks.listPublicShopsByCategoryId.mockResolvedValue([{ id: 10, name: "Shop A" }]);
+
+    const result = await getManagedPublicCategoryBySlug("mode");
+
+    expect(result).toEqual({
+      ok: true,
+      data: { id: 1, name: "Mode", slug: "mode", shops: [{ id: 10, name: "Shop A" }] },
+    });
+  });
+});
+
+describe("getManagedPublicShopById", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns failure when shop not found", async () => {
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue(null);
+    const result = await getManagedPublicShopById(99);
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("returns shop with headquarters data", async () => {
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue({ id: 1, name: "Shop" });
+    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(
+      new Map([[1, { city: "Berlin", country: "DE" }]]),
+    );
+
+    const result = await getManagedPublicShopById(1);
+
+    expect(result).toEqual({
+      ok: true,
+      data: { id: 1, name: "Shop", headquarters: { city: "Berlin", country: "DE" } },
+    });
+  });
+
+  it("returns null headquarters when not available", async () => {
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue({ id: 2, name: "Shop" });
+    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
+
+    const result = await getManagedPublicShopById(2);
+
+    expect(result).toEqual({
+      ok: true,
+      data: { id: 2, name: "Shop", headquarters: null },
+    });
+  });
+});
+
+describe("getManagedPublicShops", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns cached data on HIT", async () => {
+    cacheMocks.getCacheEntry.mockReturnValue([{ id: 1 }]);
+
+    const result = await getManagedPublicShops();
+
+    expect(result).toEqual({ cache: "HIT", data: [{ id: 1 }] });
+    expect(publicRepoMocks.listAllPublicShopsWithCategories).not.toHaveBeenCalled();
+  });
+
+  it("fetches and caches on MISS", async () => {
+    cacheMocks.getCacheEntry.mockReturnValue(undefined);
+    publicRepoMocks.listAllPublicShopsWithCategories.mockResolvedValue([{ id: 1 }]);
+
+    const result = await getManagedPublicShops();
+
+    expect(result).toEqual({ cache: "MISS", data: [{ id: 1 }] });
+    expect(cacheMocks.setCacheEntry).toHaveBeenCalledWith("shops:all", [{ id: 1 }], 60000);
+  });
+});
+
+describe("searchManagedPublicCatalog", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns empty result for short query", async () => {
+    const result = await searchManagedPublicCatalog("a");
+    expect(result).toEqual({ shops: [], categories: [], query: "a", total: 0 });
+  });
+
+  it("returns empty result for undefined query", async () => {
+    const result = await searchManagedPublicCatalog(undefined);
+    expect(result).toEqual({ shops: [], categories: [], query: "", total: 0 });
+  });
+
+  it("searches shops and categories", async () => {
+    publicRepoMocks.searchPublicShops.mockResolvedValue([{ id: 1, name: "Fair Shop" }]);
+    publicRepoMocks.searchPublicCategoriesByEscapedQuery.mockResolvedValue([
+      { id: 2, name: "Fair Fashion" },
+    ]);
+
+    const result = await searchManagedPublicCatalog("fair");
+
+    expect(result).toEqual({
+      shops: [{ id: 1, name: "Fair Shop" }],
+      categories: [{ id: 2, name: "Fair Fashion" }],
+      query: "fair",
+      total: 2,
+    });
+  });
+
+  it("escapes special SQL characters in category search", async () => {
+    publicRepoMocks.searchPublicShops.mockResolvedValue([]);
+    publicRepoMocks.searchPublicCategoriesByEscapedQuery.mockResolvedValue([]);
+
+    await searchManagedPublicCatalog("100%_off");
+
+    expect(publicRepoMocks.searchPublicCategoriesByEscapedQuery).toHaveBeenCalledWith(
+      "100\\%\\_off",
+    );
+  });
+});
+
+describe("validateShopUrl", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns available for empty URL", async () => {
+    const result = await validateShopUrl(undefined);
+    expect(result).toEqual({ status: "available" });
+  });
+
+  it("returns published when shop exists", async () => {
+    publicRepoMocks.findShopByDomain.mockResolvedValue({ name: "Shop", visibility: "public" });
+
+    const result = await validateShopUrl("https://shop.de");
+
+    expect(result).toEqual({ status: "published", shopName: "Shop" });
+  });
+
+  it("returns rejected with URL when shop is rejected", async () => {
+    publicRepoMocks.findShopByDomain.mockResolvedValue({
+      name: "Bad Shop",
+      visibility: "rejected",
+      rejectionToken: "abc123",
+    });
+
+    const result = await validateShopUrl("https://badshop.de");
+
+    expect(result).toEqual({
+      status: "rejected",
+      shopName: "Bad Shop",
+      rejectionUrl: "/rejected/abc123",
+    });
+  });
+
+  it("checks submissions when no shop found", async () => {
+    publicRepoMocks.findShopByDomain.mockResolvedValue(null);
+    publicRepoMocks.findRejectedSubmissionByDomain.mockResolvedValue({
+      shopName: "Rejected Sub",
+      rejectionToken: "def456",
+    });
+
+    const result = await validateShopUrl("https://rejected.de");
+
+    expect(result).toEqual({
+      status: "rejected",
+      shopName: "Rejected Sub",
+      rejectionUrl: "/rejected/def456",
+    });
+  });
+
+  it("returns available when nothing matches", async () => {
+    publicRepoMocks.findShopByDomain.mockResolvedValue(null);
+    publicRepoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
+
+    const result = await validateShopUrl("https://new-shop.de");
+
+    expect(result).toEqual({ status: "available" });
+  });
+});
+
+describe("createManagedDeadLinkReport", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns not_found when shop missing", async () => {
+    publicRepoMocks.getPublicShopById.mockResolvedValue(null);
+    const result = await createManagedDeadLinkReport(99, "1.2.3.4");
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("inserts report with hashed IP", async () => {
+    publicRepoMocks.getPublicShopById.mockResolvedValue({ id: 1 });
+    const result = await createManagedDeadLinkReport(1, "1.2.3.4");
+    expect(result).toEqual({ ok: true });
+    expect(publicRepoMocks.insertDeadLinkReport).toHaveBeenCalledWith(1, expect.stringMatching(/^[0-9a-f]{64}$/));
+  });
+});
+
+describe("createManagedShopConcernReport", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects short reasons", async () => {
+    const result = await createManagedShopConcernReport(1, "short", "1.2.3.4");
+    expect(result).toEqual({ ok: false, reason: "invalid_reason" });
+  });
+
+  it("returns not_found when shop missing", async () => {
+    publicRepoMocks.getPublicShopById.mockResolvedValue(null);
+    const result = await createManagedShopConcernReport(99, "This shop is selling fake products!", "1.2.3.4");
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("inserts concern with trimmed reason and hashed IP", async () => {
+    publicRepoMocks.getPublicShopById.mockResolvedValue({ id: 1 });
+    const result = await createManagedShopConcernReport(1, "  This shop sells counterfeit items  ", "1.2.3.4");
+    expect(result).toEqual({ ok: true });
+    expect(publicRepoMocks.insertShopConcernReport).toHaveBeenCalledWith(
+      1,
+      "This shop sells counterfeit items",
+      expect.stringMatching(/^[0-9a-f]{64}$/),
+    );
+  });
+});
+
+describe("getManagedPublicCacheStats", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns stats in development", () => {
+    envMock.env.NODE_ENV = "development";
+    cacheMocks.getCacheStats.mockReturnValue({ entries: 1, keys: ["shops:all"] });
+
+    const result = getManagedPublicCacheStats();
+
+    expect(result).toEqual({ ok: true, data: { entries: 1, keys: ["shops:all"] } });
+  });
+
+  it("returns not_available in production", () => {
+    envMock.env.NODE_ENV = "production";
+
+    const result = getManagedPublicCacheStats();
+
+    expect(result).toEqual({ ok: false, reason: "not_available" });
+    envMock.env.NODE_ENV = "development";
+  });
+});
+
+describe("getFilteredPublicCategoryBySlug", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns failure when category not found", async () => {
+    publicRepoMocks.getPublicCategoryBySlug.mockResolvedValue(null);
+    const result = await getFilteredPublicCategoryBySlug("unknown", {});
+    expect(result).toEqual({ ok: false, reason: "not_found" });
+  });
+
+  it("returns category with filtered shops", async () => {
+    publicRepoMocks.getPublicCategoryBySlug.mockResolvedValue({ id: 1, name: "Mode" });
+    filteredRepoMocks.listFilteredShopsByCategoryId.mockResolvedValue([{ id: 10 }]);
+
+    const filters = { country: "DE" };
+    const result = await getFilteredPublicCategoryBySlug("mode", filters);
+
+    expect(result).toEqual({ ok: true, data: { id: 1, name: "Mode", shops: [{ id: 10 }] } });
+    expect(filteredRepoMocks.listFilteredShopsByCategoryId).toHaveBeenCalledWith(1, filters);
+  });
+});
+
+describe("searchFilteredPublicCatalog", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns empty for short query", async () => {
+    const result = await searchFilteredPublicCatalog("x", {});
+    expect(result).toEqual({ shops: [], categories: [], query: "x", total: 0 });
+  });
+
+  it("searches with filters", async () => {
+    filteredRepoMocks.searchFilteredPublicShops.mockResolvedValue([{ id: 1 }]);
+    publicRepoMocks.searchPublicCategoriesByEscapedQuery.mockResolvedValue([]);
+
+    const result = await searchFilteredPublicCatalog("fair", { country: "DE" });
+
+    expect(result).toEqual({ shops: [{ id: 1 }], categories: [], query: "fair", total: 1 });
+    expect(filteredRepoMocks.searchFilteredPublicShops).toHaveBeenCalledWith("fair", { country: "DE" });
+  });
+});
+
+describe("getPublicFilterOptions", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns available countries", async () => {
+    filteredRepoMocks.listAvailableFilterCountries.mockResolvedValue(["DE", "AT", "CH"]);
+    const result = await getPublicFilterOptions();
+    expect(result).toEqual({ countries: ["DE", "AT", "CH"] });
+  });
+});
