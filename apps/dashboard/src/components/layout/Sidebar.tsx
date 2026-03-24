@@ -9,6 +9,7 @@ import {
   EnvelopeOpenIcon,
   EyeSlashIcon,
   FileIcon,
+  HandshakeIcon,
   ImageIcon,
   LinkIcon,
   ListBulletsIcon,
@@ -515,6 +516,21 @@ export function Sidebar({
                 to="/analytics"
                 label={s.analytics}
                 icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
+                onClick={onItemClick}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Affiliate */}
+        {isAdmin && (
+          <>
+            <SidebarSection label="Affiliate" />
+            <div className="space-y-0.5">
+              <SidebarItem
+                to="/affiliate"
+                label={s.affiliate ?? "Affiliate"}
+                icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />}
                 onClick={onItemClick}
               />
             </div>
