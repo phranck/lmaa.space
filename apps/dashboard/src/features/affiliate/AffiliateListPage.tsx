@@ -6,13 +6,11 @@ import {
   HandshakeIcon,
   MinusCircleIcon,
   PlayIcon,
-  SquaresFourIcon,
   StorefrontIcon,
   TrashIcon,
   XCircleIcon,
-  XIcon,
 } from "@phosphor-icons/react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import type { AffiliateScanResult, AffiliateScanStatus, AffiliateTrackingStatus } from "@lmaa/shared";
 
@@ -41,33 +39,20 @@ import {
 
 interface StatCardDef {
   key: "total" | AffiliateScanStatus;
+  filterValue: string;
   icon: ReactNode;
   iconBg: string;
   iconColor: string;
+  activeBorder: string;
+  activeGlow: string;
 }
 
 const STAT_CARDS: StatCardDef[] = [
-  { key: "total", icon: <StorefrontIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-purple-500/12", iconColor: "text-purple-400" },
-  { key: "direct", icon: <CheckCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-green-500/12", iconColor: "text-green-400" },
-  { key: "network", icon: <GraphIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-amber-500/12", iconColor: "text-amber-400" },
-  { key: "inquiry", icon: <EnvelopeSimpleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-orange-500/12", iconColor: "text-orange-400" },
-  { key: "none", icon: <MinusCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-zinc-500/10", iconColor: "text-zinc-400" },
-];
-
-interface FilterDef {
-  value: string;
-  icon: ReactNode;
-  activeBg: string;
-  activeText: string;
-  inactiveText: string;
-}
-
-const STATUS_FILTERS: FilterDef[] = [
-  { value: "", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-purple-500/20", activeText: "text-purple-300", inactiveText: "text-purple-400/60" },
-  { value: "direct", icon: <CheckCircleIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-green-500/20", activeText: "text-green-300", inactiveText: "text-green-400/60" },
-  { value: "network", icon: <GraphIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-amber-500/20", activeText: "text-amber-300", inactiveText: "text-amber-400/60" },
-  { value: "inquiry", icon: <EnvelopeSimpleIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-orange-500/20", activeText: "text-orange-300", inactiveText: "text-orange-400/60" },
-  { value: "none", icon: <MinusCircleIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-zinc-500/20", activeText: "text-zinc-300", inactiveText: "text-zinc-400/60" },
+  { key: "total", filterValue: "", icon: <StorefrontIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-purple-500/12", iconColor: "text-purple-400", activeBorder: "border-purple-400", activeGlow: "shadow-[0_0_12px_rgba(168,85,247,0.35)]" },
+  { key: "direct", filterValue: "direct", icon: <CheckCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-green-500/12", iconColor: "text-green-400", activeBorder: "border-green-400", activeGlow: "shadow-[0_0_12px_rgba(74,222,128,0.35)]" },
+  { key: "network", filterValue: "network", icon: <GraphIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-amber-500/12", iconColor: "text-amber-400", activeBorder: "border-amber-400", activeGlow: "shadow-[0_0_12px_rgba(251,191,36,0.35)]" },
+  { key: "inquiry", filterValue: "inquiry", icon: <EnvelopeSimpleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-orange-500/12", iconColor: "text-orange-400", activeBorder: "border-orange-400", activeGlow: "shadow-[0_0_12px_rgba(251,146,60,0.35)]" },
+  { key: "none", filterValue: "none", icon: <MinusCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-zinc-500/10", iconColor: "text-zinc-400", activeBorder: "border-zinc-400", activeGlow: "shadow-[0_0_12px_rgba(161,161,170,0.25)]" },
 ];
 
 const STATUS_COLORS: Record<AffiliateScanStatus, string> = {
@@ -111,8 +96,37 @@ export function AffiliateListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [selected, setSelected] = useState<AffiliateScanResult | null>(null);
+  const [paneVisible, setPaneVisible] = useState(false);
+  const [paneClosing, setPaneClosing] = useState(false);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [showDeleteAll, setShowDeleteAll] = useState(false);
+
+  const openPane = useCallback((scan: AffiliateScanResult) => {
+    setSelected(scan);
+    setPaneClosing(false);
+    setPaneVisible(true);
+  }, []);
+
+  const closePane = useCallback(() => {
+    setPaneClosing(true);
+  }, []);
+
+  const handlePaneAnimationEnd = useCallback(() => {
+    if (paneClosing) {
+      setPaneVisible(false);
+      setPaneClosing(false);
+      setSelected(null);
+    }
+  }, [paneClosing]);
+
+  useEffect(() => {
+    if (!paneVisible) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") closePane();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [paneVisible, closePane]);
 
   const { data: scans = [], isLoading } = useAffiliateScans({
     status: statusFilter || undefined,
@@ -151,38 +165,15 @@ export function AffiliateListPage() {
   return (
     <PageLayout className="overflow-hidden -mx-3 -mb-3">
       <PageHeader title={t.title}>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-lg border border-[var(--ds-border)] overflow-hidden">
-            {STATUS_FILTERS.map((f) => {
-              const isActive = statusFilter === f.value;
-              const label = f.value === "" ? t.filters.allStatus : t.status[f.value as AffiliateScanStatus];
-              return (
-                <button
-                  key={f.value}
-                  type="button"
-                  onClick={() => setStatusFilter(f.value)}
-                  className={`h-9 px-3 flex items-center gap-1.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? `${f.activeBg} ${f.activeText}`
-                      : `bg-[var(--ds-bg-elevated)] ${f.inactiveText} hover:bg-[var(--ds-surface-hover)]`
-                  }`}
-                >
-                  {f.icon}
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-          <FilterDropdown
-            value={sortOrder}
-            onChange={setSortOrder}
-            options={[
-              { value: "newest", label: messages.submissions.sort.newFirst },
-              { value: "oldest", label: messages.submissions.sort.oldFirst },
-            ]}
-            storageKey="affiliate-sort"
-          />
-        </div>
+        <FilterDropdown
+          value={sortOrder}
+          onChange={setSortOrder}
+          options={[
+            { value: "newest", label: messages.submissions.sort.newFirst },
+            { value: "oldest", label: messages.submissions.sort.oldFirst },
+          ]}
+          storageKey="affiliate-sort"
+        />
       </PageHeader>
 
       {/* Single scrollable area with sticky header inside */}
@@ -207,20 +198,29 @@ export function AffiliateListPage() {
                 <tr>
                   <th colSpan={COL_COUNT} className="p-0 bg-[var(--ds-bg)]">
                     <div className="grid grid-cols-5 gap-3 px-4 pt-1 pb-3">
-                      {STAT_CARDS.map((card) => (
-                        <div
-                          key={card.key}
-                          className="flex items-center gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5"
-                        >
-                          <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
-                            {card.icon}
-                          </div>
-                          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
-                            {getStatLabel(card)}
-                          </p>
-                          <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
-                        </div>
-                      ))}
+                      {STAT_CARDS.map((card) => {
+                        const isActive = statusFilter === card.filterValue;
+                        return (
+                          <button
+                            key={card.key}
+                            type="button"
+                            onClick={() => setStatusFilter(isActive && card.filterValue !== "" ? "" : card.filterValue)}
+                            className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all cursor-pointer ${
+                              isActive
+                                ? `${card.activeBorder} ${card.activeGlow} bg-[var(--ds-surface)]`
+                                : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:border-[var(--ds-border)]"
+                            }`}
+                          >
+                            <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
+                              {card.icon}
+                            </div>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
+                              {getStatLabel(card)}
+                            </p>
+                            <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* Batch Progress */}
@@ -275,7 +275,7 @@ export function AffiliateListPage() {
                 {sortedScans.map((scan) => (
                   <tr
                     key={scan.id}
-                    onClick={() => setSelected(scan)}
+                    onClick={() => openPane(scan)}
                     className={`border-b border-[var(--ds-surface-hover)] cursor-pointer hover:bg-[var(--ds-surface-hover)] transition-colors ${selected?.id === scan.id ? "bg-[var(--ds-surface-hover)]" : ""}`}
                   >
                     <td className="px-4 py-2.5">
@@ -311,7 +311,7 @@ export function AffiliateListPage() {
                             e.stopPropagation();
                             deleteScan.mutate(scan.shopId, {
                               onSuccess: () => {
-                                if (selected?.id === scan.id) setSelected(null);
+                                if (selected?.id === scan.id) closePane();
                               },
                             });
                           }}
@@ -329,76 +329,82 @@ export function AffiliateListPage() {
           )}
         </div>
 
-        {/* Detail Panel */}
-        {selected && (
-          <div className="w-80 shrink-0 border-l border-[var(--ds-border)] bg-[var(--ds-surface)] overflow-auto">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--ds-border)]">
-              <h2 className="font-semibold text-[var(--ds-text)] truncate">{selected.shopName}</h2>
-              <button
-                type="button"
-                onClick={() => setSelected(null)}
-                className="p-1 rounded text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-              >
-                <XIcon className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-4 space-y-3">
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-                  {t.table.tracking}
-                </label>
-                <select
-                  value={selected.trackingStatus}
-                  onChange={(e) => {
-                    const newStatus = e.target.value as AffiliateTrackingStatus;
-                    updateTracking.mutate(
-                      { shopId: selected.shopId, trackingStatus: newStatus, trackingNote: selected.trackingNote },
-                      {
-                        onSuccess: () =>
-                          setSelected((prev) => (prev ? { ...prev, trackingStatus: newStatus } : null)),
-                      },
-                    );
-                  }}
-                  className="w-full h-9 mt-1 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm"
-                >
-                  <option value="open">{t.tracking.open}</option>
-                  <option value="contacted">{t.tracking.contacted}</option>
-                  <option value="confirmed">{t.tracking.confirmed}</option>
-                  <option value="rejected">{t.tracking.rejected}</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-                  {t.detail.trackingNote}
-                </label>
-                <textarea
-                  value={selected.trackingNote ?? ""}
-                  onChange={(e) => setSelected((prev) => (prev ? { ...prev, trackingNote: e.target.value } : null))}
-                  onBlur={() => {
-                    updateTracking.mutate({
-                      shopId: selected.shopId,
-                      trackingStatus: selected.trackingStatus,
-                      trackingNote: selected.trackingNote,
-                    });
-                  }}
-                  placeholder={t.detail.trackingNotePlaceholder}
-                  rows={3}
-                  className="w-full mt-1 p-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm resize-none"
-                />
-              </div>
-              <DetailField label={t.detail.recommendation} value={selected.recommendation} />
-              <DetailField label={t.detail.programUrl} value={selected.programUrl} isLink />
-              <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
-              <DetailField label={t.detail.contactEmail} value={selected.contactEmail} />
-              <DetailField label={t.detail.compensationModel} value={selected.compensationModel} />
-              <DetailField label={t.detail.cookieDuration} value={selected.cookieDuration} />
-              <DetailField label={t.detail.payoutThreshold} value={selected.payoutThreshold} />
-              <DetailField label={t.detail.requirements} value={selected.requirements} />
-              <DetailField label={t.detail.notes} value={selected.notes} />
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Detail Panel - fixed, full height from header to bottom */}
+      {paneVisible && selected && (
+        <div
+          onAnimationEnd={handlePaneAnimationEnd}
+          className={`fixed top-14 right-0 bottom-0 w-80 z-20 border-l border-[var(--ds-border)] bg-[var(--ds-surface)] flex flex-col ${
+            paneClosing ? "animate-[slideOut_200ms_ease-in-out_forwards]" : "animate-[slideIn_200ms_ease-in-out_forwards]"
+          }`}
+        >
+          <div className="flex items-center justify-between p-4 border-b border-[var(--ds-border)]">
+            <h2 className="font-semibold text-[var(--ds-text)] truncate">{selected.shopName}</h2>
+            <button
+              type="button"
+              onClick={closePane}
+              className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+            >
+              <XCircleIcon weight="duotone" className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-4 space-y-5">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
+                {t.table.tracking}
+              </label>
+              <select
+                value={selected.trackingStatus}
+                onChange={(e) => {
+                  const newStatus = e.target.value as AffiliateTrackingStatus;
+                  updateTracking.mutate(
+                    { shopId: selected.shopId, trackingStatus: newStatus, trackingNote: selected.trackingNote },
+                    {
+                      onSuccess: () =>
+                        setSelected((prev) => (prev ? { ...prev, trackingStatus: newStatus } : null)),
+                    },
+                  );
+                }}
+                className="w-full h-9 mt-1 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm"
+              >
+                <option value="open">{t.tracking.open}</option>
+                <option value="contacted">{t.tracking.contacted}</option>
+                <option value="confirmed">{t.tracking.confirmed}</option>
+                <option value="rejected">{t.tracking.rejected}</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
+                {t.detail.trackingNote}
+              </label>
+              <textarea
+                value={selected.trackingNote ?? ""}
+                onChange={(e) => setSelected((prev) => (prev ? { ...prev, trackingNote: e.target.value } : null))}
+                onBlur={() => {
+                  updateTracking.mutate({
+                    shopId: selected.shopId,
+                    trackingStatus: selected.trackingStatus,
+                    trackingNote: selected.trackingNote,
+                  });
+                }}
+                placeholder={t.detail.trackingNotePlaceholder}
+                rows={3}
+                className="w-full mt-1 p-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm resize-none"
+              />
+            </div>
+            <DetailField label={t.detail.recommendation} value={selected.recommendation} />
+            <DetailField label={t.detail.programUrl} value={selected.programUrl} isLink />
+            <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
+            <DetailField label={t.detail.contactEmail} value={selected.contactEmail} />
+            <DetailField label={t.detail.compensationModel} value={selected.compensationModel} />
+            <DetailField label={t.detail.cookieDuration} value={selected.cookieDuration} />
+            <DetailField label={t.detail.payoutThreshold} value={selected.payoutThreshold} />
+            <DetailField label={t.detail.requirements} value={selected.requirements} />
+            <DetailField label={t.detail.notes} value={selected.notes} />
+          </div>
+        </div>
+      )}
 
       <Toolbar className="sticky bottom-0 z-10 !mx-0 !mb-0">
         <div className="relative">

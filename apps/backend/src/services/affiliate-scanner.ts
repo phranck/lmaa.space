@@ -93,5 +93,37 @@ export async function scanShopAffiliate(
     throw new Error(`Failed to parse LLM response for ${shopName}`);
   }
 
+  if (parsed.networkName) {
+    parsed.networkName = normalizeNetworkName(parsed.networkName);
+  }
+
   return parsed;
+}
+
+const NETWORK_ALIASES: [RegExp, string][] = [
+  [/\bawin\b/i, "Awin"],
+  [/\baffilinet\b/i, "Awin"],
+  [/\bzanox\b/i, "Awin"],
+  [/\bcj\b/i, "CJ Affiliate"],
+  [/\bcommission\s*junction\b/i, "CJ Affiliate"],
+  [/\btradedoubler\b/i, "Tradedoubler"],
+  [/\btradetracker\b/i, "TradeTracker"],
+  [/\brakuten\b/i, "Rakuten"],
+  [/\bshare\s*a\s*sale\b/i, "ShareASale"],
+  [/\bimpact\b/i, "Impact"],
+  [/\bpartnerize\b/i, "Partnerize"],
+  [/\bbelboon\b/i, "Belboon"],
+  [/\badcell\b/i, "Adcell"],
+  [/\bwebgains\b/i, "Webgains"],
+  [/\bdigistore\b/i, "Digistore24"],
+  [/\bfinance\s*ads\b/i, "FinanceAds"],
+  [/\bdaisycon\b/i, "Daisycon"],
+];
+
+function normalizeNetworkName(raw: string): string {
+  const trimmed = raw.trim();
+  for (const [pattern, canonical] of NETWORK_ALIASES) {
+    if (pattern.test(trimmed)) return canonical;
+  }
+  return trimmed;
 }
