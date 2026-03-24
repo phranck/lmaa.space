@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 
+import { affiliateRoutes } from "./affiliate.js";
 import { authRoutes } from "./auth.js";
 import { categoriesRoutes } from "./categories.js";
 import { contentRoutes } from "./content.js";
@@ -49,5 +50,6 @@ protectedRoutes.route("/", emailTemplateRoutes);
 protectedRoutes.route("/", footerConfigRoutes);
 protectedRoutes.route("/", markdownWidgetsRoutes);
 protectedRoutes.route("/", mediaRoutes);
+protectedRoutes.route("/", affiliateRoutes);
 
 adminRoutes.route("/", protectedRoutes);
