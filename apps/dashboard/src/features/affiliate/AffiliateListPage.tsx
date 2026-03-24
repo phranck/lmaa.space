@@ -1,16 +1,27 @@
 import {
   ArrowSquareOutIcon,
-  DownloadSimpleIcon,
-  MagnifyingGlassIcon,
+  CheckCircleIcon,
+  EnvelopeSimpleIcon,
+  GraphIcon,
+  HandshakeIcon,
+  MinusCircleIcon,
   PlayIcon,
+  SquaresFourIcon,
+  StorefrontIcon,
   TrashIcon,
-  UploadSimpleIcon,
+  XCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import type { AffiliateScanResult, AffiliateScanStatus, AffiliateTrackingStatus } from "@lmaa/shared";
 
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
+import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   useAffiliateScanJob,
@@ -22,22 +33,84 @@ import {
   useAffiliateScans,
   useAffiliateStats,
   useDeleteAffiliateScan,
-  useImportAffiliateScans,
+  useDeleteAllAffiliateScans,
   useUpdateAffiliateTracking,
 } from "@/features/affiliate/hooks/useAffiliateScans.ts";
 
+// -- Stat Card config --
+
+interface StatCardDef {
+  key: "total" | AffiliateScanStatus;
+  icon: ReactNode;
+  iconBg: string;
+  iconColor: string;
+}
+
+const STAT_CARDS: StatCardDef[] = [
+  {
+    key: "total",
+    icon: <StorefrontIcon weight="duotone" className="w-5 h-5" />,
+    iconBg: "bg-purple-500/12",
+    iconColor: "text-purple-400",
+  },
+  {
+    key: "direct",
+    icon: <CheckCircleIcon weight="duotone" className="w-5 h-5" />,
+    iconBg: "bg-green-500/12",
+    iconColor: "text-green-400",
+  },
+  {
+    key: "network",
+    icon: <GraphIcon weight="duotone" className="w-5 h-5" />,
+    iconBg: "bg-amber-500/12",
+    iconColor: "text-amber-400",
+  },
+  {
+    key: "inquiry",
+    icon: <EnvelopeSimpleIcon weight="duotone" className="w-5 h-5" />,
+    iconBg: "bg-orange-500/12",
+    iconColor: "text-orange-400",
+  },
+  {
+    key: "none",
+    icon: <MinusCircleIcon weight="duotone" className="w-5 h-5" />,
+    iconBg: "bg-zinc-500/10",
+    iconColor: "text-zinc-400",
+  },
+];
+
+// -- Filter config --
+
+interface FilterDef {
+  value: string;
+  icon: ReactNode;
+  activeBg: string;
+  activeText: string;
+  inactiveText: string;
+}
+
+const STATUS_FILTERS: FilterDef[] = [
+  { value: "", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-purple-500/20", activeText: "text-purple-300", inactiveText: "text-purple-400/60" },
+  { value: "direct", icon: <CheckCircleIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-green-500/20", activeText: "text-green-300", inactiveText: "text-green-400/60" },
+  { value: "network", icon: <GraphIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-amber-500/20", activeText: "text-amber-300", inactiveText: "text-amber-400/60" },
+  { value: "inquiry", icon: <EnvelopeSimpleIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-orange-500/20", activeText: "text-orange-300", inactiveText: "text-orange-400/60" },
+  { value: "none", icon: <MinusCircleIcon weight="duotone" className="w-4 h-4" />, activeBg: "bg-zinc-500/20", activeText: "text-zinc-300", inactiveText: "text-zinc-400/60" },
+];
+
+// -- Badge colors --
+
 const STATUS_COLORS: Record<AffiliateScanStatus, string> = {
-  direct: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  network: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  inquiry: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-  none: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+  direct: "bg-green-500/12 text-green-400",
+  network: "bg-amber-500/12 text-amber-400",
+  inquiry: "bg-orange-500/12 text-orange-400",
+  none: "bg-zinc-500/10 text-zinc-400",
 };
 
 const TRACKING_COLORS: Record<AffiliateTrackingStatus, string> = {
-  open: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  contacted: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  confirmed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  open: "bg-zinc-500/10 text-zinc-400",
+  contacted: "bg-blue-500/12 text-blue-400",
+  confirmed: "bg-green-500/12 text-green-400",
+  rejected: "bg-red-500/12 text-red-400",
 };
 
 function StatusBadge({ status, label }: { status: AffiliateScanStatus; label: string }) {
@@ -56,20 +129,21 @@ function TrackingBadge({ status, label }: { status: AffiliateTrackingStatus; lab
   );
 }
 
+// -- Main Page --
+
 export function AffiliateListPage() {
   const { messages } = useI18n();
   const t = messages.affiliate;
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [trackingFilter, setTrackingFilter] = useState<string>("");
   const [selected, setSelected] = useState<AffiliateScanResult | null>(null);
   const [batchJobId, setBatchJobId] = useState<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
 
   const { data: scans = [], isLoading } = useAffiliateScans({
     status: statusFilter || undefined,
-    tracking: trackingFilter || undefined,
     search: search || undefined,
   });
   const { data: stats } = useAffiliateStats();
@@ -80,9 +154,27 @@ export function AffiliateListPage() {
   const cancelBatch = useCancelBatchScan();
   const updateTracking = useUpdateAffiliateTracking();
   const deleteScan = useDeleteAffiliateScan();
-  const importScans = useImportAffiliateScans();
+  const deleteAll = useDeleteAllAffiliateScans();
 
   const ollamaAvailable = health?.available ?? false;
+  const isJobActive = job?.status === "running" || job?.status === "pending";
+
+  const sortedScans = [...scans].sort((a, b) => {
+    const da = new Date(a.scannedAt).getTime();
+    const db = new Date(b.scannedAt).getTime();
+    return sortOrder === "newest" ? db - da : da - db;
+  });
+
+  function getStatValue(key: "total" | AffiliateScanStatus): number {
+    if (!stats) return 0;
+    if (key === "total") return stats.total;
+    return stats.byStatus[key] ?? 0;
+  }
+
+  function getStatLabel(card: StatCardDef): string {
+    if (card.key === "total") return t.stats.total;
+    return t.status[card.key];
+  }
 
   function handleStartBatchScan() {
     startBatch.mutate(undefined, {
@@ -90,180 +182,120 @@ export function AffiliateListPage() {
     });
   }
 
-  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result as string);
-        importScans.mutate(Array.isArray(data) ? data : [data]);
-      } catch {
-        // invalid JSON
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  }
-
-  async function handleExport() {
-    try {
-      const res = await fetch("/api/v1/admin/affiliate/export", { credentials: "include" });
-      const data = await res.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `affiliate-scans-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      // export failed
-    }
-  }
-
-  const isJobActive = job?.status === "running" || job?.status === "pending";
-
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="shrink-0 border-b border-[var(--ds-border)] bg-[var(--ds-surface)]">
-        <div className="p-4">
-          <h1 className="text-lg font-semibold text-[var(--ds-text)]">{t.title}</h1>
+    <PageLayout>
+      <PageHeader title={t.title}>
+        <div className="flex items-center gap-3">
+          {/* Filter Buttons */}
+          <div className="flex items-center rounded-lg border border-[var(--ds-border)] overflow-hidden">
+            {STATUS_FILTERS.map((f) => {
+              const isActive = statusFilter === f.value;
+              const label = f.value === "" ? t.filters.allStatus : t.status[f.value as AffiliateScanStatus];
+              return (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setStatusFilter(f.value)}
+                  className={`h-9 px-3 flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? `${f.activeBg} ${f.activeText}`
+                      : `bg-[var(--ds-bg-elevated)] ${f.inactiveText} hover:bg-[var(--ds-surface-hover)]`
+                  }`}
+                >
+                  {f.icon}
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sort */}
+          <FilterDropdown
+            value={sortOrder}
+            onChange={setSortOrder}
+            options={[
+              { value: "newest", label: messages.submissions.sort.newFirst },
+              { value: "oldest", label: messages.submissions.sort.oldFirst },
+            ]}
+            storageKey="affiliate-sort"
+          />
+
+          {/* Result Count */}
+          <span className="text-sm text-[var(--ds-text-muted)]">
+            {sortedScans.length} {sortedScans.length === 1 ? "Ergebnis" : "Ergebnisse"}
+          </span>
         </div>
+      </PageHeader>
 
-        {/* Stats Bar */}
-        {stats && (
-          <div className="flex gap-4 px-4 pb-3">
-            <div className="text-sm">
-              <span className="text-[var(--ds-text-muted)]">{t.stats.total}:</span>{" "}
-              <span className="font-medium">{stats.total}</span>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+        {STAT_CARDS.map((card) => (
+          <div
+            key={card.key}
+            className="flex items-center gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5"
+          >
+            <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
+              {card.icon}
             </div>
-            <div className="text-sm">
-              <span className="text-[var(--ds-text-muted)]">{t.stats.withProgram}:</span>{" "}
-              <span className="font-medium text-green-600">{stats.withProgram}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-[var(--ds-text-muted)]">{t.stats.withoutProgram}:</span>{" "}
-              <span className="font-medium text-gray-500">{stats.withoutProgram}</span>
-            </div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
+              {getStatLabel(card)}
+            </p>
+            <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
           </div>
-        )}
-
-        {/* Batch Progress */}
-        {isJobActive && job && (
-          <div className="flex items-center gap-3 px-4 pb-3">
-            <div className="flex-1">
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="font-medium text-[var(--ds-text)]">{t.batch.running}</span>
-                <span className="text-[var(--ds-text-muted)]">
-                  {t.batch.progress
-                    .replace("{completed}", String(job.completedShops + job.failedShops))
-                    .replace("{total}", String(job.totalShops))}
-                </span>
-              </div>
-              <div className="h-2 rounded-full bg-[var(--ds-surface-hover)] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[var(--color-primary)] transition-all"
-                  style={{
-                    width: `${job.totalShops > 0 ? ((job.completedShops + job.failedShops) / job.totalShops) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => cancelBatch.mutate(job.id)}
-              className="h-8 px-3 text-sm rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
-            >
-              {t.batch.cancel}
-            </button>
-          </div>
-        )}
-
-        {/* Ollama Warning */}
-        {!ollamaAvailable && (
-          <div className="px-4 pb-3">
-            <p className="text-xs text-amber-600 dark:text-amber-400">{t.ollamaUnavailable}</p>
-          </div>
-        )}
-
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
-          <div className="relative flex-1 min-w-48">
-            <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-text-muted)]" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t.searchPlaceholder}
-              className="w-full h-9 pl-8 pr-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)]"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm"
-          >
-            <option value="">{t.filters.allStatus}</option>
-            <option value="direct">{t.status.direct}</option>
-            <option value="network">{t.status.network}</option>
-            <option value="inquiry">{t.status.inquiry}</option>
-            <option value="none">{t.status.none}</option>
-          </select>
-          <select
-            value={trackingFilter}
-            onChange={(e) => setTrackingFilter(e.target.value)}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm"
-          >
-            <option value="">{t.filters.allTracking}</option>
-            <option value="open">{t.tracking.open}</option>
-            <option value="contacted">{t.tracking.contacted}</option>
-            <option value="confirmed">{t.tracking.confirmed}</option>
-            <option value="rejected">{t.tracking.rejected}</option>
-          </select>
-          <button
-            type="button"
-            onClick={handleStartBatchScan}
-            disabled={!ollamaAvailable || isJobActive}
-            className="h-9 px-3 flex items-center gap-1.5 rounded-control bg-[var(--color-primary)] text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
-          >
-            <PlayIcon weight="bold" className="w-3.5 h-3.5" />
-            {t.scanAll}
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
-          >
-            <UploadSimpleIcon className="w-3.5 h-3.5" />
-            {t.importLabel}
-          </button>
-          <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
-          <button
-            type="button"
-            onClick={handleExport}
-            className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
-          >
-            <DownloadSimpleIcon className="w-3.5 h-3.5" />
-            {t.exportLabel}
-          </button>
-        </div>
+        ))}
       </div>
 
-      {/* Content */}
-      <div className="flex flex-1 min-h-0">
-        {/* Table */}
+      {/* Batch Progress */}
+      {isJobActive && job && (
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
+          <div className="flex-1">
+            <div className="flex items-center justify-between text-sm mb-1">
+              <span className="font-medium text-[var(--ds-text)]">{t.batch.running}</span>
+              <span className="text-[var(--ds-text-muted)]">
+                {t.batch.progress
+                  .replace("{completed}", String(job.completedShops + job.failedShops))
+                  .replace("{total}", String(job.totalShops))}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-[var(--ds-surface-hover)] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[var(--color-primary)] transition-all"
+                style={{
+                  width: `${job.totalShops > 0 ? ((job.completedShops + job.failedShops) / job.totalShops) * 100 : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => cancelBatch.mutate(job.id)}
+            className="h-8 px-3 text-sm rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
+          >
+            {t.batch.cancel}
+          </button>
+        </div>
+      )}
+
+      {/* Ollama Warning */}
+      {!ollamaAvailable && (
+        <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">{t.ollamaUnavailable}</p>
+      )}
+
+      {/* Content: Shop List */}
+      <PageBody>
+        <div className="flex flex-1 min-h-0 -mx-3">
         <div className="flex-1 overflow-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-48">
               <div className="w-6 h-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
             </div>
-          ) : scans.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <p className="text-[var(--ds-text-muted)]">{t.noScans}</p>
-              <p className="text-sm text-[var(--ds-text-muted)] mt-1">{t.noScansHint}</p>
-            </div>
+          ) : sortedScans.length === 0 ? (
+            <ContentUnavailableView
+              icon={<HandshakeIcon weight="duotone" aria-hidden />}
+              title={t.noScans}
+              subtitle={t.noScansHint}
+              className="flex-1 min-h-0"
+            />
           ) : (
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]">
@@ -277,7 +309,7 @@ export function AffiliateListPage() {
                 </tr>
               </thead>
               <tbody>
-                {scans.map((scan) => (
+                {sortedScans.map((scan) => (
                   <tr
                     key={scan.id}
                     onClick={() => setSelected(scan)}
@@ -348,7 +380,6 @@ export function AffiliateListPage() {
               </button>
             </div>
             <div className="p-4 space-y-3">
-              {/* Tracking Editor */}
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
                   {t.table.tracking}
@@ -392,8 +423,6 @@ export function AffiliateListPage() {
                   className="w-full mt-1 p-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm resize-none"
                 />
               </div>
-
-              {/* Detail Fields */}
               <DetailField label={t.detail.recommendation} value={selected.recommendation} />
               <DetailField label={t.detail.programUrl} value={selected.programUrl} isLink />
               <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
@@ -407,7 +436,95 @@ export function AffiliateListPage() {
           </div>
         )}
       </div>
-    </div>
+      </PageBody>
+
+      <Toolbar className="sticky bottom-0 z-10">
+        <div className="relative">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t.searchPlaceholder}
+            className="py-1.5 w-104 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
+            >
+              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">
+              <kbd className="inline-flex items-center justify-center h-4.5 min-w-4.5 px-1 rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] font-sans leading-none">&#8984;</kbd>
+              <kbd className="inline-flex items-center justify-center h-4.5 min-w-4.5 px-1 rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] font-sans leading-none">K</kbd>
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={handleStartBatchScan}
+          disabled={!ollamaAvailable || isJobActive}
+          className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors ml-auto"
+        >
+          <PlayIcon weight="bold" className="w-3.5 h-3.5" />
+          {t.scanAll}
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowDeleteAll(true)}
+          disabled={sortedScans.length === 0}
+          className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+        >
+          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+          {messages.common.delete}
+        </button>
+      </Toolbar>
+
+      {/* Delete All Confirmation */}
+      <OverlayCard
+        open={showDeleteAll}
+        onClose={() => setShowDeleteAll(false)}
+        size="fixed-sm"
+        aria-label={t.deleteTitle}
+      >
+        <OverlayCard.Header>
+          <div className="flex items-center gap-3">
+            <TrashIcon weight="duotone" className="w-5 h-5 text-[var(--ds-btn-danger-text)]" />
+            <h3 className="font-bold text-[var(--ds-text)]">{t.deleteTitle}</h3>
+          </div>
+        </OverlayCard.Header>
+        <OverlayCard.Body>
+          <p className="text-sm text-[var(--ds-text-muted)]">{t.deleteDescription}</p>
+        </OverlayCard.Body>
+        <OverlayCard.Footer className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setShowDeleteAll(false)}
+            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+          >
+            {messages.common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteAll.isPending}
+            onClick={() => {
+              deleteAll.mutate(undefined, {
+                onSuccess: () => {
+                  setShowDeleteAll(false);
+                  setSelected(null);
+                },
+              });
+            }}
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+          >
+            <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+            {deleteAll.isPending ? "..." : messages.common.delete}
+          </button>
+        </OverlayCard.Footer>
+      </OverlayCard>
+    </PageLayout>
   );
 }
 
