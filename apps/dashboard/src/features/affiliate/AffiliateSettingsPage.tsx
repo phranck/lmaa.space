@@ -1,9 +1,8 @@
-import { FloppyDiskIcon, GearIcon } from "@phosphor-icons/react";
+import { FloppyDiskIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
-import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
