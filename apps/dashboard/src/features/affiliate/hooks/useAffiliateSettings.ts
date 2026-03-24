@@ -20,7 +20,7 @@ export function useSaveAffiliateSetting() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ key, value }: { key: string; value: string }) =>
-      api.put(`/admin/settings/${key}`, { value }),
+      api.put("/admin/settings", { key, value }),
     onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
   });
 }
