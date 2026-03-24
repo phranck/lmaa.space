@@ -12,6 +12,7 @@ import { parseId } from "../../lib/validate.js";
 import type { AuthVariables } from "../../middleware/auth.js";
 import {
   deleteAffiliateScan,
+  deleteAllAffiliateScans,
   exportAllAffiliateScans,
   getAffiliateScanByShopId,
   getAffiliateScanJob,
@@ -60,6 +61,12 @@ affiliateRoutes.patch("/affiliate/scans/:shopId/tracking", async (c) => {
   );
   if (!row) return fail(c, 404, "Scan not found");
   return ok(c, row);
+});
+
+// DELETE /api/admin/affiliate/scans - delete all scans
+affiliateRoutes.delete("/affiliate/scans", async (c) => {
+  await deleteAllAffiliateScans();
+  return ok(c, { message: "All scans deleted" });
 });
 
 // DELETE /api/admin/affiliate/scans/:shopId

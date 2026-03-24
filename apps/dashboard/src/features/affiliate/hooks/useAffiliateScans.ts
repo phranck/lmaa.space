@@ -80,6 +80,17 @@ export function useDeleteAffiliateScan() {
   });
 }
 
+export function useDeleteAllAffiliateScans() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.delete("/admin/affiliate/scans"),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: SCANS_KEY });
+      qc.invalidateQueries({ queryKey: STATS_KEY });
+    },
+  });
+}
+
 export function useSingleAffiliateScan() {
   const qc = useQueryClient();
   return useMutation({

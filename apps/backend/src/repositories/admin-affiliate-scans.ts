@@ -118,6 +118,10 @@ export async function updateAffiliateTracking(
   return row ?? null;
 }
 
+export async function deleteAllAffiliateScans(): Promise<void> {
+  await db.delete(affiliateScans);
+}
+
 export async function deleteAffiliateScan(shopId: number): Promise<void> {
   await db.delete(affiliateScans).where(eq(affiliateScans.shopId, shopId));
 }
