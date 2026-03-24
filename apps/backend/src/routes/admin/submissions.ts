@@ -59,7 +59,7 @@ submissionsRoutes.get("/submissions/:id", async (c) => {
 submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
-  const { status, adminNote, rejectionLongText, rejectionToken } = c.req.valid("json");
+  const { status, adminNote, rejectionLongText, rejectionToken, notificationTemplateId } = c.req.valid("json");
   const adminId = c.get("adminId");
 
   const result = await reviewAdminSubmission({
@@ -69,6 +69,7 @@ submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), as
     rejectionLongText,
     rejectionToken,
     adminId,
+    notificationTemplateId,
   });
 
   if (!result.ok) {

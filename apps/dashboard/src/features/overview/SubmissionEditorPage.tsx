@@ -19,7 +19,7 @@ import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
-import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
+import { NotificationTemplateSelect, RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -31,6 +31,7 @@ import {
   useDeleteSubmission,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
+import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
@@ -77,6 +78,7 @@ type ReviewState = {
   rejectionLongText: string;
   rejectionToken: string | null;
   reviewMode: "approve" | "reject" | null;
+  notificationTemplateId: number | undefined;
 };
 
 type ReviewAction =
@@ -90,7 +92,26 @@ type ReviewAction =
       rejectionToken: string | null;
     }
   | { type: "setAdminNote"; value: string }
-  | { type: "setRejectionLongText"; value: string };
+  | { type: "setRejectionLongText"; value: string }
+  | { type: "setNotificationTemplateId"; value: number | undefined };
+
+const STORAGE_KEY_APPROVED = "submissions:notification-template:approved";
+const STORAGE_KEY_REJECTED = "submissions:notification-template:rejected";
+
+function loadPersistedTemplateId(key: string): number | undefined {
+  const raw = localStorage.getItem(key);
+  if (!raw) return undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function persistTemplateId(key: string, value: number | undefined) {
+  if (value) {
+    localStorage.setItem(key, String(value));
+  } else {
+    localStorage.removeItem(key);
+  }
+}
 
 const EMPTY_REVIEW_STATE: ReviewState = {
   adminNote: "",
@@ -98,6 +119,7 @@ const EMPTY_REVIEW_STATE: ReviewState = {
   rejectionLongText: "",
   rejectionToken: null,
   reviewMode: null,
+  notificationTemplateId: undefined,
 };
 
 function reviewReducer(state: ReviewState, action: ReviewAction): ReviewState {
@@ -109,6 +131,7 @@ function reviewReducer(state: ReviewState, action: ReviewAction): ReviewState {
         ...EMPTY_REVIEW_STATE,
         reviewMode: "approve",
         adminNote: action.adminNote,
+        notificationTemplateId: loadPersistedTemplateId(STORAGE_KEY_APPROVED),
       };
     case "openReject":
       return {
@@ -117,11 +140,17 @@ function reviewReducer(state: ReviewState, action: ReviewAction): ReviewState {
         rejectionLongText: action.rejectionLongText,
         rejectionToken: action.rejectionToken,
         reviewMode: "reject",
+        notificationTemplateId: loadPersistedTemplateId(STORAGE_KEY_REJECTED),
       };
     case "setAdminNote":
       return { ...state, adminNote: action.value };
     case "setRejectionLongText":
       return { ...state, rejectionLongText: action.value };
+    case "setNotificationTemplateId": {
+      const storageKey = state.reviewMode === "approve" ? STORAGE_KEY_APPROVED : STORAGE_KEY_REJECTED;
+      persistTemplateId(storageKey, action.value);
+      return { ...state, notificationTemplateId: action.value };
+    }
   }
 }
 
@@ -196,6 +225,8 @@ function LoadedSubmissionEditorPage({
   const submissionsMessages = messages.submissions;
   const reviewMutation = useReviewSubmission();
   const deleteMutation = useDeleteSubmission();
+  const emailTemplatesQuery = useEmailTemplates();
+  const emailTemplates = emailTemplatesQuery.data ?? [];
 
   const controller = useShopEditorController({
     submissionId: submission.id,
@@ -272,6 +303,7 @@ function LoadedSubmissionEditorPage({
         id: submission.id,
         status: "approved",
         adminNote: reviewState.adminNote,
+        notificationTemplateId: reviewState.notificationTemplateId,
       });
 
       if (close) {
@@ -314,6 +346,7 @@ function LoadedSubmissionEditorPage({
         adminNote: reviewState.adminNote,
         rejectionLongText: reviewState.rejectionLongText || undefined,
         rejectionToken: reviewState.rejectionToken ?? undefined,
+        notificationTemplateId: reviewState.notificationTemplateId,
       },
       {
         onSuccess: () => {
@@ -502,6 +535,15 @@ function LoadedSubmissionEditorPage({
         savedPhase={combinedSavedPhase}
         submitLabel={submissionsMessages.suggestions.accept}
         isPending={controller.isPending || reviewMutation.isPending}
+        emailTemplates={emailTemplates}
+        notificationTemplateId={reviewState.notificationTemplateId}
+        onNotificationTemplateChange={(value) =>
+          dispatchReview({ type: "setNotificationTemplateId", value })
+        }
+        notificationLabel={submissionsMessages.suggestions.notificationApproved}
+        notificationNoneLabel={submissionsMessages.suggestions.notificationNone}
+        notificationHint={submissionsMessages.suggestions.notificationHint}
+        hasSubmitterEmail={!!submitterEmail}
       />
 
       <RejectDialog
@@ -554,6 +596,16 @@ function LoadedSubmissionEditorPage({
           rejectionLongLabel: submissionsMessages.suggestions.rejectionLongLabel,
           rejectionLongPlaceholder: submissionsMessages.suggestions.rejectionLongPlaceholder,
           errorPrefix: submissionsMessages.suggestions.reviewErrorPrefix,
+        }}
+        notification={{
+          emailTemplates,
+          notificationTemplateId: reviewState.notificationTemplateId,
+          onNotificationTemplateChange: (value) =>
+            dispatchReview({ type: "setNotificationTemplateId", value }),
+          notificationLabel: submissionsMessages.suggestions.notificationRejected,
+          notificationNoneLabel: submissionsMessages.suggestions.notificationNone,
+          notificationHint: submissionsMessages.suggestions.notificationHint,
+          hasSubmitterEmail: !!submitterEmail,
         }}
       />
 
@@ -629,6 +681,13 @@ interface ApproveSubmissionReviewCardProps {
   savedLabel: string;
   savedPhase: ReturnType<typeof useSaveNotification>["phase"];
   submitLabel: string;
+  emailTemplates: Array<{ id: number; name: string }>;
+  notificationTemplateId: number | undefined;
+  onNotificationTemplateChange: (value: number | undefined) => void;
+  notificationLabel: string;
+  notificationNoneLabel: string;
+  notificationHint: string;
+  hasSubmitterEmail: boolean;
 }
 
 function ApproveSubmissionReviewCard({
@@ -652,6 +711,13 @@ function ApproveSubmissionReviewCard({
   savedLabel,
   savedPhase,
   submitLabel,
+  emailTemplates,
+  notificationTemplateId,
+  onNotificationTemplateChange,
+  notificationLabel,
+  notificationNoneLabel,
+  notificationHint,
+  hasSubmitterEmail,
 }: ApproveSubmissionReviewCardProps) {
   return (
     <OverlayCard
@@ -697,6 +763,16 @@ function ApproveSubmissionReviewCard({
           />
           <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
         </div>
+
+        <NotificationTemplateSelect
+          emailTemplates={emailTemplates}
+          notificationTemplateId={notificationTemplateId}
+          onNotificationTemplateChange={onNotificationTemplateChange}
+          notificationLabel={notificationLabel}
+          notificationNoneLabel={notificationNoneLabel}
+          notificationHint={notificationHint}
+          hasSubmitterEmail={hasSubmitterEmail}
+        />
 
         {(isError || formSaveErrorMessage) && (
           <p className="text-sm text-red-600">
