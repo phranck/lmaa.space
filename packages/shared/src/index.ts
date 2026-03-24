@@ -1,5 +1,7 @@
 /** Domain constants and shared union types. */
 export * from "./constants/domain.js";
+/** App settings keys. */
+export * from "./constants/settings.js";
 /** Shop domain models. */
 export * from "./types/shop.js";
 /** Category domain models. */

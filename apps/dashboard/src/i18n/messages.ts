@@ -51,6 +51,7 @@ export interface DashboardMessages {
         footerBuilder: string;
         markdownWidgets: string;
         affiliate: string;
+        affiliateSettings: string;
         expandAll: string;
         collapseAll: string;
         expandAllAria: string;
@@ -928,6 +929,16 @@ export interface DashboardMessages {
       success: string;
       skipped: string;
     };
+    settings: {
+      title: string;
+      ollamaSection: string;
+      hostLabel: string;
+      hostPlaceholder: string;
+      hostHint: string;
+      apiKeyLabel: string;
+      apiKeyPlaceholder: string;
+      apiKeyHint: string;
+    };
   };
   errors: {
     boundary: {
@@ -988,6 +999,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
         affiliate: "Affiliate",
+        affiliateSettings: "Einstellungen",
         expandAll: "Alles aufklappen",
         collapseAll: "Alles zuklappen",
         expandAllAria: "Alle Gruppen aufklappen",
@@ -1873,6 +1885,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         success: "{n} Ergebnisse importiert",
         skipped: "{n} übersprungen (Shop nicht gefunden)",
       },
+      settings: {
+        title: "Einstellungen",
+        ollamaSection: "Ollama (LLM-Provider)",
+        hostLabel: "Host-URL",
+        hostPlaceholder: "http://localhost:11434",
+        hostHint: "URL der Ollama-Instanz. Leer lassen fuer den Standard (localhost:11434).",
+        apiKeyLabel: "API Key",
+        apiKeyPlaceholder: "Ollama Cloud API Key",
+        apiKeyHint: "Nur fuer Ollama Cloud erforderlich. Wird als Bearer-Token gesendet.",
+      },
     },
     errors: {
       boundary: {
@@ -1928,6 +1950,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
         affiliate: "Affiliate",
+        affiliateSettings: "Settings",
         expandAll: "Expand all",
         collapseAll: "Collapse all",
         expandAllAria: "Expand all groups",
@@ -2808,6 +2831,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       import: {
         success: "{n} results imported",
         skipped: "{n} skipped (shop not found)",
+      },
+      settings: {
+        title: "Settings",
+        ollamaSection: "Ollama (LLM Provider)",
+        hostLabel: "Host URL",
+        hostPlaceholder: "http://localhost:11434",
+        hostHint: "URL of the Ollama instance. Leave empty for default (localhost:11434).",
+        apiKeyLabel: "API Key",
+        apiKeyPlaceholder: "Ollama Cloud API Key",
+        apiKeyHint: "Only required for Ollama Cloud. Sent as Bearer token.",
       },
     },
     errors: {

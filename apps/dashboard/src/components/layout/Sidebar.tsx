@@ -9,6 +9,7 @@ import {
   EnvelopeOpenIcon,
   EyeSlashIcon,
   FileIcon,
+  GearIcon,
   HandshakeIcon,
   ImageIcon,
   LinkIcon,
@@ -37,6 +38,8 @@ import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
+import { useAffiliateScans } from "@/features/affiliate/hooks/useAffiliateScans.ts";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
@@ -322,6 +325,59 @@ function ReportsGroup({
   );
 }
 
+function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
+  const { messages } = useI18n();
+  const s = messages.layout.sidebar;
+  const { data: scans = [] } = useAffiliateScans({});
+  const { data: job } = useActiveAffiliateScanJob();
+  const isScanning = job?.status === "running" || job?.status === "pending";
+
+  return (
+    <>
+      <SidebarSection label="Affiliate" />
+      <div className="space-y-0.5">
+        <NavLink
+          to="/affiliate"
+          end
+          onClick={onItemClick}
+          className={({ isActive }) =>
+            `flex items-center gap-3 py-2 text-sm font-medium ${
+              isActive
+                ? "-mx-3 px-6 bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                : "px-3 rounded-control text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
+            }`
+          }
+        >
+          <span className="shrink-0 opacity-70">
+            <HandshakeIcon weight="duotone" className="w-4 h-4" />
+          </span>
+          <span className="flex-1">{s.affiliate}</span>
+          {isScanning && (
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+              Live
+            </span>
+          )}
+          {!isScanning && scans.length > 0 && (
+            <>
+              <span className="ml-auto h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+                {scans.length}
+              </span>
+              <span className="w-3.5 shrink-0" />
+            </>
+          )}
+        </NavLink>
+        <SidebarItem
+          to="/affiliate/settings"
+          label={s.affiliateSettings}
+          icon={<GearIcon weight="duotone" className="w-4 h-4" />}
+          onClick={onItemClick}
+        />
+      </div>
+    </>
+  );
+}
+
 function SidebarSection({ label }: { label: string }) {
   return <p className="section-header -mx-3 px-3 mt-3 first:mt-0">{label}</p>;
 }
@@ -524,17 +580,7 @@ export function Sidebar({
 
         {/* Affiliate */}
         {isAdmin && (
-          <>
-            <SidebarSection label="Affiliate" />
-            <div className="space-y-0.5">
-              <SidebarItem
-                to="/affiliate"
-                label={s.affiliate ?? "Affiliate"}
-                icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />}
-                onClick={onItemClick}
-              />
-            </div>
-          </>
+          <AffiliateSidebarGroup onItemClick={onItemClick} />
         )}
 
         {/* System */}

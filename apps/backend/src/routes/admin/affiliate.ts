@@ -105,6 +105,14 @@ affiliateRoutes.post("/affiliate/scan/:shopId", async (c) => {
   return ok(c, result);
 });
 
+// GET /api/admin/affiliate/jobs/active - get currently running job
+affiliateRoutes.get("/affiliate/jobs/active", async (c) => {
+  const activeId = getActiveBatchJobId();
+  if (!activeId) return ok(c, null);
+  const job = await getAffiliateScanJob(activeId);
+  return ok(c, job);
+});
+
 // GET /api/admin/affiliate/jobs/:id
 affiliateRoutes.get("/affiliate/jobs/:id", async (c) => {
   const id = parseId(c.req.param("id"));

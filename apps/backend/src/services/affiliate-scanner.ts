@@ -1,9 +1,8 @@
-import { DEFAULT_MODEL, ollamaGenerate, tryParseJson } from "@lmaa/llm";
+import { DEFAULT_HOST, DEFAULT_MODEL, ollamaGenerate, tryParseJson } from "@lmaa/llm";
 import type { OllamaMessage } from "@lmaa/llm";
+import { SETTINGS_KEYS } from "@lmaa/shared";
 
-import { env } from "../config/env.js";
-
-const DEFAULT_HOST = "http://localhost:11434";
+import { getSettings } from "../repositories/app-settings.js";
 
 interface AffiliateScanLlmResult {
   status: "direct" | "network" | "inquiry" | "none";
@@ -51,6 +50,17 @@ Regeln:
 - Sei gruendlich bei der Recherche und nenne konkrete URLs und Details
 - Antworte auf Deutsch`;
 
+async function getOllamaConfig(): Promise<{ host: string; apiKey: string | undefined }> {
+  const settings = await getSettings([
+    SETTINGS_KEYS.OLLAMA_HOST,
+    SETTINGS_KEYS.OLLAMA_API_KEY,
+  ]);
+  return {
+    host: settings[SETTINGS_KEYS.OLLAMA_HOST] || DEFAULT_HOST,
+    apiKey: settings[SETTINGS_KEYS.OLLAMA_API_KEY] || undefined,
+  };
+}
+
 /**
  * Scan a single shop for affiliate program information using the LLM.
  */
@@ -58,6 +68,8 @@ export async function scanShopAffiliate(
   shopName: string,
   shopUrl: string,
 ): Promise<AffiliateScanLlmResult> {
+  const { host, apiKey } = await getOllamaConfig();
+
   const messages: OllamaMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
     {
@@ -67,13 +79,13 @@ export async function scanShopAffiliate(
   ];
 
   const raw = await ollamaGenerate({
-    host: env.OLLAMA_HOST ?? DEFAULT_HOST,
+    host,
+    apiKey,
     model: DEFAULT_MODEL,
     messages,
     maxTokens: 2048,
     numCtx: 8192,
     temperature: 0.2,
-    think: true,
   });
 
   const parsed = tryParseJson<AffiliateScanLlmResult>(raw);

@@ -651,3 +651,16 @@ export const affiliateScanJobs = pgTable("affiliate_scan_jobs", {
 
 export type AffiliateScanJob = typeof affiliateScanJobs.$inferSelect;
 export type AffiliateScanJobInsert = typeof affiliateScanJobs.$inferInsert;
+
+
+// ---------------------------------------------------------------------------
+// App Settings (generic key/value store)
+// ---------------------------------------------------------------------------
+
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type AppSetting = typeof appSettings.$inferSelect;

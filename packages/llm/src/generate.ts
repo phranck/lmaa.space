@@ -51,9 +51,14 @@ export async function ollamaGenerate(
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (options.apiKey) {
+        headers.Authorization = `Bearer ${options.apiKey}`;
+      }
+
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(body),
         signal: controller.signal,
       });
