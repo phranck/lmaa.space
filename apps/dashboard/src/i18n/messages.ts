@@ -50,6 +50,7 @@ export interface DashboardMessages {
         emailTemplatesOverview: string;
         footerBuilder: string;
         markdownWidgets: string;
+        affiliate: string;
         expandAll: string;
         collapseAll: string;
         expandAllAria: string;
@@ -859,6 +860,75 @@ export interface DashboardMessages {
     importSkip: string;
     importNewNameLabel: string;
   };
+  affiliate: {
+    title: string;
+    searchPlaceholder: string;
+    noScans: string;
+    noScansHint: string;
+    scanAll: string;
+    scanShop: string;
+    scanning: string;
+    importLabel: string;
+    exportLabel: string;
+    ollamaUnavailable: string;
+    deleteTitle: string;
+    deleteDescription: string;
+    stats: {
+      total: string;
+      withProgram: string;
+      withoutProgram: string;
+    };
+    status: {
+      direct: string;
+      network: string;
+      inquiry: string;
+      none: string;
+    };
+    tracking: {
+      open: string;
+      contacted: string;
+      confirmed: string;
+      rejected: string;
+    };
+    filters: {
+      allStatus: string;
+      allTracking: string;
+    };
+    table: {
+      shop: string;
+      status: string;
+      network: string;
+      commission: string;
+      tracking: string;
+      scannedAt: string;
+      actions: string;
+    };
+    detail: {
+      programUrl: string;
+      applicationUrl: string;
+      contactEmail: string;
+      compensationModel: string;
+      cookieDuration: string;
+      payoutThreshold: string;
+      requirements: string;
+      notes: string;
+      recommendation: string;
+      trackingNote: string;
+      trackingNotePlaceholder: string;
+    };
+    batch: {
+      running: string;
+      progress: string;
+      cancel: string;
+      completed: string;
+      failed: string;
+      cancelled: string;
+    };
+    import: {
+      success: string;
+      skipped: string;
+    };
+  };
   errors: {
     boundary: {
       title: string;
@@ -917,6 +987,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
+        affiliate: "Affiliate",
         expandAll: "Alles aufklappen",
         collapseAll: "Alles zuklappen",
         expandAllAria: "Alle Gruppen aufklappen",
@@ -1734,6 +1805,75 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Überspringen",
       importNewNameLabel: "Neuer Name",
     },
+    affiliate: {
+      title: "Affiliate",
+      searchPlaceholder: "Shop oder Netzwerk suchen…",
+      noScans: "Noch keine Scan-Ergebnisse.",
+      noScansHint: "Starte einen Scan oder importiere bestehende Daten.",
+      scanAll: "Alle scannen",
+      scanShop: "Shop scannen",
+      scanning: "Wird gescannt…",
+      importLabel: "Importieren",
+      exportLabel: "Exportieren",
+      ollamaUnavailable: "Ollama nicht erreichbar. Scans sind deaktiviert.",
+      deleteTitle: "Scan-Ergebnis löschen?",
+      deleteDescription: "Das Scan-Ergebnis wird dauerhaft entfernt.",
+      stats: {
+        total: "Gesamt",
+        withProgram: "Mit Programm",
+        withoutProgram: "Ohne Programm",
+      },
+      status: {
+        direct: "Direkt",
+        network: "Netzwerk",
+        inquiry: "Anfrage",
+        none: "Keins",
+      },
+      tracking: {
+        open: "Offen",
+        contacted: "Kontaktiert",
+        confirmed: "Bestätigt",
+        rejected: "Abgelehnt",
+      },
+      filters: {
+        allStatus: "Alle Status",
+        allTracking: "Alle Tracking",
+      },
+      table: {
+        shop: "Shop",
+        status: "Status",
+        network: "Netzwerk",
+        commission: "Provision",
+        tracking: "Tracking",
+        scannedAt: "Gescannt",
+        actions: "Aktionen",
+      },
+      detail: {
+        programUrl: "Programm-URL",
+        applicationUrl: "Bewerbungs-URL",
+        contactEmail: "Kontakt-E-Mail",
+        compensationModel: "Vergütungsmodell",
+        cookieDuration: "Cookie-Laufzeit",
+        payoutThreshold: "Mindestauszahlung",
+        requirements: "Anforderungen",
+        notes: "Notizen",
+        recommendation: "Empfehlung",
+        trackingNote: "Tracking-Notiz",
+        trackingNotePlaceholder: "Notiz zum Outreach-Status…",
+      },
+      batch: {
+        running: "Batch-Scan läuft",
+        progress: "{completed}/{total} abgeschlossen",
+        cancel: "Abbrechen",
+        completed: "Scan abgeschlossen",
+        failed: "Scan fehlgeschlagen",
+        cancelled: "Scan abgebrochen",
+      },
+      import: {
+        success: "{n} Ergebnisse importiert",
+        skipped: "{n} übersprungen (Shop nicht gefunden)",
+      },
+    },
     errors: {
       boundary: {
         title: "Ein Fehler ist aufgetreten",
@@ -1787,6 +1927,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
+        affiliate: "Affiliate",
         expandAll: "Expand all",
         collapseAll: "Collapse all",
         expandAllAria: "Expand all groups",
@@ -2599,6 +2740,75 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importRename: "Rename",
       importSkip: "Skip",
       importNewNameLabel: "New name",
+    },
+    affiliate: {
+      title: "Affiliate",
+      searchPlaceholder: "Search shop or network…",
+      noScans: "No scan results yet.",
+      noScansHint: "Start a scan or import existing data.",
+      scanAll: "Scan all",
+      scanShop: "Scan shop",
+      scanning: "Scanning…",
+      importLabel: "Import",
+      exportLabel: "Export",
+      ollamaUnavailable: "Ollama unavailable. Scans are disabled.",
+      deleteTitle: "Delete scan result?",
+      deleteDescription: "The scan result will be permanently removed.",
+      stats: {
+        total: "Total",
+        withProgram: "With program",
+        withoutProgram: "Without program",
+      },
+      status: {
+        direct: "Direct",
+        network: "Network",
+        inquiry: "Inquiry",
+        none: "None",
+      },
+      tracking: {
+        open: "Open",
+        contacted: "Contacted",
+        confirmed: "Confirmed",
+        rejected: "Rejected",
+      },
+      filters: {
+        allStatus: "All statuses",
+        allTracking: "All tracking",
+      },
+      table: {
+        shop: "Shop",
+        status: "Status",
+        network: "Network",
+        commission: "Commission",
+        tracking: "Tracking",
+        scannedAt: "Scanned",
+        actions: "Actions",
+      },
+      detail: {
+        programUrl: "Program URL",
+        applicationUrl: "Application URL",
+        contactEmail: "Contact email",
+        compensationModel: "Compensation model",
+        cookieDuration: "Cookie duration",
+        payoutThreshold: "Payout threshold",
+        requirements: "Requirements",
+        notes: "Notes",
+        recommendation: "Recommendation",
+        trackingNote: "Tracking note",
+        trackingNotePlaceholder: "Note about outreach status…",
+      },
+      batch: {
+        running: "Batch scan running",
+        progress: "{completed}/{total} completed",
+        cancel: "Cancel",
+        completed: "Scan completed",
+        failed: "Scan failed",
+        cancelled: "Scan cancelled",
+      },
+      import: {
+        success: "{n} results imported",
+        skipped: "{n} skipped (shop not found)",
+      },
     },
     errors: {
       boundary: {

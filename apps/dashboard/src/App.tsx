@@ -139,6 +139,12 @@ const FooterBuilderPage = lazy(() =>
   })),
 );
 
+const AffiliateListPage = lazy(() =>
+  import("@/features/affiliate/AffiliateListPage.tsx").then((m) => ({
+    default: m.AffiliateListPage,
+  })),
+);
+
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
 
@@ -350,6 +356,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <FooterBuilderPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="affiliate"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <AffiliateListPage />
                   </Suspense>
                 }
               />
