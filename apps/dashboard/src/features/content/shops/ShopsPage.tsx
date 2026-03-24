@@ -9,7 +9,7 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import type { ShopVisibility } from "@lmaa/shared";
@@ -68,6 +68,18 @@ export function ShopsPage() {
   const [exportLimit, setExportLimit] = useState<ExportLimit>(50);
   const [importError, setImportError] = useState<string | null>(null);
   const importMutation = useImportShopcheckResults();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "k" && e.metaKey) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const sort = useMemo(() => parseShopsSort(searchParams), [searchParams]);
 
   function setSearch(value: string) {
@@ -352,13 +364,14 @@ export function ShopsPage() {
       <Toolbar className="sticky bottom-0 z-10">
         <div className="relative">
           <input
+            ref={searchInputRef}
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={shopsMessages.searchPlaceholder}
             className="py-1.5 w-104 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
           />
-          {search && (
+          {search ? (
             <button
               type="button"
               onClick={() => setSearch("")}
@@ -366,6 +379,11 @@ export function ShopsPage() {
             >
               <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             </button>
+          ) : (
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">
+              <kbd className="inline-flex items-center justify-center h-4.5 min-w-4.5 px-1 rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] font-sans leading-none">&#8984;</kbd>
+              <kbd className="inline-flex items-center justify-center h-4.5 min-w-4.5 px-1 rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] font-sans leading-none">K</kbd>
+            </span>
           )}
         </div>
       </Toolbar>
