@@ -1,6 +1,7 @@
 import {
   EyeIcon,
   FileTextIcon,
+  InfoIcon,
   MapPinIcon,
   PauseCircleIcon,
   SealWarningIcon,
@@ -156,6 +157,22 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         className: "w-36",
         cell: (shop) => (
           <div className="flex gap-2 justify-end">
+            {shop.visibility === "rejected" && shop.rejectionToken && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(
+                    `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${shop.rejectionToken}`,
+                    "_blank",
+                  );
+                }}
+                className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
+              >
+                <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
+                {shopsMessages.table.rejectionInfo}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onEdit(shop)}
