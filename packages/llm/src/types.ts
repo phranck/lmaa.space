@@ -6,6 +6,8 @@ export interface OllamaMessage {
 export interface OllamaGenerateOptions {
   /** Ollama API host URL. Defaults to http://localhost:11434 */
   host?: string;
+  /** API key for Ollama Cloud (sent as Bearer token) */
+  apiKey?: string;
   /** Model name, e.g. "qwen3.5:397b-cloud" */
   model: string;
   /** Chat messages to send */

@@ -17,13 +17,20 @@ export function useStartBatchScan() {
 }
 
 export function useAffiliateScanJob(jobId: number | null) {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["affiliate-job", jobId],
-    queryFn: () => api.get<AffiliateScanJob>(`/admin/affiliate/jobs/${jobId}`),
+    queryFn: async () => {
+      const data = await api.get<AffiliateScanJob>(`/admin/affiliate/jobs/${jobId}`);
+      // Refresh scans + stats while batch is running
+      qc.invalidateQueries({ queryKey: ["affiliate-scans"] });
+      qc.invalidateQueries({ queryKey: ["affiliate-stats"] });
+      return data;
+    },
     enabled: jobId !== null,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      if (status === "running" || status === "pending") return 3000;
+      if (status === "running" || status === "pending") return 2000;
       return false;
     },
   });

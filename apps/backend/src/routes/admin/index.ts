@@ -11,6 +11,7 @@ import { formConfigRoutes } from "./form-config.js";
 import { markdownWidgetsRoutes } from "./markdown-widgets.js";
 import { mediaRoutes } from "./media.js";
 import { navAdminRoutes } from "./nav.js";
+import { settingsRoutes } from "./settings.js";
 import { shopConcernReportsRoutes } from "./shop-concern-reports.js";
 import { shopsRoutes } from "./shops.js";
 import { statsRoutes } from "./stats.js";
@@ -51,5 +52,6 @@ protectedRoutes.route("/", footerConfigRoutes);
 protectedRoutes.route("/", markdownWidgetsRoutes);
 protectedRoutes.route("/", mediaRoutes);
 protectedRoutes.route("/", affiliateRoutes);
+protectedRoutes.route("/", settingsRoutes);
 
 adminRoutes.route("/", protectedRoutes);

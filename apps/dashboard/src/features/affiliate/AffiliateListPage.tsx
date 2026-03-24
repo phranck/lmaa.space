@@ -20,11 +20,11 @@ import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.t
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
 import {
-  useAffiliateScanJob,
   useCancelBatchScan,
   useStartBatchScan,
 } from "@/features/affiliate/hooks/useAffiliateScanJob.ts";
@@ -47,36 +47,11 @@ interface StatCardDef {
 }
 
 const STAT_CARDS: StatCardDef[] = [
-  {
-    key: "total",
-    icon: <StorefrontIcon weight="duotone" className="w-5 h-5" />,
-    iconBg: "bg-purple-500/12",
-    iconColor: "text-purple-400",
-  },
-  {
-    key: "direct",
-    icon: <CheckCircleIcon weight="duotone" className="w-5 h-5" />,
-    iconBg: "bg-green-500/12",
-    iconColor: "text-green-400",
-  },
-  {
-    key: "network",
-    icon: <GraphIcon weight="duotone" className="w-5 h-5" />,
-    iconBg: "bg-amber-500/12",
-    iconColor: "text-amber-400",
-  },
-  {
-    key: "inquiry",
-    icon: <EnvelopeSimpleIcon weight="duotone" className="w-5 h-5" />,
-    iconBg: "bg-orange-500/12",
-    iconColor: "text-orange-400",
-  },
-  {
-    key: "none",
-    icon: <MinusCircleIcon weight="duotone" className="w-5 h-5" />,
-    iconBg: "bg-zinc-500/10",
-    iconColor: "text-zinc-400",
-  },
+  { key: "total", icon: <StorefrontIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-purple-500/12", iconColor: "text-purple-400" },
+  { key: "direct", icon: <CheckCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-green-500/12", iconColor: "text-green-400" },
+  { key: "network", icon: <GraphIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-amber-500/12", iconColor: "text-amber-400" },
+  { key: "inquiry", icon: <EnvelopeSimpleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-orange-500/12", iconColor: "text-orange-400" },
+  { key: "none", icon: <MinusCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-zinc-500/10", iconColor: "text-zinc-400" },
 ];
 
 // -- Filter config --
@@ -138,7 +113,6 @@ export function AffiliateListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [selected, setSelected] = useState<AffiliateScanResult | null>(null);
-  const [batchJobId, setBatchJobId] = useState<number | null>(null);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [showDeleteAll, setShowDeleteAll] = useState(false);
 
@@ -148,7 +122,7 @@ export function AffiliateListPage() {
   });
   const { data: stats } = useAffiliateStats();
   const { data: health } = useAffiliateHealth();
-  const { data: job } = useAffiliateScanJob(batchJobId);
+  const { data: job } = useActiveAffiliateScanJob();
 
   const startBatch = useStartBatchScan();
   const cancelBatch = useCancelBatchScan();
@@ -177,16 +151,13 @@ export function AffiliateListPage() {
   }
 
   function handleStartBatchScan() {
-    startBatch.mutate(undefined, {
-      onSuccess: (newJob) => setBatchJobId(newJob.id),
-    });
+    startBatch.mutate(undefined);
   }
 
   return (
     <PageLayout>
       <PageHeader title={t.title}>
         <div className="flex items-center gap-3">
-          {/* Filter Buttons */}
           <div className="flex items-center rounded-lg border border-[var(--ds-border)] overflow-hidden">
             {STATUS_FILTERS.map((f) => {
               const isActive = statusFilter === f.value;
@@ -208,8 +179,6 @@ export function AffiliateListPage() {
               );
             })}
           </div>
-
-          {/* Sort */}
           <FilterDropdown
             value={sortOrder}
             onChange={setSortOrder}
@@ -219,71 +188,68 @@ export function AffiliateListPage() {
             ]}
             storageKey="affiliate-sort"
           />
-
-          {/* Result Count */}
-          <span className="text-sm text-[var(--ds-text-muted)]">
-            {sortedScans.length} {sortedScans.length === 1 ? "Ergebnis" : "Ergebnisse"}
-          </span>
         </div>
       </PageHeader>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
-        {STAT_CARDS.map((card) => (
-          <div
-            key={card.key}
-            className="flex items-center gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5"
-          >
-            <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
-              {card.icon}
+      {/* Sticky header: Stat Cards + Batch Progress */}
+      <div className="sticky top-0 z-10 bg-[var(--ds-background)] pb-3">
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {STAT_CARDS.map((card) => (
+            <div
+              key={card.key}
+              className="flex items-center gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5"
+            >
+              <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
+                {card.icon}
+              </div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
+                {getStatLabel(card)}
+              </p>
+              <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
             </div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
-              {getStatLabel(card)}
-            </p>
-            <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
+          ))}
+        </div>
+
+        {/* Batch Progress */}
+        {isJobActive && job && (
+          <div className="flex items-center gap-3 mt-3 p-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
+            <div className="flex-1">
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span className="font-medium text-[var(--ds-text)]">{t.batch.running}</span>
+                <span className="text-[var(--ds-text-muted)]">
+                  {t.batch.progress
+                    .replace("{completed}", String(job.completedShops + job.failedShops))
+                    .replace("{total}", String(job.totalShops))}
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-[var(--ds-surface-hover)] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[var(--color-primary)] transition-all"
+                  style={{
+                    width: `${job.totalShops > 0 ? ((job.completedShops + job.failedShops) / job.totalShops) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => cancelBatch.mutate(job.id)}
+              className="h-8 px-3 text-sm rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
+            >
+              {t.batch.cancel}
+            </button>
           </div>
-        ))}
+        )}
+
+        {/* Ollama Warning */}
+        {!ollamaAvailable && (
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-3">{t.ollamaUnavailable}</p>
+        )}
       </div>
 
-      {/* Batch Progress */}
-      {isJobActive && job && (
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
-          <div className="flex-1">
-            <div className="flex items-center justify-between text-sm mb-1">
-              <span className="font-medium text-[var(--ds-text)]">{t.batch.running}</span>
-              <span className="text-[var(--ds-text-muted)]">
-                {t.batch.progress
-                  .replace("{completed}", String(job.completedShops + job.failedShops))
-                  .replace("{total}", String(job.totalShops))}
-              </span>
-            </div>
-            <div className="h-2 rounded-full bg-[var(--ds-surface-hover)] overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[var(--color-primary)] transition-all"
-                style={{
-                  width: `${job.totalShops > 0 ? ((job.completedShops + job.failedShops) / job.totalShops) * 100 : 0}%`,
-                }}
-              />
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => cancelBatch.mutate(job.id)}
-            className="h-8 px-3 text-sm rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
-          >
-            {t.batch.cancel}
-          </button>
-        </div>
-      )}
-
-      {/* Ollama Warning */}
-      {!ollamaAvailable && (
-        <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">{t.ollamaUnavailable}</p>
-      )}
-
-      {/* Content: Shop List */}
-      <PageBody>
-        <div className="flex flex-1 min-h-0 -mx-3">
+      {/* Scrollable content: Table */}
+      <div className="flex flex-1 min-h-0 -mx-3">
         <div className="flex-1 overflow-auto">
           {isLoading ? (
             <div className="flex items-center justify-center h-48">
@@ -298,7 +264,7 @@ export function AffiliateListPage() {
             />
           ) : (
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]">
+              <thead className="sticky top-0 bg-[var(--ds-surface)] border-b border-[var(--ds-border)] z-[5]">
                 <tr>
                   <th className="text-left px-4 py-2 font-medium text-[var(--ds-text-muted)]">{t.table.shop}</th>
                   <th className="text-left px-4 py-2 font-medium text-[var(--ds-text-muted)]">{t.table.status}</th>
@@ -436,7 +402,6 @@ export function AffiliateListPage() {
           </div>
         )}
       </div>
-      </PageBody>
 
       <Toolbar className="sticky bottom-0 z-10">
         <div className="relative">
@@ -482,7 +447,6 @@ export function AffiliateListPage() {
         </button>
       </Toolbar>
 
-      {/* Delete All Confirmation */}
       <OverlayCard
         open={showDeleteAll}
         onClose={() => setShowDeleteAll(false)}
