@@ -69,8 +69,6 @@ const TRACKING_COLORS: Record<AffiliateTrackingStatus, string> = {
   rejected: "bg-red-500/12 text-red-400",
 };
 
-const COL_COUNT = 6;
-
 function StatusBadge({ status, label }: { status: AffiliateScanStatus; label: string }) {
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[status]}`}>
