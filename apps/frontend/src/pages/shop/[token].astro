@@ -51,6 +51,16 @@ if (from === "category" && fromSlug) {
   }
 }
 
+// Fallback: use first category's banner when not coming from a category page
+if (!categoryImageUrl && shop.categories.length > 0) {
+  try {
+    const cat = await apiGet<{ imageUrl?: string | null }>(`/categories/${shop.categories[0].slug}`);
+    categoryImageUrl = cat.imageUrl ?? null;
+  } catch {
+    // ignore — no hero banner
+  }
+}
+
 interface BreadcrumbItem {
   label: string;
   href: string;
