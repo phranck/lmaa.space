@@ -1,4 +1,4 @@
-import { UploadSimpleIcon } from "@phosphor-icons/react";
+import { DownloadSimpleIcon } from "@phosphor-icons/react";
 import { useRef } from "react";
 
 interface ImportButtonProps {
@@ -27,7 +27,7 @@ export function ImportButton({
         className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] transition-colors disabled:opacity-50"
         title={tooltip}
       >
-        <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+        <DownloadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
         {label}
       </button>
       <input

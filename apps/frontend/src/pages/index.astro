@@ -97,7 +97,7 @@ const jsonLd = {
             // Detect platform and show shortcut badge (hidden on mobile/touch)
             const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
             if (!isTouchDevice) {
-              const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+              const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
               shortcut.textContent = isMac ? '\u2318K' : '\u2303K';
               shortcut.classList.remove('hidden');
             }

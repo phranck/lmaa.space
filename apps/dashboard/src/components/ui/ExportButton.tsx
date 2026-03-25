@@ -1,4 +1,4 @@
-import { DownloadSimpleIcon } from "@phosphor-icons/react";
+import { UploadSimpleIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 interface ExportButtonProps {
@@ -20,7 +20,7 @@ export function ExportButton({ onClick, disabled, tooltip, label, children }: Ex
         className="flex items-center gap-1.5 h-9 px-3 text-sm text-[var(--ds-btn-primary-text)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         title={tooltip}
       >
-        <DownloadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+        <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
         {label}
       </button>
     </div>
