@@ -15,7 +15,9 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 import type { AffiliateScanResult, AffiliateScanStatus, AffiliateTrackingStatus } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { ExportButton } from "@/components/ui/ExportButton.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
+import { ImportButton } from "@/components/ui/ImportButton.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageLayout } from "@/components/ui/PageLayout.tsx";
@@ -32,6 +34,7 @@ import {
   useAffiliateStats,
   useDeleteAffiliateScan,
   useDeleteAllAffiliateScans,
+  useImportAffiliateScans,
   useUpdateAffiliateTracking,
 } from "@/features/affiliate/hooks/useAffiliateScans.ts";
 
@@ -140,6 +143,7 @@ export function AffiliateListPage() {
   const updateTracking = useUpdateAffiliateTracking();
   const deleteScan = useDeleteAffiliateScan();
   const deleteAll = useDeleteAllAffiliateScans();
+  const importScans = useImportAffiliateScans();
 
   const ollamaAvailable = health?.available ?? false;
   const isJobActive = job?.status === "running" || job?.status === "pending";
@@ -161,18 +165,59 @@ export function AffiliateListPage() {
     return t.status[card.key];
   }
 
+  function handleExport() {
+    fetch("/api/v1/admin/affiliate/export", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `affiliate-scans-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => {});
+  }
+
+  function handleImport(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result as string);
+        importScans.mutate(Array.isArray(data) ? data : [data]);
+      } catch {
+        // invalid JSON
+      }
+    };
+    reader.readAsText(file);
+  }
+
   return (
     <PageLayout className="overflow-hidden -m-3">
       <PageHeader title={t.title}>
-        <FilterDropdown
-          value={sortOrder}
-          onChange={setSortOrder}
-          options={[
-            { value: "newest", label: messages.submissions.sort.newFirst },
-            { value: "oldest", label: messages.submissions.sort.oldFirst },
-          ]}
-          storageKey="affiliate-sort"
-        />
+        <div className="flex items-center gap-2">
+          <ImportButton
+            onFileSelected={handleImport}
+            label={t.importLabel}
+            tooltip={t.importLabel}
+          />
+          <ExportButton
+            onClick={handleExport}
+            label={t.exportLabel}
+            tooltip={t.exportLabel}
+            disabled={sortedScans.length === 0}
+          />
+          <FilterDropdown
+            value={sortOrder}
+            onChange={setSortOrder}
+            options={[
+              { value: "newest", label: messages.submissions.sort.newFirst },
+              { value: "oldest", label: messages.submissions.sort.oldFirst },
+            ]}
+            storageKey="affiliate-sort"
+          />
+        </div>
       </PageHeader>
 
       {/* Fixed: Stat Cards + Batch Progress */}
