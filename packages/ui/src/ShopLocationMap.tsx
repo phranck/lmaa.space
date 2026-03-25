@@ -87,6 +87,9 @@ const SCOPED_CSS = /* css */ `
 .slm-root .leaflet-control-attribution a {
   color: rgba(255, 255, 255, 0.9) !important;
 }
+.slm-root .leaflet-container {
+  z-index: 0;
+}
 .slm-switcher {
   position: absolute;
   top: 12px;
