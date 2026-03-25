@@ -388,6 +388,7 @@ const OPEN_API_DOCUMENT = {
           linkedin: { type: ["string", "null"] },
           pinterest: { type: ["string", "null"] },
           mastodon: { type: ["string", "null"] },
+          tumblr: { type: ["string", "null"] },
         },
       },
       Shop: {
