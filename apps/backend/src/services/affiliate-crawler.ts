@@ -11,6 +11,11 @@ const AFFILIATE_KEYWORDS = [
   "webgains", "cj affiliate", "commission junction", "shareasale",
   "impact", "partnerize", "rakuten", "daisycon", "financeads",
   "digistore", "copecart",
+  // Additional German terms
+  "partner",
+  "provisionen", "werbepartner", "kooperationspartner",
+  "empfehlungsprogramm", "empfehlungslink", "werbekooperation",
+  "affiliate-programm", "influencer", "brand ambassador",
 ];
 
 /** Common subpaths where affiliate info is often found. */
@@ -21,6 +26,9 @@ const AFFILIATE_PATHS = [
   "/affiliate.html", "/partner.html", "/info/affiliate",
   "/info/partner", "/pages/affiliate", "/pages/partner",
   "/ueber-uns/partner", "/about/affiliate",
+  // Additional paths (English variants + German legal pages likely to reference affiliate tracking)
+  "/partners", "/program", "/referral",
+  "/impressum", "/kontakt", "/agb", "/faq", "/datenschutz", "/presse",
 ];
 
 /**
@@ -44,6 +52,11 @@ const NETWORK_TRACKING_SIGNATURES: Array<{ pattern: RegExp; network: string }> =
   { pattern: /financeads\.net/i, network: "FinanceAds" },
   { pattern: /digistore24\.com/i, network: "Digistore24" },
   { pattern: /copecart\.com/i, network: "CopeCar" },
+  { pattern: /affilinet\.de|affilinet\.com/i, network: "Affilinet" },
+  { pattern: /zanox\.com|zanox-affiliate/i, network: "Zanox" },
+  { pattern: /sovrn\.com|viglink\.com/i, network: "Sovrn" },
+  { pattern: /conversant\.com/i, network: "Conversant" },
+  { pattern: /yieldkit\.com/i, network: "Yieldkit" },
 ];
 
 interface CrawlResult {
@@ -55,8 +68,8 @@ interface CrawlResult {
   affiliateLinks: Array<{ href: string; text: string }>;
   /** Keyword matches found in the page body. */
   keywordMatches: string[];
-  /** Content snippets from affiliate subpages (if any were found). */
-  subpageSnippets: Array<{ url: string; snippet: string }>;
+  /** Full plain-text content of crawled subpages (up to 15 000 chars each). */
+  subpageContents: Array<{ url: string; text: string }>;
   /** Affiliate-related URLs found in sitemap.xml. */
   sitemapHits: string[];
   /** Contact email found on the page (if any). */
@@ -148,14 +161,6 @@ function extractEmails(text: string): string[] {
   return [...new Set(matches ?? [])];
 }
 
-function extractSnippet(text: string, keyword: string, contextChars = 300): string {
-  const lower = text.toLowerCase();
-  const idx = lower.indexOf(keyword.toLowerCase());
-  if (idx === -1) return "";
-  const start = Math.max(0, idx - contextChars);
-  const end = Math.min(text.length, idx + keyword.length + contextChars);
-  return text.slice(start, end).replace(/\s+/g, " ").trim();
-}
 
 function htmlToText(html: string): string {
   return html
@@ -203,6 +208,28 @@ async function checkSitemap(baseUrl: string): Promise<string[]> {
 }
 
 /**
+ * Parse robots.txt and return any paths that match affiliate keywords.
+ * Shops sometimes disallow affiliate pages from indexing while still having them live.
+ */
+async function extractRobotsAffiliateUrls(baseUrl: string): Promise<string[]> {
+  const robotsText = await fetchText(`${baseUrl.replace(/\/$/, "")}/robots.txt`);
+  if (!robotsText) return [];
+
+  const urls: string[] = [];
+  const lineRegex = /^(?:Disallow|Allow):\s*(.+)$/gim;
+  let match: RegExpExecArray | null;
+  while ((match = lineRegex.exec(robotsText)) !== null) {
+    const path = match[1].trim().replace(/\*$/, ""); // strip trailing wildcard
+    if (!path || path === "/" || path === "*") continue;
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    if (AFFILIATE_KEYWORDS.some((kw) => normalizedPath.toLowerCase().includes(kw))) {
+      urls.push(`${baseUrl.replace(/\/$/, "")}${normalizedPath}`);
+    }
+  }
+  return urls;
+}
+
+/**
  * Crawl a shop website for affiliate program evidence.
  *
  * Steps:
@@ -219,7 +246,7 @@ export async function crawlShopForAffiliateEvidence(shopUrl: string): Promise<Cr
     detectedNetworks: [],
     affiliateLinks: [],
     keywordMatches: [],
-    subpageSnippets: [],
+    subpageContents: [],
     sitemapHits: [],
     contactEmail: null,
     metaDescription: null,
@@ -275,12 +302,16 @@ export async function crawlShopForAffiliateEvidence(shopUrl: string): Promise<Cr
   // Step 6: Check sitemap.xml
   result.sitemapHits = await checkSitemap(baseUrl);
 
-  // Step 7: Try affiliate subpages (common paths + found links + sitemap hits)
+  // Step 6b: Parse robots.txt for affiliate path hints (shops sometimes disallow affiliate pages from indexing)
+  const robotsAffiliateUrls = await extractRobotsAffiliateUrls(baseUrl);
+
+  // Step 7: Try affiliate subpages (common paths + found links + sitemap hits + robots hints)
   const checkedUrls = new Set<string>();
   const subpageUrls = [
     ...AFFILIATE_PATHS.map((p) => `${baseUrl.replace(/\/$/, "")}${p}`),
     ...result.affiliateLinks.map((l) => l.href),
     ...result.sitemapHits,
+    ...robotsAffiliateUrls,
   ];
 
   for (const url of subpageUrls) {
@@ -308,22 +339,15 @@ export async function crawlShopForAffiliateEvidence(shopUrl: string): Promise<Cr
     }
 
     const subText = htmlToText(subHtml);
-    for (const keyword of AFFILIATE_KEYWORDS) {
-      if (subText.toLowerCase().includes(keyword)) {
-        const snippet = extractSnippet(subText, keyword);
-        if (snippet) {
-          result.subpageSnippets.push({ url, snippet });
-          break;
-        }
-      }
-    }
+    const truncatedText = subText.length > 15_000 ? subText.slice(0, 15_000) : subText;
+    result.subpageContents.push({ url, text: truncatedText });
 
     if (!result.contactEmail) {
       const subEmails = extractEmails(subText);
       if (subEmails.length > 0) result.contactEmail = subEmails[0];
     }
 
-    if (result.subpageSnippets.length >= 5) break;
+    if (result.subpageContents.length >= 5) break;
   }
 
   logger.info(
@@ -332,7 +356,7 @@ export async function crawlShopForAffiliateEvidence(shopUrl: string): Promise<Cr
       networks: result.detectedNetworks,
       linksFound: result.affiliateLinks.length,
       keywordsFound: result.keywordMatches.length,
-      subpagesFound: result.subpageSnippets.length,
+      subpagesFound: result.subpageContents.length,
       sitemapHits: result.sitemapHits.length,
     },
     "Crawl complete",

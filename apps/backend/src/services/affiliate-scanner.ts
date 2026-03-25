@@ -53,6 +53,10 @@ Regeln:
 - "status" ist "inquiry" wenn kein klares Programm gefunden wurde, aber Hinweise auf Kooperationsmoeglichkeiten existieren oder eine Direktanfrage sinnvoll waere
 - "status" ist "none" wenn keinerlei Hinweise auf ein Affiliate-/Partnerprogramm gefunden wurden
 - Wenn Affiliate-Links oder Netzwerk-Keywords gefunden wurden, ist das ein starker Hinweis auf ein existierendes Programm
+- "Provisionen", "Werbepartner", "Kooperationspartner", "Empfehlungsprogramm" sind deutsche Begriffe fuer Affiliate-Programme
+- Ein Hinweis in der Datenschutzerklaerung auf Tracking-Dienste (Awin, CJ, Tradedoubler etc.) ist ein sicherer Beweis fuer ein aktives Affiliate-Netzwerk-Programm
+- Wenn nur auf der Impressum- oder AGB-Seite relevante Hinweise existieren, setze status="inquiry" mit Empfehlung zur Direktanfrage
+- "Influencer-Programm" und "Brand Ambassador" sind als Affiliate-Programm zu behandeln (status="direct")
 - Antworte auf Deutsch`;
 
 async function getOllamaConfig(): Promise<{ host: string; apiKey: string | undefined }> {
@@ -107,11 +111,11 @@ function buildEvidencePrompt(shopName: string, shopUrl: string, crawlData: Await
     sections.push("\nKeine Affiliate-relevanten Links gefunden.");
   }
 
-  if (crawlData.subpageSnippets.length > 0) {
-    sections.push("\nInhalte von Affiliate-Unterseiten:");
-    for (const sp of crawlData.subpageSnippets) {
-      sections.push(`  [${sp.url}]`);
-      sections.push(`  ${sp.snippet}`);
+  if (crawlData.subpageContents.length > 0) {
+    sections.push("\nInhalte gecrawlter Unterseiten (vollstaendiger Text):");
+    for (const sp of crawlData.subpageContents) {
+      sections.push(`\n[[${sp.url}]]`);
+      sections.push(sp.text);
     }
   }
 
@@ -154,7 +158,7 @@ export async function scanShopAffiliate(
     model: DEFAULT_MODEL,
     messages,
     maxTokens: 2048,
-    numCtx: 8192,
+    numCtx: 32768,
     temperature: 0.2,
   });
 
