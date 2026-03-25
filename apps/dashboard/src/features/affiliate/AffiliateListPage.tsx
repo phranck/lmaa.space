@@ -394,7 +394,9 @@ export function AffiliateListPage() {
             </div>
             <DetailField label={t.detail.recommendation} value={selected.recommendation} />
             <DetailField label={t.detail.programUrl} value={selected.programUrl} isLink />
-            <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
+            {selected.applicationUrl !== selected.programUrl && (
+              <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
+            )}
             <DetailField label={t.detail.contactEmail} value={selected.contactEmail} />
             <DetailField label={t.detail.compensationModel} value={selected.compensationModel} />
             <DetailField label={t.detail.cookieDuration} value={selected.cookieDuration} />

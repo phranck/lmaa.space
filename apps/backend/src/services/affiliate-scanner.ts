@@ -2,6 +2,8 @@ import { DEFAULT_HOST, DEFAULT_MODEL, ollamaGenerate, tryParseJson } from "@lmaa
 import type { OllamaMessage } from "@lmaa/llm";
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
+import { crawlShopForAffiliateEvidence } from "./affiliate-crawler.js";
+import { logger } from "../lib/logger.js";
 import { getSettings } from "../repositories/app-settings.js";
 
 interface AffiliateScanLlmResult {
@@ -21,7 +23,7 @@ interface AffiliateScanLlmResult {
   recommendation: string | null;
 }
 
-const SYSTEM_PROMPT = `Du bist ein Affiliate-Marketing-Analyst. Deine Aufgabe ist es, fuer einen gegebenen Online-Shop zu recherchieren, ob ein Affiliate-/Partnerprogramm existiert.
+const SYSTEM_PROMPT = `Du bist ein Affiliate-Marketing-Analyst. Du bekommst gecrawlte Daten von einer Shop-Website und sollst daraus bestimmen, ob ein Affiliate-/Partnerprogramm existiert.
 
 Antworte AUSSCHLIESSLICH mit einem JSON-Objekt im folgenden Format (keine Markdown-Fences, kein zusaetzlicher Text):
 
@@ -30,7 +32,7 @@ Antworte AUSSCHLIESSLICH mit einem JSON-Objekt im folgenden Format (keine Markdo
   "programFound": true | false,
   "programType": "direct" | "network" | "none" | null,
   "programUrl": "URL zum Partnerprogramm" | null,
-  "networkName": "Name des Affiliate-Netzwerks (z.B. AWIN, CJ, Tradedoubler)" | null,
+  "networkName": "Name des Affiliate-Netzwerks (z.B. Awin, CJ Affiliate, Tradedoubler)" | null,
   "compensationModel": "percentage" | "fixed" | "hybrid" | null,
   "commission": "Beschreibung der Provision (z.B. '8% pro Sale')" | null,
   "cookieDuration": "Cookie-Laufzeit (z.B. '30 Tage')" | null,
@@ -43,11 +45,14 @@ Antworte AUSSCHLIESSLICH mit einem JSON-Objekt im folgenden Format (keine Markdo
 }
 
 Regeln:
+- Stuetze dich AUSSCHLIESSLICH auf die bereitgestellten Crawl-Daten. Erfinde KEINE Informationen.
+- Wenn keine Hinweise gefunden wurden, setze status auf "none" oder "inquiry". Erfinde kein Programm.
+- Erkannte Tracking-Netzwerke (aus Script-Erkennung) sind ein sicherer Beweis fuer ein Affiliate-Programm.
 - "status" ist "direct" wenn der Shop ein eigenes Partnerprogramm betreibt
-- "status" ist "network" wenn das Programm ueber ein Affiliate-Netzwerk laeuft
-- "status" ist "inquiry" wenn kein Programm gefunden wurde, aber eine Direktanfrage sinnvoll waere
-- "status" ist "none" wenn kein Programm existiert und eine Anfrage nicht sinnvoll erscheint
-- Sei gruendlich bei der Recherche und nenne konkrete URLs und Details
+- "status" ist "network" wenn das Programm ueber ein Affiliate-Netzwerk laeuft (Awin, CJ, Tradedoubler, Adcell, etc.)
+- "status" ist "inquiry" wenn kein klares Programm gefunden wurde, aber Hinweise auf Kooperationsmoeglichkeiten existieren oder eine Direktanfrage sinnvoll waere
+- "status" ist "none" wenn keinerlei Hinweise auf ein Affiliate-/Partnerprogramm gefunden wurden
+- Wenn Affiliate-Links oder Netzwerk-Keywords gefunden wurden, ist das ein starker Hinweis auf ein existierendes Programm
 - Antworte auf Deutsch`;
 
 async function getOllamaConfig(): Promise<{ host: string; apiKey: string | undefined }> {
@@ -62,20 +67,85 @@ async function getOllamaConfig(): Promise<{ host: string; apiKey: string | undef
 }
 
 /**
- * Scan a single shop for affiliate program information using the LLM.
+ * Build a user prompt from crawled evidence.
+ */
+function buildEvidencePrompt(shopName: string, shopUrl: string, crawlData: Awaited<ReturnType<typeof crawlShopForAffiliateEvidence>>): string {
+  const sections: string[] = [];
+
+  sections.push(`Shop: ${shopName}`);
+  sections.push(`URL: ${shopUrl}`);
+  sections.push(`Website erreichbar: ${crawlData.reachable ? "Ja" : "Nein"}`);
+
+  if (crawlData.metaDescription) {
+    sections.push(`\nMeta-Beschreibung: ${crawlData.metaDescription}`);
+  }
+
+  if (crawlData.detectedNetworks.length > 0) {
+    sections.push(`\n*** AFFILIATE-NETZWERK ERKANNT (via Tracking-Scripts): ${crawlData.detectedNetworks.join(", ")} ***`);
+    sections.push("Dies ist ein sicherer Nachweis fuer ein aktives Affiliate-Programm.");
+  }
+
+  if (crawlData.sitemapHits.length > 0) {
+    sections.push(`\nAffiliate-relevante URLs aus sitemap.xml:`);
+    for (const url of crawlData.sitemapHits) {
+      sections.push(`  - ${url}`);
+    }
+  }
+
+  if (crawlData.keywordMatches.length > 0) {
+    sections.push(`\nGefundene Affiliate-Keywords auf der Hauptseite: ${crawlData.keywordMatches.join(", ")}`);
+  } else {
+    sections.push("\nKeine Affiliate-Keywords auf der Hauptseite gefunden.");
+  }
+
+  if (crawlData.affiliateLinks.length > 0) {
+    sections.push("\nAffiliate-relevante Links auf der Website:");
+    for (const link of crawlData.affiliateLinks) {
+      sections.push(`  - "${link.text}" -> ${link.href}`);
+    }
+  } else {
+    sections.push("\nKeine Affiliate-relevanten Links gefunden.");
+  }
+
+  if (crawlData.subpageSnippets.length > 0) {
+    sections.push("\nInhalte von Affiliate-Unterseiten:");
+    for (const sp of crawlData.subpageSnippets) {
+      sections.push(`  [${sp.url}]`);
+      sections.push(`  ${sp.snippet}`);
+    }
+  }
+
+  if (crawlData.contactEmail) {
+    sections.push(`\nGefundene Kontakt-E-Mail: ${crawlData.contactEmail}`);
+  }
+
+  sections.push("\nAnalysiere diese Daten und bestimme den Affiliate-Status des Shops.");
+
+  return sections.join("\n");
+}
+
+/**
+ * Scan a single shop for affiliate program information.
+ *
+ * Two-stage process:
+ * 1. Crawl the shop website for affiliate evidence (links, keywords, subpages)
+ * 2. Send the evidence to the LLM for structured analysis
  */
 export async function scanShopAffiliate(
   shopName: string,
   shopUrl: string,
 ): Promise<AffiliateScanLlmResult> {
+  // Stage 1: Crawl
+  logger.info({ shopName, shopUrl }, "Starting affiliate scan (crawl + LLM)");
+  const crawlData = await crawlShopForAffiliateEvidence(shopUrl);
+
+  // Stage 2: LLM analysis
   const { host, apiKey } = await getOllamaConfig();
+  const evidencePrompt = buildEvidencePrompt(shopName, shopUrl, crawlData);
 
   const messages: OllamaMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
-    {
-      role: "user",
-      content: `Recherchiere das Affiliate-/Partnerprogramm fuer folgenden Shop:\n\nShop-Name: ${shopName}\nShop-URL: ${shopUrl}\n\nPruefe insbesondere:\n1. Die Website selbst (Footer, "Partner werden", "Affiliate")\n2. Bekannte Affiliate-Netzwerke (AWIN, CJ, Tradedoubler, etc.)\n3. Allgemeine Informationen zum Haendler`,
-    },
+    { role: "user", content: evidencePrompt },
   ];
 
   const raw = await ollamaGenerate({
@@ -91,6 +161,11 @@ export async function scanShopAffiliate(
   const parsed = tryParseJson<AffiliateScanLlmResult>(raw);
   if (!parsed) {
     throw new Error(`Failed to parse LLM response for ${shopName}`);
+  }
+
+  // Use crawled email if LLM didn't find one
+  if (!parsed.contactEmail && crawlData.contactEmail) {
+    parsed.contactEmail = crawlData.contactEmail;
   }
 
   if (parsed.networkName) {
