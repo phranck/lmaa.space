@@ -86,7 +86,10 @@ if (hq) {
   const cityLine = [hq.postalCode, hq.city].filter(Boolean).join(" ");
   if (cityLine) hqParts.push(cityLine);
   if (hq.state) hqParts.push(hq.state);
-  if (hq.countryCode) hqParts.push(hq.countryCode);
+  if (hq.countryCode) {
+    const countryName = new Intl.DisplayNames(["de"], { type: "region" }).of(hq.countryCode);
+    hqParts.push(countryName ?? hq.countryCode);
+  }
 }
 
 // SEO
