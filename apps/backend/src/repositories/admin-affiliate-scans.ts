@@ -234,5 +234,6 @@ export async function exportAllAffiliateScans() {
     })
     .from(affiliateScans)
     .innerJoin(shops, eq(affiliateScans.shopId, shops.id))
+    .where(eq(shops.visibility, "public"))
     .orderBy(shops.name);
 }
