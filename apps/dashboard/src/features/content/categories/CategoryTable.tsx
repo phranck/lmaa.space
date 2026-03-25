@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { Category } from "@lmaa/shared";
 
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 interface CategoryTableProps {
@@ -69,23 +70,18 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
         className: "w-48",
         cell: (cat) => (
           <div className="flex gap-2 justify-end">
-            <button
-              type="button"
+            <TableActionButton
               onClick={() => onEdit(cat.id)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-              {categoriesMessages.table.edit}
-            </button>
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={categoriesMessages.table.edit}
+            />
             {onDelete && (
-              <button
-                type="button"
+              <TableActionButton
+                variant="danger"
                 onClick={() => onDelete(cat.id)}
-                className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-              >
-                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-                {categoriesMessages.table.delete}
-              </button>
+                icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+                label={categoriesMessages.table.delete}
+              />
             )}
           </div>
         ),

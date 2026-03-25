@@ -14,6 +14,7 @@ import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/sh
 
 import { ShopCategoryBadges } from "@/components/ui/ShopCategoryBadges.tsx";
 import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
 
@@ -158,8 +159,8 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         cell: (shop) => (
           <div className="flex gap-2 justify-end">
             {shop.visibility === "rejected" && shop.rejectionToken && (
-              <button
-                type="button"
+              <TableActionButton
+                variant="warning"
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(
@@ -167,20 +168,15 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
                     "_blank",
                   );
                 }}
-                className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-warning-border)] rounded-control text-[var(--ds-btn-warning-text)] text-sm hover:border-[var(--ds-btn-warning-hover-border)] hover:bg-[var(--ds-btn-warning-hover-bg)] transition-colors"
-              >
-                <InfoIcon weight="duotone" className="w-3.5 h-3.5" />
-                {shopsMessages.table.rejectionInfo}
-              </button>
+                icon={<InfoIcon weight="duotone" className="w-3.5 h-3.5" />}
+                label={shopsMessages.table.rejectionInfo}
+              />
             )}
-            <button
-              type="button"
+            <TableActionButton
               onClick={() => onEdit(shop)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-              {shopsMessages.table.edit}
-            </button>
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={shopsMessages.table.edit}
+            />
           </div>
         ),
       },

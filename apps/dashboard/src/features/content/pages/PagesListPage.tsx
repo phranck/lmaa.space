@@ -17,6 +17,7 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
 import { DataTable } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   useContentPages,
@@ -196,23 +197,18 @@ export function PagesListPage() {
         className: "w-48",
         cell: (page) => (
           <div className="flex gap-2 justify-end">
-            <button
-              type="button"
+            <TableActionButton
               onClick={() => navigate(`/pages/${page.slug}`)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-              {common.edit}
-            </button>
-            <button
-              type="button"
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={common.edit}
+            />
+            <TableActionButton
+              variant="danger"
               onClick={() => setDeleteTarget({ slug: page.slug, title: page.title })}
               disabled={deletePage.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-50"
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {common.delete}
-            </button>
+              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={common.delete}
+            />
           </div>
         ),
       },

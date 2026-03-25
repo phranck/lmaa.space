@@ -14,9 +14,9 @@ import { useNavigate } from "react-router";
 import type { FormConfig } from "@lmaa/contracts";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import {
   Dialog,
-  dialogBtnDestructive,
   dialogBtnPrimary,
   dialogBtnSecondary,
   dialogHeaderIconClass,
@@ -25,6 +25,7 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
 import { DataTable } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { ImportConflictDialog } from "@/features/templates/form-builder/ImportConflictDialog.tsx";
 import {
@@ -352,31 +353,23 @@ export function FormBuilderListPage() {
         className: "w-[28rem]",
         cell: (form) => (
           <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
+            <TableActionButton
               onClick={() => handleExportSingle(form)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
-              {m.exportForm}
-            </button>
-            <button
-              type="button"
+              icon={<UploadIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={m.exportForm}
+            />
+            <TableActionButton
               onClick={() => navigate(`/forms/${form.name}`)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-              {m.editButton}
-            </button>
-            <button
-              type="button"
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={m.editButton}
+            />
+            <TableActionButton
+              variant="danger"
               onClick={() => setDeleteTarget(form.name)}
               disabled={deleteForm.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {common.delete}
-            </button>
+              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={common.delete}
+            />
           </div>
         ),
       },
@@ -466,35 +459,16 @@ export function FormBuilderListPage() {
         />
       )}
 
-      {/* Delete confirmation dialog */}
-      <Dialog
+      <DeleteConfirmDialog
         open={deleteTarget !== null}
         title={`${m.deleteConfirmPrefix}${deleteTarget}${m.deleteConfirmSuffix}`}
-        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
+        description={m.deleteConfirmDescription}
+        cancelLabel={common.cancel}
+        deleteLabel={common.delete}
+        isPending={deleteForm.isPending}
         onClose={() => setDeleteTarget(null)}
-      >
-        <div className="px-6 py-3">
-          <p className="text-sm text-[var(--ds-text-muted)]">{m.deleteConfirmDescription}</p>
-        </div>
-        <Dialog.Footer>
-          <button
-            type="button"
-            onClick={() => setDeleteTarget(null)}
-            className={dialogBtnSecondary}
-          >
-            {common.cancel}
-          </button>
-          <button
-            type="button"
-            disabled={deleteForm.isPending}
-            onClick={confirmDelete}
-            className={`${dialogBtnDestructive} flex items-center gap-2`}
-          >
-            <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-            {deleteForm.isPending ? "…" : common.delete}
-          </button>
-        </Dialog.Footer>
-      </Dialog>
+        onConfirm={confirmDelete}
+      />
 
       {/* Import alert dialog */}
       <Dialog
