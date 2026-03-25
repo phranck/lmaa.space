@@ -23,6 +23,7 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
 import { DataTable } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { EmailTemplateImportConflictDialog } from "@/features/templates/email-templates/EmailTemplateImportConflictDialog.tsx";
 import {
@@ -150,31 +151,23 @@ export function EmailTemplateListPage() {
         className: "w-[28rem]",
         cell: (tpl) => (
           <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
+            <TableActionButton
               onClick={() => exportEmailTemplateSingle(tpl)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
-              {m.exportTemplate}
-            </button>
-            <button
-              type="button"
+              icon={<UploadIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={m.exportTemplate}
+            />
+            <TableActionButton
               onClick={() => navigate(`/email-templates/${tpl.id}`)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-              {common.edit}
-            </button>
-            <button
-              type="button"
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={common.edit}
+            />
+            <TableActionButton
+              variant="danger"
               onClick={() => setDeleteTarget({ id: tpl.id, name: tpl.name })}
               disabled={deleteMutation.isPending || tpl.isSystemTemplate}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-40"
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {m.deleteTemplate}
-            </button>
+              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={m.deleteTemplate}
+            />
           </div>
         ),
       },

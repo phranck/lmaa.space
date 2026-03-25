@@ -12,7 +12,9 @@ import { generateRejectionToken } from "@lmaa/shared";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
+import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
@@ -101,25 +103,19 @@ export function ShopReportsTab() {
         className: "w-[28rem]",
         cell: (report) => (
           <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
+            <TableActionButton
               onClick={() => dismiss.mutate(report.id)}
               disabled={dismiss.isPending || setVisibilityMutation.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-50"
-            >
-              <ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />
-              {submissionsMessages.shopReports.done}
-            </button>
-            <button
-              type="button"
+              icon={<ArrowCounterClockwiseIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={submissionsMessages.shopReports.done}
+            />
+            <TableActionButton
               onClick={() => setEditShopId(report.shopId)}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-              {submissionsMessages.shopReports.edit}
-            </button>
-            <button
-              type="button"
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={submissionsMessages.shopReports.edit}
+            />
+            <TableActionButton
+              variant="danger"
               onClick={() =>
                 openRejectDialog({
                   reportId: report.id,
@@ -129,13 +125,11 @@ export function ShopReportsTab() {
                 })
               }
               disabled={dismiss.isPending || setVisibilityMutation.isPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-50"
-            >
-              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-              {submissionsMessages.shopReports.reject}
-            </button>
-            <button
-              type="button"
+              icon={<XCircleIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={submissionsMessages.shopReports.reject}
+            />
+            <TableActionButton
+              variant="danger"
               onClick={() =>
                 setDeleteTarget({
                   reportId: report.id,
@@ -143,11 +137,9 @@ export function ShopReportsTab() {
                   shopName: report.shopName,
                 })
               }
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {submissionsMessages.shopReports.delete}
-            </button>
+              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={submissionsMessages.shopReports.delete}
+            />
           </div>
         ),
       },
@@ -199,12 +191,7 @@ export function ShopReportsTab() {
   if (isLoading) {
     return (
       <div className="space-y-px">
-        {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
-          <div
-            key={key}
-            className="h-14 bg-[var(--ds-surface)] animate-pulse border-b border-[var(--ds-border-subtle)]"
-          />
-        ))}
+        <SkeletonRows />
       </div>
     );
   }

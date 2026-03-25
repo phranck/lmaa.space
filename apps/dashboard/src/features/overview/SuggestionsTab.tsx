@@ -9,7 +9,10 @@ import { useLocation, useNavigate } from "react-router";
 import { type SubmissionStatus } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
+import { StatusBadge } from "@/components/ui/StatusBadge.tsx";
 import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 
@@ -58,11 +61,11 @@ export function SuggestionsTab({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-medium truncate text-[var(--ds-text)]">{submission.shopName}</p>
-              <span
-                className={`px-2 rounded-full text-[10px] leading-[18px] font-medium ${STATUS_COLORS[submission.status]}`}
-              >
-                {statusLabels[submission.status]}
-              </span>
+              <StatusBadge
+                value={submission.status}
+                label={statusLabels[submission.status]}
+                colorMap={STATUS_COLORS}
+              />
               {submission.readyForReview && (
                 <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
                   <SealWarningIcon weight="duotone" className="w-3 h-3" />
@@ -131,18 +134,15 @@ export function SuggestionsTab({
         className: "w-36",
         cell: (submission) => (
           <div className="flex justify-end">
-            <button
-              type="button"
+            <TableActionButton
               onClick={() =>
                 navigate(`/reports/suggestions/${submission.id}`, {
                   state: { returnTo: `${location.pathname}${location.search}` },
                 })
               }
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
-            >
-              <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
-              {submissionsMessages.suggestions.edit}
-            </button>
+              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={submissionsMessages.suggestions.edit}
+            />
           </div>
         ),
       },
@@ -154,12 +154,7 @@ export function SuggestionsTab({
     <>
       {isLoading && (
         <div className="space-y-px">
-          {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((key) => (
-            <div
-              key={key}
-              className="h-14 bg-[var(--ds-surface)] animate-pulse border-b border-[var(--ds-border-subtle)]"
-            />
-          ))}
+          <SkeletonRows />
         </div>
       )}
 
