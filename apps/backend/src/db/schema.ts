@@ -606,7 +606,7 @@ export const affiliateScans = pgTable(
     notes: text("notes"),
     recommendation: text("recommendation"),
     trackingStatus: text("tracking_status")
-      .$type<"open" | "contacted" | "confirmed" | "rejected">()
+      .$type<"open" | "contacted" | "confirmed" | "rejected" | "closed">()
       .notNull()
       .default("open"),
     trackingNote: text("tracking_note"),
@@ -623,7 +623,7 @@ export const affiliateScans = pgTable(
     ),
     check(
       "affiliate_scans_tracking_check",
-      sql`${table.trackingStatus} IN ('open', 'contacted', 'confirmed', 'rejected')`,
+      sql`${table.trackingStatus} IN ('open', 'contacted', 'confirmed', 'rejected', 'closed')`,
     ),
   ],
 );

@@ -890,6 +890,7 @@ export interface DashboardMessages {
       contacted: string;
       confirmed: string;
       rejected: string;
+      closed: string;
     };
     filters: {
       allStatus: string;
@@ -1847,6 +1848,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         contacted: "Kontaktiert",
         confirmed: "Bestätigt",
         rejected: "Abgelehnt",
+        closed: "Eingestellt",
       },
       filters: {
         allStatus: "Alle Status",
@@ -2795,6 +2797,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         contacted: "Contacted",
         confirmed: "Confirmed",
         rejected: "Rejected",
+        closed: "Closed",
       },
       filters: {
         allStatus: "All statuses",

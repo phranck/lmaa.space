@@ -12,6 +12,7 @@ const affiliateTrackingStatusSchema = z.enum([
   "contacted",
   "confirmed",
   "rejected",
+  "closed",
 ]);
 
 /**

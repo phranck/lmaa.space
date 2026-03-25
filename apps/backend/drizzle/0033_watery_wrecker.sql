@@ -1,0 +1,2 @@
+ALTER TABLE "affiliate_scans" DROP CONSTRAINT "affiliate_scans_tracking_check";--> statement-breakpoint
+ALTER TABLE "affiliate_scans" ADD CONSTRAINT "affiliate_scans_tracking_check" CHECK ("affiliate_scans"."tracking_status" IN ('open', 'contacted', 'confirmed', 'rejected', 'closed'));

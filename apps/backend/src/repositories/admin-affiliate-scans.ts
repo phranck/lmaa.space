@@ -6,7 +6,7 @@ import { affiliateScanJobs, affiliateScans, shops } from "../db/schema.js";
 import type { AffiliateScanInsert } from "../db/schema.js";
 
 type ScanStatus = "direct" | "network" | "inquiry" | "none";
-type TrackingStatus = "open" | "contacted" | "confirmed" | "rejected";
+type TrackingStatus = "open" | "contacted" | "confirmed" | "rejected" | "closed";
 
 export async function listAffiliateScans(filters?: {
   status?: ScanStatus;
@@ -140,7 +140,7 @@ export async function getAffiliateStats() {
   const stats = {
     total: 0,
     byStatus: { direct: 0, network: 0, inquiry: 0, none: 0 } as Record<string, number>,
-    byTracking: { open: 0, contacted: 0, confirmed: 0, rejected: 0 } as Record<string, number>,
+    byTracking: { open: 0, contacted: 0, confirmed: 0, rejected: 0, closed: 0 } as Record<string, number>,
     withProgram: 0,
     withoutProgram: 0,
   };

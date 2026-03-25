@@ -10,7 +10,8 @@ export type AffiliateTrackingStatus =
   | "open"
   | "contacted"
   | "confirmed"
-  | "rejected";
+  | "rejected"
+  | "closed";
 
 /**
  * Batch scan job status.
