@@ -10,6 +10,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "x",
   "bluesky",
   "mastodon",
+  "tumblr",
   "linkedin",
   "pinterest",
   "patreon",
@@ -195,9 +196,13 @@ function normalizeMastodon(input: string): string | null {
   if (url) {
     const host = stripWww(url.hostname);
     const path = stripTrailingSlash(url.pathname);
-    // /@user
-    if (!path.startsWith("/@")) return null;
-    const user = path.slice(2);
+    // /@user or /web/@user
+    let userPath = path;
+    if (userPath.startsWith("/web/")) {
+      userPath = userPath.slice(4);
+    }
+    if (!userPath.startsWith("/@")) return null;
+    const user = userPath.slice(2);
     if (!user) return null;
     return `https://${host}/@${user}`;
   }
@@ -210,6 +215,24 @@ function normalizeMastodon(input: string): string | null {
   const instance = cleaned.slice(atIndex + 1);
   if (!user || !instance || !instance.includes(".")) return null;
   return `https://${instance}/@${user}`;
+}
+
+function normalizeTumblr(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "tumblr.com") return null;
+    const user = extractPathUser(url);
+    if (!user) return null;
+    return `https://tumblr.com/${user}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://tumblr.com/${handle}`;
 }
 
 function normalizeLinkedin(input: string): string | null {
@@ -331,6 +354,7 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "linkedin.com": "linkedin",
   "pin.it": "pinterest",
   "patreon.com": "patreon",
+  "tumblr.com": "tumblr",
 };
 
 export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
@@ -353,9 +377,9 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
 
   if (isPinterestHost(host)) return "pinterest";
 
-  // Mastodon heuristic: path starts with /@
+  // Mastodon heuristic: path starts with /@ or /web/@
   const path = stripTrailingSlash(url.pathname);
-  if (path.startsWith("/@")) return "mastodon";
+  if (path.startsWith("/@") || path.startsWith("/web/@")) return "mastodon";
 
   return null;
 }
@@ -370,6 +394,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   x: normalizeX,
   bluesky: normalizeBluesky,
   mastodon: normalizeMastodon,
+  tumblr: normalizeTumblr,
   linkedin: normalizeLinkedin,
   pinterest: normalizePinterest,
   patreon: normalizePatreon,
