@@ -60,6 +60,8 @@ export const affiliateImportItemSchema = z.object({
   requirements: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   recommendation: z.string().nullable().optional(),
+  trackingStatus: affiliateTrackingStatusSchema.optional(),
+  trackingNote: z.string().nullable().optional(),
 });
 
 export const affiliateImportSchema = z.array(affiliateImportItemSchema);

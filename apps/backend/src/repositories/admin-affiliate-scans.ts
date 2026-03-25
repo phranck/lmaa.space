@@ -96,6 +96,8 @@ export async function upsertAffiliateScan(data: AffiliateScanInsert) {
         requirements: data.requirements,
         notes: data.notes,
         recommendation: data.recommendation,
+        trackingStatus: data.trackingStatus,
+        trackingNote: data.trackingNote,
         scannedAt: data.scannedAt ?? sql`now()`,
         scannedBy: data.scannedBy,
         updatedAt: sql`now()`,
@@ -227,6 +229,8 @@ export async function exportAllAffiliateScans() {
       requirements: affiliateScans.requirements,
       notes: affiliateScans.notes,
       recommendation: affiliateScans.recommendation,
+      trackingStatus: affiliateScans.trackingStatus,
+      trackingNote: affiliateScans.trackingNote,
     })
     .from(affiliateScans)
     .innerJoin(shops, eq(affiliateScans.shopId, shops.id))
