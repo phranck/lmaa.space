@@ -13,6 +13,7 @@ import {
   ArrowLeftIcon,
   MapPinIcon,
   PackageIcon,
+  ShareNetworkIcon,
   StorefrontIcon,
 } from "@phosphor-icons/react";
 
@@ -197,16 +198,31 @@ const metaDescription = shop.description
             </a>
             <SocialMediaIcons socialMedia={shop.socialMedia} />
           </div>
-          {hasHq && (
-            <address class="text-sm text-stone-700 not-italic leading-relaxed shrink-0 text-right">
-              {hqParts.map((part, i) => (
-                <Fragment>
-                  {i > 0 && <br />}
-                  {part}
-                </Fragment>
-              ))}
-            </address>
-          )}
+          <div class="flex items-stretch gap-3 shrink-0">
+            {hasHq && (
+              <Fragment>
+                <address class="text-sm text-stone-700 not-italic leading-relaxed text-right">
+                  {hqParts.map((part, i) => (
+                    <Fragment>
+                      {i > 0 && <br />}
+                      {part}
+                    </Fragment>
+                  ))}
+                </address>
+                <div class="w-px bg-stone-200" aria-hidden="true" />
+              </Fragment>
+            )}
+            <button
+              type="button"
+              class="self-start w-9 h-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-amber-700 hover:bg-stone-100 transition-colors cursor-pointer"
+              data-action="share"
+              data-share-url={`${site}/shop/${shopToken}`}
+              data-share-title={shop.name}
+              aria-label={`${shop.name} teilen`}
+            >
+              <ShareNetworkIcon weight="duotone" className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
     </header>
