@@ -44,6 +44,15 @@ const FOOTER_STYLE_DEFAULTS = {
   paddingY: "lg" as const,
 } satisfies FooterStyle;
 
+/**
+ * Calculates the total footer height in pixels for a given style configuration.
+ *
+ * Accounts for both the base height tier and padding adjustments relative to
+ * the default padding size.
+ *
+ * @param style - Partial footer style overrides; falls back to defaults.
+ * @returns CSS pixel string, e.g. `"320px"`.
+ */
 export function resolveFooterHeightPx(style?: Partial<FooterStyle>): string {
   const s = { ...FOOTER_STYLE_DEFAULTS, ...style };
   const baseHeight = FOOTER_HEIGHTS_PX[s.height];

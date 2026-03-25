@@ -546,13 +546,20 @@ const OPEN_API_DOCUMENT = {
   },
 } as const;
 
+/** Hono handler that serves the OpenAPI 3.1 JSON document with no-cache headers. */
 export function serveOpenApiJson(c: Context) {
   c.header("Cache-Control", "no-store");
   return c.json(OPEN_API_DOCUMENT);
 }
 
+/** Hono handler that serves the Swagger UI HTML page pointing at the local OpenAPI document. */
 export function serveSwaggerUi(c: Context) {
   c.header("Cache-Control", "no-store");
+  // Override the global CSP: the inline SwaggerUIBundle init script requires 'unsafe-inline'.
+  c.header(
+    "Content-Security-Policy",
+    "default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+  );
   return c.html(`<!doctype html>
 <html lang="en">
   <head>

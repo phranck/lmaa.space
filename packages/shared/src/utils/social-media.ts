@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Ordered list of all supported social media platform keys. */
 export const SOCIAL_PLATFORM_KEYS = [
   "instagram",
   "facebook",
@@ -17,6 +18,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "website",
 ] as const;
 
+/** Union type of all valid social media platform keys derived from `SOCIAL_PLATFORM_KEYS`. */
 export type SocialPlatformKey = (typeof SOCIAL_PLATFORM_KEYS)[number];
 
 const PLATFORM_SET = new Set<string>(SOCIAL_PLATFORM_KEYS);
@@ -357,6 +359,15 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "tumblr.com": "tumblr",
 };
 
+/**
+ * Infers a social media platform from a URL string.
+ *
+ * Returns `null` when the host does not match any known platform or the input
+ * cannot be parsed as a URL.
+ *
+ * @param input - A URL string (with or without protocol prefix).
+ * @returns The matching `SocialPlatformKey`, or `null` if unrecognised.
+ */
 export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -401,6 +412,16 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   website: normalizeWebsite,
 };
 
+/**
+ * Normalizes a raw social media handle or URL to a canonical profile URL.
+ *
+ * Accepts bare handles (with or without `@`), full URLs, and short-form inputs.
+ * Returns `null` when the input cannot be normalized for the given platform.
+ *
+ * @param platform - Platform key (e.g. `"instagram"`). `"twitter"` is aliased to `"x"`.
+ * @param input - Raw user input such as `"@myshop"` or `"https://instagram.com/myshop"`.
+ * @returns Canonical profile URL string, or `null` if normalization fails.
+ */
 export function normalizeSocialMediaValue(platform: string, input: string): string | null {
   const canonicalPlatform = canonicalizePlatformKey(platform);
   const fn = normalizers[canonicalPlatform as SocialPlatformKey];
@@ -408,6 +429,13 @@ export function normalizeSocialMediaValue(platform: string, input: string): stri
   return fn(input);
 }
 
+/**
+ * Zod schema that validates and normalizes a social media map.
+ *
+ * Accepts a `Record<string, string>` where each key is a platform key and each
+ * value is a raw handle or URL. Unknown platforms and invalid values produce
+ * Zod issues. Valid values are transformed to canonical profile URLs.
+ */
 export const socialMediaSchema = z
   .record(z.string(), z.string())
   .optional()

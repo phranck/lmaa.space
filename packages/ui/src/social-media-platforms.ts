@@ -15,12 +15,14 @@ import {
   SiYoutube,
 } from "react-icons/si";
 
+/** Definition of a social media platform including its display label and icon component. */
 export interface PlatformDef {
   key: string;
   label: string;
   icon: ComponentType<{ size?: number }>;
 }
 
+/** Ordered list of all supported social media platforms with their display metadata. */
 export const PLATFORMS: PlatformDef[] = [
   { key: "mastodon", label: "Mastodon", icon: SiMastodon },
   { key: "bluesky", label: "Bluesky", icon: SiBluesky },
@@ -38,4 +40,5 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "website", label: "Website", icon: GlobeIcon },
 ];
 
+/** Map from platform key to its `PlatformDef` for O(1) lookups. */
 export const PLATFORM_MAP = new Map(PLATFORMS.map((p) => [p.key, p]));

@@ -27,6 +27,11 @@ function buildShopDetailHref(
   return filterQuery ? `${base}&${filterQuery}` : base;
 }
 
+/**
+ * React island that renders the shop list for a single category with live filter support.
+ *
+ * Hydrates from SSR-rendered initial shops and re-fetches on filter changes via the API.
+ */
 export default function FilterableCategoryShops({
   slug,
   categoryName,

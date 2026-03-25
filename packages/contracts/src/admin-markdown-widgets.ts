@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const widgetKeyPattern = /^[a-z0-9-]+$/;
 
+/** Supported render types for a markdown widget: inline HTML snippet or sandboxed iframe. */
 export const markdownWidgetTypeSchema = z.enum(["html", "iframe"]);
 
 const widgetCspOriginsSchema = z
@@ -10,6 +11,7 @@ const widgetCspOriginsSchema = z
   .default([])
   .transform((values) => [...new Set(values.map((value) => value.trim()).filter(Boolean))]);
 
+/** Schema for a single markdown widget definition including CSP configuration. */
 export const markdownWidgetSchema = z
   .object({
     key: z
@@ -62,6 +64,7 @@ export const markdownWidgetSchema = z
     }
   });
 
+/** Schema for the full markdown widgets configuration, enforcing unique widget keys. */
 export const markdownWidgetsConfigSchema = z.object({
   widgets: z
     .array(markdownWidgetSchema)
@@ -83,5 +86,7 @@ export const markdownWidgetsConfigSchema = z.object({
     }),
 });
 
+/** Inferred TypeScript type for a single markdown widget. */
 export type MarkdownWidget = z.infer<typeof markdownWidgetSchema>;
+/** Inferred TypeScript type for the full markdown widgets configuration. */
 export type MarkdownWidgetsConfig = z.infer<typeof markdownWidgetsConfigSchema>;

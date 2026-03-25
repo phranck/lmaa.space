@@ -13,6 +13,11 @@ interface LazyButtonIconProps extends ButtonIconProps {
   name: string;
 }
 
+/**
+ * Renders a button icon component looked up by name from the curated icon registry.
+ *
+ * Returns `null` if the name is not found, avoiding missing-icon errors.
+ */
 export default function LazyButtonIcon({ name, ...props }: LazyButtonIconProps) {
   const Icon: ButtonIconComponent | null = getButtonIconComponent(name);
 

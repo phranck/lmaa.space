@@ -133,6 +133,7 @@ export const deleteReasonUpdateSchema = z.object({
   reason: z.string().max(2000).nullable(),
 });
 
+/** OG image update payload contract for the shop detail admin route. */
 export const ogImageUpdateSchema = z.object({
   ogImage: z.string().nullable(),
 });

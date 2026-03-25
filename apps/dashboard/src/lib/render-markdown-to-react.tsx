@@ -125,6 +125,16 @@ function renderBlockTokens(tokens: MarkdownToken[], keyPrefix: string): ReactNod
   });
 }
 
+/**
+ * Converts a markdown string to a React node tree using a provided `marked` lexer.
+ *
+ * Only a subset of Markdown is rendered (headings, paragraphs, lists, code, links, emphasis).
+ * Unsupported token types are silently skipped.
+ *
+ * @param markdown - Raw markdown string.
+ * @param marked - An object implementing `marked.lexer` (the `Marked` instance).
+ * @returns React node tree representing the parsed markdown.
+ */
 export function renderMarkdownToReact(markdown: string, marked: Pick<Marked, "lexer">): ReactNode {
   return renderBlockTokens(marked.lexer(markdown) as MarkdownToken[], "md");
 }

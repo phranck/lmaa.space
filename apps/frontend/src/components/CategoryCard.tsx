@@ -7,6 +7,11 @@ interface CategoryCardProps {
   href: string;
 }
 
+/**
+ * Category grid card with an optional hero image and shop count badge.
+ *
+ * Links to the category page at the provided `href`.
+ */
 export default function CategoryCard({
   id,
   name,

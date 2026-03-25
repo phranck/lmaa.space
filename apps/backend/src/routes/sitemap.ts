@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { logger } from "../lib/logger.js";
 import { generateSitemapXml } from "../services/sitemap.js";
 
+/** Hono router that serves the XML sitemap at `/sitemap.xml`. */
 export const sitemapRoutes = new Hono();
 
 sitemapRoutes.get("/sitemap.xml", async (c) => {

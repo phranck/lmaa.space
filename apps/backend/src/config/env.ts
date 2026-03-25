@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Fallback IP hash salt used in development. Never used in production (validated by `envSchema`). */
 export const DEFAULT_IP_HASH_SALT = "local-dev-salt-not-for-production";
 
 /**

@@ -108,6 +108,7 @@ export function getMediaPublicUrl(storedFilename: string): string {
   return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${storedFilename}`;
 }
 
+/** User-facing metadata stored as S3 object user-metadata headers. */
 export interface S3MediaMeta {
   displayName: string;
   originalName: string;
@@ -265,6 +266,7 @@ export async function updateStoredMediaMeta(storedFilename: string, meta: S3Medi
   );
 }
 
+/** A single S3 object entry as returned by `listAllStoredMedia`. */
 export interface S3ObjectEntry {
   key: string;
   size: number;

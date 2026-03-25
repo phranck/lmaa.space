@@ -19,6 +19,14 @@ function pruneExpiredSessions(now = Date.now()) {
   }
 }
 
+/**
+ * Creates a short-lived in-memory preview session for a footer configuration.
+ *
+ * Sessions expire after 15 minutes. Stale sessions are pruned on each call.
+ *
+ * @param config - The footer configuration to store.
+ * @returns Object with `token` (hex string) and `expiresAt` (ISO timestamp).
+ */
 export function createFooterPreviewSession(config: FooterConfig) {
   pruneExpiredSessions();
   const expiresAt = Date.now() + PREVIEW_TTL_MS;
@@ -27,6 +35,12 @@ export function createFooterPreviewSession(config: FooterConfig) {
   return { token, expiresAt: new Date(expiresAt).toISOString() };
 }
 
+/**
+ * Retrieves the footer configuration for a valid, non-expired preview token.
+ *
+ * @param token - Preview token returned by `createFooterPreviewSession`.
+ * @returns `FooterConfig` if the session is valid, `null` if expired or not found.
+ */
 export function getFooterPreviewSession(token: string): FooterConfig | null {
   pruneExpiredSessions();
   const session = sessions.get(token);
