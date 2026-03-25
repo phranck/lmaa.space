@@ -15,6 +15,7 @@ import {
   useEmailTemplate,
   useUpdateEmailTemplate,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
+import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
 
 interface FieldProps {
   label: string;
@@ -148,6 +149,8 @@ export function EmailTemplateEditPage() {
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+
+  useKeyboardSave(handleSave, !isPending);
 
   if (!isNew && isLoading) {
     return (
