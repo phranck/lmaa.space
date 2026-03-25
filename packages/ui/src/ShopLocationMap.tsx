@@ -330,16 +330,19 @@ function FullscreenControl() {
 
 function PreferencePersist({ layerId }: { layerId: string }) {
   const map = useMap();
+  const layerRef = React.useRef(layerId);
+  layerRef.current = layerId;
 
   React.useEffect(() => {
     function onZoomEnd() {
-      savePrefs(map.getZoom(), layerId);
+      savePrefs(map.getZoom(), layerRef.current);
     }
     map.on("zoomend", onZoomEnd);
     return () => {
       map.off("zoomend", onZoomEnd);
+      savePrefs(map.getZoom(), layerRef.current);
     };
-  }, [map, layerId]);
+  }, [map]);
 
   React.useEffect(() => {
     savePrefs(map.getZoom(), layerId);
