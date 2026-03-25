@@ -150,7 +150,7 @@ export function DataTable<T>({
   return (
     <Table>
       <TableHead
-        className={stickyHeader ? "sticky top-14 z-10 shadow-[0_1px_0_var(--ds-border)]" : ""}
+        className={stickyHeader ? "sticky top-0 z-10 shadow-[0_1px_0_var(--ds-border)]" : ""}
       >
         <TableRow className="hover:bg-transparent">
           {columns.map((col) => (
