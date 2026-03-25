@@ -21,6 +21,8 @@ import { ImportButton } from "@/components/ui/ImportButton.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageLayout } from "@/components/ui/PageLayout.tsx";
+import { StatusBadge as SharedStatusBadge } from "@/components/ui/StatusBadge.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
@@ -73,21 +75,6 @@ const TRACKING_COLORS: Record<AffiliateTrackingStatus, string> = {
   closed: "bg-purple-500/12 text-purple-400",
 };
 
-function StatusBadge({ status, label }: { status: AffiliateScanStatus; label: string }) {
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[status]}`}>
-      {label}
-    </span>
-  );
-}
-
-function TrackingBadge({ status, label }: { status: AffiliateTrackingStatus; label: string }) {
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${TRACKING_COLORS[status]}`}>
-      {label}
-    </span>
-  );
-}
 
 // -- Main Page --
 
@@ -335,7 +322,7 @@ export function AffiliateListPage() {
                       </a>
                     </td>
                     <td className="px-4 py-2.5">
-                      <StatusBadge status={scan.status} label={t.status[scan.status]} />
+                      <SharedStatusBadge value={scan.status} label={t.status[scan.status]} colorMap={STATUS_COLORS} />
                     </td>
                     <td className="px-4 py-2.5 text-[var(--ds-text-muted)]">
                       {scan.networkName ?? "-"}
@@ -344,12 +331,13 @@ export function AffiliateListPage() {
                       {scan.commission ?? "-"}
                     </td>
                     <td className="px-4 py-2.5">
-                      <TrackingBadge status={scan.trackingStatus} label={t.tracking[scan.trackingStatus]} />
+                      <SharedStatusBadge value={scan.trackingStatus} label={t.tracking[scan.trackingStatus]} colorMap={TRACKING_COLORS} />
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex gap-2 justify-end">
-                        <button
-                          type="button"
+                        <TableActionButton
+                          variant="danger"
+                          className="!h-7 !text-xs !gap-1.5"
                           onClick={(e) => {
                             e.stopPropagation();
                             deleteScan.mutate(scan.shopId, {
@@ -358,11 +346,9 @@ export function AffiliateListPage() {
                               },
                             });
                           }}
-                          className="h-7 px-3 flex items-center gap-1.5 border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] text-xs hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-                        >
-                          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-                          {messages.common.delete}
-                        </button>
+                          icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+                          label={messages.common.delete}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -476,24 +462,21 @@ export function AffiliateListPage() {
             </span>
           )}
         </div>
-        <button
-          type="button"
+        <TableActionButton
+          variant="primary"
           onClick={() => startBatch.mutate(undefined)}
           disabled={!ollamaAvailable || isJobActive}
-          className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors ml-auto"
-        >
-          <PlayIcon weight="bold" className="w-3.5 h-3.5" />
-          {t.scanAll}
-        </button>
-        <button
-          type="button"
+          className="ml-auto"
+          icon={<PlayIcon weight="bold" className="w-3.5 h-3.5" />}
+          label={t.scanAll}
+        />
+        <TableActionButton
+          variant="danger"
           onClick={() => setShowDeleteAll(true)}
           disabled={sortedScans.length === 0}
-          className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
-        >
-          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-          {messages.common.delete}
-        </button>
+          icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+          label={messages.common.delete}
+        />
       </Toolbar>
 
       <OverlayCard
