@@ -34,6 +34,7 @@ import {
   useEmailTemplates,
   useImportEmailTemplate,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
+import { useImportQueue } from "@/lib/useImportQueue.ts";
 
 type ImportTemplateData = EmailTemplateInput;
 
@@ -49,13 +50,11 @@ export function EmailTemplateListPage() {
   const deleteMutation = useDeleteEmailTemplate();
   const importMutation = useImportEmailTemplate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
-  const [importConflict, setImportConflict] = useState<{
-    template: ImportTemplateData;
-    remaining: ImportTemplateData[];
-    imported: number;
-  } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
+  const importQueue = useImportQueue<ImportTemplateData>({
+    mutate: (data, cbs) => importMutation.mutate(data, cbs),
+    messages: { importSuccess: m.importSuccess, importError: m.importError },
+  });
 
   function handleDeleteConfirm() {
     if (!deleteTarget) return;
@@ -64,34 +63,6 @@ export function EmailTemplateListPage() {
     });
   }
 
-  function processImportQueue(queue: ImportTemplateData[], imported: number) {
-    if (queue.length === 0) {
-      if (imported > 0) {
-        setAlertMessage(m.importSuccess.replace("{n}", String(imported)));
-      }
-      return;
-    }
-
-    const [current, ...remaining] = queue;
-    importMutation.mutate(
-      { ...current, overwrite: false },
-      {
-        onSuccess: () => processImportQueue(remaining, imported + 1),
-        onError: (err: unknown) => {
-          const status =
-            err && typeof err === "object" && "status" in err
-              ? (err as { status: number }).status
-              : 0;
-          if (status === 409) {
-            setImportConflict({ template: current, remaining, imported });
-          } else {
-            setAlertMessage(m.importError);
-            processImportQueue(remaining, imported);
-          }
-        },
-      },
-    );
-  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -121,42 +92,13 @@ export function EmailTemplateListPage() {
     void Promise.all(files.map(readFile)).then((results) => {
       const queue = results.flat();
       if (queue.length === 0) {
-        setAlertMessage(m.importInvalidFile);
+        importQueue.setAlertMessage(m.importInvalidFile);
         return;
       }
-      processImportQueue(queue, 0);
+      importQueue.processQueue(queue, 0);
     });
   }
 
-  function handleConflictOverwrite() {
-    if (!importConflict) return;
-    const { template, remaining, imported } = importConflict;
-    setImportConflict(null);
-    importMutation.mutate(
-      { ...template, overwrite: true },
-      {
-        onSuccess: () => processImportQueue(remaining, imported + 1),
-        onError: () => {
-          setAlertMessage(m.importError);
-          processImportQueue(remaining, imported);
-        },
-      },
-    );
-  }
-
-  function handleConflictRename(newName: string) {
-    if (!importConflict) return;
-    const { template, remaining, imported } = importConflict;
-    setImportConflict(null);
-    processImportQueue([{ ...template, name: newName }, ...remaining], imported);
-  }
-
-  function handleConflictSkip() {
-    if (!importConflict) return;
-    const { remaining, imported } = importConflict;
-    setImportConflict(null);
-    processImportQueue(remaining, imported);
-  }
 
   const columns = useMemo<ColumnDef<EmailTemplate>[]>(
     () => [
@@ -343,15 +285,15 @@ export function EmailTemplateListPage() {
 
       {/* Import alert dialog */}
       <Dialog
-        open={alertMessage !== null}
-        title={alertMessage ?? ""}
+        open={importQueue.alertMessage !== null}
+        title={importQueue.alertMessage ?? ""}
         titleIcon={<DownloadIcon weight="duotone" className={dialogHeaderIconClass} />}
-        onClose={() => setAlertMessage(null)}
+        onClose={() => importQueue.setAlertMessage(null)}
       >
         <Dialog.Footer>
           <button
             type="button"
-            onClick={() => setAlertMessage(null)}
+            onClick={() => importQueue.setAlertMessage(null)}
             className={dialogBtnSecondary}
           >
             {common.close}
@@ -359,12 +301,12 @@ export function EmailTemplateListPage() {
         </Dialog.Footer>
       </Dialog>
 
-      {importConflict && (
+      {importQueue.conflict && (
         <EmailTemplateImportConflictDialog
-          templateName={importConflict.template.name}
-          onOverwrite={handleConflictOverwrite}
-          onRename={handleConflictRename}
-          onCancel={handleConflictSkip}
+          templateName={importQueue.conflict.item.name}
+          onOverwrite={importQueue.handleConflictOverwrite}
+          onRename={importQueue.handleConflictRename}
+          onCancel={importQueue.handleConflictSkip}
         />
       )}
     </PageLayout>

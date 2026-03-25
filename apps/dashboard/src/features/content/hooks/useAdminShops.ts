@@ -10,35 +10,12 @@ import type { ShopEditFormValue } from "@lmaa/ui";
 
 import type { ShopDeleteMode } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 import { api } from "@/lib/api.ts";
+import { toHeadquartersPayload } from "@/lib/form-payload-builders.ts";
 
 /**
  * Re-exported form value type used by shop editor views.
  */
 export type { ShopEditFormValue };
-
-function parseCoordinate(value: string) {
-  const trimmed = value.trim();
-  if (trimmed.length === 0) return null;
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function optionalText(value: string) {
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function toHeadquartersPayload(data: ShopEditFormValue) {
-  return {
-    street: optionalText(data.headquartersStreet),
-    postalCode: optionalText(data.headquartersPostalCode),
-    city: optionalText(data.headquartersCity),
-    state: optionalText(data.headquartersState),
-    countryCode: optionalText(data.headquartersCountryCode),
-    latitude: parseCoordinate(data.headquartersLatitude),
-    longitude: parseCoordinate(data.headquartersLongitude),
-  };
-}
 
 /**
  * Loads admin shop summaries, optionally filtered by visibility.
