@@ -29,6 +29,11 @@ interface FilteredCategory {
   shopCount: number;
 }
 
+/**
+ * React island that renders the full category grid with geo-filter support.
+ *
+ * Hydrates from SSR-rendered categories and re-fetches on filter changes via the API.
+ */
 export default function FilterableCategoryGrid({
   categories: initialCategories,
   shopCount: initialShopCount,

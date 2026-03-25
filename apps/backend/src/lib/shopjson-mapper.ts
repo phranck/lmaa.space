@@ -19,6 +19,7 @@ function getRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+/** Normalized shop payload produced by `mapShopJsonToShopData`, ready for create/update operations. */
 export interface MappedShopData {
   name: string;
   url: string;

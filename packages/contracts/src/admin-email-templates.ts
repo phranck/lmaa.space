@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Full email template record as returned by the API. */
 export interface EmailTemplate {
   id: number;
   name: string;
@@ -14,6 +15,7 @@ export interface EmailTemplate {
   updatedAt: string;
 }
 
+/** Writable fields of an email template, excluding server-managed metadata. */
 export type EmailTemplateInput = Omit<
   EmailTemplate,
   "id" | "createdAt" | "updatedAt" | "isSystemTemplate"

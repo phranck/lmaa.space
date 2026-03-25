@@ -178,10 +178,12 @@ export interface FormRow {
 // Submission chain
 // ---------------------------------------------------------------------------
 
+/** Stores form submission data as a generic key-value record in the database. */
 export interface SubmissionStepStore {
   type: "store";
 }
 
+/** Sends a notification email when a form is submitted. */
 export interface SubmissionStepEmail {
   type: "email";
   /** Static recipient address. Used when `toFieldId` is not set. */
@@ -207,11 +209,13 @@ export interface SubmissionStepCreateShopSuggestion {
   type: "create-shop-suggestion";
 }
 
+/** Union of all possible post-submission processing steps. */
 export type SubmissionStep =
   | SubmissionStepStore
   | SubmissionStepEmail
   | SubmissionStepCreateShopSuggestion;
 
+/** Defines the processing chain and success UI after a form is submitted. */
 export interface SubmissionConfig {
   steps: SubmissionStep[];
   /** Optional headline shown above the success message. */

@@ -43,6 +43,12 @@ function buildShopDetailHref(
   return filterQuery ? `${base}&${filterQuery}` : base;
 }
 
+/**
+ * React island that renders live search results with filter support.
+ *
+ * Hydrates with SSR-rendered results and updates them on query/filter changes
+ * via client-side API calls. Renders matched shops and category suggestions.
+ */
 export default function FilterableSearchResults({
   initialQuery,
   initialResults,

@@ -64,4 +64,5 @@ export const affiliateImportItemSchema = z.object({
   trackingNote: z.string().nullable().optional(),
 });
 
+/** Array of import items for bulk affiliate scan import. */
 export const affiliateImportSchema = z.array(affiliateImportItemSchema);

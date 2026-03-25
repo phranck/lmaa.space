@@ -4,6 +4,11 @@ interface FilterToggleButtonProps {
   onClick: () => void;
 }
 
+/**
+ * Toggle button that shows/hides the shop filter bar.
+ *
+ * Displays an amber highlight when filters are active or the bar is open.
+ */
 export default function FilterToggleButton({
   showFilter,
   filtersActive,

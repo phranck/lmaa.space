@@ -204,6 +204,13 @@ function CountryMultiSelect({ value, onChange, options }: CountryMultiSelectProp
 
 // -- Main Filter Bar --
 
+/**
+ * Interactive filter bar for shop lists.
+ *
+ * Allows filtering by city/radius (geo), country of headquarters, and shipping
+ * regions. Fetches available country options from the API on mount.
+ * Calls `onFilterChange` on every filter update.
+ */
 export default function ShopFilterBar({
   initialFilters,
   onFilterChange,

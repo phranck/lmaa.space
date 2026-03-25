@@ -39,6 +39,15 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny | null {
   return schema;
 }
 
+/**
+ * Builds a Zod validation schema from a form's row/field configuration.
+ *
+ * Display-only field types (richtext, headline, separator, paragraph, button) are skipped.
+ * Uses `field.name ?? field.id` as the schema key.
+ *
+ * @param rows - Array of `FormRow` objects from the form configuration.
+ * @returns A `z.ZodObject` matching the expected form submission shape.
+ */
 export function buildFormValidationSchema(rows: FormRow[]): z.ZodObject<z.ZodRawShape> {
   const shape: z.ZodRawShape = {};
 

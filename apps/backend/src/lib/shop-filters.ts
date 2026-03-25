@@ -11,6 +11,7 @@ export const shopFilterSchema = z.object({
   region: z.string().max(50).optional(),
 });
 
+/** Inferred TypeScript type for parsed shop filter query parameters. */
 export type ShopFilterParams = z.infer<typeof shopFilterSchema>;
 
 /**

@@ -19,6 +19,11 @@ interface ShopCardProps {
 
 const MAX_PILLS = 2;
 
+/**
+ * Shop listing card with category pills, OG image, and map-pin indicator.
+ *
+ * Used inside filterable island components that need React-controlled rendering.
+ */
 export default function ShopCardReact({
   name,
   ogImage,

@@ -32,10 +32,17 @@ function handleKeyDown(e: KeyboardEvent) {
 
 let listening = false;
 
+/** Returns the current snapshot of active overlay IDs in stack order (bottom to top). */
 export function getOverlayStackSnapshot(): string[] {
 	return stackSnapshot;
 }
 
+/**
+ * Subscribes to overlay stack changes.
+ *
+ * @param listener - Called whenever the stack changes.
+ * @returns Unsubscribe function.
+ */
 export function subscribeOverlayStack(listener: () => void): () => void {
 	listeners.add(listener);
 	return () => listeners.delete(listener);

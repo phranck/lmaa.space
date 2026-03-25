@@ -42,11 +42,25 @@ import {
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000;
 
+/**
+ * Extracts the registered domain from a shop URL for deduplication checks.
+ *
+ * @param url - Absolute or protocol-relative URL string.
+ * @returns Registered domain (e.g. `"example.com"`), or `null` if not parseable.
+ */
 export function normalizeShopHostname(url: string): string | null {
   const input = url.includes("://") ? url : `https://${url}`;
   return getDomain(input) ?? null;
 }
 
+/**
+ * One-way HMAC-SHA256 hash of an IP address using the configured `IP_HASH_SALT`.
+ *
+ * Used for anonymous rate-limiting and reporting without storing raw IPs.
+ *
+ * @param ip - Raw IP address string.
+ * @returns Hex-encoded HMAC digest.
+ */
 export function hashIp(ip: string): string {
   return createHmac("sha256", env.IP_HASH_SALT).update(ip).digest("hex");
 }

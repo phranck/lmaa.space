@@ -13,6 +13,7 @@ let activeBatchJobId: number | null = null;
 /** Set to true to signal cancellation of the active batch. */
 let cancelRequested = false;
 
+/** Returns the database ID of the currently running batch scan job, or `null` if idle. */
 export function getActiveBatchJobId(): number | null {
   return activeBatchJobId;
 }
