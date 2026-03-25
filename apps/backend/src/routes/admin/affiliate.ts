@@ -168,6 +168,8 @@ affiliateRoutes.post("/affiliate/import", async (c) => {
       requirements: item.requirements ?? null,
       notes: item.notes ?? null,
       recommendation: item.recommendation ?? null,
+      trackingStatus: item.trackingStatus ?? "open",
+      trackingNote: item.trackingNote ?? null,
       scannedBy: adminId,
     });
     imported++;
