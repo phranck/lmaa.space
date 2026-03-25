@@ -38,6 +38,7 @@ import {
   useImportFormConfig,
   useSetFormConfigActive,
 } from "@/features/templates/hooks/useFormConfig.ts";
+import { useImportQueue } from "@/lib/useImportQueue.ts";
 
 type ImportFormData = {
   name: string;
@@ -240,12 +241,10 @@ export function FormBuilderListPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
-  const [importConflict, setImportConflict] = useState<{
-    form: ImportFormData;
-    remaining: ImportFormData[];
-    imported: number;
-  } | null>(null);
+  const importQueue = useImportQueue<ImportFormData>({
+    mutate: (data, cbs) => importForm.mutate(data, cbs),
+    messages: { importSuccess: m.importSuccess, importError: m.importError },
+  });
 
   function confirmDelete() {
     if (!deleteTarget) return;
@@ -267,34 +266,6 @@ export function FormBuilderListPage() {
     exportFormConfigSingle(form.name, form.slug ?? undefined, form.rows, form.submissionConfig);
   }
 
-  function processImportQueue(queue: ImportFormData[], imported: number) {
-    if (queue.length === 0) {
-      if (imported > 0) {
-        setAlertMessage(m.importSuccess.replace("{n}", String(imported)));
-      }
-      return;
-    }
-
-    const [current, ...remaining] = queue;
-    importForm.mutate(
-      { ...current, overwrite: false },
-      {
-        onSuccess: () => processImportQueue(remaining, imported + 1),
-        onError: (err: unknown) => {
-          const status =
-            err && typeof err === "object" && "status" in err
-              ? (err as { status: number }).status
-              : 0;
-          if (status === 409) {
-            setImportConflict({ form: current, remaining, imported });
-          } else {
-            setAlertMessage(m.importError);
-            processImportQueue(remaining, imported);
-          }
-        },
-      },
-    );
-  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -319,47 +290,18 @@ export function FormBuilderListPage() {
             },
           ];
         } else {
-          setAlertMessage(m.importInvalidFile);
+          importQueue.setAlertMessage(m.importInvalidFile);
           return;
         }
 
-        processImportQueue(queue, 0);
+        importQueue.processQueue(queue, 0);
       } catch {
-        setAlertMessage(m.importInvalidFile);
+        importQueue.setAlertMessage(m.importInvalidFile);
       }
     };
     reader.readAsText(file);
   }
 
-  function handleConflictOverwrite() {
-    if (!importConflict) return;
-    const { form, remaining, imported } = importConflict;
-    setImportConflict(null);
-    importForm.mutate(
-      { ...form, overwrite: true },
-      {
-        onSuccess: () => processImportQueue(remaining, imported + 1),
-        onError: () => {
-          setAlertMessage(m.importError);
-          processImportQueue(remaining, imported);
-        },
-      },
-    );
-  }
-
-  function handleConflictRename(newName: string) {
-    if (!importConflict) return;
-    const { form, remaining, imported } = importConflict;
-    setImportConflict(null);
-    processImportQueue([{ ...form, name: newName }, ...remaining], imported);
-  }
-
-  function handleConflictSkip() {
-    if (!importConflict) return;
-    const { remaining, imported } = importConflict;
-    setImportConflict(null);
-    processImportQueue(remaining, imported);
-  }
 
   const columns = useMemo<ColumnDef<FormConfig>[]>(
     () => [
@@ -515,12 +457,12 @@ export function FormBuilderListPage() {
         onCreated={handleCreated}
       />
 
-      {importConflict && (
+      {importQueue.conflict && (
         <ImportConflictDialog
-          formName={importConflict.form.name}
-          onOverwrite={handleConflictOverwrite}
-          onRename={handleConflictRename}
-          onCancel={handleConflictSkip}
+          formName={importQueue.conflict.item.name}
+          onOverwrite={importQueue.handleConflictOverwrite}
+          onRename={importQueue.handleConflictRename}
+          onCancel={importQueue.handleConflictSkip}
         />
       )}
 
@@ -556,15 +498,15 @@ export function FormBuilderListPage() {
 
       {/* Import alert dialog */}
       <Dialog
-        open={alertMessage !== null}
-        title={alertMessage ?? ""}
+        open={importQueue.alertMessage !== null}
+        title={importQueue.alertMessage ?? ""}
         titleIcon={<DownloadIcon weight="duotone" className={dialogHeaderIconClass} />}
-        onClose={() => setAlertMessage(null)}
+        onClose={() => importQueue.setAlertMessage(null)}
       >
         <Dialog.Footer>
           <button
             type="button"
-            onClick={() => setAlertMessage(null)}
+            onClick={() => importQueue.setAlertMessage(null)}
             className={dialogBtnSecondary}
           >
             {common.close}
