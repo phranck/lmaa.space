@@ -289,7 +289,7 @@ export function ShopsPage() {
   }
 
   return (
-    <PageLayout>
+    <PageLayout className="min-h-auto">
       <PageHeader title={shopsMessages.title}>
         <FilterDropdown
           value={categoryFilter}
@@ -350,7 +350,7 @@ export function ShopsPage() {
         {importError}
       </AlertDialog>
 
-      <PageBody>
+      <PageBody className="min-h-auto">
         {isLoading && (
           <div className="space-y-px">
             {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
@@ -396,7 +396,7 @@ export function ShopsPage() {
         )}
       </PageBody>
 
-      <Toolbar className="sticky bottom-0 z-10">
+      <Toolbar className="sticky -bottom-3 z-10">
         <div className="relative">
           <input
             ref={searchInputRef}
