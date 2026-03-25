@@ -188,7 +188,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               <EditorToolbarButton
                 onClick={() =>
                   acceptReviewMutation.mutate(controller.activeShop!.id, {
-                    onSuccess: () => controller.showSaved(),
+                    onSuccess: () => navigate(returnTo),
                   })
                 }
                 disabled={isActionPending}
