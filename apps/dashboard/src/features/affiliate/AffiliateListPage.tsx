@@ -67,6 +67,7 @@ const TRACKING_COLORS: Record<AffiliateTrackingStatus, string> = {
   contacted: "bg-blue-500/12 text-blue-400",
   confirmed: "bg-green-500/12 text-green-400",
   rejected: "bg-red-500/12 text-red-400",
+  closed: "bg-purple-500/12 text-purple-400",
 };
 
 function StatusBadge({ status, label }: { status: AffiliateScanStatus; label: string }) {
@@ -369,6 +370,7 @@ export function AffiliateListPage() {
                 <option value="contacted">{t.tracking.contacted}</option>
                 <option value="confirmed">{t.tracking.confirmed}</option>
                 <option value="rejected">{t.tracking.rejected}</option>
+                <option value="closed">{t.tracking.closed}</option>
               </select>
             </div>
             <div>
