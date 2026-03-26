@@ -281,6 +281,10 @@ function normalizeFacebook(input: string): string | null {
   return `https://facebook.com/${handle}`;
 }
 
+function isThreadsHost(host: string): boolean {
+  return host === "threads.net" || host === "threads.com";
+}
+
 function normalizeThreads(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -288,15 +292,15 @@ function normalizeThreads(input: string): string | null {
   const url = tryParseUrl(trimmed);
   if (url) {
     const host = stripWww(url.hostname);
-    if (host !== "threads.net") return null;
+    if (!isThreadsHost(host)) return null;
     const user = stripLeadingAt(extractPathUser(url));
     if (!user) return null;
-    return `https://threads.net/@${user}`;
+    return `https://www.threads.com/@${user}`;
   }
 
   const handle = stripLeadingAt(trimmed);
   if (!handle || handle.includes("/")) return null;
-  return `https://threads.net/@${handle}`;
+  return `https://www.threads.com/@${handle}`;
 }
 
 function normalizePinterest(input: string): string | null {
@@ -421,6 +425,7 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "facebook.com": "facebook",
   "fb.com": "facebook",
   "threads.net": "threads",
+  "threads.com": "threads",
   "tiktok.com": "tiktok",
   "youtube.com": "youtube",
   "youtu.be": "youtube",
