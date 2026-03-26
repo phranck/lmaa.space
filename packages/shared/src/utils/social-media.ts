@@ -17,6 +17,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "patreon",
   "mixcloud",
   "soundcloud",
+  "spotify",
   "website",
 ] as const;
 
@@ -351,6 +352,23 @@ function normalizeMixcloud(input: string): string | null {
   return `https://mixcloud.com/${handle}`;
 }
 
+function normalizeSpotify(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "open.spotify.com" && host !== "spotify.com") return null;
+    return url.href;
+  }
+
+  // Bare handle → artist page
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://open.spotify.com/artist/${handle}`;
+}
+
 function normalizeSoundcloud(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -397,6 +415,8 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "tumblr.com": "tumblr",
   "mixcloud.com": "mixcloud",
   "soundcloud.com": "soundcloud",
+  "open.spotify.com": "spotify",
+  "spotify.com": "spotify",
 };
 
 /**
@@ -451,6 +471,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   patreon: normalizePatreon,
   mixcloud: normalizeMixcloud,
   soundcloud: normalizeSoundcloud,
+  spotify: normalizeSpotify,
   website: normalizeWebsite,
 };
 
