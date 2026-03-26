@@ -121,6 +121,19 @@ function getLikedShops(): Set<string> {
 
 function saveLikedShops(ids: Set<string>) {
   localStorage.setItem(LIKES_KEY, JSON.stringify([...ids]));
+  updateMyShopsNavVisibility(ids.size > 0);
+}
+
+function updateMyShopsNavVisibility(visible: boolean) {
+  document.querySelectorAll<HTMLElement>("[data-my-shops-link]").forEach((el) => {
+    if (visible) {
+      el.classList.remove("hidden");
+      el.classList.add(el.dataset.myShopsLink === "desktop" ? "md:flex" : "block");
+    } else {
+      el.classList.add("hidden");
+      el.classList.remove("md:flex", "block");
+    }
+  });
 }
 
 function applyLikeState(btn: HTMLElement, liked: boolean) {
