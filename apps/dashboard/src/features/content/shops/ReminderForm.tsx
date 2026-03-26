@@ -1,10 +1,12 @@
 import { ClockIcon, TrashIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
 import { FormLabel, ToggleSwitch, formBtnBaseClass, formInputClass } from "@lmaa/ui";
 
-import { RECURRENCE_OPTIONS, UNIT_OPTIONS, WEEKDAYS } from "./reminder-constants.ts";
+import { useI18n } from "@/context/I18nContext.tsx";
+
+import { getRecurrenceOptions, getUnitOptions, getWeekdays } from "./reminder-constants.ts";
 
 export interface ReminderFormProps {
   initial?: ShopReminder | null;
@@ -23,6 +25,12 @@ export interface ReminderFormProps {
 }
 
 export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
+  const { messages } = useI18n();
+  const f = messages.shops.reminder.form;
+  const recurrenceOptions = useMemo(() => getRecurrenceOptions(messages.shops.reminder.recurrence), [messages]);
+  const unitOptions = useMemo(() => getUnitOptions(messages.shops.reminder.unit), [messages]);
+  const weekdays = useMemo(() => getWeekdays(messages.shops.reminder.weekdays), [messages]);
+
   const [remindAt, setRemindAt] = useState<string>(() =>
     initial?.remindAt ? initial.remindAt.slice(0, 16) : "",
   );
@@ -61,14 +69,14 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
       {/* Active toggle */}
       <div className="flex items-center justify-between">
         <span className="block px-[5px] text-xs font-medium text-[var(--ds-text-muted)]">
-          Aktiv
+          {f.activeLabel}
         </span>
         <ToggleSwitch checked={isActive} onChange={setIsActive} />
       </div>
 
       {/* Date + time */}
       <div>
-        <FormLabel htmlFor="reminder-date">Datum &amp; Uhrzeit</FormLabel>
+        <FormLabel htmlFor="reminder-date">{f.dateTime}</FormLabel>
         <input
           id="reminder-date"
           type="datetime-local"
@@ -80,14 +88,14 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
 
       {/* Recurrence */}
       <div>
-        <FormLabel htmlFor="reminder-recurrence">Wiederholung</FormLabel>
+        <FormLabel htmlFor="reminder-recurrence">{f.recurrence}</FormLabel>
         <select
           id="reminder-recurrence"
           value={recurrence}
           onChange={(e) => setRecurrence(e.target.value as ReminderRecurrence)}
           className={formInputClass}
         >
-          {RECURRENCE_OPTIONS.map((opt) => (
+          {recurrenceOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -100,7 +108,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
         <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 space-y-3">
           {/* Frequency */}
           <div className="flex items-center gap-2">
-            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Häufigkeit</span>
+            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">{f.frequency}</span>
             <select
               value={customUnit}
               onChange={(e) => {
@@ -109,7 +117,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
               }}
               className={`${formInputClass} flex-1`}
             >
-              {UNIT_OPTIONS.map((opt) => (
+              {unitOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -119,7 +127,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
 
           {/* Interval */}
           <div className="flex items-center gap-2">
-            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Alle</span>
+            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">{f.every}</span>
             <input
               type="number"
               min={1}
@@ -129,16 +137,16 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
               className="px-2 py-1.5 w-16 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
             <span className="text-xs text-[var(--ds-text-muted)]">
-              {UNIT_OPTIONS.find((o) => o.value === customUnit)?.singular ?? ""}
+              {unitOptions.find((o) => o.value === customUnit)?.singular ?? ""}
             </span>
           </div>
 
           {/* Weekday picker — only for weeks */}
           {customUnit === "weeks" && (
             <div className="flex items-center gap-2">
-              <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">an</span>
+              <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">{f.onDays}</span>
               <div className="flex gap-1">
-                {WEEKDAYS.map(({ iso, label }) => (
+                {weekdays.map(({ iso, label }) => (
                   <button
                     key={iso}
                     type="button"
@@ -161,7 +169,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
       {/* Note */}
       <div>
         <FormLabel htmlFor="reminder-note">
-          Notiz <span className="font-normal">(optional)</span>
+          {f.noteLabel} <span className="font-normal">{f.noteOptional}</span>
         </FormLabel>
         <textarea
           id="reminder-note"
@@ -169,7 +177,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
           onChange={(e) => setNote(e.target.value)}
           maxLength={500}
           rows={2}
-          placeholder="Worum geht es bei dieser Prüfung?"
+          placeholder={f.notePlaceholder}
           className={`${formInputClass} resize-none`}
         />
       </div>
@@ -199,7 +207,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
           className={`${formBtnBaseClass} flex-1 justify-center border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]`}
         >
           <ClockIcon weight="duotone" className="w-3.5 h-3.5" />
-          {isPending ? "Wird gespeichert\u2026" : "Erinnerung setzen"}
+          {isPending ? f.saving : f.save}
         </button>
         {onDelete && (
           <button
@@ -209,7 +217,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
             className={`${formBtnBaseClass} border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]`}
           >
             <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-            {isDeleting ? "Wird gelöscht\u2026" : "Löschen"}
+            {isDeleting ? f.deleting : f.delete}
           </button>
         )}
       </div>

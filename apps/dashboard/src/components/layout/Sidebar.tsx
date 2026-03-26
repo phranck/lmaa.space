@@ -334,7 +334,7 @@ function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
 
   return (
     <>
-      <SidebarSection label="Affiliate" />
+      <SidebarSection label={s.affiliate} />
       <div className="space-y-0.5">
         <NavLink
           to="/affiliate"
@@ -355,7 +355,7 @@ function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
           {isScanning && (
             <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/15 text-red-400 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
-              Live
+              {s.live}
             </span>
           )}
           {scans.length > 0 && (

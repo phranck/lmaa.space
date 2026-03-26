@@ -1,4 +1,5 @@
 import {
+  ClockIcon,
   EyeIcon,
   FileTextIcon,
   InfoIcon,
@@ -96,6 +97,14 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
                 <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
                   <SealWarningIcon weight="duotone" className="w-3 h-3" />
                   {shopsMessages.table.needsReview}
+                </span>
+              )}
+              {shop.reminder && (
+                <span
+                  title={`${shopsMessages.reminder.tooltipPrefix}: ${new Date(shop.reminder.remindAt).toLocaleString(locale)}${shop.reminder.note ? ` – ${shop.reminder.note}` : ""}`}
+                  className="shrink-0 text-amber-400"
+                >
+                  <ClockIcon weight="duotone" className="w-3.5 h-3.5" />
                 </span>
               )}
               <VisibilityBadge visibility={shop.visibility} />

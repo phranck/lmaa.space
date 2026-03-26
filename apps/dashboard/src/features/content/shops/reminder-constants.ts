@@ -1,38 +1,43 @@
 import type { ReminderRecurrence } from "@lmaa/shared";
 
-export const RECURRENCE_LABELS: Record<ReminderRecurrence, string> = {
-  never: "Nie",
-  daily: "Täglich",
-  weekly: "Wöchentlich",
-  monthly: "Monatlich",
-  yearly: "Jährlich",
-  custom: "Benutzerdefiniert",
-};
+import type { DashboardMessages } from "@/i18n/messages.ts";
 
-export const RECURRENCE_OPTIONS: { value: ReminderRecurrence; label: string }[] = Object.entries(
-  RECURRENCE_LABELS,
-).map(([value, label]) => ({
-  value: value as ReminderRecurrence,
-  label: value === "custom" ? `${label}\u2026` : label,
-}));
+type ReminderMessages = DashboardMessages["shops"]["reminder"];
 
-export const UNIT_OPTIONS: {
+export function getRecurrenceLabels(r: ReminderMessages["recurrence"]): Record<ReminderRecurrence, string> {
+  return r;
+}
+
+export function getRecurrenceOptions(
+  r: ReminderMessages["recurrence"],
+): { value: ReminderRecurrence; label: string }[] {
+  return Object.entries(r).map(([value, label]) => ({
+    value: value as ReminderRecurrence,
+    label: value === "custom" ? `${label}\u2026` : label,
+  }));
+}
+
+export function getUnitOptions(u: ReminderMessages["unit"]): {
   value: "days" | "weeks" | "months" | "years";
   label: string;
   singular: string;
-}[] = [
-  { value: "days", label: "Täglich", singular: "Tag(e)" },
-  { value: "weeks", label: "Wöchentlich", singular: "Woche(n)" },
-  { value: "months", label: "Monatlich", singular: "Monat(e)" },
-  { value: "years", label: "Jährlich", singular: "Jahr(e)" },
-];
+}[] {
+  return [
+    { value: "days", label: u.daysLabel, singular: u.daysSingular },
+    { value: "weeks", label: u.weeksLabel, singular: u.weeksSingular },
+    { value: "months", label: u.monthsLabel, singular: u.monthsSingular },
+    { value: "years", label: u.yearsLabel, singular: u.yearsSingular },
+  ];
+}
 
-export const WEEKDAYS: { iso: number; label: string }[] = [
-  { iso: 1, label: "Mo" },
-  { iso: 2, label: "Di" },
-  { iso: 3, label: "Mi" },
-  { iso: 4, label: "Do" },
-  { iso: 5, label: "Fr" },
-  { iso: 6, label: "Sa" },
-  { iso: 7, label: "So" },
-];
+export function getWeekdays(w: ReminderMessages["weekdays"]): { iso: number; label: string }[] {
+  return [
+    { iso: 1, label: w.mo },
+    { iso: 2, label: w.tu },
+    { iso: 3, label: w.we },
+    { iso: 4, label: w.th },
+    { iso: 5, label: w.fr },
+    { iso: 6, label: w.sa },
+    { iso: 7, label: w.su },
+  ];
+}
