@@ -23,8 +23,8 @@ import type {
   CategoryFormData,
   CategoryImageState,
 } from "@/features/content/hooks/useAdminCategories.ts";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
+import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";

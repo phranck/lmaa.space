@@ -16,7 +16,7 @@ import { SkeletonRows } from "@/components/ui/SkeletonRows.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
+import { useDeleteShop, useSetShopVisibility } from "@/features/content/shops/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 import { ShopEditCard } from "@/features/content/shops/ShopEditCard.tsx";
 import {

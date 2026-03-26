@@ -6,7 +6,7 @@ import { Checkbox, FormLabel, FormOptional, MarkdownEditor, formInputClass } fro
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
 /**
  * Available delete strategies for shop removal flow.

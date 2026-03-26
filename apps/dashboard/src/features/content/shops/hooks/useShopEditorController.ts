@@ -6,6 +6,10 @@ import type { ShopEditFormValue } from "@lmaa/ui";
 import { useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
+import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
+import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
+
 import {
   useAdminShop,
   usePreviewImage,
@@ -13,12 +17,8 @@ import {
   useSaveShop,
   useSetShopOgImage,
   useSetShopVisibility,
-} from "@/features/content/hooks/useAdminShops.ts";
-import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
-
-import type { RejectState, ShopCheckJsonPayload, ShopEditorModeProps, ShopImageState } from "./shop-editor-types.ts";
+} from "./useAdminShops.ts";
+import type { RejectState, ShopCheckJsonPayload, ShopEditorModeProps, ShopImageState } from "../shop-editor-types.ts";
 import {
   applyShopCheckJsonToForm,
   formReducer,
@@ -26,8 +26,8 @@ import {
   getInitialFormValue,
   getInitialImageState,
   isShopWithId,
-} from "./shop-editor-utils.ts";
-import { getShopEditFormI18n } from "./shop-form-i18n.ts";
+} from "../shop-editor-utils.ts";
+import { getShopEditFormI18n } from "../shop-form-i18n.ts";
 
 export function useShopEditorController({
   shopId,

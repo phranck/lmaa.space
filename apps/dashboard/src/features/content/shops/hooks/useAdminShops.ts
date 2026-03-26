@@ -4,6 +4,7 @@ import type {
   AdminShopListItem,
   Shop,
   ShopMutableVisibility,
+  ShopReminder,
   ShopVisibility,
 } from "@lmaa/shared";
 import type { ShopEditFormValue } from "@lmaa/ui";
@@ -261,6 +262,79 @@ export function useSetShopOgImage(shopId: number) {
         current ? { ...current, ogImage } : current,
       );
       qc.invalidateQueries({ queryKey: ["shop", shopId] });
+      qc.invalidateQueries({ queryKey: ["shops-admin"] });
+    },
+  });
+}
+
+/**
+ * Loads the current admin's reminder for a specific shop.
+ *
+ * @param shopId - Shop id or `null` to disable fetching.
+ * @returns React Query result with reminder or `null`.
+ */
+export function useShopReminder(shopId: number | null) {
+  return useQuery({
+    queryKey: ["shop-reminder", shopId],
+    queryFn: () => api.get<ShopReminder | null>(`/admin/shops/${shopId}/reminder`),
+    enabled: shopId !== null && shopId !== 0,
+  });
+}
+
+/**
+ * Sets or replaces the reminder for a shop.
+ *
+ * @param shopId - Shop id.
+ * @returns React Query mutation.
+ */
+export function useSetShopReminder(shopId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      remindAt,
+      note,
+      isActive,
+      recurrence,
+      recurrenceCustomDays,
+      recurrenceUnit,
+      recurrenceDaysOfWeek,
+    }: {
+      remindAt: string;
+      note?: string | null;
+      isActive?: boolean;
+      recurrence?: string;
+      recurrenceCustomDays?: number | null;
+      recurrenceUnit?: string | null;
+      recurrenceDaysOfWeek?: string | null;
+    }) =>
+      api.post<ShopReminder>(`/admin/shops/${shopId}/reminder`, {
+        remindAt,
+        note,
+        isActive,
+        recurrence,
+        recurrenceCustomDays,
+        recurrenceUnit,
+        recurrenceDaysOfWeek,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["shop-reminder", shopId] });
+      qc.invalidateQueries({ queryKey: ["shops-admin"] });
+    },
+  });
+}
+
+/**
+ * Deletes the reminder for a shop.
+ *
+ * @param shopId - Shop id.
+ * @returns React Query mutation.
+ */
+export function useDeleteShopReminder(shopId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.delete(`/admin/shops/${shopId}/reminder`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["shop-reminder", shopId] });
       qc.invalidateQueries({ queryKey: ["shops-admin"] });
     },
   });

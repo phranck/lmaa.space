@@ -2,8 +2,7 @@ import { REGION_CODES } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 
-import type { useAdminShop } from "@/features/content/hooks/useAdminShops.ts";
-
+import type { useAdminShop } from "./hooks/useAdminShops.ts";
 import type { RejectState, ShopCheckJsonPayload, ShopImageState } from "./shop-editor-types.ts";
 
 export function getInitialImageState(

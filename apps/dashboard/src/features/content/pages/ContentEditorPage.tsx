@@ -22,7 +22,7 @@ import {
   usePatchContentPage,
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 const FONT_SIZE_KEY = "content-editor-source-font-size";
 const FONT_SIZE_MIN = 10;

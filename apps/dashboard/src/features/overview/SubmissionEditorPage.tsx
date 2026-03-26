@@ -22,8 +22,8 @@ import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { NotificationTemplateSelect, RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
 import { ShopEditorFormContent } from "@/features/content/shops/ShopEditorFormContent.tsx";
-import { useShopEditorController } from "@/features/content/shops/useShopEditorController.ts";
 import {
   useAdminSubmission,
   useDeleteSubmission,
@@ -31,8 +31,8 @@ import {
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import type { DashboardMessages } from "@/i18n/messages.ts";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
+import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
 function resolveSubmissionRoute(submissionIdParam: string | undefined) {
   const parsed = Number(submissionIdParam);

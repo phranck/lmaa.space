@@ -18,8 +18,8 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
-import { EMPTY_CREATE_USER_FORM, useCreateUser } from "./hooks/useAdminUsers.ts";
-import type { CreateUserFormData } from "./hooks/useAdminUsers.ts";
+import { EMPTY_CREATE_USER_FORM, useCreateUser } from "../hooks/useAdminUsers.ts";
+import type { CreateUserFormData } from "../hooks/useAdminUsers.ts";
 
 interface UserCreateCardProps {
   onClose: () => void;
