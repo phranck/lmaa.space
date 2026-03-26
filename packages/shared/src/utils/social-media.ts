@@ -343,10 +343,11 @@ function normalizeApplepodcasts(input: string): string | null {
   if (url) {
     const host = stripWww(url.hostname);
     if (host !== "podcasts.apple.com") return null;
+    // Accept any valid Apple Podcasts URL as-is (incl. locale paths like /de/podcast/...)
     return url.href;
   }
 
-  // Bare ID → direct link
+  // Bare numeric ID (with or without "id" prefix)
   const id = trimmed.replace(/^id/, "");
   if (!id || !/^\d+$/.test(id)) return null;
   return `https://podcasts.apple.com/podcast/id${id}`;
