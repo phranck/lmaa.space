@@ -22,10 +22,8 @@ import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { NotificationTemplateSelect, RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import {
-  ShopEditorFormContent,
-  useShopEditorController,
-} from "@/features/content/shops/ShopEditorShared.tsx";
+import { ShopEditorFormContent } from "@/features/content/shops/ShopEditorFormContent.tsx";
+import { useShopEditorController } from "@/features/content/shops/useShopEditorController.ts";
 import {
   useAdminSubmission,
   useDeleteSubmission,
