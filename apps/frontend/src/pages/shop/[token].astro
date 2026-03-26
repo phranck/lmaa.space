@@ -181,7 +181,7 @@ const metaDescription = shop.description
     </nav>
 
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row items-start gap-5 mb-8">
+    <header class="flex flex-row items-start gap-5 mb-8">
       <ShopAvatar name={shop.name} imageUrl={shop.ogImage} size="md" />
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-start gap-3">
@@ -202,7 +202,7 @@ const metaDescription = shop.description
           <div class="flex items-stretch gap-3 shrink-0">
             {hasHq && (
               <Fragment>
-                <address class="text-sm text-stone-700 not-italic leading-relaxed text-right">
+                <address class="hidden sm:block text-sm text-stone-700 not-italic leading-relaxed text-right">
                   {hqParts.map((part, i) => (
                     <Fragment>
                       {i > 0 && <br />}
@@ -210,7 +210,7 @@ const metaDescription = shop.description
                     </Fragment>
                   ))}
                 </address>
-                <div class="w-px bg-stone-200" aria-hidden="true" />
+                <div class="hidden sm:block w-px bg-stone-200" aria-hidden="true" />
               </Fragment>
             )}
             <div class="flex flex-col items-center gap-1">
@@ -323,7 +323,7 @@ const metaDescription = shop.description
 
     <!-- Actions footer -->
     <footer class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-stone-200" data-shop-id={shop.id}>
-      <div class="flex items-center gap-4" data-shop-actions>
+      <div class="flex items-center justify-center sm:justify-start gap-4" data-shop-actions>
         <button
           type="button"
           class="text-sm text-stone-500 hover:text-red-500 transition-colors"
