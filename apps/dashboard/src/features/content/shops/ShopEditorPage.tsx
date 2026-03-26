@@ -17,11 +17,9 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useAcceptShopReview, useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 
-import {
-  ShopEditorFormContent,
-  ShopEditorRejectOverlay,
-  useShopEditorController,
-} from "./ShopEditorShared.tsx";
+import { ShopEditorFormContent } from "./ShopEditorFormContent.tsx";
+import { ShopEditorRejectOverlay } from "./ShopEditorRejectOverlay.tsx";
+import { useShopEditorController } from "./useShopEditorController.ts";
 
 function resolveShopEditorRoute(shopIdParam: string | undefined) {
   if (shopIdParam === "new") {
@@ -88,6 +86,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
         title={controller.title}
         backLabel={backLabel}
         onBack={() => navigate(returnTo)}
+        noCard
         headerContent={
           <div className="flex items-center gap-3">
             <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
