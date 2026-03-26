@@ -52,6 +52,7 @@ export interface DashboardMessages {
         markdownWidgets: string;
         affiliate: string;
         affiliateSettings: string;
+        live: string;
         expandAll: string;
         collapseAll: string;
         expandAllAria: string;
@@ -253,6 +254,55 @@ export interface DashboardMessages {
       deletePermanently: string;
       deleting: string;
       deleteShop: string;
+    };
+    reminder: {
+      title: string;
+      active: string;
+      inactive: string;
+      edit: string;
+      tooltipPrefix: string;
+      form: {
+        activeLabel: string;
+        dateTime: string;
+        recurrence: string;
+        frequency: string;
+        every: string;
+        onDays: string;
+        noteLabel: string;
+        noteOptional: string;
+        notePlaceholder: string;
+        saving: string;
+        save: string;
+        deleting: string;
+        delete: string;
+      };
+      recurrence: {
+        never: string;
+        daily: string;
+        weekly: string;
+        monthly: string;
+        yearly: string;
+        custom: string;
+      };
+      unit: {
+        daysLabel: string;
+        daysSingular: string;
+        weeksLabel: string;
+        weeksSingular: string;
+        monthsLabel: string;
+        monthsSingular: string;
+        yearsLabel: string;
+        yearsSingular: string;
+      };
+      weekdays: {
+        mo: string;
+        tu: string;
+        we: string;
+        th: string;
+        fr: string;
+        sa: string;
+        su: string;
+      };
     };
   };
   categories: {
@@ -861,6 +911,32 @@ export interface DashboardMessages {
     importSkip: string;
     importNewNameLabel: string;
   };
+  navManager: {
+    pageTitle: string;
+    headerNav: string;
+    footerNav: string;
+    staticRoutes: readonly { label: string; url: string }[];
+    dragTitle: string;
+    labelOverrideTitle: string;
+    openNewTab: string;
+    openSameTab: string;
+    remove: string;
+    save: string;
+    saving: string;
+    load: string;
+    noEntries: string;
+    typePage: string;
+    typeUrl: string;
+    choosePage: string;
+    choosePageOrForm: string;
+    add: string;
+    urlPlaceholder: string;
+    labelPlaceholder: string;
+    newTab: string;
+    sameTab: string;
+    errorSaving: string;
+    forms: string;
+  };
   affiliate: {
     title: string;
     searchPlaceholder: string;
@@ -1002,6 +1078,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         affiliate: "Affiliate",
         affiliateSettings: "Einstellungen",
+        live: "Live",
         expandAll: "Alles aufklappen",
         collapseAll: "Alles zuklappen",
         expandAllAria: "Alle Gruppen aufklappen",
@@ -1205,6 +1282,55 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deletePermanently: "Löschen",
         deleting: "Wird gelöscht…",
         deleteShop: "Shop löschen",
+      },
+      reminder: {
+        title: "Erinnerung",
+        active: "Aktiv",
+        inactive: "Inaktiv",
+        edit: "Bearbeiten",
+        tooltipPrefix: "Erinnerung",
+        form: {
+          activeLabel: "Aktiv",
+          dateTime: "Datum & Uhrzeit",
+          recurrence: "Wiederholung",
+          frequency: "Häufigkeit",
+          every: "Alle",
+          onDays: "an",
+          noteLabel: "Notiz",
+          noteOptional: "(optional)",
+          notePlaceholder: "Worum geht es bei dieser Prüfung?",
+          saving: "Wird gespeichert\u2026",
+          save: "Erinnerung setzen",
+          deleting: "Wird gelöscht\u2026",
+          delete: "Löschen",
+        },
+        recurrence: {
+          never: "Nie",
+          daily: "Täglich",
+          weekly: "Wöchentlich",
+          monthly: "Monatlich",
+          yearly: "Jährlich",
+          custom: "Benutzerdefiniert",
+        },
+        unit: {
+          daysLabel: "Täglich",
+          daysSingular: "Tag(e)",
+          weeksLabel: "Wöchentlich",
+          weeksSingular: "Woche(n)",
+          monthsLabel: "Monatlich",
+          monthsSingular: "Monat(e)",
+          yearsLabel: "Jährlich",
+          yearsSingular: "Jahr(e)",
+        },
+        weekdays: {
+          mo: "Mo",
+          tu: "Di",
+          we: "Mi",
+          th: "Do",
+          fr: "Fr",
+          sa: "Sa",
+          su: "So",
+        },
       },
     },
     categories: {
@@ -1819,6 +1945,36 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Überspringen",
       importNewNameLabel: "Neuer Name",
     },
+    navManager: {
+      pageTitle: "Navigationen",
+      headerNav: "Header-Navigation",
+      footerNav: "Footer-Navigation",
+      staticRoutes: [
+        { label: "Startseite", url: "/" },
+        { label: "Shop vorschlagen", url: "/suggestion" },
+        { label: "Suche", url: "/search" },
+      ],
+      dragTitle: "Verschieben",
+      labelOverrideTitle: "Label-Override (leer = Standard)",
+      openNewTab: "Öffnet in neuem Tab",
+      openSameTab: "Öffnet im selben Tab",
+      remove: "Entfernen",
+      save: "Speichern",
+      saving: "Speichert\u2026",
+      load: "Lade\u2026",
+      noEntries: "Keine Einträge",
+      typePage: "Seite",
+      typeUrl: "URL",
+      choosePage: "Seite wählen\u2026",
+      choosePageOrForm: "Seite oder Formular wählen\u2026",
+      add: "Hinzufügen",
+      urlPlaceholder: "https://\u2026 oder /pfad",
+      labelPlaceholder: "Label",
+      newTab: "Neuer Tab",
+      sameTab: "Selber Tab",
+      errorSaving: "Fehler beim Speichern",
+      forms: "Formulare",
+    },
     affiliate: {
       title: "Affiliate",
       searchPlaceholder: "Shop oder Netzwerk suchen…",
@@ -1955,6 +2111,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         affiliate: "Affiliate",
         affiliateSettings: "Settings",
+        live: "Live",
         expandAll: "Expand all",
         collapseAll: "Collapse all",
         expandAllAria: "Expand all groups",
@@ -2158,6 +2315,55 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         deletePermanently: "Delete",
         deleting: "Deleting…",
         deleteShop: "Delete shop",
+      },
+      reminder: {
+        title: "Reminder",
+        active: "Active",
+        inactive: "Inactive",
+        edit: "Edit",
+        tooltipPrefix: "Reminder",
+        form: {
+          activeLabel: "Active",
+          dateTime: "Date & time",
+          recurrence: "Recurrence",
+          frequency: "Frequency",
+          every: "Every",
+          onDays: "on",
+          noteLabel: "Note",
+          noteOptional: "(optional)",
+          notePlaceholder: "What is this check about?",
+          saving: "Saving\u2026",
+          save: "Set reminder",
+          deleting: "Deleting\u2026",
+          delete: "Delete",
+        },
+        recurrence: {
+          never: "Never",
+          daily: "Daily",
+          weekly: "Weekly",
+          monthly: "Monthly",
+          yearly: "Yearly",
+          custom: "Custom",
+        },
+        unit: {
+          daysLabel: "Daily",
+          daysSingular: "day(s)",
+          weeksLabel: "Weekly",
+          weeksSingular: "week(s)",
+          monthsLabel: "Monthly",
+          monthsSingular: "month(s)",
+          yearsLabel: "Yearly",
+          yearsSingular: "year(s)",
+        },
+        weekdays: {
+          mo: "Mo",
+          tu: "Tu",
+          we: "We",
+          th: "Th",
+          fr: "Fr",
+          sa: "Sa",
+          su: "Su",
+        },
       },
     },
     categories: {
@@ -2767,6 +2973,36 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importRename: "Rename",
       importSkip: "Skip",
       importNewNameLabel: "New name",
+    },
+    navManager: {
+      pageTitle: "Navigations",
+      headerNav: "Header navigation",
+      footerNav: "Footer navigation",
+      staticRoutes: [
+        { label: "Home", url: "/" },
+        { label: "Suggest shop", url: "/suggestion" },
+        { label: "Search", url: "/search" },
+      ],
+      dragTitle: "Drag",
+      labelOverrideTitle: "Label override (empty = default)",
+      openNewTab: "Opens in new tab",
+      openSameTab: "Opens in same tab",
+      remove: "Remove",
+      save: "Save",
+      saving: "Saving\u2026",
+      load: "Loading\u2026",
+      noEntries: "No entries",
+      typePage: "Page",
+      typeUrl: "URL",
+      choosePage: "Select page\u2026",
+      choosePageOrForm: "Select page or form\u2026",
+      add: "Add",
+      urlPlaceholder: "https://\u2026 or /path",
+      labelPlaceholder: "Label",
+      newTab: "New tab",
+      sameTab: "Same tab",
+      errorSaving: "Error while saving",
+      forms: "Forms",
     },
     affiliate: {
       title: "Affiliate",

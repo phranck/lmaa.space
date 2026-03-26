@@ -1,6 +1,6 @@
 import type { ShopReminder } from "@lmaa/shared";
 
-import { WEEKDAYS } from "./reminder-constants.ts";
+import type { DashboardMessages } from "@/i18n/messages.ts";
 
 export function formatDisplayDate(isoString: string, locale: string): string {
   return new Date(isoString).toLocaleString(locale, {
@@ -12,22 +12,34 @@ export function formatDisplayDate(isoString: string, locale: string): string {
   });
 }
 
-export function buildCustomSummary(r: ShopReminder): string {
+export function buildCustomSummary(
+  r: ShopReminder,
+  reminder: DashboardMessages["shops"]["reminder"],
+): string {
   const unit = r.recurrenceUnit ?? "days";
   const interval = r.recurrenceCustomDays ?? 1;
   const unitLabel: Record<string, string> = {
-    days: interval === 1 ? "Tag" : "Tage",
-    weeks: interval === 1 ? "Woche" : "Wochen",
-    months: interval === 1 ? "Monat" : "Monate",
-    years: interval === 1 ? "Jahr" : "Jahre",
+    days: reminder.unit.daysSingular,
+    weeks: reminder.unit.weeksSingular,
+    months: reminder.unit.monthsSingular,
+    years: reminder.unit.yearsSingular,
   };
-  let summary = ` · alle ${interval} ${unitLabel[unit] ?? unit}`;
+  const weekdays = [
+    reminder.weekdays.mo,
+    reminder.weekdays.tu,
+    reminder.weekdays.we,
+    reminder.weekdays.th,
+    reminder.weekdays.fr,
+    reminder.weekdays.sa,
+    reminder.weekdays.su,
+  ];
+  let summary = ` · ${reminder.form.every.toLowerCase()} ${interval} ${unitLabel[unit] ?? unit}`;
   if (unit === "weeks" && r.recurrenceDaysOfWeek) {
     const dayNames = r.recurrenceDaysOfWeek
       .split(",")
       .map(Number)
       .sort((a, b) => a - b)
-      .map((d) => WEEKDAYS.find((w) => w.iso === d)?.label ?? "")
+      .map((d) => weekdays[d - 1] ?? "")
       .filter(Boolean)
       .join(" ");
     if (dayNames) summary += ` (${dayNames})`;

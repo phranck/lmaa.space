@@ -25,71 +25,9 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
+import type { DashboardMessages } from "@/i18n/messages.ts";
 
-const NAV_TEXT = {
-  de: {
-    pageTitle: "Navigationen",
-    headerNav: "Header-Navigation",
-    footerNav: "Footer-Navigation",
-    staticRoutes: [
-      { label: "Startseite", url: "/" },
-      { label: "Shop vorschlagen", url: "/suggestion" },
-      { label: "Suche", url: "/search" },
-    ],
-    dragTitle: "Verschieben",
-    labelOverrideTitle: "Label-Override (leer = Standard)",
-    openNewTab: "Öffnet in neuem Tab",
-    openSameTab: "Öffnet im selben Tab",
-    remove: "Entfernen",
-    save: "Speichern",
-    saving: "Speichert…",
-    load: "Lade…",
-    noEntries: "Keine Einträge",
-    typePage: "Seite",
-    typeUrl: "URL",
-    choosePage: "Seite wählen…",
-    choosePageOrForm: "Seite oder Formular wählen…",
-    add: "Hinzufügen",
-    urlPlaceholder: "https://… oder /pfad",
-    labelPlaceholder: "Label",
-    newTab: "Neuer Tab",
-    sameTab: "Selber Tab",
-    errorSaving: "Fehler beim Speichern",
-    forms: "Formulare",
-  },
-  en: {
-    pageTitle: "Navigations",
-    headerNav: "Header navigation",
-    footerNav: "Footer navigation",
-    staticRoutes: [
-      { label: "Home", url: "/" },
-      { label: "Suggest shop", url: "/suggestion" },
-      { label: "Search", url: "/search" },
-    ],
-    dragTitle: "Drag",
-    labelOverrideTitle: "Label override (empty = default)",
-    openNewTab: "Opens in new tab",
-    openSameTab: "Opens in same tab",
-    remove: "Remove",
-    save: "Save",
-    saving: "Saving…",
-    load: "Loading…",
-    noEntries: "No entries",
-    typePage: "Page",
-    typeUrl: "URL",
-    choosePage: "Select page…",
-    choosePageOrForm: "Select page or form…",
-    add: "Add",
-    urlPlaceholder: "https://… or /path",
-    labelPlaceholder: "Label",
-    newTab: "New tab",
-    sameTab: "Same tab",
-    errorSaving: "Error while saving",
-    forms: "Forms",
-  },
-} as const;
-
-type NavText = (typeof NAV_TEXT)[keyof typeof NAV_TEXT];
+type NavText = DashboardMessages["navManager"];
 
 interface NavItemState {
   id: number;
@@ -168,8 +106,8 @@ function SortableNavItem({
 }
 
 function NavColumn({ navId, label }: { navId: NavId; label: string }) {
-  const { locale } = useI18n();
-  const text = NAV_TEXT[locale];
+  const { messages } = useI18n();
+  const text = messages.navManager;
   const staticRoutes = text.staticRoutes;
   const { data: serverItems = [], isLoading } = useAdminNav(navId);
   const { data: allPages = [] } = useContentPages();
@@ -493,8 +431,8 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
  * @returns Nav manager route component.
  */
 export function NavManagerPage() {
-  const { locale } = useI18n();
-  const text = NAV_TEXT[locale];
+  const { messages } = useI18n();
+  const text = messages.navManager;
 
   return (
     <>
