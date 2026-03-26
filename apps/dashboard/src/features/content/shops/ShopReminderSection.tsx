@@ -10,7 +10,7 @@ import {
   useSetShopReminder,
   useShopReminder,
 } from "./hooks/useAdminShops.ts";
-import { getRecurrenceLabels } from "./reminder-constants.ts";
+import { RECURRENCE_LABELS } from "./reminder-constants.ts";
 import { buildCustomSummary, formatDisplayDate } from "./reminder-utils.ts";
 import { ReminderForm } from "./ReminderForm.tsx";
 
@@ -18,31 +18,29 @@ interface ShopReminderSectionProps {
   shopId: number;
 }
 
+function recurrenceSummary(r: ShopReminder): string {
+  if (r.recurrence === "never") return "";
+  if (r.recurrence === "custom") return buildCustomSummary(r);
+  return ` · ${RECURRENCE_LABELS[r.recurrence]}`;
+}
+
 /**
  * Inline section in the shop editor for managing a per-admin reminder.
  */
 export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
-  const { locale, messages } = useI18n();
-  const r = messages.shops.reminder;
+  const { locale } = useI18n();
   const { data: reminder, isLoading } = useShopReminder(shopId);
   const setMutation = useSetShopReminder(shopId);
   const deleteMutation = useDeleteShopReminder(shopId);
   const [editing, setEditing] = useState(false);
 
   const hasReminder = !!reminder;
-  const recurrenceLabels = getRecurrenceLabels(r.recurrence);
-
-  function recurrenceSummary(rem: ShopReminder): string {
-    if (rem.recurrence === "never") return "";
-    if (rem.recurrence === "custom") return buildCustomSummary(rem, r);
-    return ` · ${recurrenceLabels[rem.recurrence]}`;
-  }
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
         <ClockIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-subtle)]" />
-        <span className="text-sm font-medium text-[var(--ds-text)]">{r.title}</span>
+        <span className="text-sm font-medium text-[var(--ds-text)]">Erinnerung</span>
       </div>
 
       {isLoading ? (
@@ -56,7 +54,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
               {formatDisplayDate(reminder.remindAt, locale)}
             </p>
             <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5">
-              {reminder.isActive ? r.active : r.inactive}
+              {reminder.isActive ? "Aktiv" : "Inaktiv"}
               {recurrenceSummary(reminder)}
             </p>
             {reminder.note && (
@@ -68,7 +66,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
             onClick={() => setEditing(true)}
             className="shrink-0 text-xs text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] underline"
           >
-            {r.edit}
+            Bearbeiten
           </button>
         </div>
       ) : (
