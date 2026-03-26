@@ -8,6 +8,7 @@ import {
   SiMastodon,
   SiMixcloud,
   SiPatreon,
+  SiSpotify,
   SiTumblr,
   SiPinterest,
   SiSoundcloud,
@@ -41,6 +42,7 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "patreon", label: "Patreon", icon: SiPatreon },
   { key: "mixcloud", label: "Mixcloud", icon: SiMixcloud },
   { key: "soundcloud", label: "SoundCloud", icon: SiSoundcloud },
+  { key: "spotify", label: "Spotify", icon: SiSpotify },
   { key: "website", label: "Website", icon: GlobeIcon },
 ];
 
