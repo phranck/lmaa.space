@@ -90,6 +90,28 @@ dialog[data-animated].is-closing > div {
   animation: dialog-out 0.5s ease forwards;
 }
 
+/* Heart-bubble animation for like button */
+@keyframes heart-bubble-rise {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(var(--bubble-scale, 0.7));
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) scale(var(--bubble-scale, 0.7));
+  }
+}
+
+.heart-bubble {
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+  font-size: 13px;
+  color: #ef4444;
+  animation: heart-bubble-rise 900ms ease-out forwards;
+  z-index: 10;
+}
+
 /* Mobile menu: hide default marker on summary */
 details > summary {
   list-style: none;

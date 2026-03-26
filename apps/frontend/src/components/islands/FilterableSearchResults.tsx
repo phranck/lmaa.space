@@ -230,6 +230,7 @@ export default function FilterableSearchResults({
             {results.shops.map((shop) => (
               <ShopCardReact
                 key={shop.id}
+                shopId={shop.id}
                 name={shop.name}
                 ogImage={shop.ogImage}
                 url={shop.url}
