@@ -6,9 +6,11 @@ import {
   SiInstagram,
   SiLinkedin,
   SiMastodon,
+  SiMixcloud,
   SiPatreon,
   SiTumblr,
   SiPinterest,
+  SiSoundcloud,
   SiThreads,
   SiTiktok,
   SiTwitch,
@@ -37,6 +39,8 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "linkedin", label: "LinkedIn", icon: SiLinkedin },
   { key: "pinterest", label: "Pinterest", icon: SiPinterest },
   { key: "patreon", label: "Patreon", icon: SiPatreon },
+  { key: "mixcloud", label: "Mixcloud", icon: SiMixcloud },
+  { key: "soundcloud", label: "SoundCloud", icon: SiSoundcloud },
   { key: "website", label: "Website", icon: GlobeIcon },
 ];
 
