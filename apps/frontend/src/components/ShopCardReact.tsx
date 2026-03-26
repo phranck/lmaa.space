@@ -16,6 +16,7 @@ interface ShopCardProps {
   categories?: ShopCategory[];
   detailHref: string;
   hasCoordinates?: boolean;
+  hideLikeIndicator?: boolean;
 }
 
 const MAX_PILLS = 2;
@@ -42,10 +43,11 @@ export default function ShopCardReact({
   categories,
   detailHref,
   hasCoordinates = false,
+  hideLikeIndicator = false,
 }: ShopCardProps) {
   const domain = shopDomain(url);
   const letter = name.charAt(0).toUpperCase();
-  const liked = isShopLiked(shopId);
+  const liked = !hideLikeIndicator && isShopLiked(shopId);
   const visibleCategories = categories?.slice(0, MAX_PILLS) ?? [];
   const extraCount = (categories?.length ?? 0) - MAX_PILLS;
 
