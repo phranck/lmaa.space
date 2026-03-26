@@ -42,7 +42,7 @@ import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveA
 import { useAffiliateScans } from "@/features/affiliate/hooks/useAffiliateScans.ts";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
-import { useAdminShops } from "@/features/content/hooks/useAdminShops.ts";
+import { useAdminShops } from "@/features/content/shops/hooks/useAdminShops.ts";
 import { useDeadLinkReports } from "@/features/overview/hooks/useDeadLinks.ts";
 import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns.ts";
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";

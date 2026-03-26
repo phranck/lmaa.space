@@ -4,12 +4,12 @@ import { useState } from "react";
 import type { ShopReminder } from "@lmaa/shared";
 
 import { useI18n } from "@/context/I18nContext.tsx";
+
 import {
   useDeleteShopReminder,
   useSetShopReminder,
   useShopReminder,
-} from "@/features/content/hooks/useAdminShops.ts";
-
+} from "./hooks/useAdminShops.ts";
 import { RECURRENCE_LABELS } from "./reminder-constants.ts";
 import { buildCustomSummary, formatDisplayDate } from "./reminder-utils.ts";
 import { ReminderForm } from "./ReminderForm.tsx";

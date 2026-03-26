@@ -20,7 +20,7 @@ import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotif
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 import {
   useAdminUsers,
@@ -28,7 +28,7 @@ import {
   useSaveUserAvatar,
   useSetGravatarAvatar,
   useUpdateUser,
-} from "./hooks/useAdminUsers.ts";
+} from "../hooks/useAdminUsers.ts";
 
 interface UserEditCardProps {
   userId: number;

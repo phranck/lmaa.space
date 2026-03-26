@@ -26,12 +26,13 @@ import { type SortState } from "@/components/ui/Table.tsx";
 import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
+import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
+
 import {
   useAdminShops,
   useImportShopReviewResults,
   useShopVisibilityCounts,
-} from "@/features/content/hooks/useAdminShops.ts";
-import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
+} from "./hooks/useAdminShops.ts";
 
 type VisibilityFilter = "all" | ShopVisibility;
 type GeoFilter = "all" | "with" | "without" | "needsReview";

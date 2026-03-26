@@ -1,11 +1,11 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router";
 
-import { ContentEditorLoadingFallback } from "@/components/ContentEditorLoadingFallback.tsx";
+import { ContentEditorLoadingFallback } from "@/components/app/ContentEditorLoadingFallback.tsx";
 import { I18nProvider } from "@/context/I18nContext.tsx";
 import { ThemeProvider } from "@/context/ThemeContext.tsx";
 import { AuthProvider, useAuth } from "@/features/auth/AuthContext.tsx";
-import { KeyboardSaveProvider } from "@/lib/useKeyboardSave.ts";
+import { KeyboardSaveProvider } from "@/lib/hooks/useKeyboardSave.ts";
 
 const AdminLayout = lazy(() =>
   import("@/components/layout/AdminLayout.tsx").then((m) => ({
@@ -68,7 +68,7 @@ const SubmissionEditorPage = lazy(() =>
 );
 
 const UsersPage = lazy(() =>
-  import("@/features/system/UsersPage.tsx").then((m) => ({
+  import("@/features/system/users/UsersPage.tsx").then((m) => ({
     default: m.UsersPage,
   })),
 );
@@ -134,7 +134,7 @@ const EmailTemplateEditPage = lazy(() =>
 );
 
 const FooterBuilderPage = lazy(() =>
-  import("@/features/content/FooterBuilderPage.tsx").then((m) => ({
+  import("@/features/content/footer-builder/FooterBuilderPage.tsx").then((m) => ({
     default: m.FooterBuilderPage,
   })),
 );

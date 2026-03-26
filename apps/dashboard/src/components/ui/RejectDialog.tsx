@@ -5,7 +5,7 @@ import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
+import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
 export interface RejectDialogMessages {
   cancel: string;

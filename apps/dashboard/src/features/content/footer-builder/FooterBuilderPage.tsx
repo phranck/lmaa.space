@@ -21,14 +21,14 @@ import { resolveFooterHeightPx } from "@lmaa/shared";
 import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
-import { FooterBlockConfigPanel } from "./footer-builder/FooterBlockConfigPanel.tsx";
-import { FooterCanvas } from "./footer-builder/FooterCanvas.tsx";
-import { FooterPalette } from "./footer-builder/FooterPalette.tsx";
-import { FooterPreview } from "./footer-builder/FooterPreview.tsx";
-import { FooterStylePane } from "./footer-builder/FooterStylePane.tsx";
-import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "./hooks/useFooterConfig.ts";
+import { FooterBlockConfigPanel } from "./FooterBlockConfigPanel.tsx";
+import { FooterCanvas } from "./FooterCanvas.tsx";
+import { FooterPalette } from "./FooterPalette.tsx";
+import { FooterPreview } from "./FooterPreview.tsx";
+import { FooterStylePane } from "./FooterStylePane.tsx";
+import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "../hooks/useFooterConfig.ts";
 
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];

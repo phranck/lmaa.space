@@ -9,9 +9,9 @@ import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
+import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 import { renderMarkdownToReact } from "@/lib/render-markdown-to-react.tsx";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
-import { usePersistedTextareaHeight } from "@/lib/usePersistedTextareaHeight.ts";
 
 /**
  * Local marked instance for rendering deletion reasons.

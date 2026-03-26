@@ -3,11 +3,11 @@ import { useRef, useState } from "react";
 import { FormErrorText, FormLabelText, JsonEditor, ShopEditForm } from "@lmaa/ui";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 
+import type { ShopEditorController } from "./hooks/useShopEditorController.ts";
 import type { ShopCheckJsonPayload } from "./shop-editor-types.ts";
 import { applyShopCheckJsonToForm, sanitizeJsonControlChars } from "./shop-editor-utils.ts";
 import { ShopPreviewImageSection } from "./ShopPreviewImageSection.tsx";
 import { ShopReminderSection } from "./ShopReminderSection.tsx";
-import type { ShopEditorController } from "./useShopEditorController.ts";
 
 export function ShopEditorFormContent({ controller }: { controller: ShopEditorController }) {
   const initialJsonRef = useRef<string | null>(null);

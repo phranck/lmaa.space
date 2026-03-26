@@ -13,7 +13,7 @@ import {
   PageSplitMain,
 } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 import { useMarkdownWidgets, useSaveMarkdownWidgets } from "./hooks/useMarkdownWidgets.ts";
 

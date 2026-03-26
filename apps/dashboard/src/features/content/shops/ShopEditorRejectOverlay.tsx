@@ -7,8 +7,8 @@ import {
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { RejectDialog } from "@/components/ui/RejectDialog.tsx";
 
+import type { ShopEditorController } from "./hooks/useShopEditorController.ts";
 import { getEmptyRejectState } from "./shop-editor-utils.ts";
-import type { ShopEditorController } from "./useShopEditorController.ts";
 
 export function ShopEditorRejectOverlay({ controller }: { controller: ShopEditorController }) {
   const {

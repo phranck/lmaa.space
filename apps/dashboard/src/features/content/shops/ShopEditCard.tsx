@@ -4,10 +4,10 @@ import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
 
+import { useShopEditorController } from "./hooks/useShopEditorController.ts";
 import type { ShopEditorModeProps } from "./shop-editor-types.ts";
 import { ShopEditorFormContent } from "./ShopEditorFormContent.tsx";
 import { ShopEditorRejectOverlay } from "./ShopEditorRejectOverlay.tsx";
-import { useShopEditorController } from "./useShopEditorController.ts";
 
 type ShopEditCardProps = ShopEditorModeProps & {
   onClose: () => void;

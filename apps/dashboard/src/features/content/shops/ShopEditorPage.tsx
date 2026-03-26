@@ -14,12 +14,12 @@ import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useAcceptShopReview, useDeleteShop, useSetShopVisibility } from "@/features/content/hooks/useAdminShops.ts";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 
+import { useAcceptShopReview, useDeleteShop, useSetShopVisibility } from "./hooks/useAdminShops.ts";
+import { useShopEditorController } from "./hooks/useShopEditorController.ts";
 import { ShopEditorFormContent } from "./ShopEditorFormContent.tsx";
 import { ShopEditorRejectOverlay } from "./ShopEditorRejectOverlay.tsx";
-import { useShopEditorController } from "./useShopEditorController.ts";
 
 function resolveShopEditorRoute(shopIdParam: string | undefined) {
   if (shopIdParam === "new") {

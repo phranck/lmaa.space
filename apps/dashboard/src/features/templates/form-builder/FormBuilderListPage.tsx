@@ -39,7 +39,7 @@ import {
   useImportFormConfig,
   useSetFormConfigActive,
 } from "@/features/templates/hooks/useFormConfig.ts";
-import { useImportQueue } from "@/lib/useImportQueue.ts";
+import { useImportQueue } from "@/lib/hooks/useImportQueue.ts";
 
 type ImportFormData = {
   name: string;

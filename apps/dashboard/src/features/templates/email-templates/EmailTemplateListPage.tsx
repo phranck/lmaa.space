@@ -35,7 +35,7 @@ import {
   useEmailTemplates,
   useImportEmailTemplate,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
-import { useImportQueue } from "@/lib/useImportQueue.ts";
+import { useImportQueue } from "@/lib/hooks/useImportQueue.ts";
 
 type ImportTemplateData = EmailTemplateInput;
 

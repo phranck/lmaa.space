@@ -15,7 +15,7 @@ import {
   useEmailTemplate,
   useUpdateEmailTemplate,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
-import { useKeyboardSave } from "@/lib/useKeyboardSave.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 interface FieldProps {
   label: string;
