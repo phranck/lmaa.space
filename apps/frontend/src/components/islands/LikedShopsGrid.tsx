@@ -1,5 +1,5 @@
 import { QrCodeIcon, ShareNetworkIcon } from "@phosphor-icons/react";
-import QRCode from "qrcode";
+import QRCodeStyling from "qr-code-styling";
 import { useEffect, useRef, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
@@ -118,7 +118,7 @@ function ImportDialog({
 
 // ── QR / Share Dialog ────────────────────────────────────────────────
 function SyncDialog({ onClose }: { onClose: () => void }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const qrRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
   const likedIds = [...getLikedShopIds()];
@@ -126,13 +126,33 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
   const syncUrl = `${window.location.origin}/my-shops?s=${encoded}`;
 
   useEffect(() => {
-    if (canvasRef.current) {
-      QRCode.toCanvas(canvasRef.current, syncUrl, {
-        width: 200,
-        margin: 2,
-        color: { dark: "#292524", light: "#ffffff" },
-      });
-    }
+    if (!qrRef.current) return;
+
+    const qrCode = new QRCodeStyling({
+      width: 200,
+      height: 200,
+      data: syncUrl,
+      margin: 8,
+      type: "svg",
+      dotsOptions: {
+        color: "#292524",
+        type: "rounded",
+      },
+      cornersSquareOptions: {
+        type: "extra-rounded",
+        color: "#292524",
+      },
+      cornersDotOptions: {
+        type: "dot",
+        color: "#292524",
+      },
+      backgroundOptions: {
+        color: "#ffffff",
+      },
+    });
+
+    qrRef.current.innerHTML = "";
+    qrCode.append(qrRef.current);
   }, [syncUrl]);
 
   async function handleShare() {
@@ -167,7 +187,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
         </p>
 
         <div className="flex justify-center mb-5">
-          <canvas ref={canvasRef} className="rounded-lg" />
+          <div ref={qrRef} className="rounded-lg overflow-hidden" />
         </div>
 
         <div className="flex gap-2">
