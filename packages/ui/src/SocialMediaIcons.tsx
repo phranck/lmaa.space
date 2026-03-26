@@ -7,10 +7,9 @@ export interface SocialMediaIconsProps {
 }
 
 export function SocialMediaIcons({ socialMedia, className, linkable = true }: SocialMediaIconsProps) {
-  const entries = PLATFORMS.filter((p) => socialMedia[p.key]).map((p) => ({
-    ...p,
-    url: socialMedia[p.key],
-  }));
+  const entries = PLATFORMS.filter((p) => socialMedia[p.key])
+    .map((p) => ({ ...p, url: socialMedia[p.key] }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   if (entries.length === 0) return null;
 
