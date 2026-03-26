@@ -15,6 +15,8 @@ export const SOCIAL_PLATFORM_KEYS = [
   "linkedin",
   "pinterest",
   "patreon",
+  "mixcloud",
+  "soundcloud",
   "website",
 ] as const;
 
@@ -331,6 +333,42 @@ function normalizePatreon(input: string): string | null {
   return `https://patreon.com/${handle}`;
 }
 
+function normalizeMixcloud(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "mixcloud.com") return null;
+    const user = extractPathUser(url);
+    if (!user) return null;
+    return `https://mixcloud.com/${user}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://mixcloud.com/${handle}`;
+}
+
+function normalizeSoundcloud(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "soundcloud.com") return null;
+    const user = extractPathUser(url);
+    if (!user) return null;
+    return `https://soundcloud.com/${user}`;
+  }
+
+  const handle = stripLeadingAt(trimmed);
+  if (!handle || handle.includes("/")) return null;
+  return `https://soundcloud.com/${handle}`;
+}
+
 function normalizeWebsite(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -357,6 +395,8 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "pin.it": "pinterest",
   "patreon.com": "patreon",
   "tumblr.com": "tumblr",
+  "mixcloud.com": "mixcloud",
+  "soundcloud.com": "soundcloud",
 };
 
 /**
@@ -409,6 +449,8 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   linkedin: normalizeLinkedin,
   pinterest: normalizePinterest,
   patreon: normalizePatreon,
+  mixcloud: normalizeMixcloud,
+  soundcloud: normalizeSoundcloud,
   website: normalizeWebsite,
 };
 
