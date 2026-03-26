@@ -8,7 +8,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { UserEditCard } from "@/features/system/UserEditCard.tsx";
+import { UserEditCard } from "@/features/system/users/UserEditCard.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 const SIDEBAR_DEFAULT = 224;

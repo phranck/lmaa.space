@@ -10,7 +10,7 @@ import {
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { UserAvatar } from "@/features/system/UserAvatar.tsx";
+import { UserAvatar } from "@/features/system/users/UserAvatar.tsx";
 
 const SKIP_KEY = "logout-skip-confirm";
 
