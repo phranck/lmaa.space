@@ -107,6 +107,98 @@ document.addEventListener("cancel", (e) => {
   closeDialog(dialog);
 });
 
+// ── Like (localStorage) ──────────────────────────────────────────────
+const LIKES_KEY = "lmaa-liked-shops";
+
+function getLikedShops(): Set<string> {
+  try {
+    const raw = localStorage.getItem(LIKES_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveLikedShops(ids: Set<string>) {
+  localStorage.setItem(LIKES_KEY, JSON.stringify([...ids]));
+}
+
+function applyLikeState(btn: HTMLElement, liked: boolean) {
+  const regular = btn.querySelector<HTMLElement>(".like-icon-regular");
+  const duotone = btn.querySelector<HTMLElement>(".like-icon-duotone");
+  if (liked) {
+    regular?.classList.add("hidden");
+    duotone?.classList.remove("hidden");
+    btn.classList.remove("text-stone-400");
+    btn.classList.add("text-red-500");
+  } else {
+    regular?.classList.remove("hidden");
+    duotone?.classList.add("hidden");
+    btn.classList.add("text-stone-400");
+    btn.classList.remove("text-red-500");
+  }
+}
+
+// Restore like state on page load (detail page button)
+document.querySelectorAll<HTMLElement>("[data-action='like']").forEach((btn) => {
+  const shopId = btn.dataset.shopId;
+  if (shopId && getLikedShops().has(shopId)) {
+    applyLikeState(btn, true);
+  }
+});
+
+// Show like indicators on Astro-rendered shop cards
+const likedShops = getLikedShops();
+document.querySelectorAll<HTMLElement>("[data-shop-id]").forEach((card) => {
+  const shopId = card.dataset.shopId;
+  if (shopId && likedShops.has(shopId)) {
+    const indicator = card.querySelector<HTMLElement>("[data-like-indicator]");
+    indicator?.classList.remove("hidden");
+  }
+});
+
+// Heart-bubble animation
+function spawnHeartBubbles(btn: HTMLElement) {
+  const count = 6;
+  for (let i = 0; i < count; i++) {
+    const bubble = document.createElement("span");
+    bubble.className = "heart-bubble";
+    bubble.textContent = "\u2764";
+    // Random horizontal offset (-14px to +14px) and animation delay
+    const xOffset = Math.random() * 28 - 14;
+    const delay = Math.random() * 150;
+    const scale = 0.5 + Math.random() * 0.6;
+    bubble.style.left = `calc(50% + ${xOffset}px)`;
+    bubble.style.animationDelay = `${delay}ms`;
+    bubble.style.setProperty("--bubble-scale", String(scale));
+    btn.appendChild(bubble);
+    // Clean up after animation
+    bubble.addEventListener("animationend", () => bubble.remove());
+  }
+}
+
+// Handle like toggle
+document.addEventListener("click", (e) => {
+  const btn = (e.target as Element).closest<HTMLButtonElement>("[data-action='like']");
+  if (!btn) return;
+
+  const shopId = btn.dataset.shopId;
+  if (!shopId) return;
+
+  const liked = getLikedShops();
+  const isNowLiked = !liked.has(shopId);
+
+  if (isNowLiked) {
+    liked.add(shopId);
+    spawnHeartBubbles(btn);
+  } else {
+    liked.delete(shopId);
+  }
+
+  saveLikedShops(liked);
+  applyLikeState(btn, isNowLiked);
+});
+
 // Handle share action
 document.addEventListener("click", async (e) => {
   const btn = (e.target as Element).closest<HTMLButtonElement>("[data-action='share']");

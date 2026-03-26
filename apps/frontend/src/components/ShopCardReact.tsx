@@ -1,4 +1,4 @@
-import { MapPinLineIcon } from "@phosphor-icons/react";
+import { HeartIcon, MapPinLineIcon } from "@phosphor-icons/react";
 
 import { shopDomain } from "@/lib/shop";
 
@@ -9,6 +9,7 @@ interface ShopCategory {
 }
 
 interface ShopCardProps {
+  shopId: number;
   name: string;
   ogImage?: string | null;
   url: string;
@@ -24,7 +25,17 @@ const MAX_PILLS = 2;
  *
  * Used inside filterable island components that need React-controlled rendering.
  */
+function isShopLiked(id: number): boolean {
+  try {
+    const raw = localStorage.getItem("lmaa-liked-shops");
+    return raw ? (JSON.parse(raw) as string[]).includes(String(id)) : false;
+  } catch {
+    return false;
+  }
+}
+
 export default function ShopCardReact({
+  shopId,
   name,
   ogImage,
   url,
@@ -34,6 +45,7 @@ export default function ShopCardReact({
 }: ShopCardProps) {
   const domain = shopDomain(url);
   const letter = name.charAt(0).toUpperCase();
+  const liked = isShopLiked(shopId);
   const visibleCategories = categories?.slice(0, MAX_PILLS) ?? [];
   const extraCount = (categories?.length ?? 0) - MAX_PILLS;
 
@@ -42,6 +54,14 @@ export default function ShopCardReact({
       href={detailHref}
       className="relative block bg-white rounded-2xl border border-stone-200 p-2 sm:p-4 hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
+      {liked && (
+        <span
+          className="absolute -right-2 -top-2 text-red-500 z-10"
+          aria-hidden="true"
+        >
+          <HeartIcon weight="duotone" className="w-5 h-5" />
+        </span>
+      )}
       {hasCoordinates && (
         <span
           className="absolute top-2 right-2 text-stone-300"

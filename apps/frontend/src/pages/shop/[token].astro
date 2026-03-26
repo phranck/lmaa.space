@@ -11,6 +11,7 @@ import { SocialMediaIcons } from "@lmaa/ui";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 import {
   ArrowLeftIcon,
+  HeartIcon,
   MapPinIcon,
   PackageIcon,
   ShareNetworkIcon,
@@ -212,16 +213,28 @@ const metaDescription = shop.description
                 <div class="w-px bg-stone-200" aria-hidden="true" />
               </Fragment>
             )}
-            <button
-              type="button"
-              class="self-start w-9 h-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-amber-700 hover:bg-stone-100 transition-colors cursor-pointer"
-              data-action="share"
-              data-share-url={`${site}/shop/${shopToken}`}
-              data-share-title={shop.name}
-              aria-label={`${shop.name} teilen`}
-            >
-              <ShareNetworkIcon weight="duotone" className="w-5 h-5" />
-            </button>
+            <div class="flex flex-col items-center gap-1">
+              <button
+                type="button"
+                class="like-btn w-9 h-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-red-400 hover:bg-stone-100 transition-colors cursor-pointer relative overflow-visible"
+                data-action="like"
+                data-shop-id={String(shop.id)}
+                aria-label={`${shop.name} liken`}
+              >
+                <HeartIcon weight="regular" className="like-icon-regular w-5 h-5" />
+                <HeartIcon weight="duotone" className="like-icon-duotone w-5 h-5 absolute hidden text-red-500" />
+              </button>
+              <button
+                type="button"
+                class="w-9 h-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-amber-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                data-action="share"
+                data-share-url={`${site}/shop/${shopToken}`}
+                data-share-title={shop.name}
+                aria-label={`${shop.name} teilen`}
+              >
+                <ShareNetworkIcon weight="duotone" className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
