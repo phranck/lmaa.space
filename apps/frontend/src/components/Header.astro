@@ -203,7 +203,6 @@ function navLinkClass(href: string, external = false) {
     if (liked.length > 0) {
       document.querySelectorAll<HTMLElement>("[data-my-shops-link]").forEach((el) => {
         el.classList.remove("hidden");
-        // Desktop variant needs flex display
         if (el.dataset.myShopsLink === "desktop") {
           el.classList.add("md:flex");
         } else {
