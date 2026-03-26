@@ -2,6 +2,7 @@ import { GlobeIcon } from "@phosphor-icons/react";
 import type { ComponentType } from "react";
 import { FaFacebook, FaTwitter } from "react-icons/fa6";
 import {
+  SiApplepodcasts,
   SiBluesky,
   SiInstagram,
   SiLinkedin,
@@ -27,6 +28,7 @@ export interface PlatformDef {
 
 /** Ordered list of all supported social media platforms with their display metadata. */
 export const PLATFORMS: PlatformDef[] = [
+  { key: "applepodcasts", label: "Apple Podcasts", icon: SiApplepodcasts },
   { key: "mastodon", label: "Mastodon", icon: SiMastodon },
   { key: "bluesky", label: "Bluesky", icon: SiBluesky },
   { key: "instagram", label: "Instagram", icon: SiInstagram },

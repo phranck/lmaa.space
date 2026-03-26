@@ -15,6 +15,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "linkedin",
   "pinterest",
   "patreon",
+  "applepodcasts",
   "mixcloud",
   "soundcloud",
   "spotify",
@@ -334,6 +335,23 @@ function normalizePatreon(input: string): string | null {
   return `https://patreon.com/${handle}`;
 }
 
+function normalizeApplepodcasts(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host !== "podcasts.apple.com") return null;
+    return url.href;
+  }
+
+  // Bare ID → direct link
+  const id = trimmed.replace(/^id/, "");
+  if (!id || !/^\d+$/.test(id)) return null;
+  return `https://podcasts.apple.com/podcast/id${id}`;
+}
+
 function normalizeMixcloud(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -415,6 +433,7 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "tumblr.com": "tumblr",
   "mixcloud.com": "mixcloud",
   "soundcloud.com": "soundcloud",
+  "podcasts.apple.com": "applepodcasts",
   "open.spotify.com": "spotify",
   "spotify.com": "spotify",
 };
@@ -469,6 +488,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   linkedin: normalizeLinkedin,
   pinterest: normalizePinterest,
   patreon: normalizePatreon,
+  applepodcasts: normalizeApplepodcasts,
   mixcloud: normalizeMixcloud,
   soundcloud: normalizeSoundcloud,
   spotify: normalizeSpotify,
