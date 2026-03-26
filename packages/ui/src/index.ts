@@ -23,12 +23,17 @@ export {
   FormLabel,
   FormLabelText,
   FormOptional,
+  formBtnBaseClass,
   formErrorClass,
   formHelpClass,
   formInputClass,
   formLabelClass,
   formOptionalClass,
 } from "./FormPrimitives.tsx";
+/** Shared toggle switch component. */
+export { ToggleSwitch } from "./ToggleSwitch.tsx";
+/** Re-exported props for `ToggleSwitch`. */
+export type { ToggleSwitchProps } from "./ToggleSwitch.tsx";
 /** CodeMirror-based Markdown source editor with syntax highlighting. */
 export { MarkdownEditor } from "./MarkdownEditor.tsx";
 /** Re-exported props for `MarkdownEditor`. */

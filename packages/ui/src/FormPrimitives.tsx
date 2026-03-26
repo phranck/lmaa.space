@@ -9,6 +9,8 @@ export const formOptionalClass = "text-[var(--ds-text-subtle)] font-normal";
 export const formInputClass =
   "w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 export const formHelpClass = "text-xs text-[var(--ds-text-subtle)]";
+export const formBtnBaseClass =
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-medium transition-colors disabled:opacity-40";
 export const formErrorClass = "text-red-500 text-xs mt-1";
 
 export function FormLabel({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
