@@ -10,6 +10,7 @@ import type { AffiliateNetworkId } from "@lmaa/shared";
 import { AFFILIATE_SETTINGS_KEYS } from "@lmaa/shared";
 
 import { fail, ok } from "../../lib/http.js";
+import { logger } from "../../lib/logger.js";
 import { parseId } from "../../lib/validate.js";
 import type { AuthVariables } from "../../middleware/auth.js";
 import {
@@ -208,10 +209,14 @@ affiliateRoutes.post("/affiliate/networks/:network/validate", async (c) => {
   if (!network) return fail(c, 400, "Unsupported network");
 
   const settings = await getSettings([...AFFILIATE_SETTINGS_KEYS]);
+  const hasKeys = Object.keys(settings).filter((k) => k.startsWith(`${network}.`));
+  logger.info({ network, settingsKeys: hasKeys }, "validate: loaded settings");
+
   const client = createNetworkClient(network, settings);
   if (!client) return fail(c, 422, "Credentials not configured for this network");
 
   const valid = await client.validateCredentials();
+  logger.info({ network, valid }, "validate: result");
   return ok(c, { valid });
 });
 

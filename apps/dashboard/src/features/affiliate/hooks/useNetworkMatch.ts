@@ -9,8 +9,11 @@ import { api } from "@/lib/api.ts";
  */
 export function useValidateNetworkCredentials() {
   return useMutation({
-    mutationFn: (network: string) =>
-      api.post<{ valid: boolean }>(`/admin/affiliate/networks/${network}/validate`),
+    mutationFn: async (network: string) => {
+      const result = await api.post<{ valid: boolean }>(`/admin/affiliate/networks/${network}/validate`);
+      if (!result.valid) throw new Error("Invalid credentials");
+      return result;
+    },
   });
 }
 

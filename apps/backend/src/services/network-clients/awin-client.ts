@@ -30,8 +30,12 @@ export class AwinClient implements NetworkClient {
   async validateCredentials(): Promise<boolean> {
     try {
       const res = await this.fetch(`/publishers/${this.publisherId}/programmes?relationship=joined`);
+      if (!res.ok) {
+        logger.warn({ status: res.status, statusText: res.statusText }, "Awin: credential validation failed");
+      }
       return res.ok;
-    } catch {
+    } catch (err) {
+      logger.error({ err }, "Awin: credential validation error");
       return false;
     }
   }
