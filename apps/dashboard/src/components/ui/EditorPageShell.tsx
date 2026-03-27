@@ -20,6 +20,7 @@ interface EditorPageShellProps {
   toolbar?: ReactNode;
   bodyClassName?: string;
   cardClassName?: string;
+  noCard?: boolean;
 }
 
 export function EditorPageShell({
@@ -32,6 +33,7 @@ export function EditorPageShell({
   toolbar,
   bodyClassName,
   cardClassName,
+  noCard,
 }: EditorPageShellProps) {
   return (
     <PageLayout>
@@ -44,7 +46,7 @@ export function EditorPageShell({
       </PageHeader>
 
       <PageBody className={cx("min-h-0", bodyClassName)}>
-        <Card className={cx("p-5 mb-3", cardClassName)}>{children}</Card>
+        {noCard ? children : <Card className={cx("p-5 mb-3", cardClassName)}>{children}</Card>}
         {toolbar ? <Toolbar className="sticky -bottom-3 z-20 justify-end">{toolbar}</Toolbar> : null}
       </PageBody>
     </PageLayout>
