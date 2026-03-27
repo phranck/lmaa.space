@@ -609,6 +609,8 @@ export const affiliateScans = pgTable(
       .$type<"open" | "contacted" | "confirmed" | "rejected" | "closed">()
       .notNull()
       .default("open"),
+    networkProgramId: text("network_program_id"),
+    networkProgramUrl: text("network_program_url"),
     trackingNote: text("tracking_note"),
     scannedAt: timestamp("scanned_at").defaultNow().notNull(),
     scannedBy: integer("scanned_by").references(() => adminUsers.id, { onDelete: "set null" }),

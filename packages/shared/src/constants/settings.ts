@@ -4,12 +4,35 @@
 export const SETTINGS_KEYS = {
   OLLAMA_HOST: "ollama.host",
   OLLAMA_API_KEY: "ollama.apiKey",
+  AWIN_PUBLISHER_ID: "awin.publisherId",
+  AWIN_API_TOKEN: "awin.apiToken",
+  TRADEDOUBLER_PUBLISHER_ID: "tradedoubler.publisherId",
+  TRADEDOUBLER_TOKEN: "tradedoubler.token",
 } as const;
 
 export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
 
-/** Keys exposed to the affiliate settings UI. */
-export const AFFILIATE_SETTINGS_KEYS = [
+/** Ollama-specific settings keys. */
+export const OLLAMA_SETTINGS_KEYS = [
   SETTINGS_KEYS.OLLAMA_HOST,
   SETTINGS_KEYS.OLLAMA_API_KEY,
+] as const;
+
+/** Awin-specific settings keys. */
+export const AWIN_SETTINGS_KEYS = [
+  SETTINGS_KEYS.AWIN_PUBLISHER_ID,
+  SETTINGS_KEYS.AWIN_API_TOKEN,
+] as const;
+
+/** Tradedoubler-specific settings keys. */
+export const TRADEDOUBLER_SETTINGS_KEYS = [
+  SETTINGS_KEYS.TRADEDOUBLER_PUBLISHER_ID,
+  SETTINGS_KEYS.TRADEDOUBLER_TOKEN,
+] as const;
+
+/** All keys exposed to the affiliate settings UI. */
+export const AFFILIATE_SETTINGS_KEYS = [
+  ...OLLAMA_SETTINGS_KEYS,
+  ...AWIN_SETTINGS_KEYS,
+  ...TRADEDOUBLER_SETTINGS_KEYS,
 ] as const;
