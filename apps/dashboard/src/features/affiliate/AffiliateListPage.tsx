@@ -39,7 +39,6 @@ import {
   useImportAffiliateScans,
   useUpdateAffiliateTracking,
 } from "@/features/affiliate/hooks/useAffiliateScans.ts";
-import { useValidateNetworkCredentials } from "@/features/affiliate/hooks/useNetworkMatch.ts";
 
 // -- Config --
 
