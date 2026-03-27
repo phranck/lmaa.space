@@ -1,4 +1,7 @@
+import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
+import { sendPushNotification } from "./push-notifications.js";
+import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import {
   advanceReminderDate,
@@ -20,11 +23,9 @@ function getNextCustomRemindAt(reminder: DueReminder): Date {
       .sort((a, b) => a - b);
 
     if (days.length > 0) {
-      // ISO weekday: 1=Mon…7=Sun; JS getDay(): 0=Sun…6=Sat
       const jsDay = base.getDay();
       const isoDay = jsDay === 0 ? 7 : jsDay;
 
-      // Next selected day within the same week
       const nextInWeek = days.find((d) => d > isoDay);
       if (nextInWeek) {
         const result = new Date(base);
@@ -32,7 +33,6 @@ function getNextCustomRemindAt(reminder: DueReminder): Date {
         return result;
       }
 
-      // First selected day in the next interval-week cycle
       const daysUntilNextMonday = 8 - isoDay;
       const daysIntoNewWeek = days[0] - 1;
       const result = new Date(base);
@@ -102,34 +102,56 @@ function buildReminderHtml(reminder: DueReminder): string {
   return `<p>Du hast eine Erinnerung für den Shop <strong>${escapedName}</strong> gesetzt.</p>${noteBlock}<p style="color:#888;font-size:12px">Fällig: ${dateStr}</p>${recurrenceBlock}`;
 }
 
+async function sendReminderEmail(reminder: DueReminder): Promise<boolean> {
+  if (!reminder.sendEmail) return true;
+
+  if (reminder.emailTemplate) {
+    const variables: Record<string, string> = {
+      shopName: reminder.shopName,
+      reminderMessage: reminder.note ?? "",
+      shopUrl: `${env.DASHBOARD_URL}/shops/${reminder.shopId}`,
+    };
+    const { html, subject } = await renderEmailTemplate(reminder.emailTemplate, variables);
+    return sendMail(reminder.adminEmail, subject, html);
+  }
+
+  const subject = `Erinnerung: Shop \u201E${reminder.shopName}\u201C prüfen`;
+  const html = buildReminderHtml(reminder);
+  return sendMail(reminder.adminEmail, subject, html);
+}
+
 async function processReminders(): Promise<void> {
   const due = await getDueReminders();
   for (const reminder of due) {
-    const subject = `Erinnerung: Shop „${reminder.shopName}" prüfen`;
-    const html = buildReminderHtml(reminder);
-    const sent = await sendMail(reminder.adminEmail, subject, html);
-    if (!sent) {
+    const emailSent = await sendReminderEmail(reminder);
+    if (!emailSent) {
       logger.warn({ shopId: reminder.shopId }, "reminder: email failed, will retry next tick");
       continue;
     }
+
+    await sendPushNotification(reminder.adminId, {
+      title: `Erinnerung: ${reminder.shopName}`,
+      body: reminder.note ?? `Shop "${reminder.shopName}" prüfen`,
+      url: `/shops/${reminder.shopId}`,
+    });
 
     const nextDate = getNextRemindAt(reminder);
     if (nextDate) {
       await advanceReminderDate(reminder.id, nextDate);
       logger.info(
         { shopId: reminder.shopId, nextRemindAt: nextDate },
-        "reminder: sent, advanced to next occurrence",
+        "reminder: processed, advanced to next occurrence",
       );
     } else {
       await deleteReminderById(reminder.id);
-      logger.info({ shopId: reminder.shopId }, "reminder: sent and deleted");
+      logger.info({ shopId: reminder.shopId }, "reminder: processed and deleted");
     }
   }
 }
 
 /**
  * Starts the reminder scheduler.
- * Polls every 60 seconds for due reminders, sends email, then either
+ * Polls every 60 seconds for due reminders, sends email + push, then either
  * advances the date (recurring) or deletes the entry (one-time).
  */
 export function startReminderScheduler(): NodeJS.Timeout {

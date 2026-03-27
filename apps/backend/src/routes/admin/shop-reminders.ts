@@ -19,6 +19,8 @@ const reminderBodySchema = z.object({
   recurrenceCustomDays: z.number().int().min(1).max(3650).nullable().optional(),
   recurrenceUnit: z.enum(["days", "weeks", "months", "years"]).nullable().optional(),
   recurrenceDaysOfWeek: z.string().nullable().optional(),
+  sendEmail: z.boolean().optional(),
+  emailTemplateId: z.number().int().positive().nullable().optional(),
 });
 
 /**
@@ -41,7 +43,17 @@ shopRemindersRoutes.post(
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
     const adminId = c.get("adminId");
-    const { remindAt, note, isActive, recurrence, recurrenceCustomDays, recurrenceUnit, recurrenceDaysOfWeek } = c.req.valid("json");
+    const {
+      remindAt,
+      note,
+      isActive,
+      recurrence,
+      recurrenceCustomDays,
+      recurrenceUnit,
+      recurrenceDaysOfWeek,
+      sendEmail,
+      emailTemplateId,
+    } = c.req.valid("json");
     await upsertReminder(
       id,
       adminId,
@@ -52,6 +64,8 @@ shopRemindersRoutes.post(
       recurrenceCustomDays ?? null,
       recurrenceUnit ?? null,
       recurrenceDaysOfWeek ?? null,
+      sendEmail ?? true,
+      emailTemplateId ?? null,
     );
     const reminder = await getReminder(id, adminId);
     return ok(c, reminder, 201);

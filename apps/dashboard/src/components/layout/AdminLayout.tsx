@@ -9,6 +9,7 @@ import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderCo
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { UserEditCard } from "@/features/system/users/UserEditCard.tsx";
+import { usePushNotifications } from "@/lib/hooks/usePushNotifications.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 const SIDEBAR_DEFAULT = 224;
@@ -92,6 +93,13 @@ function AdminLayoutInner() {
   const { title, titleContent, setLeadingEl, setActionsEl } = usePageHeaderContext();
   const { width: sidebarWidth, onMouseDown: onResizeStart } = useSidebarWidth();
   const hasCustomTitleContent = titleContent !== null;
+  const push = usePushNotifications();
+
+  useEffect(() => {
+    if (push.state === "unsubscribed" && Notification.permission === "granted") {
+      push.subscribe();
+    }
+  }, [push.state, push.subscribe]);
 
   async function handleLogout() {
     await logout();

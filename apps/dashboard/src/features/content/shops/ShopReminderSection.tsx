@@ -1,9 +1,10 @@
-import { ClockIcon } from "@phosphor-icons/react";
+import { BellIcon, BellSlashIcon, ClockIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { ShopReminder } from "@lmaa/shared";
 
 import { useI18n } from "@/context/I18nContext.tsx";
+import { usePushNotifications } from "@/lib/hooks/usePushNotifications.ts";
 
 import {
   useDeleteShopReminder,
@@ -33,8 +34,10 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
   const setMutation = useSetShopReminder(shopId);
   const deleteMutation = useDeleteShopReminder(shopId);
   const [editing, setEditing] = useState(false);
+  const push = usePushNotifications();
 
   const hasReminder = !!reminder;
+  const showPushPrompt = push.state === "unsubscribed" || push.state === "prompt";
 
   return (
     <div>
@@ -42,6 +45,23 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
         <ClockIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-subtle)]" />
         <span className="text-sm font-medium text-[var(--ds-text)]">Erinnerung</span>
       </div>
+
+      {showPushPrompt && (
+        <button
+          type="button"
+          onClick={() => push.subscribe()}
+          className="w-full mb-3 flex items-center gap-2 px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
+        >
+          <BellIcon weight="duotone" className="w-3.5 h-3.5 text-amber-400" />
+          Push-Benachrichtigungen aktivieren
+        </button>
+      )}
+      {push.state === "denied" && (
+        <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-control border border-[var(--ds-btn-danger-border)] text-xs text-[var(--ds-btn-danger-text)]">
+          <BellSlashIcon weight="duotone" className="w-3.5 h-3.5" />
+          Push-Benachrichtigungen blockiert
+        </div>
+      )}
 
       {isLoading ? (
         <div className="h-8 w-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />

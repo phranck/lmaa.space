@@ -298,6 +298,8 @@ export function useSetShopReminder(shopId: number) {
       recurrenceCustomDays,
       recurrenceUnit,
       recurrenceDaysOfWeek,
+      sendEmail,
+      emailTemplateId,
     }: {
       remindAt: string;
       note?: string | null;
@@ -306,6 +308,8 @@ export function useSetShopReminder(shopId: number) {
       recurrenceCustomDays?: number | null;
       recurrenceUnit?: string | null;
       recurrenceDaysOfWeek?: string | null;
+      sendEmail?: boolean;
+      emailTemplateId?: number | null;
     }) =>
       api.post<ShopReminder>(`/admin/shops/${shopId}/reminder`, {
         remindAt,
@@ -315,6 +319,8 @@ export function useSetShopReminder(shopId: number) {
         recurrenceCustomDays,
         recurrenceUnit,
         recurrenceDaysOfWeek,
+        sendEmail,
+        emailTemplateId,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["shop-reminder", shopId] });

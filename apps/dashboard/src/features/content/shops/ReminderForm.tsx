@@ -1,28 +1,36 @@
-import { ClockIcon, TrashIcon } from "@phosphor-icons/react";
+import { ClockIcon, EnvelopeSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
-import { FormLabel, ToggleSwitch, formBtnBaseClass, formInputClass } from "@lmaa/ui";
+import { AlertDialog, FormLabel, ToggleSwitch, formBtnBaseClass, formInputClass } from "@lmaa/ui";
+
+import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
 import { RECURRENCE_OPTIONS, UNIT_OPTIONS, WEEKDAYS } from "./reminder-constants.ts";
 
+export interface ReminderFormData {
+  remindAt: string;
+  note: string | null;
+  isActive: boolean;
+  recurrence: ReminderRecurrence;
+  recurrenceCustomDays: number | null;
+  recurrenceUnit: string | null;
+  recurrenceDaysOfWeek: string | null;
+  sendEmail: boolean;
+  emailTemplateId: number | null;
+}
+
 export interface ReminderFormProps {
   initial?: ShopReminder | null;
-  onSave: (data: {
-    remindAt: string;
-    note: string | null;
-    isActive: boolean;
-    recurrence: ReminderRecurrence;
-    recurrenceCustomDays: number | null;
-    recurrenceUnit: string | null;
-    recurrenceDaysOfWeek: string | null;
-  }) => void;
+  onSave: (data: ReminderFormData) => void;
   onDelete?: () => void;
   isPending: boolean;
   isDeleting: boolean;
 }
 
 export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
+  const { data: emailTemplates = [] } = useEmailTemplates();
+
   const [remindAt, setRemindAt] = useState<string>(() =>
     initial?.remindAt ? initial.remindAt.slice(0, 16) : "",
   );
@@ -43,6 +51,11 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
     }
     return new Set<number>();
   });
+  const [sendEmail, setSendEmail] = useState<boolean>(initial?.sendEmail ?? true);
+  const [emailTemplateId, setEmailTemplateId] = useState<number | null>(
+    initial?.emailTemplateId ?? null,
+  );
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const toggleDay = (day: number) => {
     setCustomDaysOfWeek((prev) => {
@@ -98,7 +111,6 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
       {/* Custom recurrence sub-form */}
       {recurrence === "custom" && (
         <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 space-y-3">
-          {/* Frequency */}
           <div className="flex items-center gap-2">
             <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Häufigkeit</span>
             <select
@@ -117,7 +129,6 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
             </select>
           </div>
 
-          {/* Interval */}
           <div className="flex items-center gap-2">
             <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Alle</span>
             <input
@@ -133,7 +144,6 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
             </span>
           </div>
 
-          {/* Weekday picker — only for weeks */}
           {customUnit === "weeks" && (
             <div className="flex items-center gap-2">
               <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">an</span>
@@ -174,13 +184,77 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
         />
       </div>
 
+      {/* Email toggle + template */}
+      <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 px-[5px] text-xs font-medium text-[var(--ds-text-muted)]">
+            <EnvelopeSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+            E-Mail senden
+          </span>
+          <ToggleSwitch checked={sendEmail} onChange={setSendEmail} />
+        </div>
+
+        {sendEmail && emailTemplates.length > 0 && (
+          <div>
+            <FormLabel htmlFor="reminder-email-template">
+              E-Mail-Template <span className="font-normal">(optional)</span>
+            </FormLabel>
+            <select
+              id="reminder-email-template"
+              value={emailTemplateId ?? ""}
+              onChange={(e) => setEmailTemplateId(e.target.value ? Number(e.target.value) : null)}
+              className={formInputClass}
+            >
+              <option value="">Standard (ohne Template)</option>
+              {emailTemplates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <div className="mt-2 px-[5px]">
+              <p className="text-[10px] text-[var(--ds-text-subtle)] mb-1">Verfügbare Variablen:</p>
+              <div className="flex flex-wrap gap-1">
+                {["shopName", "shopUrl", "reminderMessage"].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText(`{{${v}}}`)}
+                    title="In Zwischenablage kopieren"
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors cursor-copy"
+                  >
+                    {`{{${v}}}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <AlertDialog
+        open={validationError !== null}
+        title="Erinnerung kann nicht gespeichert werden"
+        variant="warning"
+        onClose={() => setValidationError(null)}
+      >
+        <p>{validationError}</p>
+      </AlertDialog>
+
       {/* Actions */}
       <div className="flex items-center gap-2 w-full">
         <button
           type="button"
-          disabled={!remindAt || isPending}
+          disabled={isPending}
           onClick={() => {
-            if (!remindAt) return;
+            const errors: string[] = [];
+            if (!remindAt) errors.push("Datum & Uhrzeit muss gesetzt werden.");
+            if (remindAt && new Date(remindAt) < new Date()) errors.push("Der Zeitpunkt liegt in der Vergangenheit.");
+            if (recurrence === "custom" && (!Number(customInterval) || Number(customInterval) < 1)) errors.push("Das Wiederholungs-Intervall muss mindestens 1 sein.");
+            if (errors.length > 0) {
+              setValidationError(errors.join("\n"));
+              return;
+            }
             const interval = Number(customInterval) || 1;
             const daysOfWeek =
               recurrence === "custom" && customUnit === "weeks" && customDaysOfWeek.size > 0
@@ -194,6 +268,8 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
               recurrenceCustomDays: recurrence === "custom" ? interval : null,
               recurrenceUnit: recurrence === "custom" ? customUnit : null,
               recurrenceDaysOfWeek: daysOfWeek,
+              sendEmail,
+              emailTemplateId: sendEmail ? emailTemplateId : null,
             });
           }}
           className={`${formBtnBaseClass} flex-1 justify-center border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]`}

@@ -690,7 +690,26 @@ export const shopReminders = pgTable("shop_reminders", {
     .$type<"days" | "weeks" | "months" | "years">()
     .default("days"),
   recurrenceDaysOfWeek: text("recurrence_days_of_week"),
+  sendEmail: boolean("send_email").notNull().default(true),
+  emailTemplateId: integer("email_template_id").references(() => emailTemplates.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export type ShopReminderRow = typeof shopReminders.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// Push Subscriptions
+// ---------------------------------------------------------------------------
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  adminId: integer("admin_id")
+    .notNull()
+    .references(() => adminUsers.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

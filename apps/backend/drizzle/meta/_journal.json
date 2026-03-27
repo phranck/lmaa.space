@@ -260,6 +260,13 @@
       "when": 1774486938000,
       "tag": "0036_same_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1774486939000,
+      "tag": "0037_push_and_email_templates",
+      "breakpoints": true
     }
   ]
 }
