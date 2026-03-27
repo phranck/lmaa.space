@@ -134,6 +134,18 @@ button {
     left: var(--sidebar-w, 14rem);
   }
 }
+.sidebar-aware-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+}
+@media (min-width: 768px) {
+  .sidebar-aware-footer {
+    left: var(--sidebar-w, 14rem);
+  }
+}
 .sidebar-aware-main {
   padding-top: 3.5rem;
 }
