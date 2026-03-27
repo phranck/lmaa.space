@@ -361,7 +361,7 @@ export function ShopEditForm({
               />
             </div>
 
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-[24rem]">
               <FormLabel htmlFor="sef-description">
                 <span className="flex items-center gap-1.5">
                   {messages.descriptionLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
@@ -380,7 +380,7 @@ export function ShopEditForm({
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 min-w-0">
             <RegionSelect
               value={value.region}
               onChange={(v) => set("region", v)}
