@@ -68,6 +68,11 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            s.rejection_long_text as "rejectionLongText",
            s.needs_review as "needsReview",
            s.review_data as "reviewData",
+           CASE WHEN sr.id IS NOT NULL THEN json_build_object(
+             'remindAt', sr.remind_at,
+             'note', sr.note,
+             'isActive', sr.is_active
+           ) ELSE NULL END as reminder,
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -77,8 +82,9 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
     LEFT JOIN admin_users u ON u.id = s.deleted_by
+    LEFT JOIN shop_reminders sr ON sr.shop_id = s.id
     ${visibility ? sql`WHERE s.visibility = ${visibility}` : sql``}
-    GROUP BY s.id, u.username, u.first_name, u.last_name
+    GROUP BY s.id, u.username, u.first_name, u.last_name, sr.id, sr.remind_at, sr.note, sr.is_active
     ORDER BY s.name
   `);
 

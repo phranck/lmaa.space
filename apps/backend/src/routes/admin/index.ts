@@ -13,6 +13,7 @@ import { mediaRoutes } from "./media.js";
 import { navAdminRoutes } from "./nav.js";
 import { settingsRoutes } from "./settings.js";
 import { shopConcernReportsRoutes } from "./shop-concern-reports.js";
+import { shopRemindersRoutes } from "./shop-reminders.js";
 import { shopsRoutes } from "./shops.js";
 import { statsRoutes } from "./stats.js";
 import { submissionsRoutes } from "./submissions.js";
@@ -52,6 +53,7 @@ protectedRoutes.route("/", footerConfigRoutes);
 protectedRoutes.route("/", markdownWidgetsRoutes);
 protectedRoutes.route("/", mediaRoutes);
 protectedRoutes.route("/", affiliateRoutes);
+protectedRoutes.route("/", shopRemindersRoutes);
 protectedRoutes.route("/", settingsRoutes);
 
 adminRoutes.route("/", protectedRoutes);
