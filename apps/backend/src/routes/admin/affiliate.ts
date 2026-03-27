@@ -6,6 +6,8 @@ import {
   affiliateScansQuerySchema,
   affiliateTrackingUpdateSchema,
 } from "@lmaa/contracts";
+import type { AffiliateNetworkId } from "@lmaa/shared";
+import { AFFILIATE_SETTINGS_KEYS } from "@lmaa/shared";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
@@ -22,12 +24,14 @@ import {
   upsertAffiliateScan,
   getAllShopIdsAndNames,
 } from "../../repositories/admin-affiliate-scans.js";
+import { getSettings } from "../../repositories/app-settings.js";
 import {
   cancelBatchScan,
   getActiveBatchJobId,
   runSingleScan,
   startBatchScan,
 } from "../../services/affiliate-scans.js";
+import { createNetworkClient, matchShopToNetwork } from "../../services/network-clients/index.js";
 import { checkOllamaHealth } from "../../services/ollama-client.js";
 
 export const affiliateRoutes = new Hono<{ Variables: AuthVariables }>();
@@ -188,4 +192,59 @@ affiliateRoutes.get("/affiliate/export", async (c) => {
 affiliateRoutes.get("/affiliate/health", async (c) => {
   const available = await checkOllamaHealth();
   return ok(c, { available });
+});
+
+// ── Network integration endpoints ──────────────────────────────────
+
+const VALID_NETWORKS = new Set<string>(["awin", "tradedoubler"]);
+
+function parseNetwork(raw: string): AffiliateNetworkId | null {
+  return VALID_NETWORKS.has(raw) ? (raw as AffiliateNetworkId) : null;
+}
+
+// POST /api/admin/affiliate/networks/:network/validate
+affiliateRoutes.post("/affiliate/networks/:network/validate", async (c) => {
+  const network = parseNetwork(c.req.param("network"));
+  if (!network) return fail(c, 400, "Unsupported network");
+
+  const settings = await getSettings([...AFFILIATE_SETTINGS_KEYS]);
+  const client = createNetworkClient(network, settings);
+  if (!client) return fail(c, 422, "Credentials not configured for this network");
+
+  const valid = await client.validateCredentials();
+  return ok(c, { valid });
+});
+
+// GET /api/admin/affiliate/networks/:network/match/:shopId
+affiliateRoutes.get("/affiliate/networks/:network/match/:shopId", async (c) => {
+  const network = parseNetwork(c.req.param("network"));
+  if (!network) return fail(c, 400, "Unsupported network");
+
+  const shopId = parseId(c.req.param("shopId"));
+  if (!shopId) return fail(c, 400, "Invalid shop id");
+
+  const allShops = await getAllShopIdsAndNames();
+  const shop = allShops.find((s) => s.id === shopId);
+  if (!shop) return fail(c, 404, "Shop not found");
+
+  const settings = await getSettings([...AFFILIATE_SETTINGS_KEYS]);
+  const result = await matchShopToNetwork(shopId, shop.url, network, settings);
+  return ok(c, result);
+});
+
+// GET /api/admin/affiliate/networks/:network/status/:programId
+affiliateRoutes.get("/affiliate/networks/:network/status/:programId", async (c) => {
+  const network = parseNetwork(c.req.param("network"));
+  if (!network) return fail(c, 400, "Unsupported network");
+
+  const programId = c.req.param("programId");
+  if (!programId) return fail(c, 400, "Missing programme id");
+
+  const settings = await getSettings([...AFFILIATE_SETTINGS_KEYS]);
+  const client = createNetworkClient(network, settings);
+  if (!client) return fail(c, 422, "Credentials not configured for this network");
+
+  const programme = await client.getProgrammeStatus(programId);
+  if (!programme) return fail(c, 404, "Programme not found");
+  return ok(c, programme);
 });

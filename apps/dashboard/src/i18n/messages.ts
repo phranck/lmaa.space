@@ -917,6 +917,12 @@ export interface DashboardMessages {
       recommendation: string;
       trackingNote: string;
       trackingNotePlaceholder: string;
+      applyAtNetwork: string;
+      matchProgram: string;
+      matchingProgram: string;
+      programMatched: string;
+      noProgramMatch: string;
+      networkProgramId: string;
     };
     batch: {
       running: string;
@@ -940,6 +946,24 @@ export interface DashboardMessages {
       apiKeyLabel: string;
       apiKeyPlaceholder: string;
       apiKeyHint: string;
+      awinSection: string;
+      awinPublisherIdLabel: string;
+      awinPublisherIdPlaceholder: string;
+      awinPublisherIdHint: string;
+      awinApiTokenLabel: string;
+      awinApiTokenPlaceholder: string;
+      awinApiTokenHint: string;
+      tradedoublerSection: string;
+      tradedoublerPublisherIdLabel: string;
+      tradedoublerPublisherIdPlaceholder: string;
+      tradedoublerPublisherIdHint: string;
+      tradedoublerTokenLabel: string;
+      tradedoublerTokenPlaceholder: string;
+      tradedoublerTokenHint: string;
+      validateConnection: string;
+      connectionValid: string;
+      connectionInvalid: string;
+      validating: string;
     };
   };
   errors: {
@@ -1875,6 +1899,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         recommendation: "Empfehlung",
         trackingNote: "Tracking-Notiz",
         trackingNotePlaceholder: "Notiz zum Outreach-Status…",
+        applyAtNetwork: "Beim Netzwerk bewerben",
+        matchProgram: "Programm suchen",
+        matchingProgram: "Suche…",
+        programMatched: "Programm gefunden",
+        noProgramMatch: "Kein Programm gefunden",
+        networkProgramId: "Netzwerk-Programm-ID",
       },
       batch: {
         running: "Batch-Scan läuft",
@@ -1898,6 +1928,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         apiKeyLabel: "API Key",
         apiKeyPlaceholder: "Ollama Cloud API Key",
         apiKeyHint: "Nur fuer Ollama Cloud erforderlich. Wird als Bearer-Token gesendet.",
+        awinSection: "Awin",
+        awinPublisherIdLabel: "Publisher-ID",
+        awinPublisherIdPlaceholder: "z.B. 123456",
+        awinPublisherIdHint: "Deine Awin Publisher-ID (zu finden im Awin-Dashboard).",
+        awinApiTokenLabel: "API-Token",
+        awinApiTokenPlaceholder: "Awin API Token",
+        awinApiTokenHint: "API-Token aus dem Awin-Dashboard unter 'API Credentials'.",
+        tradedoublerSection: "Tradedoubler",
+        tradedoublerPublisherIdLabel: "Publisher-ID",
+        tradedoublerPublisherIdPlaceholder: "z.B. 789012",
+        tradedoublerPublisherIdHint: "Deine Tradedoubler Publisher-ID.",
+        tradedoublerTokenLabel: "API-Token",
+        tradedoublerTokenPlaceholder: "Tradedoubler API Token",
+        tradedoublerTokenHint: "Token aus dem Tradedoubler-Dashboard unter 'Manage tokens'.",
+        validateConnection: "Verbindung testen",
+        connectionValid: "Verbindung erfolgreich",
+        connectionInvalid: "Verbindung fehlgeschlagen",
+        validating: "Teste...",
       },
     },
     errors: {
@@ -2824,6 +2872,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         recommendation: "Recommendation",
         trackingNote: "Tracking note",
         trackingNotePlaceholder: "Note about outreach status…",
+        applyAtNetwork: "Apply at network",
+        matchProgram: "Match program",
+        matchingProgram: "Matching…",
+        programMatched: "Program matched",
+        noProgramMatch: "No program found",
+        networkProgramId: "Network program ID",
       },
       batch: {
         running: "Batch scan running",
@@ -2847,6 +2901,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         apiKeyLabel: "API Key",
         apiKeyPlaceholder: "Ollama Cloud API Key",
         apiKeyHint: "Only required for Ollama Cloud. Sent as Bearer token.",
+        awinSection: "Awin",
+        awinPublisherIdLabel: "Publisher ID",
+        awinPublisherIdPlaceholder: "e.g. 123456",
+        awinPublisherIdHint: "Your Awin Publisher ID (found in the Awin dashboard).",
+        awinApiTokenLabel: "API Token",
+        awinApiTokenPlaceholder: "Awin API Token",
+        awinApiTokenHint: "API token from the Awin dashboard under 'API Credentials'.",
+        tradedoublerSection: "Tradedoubler",
+        tradedoublerPublisherIdLabel: "Publisher ID",
+        tradedoublerPublisherIdPlaceholder: "e.g. 789012",
+        tradedoublerPublisherIdHint: "Your Tradedoubler Publisher ID.",
+        tradedoublerTokenLabel: "API Token",
+        tradedoublerTokenPlaceholder: "Tradedoubler API Token",
+        tradedoublerTokenHint: "Token from the Tradedoubler dashboard under 'Manage tokens'.",
+        validateConnection: "Test connection",
+        connectionValid: "Connection successful",
+        connectionInvalid: "Connection failed",
+        validating: "Testing...",
       },
     },
     errors: {

@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
-import type { AffiliateScanResult, AffiliateScanStatus, AffiliateTrackingStatus } from "@lmaa/shared";
+import type { AffiliateScanResult, AffiliateScanStatus, AffiliateNetworkId, AffiliateTrackingStatus } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { ExportButton } from "@/components/ui/ExportButton.tsx";
@@ -39,6 +39,7 @@ import {
   useImportAffiliateScans,
   useUpdateAffiliateTracking,
 } from "@/features/affiliate/hooks/useAffiliateScans.ts";
+import { useValidateNetworkCredentials } from "@/features/affiliate/hooks/useNetworkMatch.ts";
 
 // -- Config --
 
@@ -404,6 +405,7 @@ export function AffiliateListPage() {
                 <option value="closed">{t.tracking.closed}</option>
               </select>
             </div>
+            <ApplyAtNetworkButton scan={selected} />
             <div>
               <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
                 {t.detail.trackingNote}
@@ -521,6 +523,47 @@ export function AffiliateListPage() {
         </OverlayCard.Footer>
       </OverlayCard>
     </PageLayout>
+  );
+}
+
+const SUPPORTED_NETWORKS = new Set<string>(["Awin", "Tradedoubler"]);
+
+function getNetworkId(networkName: string | null): AffiliateNetworkId | null {
+  if (!networkName) return null;
+  const lower = networkName.toLowerCase();
+  if (lower === "awin") return "awin";
+  if (lower === "tradedoubler") return "tradedoubler";
+  return null;
+}
+
+function ApplyAtNetworkButton({ scan }: { scan: AffiliateScanResult }) {
+  const { messages } = useI18n();
+  const t = messages.affiliate.detail;
+
+  const networkId = getNetworkId(scan.networkName);
+  const applyUrl = scan.networkProgramUrl ?? scan.applicationUrl;
+
+  if (!networkId || !SUPPORTED_NETWORKS.has(scan.networkName ?? "")) return null;
+
+  return (
+    <div className="space-y-2">
+      {applyUrl && (
+        <a
+          href={applyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full h-9 flex items-center justify-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+        >
+          <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
+          {t.applyAtNetwork}
+        </a>
+      )}
+      {scan.networkProgramId && (
+        <p className="text-xs text-[var(--ds-text-muted)]">
+          {t.networkProgramId}: {scan.networkProgramId}
+        </p>
+      )}
+    </div>
   );
 }
 

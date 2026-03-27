@@ -267,6 +267,13 @@
       "when": 1774486939000,
       "tag": "0037_push_and_email_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1774631933977,
+      "tag": "0038_furry_gamora",
+      "breakpoints": true
     }
   ]
 }

@@ -55,6 +55,8 @@ export async function listAffiliateScans(filters?: {
       notes: affiliateScans.notes,
       recommendation: affiliateScans.recommendation,
       trackingStatus: affiliateScans.trackingStatus,
+      networkProgramId: affiliateScans.networkProgramId,
+      networkProgramUrl: affiliateScans.networkProgramUrl,
       trackingNote: affiliateScans.trackingNote,
       scannedAt: affiliateScans.scannedAt,
       scannedBy: affiliateScans.scannedBy,
@@ -97,6 +99,8 @@ export async function upsertAffiliateScan(data: AffiliateScanInsert) {
         notes: data.notes,
         recommendation: data.recommendation,
         trackingStatus: data.trackingStatus,
+        networkProgramId: data.networkProgramId,
+        networkProgramUrl: data.networkProgramUrl,
         trackingNote: data.trackingNote,
         scannedAt: data.scannedAt ?? sql`now()`,
         scannedBy: data.scannedBy,
@@ -115,6 +119,19 @@ export async function updateAffiliateTracking(
   const [row] = await db
     .update(affiliateScans)
     .set({ trackingStatus, trackingNote, updatedAt: sql`now()` })
+    .where(eq(affiliateScans.shopId, shopId))
+    .returning();
+  return row ?? null;
+}
+
+export async function updateNetworkProgram(
+  shopId: number,
+  networkProgramId: string | null,
+  networkProgramUrl: string | null,
+) {
+  const [row] = await db
+    .update(affiliateScans)
+    .set({ networkProgramId, networkProgramUrl, updatedAt: sql`now()` })
     .where(eq(affiliateScans.shopId, shopId))
     .returning();
   return row ?? null;

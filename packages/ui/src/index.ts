@@ -68,6 +68,10 @@ export type { SocialMediaEditorMessages, SocialMediaEditorProps } from "./Social
 /** Read-only social media icon links (server-renderable). */
 export { SocialMediaIcons } from "./SocialMediaIcons.tsx";
 export type { SocialMediaIconsProps } from "./SocialMediaIcons.tsx";
+/** Shared tab navigation component. */
+export { Tabs, TabList, TabTrigger, TabContent } from "./Tabs.tsx";
+/** Re-exported props for Tabs. */
+export type { TabsProps, TabListProps, TabTriggerProps, TabContentProps } from "./Tabs.tsx";
 /** Shared shop edit form and value contracts. */
 export { ShopEditForm, EMPTY_SHOP_FORM_VALUE } from "./ShopEditForm.tsx";
 /** Re-exported contracts for `ShopEditForm`. */

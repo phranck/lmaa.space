@@ -46,6 +46,8 @@ export interface AffiliateScanResult {
   notes: string | null;
   recommendation: string | null;
   trackingStatus: AffiliateTrackingStatus;
+  networkProgramId: string | null;
+  networkProgramUrl: string | null;
   trackingNote: string | null;
   scannedAt: string;
   scannedBy: number | null;
@@ -82,4 +84,32 @@ export interface AffiliateScanStats {
   byTracking: Record<AffiliateTrackingStatus, number>;
   withProgram: number;
   withoutProgram: number;
+}
+
+/**
+ * Supported affiliate network identifiers.
+ */
+export type AffiliateNetworkId = "awin" | "tradedoubler";
+
+/**
+ * Programme/program information retrieved from a network API.
+ */
+export interface NetworkProgram {
+  networkName: AffiliateNetworkId;
+  programId: string;
+  programName: string;
+  programUrl: string | null;
+  applicationUrl: string | null;
+  status: "notJoined" | "applied" | "joined" | "declined" | "suspended";
+  commissionInfo: string | null;
+}
+
+/**
+ * Result of matching a shop to a network programme.
+ */
+export interface NetworkMatchResult {
+  shopId: number;
+  networkName: AffiliateNetworkId;
+  matched: boolean;
+  program: NetworkProgram | null;
 }
