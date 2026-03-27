@@ -197,7 +197,7 @@ affiliateRoutes.get("/affiliate/health", async (c) => {
 
 // ── Network integration endpoints ──────────────────────────────────
 
-const VALID_NETWORKS = new Set<string>(["awin", "tradedoubler"]);
+const VALID_NETWORKS = new Set<string>(["awin", "tradedoubler", "adcell"]);
 
 function parseNetwork(raw: string): AffiliateNetworkId | null {
   return VALID_NETWORKS.has(raw) ? (raw as AffiliateNetworkId) : null;

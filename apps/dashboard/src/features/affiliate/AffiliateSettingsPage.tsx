@@ -1,6 +1,7 @@
 import { ArrowSquareOutIcon, FloppyDiskIcon } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
+import type { SettingsKey } from "@lmaa/shared";
 import { SETTINGS_KEYS } from "@lmaa/shared";
 import { TabContent, TabList, TabTrigger, Tabs } from "@lmaa/ui";
 
@@ -13,6 +14,10 @@ import {
 } from "@/features/affiliate/hooks/useAffiliateSettings.ts";
 import { useValidateNetworkCredentials } from "@/features/affiliate/hooks/useNetworkMatch.ts";
 
+/* ------------------------------------------------------------------ */
+/*  Shared CSS tokens                                                 */
+/* ------------------------------------------------------------------ */
+
 const inputClass =
   "w-full h-9 mt-1 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)]";
 const labelClass =
@@ -20,6 +25,79 @@ const labelClass =
 const hintClass = "text-xs text-[var(--ds-text-muted)] mt-1";
 const sectionClass =
   "rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4";
+const linkBtnClass =
+  "h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] transition-colors";
+
+/* ------------------------------------------------------------------ */
+/*  Tab config                                                        */
+/* ------------------------------------------------------------------ */
+
+interface FieldDef {
+  settingsKey: SettingsKey;
+  label: string;
+  placeholder: string;
+  hint: string;
+  type: "text" | "password";
+}
+
+interface TabConfig {
+  id: string;
+  title: string;
+  networkId?: string;
+  dashboardUrl?: string;
+  dashboardLabel?: string;
+  fields: FieldDef[];
+}
+
+function buildTabs(t: Record<string, string>): TabConfig[] {
+  return [
+    {
+      id: "ollama",
+      title: t.ollamaSection,
+      fields: [
+        { settingsKey: SETTINGS_KEYS.OLLAMA_HOST, label: t.hostLabel, placeholder: t.hostPlaceholder, hint: t.hostHint, type: "text" },
+        { settingsKey: SETTINGS_KEYS.OLLAMA_API_KEY, label: t.apiKeyLabel, placeholder: t.apiKeyPlaceholder, hint: t.apiKeyHint, type: "password" },
+      ],
+    },
+    {
+      id: "adcell",
+      title: t.adcellSection,
+      networkId: "adcell",
+      dashboardUrl: "https://www.adcell.de/publisher",
+      dashboardLabel: "Adcell Dashboard",
+      fields: [
+        { settingsKey: SETTINGS_KEYS.ADCELL_PUBLISHER_ID, label: t.adcellPublisherIdLabel, placeholder: t.adcellPublisherIdPlaceholder, hint: t.adcellPublisherIdHint, type: "text" },
+        { settingsKey: SETTINGS_KEYS.ADCELL_API_PASSWORD, label: t.adcellApiPasswordLabel, placeholder: t.adcellApiPasswordPlaceholder, hint: t.adcellApiPasswordHint, type: "password" },
+      ],
+    },
+    {
+      id: "awin",
+      title: t.awinSection,
+      networkId: "awin",
+      dashboardUrl: "https://ui.awin.com",
+      dashboardLabel: "Awin Dashboard",
+      fields: [
+        { settingsKey: SETTINGS_KEYS.AWIN_PUBLISHER_ID, label: t.awinPublisherIdLabel, placeholder: t.awinPublisherIdPlaceholder, hint: t.awinPublisherIdHint, type: "text" },
+        { settingsKey: SETTINGS_KEYS.AWIN_API_TOKEN, label: t.awinApiTokenLabel, placeholder: t.awinApiTokenPlaceholder, hint: t.awinApiTokenHint, type: "password" },
+      ],
+    },
+    {
+      id: "tradedoubler",
+      title: t.tradedoublerSection,
+      networkId: "tradedoubler",
+      dashboardUrl: "https://publisher.tradedoubler.com",
+      dashboardLabel: "Tradedoubler Dashboard",
+      fields: [
+        { settingsKey: SETTINGS_KEYS.TRADEDOUBLER_PUBLISHER_ID, label: t.tradedoublerPublisherIdLabel, placeholder: t.tradedoublerPublisherIdPlaceholder, hint: t.tradedoublerPublisherIdHint, type: "text" },
+        { settingsKey: SETTINGS_KEYS.TRADEDOUBLER_TOKEN, label: t.tradedoublerTokenLabel, placeholder: t.tradedoublerTokenPlaceholder, hint: t.tradedoublerTokenHint, type: "password" },
+      ],
+    },
+  ];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main page                                                         */
+/* ------------------------------------------------------------------ */
 
 export function AffiliateSettingsPage() {
   const { messages } = useI18n();
@@ -27,53 +105,42 @@ export function AffiliateSettingsPage() {
   const { data: settings, isLoading } = useAffiliateSettings();
   const saveSetting = useSaveAffiliateSetting();
 
-  const [activeTab, setActiveTab] = useState("ollama");
+  const tabs = useMemo(() => buildTabs(t.settings as unknown as Record<string, string>), [t.settings]);
+  const allKeys = useMemo(() => tabs.flatMap((tab) => tab.fields.map((f) => f.settingsKey)), [tabs]);
 
-  // Ollama
-  const [host, setHost] = useState("");
-  const [ollamaApiKey, setOllamaApiKey] = useState("");
-
-  // Awin
-  const [awinPublisherId, setAwinPublisherId] = useState("");
-  const [awinApiToken, setAwinApiToken] = useState("");
-
-  // Tradedoubler
-  const [tdPublisherId, setTdPublisherId] = useState("");
-  const [tdToken, setTdToken] = useState("");
-
+  const [activeTab, setActiveTab] = useState(tabs[0].id);
+  const [values, setValues] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (settings) {
-      setHost(settings[SETTINGS_KEYS.OLLAMA_HOST] ?? "");
-      setOllamaApiKey(settings[SETTINGS_KEYS.OLLAMA_API_KEY] ?? "");
-      setAwinPublisherId(settings[SETTINGS_KEYS.AWIN_PUBLISHER_ID] ?? "");
-      setAwinApiToken(settings[SETTINGS_KEYS.AWIN_API_TOKEN] ?? "");
-      setTdPublisherId(settings[SETTINGS_KEYS.TRADEDOUBLER_PUBLISHER_ID] ?? "");
-      setTdToken(settings[SETTINGS_KEYS.TRADEDOUBLER_TOKEN] ?? "");
+      const initial: Record<string, string> = {};
+      for (const key of allKeys) {
+        initial[key] = settings[key] ?? "";
+      }
+      setValues(initial);
       setDirty(false);
     }
-  }, [settings]);
+  }, [settings, allKeys]);
 
-  function handleSave() {
-    const pairs: Array<{ key: string; current: string; local: string }> = [
-      { key: SETTINGS_KEYS.OLLAMA_HOST, current: settings?.[SETTINGS_KEYS.OLLAMA_HOST] ?? "", local: host },
-      { key: SETTINGS_KEYS.OLLAMA_API_KEY, current: settings?.[SETTINGS_KEYS.OLLAMA_API_KEY] ?? "", local: ollamaApiKey },
-      { key: SETTINGS_KEYS.AWIN_PUBLISHER_ID, current: settings?.[SETTINGS_KEYS.AWIN_PUBLISHER_ID] ?? "", local: awinPublisherId },
-      { key: SETTINGS_KEYS.AWIN_API_TOKEN, current: settings?.[SETTINGS_KEYS.AWIN_API_TOKEN] ?? "", local: awinApiToken },
-      { key: SETTINGS_KEYS.TRADEDOUBLER_PUBLISHER_ID, current: settings?.[SETTINGS_KEYS.TRADEDOUBLER_PUBLISHER_ID] ?? "", local: tdPublisherId },
-      { key: SETTINGS_KEYS.TRADEDOUBLER_TOKEN, current: settings?.[SETTINGS_KEYS.TRADEDOUBLER_TOKEN] ?? "", local: tdToken },
-    ];
-
-    const saves = pairs
-      .filter((p) => p.local !== p.current)
-      .map((p) => saveSetting.mutateAsync({ key: p.key, value: p.local }));
-
-    Promise.all(saves).then(() => setDirty(false));
-  }
-
-  function markDirty() {
+  const setValue = useCallback((key: string, value: string) => {
+    setValues((prev) => ({ ...prev, [key]: value }));
     setDirty(true);
+  }, []);
+
+  async function handleSave() {
+    const changed = allKeys.filter((key) => values[key] !== (settings?.[key] ?? ""));
+    if (changed.length === 0) return;
+
+    try {
+      await Promise.all(
+        changed.map((key) => saveSetting.mutateAsync({ key, value: values[key] })),
+      );
+      setDirty(false);
+    } catch {
+      // Query invalidation in useSaveAffiliateSetting will refetch;
+      // dirty stays true so the user can retry.
+    }
   }
 
   if (isLoading) {
@@ -104,126 +171,76 @@ export function AffiliateSettingsPage() {
       <div className="max-w-xl">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabList>
-            <TabTrigger value="ollama">{t.settings.ollamaSection}</TabTrigger>
-            <TabTrigger value="awin">{t.settings.awinSection}</TabTrigger>
-            <TabTrigger value="tradedoubler">{t.settings.tradedoublerSection}</TabTrigger>
+            {tabs.map((tab) => (
+              <TabTrigger key={tab.id} value={tab.id}>{tab.title}</TabTrigger>
+            ))}
           </TabList>
 
-          <TabContent value="ollama" className="pt-6">
-            <div className={sectionClass}>
-              <div className="space-y-4">
-                <div>
-                  <label className={labelClass}>{t.settings.hostLabel}</label>
-                  <input
-                    type="text"
-                    value={host}
-                    onChange={(e) => { setHost(e.target.value); markDirty(); }}
-                    placeholder={t.settings.hostPlaceholder}
-                    className={inputClass}
-                  />
-                  <p className={hintClass}>{t.settings.hostHint}</p>
-                </div>
-                <div>
-                  <label className={labelClass}>{t.settings.apiKeyLabel}</label>
-                  <input
-                    type="password"
-                    value={ollamaApiKey}
-                    onChange={(e) => { setOllamaApiKey(e.target.value); markDirty(); }}
-                    placeholder={t.settings.apiKeyPlaceholder}
-                    className={inputClass}
-                  />
-                  <p className={hintClass}>{t.settings.apiKeyHint}</p>
-                </div>
-              </div>
-            </div>
-          </TabContent>
-
-          <TabContent value="awin" className="pt-6">
-            <div className={sectionClass}>
-              <div className="space-y-4">
-                <div>
-                  <label className={labelClass}>{t.settings.awinPublisherIdLabel}</label>
-                  <input
-                    type="text"
-                    value={awinPublisherId}
-                    onChange={(e) => { setAwinPublisherId(e.target.value); markDirty(); }}
-                    placeholder={t.settings.awinPublisherIdPlaceholder}
-                    className={inputClass}
-                  />
-                  <p className={hintClass}>{t.settings.awinPublisherIdHint}</p>
-                </div>
-                <div>
-                  <label className={labelClass}>{t.settings.awinApiTokenLabel}</label>
-                  <input
-                    type="password"
-                    value={awinApiToken}
-                    onChange={(e) => { setAwinApiToken(e.target.value); markDirty(); }}
-                    placeholder={t.settings.awinApiTokenPlaceholder}
-                    className={inputClass}
-                  />
-                  <p className={hintClass}>{t.settings.awinApiTokenHint}</p>
-                </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <NetworkValidationButton network="awin" />
-                  <a
-                    href="https://ui.awin.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
-                  >
-                    <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
-                    Awin Dashboard
-                  </a>
+          {tabs.map((tab) => (
+            <TabContent key={tab.id} value={tab.id} className="pt-6">
+              <div className={sectionClass}>
+                <div className="space-y-4">
+                  {tab.fields.map((field) => (
+                    <SettingsField
+                      key={field.settingsKey}
+                      field={field}
+                      value={values[field.settingsKey] ?? ""}
+                      onChange={setValue}
+                    />
+                  ))}
+                  {tab.networkId && (
+                    <div className="flex items-center gap-3 pt-2">
+                      <NetworkValidationButton network={tab.networkId} />
+                      {tab.dashboardUrl && (
+                        <a
+                          href={tab.dashboardUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={linkBtnClass}
+                        >
+                          <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
+                          {tab.dashboardLabel}
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          </TabContent>
-
-          <TabContent value="tradedoubler" className="pt-6">
-            <div className={sectionClass}>
-              <div className="space-y-4">
-                <div>
-                  <label className={labelClass}>{t.settings.tradedoublerPublisherIdLabel}</label>
-                  <input
-                    type="text"
-                    value={tdPublisherId}
-                    onChange={(e) => { setTdPublisherId(e.target.value); markDirty(); }}
-                    placeholder={t.settings.tradedoublerPublisherIdPlaceholder}
-                    className={inputClass}
-                  />
-                  <p className={hintClass}>{t.settings.tradedoublerPublisherIdHint}</p>
-                </div>
-                <div>
-                  <label className={labelClass}>{t.settings.tradedoublerTokenLabel}</label>
-                  <input
-                    type="password"
-                    value={tdToken}
-                    onChange={(e) => { setTdToken(e.target.value); markDirty(); }}
-                    placeholder={t.settings.tradedoublerTokenPlaceholder}
-                    className={inputClass}
-                  />
-                  <p className={hintClass}>{t.settings.tradedoublerTokenHint}</p>
-                </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <NetworkValidationButton network="tradedoubler" />
-                  <a
-                    href="https://publisher.tradedoubler.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
-                  >
-                    <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
-                    Tradedoubler Dashboard
-                  </a>
-                </div>
-              </div>
-            </div>
-          </TabContent>
+            </TabContent>
+          ))}
         </Tabs>
       </div>
     </PageLayout>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Memoized field (avoids re-render on sibling changes)              */
+/* ------------------------------------------------------------------ */
+
+const SettingsField = memo(function SettingsField({
+  field,
+  value,
+  onChange,
+}: {
+  field: FieldDef;
+  value: string;
+  onChange: (key: string, value: string) => void;
+}) {
+  return (
+    <div>
+      <label className={labelClass}>{field.label}</label>
+      <input
+        type={field.type}
+        value={value}
+        onChange={(e) => onChange(field.settingsKey, e.target.value)}
+        placeholder={field.placeholder}
+        className={inputClass}
+      />
+      <p className={hintClass}>{field.hint}</p>
+    </div>
+  );
+});
 
 function NetworkValidationButton({ network }: { network: string }) {
   const { messages } = useI18n();
