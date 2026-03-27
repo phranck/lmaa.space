@@ -1,4 +1,4 @@
-import { FloppyDiskIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, FloppyDiskIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 import { SETTINGS_KEYS } from "@lmaa/shared";
@@ -163,7 +163,18 @@ export function AffiliateSettingsPage() {
                   />
                   <p className={hintClass}>{t.settings.awinApiTokenHint}</p>
                 </div>
-                <NetworkValidationButton network="awin" />
+                <div className="flex items-center gap-3 pt-2">
+                  <NetworkValidationButton network="awin" />
+                  <a
+                    href="https://ui.awin.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
+                  >
+                    <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
+                    Awin Dashboard
+                  </a>
+                </div>
               </div>
             </div>
           </TabContent>
@@ -193,7 +204,18 @@ export function AffiliateSettingsPage() {
                   />
                   <p className={hintClass}>{t.settings.tradedoublerTokenHint}</p>
                 </div>
-                <NetworkValidationButton network="tradedoubler" />
+                <div className="flex items-center gap-3 pt-2">
+                  <NetworkValidationButton network="tradedoubler" />
+                  <a
+                    href="https://publisher.tradedoubler.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
+                  >
+                    <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
+                    Tradedoubler Dashboard
+                  </a>
+                </div>
               </div>
             </div>
           </TabContent>
@@ -209,7 +231,7 @@ function NetworkValidationButton({ network }: { network: string }) {
   const validate = useValidateNetworkCredentials();
 
   return (
-    <div className="flex items-center gap-3 pt-2">
+    <>
       <button
         type="button"
         onClick={() => validate.mutate(network)}
@@ -224,6 +246,6 @@ function NetworkValidationButton({ network }: { network: string }) {
       {validate.isError && (
         <span className="text-xs font-medium text-red-600">{t.connectionInvalid}</span>
       )}
-    </div>
+    </>
   );
 }
