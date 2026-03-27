@@ -40,7 +40,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
   const showPushPrompt = push.state === "unsubscribed" || push.state === "prompt";
 
   return (
-    <div>
+    <div className="mt-2 pt-5 border-t border-[var(--ds-border-subtle)]">
       <div className="flex items-center gap-2 mb-3">
         <ClockIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-subtle)]" />
         <span className="text-sm font-medium text-[var(--ds-text)]">Erinnerung</span>

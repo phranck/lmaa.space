@@ -64,7 +64,7 @@ shopRemindersRoutes.post(
       recurrenceCustomDays ?? null,
       recurrenceUnit ?? null,
       recurrenceDaysOfWeek ?? null,
-      sendEmail ?? true,
+      sendEmail ?? false,
       emailTemplateId ?? null,
     );
     const reminder = await getReminder(id, adminId);

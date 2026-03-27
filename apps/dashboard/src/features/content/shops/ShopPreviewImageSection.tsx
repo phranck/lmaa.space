@@ -41,7 +41,7 @@ export function ShopPreviewImageSection({
   setImageLabel,
 }: ShopPreviewImageSectionProps) {
   return (
-    <div className="mb-4 pb-4 border-b border-[var(--ds-border-subtle)]">
+    <div className="mb-4">
       <div className="flex items-center gap-3 mb-2">
         <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
           {displayImage ? (

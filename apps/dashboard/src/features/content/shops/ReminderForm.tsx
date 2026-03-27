@@ -51,7 +51,7 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
     }
     return new Set<number>();
   });
-  const [sendEmail, setSendEmail] = useState<boolean>(initial?.sendEmail ?? true);
+  const [sendEmail, setSendEmail] = useState<boolean>(initial?.sendEmail ?? false);
   const [emailTemplateId, setEmailTemplateId] = useState<number | null>(
     initial?.emailTemplateId ?? null,
   );

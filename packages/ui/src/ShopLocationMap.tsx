@@ -235,10 +235,8 @@ function savePrefs(zoom: number, layer: string) {
 
 function ViewportSync({
   position,
-  initialZoom,
 }: {
   position: LatLngLiteral | null;
-  initialZoom: number;
 }) {
   const map = useMap();
   const hadPositionRef = React.useRef(position !== null);
@@ -248,12 +246,12 @@ function ViewportSync({
     hadPositionRef.current = position !== null;
 
     if (position) {
-      const zoom = hadPosition ? map.getZoom() : initialZoom;
+      const zoom = hadPosition ? map.getZoom() : loadPrefs().zoom;
       map.setView(position, zoom, { animate: false });
     } else {
       map.fitBounds(DACH_BOUNDS, { animate: false, padding: [20, 20] });
     }
-  }, [map, position, initialZoom]);
+  }, [map, position]);
 
   return null;
 }
@@ -495,7 +493,7 @@ export function ShopLocationMap({
           maxZoom={activeLayer.maxZoom}
         />
         <ResizeSync />
-        <ViewportSync position={markerPosition} initialZoom={prefs.zoom} />
+        <ViewportSync position={markerPosition} />
         <FullscreenControl />
         <PreferencePersist layerId={activeLayerId} />
         {markerPosition && (
