@@ -78,7 +78,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
               {recurrenceSummary(reminder)}
             </p>
             {reminder.note && (
-              <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5 truncate">{reminder.note}</p>
+              <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5 break-words">{reminder.note}</p>
             )}
           </div>
           <button
