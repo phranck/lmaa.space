@@ -690,7 +690,7 @@ export const shopReminders = pgTable("shop_reminders", {
     .$type<"days" | "weeks" | "months" | "years">()
     .default("days"),
   recurrenceDaysOfWeek: text("recurrence_days_of_week"),
-  sendEmail: boolean("send_email").notNull().default(true),
+  sendEmail: boolean("send_email").notNull().default(false),
   emailTemplateId: integer("email_template_id").references(() => emailTemplates.id, {
     onDelete: "set null",
   }),

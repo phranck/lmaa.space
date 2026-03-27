@@ -86,7 +86,6 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
         title={controller.title}
         backLabel={backLabel}
         onBack={() => navigate(returnTo)}
-        noCard
         headerContent={
           <div className="flex items-center gap-3">
             <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
