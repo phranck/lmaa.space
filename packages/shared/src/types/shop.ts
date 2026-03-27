@@ -56,6 +56,12 @@ export interface AdminShopListItem extends ShopSummary {
 
   needsReview: boolean;
   reviewData?: Record<string, unknown> | null;
+
+  reminder?: {
+    remindAt: string;
+    note: string | null;
+    isActive: boolean;
+  } | null;
 }
 
 /**
@@ -107,3 +113,24 @@ export interface ShopCreate {
  * Partial update payload for editing a shop.
  */
 export type ShopUpdate = Partial<ShopCreate>;
+
+/**
+ * Allowed recurrence patterns for shop reminders.
+ */
+export type ReminderRecurrence = "never" | "daily" | "weekly" | "monthly" | "yearly" | "custom";
+
+/**
+ * Shop reminder owned by an admin user.
+ */
+export interface ShopReminder {
+  id: number;
+  shopId: number;
+  remindAt: string;
+  note: string | null;
+  isActive: boolean;
+  recurrence: ReminderRecurrence;
+  recurrenceCustomDays: number | null;
+  recurrenceUnit: "days" | "weeks" | "months" | "years" | null;
+  recurrenceDaysOfWeek: string | null;
+  createdAt: string;
+}

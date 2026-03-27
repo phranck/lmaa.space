@@ -18,6 +18,7 @@ import { adminRoutes } from "./routes/admin/index.js";
 import { publicRoutes } from "./routes/public.js";
 import { sitemapRoutes } from "./routes/sitemap.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
+import { startReminderScheduler } from "./services/shop-reminders.js";
 
 const app = new Hono<{ Variables: { requestId: string } }>();
 
@@ -88,7 +89,7 @@ async function startServer() {
     await runMigrations();
   }
 
-  const timers = [startSessionCleanupJob(), startRateLimitCleanupJob(), startCacheCleanupJob()];
+  const timers = [startSessionCleanupJob(), startRateLimitCleanupJob(), startCacheCleanupJob(), startReminderScheduler()];
 
   const port = env.PORT;
   const server = serve({ fetch: app.fetch, port });

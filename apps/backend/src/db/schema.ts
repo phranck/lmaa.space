@@ -664,3 +664,33 @@ export const appSettings = pgTable("app_settings", {
 });
 
 export type AppSetting = typeof appSettings.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// Shop Reminders
+// ---------------------------------------------------------------------------
+
+export const shopReminders = pgTable("shop_reminders", {
+  id: serial("id").primaryKey(),
+  shopId: integer("shop_id")
+    .notNull()
+    .unique()
+    .references(() => shops.id, { onDelete: "cascade" }),
+  adminId: integer("admin_id")
+    .notNull()
+    .references(() => adminUsers.id, { onDelete: "cascade" }),
+  remindAt: timestamp("remind_at").notNull(),
+  note: text("note"),
+  isActive: boolean("is_active").notNull().default(true),
+  recurrence: text("recurrence")
+    .$type<"never" | "daily" | "weekly" | "monthly" | "yearly" | "custom">()
+    .notNull()
+    .default("never"),
+  recurrenceCustomDays: integer("recurrence_custom_days"),
+  recurrenceUnit: text("recurrence_unit")
+    .$type<"days" | "weeks" | "months" | "years">()
+    .default("days"),
+  recurrenceDaysOfWeek: text("recurrence_days_of_week"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ShopReminderRow = typeof shopReminders.$inferSelect;

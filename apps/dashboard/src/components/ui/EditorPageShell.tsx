@@ -43,11 +43,10 @@ export function EditorPageShell({
         {headerContent}
       </PageHeader>
 
-      <PageBody className={cx("min-h-0 mb-3", bodyClassName)}>
-        <Card className={cx("flex-1 min-h-0 overflow-y-auto p-5", cardClassName)}>{children}</Card>
+      <PageBody className={cx("min-h-0", bodyClassName)}>
+        <Card className={cx("p-5 mb-3", cardClassName)}>{children}</Card>
+        {toolbar ? <Toolbar className="sticky -bottom-3 z-20 justify-end">{toolbar}</Toolbar> : null}
       </PageBody>
-
-      {toolbar ? <Toolbar className="sticky bottom-0 z-20 justify-end">{toolbar}</Toolbar> : null}
     </PageLayout>
   );
 }
