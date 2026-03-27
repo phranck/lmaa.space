@@ -345,22 +345,109 @@ export function ShopEditForm({
       </div>
 
       {/* Categories / Region / Shipping / Description / Reminder */}
-      <div className="grid grid-cols-[2.55fr_1fr] gap-x-4">
-        <div className="flex flex-col gap-4">
-          <div>
-            <FormLabelText>{messages.categoriesLabel}</FormLabelText>
-            <MultiSelect
-              options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
-              value={value.categoryIds.map(String)}
-              onValueChange={(vals) => set("categoryIds", vals.map(Number))}
-              placeholder={messages.categoriesPlaceholder}
-              messages={messages.categorySelect}
-              error={errors?.categoryIds}
-              className="-mt-px"
-            />
+      {descriptionAside ? (
+        <div className="grid grid-cols-[2.55fr_1fr] gap-x-4">
+          <div className="flex flex-col gap-4">
+            <div>
+              <FormLabelText>{messages.categoriesLabel}</FormLabelText>
+              <MultiSelect
+                options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
+                value={value.categoryIds.map(String)}
+                onValueChange={(vals) => set("categoryIds", vals.map(Number))}
+                placeholder={messages.categoriesPlaceholder}
+                messages={messages.categorySelect}
+                error={errors?.categoryIds}
+                className="-mt-px"
+              />
+            </div>
+
+            <div className="flex-1 flex flex-col">
+              <FormLabel htmlFor="sef-description">
+                <span className="flex items-center gap-1.5">
+                  {messages.descriptionLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
+                </span>
+              </FormLabel>
+              <MarkdownEditor
+                id="sef-description"
+                value={value.description}
+                onChange={(v) => set("description", v)}
+                rows={15}
+                resizable
+                className={`flex-1 ${errors?.description ? "border-red-400" : ""}`}
+              />
+              {errors?.description && <FormErrorText>{errors.description}</FormErrorText>}
+              {descriptionHint}
+            </div>
           </div>
 
-          <div className="flex-1 flex flex-col">
+          <div className="flex flex-col gap-4">
+            <RegionSelect
+              value={value.region}
+              onChange={(v) => set("region", v)}
+              options={regionOptions}
+              messages={messages.regionSelect}
+              error={errors?.region}
+              variant="dashboard"
+            />
+
+            <div>
+              <FormLabel htmlFor="sef-shipping">{messages.shippingLabel}</FormLabel>
+              <input
+                id="sef-shipping"
+                type="text"
+                value={value.shipping}
+                onChange={(e) => set("shipping", e.target.value)}
+                placeholder={messages.shippingPlaceholder}
+                className={`${formInputClass}${errors?.shipping ? " border-red-400" : ""}`}
+              />
+              {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
+            </div>
+
+            <div>{descriptionAside}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-[1.2fr_1.8fr] gap-4">
+            <div>
+              <FormLabelText>{messages.categoriesLabel}</FormLabelText>
+              <MultiSelect
+                options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
+                value={value.categoryIds.map(String)}
+                onValueChange={(vals) => set("categoryIds", vals.map(Number))}
+                placeholder={messages.categoriesPlaceholder}
+                messages={messages.categorySelect}
+                error={errors?.categoryIds}
+                className="-mt-px"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <RegionSelect
+                value={value.region}
+                onChange={(v) => set("region", v)}
+                options={regionOptions}
+                messages={messages.regionSelect}
+                error={errors?.region}
+                variant="dashboard"
+              />
+
+              <div>
+                <FormLabel htmlFor="sef-shipping">{messages.shippingLabel}</FormLabel>
+                <input
+                  id="sef-shipping"
+                  type="text"
+                  value={value.shipping}
+                  onChange={(e) => set("shipping", e.target.value)}
+                  placeholder={messages.shippingPlaceholder}
+                  className={`${formInputClass}${errors?.shipping ? " border-red-400" : ""}`}
+                />
+                {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
+              </div>
+            </div>
+          </div>
+
+          <div>
             <FormLabel htmlFor="sef-description">
               <span className="flex items-center gap-1.5">
                 {messages.descriptionLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
@@ -370,41 +457,15 @@ export function ShopEditForm({
               id="sef-description"
               value={value.description}
               onChange={(v) => set("description", v)}
-              rows={6}
+              rows={15}
               resizable
-              className={`flex-1 ${errors?.description ? "border-red-400" : ""}`}
+              className={errors?.description ? "border-red-400" : ""}
             />
             {errors?.description && <FormErrorText>{errors.description}</FormErrorText>}
             {descriptionHint}
           </div>
         </div>
-
-        <div className="flex flex-col gap-4">
-          <RegionSelect
-            value={value.region}
-            onChange={(v) => set("region", v)}
-            options={regionOptions}
-            messages={messages.regionSelect}
-            error={errors?.region}
-            variant="dashboard"
-          />
-
-          <div>
-            <FormLabel htmlFor="sef-shipping">{messages.shippingLabel}</FormLabel>
-            <input
-              id="sef-shipping"
-              type="text"
-              value={value.shipping}
-              onChange={(e) => set("shipping", e.target.value)}
-              placeholder={messages.shippingPlaceholder}
-              className={`${formInputClass}${errors?.shipping ? " border-red-400" : ""}`}
-            />
-            {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
-          </div>
-
-          {descriptionAside && <div>{descriptionAside}</div>}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
