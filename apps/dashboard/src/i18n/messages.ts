@@ -917,6 +917,7 @@ export interface DashboardMessages {
       recommendation: string;
       trackingNote: string;
       trackingNotePlaceholder: string;
+      lastUpdated: string;
       applyAtNetwork: string;
       matchProgram: string;
       matchingProgram: string;
@@ -960,6 +961,13 @@ export interface DashboardMessages {
       tradedoublerTokenLabel: string;
       tradedoublerTokenPlaceholder: string;
       tradedoublerTokenHint: string;
+      adcellSection: string;
+      adcellPublisherIdLabel: string;
+      adcellPublisherIdPlaceholder: string;
+      adcellPublisherIdHint: string;
+      adcellApiPasswordLabel: string;
+      adcellApiPasswordPlaceholder: string;
+      adcellApiPasswordHint: string;
       validateConnection: string;
       connectionValid: string;
       connectionInvalid: string;
@@ -1899,6 +1907,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         recommendation: "Empfehlung",
         trackingNote: "Tracking-Notiz",
         trackingNotePlaceholder: "Notiz zum Outreach-Status…",
+        lastUpdated: "Zuletzt aktualisiert",
         applyAtNetwork: "Beim Netzwerk bewerben",
         matchProgram: "Programm suchen",
         matchingProgram: "Suche…",
@@ -1942,6 +1951,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         tradedoublerTokenLabel: "API-Token",
         tradedoublerTokenPlaceholder: "Tradedoubler API Token",
         tradedoublerTokenHint: "Token aus dem Tradedoubler-Dashboard unter 'Manage tokens'.",
+        adcellSection: "Adcell",
+        adcellPublisherIdLabel: "Publisher-ID",
+        adcellPublisherIdPlaceholder: "z.B. 345678",
+        adcellPublisherIdHint: "Deine Adcell Publisher-ID (zu finden im Adcell-Dashboard).",
+        adcellApiPasswordLabel: "API-Passwort",
+        adcellApiPasswordPlaceholder: "Adcell API Passwort",
+        adcellApiPasswordHint: "API-Passwort aus dem Adcell-Dashboard unter 'Einstellungen > API-Zugang'.",
         validateConnection: "Verbindung testen",
         connectionValid: "Verbindung erfolgreich",
         connectionInvalid: "Verbindung fehlgeschlagen",
@@ -2872,6 +2888,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         recommendation: "Recommendation",
         trackingNote: "Tracking note",
         trackingNotePlaceholder: "Note about outreach status…",
+        lastUpdated: "Last updated",
         applyAtNetwork: "Apply at network",
         matchProgram: "Match program",
         matchingProgram: "Matching…",
@@ -2915,6 +2932,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         tradedoublerTokenLabel: "API Token",
         tradedoublerTokenPlaceholder: "Tradedoubler API Token",
         tradedoublerTokenHint: "Token from the Tradedoubler dashboard under 'Manage tokens'.",
+        adcellSection: "Adcell",
+        adcellPublisherIdLabel: "Publisher ID",
+        adcellPublisherIdPlaceholder: "e.g. 345678",
+        adcellPublisherIdHint: "Your Adcell Publisher ID (found in the Adcell dashboard).",
+        adcellApiPasswordLabel: "API Password",
+        adcellApiPasswordPlaceholder: "Adcell API Password",
+        adcellApiPasswordHint: "API password from the Adcell dashboard under 'Settings > API Access'.",
         validateConnection: "Test connection",
         connectionValid: "Connection successful",
         connectionInvalid: "Connection failed",

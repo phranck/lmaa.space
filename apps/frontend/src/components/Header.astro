@@ -84,7 +84,7 @@ function navLinkClass(href: string, external = false) {
         <SupportButton variant="desktop" />
 
         <!-- Mobile hamburger -->
-        <details class="md:hidden" id="mobile-menu-details">
+        <details class="md:hidden relative" id="mobile-menu-details">
           <summary class="p-2 rounded-md text-stone-800 hover:text-stone-950 hover:bg-stone-100 transition-colors cursor-pointer" aria-label="Menü öffnen/schließen">
             <!-- Hamburger icon (shows when closed, hidden via CSS when open) -->
             <svg class="block open:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -94,7 +94,7 @@ function navLinkClass(href: string, external = false) {
             </svg>
           </summary>
 
-          <div class="pb-4 pt-2 space-y-1 border-t border-stone-100 bg-stone-50">
+          <div class="fixed left-0 right-0 top-16 pb-4 pt-2 space-y-1 border-t border-stone-100 bg-stone-50 shadow-lg">
             <!-- Mobile Search -->
             <form
               action="/search"

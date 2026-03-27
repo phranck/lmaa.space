@@ -1,6 +1,7 @@
 import type { AffiliateNetworkId, NetworkMatchResult, NetworkProgram } from "@lmaa/shared";
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
+import { AdcellClient } from "./adcell-client.js";
 import { AwinClient } from "./awin-client.js";
 import { TradedoublerClient } from "./tradedoubler-client.js";
 
@@ -47,6 +48,12 @@ export function createNetworkClient(
       const token = settings[SETTINGS_KEYS.TRADEDOUBLER_TOKEN];
       if (!publisherId || !token) return null;
       return new TradedoublerClient(publisherId, token);
+    }
+    case "adcell": {
+      const publisherId = settings[SETTINGS_KEYS.ADCELL_PUBLISHER_ID];
+      const apiPassword = settings[SETTINGS_KEYS.ADCELL_API_PASSWORD];
+      if (!publisherId || !apiPassword) return null;
+      return new AdcellClient(publisherId, apiPassword);
     }
     default:
       return null;

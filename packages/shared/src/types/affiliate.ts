@@ -89,7 +89,7 @@ export interface AffiliateScanStats {
 /**
  * Supported affiliate network identifiers.
  */
-export type AffiliateNetworkId = "awin" | "tradedoubler";
+export type AffiliateNetworkId = "awin" | "tradedoubler" | "adcell";
 
 /**
  * Programme/program information retrieved from a network API.

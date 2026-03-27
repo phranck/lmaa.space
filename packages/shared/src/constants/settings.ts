@@ -8,6 +8,8 @@ export const SETTINGS_KEYS = {
   AWIN_API_TOKEN: "awin.apiToken",
   TRADEDOUBLER_PUBLISHER_ID: "tradedoubler.publisherId",
   TRADEDOUBLER_TOKEN: "tradedoubler.token",
+  ADCELL_PUBLISHER_ID: "adcell.publisherId",
+  ADCELL_API_PASSWORD: "adcell.apiPassword",
 } as const;
 
 export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
@@ -30,9 +32,16 @@ export const TRADEDOUBLER_SETTINGS_KEYS = [
   SETTINGS_KEYS.TRADEDOUBLER_TOKEN,
 ] as const;
 
+/** Adcell-specific settings keys. */
+export const ADCELL_SETTINGS_KEYS = [
+  SETTINGS_KEYS.ADCELL_PUBLISHER_ID,
+  SETTINGS_KEYS.ADCELL_API_PASSWORD,
+] as const;
+
 /** All keys exposed to the affiliate settings UI. */
 export const AFFILIATE_SETTINGS_KEYS = [
   ...OLLAMA_SETTINGS_KEYS,
   ...AWIN_SETTINGS_KEYS,
   ...TRADEDOUBLER_SETTINGS_KEYS,
+  ...ADCELL_SETTINGS_KEYS,
 ] as const;

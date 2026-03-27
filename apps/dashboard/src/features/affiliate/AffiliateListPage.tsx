@@ -403,6 +403,9 @@ export function AffiliateListPage() {
                 <option value="rejected">{t.tracking.rejected}</option>
                 <option value="closed">{t.tracking.closed}</option>
               </select>
+              <p className="text-xs text-[var(--ds-text-muted)] mt-1">
+                {t.detail.lastUpdated}: {new Date(selected.updatedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </p>
             </div>
             <ApplyAtNetworkButton scan={selected} />
             <div>
@@ -525,13 +528,14 @@ export function AffiliateListPage() {
   );
 }
 
-const SUPPORTED_NETWORKS = new Set<string>(["Awin", "Tradedoubler"]);
+const SUPPORTED_NETWORKS = new Set<string>(["Awin", "Tradedoubler", "Adcell"]);
 
 function getNetworkId(networkName: string | null): AffiliateNetworkId | null {
   if (!networkName) return null;
   const lower = networkName.toLowerCase();
   if (lower === "awin") return "awin";
   if (lower === "tradedoubler") return "tradedoubler";
+  if (lower === "adcell") return "adcell";
   return null;
 }
 
