@@ -1,13 +1,14 @@
 import { and, eq, lte } from "drizzle-orm";
 
 import { db } from "../db/index.js";
-import { adminUsers, shopReminders, shops } from "../db/schema.js";
-import type { ShopReminderRow } from "../db/schema.js";
+import { adminUsers, emailTemplates, shopReminders, shops } from "../db/schema.js";
+import type { EmailTemplate, ShopReminderRow } from "../db/schema.js";
 
 export interface DueReminder {
   id: number;
   shopId: number;
   shopName: string;
+  adminId: number;
   adminEmail: string;
   remindAt: Date;
   note: string | null;
@@ -15,6 +16,8 @@ export interface DueReminder {
   recurrenceCustomDays: number | null;
   recurrenceUnit: string | null;
   recurrenceDaysOfWeek: string | null;
+  sendEmail: boolean;
+  emailTemplate: EmailTemplate | null;
 }
 
 /**
@@ -31,6 +34,8 @@ export async function upsertReminder(
   recurrenceCustomDays: number | null,
   recurrenceUnit: string | null,
   recurrenceDaysOfWeek: string | null,
+  sendEmail: boolean,
+  emailTemplateId: number | null,
 ): Promise<void> {
   await db
     .insert(shopReminders)
@@ -44,6 +49,8 @@ export async function upsertReminder(
       recurrenceCustomDays,
       recurrenceUnit: (recurrenceUnit as "days" | "weeks" | "months" | "years" | null) ?? "days",
       recurrenceDaysOfWeek,
+      sendEmail,
+      emailTemplateId,
     })
     .onConflictDoUpdate({
       target: shopReminders.shopId,
@@ -56,6 +63,8 @@ export async function upsertReminder(
         recurrenceCustomDays,
         recurrenceUnit: (recurrenceUnit as "days" | "weeks" | "months" | "years" | null) ?? "days",
         recurrenceDaysOfWeek,
+        sendEmail,
+        emailTemplateId,
         createdAt: new Date(),
       },
     });
@@ -79,15 +88,16 @@ export async function getReminder(
 
 /**
  * Returns all active reminders whose due time has passed,
- * joined with shop name and admin email.
+ * joined with shop name, admin email, and optional email template.
  */
 export async function getDueReminders(): Promise<DueReminder[]> {
   const now = new Date();
-  return db
+  const rows = await db
     .select({
       id: shopReminders.id,
       shopId: shopReminders.shopId,
       shopName: shops.name,
+      adminId: shopReminders.adminId,
       adminEmail: adminUsers.email,
       remindAt: shopReminders.remindAt,
       note: shopReminders.note,
@@ -95,11 +105,55 @@ export async function getDueReminders(): Promise<DueReminder[]> {
       recurrenceCustomDays: shopReminders.recurrenceCustomDays,
       recurrenceUnit: shopReminders.recurrenceUnit,
       recurrenceDaysOfWeek: shopReminders.recurrenceDaysOfWeek,
+      sendEmail: shopReminders.sendEmail,
+      emailTemplateId: shopReminders.emailTemplateId,
+      emailTemplateName: emailTemplates.name,
+      emailTemplateSubject: emailTemplates.subject,
+      emailTemplateHeaderBannerUrl: emailTemplates.headerBannerUrl,
+      emailTemplateHeaderText: emailTemplates.headerText,
+      emailTemplateBodyText: emailTemplates.bodyText,
+      emailTemplateFooterBannerUrl: emailTemplates.footerBannerUrl,
+      emailTemplateFooterText: emailTemplates.footerText,
+      emailTemplateIsSystemTemplate: emailTemplates.isSystemTemplate,
+      emailTemplateCreatedAt: emailTemplates.createdAt,
+      emailTemplateUpdatedAt: emailTemplates.updatedAt,
     })
     .from(shopReminders)
     .innerJoin(shops, eq(shopReminders.shopId, shops.id))
     .innerJoin(adminUsers, eq(shopReminders.adminId, adminUsers.id))
+    .leftJoin(emailTemplates, eq(shopReminders.emailTemplateId, emailTemplates.id))
     .where(and(eq(shopReminders.isActive, true), lte(shopReminders.remindAt, now)));
+
+  return rows.map((row) => ({
+    id: row.id,
+    shopId: row.shopId,
+    shopName: row.shopName,
+    adminId: row.adminId,
+    adminEmail: row.adminEmail,
+    remindAt: row.remindAt,
+    note: row.note,
+    recurrence: row.recurrence,
+    recurrenceCustomDays: row.recurrenceCustomDays,
+    recurrenceUnit: row.recurrenceUnit,
+    recurrenceDaysOfWeek: row.recurrenceDaysOfWeek,
+    sendEmail: row.sendEmail,
+    emailTemplate:
+      row.emailTemplateId != null
+        ? {
+            id: row.emailTemplateId,
+            name: row.emailTemplateName!,
+            subject: row.emailTemplateSubject!,
+            headerBannerUrl: row.emailTemplateHeaderBannerUrl ?? null,
+            headerText: row.emailTemplateHeaderText ?? null,
+            bodyText: row.emailTemplateBodyText!,
+            footerBannerUrl: row.emailTemplateFooterBannerUrl ?? null,
+            footerText: row.emailTemplateFooterText ?? null,
+            isSystemTemplate: row.emailTemplateIsSystemTemplate!,
+            createdAt: row.emailTemplateCreatedAt!,
+            updatedAt: row.emailTemplateUpdatedAt!,
+          }
+        : null,
+  }));
 }
 
 /**

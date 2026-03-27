@@ -51,6 +51,9 @@ export const envSchema = z
     UMAMI_WEBSITE_ID: z.string().optional().default(""),
     UNSPLASH_ACCESS_KEY: z.string().optional(),
     OLLAMA_HOST: z.string().optional(),
+    VAPID_PUBLIC_KEY: z.string().optional(),
+    VAPID_PRIVATE_KEY: z.string().optional(),
+    VAPID_SUBJECT: z.string().default("mailto:hallo@lmaa.space"),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
     RUN_MIGRATIONS_ON_STARTUP: z.enum(["true", "false"]).default("true"),
   })

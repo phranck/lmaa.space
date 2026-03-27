@@ -132,5 +132,7 @@ export interface ShopReminder {
   recurrenceCustomDays: number | null;
   recurrenceUnit: "days" | "weeks" | "months" | "years" | null;
   recurrenceDaysOfWeek: string | null;
+  sendEmail: boolean;
+  emailTemplateId: number | null;
   createdAt: string;
 }

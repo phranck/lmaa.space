@@ -11,6 +11,7 @@ import { formConfigRoutes } from "./form-config.js";
 import { markdownWidgetsRoutes } from "./markdown-widgets.js";
 import { mediaRoutes } from "./media.js";
 import { navAdminRoutes } from "./nav.js";
+import { pushRoutes } from "./push.js";
 import { settingsRoutes } from "./settings.js";
 import { shopConcernReportsRoutes } from "./shop-concern-reports.js";
 import { shopRemindersRoutes } from "./shop-reminders.js";
@@ -54,6 +55,7 @@ protectedRoutes.route("/", markdownWidgetsRoutes);
 protectedRoutes.route("/", mediaRoutes);
 protectedRoutes.route("/", affiliateRoutes);
 protectedRoutes.route("/", shopRemindersRoutes);
+protectedRoutes.route("/", pushRoutes);
 protectedRoutes.route("/", settingsRoutes);
 
 adminRoutes.route("/", protectedRoutes);
