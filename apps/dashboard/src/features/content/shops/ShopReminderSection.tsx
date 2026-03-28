@@ -2,6 +2,7 @@ import { BellIcon, BellSlashIcon, ClockIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { ShopReminder } from "@lmaa/shared";
+import { FormSection } from "@lmaa/ui";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import { usePushNotifications } from "@/lib/hooks/usePushNotifications.ts";
@@ -40,11 +41,11 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
   const showPushPrompt = push.state === "unsubscribed" || push.state === "prompt";
 
   return (
-    <div className="mt-2 pt-5 border-t border-[var(--ds-border-subtle)]">
-      <div className="flex items-center gap-2 mb-3">
-        <ClockIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-subtle)]" />
-        <span className="text-sm font-medium text-[var(--ds-text)]">Erinnerung</span>
-      </div>
+    <FormSection>
+      <FormSection.Header
+        icon={<ClockIcon weight="duotone" className="w-4 h-4" />}
+        title="Erinnerung"
+      />
 
       {showPushPrompt && (
         <button
@@ -106,6 +107,6 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
           }
         />
       )}
-    </div>
+    </FormSection>
   );
 }

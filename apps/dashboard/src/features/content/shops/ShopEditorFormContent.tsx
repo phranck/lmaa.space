@@ -91,26 +91,26 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     }
   }
 
+  const previewAside = !isNew ? (
+    <ShopPreviewImageSection
+      displayImage={displayImage}
+      isLoading={isLoadingShop}
+      isRefetchPending={isRefetchPending}
+      isSavingImage={isSavingImage}
+      name={controller.name}
+      ogImageInput={ogImageInput}
+      onApplyImage={handleApplyImage}
+      onChangeOgImageInput={handleOgImageInputChange}
+      onRefreshImage={handleRefreshImage}
+      placeholder={placeholder}
+      previewImageLabel={previewImageLabel}
+      reloadImageLabel={reloadImageLabel}
+      setImageLabel={setImageLabel}
+    />
+  ) : undefined;
+
   return (
     <>
-      {!isNew && (
-        <ShopPreviewImageSection
-          displayImage={displayImage}
-          isLoading={isLoadingShop}
-          isRefetchPending={isRefetchPending}
-          isSavingImage={isSavingImage}
-          name={controller.name}
-          ogImageInput={ogImageInput}
-          onApplyImage={handleApplyImage}
-          onChangeOgImageInput={handleOgImageInputChange}
-          onRefreshImage={handleRefreshImage}
-          placeholder={placeholder}
-          previewImageLabel={previewImageLabel}
-          reloadImageLabel={reloadImageLabel}
-          setImageLabel={setImageLabel}
-        />
-      )}
-
       {showLoadingSkeleton ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }, (_, i) => `sk-${i}`).map((k) => (
@@ -139,6 +139,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
               };
             })
           }
+          previewAside={previewAside}
           topAside={
             <div className="flex min-h-0 flex-col">
               <div>

@@ -33,6 +33,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
   if (locale === "en") {
     return {
       messages: {
+        shopDataSectionLabel: "Shop Data",
         nameLabel: "Shop name",
         urlLabel: "URL",
         urlPlaceholder: "https://…",
@@ -42,7 +43,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         markdownSupportedLabel: "Markdown is supported",
         categoriesLabel: "Categories",
         categoriesPlaceholder: "Select categories…",
-        shippingLabel: "Shipping",
+        shippingSectionLabel: "Shipping",
+        shippingLabel: "Note",
         shippingPlaceholder: "e.g. Free shipping from €50",
         contactEmailLabel: "Contact Email",
         contactEmailPlaceholder: "e.g. info@example.com",
@@ -83,8 +85,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
           searchPlaceholder: "Search…",
         },
         regionSelect: {
-          label: "Shipping Regions",
-          placeholder: "Select shipping regions…",
+          label: "Regions",
+          placeholder: "Select regions…",
         },
       },
       countryCodeOptions,
@@ -94,7 +96,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
 
   return {
     messages: {
-      nameLabel: "Shop-Name",
+      shopDataSectionLabel: "Shop-Daten",
+      nameLabel: "Name",
       urlLabel: "URL",
       urlPlaceholder: "https://…",
       openUrlAriaLabel: "URL öffnen",
@@ -103,7 +106,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       markdownSupportedLabel: "Markdown wird unterstützt",
       categoriesLabel: "Kategorien",
       categoriesPlaceholder: "Kategorie wählen…",
-      shippingLabel: "Versand",
+      shippingSectionLabel: "Versand",
+      shippingLabel: "Notiz",
       shippingPlaceholder: "z.B. Kostenlos ab 50 €",
       contactEmailLabel: "Kontakt-E-Mail",
       contactEmailPlaceholder: "z.B. info@beispiel.de",
@@ -144,8 +148,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         searchPlaceholder: "Suchen…",
       },
       regionSelect: {
-        label: "Versand-Regionen",
-        placeholder: "Versand-Regionen wählen…",
+        label: "Regionen",
+        placeholder: "Regionen wählen…",
       },
     },
     countryCodeOptions,

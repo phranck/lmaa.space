@@ -28,8 +28,9 @@
   /* Subtle surface hover (icon buttons, section headers, inline notes) */
   --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
-  /* Section headers: sidebar sections + table headers */
+  /* Section card backgrounds */
   --ds-section-header-bg: var(--ds-bg-elevated);
+  --ds-section-body-bg: var(--ds-bg-elevated);
 
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
@@ -48,7 +49,8 @@
   --ds-nav-hover-bg: var(--ds-nav-active-bg);
   --ds-nav-hover-text: var(--ds-text);
   --ds-brand-text: var(--ds-text);
-  --ds-section-header-bg: var(--ds-bg-elevated);
+  --ds-section-header-bg: #2a3033;
+  --ds-section-body-bg: #212528;
   --ds-table-row-separator: hsl(215 10% 18%);
 }
 

@@ -1,10 +1,11 @@
 import {
   ArrowClockwiseIcon,
   CopyIcon,
+  ImageIcon,
   StorefrontIcon,
 } from "@phosphor-icons/react";
 
-import { FormLabelText } from "@lmaa/ui";
+import { FormSection } from "@lmaa/ui";
 
 interface ShopPreviewImageSectionProps {
   displayImage: string | null;
@@ -41,8 +42,12 @@ export function ShopPreviewImageSection({
   setImageLabel,
 }: ShopPreviewImageSectionProps) {
   return (
-    <div className="mb-4">
-      <div className="flex items-center gap-3 mb-2">
+    <FormSection>
+      <FormSection.Header
+        icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+        title={previewImageLabel}
+      />
+      <div className="flex items-start gap-3">
         <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
           {displayImage ? (
             <img src={displayImage} alt="" className="w-full h-full object-contain" />
@@ -54,16 +59,15 @@ export function ShopPreviewImageSection({
             <StorefrontIcon weight="duotone" className="w-5 h-5 text-[var(--ds-text-subtle)]" />
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <FormLabelText>{previewImageLabel}</FormLabelText>
-          <div className="flex items-center gap-1.5">
-            <input
-              type="text"
-              value={ogImageInput}
-              onChange={(e) => onChangeOgImageInput(e.target.value)}
-              placeholder={placeholder}
-              className="min-w-0 flex-1 px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
+        <div className="flex-1 min-w-0 flex flex-col gap-2">
+          <input
+            type="text"
+            value={ogImageInput}
+            onChange={(e) => onChangeOgImageInput(e.target.value)}
+            placeholder={placeholder}
+            className="min-w-0 w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          />
+          <div className="flex gap-1.5 justify-end">
             <button
               type="button"
               onClick={onRefreshImage}
@@ -88,6 +92,6 @@ export function ShopPreviewImageSection({
           </div>
         </div>
       </div>
-    </div>
+    </FormSection>
   );
 }
