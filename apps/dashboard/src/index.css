@@ -29,8 +29,8 @@
   --ds-surface-hover: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
 
   /* Section card backgrounds */
-  --ds-section-header-bg: var(--ds-bg-elevated);
-  --ds-section-body-bg: var(--ds-bg-elevated);
+  --ds-section-header-bg: #edeff5;
+  --ds-section-body-bg: #f6f8fe;
 
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
