@@ -7,6 +7,7 @@ import { FooterUserInfo } from "@/components/layout/SidebarFooter.tsx";
 import { Card } from "@/components/ui/Card.tsx";
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { PageFooterProvider, usePageFooterContext } from "@/context/PageFooterContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -93,6 +94,7 @@ function AdminLayoutInner() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOwnProfile, setEditingOwnProfile] = useState(false);
   const { title, titleContent, setLeadingEl, setActionsEl } = usePageHeaderContext();
+  const { setActionsEl: setFooterActionsEl } = usePageFooterContext();
   const { width: sidebarWidth, onMouseDown: onResizeStart } = useSidebarWidth();
   const hasCustomTitleContent = titleContent !== null;
   const push = usePushNotifications();
@@ -190,7 +192,7 @@ function AdminLayoutInner() {
             onEditProfile={() => setEditingOwnProfile(true)}
           />
         </div>
-        <div className="flex-1 flex items-center px-3" />
+        <div ref={setFooterActionsEl} className="flex-1 flex items-center justify-end gap-2 px-3" />
       </Card>
 
       {/* Mobile Sidebar Overlay */}
@@ -239,7 +241,9 @@ function AdminLayoutInner() {
 export function AdminLayout() {
   return (
     <PageHeaderProvider>
-      <AdminLayoutInner />
+      <PageFooterProvider>
+        <AdminLayoutInner />
+      </PageFooterProvider>
     </PageHeaderProvider>
   );
 }

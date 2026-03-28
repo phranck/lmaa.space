@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
-import { Toolbar } from "@/components/ui/Toolbar.tsx";
+import { usePageFooterContext } from "@/context/PageFooterContext.tsx";
 
 function cx(...parts: Array<string | undefined>) {
   return parts.filter(Boolean).join(" ");
@@ -35,6 +36,8 @@ export function EditorPageShell({
   cardClassName,
   noCard,
 }: EditorPageShellProps) {
+  const { actionsEl: footerEl } = usePageFooterContext();
+
   return (
     <PageLayout>
       <PageHeader
@@ -47,9 +50,8 @@ export function EditorPageShell({
 
       <PageBody className={cx("min-h-0", bodyClassName)}>
         {noCard ? children : <Card className={cx("p-2.5 mb-3", cardClassName)}>{children}</Card>}
-        {toolbar && <div className="shrink-0 h-14" />}
       </PageBody>
-      {toolbar ? <Toolbar className="sticky bottom-0 z-20 !m-0 justify-end">{toolbar}</Toolbar> : null}
+      {footerEl && toolbar ? createPortal(toolbar, footerEl) : null}
     </PageLayout>
   );
 }
