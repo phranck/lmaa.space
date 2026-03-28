@@ -1,6 +1,8 @@
+import { BracketsCurlyIcon } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 
-import { FormErrorText, FormLabelText, JsonEditor, ShopEditForm } from "@lmaa/ui";
+
+import { FormErrorText, FormSection, JsonEditor, ShopEditForm } from "@lmaa/ui";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 
 import type { ShopEditorController } from "./hooks/useShopEditorController.ts";
@@ -141,9 +143,12 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           }
           previewAside={previewAside}
           topAside={
-            <div className="flex min-h-0 flex-col">
-              <div>
-                <FormLabelText>{shopFormI18n.messages.jsonToolTitle}</FormLabelText>
+            <FormSection>
+              <FormSection.Header
+                icon={<BracketsCurlyIcon weight="duotone" className="w-4 h-4" />}
+                title={shopFormI18n.messages.jsonToolTitle ?? ""}
+              />
+              <FormSection.Body>
                 <JsonEditor
                   id="shop-check-json"
                   value={shopCheckJson}
@@ -153,8 +158,8 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                   height="11rem"
                 />
                 {jsonImportError && <FormErrorText>{jsonImportError}</FormErrorText>}
-              </div>
-            </div>
+              </FormSection.Body>
+            </FormSection>
           }
           detailsAside={
             <ShopLocationMap

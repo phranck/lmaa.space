@@ -163,6 +163,7 @@ export function ShopEditForm({
             icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
             title={messages.shopDataSectionLabel}
           />
+          <FormSection.Body>
           {/* Name */}
           <div>
             <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
@@ -240,6 +241,7 @@ export function ShopEditForm({
             className="-mt-px"
           />
         </div>
+        </FormSection.Body>
         </FormSection>
 
         {/* Social Media */}
@@ -249,6 +251,7 @@ export function ShopEditForm({
               icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
               title={messages.socialMediaLabel}
             />
+            <FormSection.Body>
             <SocialMediaEditor
               value={value.socialMedia}
               onChange={(v) => set("socialMedia", v)}
@@ -257,6 +260,7 @@ export function ShopEditForm({
               onValidationChange={onSocialMediaValidationChange}
             />
             {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
+            </FormSection.Body>
           </FormSection>
         )}
 
@@ -266,7 +270,7 @@ export function ShopEditForm({
             icon={<MapPinIcon weight="duotone" className="w-4 h-4" />}
             title={messages.headquartersLabel}
           />
-
+          <FormSection.Body>
           <div>
             <FormLabel htmlFor="sef-hq-street">{messages.streetLabel}</FormLabel>
             <input
@@ -347,6 +351,7 @@ export function ShopEditForm({
               {errors?.headquartersLongitude && <FormErrorText>{errors.headquartersLongitude}</FormErrorText>}
             </div>
           </div>
+          </FormSection.Body>
         </FormSection>
 
         {/* Shipping Region + Note + Reminder */}
@@ -355,6 +360,7 @@ export function ShopEditForm({
             icon={<TruckIcon weight="duotone" className="w-4 h-4" />}
             title={messages.shippingSectionLabel}
           />
+          <FormSection.Body>
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-2">
               <RegionSelect
@@ -379,6 +385,7 @@ export function ShopEditForm({
               {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
             </div>
           </div>
+          </FormSection.Body>
         </FormSection>
 
         {descriptionAside && <div>{descriptionAside}</div>}

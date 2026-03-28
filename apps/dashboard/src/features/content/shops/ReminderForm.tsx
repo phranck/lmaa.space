@@ -22,20 +22,21 @@ export interface ReminderFormData {
 
 export interface ReminderFormProps {
   initial?: ShopReminder | null;
+  isActive: boolean;
+  onActiveChange: (active: boolean) => void;
   onSave: (data: ReminderFormData) => void;
   onDelete?: () => void;
   isPending: boolean;
   isDeleting: boolean;
 }
 
-export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
+export function ReminderForm({ initial, isActive, onActiveChange, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
   const { data: emailTemplates = [] } = useEmailTemplates();
 
   const [remindAt, setRemindAt] = useState<string>(() =>
     initial?.remindAt ? initial.remindAt.slice(0, 16) : "",
   );
   const [note, setNote] = useState<string>(initial?.note ?? "");
-  const [isActive, setIsActive] = useState<boolean>(initial?.isActive ?? false);
   const [recurrence, setRecurrence] = useState<ReminderRecurrence>(
     initial?.recurrence ?? "never",
   );
@@ -71,14 +72,6 @@ export function ReminderForm({ initial, onSave, onDelete, isPending, isDeleting 
 
   return (
     <div className="space-y-3">
-      {/* Active toggle */}
-      <div className="flex items-center justify-between">
-        <span className="block px-[5px] text-xs font-medium text-[var(--ds-text-muted)]">
-          Aktiv
-        </span>
-        <ToggleSwitch checked={isActive} onChange={setIsActive} />
-      </div>
-
       {/* Date + time */}
       <div>
         <FormLabel htmlFor="reminder-date">Datum &amp; Uhrzeit</FormLabel>
