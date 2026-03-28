@@ -95,6 +95,7 @@ export function CategoriesPage() {
 
         {!isLoading && categories.length === 0 && (
           <ContentUnavailableView
+            chromeless
             icon={<TagIcon weight="duotone" aria-hidden />}
             title={categoriesMessages.empty}
             subtitle={categoriesMessages.emptyHint}

@@ -284,6 +284,7 @@ export function AffiliateListPage() {
             </div>
           ) : sortedScans.length === 0 ? (
             <ContentUnavailableView
+              chromeless
               icon={<HandshakeIcon weight="duotone" aria-hidden />}
               title={t.noScans}
               subtitle={t.noScansHint}

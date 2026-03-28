@@ -199,6 +199,7 @@ export function ShopReportsTab() {
   if (reports.length === 0) {
     return (
       <ContentUnavailableView
+        chromeless
         className="flex-1"
         icon={<StorefrontIcon weight="duotone" aria-hidden />}
         title={submissionsMessages.shopReports.none}

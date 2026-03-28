@@ -160,6 +160,7 @@ export function SuggestionsTab({
 
       {!isLoading && submissions.length === 0 && (
         <ContentUnavailableView
+          chromeless
           className="flex-1"
           icon={<TrayIcon weight="duotone" aria-hidden />}
           title={`${submissionsMessages.suggestions.nonePrefix} ${statusLabels[filter].toLowerCase()} ${submissionsMessages.tabs.suggestions}.`}

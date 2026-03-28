@@ -214,6 +214,7 @@ export function EmailTemplateListPage() {
 
         {!isLoading && templates.length === 0 && (
           <ContentUnavailableView
+            chromeless
             className="flex-1 min-h-0"
             icon={<EnvelopeOpenIcon weight="duotone" aria-hidden />}
             title={m.noTemplates}

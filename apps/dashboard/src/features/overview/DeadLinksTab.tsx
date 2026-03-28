@@ -112,6 +112,7 @@ export function DeadLinksTab() {
   if (reports.length === 0) {
     return (
       <ContentUnavailableView
+        chromeless
         className="flex-1"
         icon={<LinkIcon weight="duotone" aria-hidden />}
         title={submissionsMessages.deadLinks.none}

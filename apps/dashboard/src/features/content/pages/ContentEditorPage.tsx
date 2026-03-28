@@ -1,6 +1,7 @@
 import {
   DownloadIcon,
   EyeIcon,
+  MarkdownLogoIcon,
   MinusCircleIcon,
   PlusCircleIcon,
   TrashIcon,
@@ -9,10 +10,9 @@ import { useCallback, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { ContentPage } from "@lmaa/shared";
-import { MarkdownEditor } from "@lmaa/ui";
+import { DashboardSection, MarkdownEditor } from "@lmaa/ui";
 
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
-import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -119,25 +119,6 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     default:
       return state;
   }
-}
-
-function Key({ children }: { children: string }) {
-  return (
-    <kbd className="inline-flex items-center justify-center min-w-[1.375rem] h-[1.375rem] px-1 rounded border border-[var(--ds-border-strong)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text)] text-[0.6875rem] font-medium shadow-[0_1px_0_var(--ds-border-strong)] leading-none select-none">
-      {children}
-    </kbd>
-  );
-}
-
-function ShortcutHint({ keys, label }: { keys: string[]; label: string }) {
-  return (
-    <span className="flex items-center gap-1 text-xs">
-      {keys.map((k) => (
-        <Key key={k}>{k}</Key>
-      ))}
-      <span className="ml-0.5 text-[var(--ds-text-muted)]">{label}</span>
-    </span>
-  );
 }
 
 interface EditorHeaderActionsProps {
@@ -589,39 +570,36 @@ export function ContentEditorPage() {
         />
       )}
 
-      <PageBody
-        className="overflow-hidden"
-        style={{ "--source-font-size": `${state.sourceFontSize}px` } as React.CSSProperties}
-      >
-        {isLoading && (
-          <div className="flex items-center justify-center h-64 text-[var(--ds-text-subtle)] text-sm">
-            {editorMessages.loadingContent}
-          </div>
-        )}
+      <DashboardSection>
+        <DashboardSection.Header
+          icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
+          title={title}
+        />
+        <PageBody
+          className="overflow-hidden"
+          style={{ "--source-font-size": `${state.sourceFontSize}px` } as React.CSSProperties}
+        >
+          {isLoading && (
+            <div className="flex items-center justify-center h-64 text-[var(--ds-text-subtle)] text-sm">
+              {editorMessages.loadingContent}
+            </div>
+          )}
 
-        {page && (
-          <MarkdownEditor
-            key={slug}
-            value={currentContent}
-            onChange={handleChange}
-            height="100%"
-            showHints={false}
-            className="rounded-none border-none"
-          />
-        )}
+          {page && (
+            <MarkdownEditor
+              key={slug}
+              value={currentContent}
+              onChange={handleChange}
+              height="100%"
+              className="rounded-none border-none"
+            />
+          )}
 
-        {save.isError && (
-          <p className="text-red-500 text-sm text-center mt-4">{editorMessages.saveError}</p>
-        )}
-      </PageBody>
-
-      <PageFooter>
-        <ShortcutHint keys={["⌘", "S"]} label={editorMessages.shortcuts.save} />
-        <ShortcutHint keys={["⌘", "B"]} label={editorMessages.shortcuts.bold} />
-        <ShortcutHint keys={["⌘", "I"]} label={editorMessages.shortcuts.italic} />
-        <ShortcutHint keys={["⌘", "⇧", "D"]} label={editorMessages.shortcuts.strikethrough} />
-        <ShortcutHint keys={["⌘", "K"]} label={editorMessages.shortcuts.link} />
-      </PageFooter>
+          {save.isError && (
+            <p className="text-red-500 text-sm text-center mt-4">{editorMessages.saveError}</p>
+          )}
+        </PageBody>
+      </DashboardSection>
     </PageLayout>
   );
 }
