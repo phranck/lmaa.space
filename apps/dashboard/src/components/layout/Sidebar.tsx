@@ -81,6 +81,7 @@ interface SidebarProps {
   onLogout: () => void;
   onItemClick?: () => void;
   onEditProfile?: () => void;
+  bare?: boolean;
 }
 
 function PagesGroup({
@@ -397,6 +398,7 @@ export function Sidebar({
   onLogout,
   onItemClick,
   onEditProfile,
+  bare,
 }: SidebarProps) {
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
@@ -435,10 +437,10 @@ export function Sidebar({
 
   return (
     <>
-      <SidebarHeader />
+      {!bare && <SidebarHeader />}
 
       <nav className="flex-1 overflow-y-auto px-3">
-        <div className="sticky top-0 z-10 -mx-3 px-3 pt-3 pb-2 bg-[var(--ds-surface)]">
+        <div className="sticky top-0 z-10 -mx-3 px-3 pt-3 pb-2 bg-[var(--ds-card-bg,var(--ds-surface))]">
           <button
             type="button"
             onClick={() => handleToggleAllGroups(!areAllGroupsOpen)}
@@ -619,15 +621,17 @@ export function Sidebar({
         )}
       </nav>
 
-      <SidebarFooter
-        username={username}
-        firstName={firstName}
-        lastName={lastName}
-        role={role}
-        avatarUrl={avatarUrl}
-        onLogout={onLogout}
-        onEditProfile={onEditProfile}
-      />
+      {!bare && (
+        <SidebarFooter
+          username={username}
+          firstName={firstName}
+          lastName={lastName}
+          role={role}
+          avatarUrl={avatarUrl}
+          onLogout={onLogout}
+          onEditProfile={onEditProfile}
+        />
+      )}
     </>
   );
 }
