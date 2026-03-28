@@ -133,36 +133,16 @@ button {
   cursor: pointer;
 }
 
-/* Sidebar-aware layout */
-.sidebar-aware-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+/* Dashboard grid layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: var(--sidebar-w, 14rem) 1fr;
+  height: 100vh;
 }
-@media (min-width: 768px) {
-  .sidebar-aware-header {
-    left: var(--sidebar-w, 14rem);
-  }
-}
-.sidebar-aware-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-}
-@media (min-width: 768px) {
-  .sidebar-aware-footer {
-    left: var(--sidebar-w, 14rem);
-  }
-}
-.sidebar-aware-main {
-  padding-top: 3.5rem;
-}
-@media (min-width: 768px) {
-  .sidebar-aware-main {
-    margin-left: var(--sidebar-w, 14rem);
+@media (max-width: 767px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
 

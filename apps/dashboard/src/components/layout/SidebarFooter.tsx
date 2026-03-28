@@ -14,7 +14,7 @@ import { UserAvatar } from "@/features/system/users/UserAvatar.tsx";
 
 const SKIP_KEY = "logout-skip-confirm";
 
-interface SidebarFooterProps {
+export interface FooterUserInfoProps {
   username?: string;
   firstName?: string | null;
   lastName?: string | null;
@@ -24,13 +24,7 @@ interface SidebarFooterProps {
   onEditProfile?: () => void;
 }
 
-/**
- * Footer section in sidebar with profile/menu actions.
- *
- * @param props - Auth/profile and action handlers.
- * @returns Sidebar footer component.
- */
-export function SidebarFooter({
+export function FooterUserInfo({
   username,
   firstName,
   lastName,
@@ -38,7 +32,7 @@ export function SidebarFooter({
   avatarUrl,
   onLogout,
   onEditProfile,
-}: SidebarFooterProps) {
+}: FooterUserInfoProps) {
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || username;
@@ -71,36 +65,34 @@ export function SidebarFooter({
 
   return (
     <>
-      <div className="shrink-0 min-h-14 border-t border-[var(--ds-border)] px-5 flex items-center">
-        <div className="w-full flex items-center gap-3">
-          {username && (
-            <UserAvatar username={username} avatarUrl={avatarUrl} size="sm" className="shrink-0" />
+      <div className="w-full flex items-center gap-3">
+        {username && (
+          <UserAvatar username={username} avatarUrl={avatarUrl} size="sm" className="shrink-0" />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-[var(--ds-text)] truncate">{displayName}</p>
+          {role && (
+            <p className="text-xs text-[var(--ds-text-muted)] truncate">{roleLabel[role]}</p>
           )}
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-[var(--ds-text)] truncate">{displayName}</p>
-            {role && (
-              <p className="text-xs text-[var(--ds-text-muted)] truncate">{roleLabel[role]}</p>
-            )}
-          </div>
-          {onEditProfile && (
-            <button
-              type="button"
-              onClick={onEditProfile}
-              aria-label={s.editProfile}
-              className={btnClass}
-            >
-              <UserCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            </button>
-          )}
+        </div>
+        {onEditProfile && (
           <button
             type="button"
-            onClick={handleLogoutClick}
-            aria-label={s.logout}
+            onClick={onEditProfile}
+            aria-label={s.editProfile}
             className={btnClass}
           >
-            <SignOutIcon weight="duotone" className="w-3.5 h-3.5" />
+            <UserCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           </button>
-        </div>
+        )}
+        <button
+          type="button"
+          onClick={handleLogoutClick}
+          aria-label={s.logout}
+          className={btnClass}
+        >
+          <SignOutIcon weight="duotone" className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       <Dialog
@@ -135,5 +127,13 @@ export function SidebarFooter({
         </Dialog.Footer>
       </Dialog>
     </>
+  );
+}
+
+export function SidebarFooter(props: FooterUserInfoProps) {
+  return (
+    <div className="shrink-0 min-h-14 border-t border-[var(--ds-border)] px-5 flex items-center">
+      <FooterUserInfo {...props} />
+    </div>
   );
 }
