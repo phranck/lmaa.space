@@ -2,6 +2,7 @@ import { ArrowSquareOutIcon, MapPinIcon, MarkdownLogoIcon, ShareNetworkIcon, Sto
 import type { ReactNode } from "react";
 
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
+import { DashboardSection } from "./DashboardSection.tsx";
 import {
   FormErrorText,
   FormLabel,
@@ -9,7 +10,6 @@ import {
   FormOptional,
   formInputClass,
 } from "./FormPrimitives.tsx";
-import { FormSection } from "./FormSection.tsx";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
 import {
@@ -158,12 +158,12 @@ export function ShopEditForm({
       {/* ── Left column (4 of 12) ─────────────────────────────── */}
       <div className="col-span-4 flex flex-col gap-4">
         {/* Shop Data: Name, URL, Email, Categories */}
-        <FormSection>
-          <FormSection.Header
+        <DashboardSection>
+          <DashboardSection.Header
             icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
             title={messages.shopDataSectionLabel}
           />
-          <FormSection.Body>
+          <DashboardSection.Body>
           {/* Name */}
           <div>
             <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
@@ -241,16 +241,16 @@ export function ShopEditForm({
             className="-mt-px"
           />
         </div>
-        </FormSection.Body>
-        </FormSection>
+        </DashboardSection.Body>
+        </DashboardSection>
 
         {/* Headquarters + Geo */}
-        <FormSection>
-          <FormSection.Header
+        <DashboardSection>
+          <DashboardSection.Header
             icon={<MapPinIcon weight="duotone" className="w-4 h-4" />}
             title={messages.headquartersLabel}
           />
-          <FormSection.Body>
+          <DashboardSection.Body>
           <div>
             <FormLabel htmlFor="sef-hq-street">{messages.streetLabel}</FormLabel>
             <input
@@ -331,16 +331,16 @@ export function ShopEditForm({
               {errors?.headquartersLongitude && <FormErrorText>{errors.headquartersLongitude}</FormErrorText>}
             </div>
           </div>
-          </FormSection.Body>
-        </FormSection>
+          </DashboardSection.Body>
+        </DashboardSection>
 
         {/* Shipping Region + Note */}
-        <FormSection>
-          <FormSection.Header
+        <DashboardSection>
+          <DashboardSection.Header
             icon={<TruckIcon weight="duotone" className="w-4 h-4" />}
             title={messages.shippingSectionLabel}
           />
-          <FormSection.Body>
+          <DashboardSection.Body>
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-2">
               <RegionSelect
@@ -365,17 +365,17 @@ export function ShopEditForm({
               {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
             </div>
           </div>
-          </FormSection.Body>
-        </FormSection>
+          </DashboardSection.Body>
+        </DashboardSection>
 
         {/* Social Media */}
         {messages.socialMediaLabel && messages.socialMedia && (
-          <FormSection>
-            <FormSection.Header
+          <DashboardSection>
+            <DashboardSection.Header
               icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
               title={messages.socialMediaLabel}
             />
-            <FormSection.Body>
+            <DashboardSection.Body>
             <SocialMediaEditor
               value={value.socialMedia}
               onChange={(v) => set("socialMedia", v)}
@@ -384,8 +384,8 @@ export function ShopEditForm({
               onValidationChange={onSocialMediaValidationChange}
             />
             {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
-            </FormSection.Body>
-          </FormSection>
+            </DashboardSection.Body>
+          </DashboardSection>
         )}
 
         {descriptionAside && <div>{descriptionAside}</div>}
@@ -399,12 +399,12 @@ export function ShopEditForm({
         {detailsAside && <div className="min-h-80">{detailsAside}</div>}
 
         {/* Description (MarkdownEditor) */}
-        <FormSection>
-          <FormSection.Header
+        <DashboardSection>
+          <DashboardSection.Header
             icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
             title={messages.descriptionLabel}
           />
-          <FormSection.Body className="!p-0 min-h-[24rem]">
+          <DashboardSection.Body className="!p-0 min-h-[24rem]">
             <MarkdownEditor
               id="sef-description"
               value={value.description}
@@ -415,8 +415,8 @@ export function ShopEditForm({
             />
             {errors?.description && <FormErrorText className="px-4 pb-3">{errors.description}</FormErrorText>}
             {descriptionHint}
-          </FormSection.Body>
-        </FormSection>
+          </DashboardSection.Body>
+        </DashboardSection>
       </div>
     </div>
   );

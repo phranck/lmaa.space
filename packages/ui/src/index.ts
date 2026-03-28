@@ -30,10 +30,10 @@ export {
   formLabelClass,
   formOptionalClass,
 } from "./FormPrimitives.tsx";
-/** Shared form section card with header (icon + title) and body. */
-export { FormSection } from "./FormSection.tsx";
-/** Re-exported props for `FormSection`. */
-export type { FormSectionProps, FormSectionHeaderProps } from "./FormSection.tsx";
+/** Shared dashboard section card with header (icon + title), body and optional footer. */
+export { DashboardSection } from "./DashboardSection.tsx";
+/** Re-exported props for `DashboardSection`. */
+export type { DashboardSectionProps, DashboardSectionHeaderProps, DashboardSectionFooterProps } from "./DashboardSection.tsx";
 /** Shared toggle switch component. */
 export { ToggleSwitch } from "./ToggleSwitch.tsx";
 /** Re-exported props for `ToggleSwitch`. */

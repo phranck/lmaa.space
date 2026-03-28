@@ -21,6 +21,7 @@ import {
   dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
+import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import {
   PageBody,
@@ -30,7 +31,6 @@ import {
   PageSplitMain,
 } from "@/components/ui/PageLayout.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
-import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
@@ -480,9 +480,9 @@ export function MediaPage() {
         </div>
       </PageBody>
 
-      <Toolbar className="mt-4 text-xs text-[var(--ds-text-subtle)]">
-        <span>{mediaMessages.uploadHint}</span>
-      </Toolbar>
+      <PageFooter>
+        <span className="text-xs text-[var(--ds-text-subtle)]">{mediaMessages.uploadHint}</span>
+      </PageFooter>
 
       <Dialog
         open={deleteTarget !== null}

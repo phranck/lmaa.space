@@ -16,12 +16,10 @@ import type {
   InputType,
   RichTextVariant,
 } from "@lmaa/contracts";
-import { MarkdownEditor } from "@lmaa/ui";
+import { FormLabelText, MarkdownEditor } from "@lmaa/ui";
 
-import { Card } from "@/components/ui/Card.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 
 const IconPicker = lazy(() =>
   import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),
@@ -31,7 +29,7 @@ const IconPicker = lazy(() =>
 // Field type label helper
 // ---------------------------------------------------------------------------
 
-function fieldTypeLabel(type: FieldType, ft: Record<string, string>): string {
+export function fieldTypeLabel(type: FieldType, ft: Record<string, string>): string {
   // FieldType uses kebab-case ("multi-select") but i18n keys use camelCase
   const key = type.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
   return ft[key] ?? ft[type] ?? type;
@@ -102,17 +100,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
   }
 
   return (
-    <Card className="flex flex-col gap-4 p-4 min-w-64">
-      {/* Header: field type icon + label */}
-      <div className="flex items-center gap-2 pb-3 border-b border-[var(--ds-border)]">
-        <span className="text-[var(--ds-text-subtle)]">
-          <FieldTypeIcon type={field.type} />
-        </span>
-        <span className="text-sm font-semibold text-[var(--ds-text)]">
-          {fieldTypeLabel(field.type, ft)}
-        </span>
-      </div>
-
+    <div className="flex flex-col gap-4">
       {/* Separator: no config except span */}
       {isSeparator && (
         <p className="text-xs text-[var(--ds-text-subtle)] italic">{m.separatorNoSettings}</p>
@@ -121,9 +109,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Paragraph: plain text content */}
       {isParagraph && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.content}
-          </span>
+          </FormLabelText>
           <textarea
             rows={4}
             value={field.content ?? ""}
@@ -136,9 +124,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Label — hidden for separator and paragraph */}
       {!isSeparator && !isParagraph && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.label}
-          </span>
+          </FormLabelText>
           <input
             type="text"
             value={field.label}
@@ -161,9 +149,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Headline level — only for headline fields */}
       {isHeadline && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.headlineLevel}
-          </span>
+          </FormLabelText>
           <div className="flex flex-col gap-1.5">
             {(
               [
@@ -192,9 +180,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Variable name — hidden for richtext, button, headline, separator, paragraph */}
       {!isRichText && !isButton && !isHeadline && !isSeparator && !isParagraph && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.fieldName}
-          </span>
+          </FormLabelText>
           <input
             type="text"
             value={field.name ?? ""}
@@ -208,9 +196,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Richtext: content editor */}
       {isRichText && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.content}
-          </span>
+          </FormLabelText>
           <MarkdownEditor
             value={field.content ?? ""}
             onChange={(val) => set("content", val || undefined)}
@@ -222,9 +210,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Richtext: variant picker */}
       {isRichText && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.variant}
-          </span>
+          </FormLabelText>
           <div className="grid grid-cols-2 gap-1.5">
             {(
               [
@@ -282,9 +270,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Placeholder */}
       {hasPlaceholder && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.placeholder}
-          </span>
+          </FormLabelText>
           <input
             type="text"
             value={field.placeholder ?? ""}
@@ -297,9 +285,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Max chars — only for textarea */}
       {hasMaxChars && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.maxChars}
-          </span>
+          </FormLabelText>
           <input
             type="number"
             min={1}
@@ -317,9 +305,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Subtext — for text, email, password, textarea */}
       {hasSubtext && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.subtext}
-          </span>
+          </FormLabelText>
           <input
             type="text"
             value={field.subtext ?? ""}
@@ -359,9 +347,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {!isRichText && !isButton && !isSeparator && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+            <FormLabelText>
               {m.span}
-            </span>
+            </FormLabelText>
             <span className="text-xs tabular-nums text-[var(--ds-text-subtle)]">
               {field.span ?? 12}/12
             </span>
@@ -387,9 +375,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Options — only for select/multi-select without optionsSource */}
       {hasOptions && !field.optionsSource && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.options}
-          </span>
+          </FormLabelText>
           <textarea
             rows={4}
             value={(field.options ?? []).join("\n")}
@@ -407,9 +395,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Rows — only for textarea and richtext */}
       {hasRows && (
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.rows}
-          </span>
+          </FormLabelText>
           <input
             type="number"
             min={1}
@@ -428,9 +416,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Button type — only for button fields */}
       {isButton && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.buttonType}
-          </span>
+          </FormLabelText>
           <div className="flex flex-col gap-1.5">
             {(
               [
@@ -459,9 +447,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Button width */}
       {isButton && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.buttonWidth}
-          </span>
+          </FormLabelText>
           <div className="flex gap-1.5">
             {(
               [
@@ -489,9 +477,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Button alignment */}
       {isButton && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.buttonAlign}
-          </span>
+          </FormLabelText>
           <div className="flex gap-1.5">
             {(
               [
@@ -536,9 +524,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Button display mode — only shown when an icon is selected */}
       {isButton && field.buttonIcon && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.buttonDisplay}
-          </span>
+          </FormLabelText>
           <div className="flex gap-1.5">
             {(
               [
@@ -567,9 +555,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Button action — only for buttonType === "button" */}
       {isButton && (field.buttonType ?? "button") === "button" && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.buttonAction}
-          </span>
+          </FormLabelText>
           <div className="flex flex-col gap-1.5">
             {(
               [
@@ -634,9 +622,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Validation min/max — only for text/textarea */}
       {hasValidationMinMax && (
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
+          <FormLabelText>
             {m.validation}
-          </span>
+          </FormLabelText>
           <div className="flex gap-2">
             <label className="flex-1 min-w-0 flex flex-col gap-1">
               <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMin}</span>
@@ -665,6 +653,6 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

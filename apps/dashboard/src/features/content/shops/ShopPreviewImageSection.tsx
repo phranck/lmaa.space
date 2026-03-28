@@ -5,7 +5,7 @@ import {
   StorefrontIcon,
 } from "@phosphor-icons/react";
 
-import { FormSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui";
 
 interface ShopPreviewImageSectionProps {
   displayImage: string | null;
@@ -42,12 +42,12 @@ export function ShopPreviewImageSection({
   setImageLabel,
 }: ShopPreviewImageSectionProps) {
   return (
-    <FormSection>
-      <FormSection.Header
+    <DashboardSection>
+      <DashboardSection.Header
         icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
         title={previewImageLabel}
       />
-      <FormSection.Body>
+      <DashboardSection.Body>
       <div className="flex items-stretch gap-3">
         <div className="shrink-0 w-18 aspect-square rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
           {displayImage ? (
@@ -93,7 +93,7 @@ export function ShopPreviewImageSection({
           </div>
         </div>
       </div>
-      </FormSection.Body>
-    </FormSection>
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }

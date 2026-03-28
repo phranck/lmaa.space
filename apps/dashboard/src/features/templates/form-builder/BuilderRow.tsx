@@ -65,7 +65,7 @@ export function BuilderRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="group relative flex items-stretch gap-2 p-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)]"
+      className="group relative flex items-stretch gap-2 p-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)]"
     >
       {/* Row drag handle */}
       <button

@@ -11,10 +11,10 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import {
   DownloadIcon,
+  GearIcon,
   HandTapIcon,
   UploadIcon,
 } from "@phosphor-icons/react";
-import { ToggleSwitch } from "@lmaa/ui";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -25,6 +25,7 @@ import type {
   FormRow,
   SubmissionConfig,
 } from "@lmaa/contracts";
+import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
@@ -32,7 +33,8 @@ import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
-import { FieldConfigPanel } from "@/features/templates/form-builder/FieldConfigPanel.tsx";
+import { FieldConfigPanel, fieldTypeLabel } from "@/features/templates/form-builder/FieldConfigPanel.tsx";
+import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { FieldPalette } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { SubmissionConfigPanel } from "@/features/templates/form-builder/SubmissionConfigPanel.tsx";
 import { exportFormConfigSingle } from "@/features/templates/hooks/formConfigExport.ts";
@@ -460,33 +462,45 @@ export function FormBuilderEditPage() {
             </div>
 
             <div className="shrink-0 w-72">
-              {selectedField !== null ? (
-                <FieldConfigPanel
-                  field={selectedField}
-                  onChange={handleFieldChange}
-                  allFields={rows
-                    .flatMap((r) => r.fields)
-                    .filter(
-                      (f) =>
-                        f.id !== selectedField.id &&
-                        f.type !== "button" &&
-                        f.type !== "richtext" &&
-                        f.type !== "headline" &&
-                        f.type !== "separator" &&
-                        f.type !== "paragraph",
-                    )
-                    .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={selectedField !== null
+                    ? <FieldTypeIcon type={selectedField.type} />
+                    : <GearIcon weight="duotone" className="w-4 h-4" />
+                  }
+                  title={selectedField !== null
+                    ? fieldTypeLabel(selectedField.type, m.fieldTypes as unknown as Record<string, string>)
+                    : m.preferencesTitle
+                  }
                 />
-              ) : (
-                <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card min-w-64">
+                {selectedField !== null ? (
+                  <DashboardSection.Body>
+                    <FieldConfigPanel
+                      field={selectedField}
+                      onChange={handleFieldChange}
+                      allFields={rows
+                        .flatMap((r) => r.fields)
+                        .filter(
+                          (f) =>
+                            f.id !== selectedField.id &&
+                            f.type !== "button" &&
+                            f.type !== "richtext" &&
+                            f.type !== "headline" &&
+                            f.type !== "separator" &&
+                            f.type !== "paragraph",
+                        )
+                        .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
+                    />
+                  </DashboardSection.Body>
+                ) : (
                   <ContentUnavailableView
                     className="h-64"
                     icon={<HandTapIcon weight="duotone" aria-hidden />}
                     title={messages.formBuilder.noFieldSelected}
                     subtitle={messages.formBuilder.noFieldSelectedHint}
                   />
-                </div>
-              )}
+                )}
+              </DashboardSection>
             </div>
           </div>
 

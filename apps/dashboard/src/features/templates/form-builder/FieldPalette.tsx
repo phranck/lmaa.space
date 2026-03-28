@@ -1,10 +1,9 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { CubeIcon, StarIcon } from "@phosphor-icons/react";
 
 import type { FieldType } from "@lmaa/contracts";
-
-import { CubeIcon, StarIcon } from "@phosphor-icons/react";
-import { FormSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -254,28 +253,28 @@ export function FieldPalette() {
 
   return (
     <div className="flex flex-col gap-3 min-w-44">
-      <FormSection>
-        <FormSection.Header
+      <DashboardSection>
+        <DashboardSection.Header
           icon={<CubeIcon weight="duotone" className="w-4 h-4" />}
           title={messages.formBuilder.paletteGroups.standard}
         />
-        <FormSection.Body>
+        <DashboardSection.Body className="!gap-2">
           {standardFields.map(({ paletteId, iconType, label }) => (
             <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
           ))}
-        </FormSection.Body>
-      </FormSection>
-      <FormSection>
-        <FormSection.Header
+        </DashboardSection.Body>
+      </DashboardSection>
+      <DashboardSection>
+        <DashboardSection.Header
           icon={<StarIcon weight="duotone" className="w-4 h-4" />}
           title={messages.formBuilder.paletteGroups.special}
         />
-        <FormSection.Body>
+        <DashboardSection.Body className="!gap-2">
           {specialFields.map(({ paletteId, iconType, label }) => (
             <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
           ))}
-        </FormSection.Body>
-      </FormSection>
+        </DashboardSection.Body>
+      </DashboardSection>
     </div>
   );
 }
