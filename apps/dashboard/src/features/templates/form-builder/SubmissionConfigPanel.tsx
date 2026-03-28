@@ -323,8 +323,8 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
     }
   }
 
-  const sectionClass = "px-6 pb-6";
-  const cardClass = "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card p-6";
+  const sectionClass = "";
+  const cardClass = "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card p-4";
   const inputClass =
     "w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]";
 

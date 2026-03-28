@@ -1,7 +1,9 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { SquaresFourIcon } from "@phosphor-icons/react";
 
 import type { FormRow } from "@lmaa/contracts";
+import { FormSection } from "@lmaa/ui";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderRow } from "@/features/templates/form-builder/BuilderRow.tsx";
@@ -31,35 +33,41 @@ export function BuilderCanvas({
   const rowIds = rows.map((r: FormRow) => r.id);
 
   return (
-    <div
-      ref={setNodeRef}
-      className={`flex-1 min-h-64 rounded-card border-2 border-dashed transition-colors ${
-        isOver
-          ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
-          : "border-[var(--ds-border)] bg-[var(--ds-surface)]"
-      }`}
-    >
-      {rows.length === 0 ? (
-        <div className="flex items-center justify-center h-full min-h-64 p-8">
-          <p className="text-sm text-[var(--ds-text-subtle)] text-center">
-            {messages.formBuilder.empty}
-          </p>
-        </div>
-      ) : (
-        <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
-          <div className="p-4 flex flex-col gap-3">
-            {rows.map((row: FormRow) => (
-              <BuilderRow
-                key={row.id}
-                row={row}
-                selectedFieldId={selectedFieldId}
-                onSelectField={onSelectField}
-                onDeleteField={onDeleteField}
-              />
-            ))}
+    <FormSection>
+      <FormSection.Header
+        icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
+        title={messages.formBuilder.canvasTitle}
+      />
+      <div
+        ref={setNodeRef}
+        className={`min-h-64 border-2 border-dashed rounded-b-xl transition-colors ${
+          isOver
+            ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
+            : "border-[var(--ds-border)] bg-transparent"
+        }`}
+      >
+        {rows.length === 0 ? (
+          <div className="flex items-center justify-center h-full min-h-64 p-8">
+            <p className="text-sm text-[var(--ds-text-subtle)] text-center">
+              {messages.formBuilder.empty}
+            </p>
           </div>
-        </SortableContext>
-      )}
-    </div>
+        ) : (
+          <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
+            <div className="p-4 flex flex-col gap-3">
+              {rows.map((row: FormRow) => (
+                <BuilderRow
+                  key={row.id}
+                  row={row}
+                  selectedFieldId={selectedFieldId}
+                  onSelectField={onSelectField}
+                  onDeleteField={onDeleteField}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        )}
+      </div>
+    </FormSection>
   );
 }

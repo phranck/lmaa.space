@@ -3,7 +3,9 @@ import { CSS } from "@dnd-kit/utilities";
 
 import type { FieldType } from "@lmaa/contracts";
 
-import { Card } from "@/components/ui/Card.tsx";
+import { CubeIcon, StarIcon } from "@phosphor-icons/react";
+import { FormSection } from "@lmaa/ui";
+
 import { useI18n } from "@/context/I18nContext.tsx";
 
 interface PaletteTileProps {
@@ -211,7 +213,7 @@ function PaletteTile({ paletteId, iconType, label }: PaletteTileProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm text-[var(--ds-text)] cursor-grab active:cursor-grabbing hover:border-[var(--color-primary)] hover:bg-[var(--ds-nav-hover-bg)] select-none transition-colors"
+      className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] text-sm text-[var(--ds-text)] cursor-grab active:cursor-grabbing hover:border-[var(--color-primary)] hover:bg-[var(--ds-nav-hover-bg)] select-none transition-colors"
     >
       <span className="shrink-0 opacity-60 text-[var(--ds-text)]">
         <FieldTypeIcon type={iconType} />
@@ -251,23 +253,29 @@ export function FieldPalette() {
   ];
 
   return (
-    <Card className="flex flex-col gap-4 p-4 min-w-44">
-      <div className="flex flex-col gap-1.5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
-          {messages.formBuilder.paletteGroups.standard}
-        </p>
-        {standardFields.map(({ paletteId, iconType, label }) => (
-          <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
-        ))}
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
-          {messages.formBuilder.paletteGroups.special}
-        </p>
-        {specialFields.map(({ paletteId, iconType, label }) => (
-          <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
-        ))}
-      </div>
-    </Card>
+    <div className="flex flex-col gap-3 min-w-44">
+      <FormSection>
+        <FormSection.Header
+          icon={<CubeIcon weight="duotone" className="w-4 h-4" />}
+          title={messages.formBuilder.paletteGroups.standard}
+        />
+        <FormSection.Body>
+          {standardFields.map(({ paletteId, iconType, label }) => (
+            <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
+          ))}
+        </FormSection.Body>
+      </FormSection>
+      <FormSection>
+        <FormSection.Header
+          icon={<StarIcon weight="duotone" className="w-4 h-4" />}
+          title={messages.formBuilder.paletteGroups.special}
+        />
+        <FormSection.Body>
+          {specialFields.map(({ paletteId, iconType, label }) => (
+            <PaletteTile key={paletteId} paletteId={paletteId} iconType={iconType} label={label} />
+          ))}
+        </FormSection.Body>
+      </FormSection>
+    </div>
   );
 }

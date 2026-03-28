@@ -675,6 +675,7 @@ export interface DashboardMessages {
     save: string;
     saved: string;
     saveError: string;
+    canvasTitle: string;
     empty: string;
     editButton: string;
     noForms: string;
@@ -1665,6 +1666,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       save: "Speichern",
       saved: "Gespeichert",
       saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
+      canvasTitle: "Formular-Canvas",
       empty: "Noch keine Felder vorhanden. Felder aus der Palette ziehen.",
       editButton: "Bearbeiten",
       noForms: "Noch keine Formulare vorhanden.",
@@ -2646,6 +2648,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       save: "Save",
       saved: "Saved",
       saveError: "Error while saving. Please try again.",
+      canvasTitle: "Form Canvas",
       empty: "No fields yet. Drag fields from the palette.",
       editButton: "Edit",
       noForms: "No forms yet.",
