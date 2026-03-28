@@ -5,7 +5,7 @@ import { EditorView, keymap, placeholder as cmPlaceholder } from "@codemirror/vi
 import { tags as t } from "@lezer/highlight";
 import CodeMirror from "@uiw/react-codemirror";
 import * as React from "react";
-import { SiMarkdown } from "react-icons/si";
+
 
 export interface MarkdownEditorProps {
   id?: string;
@@ -25,7 +25,7 @@ export interface MarkdownEditorProps {
 
 const editorTheme = EditorView.theme({
   "&": {
-    backgroundColor: "var(--ds-input-bg)",
+    backgroundColor: "var(--ds-md-editor-bg, var(--ds-input-bg))",
     color: "var(--ds-text)",
     fontSize: "var(--source-font-size, 0.875rem)",
   },
@@ -122,7 +122,7 @@ const mdKeymap = Prec.highest(keymap.of([
 
 function Key({ children }: { children: string }) {
   return (
-    <kbd className="inline-flex items-center justify-center min-w-[1.125rem] h-[1.125rem] px-[0.2rem] rounded border border-[var(--ds-border-strong)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-[0.5625rem] font-medium shadow-[0_1px_0_var(--ds-border)] leading-none select-none">
+    <kbd className="inline-flex items-center justify-center min-w-[1.25rem] h-[1.25rem] px-[0.25rem] rounded border border-[var(--ds-border-strong)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-muted)] text-[0.625rem] font-medium shadow-[0_1px_0_var(--ds-border)] leading-none select-none">
       {children}
     </kbd>
   );
@@ -132,15 +132,14 @@ function Hint({ keys, label }: { keys: string[]; label: string }) {
   return (
     <span className="flex items-center gap-0.5">
       {keys.map((k) => <Key key={k}>{k}</Key>)}
-      <span className="ml-0.5 text-[var(--ds-text-subtle)]">{label}</span>
+      <span className="ml-0.5 text-[var(--ds-text-muted)]">{label}</span>
     </span>
   );
 }
 
 function HintsBar() {
   return (
-    <div className="flex items-center justify-between gap-3 px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[0.625rem]">
-      <SiMarkdown className="w-5 h-5 text-[var(--ds-text-subtle)] opacity-50 shrink-0" />
+    <div className="flex items-center justify-between gap-3 px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[0.625rem]">
       <div className="flex items-center gap-2.5">
         <Hint keys={["⌘", "B"]} label="Fett" />
         <Hint keys={["⌘", "I"]} label="Kursiv" />
