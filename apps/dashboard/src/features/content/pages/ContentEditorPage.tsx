@@ -12,9 +12,9 @@ import type { ContentPage } from "@lmaa/shared";
 import { MarkdownEditor } from "@lmaa/ui";
 
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
+import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
-import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   useAdminContentPage,
@@ -615,13 +615,13 @@ export function ContentEditorPage() {
         )}
       </PageBody>
 
-      <Toolbar>
+      <PageFooter>
         <ShortcutHint keys={["⌘", "S"]} label={editorMessages.shortcuts.save} />
         <ShortcutHint keys={["⌘", "B"]} label={editorMessages.shortcuts.bold} />
         <ShortcutHint keys={["⌘", "I"]} label={editorMessages.shortcuts.italic} />
         <ShortcutHint keys={["⌘", "⇧", "D"]} label={editorMessages.shortcuts.strikethrough} />
         <ShortcutHint keys={["⌘", "K"]} label={editorMessages.shortcuts.link} />
-      </Toolbar>
+      </PageFooter>
     </PageLayout>
   );
 }

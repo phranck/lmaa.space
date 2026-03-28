@@ -19,11 +19,11 @@ import { ExportButton } from "@/components/ui/ExportButton.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { ImportButton } from "@/components/ui/ImportButton.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
+import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { StatusBadge as SharedStatusBadge } from "@/components/ui/StatusBadge.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
-import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
 import {
@@ -442,7 +442,7 @@ export function AffiliateListPage() {
         </div>
       )}
 
-      <Toolbar className="sticky bottom-0 z-10 !mx-0 !mb-0">
+      <PageFooter>
         <div className="relative">
           <input
             type="text"
@@ -481,7 +481,7 @@ export function AffiliateListPage() {
           icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
           label={messages.common.delete}
         />
-      </Toolbar>
+      </PageFooter>
 
       <OverlayCard
         open={showDeleteAll}

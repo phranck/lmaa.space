@@ -17,9 +17,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowRightIcon,
+  CheckCircleIcon,
   CheckIcon,
   DownloadIcon,
   EnvelopeOpenIcon,
+  PaperPlaneTiltIcon,
   PlusCircleIcon,
   StorefrontIcon,
   TrashIcon,
@@ -27,7 +29,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
-import { MarkdownEditor } from "@lmaa/ui";
+import { DashboardSection, FormLabel, MarkdownEditor } from "@lmaa/ui";
 
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
@@ -88,7 +90,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
     <div
       ref={setNodeRef}
       style={style}
-      className="flex flex-col gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] min-w-48"
+      className="flex flex-col gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] min-w-48"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
@@ -323,8 +325,6 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
     }
   }
 
-  const sectionClass = "";
-  const cardClass = "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-card p-4";
   const inputClass =
     "w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]";
 
@@ -350,43 +350,42 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
   );
 
   return (
-    <div className={sectionClass}>
-      {/* ── Übermittlung card ── */}
-      <div className={cardClass}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-            {m.title}
-          </h3>
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-1.5 h-7 px-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)]">
-              <span className="shrink-0 text-[var(--ds-color-neutral-400)]">
-                {selectedStepIcon}
-              </span>
-              <select
-                value={pendingStepType}
-                onChange={(e) => setPendingStepType(e.target.value as SubmissionStep["type"])}
-                className="text-xs text-[var(--ds-text)] bg-transparent focus:outline-none cursor-pointer"
+    <div>
+      {/* ── Übermittlung ── */}
+      <DashboardSection>
+        <DashboardSection.Header
+          icon={<PaperPlaneTiltIcon weight="duotone" className="w-4 h-4" />}
+          title={m.title}
+          addOn={
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 h-7 px-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-form-control-bg)]">
+                <span className="shrink-0 text-[var(--ds-color-neutral-400)]">
+                  {selectedStepIcon}
+                </span>
+                <select
+                  value={pendingStepType}
+                  onChange={(e) => setPendingStepType(e.target.value as SubmissionStep["type"])}
+                  className="text-xs text-[var(--ds-text)] bg-transparent focus:outline-none cursor-pointer"
+                >
+                  {stepOptions.map(({ type, label }) => (
+                    <option key={type} value={type}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => addStep(pendingStepType)}
+                className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
               >
-                {stepOptions.map(({ type, label }) => (
-                  <option key={type} value={type}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                <PlusCircleIcon weight="duotone" className="w-3 h-3" />
+                {m.addStepButton}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => addStep(pendingStepType)}
-              className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
-            >
-              <PlusCircleIcon weight="duotone" className="w-3 h-3" />
-              {m.addStepButton}
-            </button>
-          </div>
-        </div>
-
-        {/* Step chain */}
-        <div>
+          }
+        />
+        <DashboardSection.Body>
           {cfg.steps.length === 0 ? (
             <p className="text-sm text-[var(--ds-text-muted)]">{m.noSteps}</p>
           ) : (
@@ -417,7 +416,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
               </SortableContext>
               <DragOverlay>
                 {activeStep && (
-                  <div className="flex flex-col gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-surface)] min-w-48 shadow-xl opacity-95 cursor-grabbing">
+                  <div className="flex flex-col gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-form-control-bg)] min-w-48 shadow-xl opacity-95 cursor-grabbing">
                     <span className="text-sm font-medium text-[var(--ds-text)]">
                       {activeStep.type === "store"
                         ? m.stepStore
@@ -430,18 +429,17 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
               </DragOverlay>
             </DndContext>
           )}
-        </div>
-      </div>
+        </DashboardSection.Body>
+      </DashboardSection>
 
       <FlowConnector />
 
-      {/* ── Nach dem Absenden card ── */}
-      <div className={`${cardClass} pb-4`}>
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-              {m.successBehaviourLabel}
-            </h3>
+      {/* ── Nach dem Absenden ── */}
+      <DashboardSection>
+        <DashboardSection.Header
+          icon={<CheckCircleIcon weight="duotone" className="w-4 h-4" />}
+          title={m.successBehaviourLabel}
+          addOn={
             <SegmentSwitch
               value={cfg.successRedirectUrl !== undefined ? "redirect" : "message"}
               onChange={(mode) => {
@@ -475,9 +473,10 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                 },
               ]}
             />
-          </div>
-
-          {cfg.successRedirectUrl !== undefined ? (
+          }
+        />
+        {cfg.successRedirectUrl !== undefined ? (
+          <DashboardSection.Body>
             <input
               id="submission-success-redirect"
               type="url"
@@ -486,15 +485,14 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
               className={inputClass}
               placeholder="https://example.com/danke"
             />
-          ) : (
-            <div className="flex flex-col gap-2">
+          </DashboardSection.Body>
+        ) : (
+          <>
+            <DashboardSection.Body>
               <div>
-                <label
-                  htmlFor="submission-success-headline"
-                  className="block text-xs text-[var(--ds-text-muted)] mb-1"
-                >
+                <FormLabel htmlFor="submission-success-headline">
                   {m.successHeadline}
-                </label>
+                </FormLabel>
                 <input
                   id="submission-success-headline"
                   type="text"
@@ -504,25 +502,21 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                   placeholder={m.successHeadlinePlaceholder}
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="submission-success-message"
-                  className="block text-xs text-[var(--ds-text-muted)] mb-1"
-                >
-                  Text
-                </label>
-                <MarkdownEditor
-                  id="submission-success-message"
-                  value={cfg.successMessage ?? ""}
-                  onChange={(value) => updateField("successMessage", value)}
-                  placeholder={m.successMessagePlaceholder}
-                  rows={4}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+              <FormLabel htmlFor="submission-success-message">
+                Text
+              </FormLabel>
+            </DashboardSection.Body>
+            <MarkdownEditor
+              id="submission-success-message"
+              value={cfg.successMessage ?? ""}
+              onChange={(value) => updateField("successMessage", value)}
+              placeholder={m.successMessagePlaceholder}
+              rows={4}
+              className="!rounded-none !rounded-b-xl !border-x-0 !border-b-0"
+            />
+          </>
+        )}
+      </DashboardSection>
     </div>
   );
 }

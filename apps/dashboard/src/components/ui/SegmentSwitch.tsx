@@ -36,7 +36,7 @@ export function SegmentSwitch<T extends string>({
     // biome-ignore lint/a11y/useSemanticElements: not a fieldset, role="group" is correct for segment switch
     <div
       role="group"
-      className={`flex ${s.container} bg-[var(--ds-surface-alt)] rounded-control border border-[var(--ds-border)] w-fit ${className ?? ""}`}
+      className={`flex ${s.container} bg-[var(--ds-form-control-bg)] rounded-control border border-[var(--ds-border)] w-fit ${className ?? ""}`}
     >
       {options.map((opt) => {
         const active = opt.value === value;

@@ -150,7 +150,7 @@ function AdminLayoutInner() {
       </Card>
 
       {/* Sidebar Card */}
-      <Card className="hidden md:flex flex-col overflow-y-auto overflow-x-hidden relative">
+      <Card className="hidden md:flex flex-col overflow-y-auto overflow-x-hidden relative shadow-sm">
         <Sidebar
           bare
           username={user?.username}
@@ -170,10 +170,8 @@ function AdminLayoutInner() {
       </Card>
 
       {/* Body Card */}
-      <Card className="overflow-auto flex flex-col">
-        <main className="flex-1 min-h-0 flex flex-col">
-          <Outlet />
-        </main>
+      <Card className="overflow-auto p-3 flex flex-col min-h-0 shadow-sm">
+        <Outlet />
       </Card>
 
       {/* Footer Card */}

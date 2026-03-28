@@ -20,10 +20,10 @@ import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { ExportButton } from "@/components/ui/ExportButton.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
 import { ImportButton } from "@/components/ui/ImportButton.tsx";
+import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type SortState } from "@/components/ui/Table.tsx";
-import { Toolbar } from "@/components/ui/Toolbar.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
@@ -397,7 +397,7 @@ export function ShopsPage() {
         )}
       </PageBody>
 
-      <Toolbar className="sticky -bottom-3 z-10">
+      <PageFooter>
         <div className="relative">
           <input
             ref={searchInputRef}
@@ -422,7 +422,7 @@ export function ShopsPage() {
             </span>
           )}
         </div>
-      </Toolbar>
+      </PageFooter>
     </PageLayout>
   );
 }

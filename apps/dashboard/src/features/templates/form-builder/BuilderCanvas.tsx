@@ -3,7 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SquaresFourIcon } from "@phosphor-icons/react";
 
 import type { FormRow } from "@lmaa/contracts";
-import { FormSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderRow } from "@/features/templates/form-builder/BuilderRow.tsx";
@@ -33,8 +33,8 @@ export function BuilderCanvas({
   const rowIds = rows.map((r: FormRow) => r.id);
 
   return (
-    <FormSection>
-      <FormSection.Header
+    <DashboardSection>
+      <DashboardSection.Header
         icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
         title={messages.formBuilder.canvasTitle}
       />
@@ -54,7 +54,7 @@ export function BuilderCanvas({
           </div>
         ) : (
           <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
-            <div className="p-4 flex flex-col gap-3">
+            <div className="p-3 flex flex-col gap-2">
               {rows.map((row: FormRow) => (
                 <BuilderRow
                   key={row.id}
@@ -68,6 +68,6 @@ export function BuilderCanvas({
           </SortableContext>
         )}
       </div>
-    </FormSection>
+    </DashboardSection>
   );
 }

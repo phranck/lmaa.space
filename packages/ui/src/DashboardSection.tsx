@@ -5,24 +5,24 @@ import type { ReactNode } from "react";
 /*  Context for collapsible state                                     */
 /* ------------------------------------------------------------------ */
 
-interface FormSectionContextValue {
+interface DashboardSectionContextValue {
   expanded: boolean;
 }
 
-const FormSectionContext = createContext<FormSectionContextValue>({ expanded: true });
+const DashboardSectionContext = createContext<DashboardSectionContextValue>({ expanded: true });
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                             */
 /* ------------------------------------------------------------------ */
 
-export interface FormSectionProps {
+export interface DashboardSectionProps {
   children: ReactNode;
   /** When set, the section becomes collapsible. Body is hidden when false. */
   expanded?: boolean;
   className?: string;
 }
 
-export interface FormSectionHeaderProps {
+export interface DashboardSectionHeaderProps {
   icon: ReactNode;
   title: string;
   /** Optional right-aligned content (e.g. a toggle switch). */
@@ -30,32 +30,37 @@ export interface FormSectionHeaderProps {
   className?: string;
 }
 
+export interface DashboardSectionFooterProps {
+  children: ReactNode;
+  className?: string;
+}
+
 /* ------------------------------------------------------------------ */
-/*  FormSection (root container)                                      */
+/*  DashboardSection (root container)                                 */
 /* ------------------------------------------------------------------ */
 
 /**
- * Card-like container for grouping form sections.
+ * Card-like container for grouping dashboard sections.
  * Supports collapsible mode via the `expanded` prop.
  */
-export function FormSection({ children, expanded = true, className = "" }: FormSectionProps) {
+export function DashboardSection({ children, expanded = true, className = "" }: DashboardSectionProps) {
   return (
-    <FormSectionContext.Provider value={{ expanded }}>
+    <DashboardSectionContext.Provider value={{ expanded }}>
       <div
-        className={`bg-[var(--ds-section-body-bg)] rounded-xl ${className}`}
+        className={`bg-[var(--ds-section-body-bg)] rounded-xl shadow-sm ${className}`}
       >
         {children}
       </div>
-    </FormSectionContext.Provider>
+    </DashboardSectionContext.Provider>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  FormSection.Header                                                */
+/*  DashboardSection.Header                                           */
 /* ------------------------------------------------------------------ */
 
-function FormSectionHeader({ icon, title, addOn, className = "" }: FormSectionHeaderProps) {
-  const { expanded } = useContext(FormSectionContext);
+function DashboardSectionHeader({ icon, title, addOn, className = "" }: DashboardSectionHeaderProps) {
+  const { expanded } = useContext(DashboardSectionContext);
 
   return (
     <div
@@ -71,11 +76,11 @@ function FormSectionHeader({ icon, title, addOn, className = "" }: FormSectionHe
 }
 
 /* ------------------------------------------------------------------ */
-/*  FormSection.Body (animated collapsible via grid-rows trick)       */
+/*  DashboardSection.Body (animated collapsible via grid-rows trick)  */
 /* ------------------------------------------------------------------ */
 
-function FormSectionBody({ children, className = "" }: { children: ReactNode; className?: string }) {
-  const { expanded } = useContext(FormSectionContext);
+function DashboardSectionBody({ children, className = "" }: { children: ReactNode; className?: string }) {
+  const { expanded } = useContext(DashboardSectionContext);
 
   return (
     <div
@@ -93,8 +98,23 @@ function FormSectionBody({ children, className = "" }: { children: ReactNode; cl
 }
 
 /* ------------------------------------------------------------------ */
+/*  DashboardSection.Footer                                           */
+/* ------------------------------------------------------------------ */
+
+function DashboardSectionFooter({ children, className = "" }: DashboardSectionFooterProps) {
+  return (
+    <div
+      className={`flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-section-header-bg)] rounded-b-xl ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Sub-component assignment                                          */
 /* ------------------------------------------------------------------ */
 
-FormSection.Header = FormSectionHeader;
-FormSection.Body = FormSectionBody;
+DashboardSection.Header = DashboardSectionHeader;
+DashboardSection.Body = DashboardSectionBody;
+DashboardSection.Footer = DashboardSectionFooter;

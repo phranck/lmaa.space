@@ -137,9 +137,26 @@ function Hint({ keys, label }: { keys: string[]; label: string }) {
   );
 }
 
+const HINTS_BAR_MIN_WIDTH = 420;
+
 function HintsBar() {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = React.useState(true);
+
+  React.useEffect(() => {
+    const el = ref.current?.parentElement;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setVisible(entry.contentRect.width >= HINTS_BAR_MIN_WIDTH);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  if (!visible) return null;
+
   return (
-    <div className="flex items-center justify-between gap-3 px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[0.625rem]">
+    <div ref={ref} className="flex items-center justify-between gap-3 px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[0.625rem]">
       <div className="flex items-center gap-2.5">
         <Hint keys={["⌘", "B"]} label="Fett" />
         <Hint keys={["⌘", "I"]} label="Kursiv" />
