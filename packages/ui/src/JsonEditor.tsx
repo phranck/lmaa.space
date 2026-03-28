@@ -22,7 +22,7 @@ export interface JsonEditorProps {
 
 const editorTheme = EditorView.theme({
   "&": {
-    backgroundColor: "var(--ds-input-bg)",
+    backgroundColor: "var(--ds-json-editor-bg, transparent)",
     color: "var(--ds-text)",
     fontSize: "var(--source-font-size, 0.875rem)",
   },
@@ -36,7 +36,7 @@ const editorTheme = EditorView.theme({
     overscrollBehavior: "contain",
   },
   ".cm-gutters": {
-    backgroundColor: "var(--ds-bg-elevated)",
+    backgroundColor: "var(--ds-json-gutter-bg, var(--ds-bg-elevated))",
     color: "var(--ds-text-subtle)",
     borderRight: "1px solid var(--ds-border)",
     minHeight: "100%",
