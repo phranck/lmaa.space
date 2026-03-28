@@ -23,14 +23,13 @@ export interface ReminderFormData {
 export interface ReminderFormProps {
   initial?: ShopReminder | null;
   isActive: boolean;
-  onActiveChange: (active: boolean) => void;
   onSave: (data: ReminderFormData) => void;
   onDelete?: () => void;
   isPending: boolean;
   isDeleting: boolean;
 }
 
-export function ReminderForm({ initial, isActive, onActiveChange, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
+export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
   const { data: emailTemplates = [] } = useEmailTemplates();
 
   const [remindAt, setRemindAt] = useState<string>(() =>

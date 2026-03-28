@@ -161,9 +161,9 @@ function AdminLayoutInner() {
         </div>
       )}
 
-      {/* Fixed Header — full width on mobile, offset by sidebar on desktop */}
+      {/* Fixed Header — floating dock style */}
       <header
-        className="sidebar-aware-header z-30 flex h-14 items-center justify-between px-6 bg-[var(--ds-surface)] border-b border-[var(--ds-border)]"
+        className="sidebar-aware-header z-30 flex h-11 items-center justify-between px-5 mx-3 mt-2 rounded-xl bg-[var(--ds-card-bg,var(--ds-surface))] shadow-sm"
       >
         <div className="flex min-w-0 items-center gap-4">
           <button
