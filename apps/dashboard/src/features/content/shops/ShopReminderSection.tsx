@@ -40,8 +40,6 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
 
   const hasReminder = !!reminder;
 
-  // Sync isActive when reminder data loads
-  const showForm = editing || !hasReminder;
   const expanded = isActive || hasReminder;
   const showPushPrompt = push.state === "unsubscribed" || push.state === "prompt";
 
@@ -110,7 +108,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
             <ReminderForm
               initial={editing ? reminder : null}
               isActive={isActive}
-              onActiveChange={setIsActive}
+
               isPending={setMutation.isPending}
               isDeleting={deleteMutation.isPending}
               onSave={(data) => {
