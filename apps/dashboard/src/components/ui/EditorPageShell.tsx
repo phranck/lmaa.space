@@ -46,7 +46,7 @@ export function EditorPageShell({
       </PageHeader>
 
       <PageBody className={cx("min-h-0", bodyClassName)}>
-        {noCard ? children : <Card className={cx("p-5 mb-3", cardClassName)}>{children}</Card>}
+        {noCard ? children : <Card className={cx("p-2.5 mb-3", cardClassName)}>{children}</Card>}
         {toolbar && <div className="shrink-0 h-14" />}
       </PageBody>
       {toolbar ? <Toolbar className="sidebar-aware-footer !m-0 justify-end">{toolbar}</Toolbar> : null}

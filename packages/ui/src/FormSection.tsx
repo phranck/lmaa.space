@@ -85,7 +85,7 @@ function FormSectionBody({ children, className = "" }: { children: ReactNode; cl
         opacity: expanded ? 1 : 0,
       }}
     >
-      <div className={`flex flex-col gap-3 p-4 ${className}`}>
+      <div className={`flex flex-col gap-3 p-3 ${className}`}>
         {children}
       </div>
     </div>

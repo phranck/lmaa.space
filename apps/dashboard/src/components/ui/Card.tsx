@@ -2,7 +2,7 @@
 export function Card({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={["bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border)]", className]
+      className={["bg-[var(--ds-card-bg,var(--ds-surface))] rounded-card", className]
         .filter(Boolean)
         .join(" ")}
       {...rest}
