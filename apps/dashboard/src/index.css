@@ -33,7 +33,8 @@
   --ds-section-body-bg: #f6f8fe;
   --ds-json-editor-bg: #f6f8fe;
   --ds-json-gutter-bg: #f2f5fb;
-  --ds-md-editor-bg: transparent;
+  --ds-md-editor-bg: #f6f8fe;
+  --ds-form-control-bg: #fff;
 
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
@@ -56,7 +57,9 @@
   --ds-section-body-bg: #212528;
   --ds-json-editor-bg: #212628;
   --ds-json-gutter-bg: #252a2e;
-  --ds-md-editor-bg: transparent;
+  --ds-md-editor-bg: #212628;
+  --ds-form-control-bg: #1d2124;
+  --ds-card-bg: #1b1f22;
   --ds-table-row-separator: hsl(215 10% 18%);
 }
 

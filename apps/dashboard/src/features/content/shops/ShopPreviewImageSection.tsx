@@ -48,8 +48,8 @@ export function ShopPreviewImageSection({
         title={previewImageLabel}
       />
       <FormSection.Body>
-      <div className="flex items-start gap-3">
-        <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
+      <div className="flex items-stretch gap-3">
+        <div className="shrink-0 w-18 aspect-square rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
           {displayImage ? (
             <img src={displayImage} alt="" className="w-full h-full object-contain" />
           ) : name ? (

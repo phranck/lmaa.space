@@ -287,7 +287,7 @@ export function SocialMediaEditor({
             <div className="flex gap-2">
               {/* Platform icon (click to override) + URL input */}
               <div
-                className={`flex flex-1 border rounded-control bg-[var(--ds-input-bg)] transition-colors focus-within:ring-2 ${
+                className={`flex flex-1 border rounded-control bg-[var(--ds-form-control-bg,var(--ds-input-bg))] transition-colors focus-within:ring-2 ${
                   entryError
                     ? "border-red-400 focus-within:ring-red-400/40"
                     : "border-[var(--ds-border)] focus-within:ring-[var(--color-primary)]"
@@ -301,7 +301,7 @@ export function SocialMediaEditor({
                   }}
                   onClick={() => toggleDropdown(entry.id)}
                   aria-label={messages.selectPlatformAriaLabel}
-                  className="shrink-0 w-10 flex items-center justify-center border-r border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-bg-elevated)] transition-colors"
+                  className="shrink-0 w-10 flex items-center justify-center border-r border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-form-control-bg,var(--ds-bg-elevated))] transition-colors"
                 >
                   <Icon size={16} />
                 </button>
@@ -355,7 +355,7 @@ export function SocialMediaEditor({
                 className={`${btnClass} ${
                   openUrl
                     ? "text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-                    : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] cursor-not-allowed"
+                    : "border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-bg-elevated))] text-[var(--ds-text-subtle)] cursor-not-allowed"
                 }`}
               >
                 <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />

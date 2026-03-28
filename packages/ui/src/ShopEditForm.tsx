@@ -244,26 +244,6 @@ export function ShopEditForm({
         </FormSection.Body>
         </FormSection>
 
-        {/* Social Media */}
-        {messages.socialMediaLabel && messages.socialMedia && (
-          <FormSection>
-            <FormSection.Header
-              icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
-              title={messages.socialMediaLabel}
-            />
-            <FormSection.Body>
-            <SocialMediaEditor
-              value={value.socialMedia}
-              onChange={(v) => set("socialMedia", v)}
-              messages={messages.socialMedia}
-              blurOnPaste={blurSocialMediaOnPaste}
-              onValidationChange={onSocialMediaValidationChange}
-            />
-            {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
-            </FormSection.Body>
-          </FormSection>
-        )}
-
         {/* Headquarters + Geo */}
         <FormSection>
           <FormSection.Header
@@ -354,7 +334,7 @@ export function ShopEditForm({
           </FormSection.Body>
         </FormSection>
 
-        {/* Shipping Region + Note + Reminder */}
+        {/* Shipping Region + Note */}
         <FormSection>
           <FormSection.Header
             icon={<TruckIcon weight="duotone" className="w-4 h-4" />}
@@ -387,6 +367,26 @@ export function ShopEditForm({
           </div>
           </FormSection.Body>
         </FormSection>
+
+        {/* Social Media */}
+        {messages.socialMediaLabel && messages.socialMedia && (
+          <FormSection>
+            <FormSection.Header
+              icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
+              title={messages.socialMediaLabel}
+            />
+            <FormSection.Body>
+            <SocialMediaEditor
+              value={value.socialMedia}
+              onChange={(v) => set("socialMedia", v)}
+              messages={messages.socialMedia}
+              blurOnPaste={blurSocialMediaOnPaste}
+              onValidationChange={onSocialMediaValidationChange}
+            />
+            {errors?.socialMedia && <FormErrorText>{errors.socialMedia}</FormErrorText>}
+            </FormSection.Body>
+          </FormSection>
+        )}
 
         {descriptionAside && <div>{descriptionAside}</div>}
       </div>

@@ -14,7 +14,7 @@ const multiSelectVariants = cva(
     variants: {
       variant: {
         default: "border-transparent bg-[var(--color-primary)] text-white",
-        secondary: "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text)]",
+        secondary: "border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[var(--ds-text)]",
         destructive: "border-transparent bg-red-500 text-white",
         inverted: "border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)]",
       },
@@ -198,7 +198,7 @@ export function MultiSelect({
                   }
                 }}
                 placeholder={messages.searchPlaceholder}
-                className="w-full py-1.5 px-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full py-1.5 px-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
             {/* List */}
@@ -277,7 +277,7 @@ export function MultiSelect({
               : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]",
           className,
         )}
-        style={{ backgroundColor: "var(--ds-surface)" }}
+        style={{ backgroundColor: "var(--ds-form-control-bg, var(--ds-surface))" }}
       >
         {value.length > 0 ? (
           <div className="flex flex-wrap items-center gap-1 flex-1 min-w-0">
