@@ -10,14 +10,13 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import {
-  CheckCircleIcon,
-  CircleIcon,
   DownloadIcon,
   HandTapIcon,
   UploadIcon,
 } from "@phosphor-icons/react";
+import { ToggleSwitch } from "@lmaa/ui";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import type {
   FieldOptionsSource,
@@ -409,14 +408,7 @@ export function FormBuilderEditPage() {
       </PageHeader>
 
       {/* Slug editor */}
-      <div className="px-6 pt-2 pb-4 flex items-center gap-3">
-        <Link
-          to="/forms"
-          className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-        >
-          {m.backToList}
-        </Link>
-        <span className="text-[var(--ds-color-neutral-400)]">·</span>
+      <div className="pb-3 flex items-center gap-3">
         <label htmlFor="form-slug" className="text-sm text-[var(--ds-text-muted)] shrink-0">
           {m.slugLabel}:
         </label>
@@ -432,28 +424,16 @@ export function FormBuilderEditPage() {
           />
         </div>
         {config && (
-          <>
-            <span className="text-[var(--ds-color-neutral-400)]">·</span>
-            <button
-              type="button"
-              title={config.isActive ? m.status.deactivate : m.status.activate}
+          <div className="ml-auto flex items-center gap-2">
+            <label htmlFor="form-active-toggle" className="text-sm text-[var(--ds-text-muted)]">
+              {m.status.active}
+            </label>
+            <ToggleSwitch
+              checked={config.isActive}
+              onChange={(checked) => setActive.mutate({ name: formName, isActive: checked })}
               disabled={setActive.isPending}
-              onClick={() => setActive.mutate({ name: formName, isActive: !config.isActive })}
-              className="disabled:opacity-40 transition-opacity"
-            >
-              {config.isActive ? (
-                <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                  <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                  {m.status.active}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
-                  <CircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                  {m.status.inactive}
-                </span>
-              )}
-            </button>
-          </>
+            />
+          </div>
         )}
       </div>
 
