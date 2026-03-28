@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/Sidebar.tsx";
 import { FooterUserInfo } from "@/components/layout/SidebarFooter.tsx";
 import { Card } from "@/components/ui/Card.tsx";
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
+import { BodyCardProvider, useBodyCard } from "@/context/BodyCardContext.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { PageFooterProvider, usePageFooterContext } from "@/context/PageFooterContext.tsx";
 import { PageHeaderProvider, usePageHeaderContext } from "@/context/PageHeaderContext.tsx";
@@ -95,6 +96,7 @@ function AdminLayoutInner() {
   const [editingOwnProfile, setEditingOwnProfile] = useState(false);
   const { title, titleContent, setLeadingEl, setActionsEl } = usePageHeaderContext();
   const { setActionsEl: setFooterActionsEl } = usePageFooterContext();
+  const { chromeless } = useBodyCard();
   const { width: sidebarWidth, onMouseDown: onResizeStart } = useSidebarWidth();
   const hasCustomTitleContent = titleContent !== null;
   const push = usePushNotifications();
@@ -170,9 +172,15 @@ function AdminLayoutInner() {
       </Card>
 
       {/* Body Card */}
-      <Card className="overflow-auto p-3 flex flex-col min-h-0 shadow-sm">
-        <Outlet />
-      </Card>
+      {chromeless ? (
+        <div className="flex items-center justify-center min-h-0">
+          <Outlet />
+        </div>
+      ) : (
+        <Card className="overflow-auto p-3 flex flex-col min-h-0 shadow-sm self-start">
+          <Outlet />
+        </Card>
+      )}
 
       {/* Footer Card */}
       <Card className="col-span-2 md:col-span-2 flex items-center gap-3 py-4 shadow-sm">
@@ -240,7 +248,9 @@ export function AdminLayout() {
   return (
     <PageHeaderProvider>
       <PageFooterProvider>
-        <AdminLayoutInner />
+        <BodyCardProvider>
+          <AdminLayoutInner />
+        </BodyCardProvider>
       </PageFooterProvider>
     </PageHeaderProvider>
   );

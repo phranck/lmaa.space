@@ -365,6 +365,7 @@ export function ShopsPage() {
 
         {!isLoading && shops.length === 0 && (
           <ContentUnavailableView
+            chromeless
             icon={<StorefrontIcon weight="duotone" aria-hidden />}
             title={shopsMessages.noShops}
             subtitle={shopsMessages.noShopsHint}
@@ -374,6 +375,7 @@ export function ShopsPage() {
 
         {!isLoading && shops.length > 0 && filtered.length === 0 && (
           <ContentUnavailableView
+            chromeless
             icon={<MagnifyingGlassIcon weight="duotone" aria-hidden />}
             title={`${shopsMessages.noResultsPrefix} „${search}".`}
             subtitle={shopsMessages.noResultsHint}

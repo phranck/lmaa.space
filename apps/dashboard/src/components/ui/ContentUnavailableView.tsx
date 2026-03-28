@@ -1,10 +1,15 @@
 import type React from "react";
+import { useEffect } from "react";
+
+import { useBodyCard } from "@/context/BodyCardContext.tsx";
 
 interface ContentUnavailableViewProps {
   /** SF Symbol or any icon node — caller controls size and color. */
   icon: React.ReactNode;
   title: string;
   subtitle: string;
+  /** When true, signals the body card to hide its chrome (bg, border, shadow). */
+  chromeless?: boolean;
   className?: string;
 }
 
@@ -20,8 +25,18 @@ export function ContentUnavailableView({
   icon,
   title,
   subtitle,
+  chromeless = false,
   className,
 }: ContentUnavailableViewProps) {
+  const { setChromeless } = useBodyCard();
+
+  useEffect(() => {
+    if (chromeless) {
+      setChromeless(true);
+      return () => setChromeless(false);
+    }
+  }, [chromeless, setChromeless]);
+
   return (
     <div
       className={[

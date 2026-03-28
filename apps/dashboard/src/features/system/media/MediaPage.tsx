@@ -453,6 +453,7 @@ export function MediaPage() {
         ) : (
           !isLoading && (
             <ContentUnavailableView
+              chromeless
               icon={<ImageIcon weight="duotone" aria-hidden />}
               title={mediaMessages.empty}
               subtitle={mediaMessages.emptyHint}
