@@ -47,6 +47,7 @@ export function ShopPreviewImageSection({
         icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
         title={previewImageLabel}
       />
+      <FormSection.Body>
       <div className="flex items-start gap-3">
         <div className="shrink-0 w-14 h-14 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
           {displayImage ? (
@@ -92,6 +93,7 @@ export function ShopPreviewImageSection({
           </div>
         </div>
       </div>
+      </FormSection.Body>
     </FormSection>
   );
 }
