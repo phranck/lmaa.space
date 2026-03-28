@@ -148,7 +148,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                 icon={<BracketsCurlyIcon weight="duotone" className="w-4 h-4" />}
                 title={shopFormI18n.messages.jsonToolTitle ?? ""}
               />
-              <FormSection.Body>
+              <FormSection.Body className="!p-0">
                 <JsonEditor
                   id="shop-check-json"
                   value={shopCheckJson}
@@ -156,8 +156,9 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                   onPaste={handleShopCheckJsonPaste}
                   placeholder="{}"
                   height="11rem"
+                  className="!border-0 !rounded-none !rounded-b-xl"
                 />
-                {jsonImportError && <FormErrorText>{jsonImportError}</FormErrorText>}
+                {jsonImportError && <FormErrorText className="px-4 pb-3">{jsonImportError}</FormErrorText>}
               </FormSection.Body>
             </FormSection>
           }
