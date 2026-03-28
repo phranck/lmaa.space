@@ -1,4 +1,4 @@
-import { ArrowSquareOutIcon, MapPinIcon, ShareNetworkIcon, StorefrontIcon, TruckIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, MapPinIcon, MarkdownLogoIcon, ShareNetworkIcon, StorefrontIcon, TruckIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
@@ -399,23 +399,24 @@ export function ShopEditForm({
         {detailsAside && <div className="min-h-80">{detailsAside}</div>}
 
         {/* Description (MarkdownEditor) */}
-        <div className="flex-1 flex flex-col min-h-[24rem]">
-          <FormLabel htmlFor="sef-description">
-            <span className="flex items-center gap-1.5">
-              {messages.descriptionLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
-            </span>
-          </FormLabel>
-          <MarkdownEditor
-            id="sef-description"
-            value={value.description}
-            onChange={(v) => set("description", v)}
-            rows={15}
-            resizable
-            className={`flex-1 ${errors?.description ? "border-red-400" : ""}`}
+        <FormSection>
+          <FormSection.Header
+            icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
+            title={messages.descriptionLabel}
           />
-          {errors?.description && <FormErrorText>{errors.description}</FormErrorText>}
-          {descriptionHint}
-        </div>
+          <FormSection.Body className="!p-0 min-h-[24rem]">
+            <MarkdownEditor
+              id="sef-description"
+              value={value.description}
+              onChange={(v) => set("description", v)}
+              rows={15}
+              resizable
+              className={`!border-0 !rounded-none !rounded-b-xl flex-1 ${errors?.description ? "border-red-400" : ""}`}
+            />
+            {errors?.description && <FormErrorText className="px-4 pb-3">{errors.description}</FormErrorText>}
+            {descriptionHint}
+          </FormSection.Body>
+        </FormSection>
       </div>
     </div>
   );

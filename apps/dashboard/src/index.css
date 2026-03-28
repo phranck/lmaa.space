@@ -33,6 +33,7 @@
   --ds-section-body-bg: #f6f8fe;
   --ds-json-editor-bg: #f6f8fe;
   --ds-json-gutter-bg: #f2f5fb;
+  --ds-md-editor-bg: transparent;
 
   /* Backward-compatible aliases */
   --color-primary: var(--ds-btn-primary-bg);
@@ -54,7 +55,8 @@
   --ds-section-header-bg: #2a3033;
   --ds-section-body-bg: #212528;
   --ds-json-editor-bg: #212628;
-  --ds-json-gutter-bg: #30363c;
+  --ds-json-gutter-bg: #252a2e;
+  --ds-md-editor-bg: transparent;
   --ds-table-row-separator: hsl(215 10% 18%);
 }
 
