@@ -2,6 +2,7 @@ import {
   ClockIcon,
   EyeIcon,
   FileTextIcon,
+  HeartIcon,
   InfoIcon,
   MapPinIcon,
   PauseCircleIcon,
@@ -160,6 +161,21 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
             </div>
           ) : (
             <span className="text-sm text-[var(--ds-text-muted)]">–</span>
+          ),
+      },
+      {
+        id: "likes",
+        header: shopsMessages.table.likes,
+        className: "w-20",
+        sortKey: (shop) => shop.likeCount,
+        cell: (shop) =>
+          shop.likeCount > 0 ? (
+            <span className="inline-flex items-center gap-1 text-sm text-red-400">
+              <HeartIcon weight="duotone" className="w-3.5 h-3.5" />
+              {shop.likeCount}
+            </span>
+          ) : (
+            <span className="text-sm text-[var(--ds-text-subtle)]">0</span>
           ),
       },
       {

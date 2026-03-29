@@ -36,7 +36,7 @@ import {
 
 type VisibilityFilter = "all" | ShopVisibility;
 type GeoFilter = "all" | "with" | "without" | "needsReview";
-const SHOP_SORTABLE_COLUMNS = new Set(["name", "region"]);
+const SHOP_SORTABLE_COLUMNS = new Set(["name", "region", "likes"]);
 
 function parseShopsSort(searchParams: URLSearchParams): SortState | null {
   const id = searchParams.get("sort");

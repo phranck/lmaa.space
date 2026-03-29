@@ -32,6 +32,7 @@ export interface ShopSummary {
   categories: ShopCategory[];
   region: RegionCode[];
   visibility: ShopVisibility;
+  likeCount: number;
   deleteReason?: string | null;
   deletedWasReported?: boolean;
   deletedAt?: string | null;
