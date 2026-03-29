@@ -1,7 +1,8 @@
 import { CalendarBlankIcon, CaretLeftIcon, CaretRightIcon, ClockIcon, DotIcon } from "@phosphor-icons/react";
 import { de } from "date-fns/locale";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
+import { createPortal } from "react-dom";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -38,6 +39,39 @@ function emitValue(day: Date | undefined, hours: string, minutes: string, onChan
   onChange(`${y}-${mo}-${d}T${pad(h)}:${pad(m)}`);
 }
 
+function usePopoverPosition(triggerRef: React.RefObject<HTMLButtonElement | null>, open: boolean) {
+  const [style, setStyle] = useState<React.CSSProperties>({});
+
+  const update = useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openAbove = spaceAbove > spaceBelow;
+
+    setStyle({
+      position: "fixed",
+      left: rect.left,
+      ...(openAbove ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
+      zIndex: 9999,
+    });
+  }, [triggerRef]);
+
+  useEffect(() => {
+    if (!open) return;
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open, update]);
+
+  return style;
+}
+
 export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const { locale } = useI18n();
   const isDe = locale === "de";
@@ -46,7 +80,9 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const [hours, setHours] = useState(parts.hours);
   const [minutes, setMinutes] = useState(parts.minutes);
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const popoverStyle = usePopoverPosition(triggerRef, open);
 
   useEffect(() => {
     const p = toLocalParts(value);
@@ -57,7 +93,11 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        triggerRef.current && !triggerRef.current.contains(target) &&
+        popoverRef.current && !popoverRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     }
@@ -87,8 +127,9 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const displayTime = selected ? `${hours}:${minutes}` : "";
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center gap-2 px-3 py-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] text-sm hover:border-[var(--ds-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-colors"
@@ -104,8 +145,8 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
         )}
       </button>
 
-      {open && (
-        <div className="absolute z-50 mt-1 left-0 rounded-card border border-[var(--ds-border)] bg-[var(--ds-surface)] shadow-lg p-3 w-max">
+      {open && createPortal(
+        <div ref={popoverRef} style={popoverStyle} className="rounded-card border border-[var(--ds-border)] bg-[var(--ds-surface)] shadow-lg p-3 w-max">
           <DayPicker
             mode="single"
             selected={selected}
@@ -166,8 +207,9 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
             />
             <span className="text-xs text-[var(--ds-text-subtle)]">Uhr</span>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   );
 }

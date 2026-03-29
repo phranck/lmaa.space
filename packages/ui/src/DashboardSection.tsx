@@ -82,17 +82,11 @@ function DashboardSectionHeader({ icon, title, addOn, className = "" }: Dashboar
 function DashboardSectionBody({ children, className = "" }: { children: ReactNode; className?: string }) {
   const { expanded } = useContext(DashboardSectionContext);
 
+  if (!expanded) return null;
+
   return (
-    <div
-      className="overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out"
-      style={{
-        maxHeight: expanded ? "150rem" : "0",
-        opacity: expanded ? 1 : 0,
-      }}
-    >
-      <div className={`flex flex-col gap-3 p-3 ${className}`}>
-        {children}
-      </div>
+    <div className={`flex flex-col gap-3 p-3 ${className}`}>
+      {children}
     </div>
   );
 }
