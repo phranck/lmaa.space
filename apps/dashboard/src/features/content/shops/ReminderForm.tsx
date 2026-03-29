@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
 import { AlertDialog, FormLabel, ToggleSwitch, formBtnBaseClass, formInputClass } from "@lmaa/ui";
 
+import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
 import { RECURRENCE_OPTIONS, UNIT_OPTIONS, WEEKDAYS } from "./reminder-constants.ts";
@@ -73,14 +74,8 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
     <div className="space-y-3">
       {/* Date + time */}
       <div>
-        <FormLabel htmlFor="reminder-date">Datum &amp; Uhrzeit</FormLabel>
-        <input
-          id="reminder-date"
-          type="datetime-local"
-          value={remindAt}
-          onChange={(e) => setRemindAt(e.target.value)}
-          className={formInputClass}
-        />
+        <FormLabel>Datum &amp; Uhrzeit</FormLabel>
+        <DateTimePicker value={remindAt} onChange={setRemindAt} />
       </div>
 
       {/* Recurrence */}
