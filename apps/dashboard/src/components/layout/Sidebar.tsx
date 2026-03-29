@@ -361,6 +361,7 @@ function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
                       {scans.length}
                     </span>
                   )}
+                  <span className="w-3.5 shrink-0" />
                 </>
               }
             />
