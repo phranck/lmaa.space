@@ -214,11 +214,19 @@ const metaDescription = shop.description
               </Fragment>
             )}
             <div class="flex flex-col items-center gap-1">
+              {shop.likeCount > 0 && (
+                <span
+                  class="text-xs text-stone-400 tabular-nums leading-none"
+                  data-like-count-value
+                  data-shop-id={String(shop.id)}
+                >{shop.likeCount}</span>
+              )}
               <button
                 type="button"
                 class="like-btn w-9 h-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-red-400 hover:bg-stone-100 transition-colors cursor-pointer relative overflow-visible"
                 data-action="like"
                 data-shop-id={String(shop.id)}
+                data-like-token={shop.likeToken}
                 aria-label={`${shop.name} liken`}
               >
                 <HeartIcon weight="regular" className="like-icon-regular w-5 h-5" />

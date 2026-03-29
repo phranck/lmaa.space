@@ -1,0 +1,1 @@
+ALTER TABLE "shops" ADD COLUMN "like_count" integer DEFAULT 0 NOT NULL;

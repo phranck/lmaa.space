@@ -274,6 +274,13 @@
       "when": 1774631933977,
       "tag": "0038_furry_gamora",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1774808593873,
+      "tag": "0039_glorious_shockwave",
+      "breakpoints": true
     }
   ]
 }

@@ -65,6 +65,7 @@ export const shops = pgTable(
     rejectionToken: text("rejection_token").unique(),
     rejectionAdminNote: text("rejection_admin_note"),
     rejectionLongText: text("rejection_long_text"),
+    likeCount: integer("like_count").notNull().default(0),
     needsReview: boolean("needs_review").notNull().default(false),
     reviewData: jsonb("review_data").$type<Record<string, unknown> | null>(),
   },

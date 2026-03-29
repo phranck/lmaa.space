@@ -38,6 +38,7 @@ import {
   getFilteredPublicShops,
   getPublicFilterOptions,
   searchFilteredPublicCatalog,
+  toggleShopLike,
 } from "../services/public.js";
 
 /**
@@ -240,6 +241,43 @@ publicRoutes.post(
     }
 
     return ok(c, { message: "Danke für dein Feedback!" });
+  },
+);
+
+// POST /api/shops/:id/like — toggle like counter (rate limited, challenge-token protected)
+const likeBodySchema = z.object({
+  liked: z.boolean(),
+  token: z.string().min(1),
+  fingerprint: z.string().min(1),
+});
+
+publicRoutes.post(
+  "/shops/:id/like",
+  rateLimit({ max: 10, windowMs: 60 * 1000 }),
+  zValidator("json", likeBodySchema),
+  async (c) => {
+    const id = Number(c.req.param("id"));
+    if (!Number.isInteger(id) || id <= 0) {
+      return fail(c, 400, "Ungültige Shop-ID.");
+    }
+
+    const { liked, token } = c.req.valid("json");
+
+    const result = await toggleShopLike(id, liked, token);
+    if (!result.ok) {
+      if (result.reason === "expired_token") {
+        return fail(c, 403, "Der Token ist abgelaufen. Bitte lade die Seite neu.");
+      }
+      if (result.reason === "invalid_token") {
+        return fail(c, 400, "Ungültiger Token.");
+      }
+      if (result.reason === "not_found") {
+        return fail(c, 404, "Shop nicht gefunden.");
+      }
+      return fail(c, 400, "Ungültige Anfrage.");
+    }
+
+    return ok(c, { message: "OK" });
   },
 );
 
