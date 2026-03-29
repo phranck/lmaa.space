@@ -173,11 +173,11 @@ function AdminLayoutInner() {
 
       {/* Body Card */}
       {chromeless ? (
-        <div className="flex items-center justify-center min-h-0">
+        <div className="flex items-center justify-center min-h-0 overflow-auto">
           <Outlet />
         </div>
       ) : (
-        <Card className="overflow-auto p-3 flex flex-col min-h-0 shadow-sm self-start">
+        <Card className="overflow-auto p-3 flex flex-col min-h-0 shadow-sm">
           <Outlet />
         </Card>
       )}

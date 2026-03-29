@@ -50,8 +50,6 @@ interface FieldConfigPanelProps {
 export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPanelProps) {
   const { messages } = useI18n();
   const m = messages.formBuilder.panel;
-  const ft = messages.formBuilder.fieldTypes as unknown as Record<string, string>;
-
   const isRichText = field.type === "richtext";
   const isButton = field.type === "button";
   const isHeadline = field.type === "headline";

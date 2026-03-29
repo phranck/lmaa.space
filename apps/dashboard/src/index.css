@@ -139,6 +139,7 @@ button {
   grid-template-rows: auto 1fr auto;
   grid-template-columns: var(--sidebar-w, 14rem) 1fr;
   height: 100vh;
+  overflow: hidden;
 }
 @media (max-width: 767px) {
   .dashboard-grid {
