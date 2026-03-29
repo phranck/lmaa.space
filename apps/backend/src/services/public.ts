@@ -1,9 +1,9 @@
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { getDomain } from "tldts";
 
 import { env } from "../config/env.js";
-import { failure, success } from "../lib/result.js";
+import { type Result, failure, success } from "../lib/result.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
 import {
   SHOPS_CACHE_KEY,
@@ -30,6 +30,8 @@ import {
   getPublishedContentPageBySlug,
   getRejectionPageByToken,
   insertDeadLinkReport,
+  incrementShopLikeCount,
+  decrementShopLikeCount,
   insertShopConcernReport,
   listAllPublicShopsWithCategories,
   listPublicCategoriesWithShopCount,
@@ -63,6 +65,78 @@ export function normalizeShopHostname(url: string): string | null {
  */
 export function hashIp(ip: string): string {
   return createHmac("sha256", env.IP_HASH_SALT).update(ip).digest("hex");
+}
+
+const LIKE_TOKEN_MAX_AGE_S = 30 * 60;
+
+/**
+ * Generates a stateless HMAC challenge token for the like endpoint.
+ *
+ * @param shopId - Shop id to bind the token to.
+ * @returns Token string in format `hmac.timestamp`.
+ */
+export function generateLikeToken(shopId: number): string {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const payload = `${shopId}:${timestamp}`;
+  const hmac = createHmac("sha256", env.IP_HASH_SALT).update(payload).digest("hex");
+  return `${hmac}.${timestamp}`;
+}
+
+/**
+ * Validates a like challenge token for a given shop.
+ *
+ * @param shopId - Expected shop id.
+ * @param token - Token string from client.
+ * @returns Validation result with reason on failure.
+ */
+function validateLikeToken(shopId: number, token: string): { valid: boolean; reason?: string } {
+  const dotIndex = token.lastIndexOf(".");
+  if (dotIndex === -1) return { valid: false, reason: "invalid_format" };
+
+  const hmac = token.slice(0, dotIndex);
+  const timestampStr = token.slice(dotIndex + 1);
+  const timestamp = Number(timestampStr);
+  if (!Number.isFinite(timestamp)) return { valid: false, reason: "invalid_timestamp" };
+
+  const now = Math.floor(Date.now() / 1000);
+  if (now - timestamp > LIKE_TOKEN_MAX_AGE_S) return { valid: false, reason: "expired" };
+
+  const payload = `${shopId}:${timestamp}`;
+  const expected = createHmac("sha256", env.IP_HASH_SALT).update(payload).digest("hex");
+
+  if (hmac.length !== expected.length) return { valid: false, reason: "invalid_hmac" };
+
+  const a = Buffer.from(hmac, "hex");
+  const b = Buffer.from(expected, "hex");
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return { valid: false, reason: "invalid_hmac" };
+
+  return { valid: true };
+}
+
+/**
+ * Validates the challenge token and toggles the like counter for a shop.
+ *
+ * @param shopId - Shop id.
+ * @param liked - `true` to increment, `false` to decrement.
+ * @param token - HMAC challenge token from the client.
+ * @returns Result indicating success or typed failure reason.
+ */
+export async function toggleShopLike(
+  shopId: number,
+  liked: boolean,
+  token: string,
+): Promise<Result<Record<string, never>, "invalid_token" | "expired_token" | "not_found">> {
+  const tokenResult = validateLikeToken(shopId, token);
+  if (!tokenResult.valid) {
+    return failure(tokenResult.reason === "expired" ? "expired_token" : "invalid_token");
+  }
+
+  const updated = liked
+    ? await incrementShopLikeCount(shopId)
+    : await decrementShopLikeCount(shopId);
+
+  if (!updated) return failure("not_found");
+  return success();
 }
 
 /**
@@ -113,6 +187,7 @@ export async function getManagedPublicShopById(id: number) {
     data: {
       ...shop,
       headquarters: hqMap.get(id) ?? null,
+      likeToken: generateLikeToken(id),
     },
   });
 }

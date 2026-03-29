@@ -107,6 +107,22 @@ document.addEventListener("cancel", (e) => {
   closeDialog(dialog);
 });
 
+// ── Browser fingerprint ─────────────────────────────────────────────
+async function generateFingerprint(): Promise<string> {
+  const parts = [
+    navigator.userAgent,
+    navigator.language,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    `${screen.width}x${screen.height}`,
+    String(screen.colorDepth),
+  ];
+  const data = new TextEncoder().encode(parts.join("|"));
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 // ── Like (localStorage) ──────────────────────────────────────────────
 const LIKES_KEY = "lmaa-liked-shops";
 
@@ -210,6 +226,42 @@ document.addEventListener("click", (e) => {
 
   saveLikedShops(liked);
   applyLikeState(btn, isNowLiked);
+
+  // Optimistic like count update
+  const countEl = document.querySelector<HTMLElement>(
+    `[data-like-count-value][data-shop-id="${shopId}"]`,
+  );
+  if (countEl) {
+    const current = Number.parseInt(countEl.textContent ?? "0", 10);
+    const next = Math.max(0, current + (isNowLiked ? 1 : -1));
+    countEl.textContent = String(next);
+    countEl.classList.toggle("hidden", next === 0);
+  } else if (isNowLiked) {
+    // Create count element if it does not exist yet (first like)
+    const wrapper = btn.parentElement;
+    if (wrapper) {
+      const span = document.createElement("span");
+      span.className = "text-xs text-stone-400 tabular-nums leading-none";
+      span.dataset.likeCountValue = "";
+      span.dataset.shopId = shopId;
+      span.textContent = "1";
+      wrapper.insertBefore(span, btn);
+    }
+  }
+
+  // Fire-and-forget: sync like to server
+  const likeToken = btn.dataset.likeToken;
+  if (likeToken) {
+    generateFingerprint().then((fp) => {
+      fetch(`${API_BASE}/shops/${shopId}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: isNowLiked, token: likeToken, fingerprint: fp }),
+      }).catch(() => {
+        /* silent - like is best-effort */
+      });
+    });
+  }
 });
 
 // Handle share action

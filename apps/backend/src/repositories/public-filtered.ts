@@ -152,6 +152,7 @@ export async function listFilteredShopsByCategoryId(
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.social_media as "socialMedia",
+           s.like_count as "likeCount",
            hq.latitude, hq.longitude,
            COALESCE(
              json_agg(json_build_object('id', cat.id, 'slug', cat.slug, 'name', cat.name))
@@ -183,6 +184,7 @@ export async function listFilteredPublicShops(filters: ShopFilterParams) {
            s.og_image as "ogImage",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
+           s.like_count as "likeCount",
            hq.latitude, hq.longitude,
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
@@ -218,6 +220,7 @@ export async function searchFilteredPublicShops(
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
+           s.like_count as "likeCount",
            hq.latitude, hq.longitude,
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))

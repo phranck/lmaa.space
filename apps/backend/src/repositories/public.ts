@@ -29,6 +29,7 @@ export type CategoryShopRow = Pick<
   | "description"
   | "ogImage"
   | "socialMedia"
+  | "likeCount"
 >;
 /**
  * Public shop row with hydrated categories.
@@ -129,6 +130,7 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
       description: shops.description,
       ogImage: shops.ogImage,
       socialMedia: shops.socialMedia,
+      likeCount: shops.likeCount,
     })
     .from(shops)
     .innerJoin(
@@ -150,6 +152,7 @@ export async function listAllPublicShopsWithCategories() {
            s.og_image as "ogImage",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
+           s.like_count as "likeCount",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
              FILTER (WHERE c.id IS NOT NULL),
@@ -179,6 +182,7 @@ export async function searchPublicShops(query: string) {
            s.og_image as "ogImage", s.contact_email as "contactEmail",
            s.is_active as "isActive",
            s.social_media as "socialMedia",
+           s.like_count as "likeCount",
            s.created_at as "createdAt", s.updated_at as "updatedAt",
            COALESCE(
              json_agg(json_build_object('id', c.id, 'slug', c.slug, 'name', c.name))
@@ -459,12 +463,14 @@ export async function getFullPublicShopById(id: number) {
       pickup: string;
       createdAt: string;
       updatedAt: string;
+      likeCount: number;
     }
   >(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
+           s.like_count as "likeCount",
            s.created_at as "createdAt",
            s.updated_at as "updatedAt",
            COALESCE(
@@ -529,4 +535,34 @@ export async function insertShopConcernReport(
   ipHash: string,
 ): Promise<void> {
   await db.insert(shopConcernReports).values({ shopId, reason, ipHash });
+}
+
+/**
+ * Atomically increments the like counter for a public shop.
+ *
+ * @param shopId - Shop id.
+ * @returns `true` if the shop was found and updated, `false` otherwise.
+ */
+export async function incrementShopLikeCount(shopId: number): Promise<boolean> {
+  const result = await db
+    .update(shops)
+    .set({ likeCount: sql`like_count + 1` })
+    .where(and(eq(shops.id, shopId), eq(shops.visibility, "public")))
+    .returning({ id: shops.id });
+  return result.length > 0;
+}
+
+/**
+ * Atomically decrements the like counter for a public shop (floored at 0).
+ *
+ * @param shopId - Shop id.
+ * @returns `true` if the shop was found and updated, `false` otherwise.
+ */
+export async function decrementShopLikeCount(shopId: number): Promise<boolean> {
+  const result = await db
+    .update(shops)
+    .set({ likeCount: sql`GREATEST(like_count - 1, 0)` })
+    .where(and(eq(shops.id, shopId), eq(shops.visibility, "public")))
+    .returning({ id: shops.id });
+  return result.length > 0;
 }

@@ -88,6 +88,8 @@ export interface Shop {
   rejectionAdminNote?: string | null;
   rejectionLongText?: string | null;
   headquarters?: ShopHeadquarters | null;
+  likeCount: number;
+  likeToken?: string;
 
   needsReview: boolean;
   reviewData?: Record<string, unknown> | null;
