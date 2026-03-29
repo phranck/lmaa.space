@@ -1,16 +1,21 @@
 import {
+  ArticleIcon,
+  BlueprintIcon,
   CaretCircleDoubleDownIcon,
   CaretCircleDoubleUpIcon,
   ChartBarIcon,
+  ChartLineUpIcon,
   CheckCircleIcon,
-  ClockIcon,
   CircleIcon,
+  ClockIcon,
   CopyIcon,
   EnvelopeOpenIcon,
   EyeSlashIcon,
   FileIcon,
   GearIcon,
+  GearSixIcon,
   HandshakeIcon,
+  HouseSimpleIcon,
   ImageIcon,
   LinkIcon,
   ListBulletsIcon,
@@ -29,6 +34,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
 import type { AdminRole } from "@lmaa/shared";
+import { DashboardSection } from "@lmaa/ui";
 
 import {
   CollapsibleSidebarGroup,
@@ -36,7 +42,6 @@ import {
 } from "@/components/layout/CollapsibleSidebarGroup.tsx";
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
-import { SidebarItem } from "@/components/layout/SidebarItem.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
 import { useAffiliateScans } from "@/features/affiliate/hooks/useAffiliateScans.ts";
@@ -334,53 +339,45 @@ function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
   const isScanning = job?.status === "running" || job?.status === "pending";
 
   return (
-    <>
-      <SidebarSection label="Affiliate" />
-      <div className="space-y-0.5">
-        <NavLink
-          to="/affiliate"
-          end
-          onClick={onItemClick}
-          className={({ isActive }) =>
-            `flex items-center gap-3 py-2 text-sm font-medium ${
-              isActive
-                ? "-mx-3 px-6 bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                : "px-3 rounded-control text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-            }`
-          }
-        >
-          <span className="shrink-0 opacity-70">
-            <HandshakeIcon weight="duotone" className="w-4 h-4" />
-          </span>
-          <span className="flex-1">{s.affiliate}</span>
-          {isScanning && (
-            <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/15 text-red-400 shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
-              Live
-            </span>
-          )}
-          {scans.length > 0 && (
-            <>
-              <span className={`h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0 ${!isScanning ? "ml-auto" : ""}`}>
-                {scans.length}
-              </span>
-              <span className="w-3.5 shrink-0" />
-            </>
+    <DashboardSection className="mt-3">
+      <DashboardSection.Header icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />} title="Affiliate" />
+      <DashboardSection.Body className="!gap-0.5 !p-2">
+        <NavLink to="/affiliate" end onClick={onItemClick} className="contents">
+          {({ isActive }) => (
+            <DashboardSection.Item
+              icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />}
+              label={s.affiliate}
+              active={isActive}
+              addOn={
+                <>
+                  {isScanning && (
+                    <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/15 text-red-400 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
+                      Live
+                    </span>
+                  )}
+                  {scans.length > 0 && (
+                    <span className={`h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0 ${!isScanning ? "ml-auto" : ""}`}>
+                      {scans.length}
+                    </span>
+                  )}
+                </>
+              }
+            />
           )}
         </NavLink>
-        <SidebarItem
-          to="/affiliate/settings"
-          label={s.affiliateSettings}
-          icon={<GearIcon weight="duotone" className="w-4 h-4" />}
-          onClick={onItemClick}
-        />
-      </div>
-    </>
+        <NavLink to="/affiliate/settings" onClick={onItemClick} className="contents">
+          {({ isActive }) => (
+            <DashboardSection.Item
+              icon={<GearIcon weight="duotone" className="w-4 h-4" />}
+              label={s.affiliateSettings}
+              active={isActive}
+            />
+          )}
+        </NavLink>
+      </DashboardSection.Body>
+    </DashboardSection>
   );
-}
-
-function SidebarSection({ label }: { label: string }) {
-  return <p className="section-header -mx-3 px-3 mt-3 first:mt-0">{label}</p>;
 }
 
 /**
@@ -490,59 +487,71 @@ export function Sidebar({
         </div>
 
         {/* Allgemein */}
-        <SidebarSection label={s.sectionGeneral} />
-        <div className="space-y-0.5">
-          <SidebarItem
-            to="/"
-            label={s.overview}
-            icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
-            end
-            onClick={onItemClick}
-          />
-          <ReportsGroup
-            onItemClick={onItemClick}
-            globalOpenState={groupOpenState}
-            globalOpenVersion={groupOpenVersion}
-            onOpenChange={(open) => handleGroupOpenChange("sidebar-reports-open", open)}
-            suggestionsCount={suggestionsCount}
-            pendingCount={pendingSubmissions.length}
-            deadLinksCount={deadLinks.length}
-            shopReportsCount={shopConcerns.length}
-          />
-        </div>
-
-        {/* Content */}
-        <SidebarSection label={s.sectionContent} />
-        <div className="space-y-0.5">
-          <SidebarItem
-            to="/shops"
-            label={s.shops}
-            icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
-            badge={shops.length}
-            onClick={onItemClick}
-          />
-          <SidebarItem
-            to="/categories"
-            label={s.categories}
-            icon={<TagIcon weight="duotone" className="w-4 h-4" />}
-            badge={categories.length}
-            onClick={onItemClick}
-          />
-          {isAdmin && (
-            <PagesGroup
+        <DashboardSection className="mt-3">
+          <DashboardSection.Header icon={<HouseSimpleIcon weight="duotone" className="w-4 h-4" />} title={s.sectionGeneral} />
+          <DashboardSection.Body className="!gap-0.5 !p-2">
+            <NavLink to="/" end onClick={onItemClick} className="contents">
+              {({ isActive }) => (
+                <DashboardSection.Item
+                  icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
+                  label={s.overview}
+                  active={isActive}
+                />
+              )}
+            </NavLink>
+            <ReportsGroup
               onItemClick={onItemClick}
               globalOpenState={groupOpenState}
               globalOpenVersion={groupOpenVersion}
-              onOpenChange={(open) => handleGroupOpenChange("sidebar-pages-open", open)}
+              onOpenChange={(open) => handleGroupOpenChange("sidebar-reports-open", open)}
+              suggestionsCount={suggestionsCount}
+              pendingCount={pendingSubmissions.length}
+              deadLinksCount={deadLinks.length}
+              shopReportsCount={shopConcerns.length}
             />
-          )}
-        </div>
+          </DashboardSection.Body>
+        </DashboardSection>
+
+        {/* Content */}
+        <DashboardSection className="mt-3">
+          <DashboardSection.Header icon={<ArticleIcon weight="duotone" className="w-4 h-4" />} title={s.sectionContent} />
+          <DashboardSection.Body className="!gap-0.5 !p-2">
+            <NavLink to="/shops" onClick={onItemClick} className="contents">
+              {({ isActive }) => (
+                <DashboardSection.Item
+                  icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
+                  label={s.shops}
+                  badge={shops.length}
+                  active={isActive}
+                />
+              )}
+            </NavLink>
+            <NavLink to="/categories" onClick={onItemClick} className="contents">
+              {({ isActive }) => (
+                <DashboardSection.Item
+                  icon={<TagIcon weight="duotone" className="w-4 h-4" />}
+                  label={s.categories}
+                  badge={categories.length}
+                  active={isActive}
+                />
+              )}
+            </NavLink>
+            {isAdmin && (
+              <PagesGroup
+                onItemClick={onItemClick}
+                globalOpenState={groupOpenState}
+                globalOpenVersion={groupOpenVersion}
+                onOpenChange={(open) => handleGroupOpenChange("sidebar-pages-open", open)}
+              />
+            )}
+          </DashboardSection.Body>
+        </DashboardSection>
 
         {/* Builders */}
         {isAdmin && (
-          <>
-            <SidebarSection label={s.sectionTemplates} />
-            <div className="space-y-0.5">
+          <DashboardSection className="mt-3">
+            <DashboardSection.Header icon={<BlueprintIcon weight="duotone" className="w-4 h-4" />} title={s.sectionTemplates} />
+            <DashboardSection.Body className="!gap-0.5 !p-2">
               <FormsGroup
                 onItemClick={onItemClick}
                 globalOpenState={groupOpenState}
@@ -555,29 +564,35 @@ export function Sidebar({
                 globalOpenVersion={groupOpenVersion}
                 onOpenChange={(open) => handleGroupOpenChange("sidebar-email-templates-open", open)}
               />
-              <SidebarItem
-                to="/footer-builder"
-                label={s.footerBuilder}
-                icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
-                onClick={onItemClick}
-              />
-            </div>
-          </>
+              <NavLink to="/footer-builder" onClick={onItemClick} className="contents">
+                {({ isActive }) => (
+                  <DashboardSection.Item
+                    icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
+                    label={s.footerBuilder}
+                    active={isActive}
+                  />
+                )}
+              </NavLink>
+            </DashboardSection.Body>
+          </DashboardSection>
         )}
 
         {/* Analytics */}
         {isAdmin && (
-          <>
-            <SidebarSection label={s.sectionAnalytics} />
-            <div className="space-y-0.5">
-              <SidebarItem
-                to="/analytics"
-                label={s.analytics}
-                icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
-                onClick={onItemClick}
-              />
-            </div>
-          </>
+          <DashboardSection className="mt-3">
+            <DashboardSection.Header icon={<ChartLineUpIcon weight="duotone" className="w-4 h-4" />} title={s.sectionAnalytics} />
+            <DashboardSection.Body className="!gap-0.5 !p-2">
+              <NavLink to="/analytics" onClick={onItemClick} className="contents">
+                {({ isActive }) => (
+                  <DashboardSection.Item
+                    icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
+                    label={s.analytics}
+                    active={isActive}
+                  />
+                )}
+              </NavLink>
+            </DashboardSection.Body>
+          </DashboardSection>
         )}
 
         {/* Affiliate */}
@@ -587,37 +602,49 @@ export function Sidebar({
 
         {/* System */}
         {isAdmin && (
-          <>
-            <SidebarSection label={s.sectionSystem} />
-            <div className="space-y-0.5">
-              <SidebarItem
-                to="/users"
-                label={s.users}
-                icon={<UsersThreeIcon weight="duotone" className="w-4 h-4" />}
-                badge={users.length}
-                onClick={onItemClick}
-              />
-              <SidebarItem
-                to="/media"
-                label={s.media}
-                icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
-                badge={media.length}
-                onClick={onItemClick}
-              />
-              <SidebarItem
-                to="/pages/navigations"
-                label={s.navigations}
-                icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
-                onClick={onItemClick}
-              />
-              <SidebarItem
-                to="/markdown-widgets"
-                label={s.markdownWidgets}
-                icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
-                onClick={onItemClick}
-              />
-            </div>
-          </>
+          <DashboardSection className="mt-3">
+            <DashboardSection.Header icon={<GearSixIcon weight="duotone" className="w-4 h-4" />} title={s.sectionSystem} />
+            <DashboardSection.Body className="!gap-0.5 !p-2">
+              <NavLink to="/users" onClick={onItemClick} className="contents">
+                {({ isActive }) => (
+                  <DashboardSection.Item
+                    icon={<UsersThreeIcon weight="duotone" className="w-4 h-4" />}
+                    label={s.users}
+                    badge={users.length}
+                    active={isActive}
+                  />
+                )}
+              </NavLink>
+              <NavLink to="/media" onClick={onItemClick} className="contents">
+                {({ isActive }) => (
+                  <DashboardSection.Item
+                    icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+                    label={s.media}
+                    badge={media.length}
+                    active={isActive}
+                  />
+                )}
+              </NavLink>
+              <NavLink to="/pages/navigations" onClick={onItemClick} className="contents">
+                {({ isActive }) => (
+                  <DashboardSection.Item
+                    icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
+                    label={s.navigations}
+                    active={isActive}
+                  />
+                )}
+              </NavLink>
+              <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
+                {({ isActive }) => (
+                  <DashboardSection.Item
+                    icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
+                    label={s.markdownWidgets}
+                    active={isActive}
+                  />
+                )}
+              </NavLink>
+            </DashboardSection.Body>
+          </DashboardSection>
         )}
       </nav>
 
