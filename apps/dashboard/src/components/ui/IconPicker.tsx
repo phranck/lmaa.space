@@ -44,7 +44,7 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
             type="button"
             title={noneLabel}
             onClick={() => onChange(undefined)}
-            className={`h-8 flex items-center justify-center rounded-control border text-xs transition-colors ${
+            className={`h-8 flex items-center justify-center rounded-control border text-xs ${
               !value
                 ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                 : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text-subtle)] hover:border-[var(--color-primary)]"
@@ -71,7 +71,7 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
                 type="button"
                 title={entry.label}
                 onClick={() => onChange(entry.name)}
-                className={`h-9 flex items-center justify-center rounded-control border transition-colors ${
+                className={`h-9 flex items-center justify-center rounded-control border ${
                   value === entry.name
                     ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                     : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"

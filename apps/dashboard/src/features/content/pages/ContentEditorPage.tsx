@@ -178,7 +178,7 @@ function EditorHeaderActions({
           type="button"
           onClick={onDecreaseFont}
           disabled={!canDecreaseFont}
-          className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
           title={editorMessages.decreaseFontSize}
         >
           <MinusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
@@ -188,7 +188,7 @@ function EditorHeaderActions({
           type="button"
           onClick={onIncreaseFont}
           disabled={!canIncreaseFont}
-          className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30 transition-colors"
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
           title={editorMessages.increaseFontSize}
         >
           <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
@@ -198,7 +198,7 @@ function EditorHeaderActions({
       <button
         type="button"
         onClick={onPreview}
-        className="flex items-center gap-2 px-3 h-8 min-w-8 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+        className="flex items-center gap-2 px-3 h-8 min-w-8 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
       >
         <EyeIcon weight="duotone" className="w-3.5 h-3.5" />
         {editorMessages.preview}
@@ -208,7 +208,7 @@ function EditorHeaderActions({
         type="button"
         onClick={onSave}
         disabled={isSaving}
-        className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+        className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
       >
         <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
         {saved ? editorMessages.saved : common.save}
@@ -218,7 +218,7 @@ function EditorHeaderActions({
         <button
           type="button"
           onClick={onOpenDelete}
-          className="flex items-center justify-center w-8 h-8 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)] transition-colors"
+          className="flex items-center justify-center w-8 h-8 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)]"
           title={editorMessages.deletePage}
         >
           <TrashIcon weight="duotone" className="w-3.5 h-3.5" />

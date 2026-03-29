@@ -713,7 +713,7 @@ function DeleteSubmissionDialog({
         <button
           type="button"
           onClick={onClose}
-          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
         >
           {common.cancel}
         </button>
@@ -721,7 +721,7 @@ function DeleteSubmissionDialog({
           type="button"
           disabled={isPending}
           onClick={onDelete}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60"
         >
           <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
           {isPending ? "..." : common.delete}
@@ -811,7 +811,7 @@ function ApproveSubmissionReviewCard({
           <button
             type="button"
             onClick={() => navigator.clipboard.writeText(reviewing.shopUrl)}
-            className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
+            className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
             aria-label={copyUrlLabel}
           >
             <CopyIcon weight="duotone" className="w-4 h-4" />
@@ -856,7 +856,7 @@ function ApproveSubmissionReviewCard({
         <button
           type="button"
           onClick={onClose}
-          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
         >
           {cancelLabel}
         </button>
@@ -864,7 +864,7 @@ function ApproveSubmissionReviewCard({
           type="button"
           disabled={isPending}
           onClick={onSubmit}
-          className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
+          className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
           {isPending ? (
             "…"

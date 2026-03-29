@@ -231,7 +231,7 @@ export function MarkdownWidgetsPage() {
           type="button"
           onClick={handleSave}
           disabled={!config || save.isPending}
-          className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+          className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
         >
           <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
           {savedOk ? common.saved : save.isPending ? common.saving : common.save}
@@ -282,7 +282,7 @@ export function MarkdownWidgetsPage() {
                           key={widget.key}
                           type="button"
                           onClick={() => setSelectedKey(widget.key)}
-                          className={`w-full rounded-card border px-3 py-3 text-left transition-colors ${
+                          className={`w-full rounded-card border px-3 py-3 text-left ${
                             isSelected
                               ? "border-[var(--color-primary)] bg-[var(--ds-bg-elevated)]"
                               : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"

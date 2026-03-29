@@ -154,7 +154,7 @@ function UserAvatarEditor({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
         >
           <TrayArrowUpIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           {usersMessages.editCard.uploadImage}
@@ -162,7 +162,7 @@ function UserAvatarEditor({
         <button
           type="button"
           onClick={onUseGravatar}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
         >
           <UserCircleIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           {usersMessages.editCard.useGravatar}
@@ -171,7 +171,7 @@ function UserAvatarEditor({
           <button
             type="button"
             onClick={onRemoveAvatar}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700"
           >
             <TrashIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
             {usersMessages.editCard.removeAvatar}
@@ -508,7 +508,7 @@ function UserEditCardForm({
         <button
           type="button"
           onClick={onClose}
-          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
         >
           {common.cancel}
         </button>
@@ -516,7 +516,7 @@ function UserEditCardForm({
           type="button"
           onClick={() => void handleSave()}
           disabled={!canSave}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
         >
           <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
           {isPending ? common.saving : common.save}

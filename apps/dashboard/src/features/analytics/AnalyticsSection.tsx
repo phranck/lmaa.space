@@ -152,7 +152,7 @@ function CollapsibleList({
           type="button"
           onClick={toggleExpanded}
           aria-expanded={expanded}
-          className="self-start inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
+          className="self-start inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
         >
           <CaretDownIcon
             weight="duotone"

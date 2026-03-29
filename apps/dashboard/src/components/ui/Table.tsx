@@ -27,7 +27,7 @@ function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTableSection
 
 function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowElement>) {
   return (
-    <tr className={`hover:bg-[var(--ds-row-hover)] transition-colors ${className}`} {...props} />
+    <tr className={`hover:bg-[var(--ds-row-hover)] ${className}`} {...props} />
   );
 }
 
@@ -171,7 +171,7 @@ export function DataTable<T>({
                 <button
                   type="button"
                   onClick={() => handleSort(col)}
-                  className="inline-flex items-center gap-1.5 hover:text-[var(--ds-text)] transition-colors"
+                  className="inline-flex items-center gap-1.5 hover:text-[var(--ds-text)]"
                 >
                   {col.header}
                   {sort?.id === col.id ? (

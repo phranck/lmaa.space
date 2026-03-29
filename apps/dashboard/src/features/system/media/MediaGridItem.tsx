@@ -23,7 +23,7 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
     <button
       type="button"
       onClick={() => onSelect(asset.id)}
-      className={`relative text-left bg-[var(--ds-surface)] rounded-card border flex flex-col overflow-hidden transition-colors card-hover ${
+      className={`relative text-left bg-[var(--ds-surface)] rounded-card border flex flex-col overflow-hidden card-hover ${
         selected
           ? "border-[var(--color-primary)] ring-2 ring-[color-mix(in_srgb,var(--color-primary)_22%,transparent)]"
           : "border-[var(--ds-border)]"

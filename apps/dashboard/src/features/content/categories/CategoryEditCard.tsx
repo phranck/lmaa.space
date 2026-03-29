@@ -215,7 +215,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               <button
                 type="button"
                 onClick={handleDeleteImage}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium transition-colors w-full"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium w-full"
               >
                 <TrashIcon weight="duotone" className="w-3 h-3" />
                 {categoriesMessages.editCard.deleteImage}
@@ -224,7 +224,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium w-full"
             >
               <TrayArrowUpIcon weight="duotone" className="w-3 h-3" />
               {categoriesMessages.editCard.upload}
@@ -232,7 +232,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             <button
               type="button"
               onClick={() => setShowUnsplash(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium transition-colors w-full"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium w-full"
             >
               <span className="text-[10px] font-bold leading-none">U</span>
               {categoriesMessages.editCard.unsplash}
@@ -315,7 +315,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             <button
               type="button"
               onClick={onClose}
-              className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+              className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
             >
               {common.cancel}
             </button>
@@ -323,7 +323,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               type="button"
               onClick={() => handleSave()}
               disabled={!canSave}
-              className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+              className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
             >
               <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
               {saveMutation.isPending ? common.saving : common.save}

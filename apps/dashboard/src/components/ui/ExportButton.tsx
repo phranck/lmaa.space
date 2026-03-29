@@ -17,7 +17,7 @@ export function ExportButton({ onClick, disabled, tooltip, label, children }: Ex
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="flex items-center gap-1.5 h-9 px-3 text-sm text-[var(--ds-btn-primary-text)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="flex items-center gap-1.5 h-9 px-3 text-sm text-[var(--ds-btn-primary-text)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40 disabled:cursor-not-allowed"
         title={tooltip}
       >
         <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />

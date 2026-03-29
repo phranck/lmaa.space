@@ -140,7 +140,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
                     key={iso}
                     type="button"
                     onClick={() => toggleDay(iso)}
-                    className={`h-7 w-7 rounded text-xs font-medium transition-colors ${
+                    className={`h-7 w-7 rounded text-xs font-medium ${
                       customDaysOfWeek.has(iso)
                         ? "bg-[var(--ds-text-subtle)] text-[var(--ds-bg)]"
                         : "bg-[var(--ds-bg)] border border-[var(--ds-border)] text-[var(--ds-text-subtle)] hover:border-[var(--ds-border-strong)]"
@@ -208,7 +208,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
                     type="button"
                     onClick={() => navigator.clipboard.writeText(`{{${v}}}`)}
                     title="In Zwischenablage kopieren"
-                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors cursor-copy"
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] cursor-copy"
                   >
                     {`{{${v}}}`}
                   </button>

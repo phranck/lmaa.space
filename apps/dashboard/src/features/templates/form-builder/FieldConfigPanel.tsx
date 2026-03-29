@@ -162,7 +162,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 key={value}
                 type="button"
                 onClick={() => set("headlineLevel", value)}
-                className={`h-8 rounded-control border text-xs font-medium transition-colors ${
+                className={`h-8 rounded-control border text-xs font-medium ${
                   (field.headlineLevel ?? "h2") === value
                     ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                     : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
@@ -254,7 +254,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 key={value}
                 type="button"
                 onClick={() => set("variant", value)}
-                className={`h-8 rounded-control text-xs font-medium transition-colors ${base} ${
+                className={`h-8 rounded-control text-xs font-medium ${base} ${
                   (field.variant ?? "default") === value ? active : inactive
                 }`}
               >
@@ -359,7 +359,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 type="button"
                 aria-label={`${n} ${m.spanAriaOf} 12`}
                 onClick={() => set("span", n)}
-                className={`h-4 rounded-sm transition-colors ${
+                className={`h-4 rounded-sm ${
                   n <= (field.span ?? 12)
                     ? "bg-[var(--color-primary)]"
                     : "bg-[var(--ds-border)] hover:bg-[var(--ds-text-subtle)]"
@@ -429,7 +429,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 key={value}
                 type="button"
                 onClick={() => set("buttonType", value)}
-                className={`h-8 rounded-control border text-xs font-medium transition-colors ${
+                className={`h-8 rounded-control border text-xs font-medium ${
                   (field.buttonType ?? "button") === value
                     ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                     : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
@@ -459,7 +459,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 key={value}
                 type="button"
                 onClick={() => set("buttonWidth", value)}
-                className={`flex-1 h-8 rounded-control border text-xs font-medium transition-colors ${
+                className={`flex-1 h-8 rounded-control border text-xs font-medium ${
                   (field.buttonWidth ?? "automatic") === value
                     ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                     : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
@@ -490,7 +490,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 key={value}
                 type="button"
                 onClick={() => set("buttonAlign", value)}
-                className={`flex-1 h-8 rounded-control border text-xs font-medium transition-colors ${
+                className={`flex-1 h-8 rounded-control border text-xs font-medium ${
                   (field.buttonAlign ?? "left") === value
                     ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                     : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
@@ -537,7 +537,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 key={value}
                 type="button"
                 onClick={() => set("buttonDisplay", value)}
-                className={`flex-1 h-8 rounded-control border text-xs font-medium transition-colors ${
+                className={`flex-1 h-8 rounded-control border text-xs font-medium ${
                   (field.buttonDisplay ?? "both") === value
                     ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                     : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
@@ -578,7 +578,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                     });
                   }
                 }}
-                className={`h-8 rounded-control border text-xs font-medium transition-colors ${
+                className={`h-8 rounded-control border text-xs font-medium ${
                   (field.buttonAction?.type ?? undefined) === value
                     ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                     : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"

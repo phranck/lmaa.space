@@ -26,7 +26,7 @@ const hintClass = "text-xs text-[var(--ds-text-muted)] mt-1";
 const sectionClass =
   "rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4";
 const linkBtnClass =
-  "h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] transition-colors";
+  "h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]";
 
 /* ------------------------------------------------------------------ */
 /*  Tab config                                                        */
@@ -161,7 +161,7 @@ export function AffiliateSettingsPage() {
           type="button"
           onClick={handleSave}
           disabled={!dirty || saveSetting.isPending}
-          className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+          className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
           <FloppyDiskIcon weight="duotone" className="w-3.5 h-3.5" />
           {saveSetting.isPending ? messages.common.saving : messages.common.save}
@@ -253,7 +253,7 @@ function NetworkValidationButton({ network }: { network: string }) {
         type="button"
         onClick={() => validate.mutate(network)}
         disabled={validate.isPending}
-        className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="h-9 px-3 flex items-center gap-1.5 rounded-control border border-[var(--ds-border)] text-sm font-medium text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {validate.isPending ? t.validating : t.validateConnection}
       </button>

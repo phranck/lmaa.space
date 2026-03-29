@@ -106,7 +106,7 @@ export function ShopDeleteReasonCard({
           type="button"
           onClick={onCancel}
           disabled={isPending}
-          className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] rounded-control text-sm text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors"
+          className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] rounded-control text-sm text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]"
         >
           {common.cancel}
         </button>
@@ -114,7 +114,7 @@ export function ShopDeleteReasonCard({
           type="button"
           onClick={() => onConfirm(reason.trim(), wasReported, deleteMode)}
           disabled={isPending}
-          className="py-1.5 px-4 bg-red-600 text-white rounded-control text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+          className="py-1.5 px-4 bg-red-600 text-white rounded-control text-sm font-medium hover:bg-red-700 disabled:opacity-50"
         >
           {isPending
             ? shopsMessages.deleteCard.deleting

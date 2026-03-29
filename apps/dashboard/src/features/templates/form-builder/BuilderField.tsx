@@ -88,7 +88,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
       {...attributes}
       {...listeners}
       onClick={onSelect}
-      className={`group/field relative flex w-full items-center px-3 py-2.5 rounded-control border text-sm cursor-pointer transition-colors text-left ${
+      className={`group/field relative flex w-full items-center px-3 py-2.5 rounded-control border text-sm cursor-pointer text-left ${
         (field.span ?? 12) <= 2 ? "justify-center" : "justify-start gap-2"
       } ${
         isSelected
@@ -138,7 +138,7 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute -top-3 -right-3 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--ds-surface)] text-[var(--ds-text-subtle)] hover:text-[var(--ds-danger-text)] transition-colors opacity-0 group-hover/field:opacity-100"
+        className="absolute -top-3 -right-3 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--ds-surface)] text-[var(--ds-text-subtle)] hover:text-[var(--ds-danger-text)] opacity-0 group-hover/field:opacity-100"
       >
         <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path

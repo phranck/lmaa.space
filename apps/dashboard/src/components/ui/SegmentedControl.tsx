@@ -160,7 +160,7 @@ export function SegmentedControl<T extends string>({
             aria-pressed={isActive}
             aria-label={iconOnly ? (opt.label ?? String(opt.value)) : undefined}
             className={[
-              "relative z-10 flex items-center justify-center gap-1.5 rounded-[4px] text-sm font-medium transition-colors",
+              "relative z-10 flex items-center justify-center gap-1.5 rounded-[4px] text-sm font-medium",
               h,
               w,
               px,

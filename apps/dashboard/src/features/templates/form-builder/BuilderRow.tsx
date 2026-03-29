@@ -104,7 +104,7 @@ export function BuilderRow({
             <div
               ref={setFreeRef}
               style={{ gridColumn: `span ${freeSpan}` }}
-              className={`h-full min-h-9 rounded-control border-2 border-dashed flex items-center justify-center text-xs transition-colors ${
+              className={`h-full min-h-9 rounded-control border-2 border-dashed flex items-center justify-center text-xs ${
                 isDropOver
                   ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--color-primary)]"
                   : "border-[var(--ds-border)] text-[var(--ds-text-subtle)]"

@@ -233,7 +233,7 @@ export function MediaPage() {
           type="button"
           onClick={() => syncMedia.mutate()}
           disabled={syncMedia.isPending}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] disabled:opacity-60"
         >
           <ArrowsClockwiseIcon weight="duotone" className={`w-3.5 h-3.5 ${syncMedia.isPending ? "animate-spin" : ""}`} />
           Sync
@@ -243,7 +243,7 @@ export function MediaPage() {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploadMedia.isPending}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
         >
           <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
           {uploadMedia.isPending ? mediaMessages.uploading : mediaMessages.upload}
@@ -346,14 +346,14 @@ export function MediaPage() {
                             draftName.trim().length === 0 ||
                             (draftName.trim() === selectedAsset.displayName && (draftAlias.trim() || null) === (selectedAsset.alias ?? null))
                           }
-                          className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60"
+                          className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
                         >
                           {renameMedia.isPending ? common.saving : mediaMessages.saveName}
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(selectedAsset)}
-                          className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+                          className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                         >
                           <TrashIcon weight="duotone" className="w-4 h-4" />
                         </button>
@@ -422,7 +422,7 @@ export function MediaPage() {
                         <button
                           type="button"
                           onClick={() => void handleCopyUrl()}
-                          className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
                         >
                           <CopyIcon weight="duotone" className="w-4 h-4" />
                           {copied ? mediaMessages.copied : mediaMessages.copyUrl}
@@ -431,7 +431,7 @@ export function MediaPage() {
                           href={selectedAsset.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
                         >
                           <LinkIcon weight="duotone" className="w-4 h-4" />
                           {mediaMessages.openFile}

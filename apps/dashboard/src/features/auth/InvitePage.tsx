@@ -151,7 +151,7 @@ export function InvitePage() {
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+              className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
             >
               {inviteMessages.toLogin}
             </button>
@@ -160,7 +160,7 @@ export function InvitePage() {
                 type="button"
                 disabled={isSubmitting || password.length < 8 || confirmPassword.length < 8}
                 onClick={handleSubmit}
-                className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-60"
+                className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
               >
                 {isSubmitting ? inviteMessages.submitLoading : inviteMessages.submit}
               </button>

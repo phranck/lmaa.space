@@ -236,7 +236,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
         <button
           type="button"
           onClick={onClose}
-          className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+          className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
         >
           {common.cancel}
         </button>
@@ -244,7 +244,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
           <button
             type="button"
             onClick={handleCopyInviteLink}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
           >
             <CopyIcon weight="duotone" className="w-3.5 h-3.5" />
             {copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite}
@@ -254,7 +254,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             type="button"
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
           >
             <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             {createMutation.isPending

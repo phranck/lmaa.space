@@ -69,7 +69,7 @@ export function CollapsibleSidebarGroup({
         type="button"
         onClick={toggleOpen}
         aria-expanded={localOpen}
-        className="flex w-full items-center gap-3 px-3 py-2 rounded-control text-sm font-medium text-left select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)] transition-colors"
+        className="flex w-full items-center gap-3 px-3 py-2 rounded-control text-sm font-medium text-left select-none text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
       >
         <span className="shrink-0 opacity-70">{icon}</span>
         <span className="flex-1">{label}</span>

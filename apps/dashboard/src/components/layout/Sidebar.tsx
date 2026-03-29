@@ -441,7 +441,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={() => handleToggleAllGroups(!areAllGroupsOpen)}
-            className="flex w-full items-center justify-center gap-2 h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs font-medium text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors"
+            className="flex w-full items-center justify-center gap-2 h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs font-medium text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
             aria-label={areAllGroupsOpen ? s.collapseAllAria : s.expandAllAria}
             title={areAllGroupsOpen ? s.collapseAllAria : s.expandAllAria}
           >

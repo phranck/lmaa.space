@@ -214,7 +214,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
         <button
           type="button"
           onClick={onClose}
-          className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors rounded-control hover:bg-[var(--ds-bg-elevated)]"
+          className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] rounded-control hover:bg-[var(--ds-bg-elevated)]"
           aria-label={categoriesMessages.unsplash.closeAria}
         >
           <XCircleIcon weight="duotone" className="w-5 h-5" />

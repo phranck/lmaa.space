@@ -113,7 +113,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
         <button
           type="button"
           onClick={onRemove}
-          className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-danger-text)] transition-colors"
+          className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-danger-text)]"
           aria-label={m.stepRemoveAria}
         >
           <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
@@ -377,7 +377,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
               <button
                 type="button"
                 onClick={() => addStep(pendingStepType)}
-                className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+                className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
               >
                 <PlusCircleIcon weight="duotone" className="w-3 h-3" />
                 {m.addStepButton}
