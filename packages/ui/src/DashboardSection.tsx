@@ -35,6 +35,16 @@ export interface DashboardSectionFooterProps {
   className?: string;
 }
 
+export interface DashboardSectionItemProps {
+  icon: ReactNode;
+  label: string;
+  badge?: number;
+  active?: boolean;
+  addOn?: ReactNode;
+  className?: string;
+  onClick?: () => void;
+}
+
 /* ------------------------------------------------------------------ */
 /*  DashboardSection (root container)                                 */
 /* ------------------------------------------------------------------ */
@@ -106,9 +116,44 @@ function DashboardSectionFooter({ children, className = "" }: DashboardSectionFo
 }
 
 /* ------------------------------------------------------------------ */
+/*  DashboardSection.Item                                             */
+/* ------------------------------------------------------------------ */
+
+function DashboardSectionItem({
+  icon,
+  label,
+  badge,
+  active,
+  addOn,
+  className = "",
+  onClick,
+}: DashboardSectionItemProps) {
+  return (
+    <div
+      className={`flex items-center gap-3 py-2 px-3 rounded-control text-sm font-medium transition-colors ${
+        active
+          ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+          : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
+      } ${className}`}
+      onClick={onClick}
+    >
+      <span className="shrink-0 opacity-70">{icon}</span>
+      <span className="flex-1">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="ml-auto h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+          {badge}
+        </span>
+      )}
+      {addOn}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Sub-component assignment                                          */
 /* ------------------------------------------------------------------ */
 
 DashboardSection.Header = DashboardSectionHeader;
 DashboardSection.Body = DashboardSectionBody;
 DashboardSection.Footer = DashboardSectionFooter;
+DashboardSection.Item = DashboardSectionItem;
