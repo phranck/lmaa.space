@@ -217,6 +217,7 @@ export interface DashboardMessages {
       noReason: string;
       wasReported: string;
       needsReview: string;
+      likes: string;
     };
     exportLabel: string;
     exportTooltip: string;
@@ -1203,6 +1204,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noReason: "Kein Grund angegeben",
         wasReported: "Shop wurde gemeldet",
         needsReview: "Review",
+        likes: "Likes",
       },
       exportLabel: "Exportieren",
       exportTooltip: "Shops als JSON exportieren",
@@ -2190,6 +2192,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noReason: "No reason provided",
         wasReported: "Shop was reported",
         needsReview: "Review",
+        likes: "Likes",
       },
       exportLabel: "Export",
       exportTooltip: "Export shops as JSON",

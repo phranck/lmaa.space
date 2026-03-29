@@ -2,6 +2,7 @@ import {
   ArrowCounterClockwiseIcon,
   DownloadIcon,
   FileTextIcon,
+  HeartIcon,
   SealCheckIcon,
   TrashIcon,
   UploadSimpleIcon,
@@ -84,6 +85,14 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
     <>
       <EditorPageShell
         title={controller.title}
+        titleContent={
+          !controller.isNew && controller.activeShop?.likeCount != null ? (
+            <span className="inline-flex items-center gap-1 text-sm text-red-400 font-normal">
+              <HeartIcon weight="duotone" className="w-4 h-4" />
+              {controller.activeShop.likeCount}
+            </span>
+          ) : undefined
+        }
         backLabel={backLabel}
         onBack={() => navigate(returnTo)}
         headerContent={
