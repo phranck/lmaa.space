@@ -307,7 +307,7 @@ export function AffiliateListPage() {
                   <tr
                     key={scan.id}
                     onClick={() => openPane(scan)}
-                    className={`border-b border-[var(--ds-surface-hover)] cursor-pointer hover:bg-[var(--ds-surface-hover)] transition-colors ${selected?.id === scan.id ? "bg-[var(--ds-surface-hover)]" : ""}`}
+                    className={`border-b border-[var(--ds-surface-hover)] cursor-pointer hover:bg-[var(--ds-surface-hover)] ${selected?.id === scan.id ? "bg-[var(--ds-surface-hover)]" : ""}`}
                   >
                     <td className="px-4 py-2.5">
                       <div className="font-medium text-[var(--ds-text)]">{scan.shopName}</div>
@@ -374,7 +374,7 @@ export function AffiliateListPage() {
             <button
               type="button"
               onClick={closePane}
-              className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+              className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
             >
               <XCircleIcon weight="duotone" className="w-5 h-5" />
             </button>
@@ -503,7 +503,7 @@ export function AffiliateListPage() {
           <button
             type="button"
             onClick={() => setShowDeleteAll(false)}
-            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
           >
             {messages.common.cancel}
           </button>
@@ -518,7 +518,7 @@ export function AffiliateListPage() {
                 },
               });
             }}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60"
           >
             <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
             {deleteAll.isPending ? "..." : messages.common.delete}
@@ -556,7 +556,7 @@ function ApplyAtNetworkButton({ scan }: { scan: AffiliateScanResult }) {
           href={applyUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full h-9 flex items-center justify-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+          className="w-full h-9 flex items-center justify-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
           <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
           {t.applyAtNetwork}

@@ -70,7 +70,7 @@ export function EmailTemplateImportConflictDialog({
             type="button"
             disabled={!newName.trim()}
             onClick={() => onRename(newName.trim())}
-            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors disabled:opacity-50"
+            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] disabled:opacity-50"
           >
             {m.importRename}
           </button>
@@ -78,7 +78,7 @@ export function EmailTemplateImportConflictDialog({
           <button
             type="button"
             onClick={() => setShowRename(true)}
-            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
+            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
           >
             {m.importRename}
           </button>

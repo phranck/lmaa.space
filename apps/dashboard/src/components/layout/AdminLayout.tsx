@@ -130,7 +130,7 @@ function AdminLayoutInner() {
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 -ml-2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+              className="md:hidden p-2 -ml-2 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
               aria-label={messages.layout.menuOpen}
             >
               <ListIcon weight="duotone" className="w-5 h-5" />

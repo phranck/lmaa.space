@@ -47,7 +47,7 @@ export function SegmentSwitch<T extends string>({
             disabled={opt.disabled}
             onClick={() => onChange(opt.value)}
             aria-pressed={active}
-            className={`inline-flex items-center gap-1 ${s.button} rounded-[calc(var(--radius-control)-2px)] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+            className={`inline-flex items-center gap-1 ${s.button} rounded-[calc(var(--radius-control)-2px)] font-medium disabled:opacity-40 disabled:cursor-not-allowed ${
               active
                 ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
                 : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"

@@ -383,7 +383,7 @@ export function FormBuilderEditPage() {
             type="button"
             onClick={handleExport}
             disabled={!config}
-            className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
           >
             <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
             {m.exportForm}
@@ -401,7 +401,7 @@ export function FormBuilderEditPage() {
             type="button"
             onClick={handleSave}
             disabled={saveMutation.isPending}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
           >
             <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
             {saveMutation.isPending ? messages.common.saving : m.save}

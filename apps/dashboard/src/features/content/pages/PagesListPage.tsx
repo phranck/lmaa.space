@@ -223,7 +223,7 @@ export function PagesListPage() {
           <button
             type="button"
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors"
+            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
           >
             <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             {text.newPage}
@@ -283,7 +283,7 @@ export function PagesListPage() {
               <button
                 type="submit"
                 disabled={createPage.isPending || !slug || !title}
-                className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+                className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
               >
                 <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
                 {createPage.isPending ? text.creating : text.create}
@@ -291,7 +291,7 @@ export function PagesListPage() {
               <button
                 type="button"
                 onClick={handleCancelCreate}
-                className="px-4 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+                className="px-4 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
               >
                 {common.cancel}
               </button>
@@ -352,7 +352,7 @@ export function PagesListPage() {
             <button
               type="button"
               onClick={() => setDeleteTarget(null)}
-              className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors"
+              className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
             >
               {common.cancel}
             </button>
@@ -360,7 +360,7 @@ export function PagesListPage() {
               type="button"
               disabled={deletePage.isPending}
               onClick={handleDeleteConfirm}
-              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60 transition-colors"
+              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60"
             >
               <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
               {deletePage.isPending ? "…" : common.delete}

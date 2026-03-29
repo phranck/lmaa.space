@@ -128,7 +128,7 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
                   key={value}
                   type="button"
                   onClick={() => onChange({ ...block, style: value })}
-                  className={`flex-1 h-8 rounded-control border text-xs font-medium transition-colors ${
+                  className={`flex-1 h-8 rounded-control border text-xs font-medium ${
                     block.style === value
                       ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
                       : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"

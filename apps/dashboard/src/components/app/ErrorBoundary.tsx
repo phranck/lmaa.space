@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={() => {
                   window.location.href = "/";
                 }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium text-sm"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium text-sm"
               >
                 {boundaryMessages.reload}
               </button>
@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={() => {
                   this.setState({ hasError: false });
                 }}
-                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-medium text-sm"
+                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded hover:bg-slate-300 dark:hover:bg-slate-600 font-medium text-sm"
               >
                 {boundaryMessages.retry}
               </button>

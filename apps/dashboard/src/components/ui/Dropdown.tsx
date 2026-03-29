@@ -148,7 +148,7 @@ export function Dropdown<T extends string = string>({
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={label}
-          className="w-full h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors whitespace-nowrap"
+          className="w-full h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] whitespace-nowrap"
         >
           {current?.icon && <span className="shrink-0">{current.icon}</span>}
           <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
@@ -209,7 +209,7 @@ export function Dropdown<T extends string = string>({
                 type="button"
                 onClick={() => selectOption(v)}
                 onMouseEnter={() => setHighlightIndex(index)}
-                className={`w-full h-8 flex items-center gap-2 px-3 text-sm transition-colors whitespace-nowrap ${
+                className={`w-full h-8 flex items-center gap-2 px-3 text-sm whitespace-nowrap ${
                   value === v
                     ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] font-medium"
                     : index === highlightIndex

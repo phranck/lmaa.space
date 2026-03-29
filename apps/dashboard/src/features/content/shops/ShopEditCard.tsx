@@ -88,7 +88,7 @@ function ShopEditCardLayout({
         <button
           type="button"
           onClick={onClose}
-          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
         >
           {controller.common.cancel}
         </button>
@@ -96,7 +96,7 @@ function ShopEditCardLayout({
           <button
             type="button"
             onClick={() => controller.handleOpenRejectCard(false)}
-            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors"
+            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
           >
             <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
             {controller.shopsMessages.editCard.rejectSubmit}
@@ -112,7 +112,7 @@ function ShopEditCardLayout({
             })
           }
           disabled={!controller.canSave}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] transition-colors disabled:opacity-40"
+          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
         >
           {controller.isPending ? controller.common.saving : controller.common.save}
         </button>

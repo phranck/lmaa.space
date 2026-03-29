@@ -86,7 +86,7 @@ export function FooterCanvas({
         <button
           type="button"
           onClick={onRemoveColumn}
-          className="shrink-0 text-[var(--ds-text-muted)] hover:text-red-500 transition-colors"
+          className="shrink-0 text-[var(--ds-text-muted)] hover:text-red-500"
           title={footerMessages.removeColumn}
         >
           <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
@@ -96,7 +96,7 @@ export function FooterCanvas({
       {/* Droppable area */}
       <div
         ref={setDroppableRef}
-        className={`flex-1 min-h-48 rounded-card border-2 border-dashed transition-colors ${
+        className={`flex-1 min-h-48 rounded-card border-2 border-dashed ${
           isOver
             ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
             : "border-[var(--ds-border)] bg-[var(--ds-surface)]"

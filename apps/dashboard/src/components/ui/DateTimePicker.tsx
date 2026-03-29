@@ -132,7 +132,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-2 px-3 py-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] text-sm hover:border-[var(--ds-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] text-sm hover:border-[var(--ds-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
       >
         <CalendarBlankIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-muted)]" />
         {selected ? (
@@ -160,13 +160,13 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
               month_caption: "rdp-month-caption flex items-center justify-between mb-2",
               caption_label: "text-sm font-semibold text-[var(--ds-text)]",
               nav: "rdp-nav flex items-center gap-0.5",
-              button_previous: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors",
-              button_next: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors",
+              button_previous: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
+              button_next: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
               weekdays: "rdp-weekdays",
               weekday: "text-xs font-semibold text-[var(--ds-text-subtle)] w-9 h-8 uppercase",
               week: "rdp-week",
               day: "text-sm w-9 h-9 text-center",
-              day_button: "w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+              day_button: "w-9 h-9 rounded-full flex items-center justify-center hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
               today: "font-bold",
               selected: "[&>button]:bg-[var(--color-primary)] [&>button]:text-white [&>button]:hover:bg-[var(--ds-btn-primary-hover)]",
               outside: "text-[var(--ds-text-subtle)] opacity-40",

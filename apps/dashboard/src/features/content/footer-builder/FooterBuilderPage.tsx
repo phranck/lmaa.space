@@ -351,7 +351,7 @@ export function FooterBuilderPage() {
             type="button"
             onClick={handleSave}
             disabled={save.isPending}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
           >
             <DownloadIcon weight="duotone" className="w-4 h-4" />
             {save.isPending ? common.saving : common.save}
@@ -399,7 +399,7 @@ export function FooterBuilderPage() {
             <button
               type="button"
               onClick={handleAddColumn}
-              className="flex items-center gap-1.5 shrink-0 self-start px-3 py-2 rounded-control border border-dashed border-[var(--ds-border)] text-sm text-[var(--ds-text-secondary)] hover:text-[var(--ds-text)] hover:border-[var(--color-primary)] transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 shrink-0 self-start px-3 py-2 rounded-control border border-dashed border-[var(--ds-border)] text-sm text-[var(--ds-text-secondary)] hover:text-[var(--ds-text)] hover:border-[var(--color-primary)] whitespace-nowrap"
             >
               <PlusCircleIcon weight="duotone" className="w-4 h-4" />
               Spalte
@@ -434,7 +434,7 @@ export function FooterBuilderPage() {
           <button
             type="button"
             onClick={() => setSelection({ kind: "style" })}
-            className={`min-w-0 flex-1 text-left text-xs font-semibold uppercase tracking-wider transition-colors ${
+            className={`min-w-0 flex-1 text-left text-xs font-semibold uppercase tracking-wider ${
               showStyle
                 ? "text-[var(--color-primary)]"
                 : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
@@ -446,7 +446,7 @@ export function FooterBuilderPage() {
             type="button"
             onClick={handleReloadPreview}
             disabled={isPreviewPending}
-            className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-50"
           >
             <ArrowClockwiseIcon
               weight="duotone"

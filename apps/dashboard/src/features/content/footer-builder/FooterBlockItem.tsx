@@ -62,7 +62,7 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
       {...attributes}
       {...listeners}
       onClick={onSelect}
-      className={`group/block relative flex w-full items-center gap-2 px-3 py-2.5 rounded-control border text-sm cursor-pointer transition-colors ${
+      className={`group/block relative flex w-full items-center gap-2 px-3 py-2.5 rounded-control border text-sm cursor-pointer ${
         isSelected
           ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
           : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] hover:border-[var(--color-primary)]"
@@ -82,7 +82,7 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute -top-3 -right-3 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--ds-surface)] text-[var(--ds-text-subtle)] hover:text-[var(--ds-danger-text)] transition-colors opacity-0 group-hover/block:opacity-100"
+        className="absolute -top-3 -right-3 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--ds-surface)] text-[var(--ds-text-subtle)] hover:text-[var(--ds-danger-text)] opacity-0 group-hover/block:opacity-100"
       >
         <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <path

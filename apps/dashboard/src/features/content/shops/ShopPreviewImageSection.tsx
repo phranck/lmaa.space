@@ -24,7 +24,7 @@ interface ShopPreviewImageSectionProps {
 }
 
 const buttonClass =
-  "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-btn-neutral-border)] rounded-control text-xs text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] transition-colors disabled:opacity-40";
+  "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-btn-neutral-border)] rounded-control text-xs text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-40";
 
 export function ShopPreviewImageSection({
   displayImage,

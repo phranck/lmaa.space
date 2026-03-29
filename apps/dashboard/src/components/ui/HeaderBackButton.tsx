@@ -15,7 +15,7 @@ export function HeaderBackButton({
     <button
       type={type}
       className={[
-        "flex items-center gap-1.5 text-sm font-medium text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors",
+        "flex items-center gap-1.5 text-sm font-medium text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
         className,
       ]
         .filter(Boolean)

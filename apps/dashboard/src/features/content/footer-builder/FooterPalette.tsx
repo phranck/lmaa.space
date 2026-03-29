@@ -46,7 +46,7 @@ function PaletteTile({ type, label }: { type: FooterBlockType; label: string }) 
       style={style}
       {...listeners}
       {...attributes}
-      className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm text-[var(--ds-text)] cursor-grab active:cursor-grabbing hover:border-[var(--color-primary)] hover:bg-[var(--ds-nav-hover-bg)] select-none transition-colors"
+      className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm text-[var(--ds-text)] cursor-grab active:cursor-grabbing hover:border-[var(--color-primary)] hover:bg-[var(--ds-nav-hover-bg)] select-none"
     >
       <span className="shrink-0 opacity-60">
         <FooterBlockTypeIcon type={type} />

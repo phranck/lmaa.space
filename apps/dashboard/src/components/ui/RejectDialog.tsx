@@ -122,7 +122,7 @@ export function RejectDialog({
           <button
             type="button"
             onClick={() => navigator.clipboard.writeText(url)}
-            className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] transition-colors"
+            className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
             aria-label={messages.copyUrl}
           >
             <CopyIcon weight="duotone" className="w-4 h-4" />
@@ -184,7 +184,7 @@ export function RejectDialog({
         <button
           type="button"
           onClick={onClose}
-          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)] transition-colors"
+          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
         >
           {messages.cancel}
         </button>
@@ -192,7 +192,7 @@ export function RejectDialog({
           type="button"
           onClick={onSubmit}
           disabled={isPending}
-          className={`flex items-center gap-2 py-1.5 px-4 border rounded-control text-sm font-medium transition-colors disabled:opacity-60 ${
+          className={`flex items-center gap-2 py-1.5 px-4 border rounded-control text-sm font-medium disabled:opacity-60 ${
             isDanger
               ? "border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
               : "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"

@@ -178,7 +178,7 @@ export function EmailTemplateEditPage() {
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
           >
             <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
             {isPending ? messages.common.saving : m.save}
@@ -191,7 +191,7 @@ export function EmailTemplateEditPage() {
         <button
           type="button"
           onClick={() => navigate("/email-templates")}
-          className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors shrink-0"
+          className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] shrink-0"
         >
           {m.backToList}
         </button>

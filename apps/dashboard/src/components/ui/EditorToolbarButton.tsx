@@ -39,7 +39,7 @@ export function EditorToolbarButton({
     <button
       type={type}
       className={cx(
-        "flex h-8 items-center gap-2 rounded-control border px-4 text-sm font-medium transition-colors disabled:opacity-60",
+        "flex h-8 items-center gap-2 rounded-control border px-4 text-sm font-medium disabled:opacity-60",
         VARIANT_CLASS_NAMES[variant],
         className,
       )}

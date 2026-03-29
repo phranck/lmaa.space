@@ -133,7 +133,7 @@ function SortableNavItem({
         type="button"
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors touch-none"
+        className="cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] touch-none"
         title={text.dragTitle}
       >
         <ListIcon weight="duotone" className="w-4 h-4" />
@@ -158,7 +158,7 @@ function SortableNavItem({
       <button
         type="button"
         onClick={() => onRemove(item.id)}
-        className="p-1 text-[var(--ds-text-muted)] hover:text-red-500 transition-colors"
+        className="p-1 text-[var(--ds-text-muted)] hover:text-red-500"
         title={text.remove}
       >
         <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
@@ -339,7 +339,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           type="button"
           onClick={handleSave}
           disabled={!dirty || saveNav.isPending}
-          className="flex items-center gap-1.5 h-7 px-3 text-xs border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50 transition-colors"
+          className="flex items-center gap-1.5 h-7 px-3 text-xs border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
         >
           <DownloadIcon weight="duotone" className="w-3 h-3" />
           {saveNav.isPending ? text.saving : text.save}
@@ -380,7 +380,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           <button
             type="button"
             onClick={() => setAddType("page")}
-            className={`px-3 py-1 text-xs rounded-control border transition-colors ${
+            className={`px-3 py-1 text-xs rounded-control border ${
               addType === "page"
                 ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
                 : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
@@ -391,7 +391,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           <button
             type="button"
             onClick={() => setAddType("url")}
-            className={`px-3 py-1 text-xs rounded-control border transition-colors ${
+            className={`px-3 py-1 text-xs rounded-control border ${
               addType === "url"
                 ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
                 : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
@@ -448,7 +448,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
                     key={r.url}
                     type="button"
                     onClick={() => handleAddStatic(r)}
-                    className="px-2 py-1 text-xs bg-[var(--ds-surface-hover)] hover:bg-[var(--ds-nav-hover-bg)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] rounded border border-[var(--ds-border)] transition-colors font-mono"
+                    className="px-2 py-1 text-xs bg-[var(--ds-surface-hover)] hover:bg-[var(--ds-nav-hover-bg)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] rounded border border-[var(--ds-border)] font-mono"
                   >
                     {r.url}
                   </button>

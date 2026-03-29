@@ -40,7 +40,7 @@ export function BuilderCanvas({
       />
       <div
         ref={setNodeRef}
-        className={`min-h-64 border-2 border-dashed rounded-b-xl transition-colors ${
+        className={`min-h-64 border-2 border-dashed rounded-b-xl ${
           isOver
             ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"
             : "border-[var(--ds-border)] bg-transparent"

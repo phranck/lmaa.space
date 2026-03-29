@@ -65,7 +65,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
             <button
               type="button"
               onClick={() => push.subscribe()}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
             >
               <BellIcon weight="duotone" className="w-3.5 h-3.5 text-amber-400" />
               Push-Benachrichtigungen aktivieren
