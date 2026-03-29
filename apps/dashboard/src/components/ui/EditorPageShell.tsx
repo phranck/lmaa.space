@@ -49,7 +49,7 @@ export function EditorPageShell({
       </PageHeader>
 
       <PageBody className={cx("min-h-0", bodyClassName)}>
-        {noCard ? children : <Card className={cx("p-2.5 mb-3", cardClassName)}>{children}</Card>}
+        {noCard ? children : <Card className={cx("pb-3 mb-3", cardClassName)}>{children}</Card>}
       </PageBody>
       {footerEl && toolbar ? createPortal(toolbar, footerEl) : null}
     </PageLayout>
