@@ -146,7 +146,7 @@ describe("getManagedPublicShopById", () => {
 
     expect(result).toEqual({
       ok: true,
-      data: { id: 1, name: "Shop", headquarters: { city: "Berlin", country: "DE" } },
+      data: { id: 1, name: "Shop", headquarters: { city: "Berlin", country: "DE" }, likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/) },
     });
   });
 
@@ -158,7 +158,7 @@ describe("getManagedPublicShopById", () => {
 
     expect(result).toEqual({
       ok: true,
-      data: { id: 2, name: "Shop", headquarters: null },
+      data: { id: 2, name: "Shop", headquarters: null, likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/) },
     });
   });
 });
