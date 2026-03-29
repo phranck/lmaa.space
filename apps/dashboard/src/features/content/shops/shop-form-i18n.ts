@@ -55,7 +55,7 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         postalCodePlaceholder: "e.g. 10115",
         cityLabel: "City",
         cityPlaceholder: "e.g. Berlin",
-        countryCodeLabel: "Country Code",
+        countryCodeLabel: "Country",
         countryCodePlaceholder: "e.g. DE",
         latitudeLabel: "Latitude",
         latitudePlaceholder: "e.g. 52.5200",

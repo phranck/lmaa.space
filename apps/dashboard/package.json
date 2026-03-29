@@ -25,6 +25,7 @@
     "blueimp-md5": "^2.19.0",
     "marked": "^17.0.3",
     "react": "^19.0.0",
+    "react-day-picker": "^9.14.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.6.2",
     "recharts": "^3.7.0"
