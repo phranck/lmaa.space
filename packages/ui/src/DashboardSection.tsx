@@ -140,9 +140,12 @@ function DashboardSectionItem({
       <span className="shrink-0 opacity-70">{icon}</span>
       <span className="flex-1">{label}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="ml-auto h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
-          {badge}
-        </span>
+        <>
+          <span className="ml-auto h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0">
+            {badge}
+          </span>
+          <span className="w-3.5 shrink-0" />
+        </>
       )}
       {addOn}
     </div>

@@ -118,7 +118,9 @@ function AdminLayoutInner() {
       style={{ "--sidebar-w": `${sidebarWidth}px` } as React.CSSProperties}
     >
       {/* Header Card */}
-      <Card className="col-span-2 md:col-span-2 flex items-center gap-3 py-4 shadow-sm">
+      <Card
+        className={`col-span-2 md:col-span-2 flex items-center gap-3 py-4 shadow-sm ${import.meta.env.DEV ? "border-2 border-[#9e7938] bg-amber-500/5" : ""}`}
+      >
         <div
           className="hidden md:flex items-center justify-center shrink-0 h-full px-3"
           style={{ width: sidebarWidth }}
