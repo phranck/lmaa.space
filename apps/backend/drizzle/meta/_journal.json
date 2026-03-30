@@ -281,6 +281,13 @@
       "when": 1774808593873,
       "tag": "0039_glorious_shockwave",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1774910852436,
+      "tag": "0040_conscious_nemesis",
+      "breakpoints": true
     }
   ]
 }

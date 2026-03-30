@@ -198,6 +198,7 @@ export const adminUsers = pgTable(
     firstName: text("first_name"),
     lastName: text("last_name"),
     avatarUrl: text("avatar_url"),
+    uiPreferences: jsonb("ui_preferences").$type<{ sidebarSectionOrder?: string[] }>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     lastLoginAt: timestamp("last_login_at"),
   },
