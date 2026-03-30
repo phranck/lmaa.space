@@ -33,11 +33,9 @@ export function Dialog({ open, title, titleIcon, onClose, children, maxWidth = "
 
 	return (
 		<OverlayCard open={open} onClose={onClose} size={size} aria-label={title}>
-			<div className="bg-[var(--ds-surface-inset)] px-6 py-4">
-				<div className="flex items-center gap-3">
-					{titleIcon}
-					<h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
-				</div>
+			<div className="bg-[var(--ds-surface-inset)] px-6 py-4 flex items-center gap-3">
+				{titleIcon}
+				<h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
 			</div>
 			{children}
 		</OverlayCard>
