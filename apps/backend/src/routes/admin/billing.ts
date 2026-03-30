@@ -28,8 +28,8 @@ function setCache(key: string, data: unknown): void {
 }
 
 function getClient(): ZeropsClient | null {
-  if (!env.ZEROPS_API_TOKEN) return null;
-  return new ZeropsClient(env.ZEROPS_API_TOKEN, env.ZEROPS_CLIENT_ID, env.ZEROPS_PROJECT_ID);
+  if (!env.BILLING_API_TOKEN) return null;
+  return new ZeropsClient(env.BILLING_API_TOKEN, env.BILLING_CLIENT_ID, env.BILLING_PROJECT_ID);
 }
 
 function handleZeropsError(c: import("hono").Context, err: unknown) {
@@ -52,8 +52,8 @@ billingRoutes.get("/billing/costs", async (c) => {
   if (cached) return ok(c, cached);
 
   const client = getClient();
-  if (!client) return fail(c, 503, "ZEROPS_API_TOKEN is not configured on the server.", "zerops_not_configured");
-  if (!env.ZEROPS_CLIENT_ID) return fail(c, 503, "ZEROPS_CLIENT_ID is not configured on the server.", "zerops_client_id_missing");
+  if (!client) return fail(c, 503, "BILLING_API_TOKEN is not configured on the server.", "zerops_not_configured");
+  if (!env.BILLING_CLIENT_ID) return fail(c, 503, "BILLING_CLIENT_ID is not configured on the server.", "zerops_client_id_missing");
 
   try {
     const data = await client.fetchCostSummary();
@@ -73,8 +73,8 @@ billingRoutes.get("/billing/timeline", async (c) => {
   if (cached) return ok(c, cached);
 
   const client = getClient();
-  if (!client) return fail(c, 503, "ZEROPS_API_TOKEN is not configured on the server.", "zerops_not_configured");
-  if (!env.ZEROPS_CLIENT_ID) return fail(c, 503, "ZEROPS_CLIENT_ID is not configured on the server.", "zerops_client_id_missing");
+  if (!client) return fail(c, 503, "BILLING_API_TOKEN is not configured on the server.", "zerops_not_configured");
+  if (!env.BILLING_CLIENT_ID) return fail(c, 503, "BILLING_CLIENT_ID is not configured on the server.", "zerops_client_id_missing");
 
   try {
     const data = await client.fetchCostTimeline(days);
@@ -91,11 +91,11 @@ billingRoutes.get("/billing/status", async (c) => {
   if (cached) return ok(c, cached);
 
   const client = getClient();
-  if (!client) return fail(c, 503, "ZEROPS_API_TOKEN is not configured on the server.", "zerops_not_configured");
+  if (!client) return fail(c, 503, "BILLING_API_TOKEN is not configured on the server.", "zerops_not_configured");
 
   try {
     const data = await client.fetchBillingStatus();
-    if (!data) return fail(c, 422, "ZEROPS_CLIENT_ID is not configured. Credit display requires it.", "zerops_client_id_missing");
+    if (!data) return fail(c, 422, "BILLING_CLIENT_ID is not configured. Credit display requires it.", "zerops_client_id_missing");
     setCache("billing:status", data);
     return ok(c, data);
   } catch (err) {

@@ -54,9 +54,9 @@ export const envSchema = z
     VAPID_PUBLIC_KEY: z.string().optional(),
     VAPID_PRIVATE_KEY: z.string().optional(),
     VAPID_SUBJECT: z.string().default("mailto:hallo@lmaa.space"),
-    ZEROPS_API_TOKEN: z.string().optional(),
-    ZEROPS_CLIENT_ID: z.string().optional(),
-    ZEROPS_PROJECT_ID: z.string().optional(),
+    BILLING_API_TOKEN: z.string().optional(),
+    BILLING_CLIENT_ID: z.string().optional(),
+    BILLING_PROJECT_ID: z.string().optional(),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
     RUN_MIGRATIONS_ON_STARTUP: z.enum(["true", "false"]).default("true"),
   })

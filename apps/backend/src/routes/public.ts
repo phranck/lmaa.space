@@ -359,12 +359,12 @@ publicRoutes.get("/billing/summary", publicReadLimit, async (c) => {
     return ok(c, billingCache.data);
   }
 
-  if (!env.ZEROPS_API_TOKEN) {
-    return fail(c, 503, "ZEROPS_API_TOKEN is not configured.", "zerops_not_configured");
+  if (!env.BILLING_API_TOKEN) {
+    return fail(c, 503, "BILLING_API_TOKEN is not configured.", "zerops_not_configured");
   }
 
   try {
-    const client = new ZeropsClient(env.ZEROPS_API_TOKEN, env.ZEROPS_CLIENT_ID, env.ZEROPS_PROJECT_ID);
+    const client = new ZeropsClient(env.BILLING_API_TOKEN, env.BILLING_CLIENT_ID, env.BILLING_PROJECT_ID);
     const costs = await client.fetchCostSummary();
     const summary: BillingPublicSummary = {
       today: costs.today,

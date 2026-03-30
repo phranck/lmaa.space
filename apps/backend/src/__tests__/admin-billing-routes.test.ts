@@ -29,9 +29,9 @@ const envMock = vi.hoisted(() => ({
   env: {
     NODE_ENV: "test" as const,
     LOG_LEVEL: "silent" as const,
-    ZEROPS_API_TOKEN: "test-token" as string | undefined,
-    ZEROPS_CLIENT_ID: "test-client-id" as string | undefined,
-    ZEROPS_PROJECT_ID: undefined as string | undefined,
+    BILLING_API_TOKEN: "test-token" as string | undefined,
+    BILLING_CLIENT_ID: "test-client-id" as string | undefined,
+    BILLING_PROJECT_ID: undefined as string | undefined,
   },
 }));
 
@@ -80,9 +80,9 @@ beforeEach(() => {
   systemTime += 20 * 60 * 1000;
   vi.setSystemTime(systemTime);
 
-  envMock.env.ZEROPS_API_TOKEN = "test-token";
-  envMock.env.ZEROPS_CLIENT_ID = "test-client-id";
-  envMock.env.ZEROPS_PROJECT_ID = undefined;
+  envMock.env.BILLING_API_TOKEN = "test-token";
+  envMock.env.BILLING_CLIENT_ID = "test-client-id";
+  envMock.env.BILLING_PROJECT_ID = undefined;
 
   Object.values(clientMocks).forEach((m) => m.mockReset());
 });
@@ -95,8 +95,8 @@ afterEach(() => {
 // GET /billing/costs
 // ---------------------------------------------------------------------------
 describe("GET /billing/costs", () => {
-  it("returns 503 when ZEROPS_API_TOKEN is not set", async () => {
-    envMock.env.ZEROPS_API_TOKEN = undefined;
+  it("returns 503 when BILLING_API_TOKEN is not set", async () => {
+    envMock.env.BILLING_API_TOKEN = undefined;
 
     const res = await app.request("/billing/costs");
 
@@ -105,8 +105,8 @@ describe("GET /billing/costs", () => {
     expect(body.error.code).toBe("zerops_not_configured");
   });
 
-  it("returns 503 when ZEROPS_CLIENT_ID is not set", async () => {
-    envMock.env.ZEROPS_CLIENT_ID = undefined;
+  it("returns 503 when BILLING_CLIENT_ID is not set", async () => {
+    envMock.env.BILLING_CLIENT_ID = undefined;
 
     const res = await app.request("/billing/costs");
 
@@ -175,8 +175,8 @@ describe("GET /billing/costs", () => {
 // GET /billing/timeline
 // ---------------------------------------------------------------------------
 describe("GET /billing/timeline", () => {
-  it("returns 503 when ZEROPS_API_TOKEN is not set", async () => {
-    envMock.env.ZEROPS_API_TOKEN = undefined;
+  it("returns 503 when BILLING_API_TOKEN is not set", async () => {
+    envMock.env.BILLING_API_TOKEN = undefined;
 
     const res = await app.request("/billing/timeline");
 
@@ -234,15 +234,15 @@ describe("GET /billing/timeline", () => {
 // GET /billing/status
 // ---------------------------------------------------------------------------
 describe("GET /billing/status", () => {
-  it("returns 503 when ZEROPS_API_TOKEN is not set", async () => {
-    envMock.env.ZEROPS_API_TOKEN = undefined;
+  it("returns 503 when BILLING_API_TOKEN is not set", async () => {
+    envMock.env.BILLING_API_TOKEN = undefined;
 
     const res = await app.request("/billing/status");
 
     expect(res.status).toBe(503);
   });
 
-  it("returns 422 when client returns null (no ZEROPS_CLIENT_ID configured on client)", async () => {
+  it("returns 422 when client returns null (no BILLING_CLIENT_ID configured on client)", async () => {
     clientMocks.fetchBillingStatus.mockResolvedValue(null);
 
     const res = await app.request("/billing/status");
