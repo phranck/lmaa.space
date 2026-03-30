@@ -18,6 +18,8 @@ export * from "./types/content.js";
 export * from "./types/media.js";
 /** Affiliate scan domain models. */
 export * from "./types/affiliate.js";
+/** Billing/cost domain models. */
+export * from "./types/billing.js";
 /** API error parsing and normalization helpers. */
 export * from "./utils/api-error.js";
 /** Social media validation and normalization. */

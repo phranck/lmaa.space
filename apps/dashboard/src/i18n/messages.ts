@@ -50,6 +50,7 @@ export interface DashboardMessages {
         emailTemplatesOverview: string;
         footerBuilder: string;
         markdownWidgets: string;
+        billing: string;
         affiliate: string;
         affiliateSettings: string;
         expandAll: string;
@@ -631,6 +632,25 @@ export interface DashboardMessages {
         search: string;
       };
     };
+    billing: {
+      title: string;
+      today: string;
+      thisMonth: string;
+      lastMonth: string;
+      last30days: string;
+      averagePerDay: string;
+      credit: string;
+      promoCredit: string;
+      costTimeline: string;
+      yesterday: string;
+      thisWeek: string;
+      last7days: string;
+      total: string;
+      serviceBreakdown: string;
+      notConfigured: string;
+      costLabel: string;
+      noData: string;
+    };
     loadingFallback: string;
     pages: {
       title: string;
@@ -1035,6 +1055,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
+        billing: "Kosten",
         affiliate: "Affiliate",
         affiliateSettings: "Einstellungen",
         expandAll: "Alles aufklappen",
@@ -1624,6 +1645,25 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           search: "Suche",
         },
       },
+      billing: {
+        title: "Zerops Kosten",
+        today: "Heute",
+        thisMonth: "Diesen Monat",
+        lastMonth: "Letzter Monat",
+        last30days: "Letzte 30 Tage",
+        averagePerDay: "Durchschnitt/Tag",
+        credit: "Guthaben",
+        promoCredit: "Promo-Guthaben",
+        costTimeline: "Kostenverlauf",
+        yesterday: "Gestern",
+        thisWeek: "Diese Woche",
+        last7days: "Letzte 7 Tage",
+        total: "Gesamt",
+        serviceBreakdown: "Aufschlüsselung nach Service",
+        notConfigured: "Zerops Billing ist nicht konfiguriert. Bitte ZEROPS_API_TOKEN setzen.",
+        costLabel: "Kosten",
+        noData: "Keine Daten für diesen Zeitraum",
+      },
       loadingFallback: "Inhaltseditor wird geladen...",
       pages: {
         title: "Seiten",
@@ -2023,6 +2063,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         emailTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
+        billing: "Billing",
         affiliate: "Affiliate",
         affiliateSettings: "Settings",
         expandAll: "Expand all",
@@ -2607,6 +2648,25 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           suggestShop: "Suggest shop",
           search: "Search",
         },
+      },
+      billing: {
+        title: "Zerops Billing",
+        today: "Today",
+        thisMonth: "This Month",
+        lastMonth: "Last Month",
+        last30days: "Last 30 Days",
+        averagePerDay: "Average/Day",
+        credit: "Credit",
+        promoCredit: "Promo Credit",
+        costTimeline: "Cost Timeline",
+        yesterday: "Yesterday",
+        thisWeek: "This Week",
+        last7days: "Last 7 Days",
+        total: "All Time",
+        serviceBreakdown: "Breakdown by Service",
+        notConfigured: "Zerops Billing is not configured. Please set ZEROPS_API_TOKEN.",
+        costLabel: "Cost",
+        noData: "No data for this period",
       },
       loadingFallback: "Loading content editor...",
       pages: {
