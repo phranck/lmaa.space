@@ -527,14 +527,12 @@ export function Sidebar({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setSectionOrder((prev) => {
-        const from = prev.indexOf(active.id as SidebarSectionId);
-        const to = prev.indexOf(over.id as SidebarSectionId);
-        const next = arrayMove(prev, from, to);
-        localStorage.setItem("sidebar-section-order", JSON.stringify(next));
-        updatePreferences.mutate({ sidebarSectionOrder: next });
-        return next;
-      });
+      const from = sectionOrder.indexOf(active.id as SidebarSectionId);
+      const to = sectionOrder.indexOf(over.id as SidebarSectionId);
+      const next = arrayMove(sectionOrder, from, to);
+      localStorage.setItem("sidebar-section-order", JSON.stringify(next));
+      setSectionOrder(next);
+      updatePreferences.mutate({ sidebarSectionOrder: next });
     }
   }
 
