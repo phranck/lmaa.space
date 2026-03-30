@@ -1,4 +1,5 @@
-import { ArrowSquareOutIcon, MapPinIcon, MarkdownLogoIcon, ShareNetworkIcon, StorefrontIcon, TruckIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, CrosshairIcon, MapPinIcon, MarkdownLogoIcon, ShareNetworkIcon, SpinnerIcon, StorefrontIcon, TruckIcon } from "@phosphor-icons/react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
@@ -93,6 +94,8 @@ export interface ShopEditFormMessages {
   latitudePlaceholder: string;
   longitudeLabel: string;
   longitudePlaceholder: string;
+  geocodeButtonLabel?: string;
+  geocodingErrorLabel?: string;
   jsonToolTitle?: string;
   jsonApplyLabel?: string;
   jsonImportFileLabel?: string;
@@ -149,8 +152,41 @@ export function ShopEditForm({
   detailsAside,
   descriptionAside,
 }: ShopEditFormProps) {
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
+  }
+
+  async function handleGeocode() {
+    const address = [
+      value.headquartersStreet,
+      value.headquartersPostalCode,
+      value.headquartersCity,
+      value.headquartersCountryCode,
+    ]
+      .filter(Boolean)
+      .join(", ");
+    if (!address) return;
+    setGeocoding(true);
+    setGeocodeError(null);
+    try {
+      const res = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`,
+      );
+      const data = (await res.json()) as { features?: { geometry: { coordinates: [number, number] } }[] };
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].geometry.coordinates;
+        onChange({ ...value, headquartersLatitude: String(lat), headquartersLongitude: String(lng) });
+      } else {
+        setGeocodeError(messages.geocodingErrorLabel ?? "Keine Koordinaten gefunden.");
+      }
+    } catch {
+      setGeocodeError(messages.geocodingErrorLabel ?? "Fehler beim Geocoding.");
+    } finally {
+      setGeocoding(false);
+    }
   }
 
   return (
@@ -302,9 +338,9 @@ export function ShopEditForm({
             </div>
           </div>
 
-          {/* Lat (2sp) + Lng (2sp) */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-2">
+          {/* Lat (3sp) + Lng (3sp) + Geocode-Button (2sp) */}
+          <div className="grid grid-cols-8 gap-4">
+            <div className="col-span-3">
               <FormLabel htmlFor="sef-hq-lat">{messages.latitudeLabel}</FormLabel>
               <input
                 id="sef-hq-lat"
@@ -317,7 +353,7 @@ export function ShopEditForm({
               />
               {errors?.headquartersLatitude && <FormErrorText>{errors.headquartersLatitude}</FormErrorText>}
             </div>
-            <div className="col-span-2">
+            <div className="col-span-3">
               <FormLabel htmlFor="sef-hq-lng">{messages.longitudeLabel}</FormLabel>
               <input
                 id="sef-hq-lng"
@@ -329,6 +365,21 @@ export function ShopEditForm({
                 className={`${formInputClass}${errors?.headquartersLongitude ? " border-red-400" : ""}`}
               />
               {errors?.headquartersLongitude && <FormErrorText>{errors.headquartersLongitude}</FormErrorText>}
+            </div>
+            <div className="col-span-2 flex flex-col">
+              <FormLabel className="invisible" aria-hidden="true">&nbsp;</FormLabel>
+              <button
+                type="button"
+                onClick={handleGeocode}
+                disabled={geocoding}
+                title={messages.geocodeButtonLabel ?? "Geo-Koordinaten ermitteln"}
+                className="w-full flex-1 flex items-center justify-center gap-1.5 px-3 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text-muted)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-hover)] transition-colors disabled:opacity-40"
+              >
+                {geocoding
+                  ? <SpinnerIcon className="w-4 h-4 animate-spin" />
+                  : <CrosshairIcon weight="duotone" className="w-4 h-4" />}
+              </button>
+              {geocodeError && <FormErrorText>{geocodeError}</FormErrorText>}
             </div>
           </div>
           </DashboardSection.Body>
