@@ -212,8 +212,8 @@ export function BillingPage() {
                     background: "var(--ds-surface)",
                     color: "var(--ds-text)",
                   }}
-                  formatter={(value: number) => [costFormatter.format(value), t.costLabel]}
-                  labelFormatter={formatDateTick}
+                  formatter={(value: number): [string, string] => [costFormatter.format(value), t.costLabel]}
+                  labelFormatter={(label) => formatDateTick(String(label))}
                 />
                 <Area
                   type="monotone"
