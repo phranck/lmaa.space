@@ -1,5 +1,5 @@
 import { ChartLineUpIcon, ListBulletsIcon } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -212,8 +212,8 @@ export function BillingPage() {
                     background: "var(--ds-surface)",
                     color: "var(--ds-text)",
                   }}
-                  formatter={(value: number): [string, string] => [costFormatter.format(value), t.costLabel]}
-                  labelFormatter={(label) => formatDateTick(String(label))}
+                  formatter={(value: number): [ReactNode, string] => [costFormatter.format(value), t.costLabel]}
+                  labelFormatter={(label): ReactNode => formatDateTick(String(label))}
                 />
                 <Area
                   type="monotone"
