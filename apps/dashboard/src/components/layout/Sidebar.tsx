@@ -1,4 +1,16 @@
 import {
+  DndContext,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   ArticleIcon,
   BlueprintIcon,
   CaretCircleDoubleDownIcon,
@@ -10,6 +22,7 @@ import {
   CircleIcon,
   ClockIcon,
   CopyIcon,
+  DotsSixVerticalIcon,
   EnvelopeOpenIcon,
   EyeSlashIcon,
   FileIcon,
@@ -31,7 +44,7 @@ import {
   UsersThreeIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
 import type { AdminRole } from "@lmaa/shared";
@@ -67,6 +80,68 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-forms-open",
   "sidebar-email-templates-open",
 ] as const;
+
+const SIDEBAR_SECTION_IDS = [
+  "general",
+  "content",
+  "builders",
+  "analytics",
+  "affiliate",
+  "system",
+] as const;
+type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
+const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "affiliate", "system"];
+
+function parseSectionOrder(): SidebarSectionId[] {
+  try {
+    const stored = localStorage.getItem("sidebar-section-order");
+    if (!stored) return [...SIDEBAR_SECTION_IDS];
+    const parsed: unknown = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [...SIDEBAR_SECTION_IDS];
+    const valid = parsed.filter((id): id is SidebarSectionId =>
+      (SIDEBAR_SECTION_IDS as readonly string[]).includes(id as string),
+    );
+    const missing = SIDEBAR_SECTION_IDS.filter((id) => !valid.includes(id));
+    return [...valid, ...missing];
+  } catch {
+    return [...SIDEBAR_SECTION_IDS];
+  }
+}
+
+function SortableSidebarSection({
+  id,
+  children,
+}: {
+  id: string;
+  children: (dragHandle: ReactNode) => ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
+
+  const dragHandle = (
+    <button
+      type="button"
+      {...listeners}
+      className="opacity-0 group-hover/section:opacity-100 cursor-grab active:cursor-grabbing p-0.5 rounded text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-opacity duration-100"
+      tabIndex={-1}
+      aria-label="Abschnitt verschieben"
+    >
+      <DotsSixVerticalIcon weight="bold" className="w-3.5 h-3.5" />
+    </button>
+  );
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      className={`group/section mt-3 ${isDragging ? "opacity-50 z-50 relative" : ""}`}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+    >
+      {children(dragHandle)}
+    </div>
+  );
+}
 
 function StatusIcon({ status }: { status: string }) {
   if (status === "published") {
@@ -332,7 +407,13 @@ function ReportsGroup({
   );
 }
 
-function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
+function AffiliateSidebarGroup({
+  onItemClick,
+  dragHandle,
+}: {
+  onItemClick?: () => void;
+  dragHandle?: ReactNode;
+}) {
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
   const { data: scans = [] } = useAffiliateScans({});
@@ -340,8 +421,8 @@ function AffiliateSidebarGroup({ onItemClick }: { onItemClick?: () => void }) {
   const isScanning = job?.status === "running" || job?.status === "pending";
 
   return (
-    <DashboardSection className="mt-3">
-      <DashboardSection.Header icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />} title="Affiliate" />
+    <DashboardSection>
+      <DashboardSection.Header icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />} title="Affiliate" addOn={dragHandle} />
       <DashboardSection.Body className="!gap-0.5 !p-2">
         <NavLink to="/affiliate" end onClick={onItemClick} className="contents">
           {({ isActive }) => (
@@ -419,6 +500,7 @@ export function Sidebar({
     ),
   );
   const areAllGroupsOpen = SIDEBAR_GROUP_STORAGE_KEYS.every((key) => groupStatus[key]);
+  const [sectionOrder, setSectionOrder] = useState<SidebarSectionId[]>(parseSectionOrder);
 
   function handleToggleAllGroups(next: boolean) {
     SIDEBAR_GROUP_STORAGE_KEYS.forEach((key) => localStorage.setItem(key, String(next)));
@@ -432,6 +514,19 @@ export function Sidebar({
       if (current[storageKey] === open) return current;
       return { ...current, [storageKey]: open };
     });
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setSectionOrder((prev) => {
+        const from = prev.indexOf(active.id as SidebarSectionId);
+        const to = prev.indexOf(over.id as SidebarSectionId);
+        const next = arrayMove(prev, from, to);
+        localStorage.setItem("sidebar-section-order", JSON.stringify(next));
+        return next;
+      });
+    }
   }
 
   return (
@@ -488,175 +583,210 @@ export function Sidebar({
           </button>
         </div>
 
-        {/* Allgemein */}
-        <DashboardSection className="mt-3">
-          <DashboardSection.Header icon={<HouseSimpleIcon weight="duotone" className="w-4 h-4" />} title={s.sectionGeneral} />
-          <DashboardSection.Body className="!gap-0.5 !p-2">
-            <NavLink to="/" end onClick={onItemClick} className="contents">
-              {({ isActive }) => (
-                <DashboardSection.Item
-                  icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
-                  label={s.overview}
-                  active={isActive}
+        {(() => {
+          const visibleSections = sectionOrder.filter(
+            (id) => !ADMIN_ONLY_SECTIONS.includes(id) || isAdmin,
+          );
+
+          const sectionContent: Record<SidebarSectionId, (dragHandle: ReactNode) => ReactNode> = {
+            general: (dragHandle) => (
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<HouseSimpleIcon weight="duotone" className="w-4 h-4" />}
+                  title={s.sectionGeneral}
+                  addOn={dragHandle}
                 />
-              )}
-            </NavLink>
-            <ReportsGroup
-              onItemClick={onItemClick}
-              globalOpenState={groupOpenState}
-              globalOpenVersion={groupOpenVersion}
-              onOpenChange={(open) => handleGroupOpenChange("sidebar-reports-open", open)}
-              suggestionsCount={suggestionsCount}
-              pendingCount={pendingSubmissions.length}
-              deadLinksCount={deadLinks.length}
-              shopReportsCount={shopConcerns.length}
-            />
-          </DashboardSection.Body>
-        </DashboardSection>
-
-        {/* Content */}
-        <DashboardSection className="mt-3">
-          <DashboardSection.Header icon={<ArticleIcon weight="duotone" className="w-4 h-4" />} title={s.sectionContent} />
-          <DashboardSection.Body className="!gap-0.5 !p-2">
-            <NavLink to="/shops" onClick={onItemClick} className="contents">
-              {({ isActive }) => (
-                <DashboardSection.Item
-                  icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
-                  label={s.shops}
-                  badge={shops.length}
-                  active={isActive}
+                <DashboardSection.Body className="!gap-0.5 !p-2">
+                  <NavLink to="/" end onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.overview}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <ReportsGroup
+                    onItemClick={onItemClick}
+                    globalOpenState={groupOpenState}
+                    globalOpenVersion={groupOpenVersion}
+                    onOpenChange={(open) => handleGroupOpenChange("sidebar-reports-open", open)}
+                    suggestionsCount={suggestionsCount}
+                    pendingCount={pendingSubmissions.length}
+                    deadLinksCount={deadLinks.length}
+                    shopReportsCount={shopConcerns.length}
+                  />
+                </DashboardSection.Body>
+              </DashboardSection>
+            ),
+            content: (dragHandle) => (
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<ArticleIcon weight="duotone" className="w-4 h-4" />}
+                  title={s.sectionContent}
+                  addOn={dragHandle}
                 />
-              )}
-            </NavLink>
-            <NavLink to="/categories" onClick={onItemClick} className="contents">
-              {({ isActive }) => (
-                <DashboardSection.Item
-                  icon={<TagIcon weight="duotone" className="w-4 h-4" />}
-                  label={s.categories}
-                  badge={categories.length}
-                  active={isActive}
+                <DashboardSection.Body className="!gap-0.5 !p-2">
+                  <NavLink to="/shops" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.shops}
+                        badge={shops.length}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/categories" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<TagIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.categories}
+                        badge={categories.length}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  {isAdmin && (
+                    <PagesGroup
+                      onItemClick={onItemClick}
+                      globalOpenState={groupOpenState}
+                      globalOpenVersion={groupOpenVersion}
+                      onOpenChange={(open) => handleGroupOpenChange("sidebar-pages-open", open)}
+                    />
+                  )}
+                </DashboardSection.Body>
+              </DashboardSection>
+            ),
+            builders: (dragHandle) => (
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<BlueprintIcon weight="duotone" className="w-4 h-4" />}
+                  title={s.sectionTemplates}
+                  addOn={dragHandle}
                 />
-              )}
-            </NavLink>
-            {isAdmin && (
-              <PagesGroup
-                onItemClick={onItemClick}
-                globalOpenState={groupOpenState}
-                globalOpenVersion={groupOpenVersion}
-                onOpenChange={(open) => handleGroupOpenChange("sidebar-pages-open", open)}
-              />
-            )}
-          </DashboardSection.Body>
-        </DashboardSection>
+                <DashboardSection.Body className="!gap-0.5 !p-2">
+                  <FormsGroup
+                    onItemClick={onItemClick}
+                    globalOpenState={groupOpenState}
+                    globalOpenVersion={groupOpenVersion}
+                    onOpenChange={(open) => handleGroupOpenChange("sidebar-forms-open", open)}
+                  />
+                  <EmailTemplatesGroup
+                    onItemClick={onItemClick}
+                    globalOpenState={groupOpenState}
+                    globalOpenVersion={groupOpenVersion}
+                    onOpenChange={(open) =>
+                      handleGroupOpenChange("sidebar-email-templates-open", open)
+                    }
+                  />
+                  <NavLink to="/footer-builder" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.footerBuilder}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                </DashboardSection.Body>
+              </DashboardSection>
+            ),
+            analytics: (dragHandle) => (
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<ChartLineUpIcon weight="duotone" className="w-4 h-4" />}
+                  title={s.sectionAnalytics}
+                  addOn={dragHandle}
+                />
+                <DashboardSection.Body className="!gap-0.5 !p-2">
+                  <NavLink to="/analytics" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.analytics}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                </DashboardSection.Body>
+              </DashboardSection>
+            ),
+            affiliate: (dragHandle) => (
+              <AffiliateSidebarGroup onItemClick={onItemClick} dragHandle={dragHandle} />
+            ),
+            system: (dragHandle) => (
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<GearSixIcon weight="duotone" className="w-4 h-4" />}
+                  title={s.sectionSystem}
+                  addOn={dragHandle}
+                />
+                <DashboardSection.Body className="!gap-0.5 !p-2">
+                  <NavLink to="/users" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<UsersThreeIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.users}
+                        badge={users.length}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/media" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.media}
+                        badge={media.length}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/pages/navigations" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.navigations}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.markdownWidgets}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/billing" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<CreditCardIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.billing}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                </DashboardSection.Body>
+              </DashboardSection>
+            ),
+          };
 
-        {/* Builders */}
-        {isAdmin && (
-          <DashboardSection className="mt-3">
-            <DashboardSection.Header icon={<BlueprintIcon weight="duotone" className="w-4 h-4" />} title={s.sectionTemplates} />
-            <DashboardSection.Body className="!gap-0.5 !p-2">
-              <FormsGroup
-                onItemClick={onItemClick}
-                globalOpenState={groupOpenState}
-                globalOpenVersion={groupOpenVersion}
-                onOpenChange={(open) => handleGroupOpenChange("sidebar-forms-open", open)}
-              />
-              <EmailTemplatesGroup
-                onItemClick={onItemClick}
-                globalOpenState={groupOpenState}
-                globalOpenVersion={groupOpenVersion}
-                onOpenChange={(open) => handleGroupOpenChange("sidebar-email-templates-open", open)}
-              />
-              <NavLink to="/footer-builder" onClick={onItemClick} className="contents">
-                {({ isActive }) => (
-                  <DashboardSection.Item
-                    icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
-                    label={s.footerBuilder}
-                    active={isActive}
-                  />
-                )}
-              </NavLink>
-            </DashboardSection.Body>
-          </DashboardSection>
-        )}
-
-        {/* Analytics */}
-        {isAdmin && (
-          <DashboardSection className="mt-3">
-            <DashboardSection.Header icon={<ChartLineUpIcon weight="duotone" className="w-4 h-4" />} title={s.sectionAnalytics} />
-            <DashboardSection.Body className="!gap-0.5 !p-2">
-              <NavLink to="/analytics" onClick={onItemClick} className="contents">
-                {({ isActive }) => (
-                  <DashboardSection.Item
-                    icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
-                    label={s.analytics}
-                    active={isActive}
-                  />
-                )}
-              </NavLink>
-            </DashboardSection.Body>
-          </DashboardSection>
-        )}
-
-        {/* Affiliate */}
-        {isAdmin && (
-          <AffiliateSidebarGroup onItemClick={onItemClick} />
-        )}
-
-        {/* System */}
-        {isAdmin && (
-          <DashboardSection className="mt-3">
-            <DashboardSection.Header icon={<GearSixIcon weight="duotone" className="w-4 h-4" />} title={s.sectionSystem} />
-            <DashboardSection.Body className="!gap-0.5 !p-2">
-              <NavLink to="/users" onClick={onItemClick} className="contents">
-                {({ isActive }) => (
-                  <DashboardSection.Item
-                    icon={<UsersThreeIcon weight="duotone" className="w-4 h-4" />}
-                    label={s.users}
-                    badge={users.length}
-                    active={isActive}
-                  />
-                )}
-              </NavLink>
-              <NavLink to="/media" onClick={onItemClick} className="contents">
-                {({ isActive }) => (
-                  <DashboardSection.Item
-                    icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
-                    label={s.media}
-                    badge={media.length}
-                    active={isActive}
-                  />
-                )}
-              </NavLink>
-              <NavLink to="/pages/navigations" onClick={onItemClick} className="contents">
-                {({ isActive }) => (
-                  <DashboardSection.Item
-                    icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
-                    label={s.navigations}
-                    active={isActive}
-                  />
-                )}
-              </NavLink>
-              <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
-                {({ isActive }) => (
-                  <DashboardSection.Item
-                    icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
-                    label={s.markdownWidgets}
-                    active={isActive}
-                  />
-                )}
-              </NavLink>
-              <NavLink to="/billing" onClick={onItemClick} className="contents">
-                {({ isActive }) => (
-                  <DashboardSection.Item
-                    icon={<CreditCardIcon weight="duotone" className="w-4 h-4" />}
-                    label={s.billing}
-                    active={isActive}
-                  />
-                )}
-              </NavLink>
-            </DashboardSection.Body>
-          </DashboardSection>
-        )}
+          return (
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
+                {visibleSections.map((id) => (
+                  <SortableSidebarSection key={id} id={id}>
+                    {(dragHandle) => sectionContent[id](dragHandle)}
+                  </SortableSidebarSection>
+                ))}
+              </SortableContext>
+            </DndContext>
+          );
+        })()}
       </nav>
 
       {!bare && (
