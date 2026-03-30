@@ -400,6 +400,7 @@ export function ShopsPage() {
       </PageBody>
 
       <PageFooter>
+        <div className="flex-1 flex justify-center">
         <div className="relative">
           <input
             ref={searchInputRef}
@@ -423,6 +424,7 @@ export function ShopsPage() {
               <kbd className="inline-flex items-center justify-center h-4.5 min-w-4.5 px-1 rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] font-sans leading-none">K</kbd>
             </span>
           )}
+        </div>
         </div>
       </PageFooter>
     </PageLayout>
