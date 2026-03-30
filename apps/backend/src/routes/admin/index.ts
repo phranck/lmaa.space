@@ -2,6 +2,7 @@ import { Hono } from "hono";
 
 import { affiliateRoutes } from "./affiliate.js";
 import { authRoutes } from "./auth.js";
+import { billingRoutes } from "./billing.js";
 import { categoriesRoutes } from "./categories.js";
 import { contentRoutes } from "./content.js";
 import { deadLinkReportsRoutes } from "./dead-link-reports.js";
@@ -57,5 +58,6 @@ protectedRoutes.route("/", affiliateRoutes);
 protectedRoutes.route("/", shopRemindersRoutes);
 protectedRoutes.route("/", pushRoutes);
 protectedRoutes.route("/", settingsRoutes);
+protectedRoutes.route("/", billingRoutes);
 
 adminRoutes.route("/", protectedRoutes);

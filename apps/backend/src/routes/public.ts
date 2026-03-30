@@ -2,6 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
+import type { BillingPublicSummary } from "@lmaa/shared";
 import { decodeShopToken } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
@@ -18,6 +19,7 @@ import { getMediaAliasMap } from "../services/admin-media.js";
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
+import { ZeropsApiRequestError, ZeropsClient } from "../services/network-clients/zerops-client.js";
 import {
   validateShopUrl,
   createManagedDeadLinkReport,
@@ -345,6 +347,38 @@ publicRoutes.get("/rejected/:token", publicReadLimit, async (c) => {
 
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
   return ok(c, page);
+});
+
+// GET /api/billing/summary – public cost summary for the website
+let billingCache: { data: BillingPublicSummary; expiresAt: number } | null = null;
+const BILLING_CACHE_TTL_MS = 30 * 60 * 1000;
+
+publicRoutes.get("/billing/summary", publicReadLimit, async (c) => {
+  if (billingCache && Date.now() < billingCache.expiresAt) {
+    c.header("Cache-Control", "public, max-age=300");
+    return ok(c, billingCache.data);
+  }
+
+  if (!env.ZEROPS_API_TOKEN) {
+    return fail(c, 503, "ZEROPS_API_TOKEN is not configured.", "zerops_not_configured");
+  }
+
+  try {
+    const client = new ZeropsClient(env.ZEROPS_API_TOKEN, env.ZEROPS_CLIENT_ID, env.ZEROPS_PROJECT_ID);
+    const costs = await client.fetchCostSummary();
+    const summary: BillingPublicSummary = {
+      today: costs.today,
+      thisMonth: costs.thisMonth,
+    };
+    billingCache = { data: summary, expiresAt: Date.now() + BILLING_CACHE_TTL_MS };
+    c.header("Cache-Control", "public, max-age=300");
+    return ok(c, summary);
+  } catch (err) {
+    if (err instanceof ZeropsApiRequestError) {
+      return fail(c, 502, `Zerops API: ${err.message}`, err.errorCode);
+    }
+    return fail(c, 500, "Unexpected error while fetching billing data", "zerops_internal");
+  }
 });
 
 // ---------------------------------------------------------------------------
