@@ -2,6 +2,7 @@ import { ArrowSquareOutIcon, CrosshairIcon, MapPinIcon, MarkdownLogoIcon, ShareN
 import { useState } from "react";
 import type { ReactNode } from "react";
 
+import { AlertDialog } from "./AlertDialog.tsx";
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
 import { DashboardSection } from "./DashboardSection.tsx";
 import {
@@ -95,7 +96,9 @@ export interface ShopEditFormMessages {
   longitudeLabel: string;
   longitudePlaceholder: string;
   geocodeButtonLabel?: string;
-  geocodingErrorLabel?: string;
+  geocodingErrorTitle?: string;
+  geocodingNoResultsLabel?: string;
+  geocodingFetchErrorLabel?: string;
   jsonToolTitle?: string;
   jsonApplyLabel?: string;
   jsonImportFileLabel?: string;
@@ -153,7 +156,7 @@ export function ShopEditForm({
   descriptionAside,
 }: ShopEditFormProps) {
   const [geocoding, setGeocoding] = useState(false);
-  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [geocodeErrorMessage, setGeocodeErrorMessage] = useState<string | null>(null);
 
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
@@ -170,7 +173,6 @@ export function ShopEditForm({
       .join(", ");
     if (!address) return;
     setGeocoding(true);
-    setGeocodeError(null);
     try {
       const res = await fetch(
         `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`,
@@ -180,10 +182,10 @@ export function ShopEditForm({
         const [lng, lat] = data.features[0].geometry.coordinates;
         onChange({ ...value, headquartersLatitude: String(lat), headquartersLongitude: String(lng) });
       } else {
-        setGeocodeError(messages.geocodingErrorLabel ?? "Keine Koordinaten gefunden.");
+        setGeocodeErrorMessage(messages.geocodingNoResultsLabel ?? "Für die eingegebene Adresse konnten keine Koordinaten gefunden werden.");
       }
     } catch {
-      setGeocodeError(messages.geocodingErrorLabel ?? "Fehler beim Geocoding.");
+      setGeocodeErrorMessage(messages.geocodingFetchErrorLabel ?? "Die Geocoding-Anfrage ist fehlgeschlagen. Bitte versuche es erneut.");
     } finally {
       setGeocoding(false);
     }
@@ -379,7 +381,6 @@ export function ShopEditForm({
                   ? <SpinnerIcon className="w-4 h-4 animate-spin" />
                   : <CrosshairIcon weight="duotone" className="w-4 h-4" />}
               </button>
-              {geocodeError && <FormErrorText>{geocodeError}</FormErrorText>}
             </div>
           </div>
           </DashboardSection.Body>
@@ -441,6 +442,15 @@ export function ShopEditForm({
 
         {descriptionAside && <div>{descriptionAside}</div>}
       </div>
+
+      <AlertDialog
+        open={geocodeErrorMessage !== null}
+        variant="error"
+        title={messages.geocodingErrorTitle ?? "Geocoding fehlgeschlagen"}
+        onClose={() => setGeocodeErrorMessage(null)}
+      >
+        {geocodeErrorMessage}
+      </AlertDialog>
 
       {/* ── Right column (8 of 12) ─────────────────────────────── */}
       <div className="col-span-8 flex flex-col gap-4 min-w-0">
