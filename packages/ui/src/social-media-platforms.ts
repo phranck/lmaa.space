@@ -9,6 +9,7 @@ import {
   SiMastodon,
   SiMixcloud,
   SiPatreon,
+  SiSignal,
   SiSpotify,
   SiTumblr,
   SiPinterest,
@@ -16,6 +17,7 @@ import {
   SiThreads,
   SiTiktok,
   SiTwitch,
+  SiWhatsapp,
   SiYoutube,
 } from "react-icons/si";
 
@@ -33,6 +35,8 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "bluesky", label: "Bluesky", icon: SiBluesky },
   { key: "instagram", label: "Instagram", icon: SiInstagram },
   { key: "facebook", label: "Facebook", icon: FaFacebook },
+  { key: "whatsapp", label: "WhatsApp", icon: SiWhatsapp },
+  { key: "signal", label: "Signal", icon: SiSignal },
   { key: "threads", label: "Threads", icon: SiThreads },
   { key: "tiktok", label: "TikTok", icon: SiTiktok },
   { key: "x", label: "Twitter", icon: FaTwitter },

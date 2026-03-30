@@ -19,6 +19,8 @@ export const SOCIAL_PLATFORM_KEYS = [
   "mixcloud",
   "soundcloud",
   "spotify",
+  "whatsapp",
+  "signal",
   "website",
 ] as const;
 
@@ -410,6 +412,38 @@ function normalizeSoundcloud(input: string): string | null {
   return `https://soundcloud.com/${handle}`;
 }
 
+function normalizeWhatsapp(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host === "wa.me" || host === "whatsapp.com") return stripTrailingSlash(url.href);
+    return null;
+  }
+
+  // Accept phone numbers: +49..., 0049..., or plain digits with optional spaces/dashes
+  const digits = trimmed.replace(/[\s\-().]/g, "");
+  const normalized = digits.startsWith("00") ? digits.slice(2) : digits.startsWith("+") ? digits.slice(1) : digits;
+  if (/^\d{6,15}$/.test(normalized)) return `https://wa.me/${normalized}`;
+  return null;
+}
+
+function normalizeSignal(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const url = tryParseUrl(trimmed);
+  if (url) {
+    const host = stripWww(url.hostname);
+    if (host === "signal.me" || host === "signal.group") return stripTrailingSlash(url.href);
+    return null;
+  }
+
+  return null;
+}
+
 function normalizeWebsite(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -442,6 +476,10 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "podcasts.apple.com": "applepodcasts",
   "open.spotify.com": "spotify",
   "spotify.com": "spotify",
+  "wa.me": "whatsapp",
+  "whatsapp.com": "whatsapp",
+  "signal.me": "signal",
+  "signal.group": "signal",
 };
 
 /**
@@ -498,6 +536,8 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   mixcloud: normalizeMixcloud,
   soundcloud: normalizeSoundcloud,
   spotify: normalizeSpotify,
+  whatsapp: normalizeWhatsapp,
+  signal: normalizeSignal,
   website: normalizeWebsite,
 };
 
