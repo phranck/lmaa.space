@@ -126,6 +126,14 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
   const syncUrl = `${window.location.origin}/my-shops?s=${encoded}`;
 
   useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
     if (!qrRef.current) return;
 
     const qrCode = new QRCodeStyling({
