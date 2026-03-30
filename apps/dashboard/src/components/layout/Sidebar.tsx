@@ -95,21 +95,12 @@ type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
 const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "affiliate", "system"];
 
 function parseSectionOrder(dbOrder?: string[]): SidebarSectionId[] {
-  try {
-    let source: unknown = dbOrder ?? null;
-    if (!source) {
-      const stored = localStorage.getItem("sidebar-section-order");
-      source = stored ? (JSON.parse(stored) as unknown) : null;
-    }
-    if (!Array.isArray(source)) return [...SIDEBAR_SECTION_IDS];
-    const valid = (source as unknown[]).filter((id): id is SidebarSectionId =>
-      (SIDEBAR_SECTION_IDS as readonly string[]).includes(id as string),
-    );
-    const missing = SIDEBAR_SECTION_IDS.filter((id) => !valid.includes(id));
-    return [...valid, ...missing];
-  } catch {
-    return [...SIDEBAR_SECTION_IDS];
-  }
+  if (!Array.isArray(dbOrder)) return [...SIDEBAR_SECTION_IDS];
+  const valid = dbOrder.filter((id): id is SidebarSectionId =>
+    (SIDEBAR_SECTION_IDS as readonly string[]).includes(id),
+  );
+  const missing = SIDEBAR_SECTION_IDS.filter((id) => !valid.includes(id));
+  return [...valid, ...missing];
 }
 
 function SortableSidebarSection({
@@ -530,7 +521,6 @@ export function Sidebar({
       const from = sectionOrder.indexOf(active.id as SidebarSectionId);
       const to = sectionOrder.indexOf(over.id as SidebarSectionId);
       const next = arrayMove(sectionOrder, from, to);
-      localStorage.setItem("sidebar-section-order", JSON.stringify(next));
       setSectionOrder(next);
       updatePreferences.mutate({ sidebarSectionOrder: next });
     }
