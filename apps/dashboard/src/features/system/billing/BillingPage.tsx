@@ -212,7 +212,7 @@ export function BillingPage() {
                     background: "var(--ds-surface)",
                     color: "var(--ds-text)",
                   }}
-                  formatter={(value: number): [ReactNode, string] => [costFormatter.format(value), t.costLabel]}
+                  formatter={(value: number | undefined): [ReactNode, string] => [costFormatter.format(value ?? 0), t.costLabel]}
                   labelFormatter={(label): ReactNode => formatDateTick(String(label))}
                 />
                 <Area
