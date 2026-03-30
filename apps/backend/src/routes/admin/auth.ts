@@ -1,10 +1,14 @@
 import { zValidator } from "@hono/zod-validator";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { z } from "zod";
 
 import { acceptInviteSchema, loginSchema, setupSchema } from "@lmaa/contracts";
 
 import { env } from "../../config/env.js";
+import { db } from "../../db/index.js";
+import { adminUsers } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
 import { rateLimit } from "../../middleware/rate-limit.js";
@@ -123,4 +127,16 @@ authRoutes.get("/me", requireAuth, async (c) => {
   }
 
   return ok(c, { ...admin, isOwner: admin.role === "owner" });
+});
+
+const uiPreferencesSchema = z.object({
+  sidebarSectionOrder: z.array(z.string()).optional(),
+});
+
+// PATCH /api/admin/me/preferences
+authRoutes.patch("/me/preferences", requireAuth, zValidator("json", uiPreferencesSchema), async (c) => {
+  const adminId = c.get("adminId");
+  const prefs = c.req.valid("json");
+  await db.update(adminUsers).set({ uiPreferences: prefs }).where(eq(adminUsers.id, adminId));
+  return ok(c, null);
 });

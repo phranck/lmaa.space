@@ -59,6 +59,8 @@ import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
 import { useAffiliateScans } from "@/features/affiliate/hooks/useAffiliateScans.ts";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useUpdateUiPreferences } from "@/features/auth/useUpdateUiPreferences.ts";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminShops } from "@/features/content/shops/hooks/useAdminShops.ts";
@@ -92,13 +94,15 @@ const SIDEBAR_SECTION_IDS = [
 type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
 const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "affiliate", "system"];
 
-function parseSectionOrder(): SidebarSectionId[] {
+function parseSectionOrder(dbOrder?: string[]): SidebarSectionId[] {
   try {
-    const stored = localStorage.getItem("sidebar-section-order");
-    if (!stored) return [...SIDEBAR_SECTION_IDS];
-    const parsed: unknown = JSON.parse(stored);
-    if (!Array.isArray(parsed)) return [...SIDEBAR_SECTION_IDS];
-    const valid = parsed.filter((id): id is SidebarSectionId =>
+    let source: unknown = dbOrder ?? null;
+    if (!source) {
+      const stored = localStorage.getItem("sidebar-section-order");
+      source = stored ? (JSON.parse(stored) as unknown) : null;
+    }
+    if (!Array.isArray(source)) return [...SIDEBAR_SECTION_IDS];
+    const valid = (source as unknown[]).filter((id): id is SidebarSectionId =>
       (SIDEBAR_SECTION_IDS as readonly string[]).includes(id as string),
     );
     const missing = SIDEBAR_SECTION_IDS.filter((id) => !valid.includes(id));
@@ -483,6 +487,8 @@ export function Sidebar({
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
   const isAdmin = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
+  const { user } = useAuth();
+  const updatePreferences = useUpdateUiPreferences();
 
   const { data: shops = [] } = useAdminShops();
   const { data: categories = [] } = useAdminCategories();
@@ -500,7 +506,9 @@ export function Sidebar({
     ),
   );
   const areAllGroupsOpen = SIDEBAR_GROUP_STORAGE_KEYS.every((key) => groupStatus[key]);
-  const [sectionOrder, setSectionOrder] = useState<SidebarSectionId[]>(parseSectionOrder);
+  const [sectionOrder, setSectionOrder] = useState<SidebarSectionId[]>(() =>
+    parseSectionOrder(user?.uiPreferences?.sidebarSectionOrder ?? undefined),
+  );
 
   function handleToggleAllGroups(next: boolean) {
     SIDEBAR_GROUP_STORAGE_KEYS.forEach((key) => localStorage.setItem(key, String(next)));
@@ -524,6 +532,7 @@ export function Sidebar({
         const to = prev.indexOf(over.id as SidebarSectionId);
         const next = arrayMove(prev, from, to);
         localStorage.setItem("sidebar-section-order", JSON.stringify(next));
+        updatePreferences.mutate({ sidebarSectionOrder: next });
         return next;
       });
     }

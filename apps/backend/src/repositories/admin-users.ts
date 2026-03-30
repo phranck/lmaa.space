@@ -17,6 +17,7 @@ const ADMIN_USER_FIELDS = {
   firstName: adminUsers.firstName,
   lastName: adminUsers.lastName,
   avatarUrl: adminUsers.avatarUrl,
+  uiPreferences: adminUsers.uiPreferences,
   createdAt: adminUsers.createdAt,
   lastLoginAt: adminUsers.lastLoginAt,
 };
@@ -33,6 +34,7 @@ export type AdminUserRow = {
   firstName: string | null;
   lastName: string | null;
   avatarUrl: string | null;
+  uiPreferences: { sidebarSectionOrder?: string[] } | null;
   createdAt: Date;
   lastLoginAt: Date | null;
 };

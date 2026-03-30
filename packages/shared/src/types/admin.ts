@@ -19,6 +19,7 @@ export interface AdminUser {
   firstName: string | null;
   lastName: string | null;
   avatarUrl: string | null;
+  uiPreferences: { sidebarSectionOrder?: string[] } | null;
   createdAt: string;
   lastLoginAt: string | null;
 }

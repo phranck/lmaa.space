@@ -66,6 +66,7 @@ export async function getAdminProfileById(adminId: number): Promise<AdminUserRow
       firstName: adminUsers.firstName,
       lastName: adminUsers.lastName,
       avatarUrl: adminUsers.avatarUrl,
+      uiPreferences: adminUsers.uiPreferences,
       createdAt: adminUsers.createdAt,
       lastLoginAt: adminUsers.lastLoginAt,
     })
