@@ -40,7 +40,7 @@ export default function CategoryCard({
           data-img-fallback=""
         />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 items-center justify-center hidden"
+          className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center hidden"
           aria-hidden="true"
         >
           <span className="font-serif font-bold text-4xl text-stone-300 select-none">

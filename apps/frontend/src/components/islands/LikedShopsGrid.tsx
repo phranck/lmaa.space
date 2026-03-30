@@ -194,9 +194,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
           Scanne den QR-Code oder teile den Link, um deine gelikten Shops auf ein anderes Gerät zu übertragen.
         </p>
 
-        <div className="flex justify-center mb-5">
-          <div ref={qrRef} className="rounded-lg overflow-hidden" />
-        </div>
+        <div ref={qrRef} className="rounded-lg overflow-hidden mx-auto mb-5" />
 
         <div className="flex gap-2">
           <button
