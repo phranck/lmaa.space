@@ -30,15 +30,61 @@ interface SearchState {
   page: number;
   status: "idle" | "loading" | "loading-more" | "error";
   error: string | null;
+  orientation: string;
+  orderBy: string;
+  color: string;
 }
 
 type SearchAction =
   | { type: "set-query"; query: string }
+  | { type: "set-orientation"; orientation: string }
+  | { type: "set-order-by"; orderBy: string }
+  | { type: "set-color"; color: string }
   | { type: "search-start" }
   | { type: "load-more-start" }
   | { type: "search-success"; photos: UnsplashPhoto[]; total: number; append: boolean }
   | { type: "search-error"; error: string; append: boolean }
   | { type: "next-page" };
+
+type UnsplashColorValue =
+  | "black_and_white"
+  | "black"
+  | "white"
+  | "yellow"
+  | "orange"
+  | "red"
+  | "purple"
+  | "magenta"
+  | "green"
+  | "teal"
+  | "blue";
+
+type ColorLabelKey =
+  | "colorBlackAndWhite"
+  | "colorBlack"
+  | "colorWhite"
+  | "colorYellow"
+  | "colorOrange"
+  | "colorRed"
+  | "colorPurple"
+  | "colorMagenta"
+  | "colorGreen"
+  | "colorTeal"
+  | "colorBlue";
+
+const COLORS: { value: UnsplashColorValue; css: string; labelKey: ColorLabelKey }[] = [
+  { value: "black_and_white", css: "linear-gradient(135deg, #1a1a1a 50%, #f5f5f5 50%)", labelKey: "colorBlackAndWhite" },
+  { value: "black", css: "#1a1a1a", labelKey: "colorBlack" },
+  { value: "white", css: "#f0f0f0", labelKey: "colorWhite" },
+  { value: "yellow", css: "#facc15", labelKey: "colorYellow" },
+  { value: "orange", css: "#f97316", labelKey: "colorOrange" },
+  { value: "red", css: "#ef4444", labelKey: "colorRed" },
+  { value: "purple", css: "#a855f7", labelKey: "colorPurple" },
+  { value: "magenta", css: "#ec4899", labelKey: "colorMagenta" },
+  { value: "green", css: "#22c55e", labelKey: "colorGreen" },
+  { value: "teal", css: "#14b8a6", labelKey: "colorTeal" },
+  { value: "blue", css: "#3b82f6", labelKey: "colorBlue" },
+];
 
 /**
  * Reducer for Unsplash search/pagination state machine.
@@ -51,6 +97,12 @@ function reducer(state: SearchState, action: SearchAction): SearchState {
   switch (action.type) {
     case "set-query":
       return { ...state, query: action.query, page: 1 };
+    case "set-orientation":
+      return { ...state, orientation: action.orientation, page: 1 };
+    case "set-order-by":
+      return { ...state, orderBy: action.orderBy, page: 1 };
+    case "set-color":
+      return { ...state, color: action.color, page: 1 };
     case "search-start":
       return { ...state, status: "loading", error: null };
     case "load-more-start":
@@ -77,8 +129,9 @@ function reducer(state: SearchState, action: SearchAction): SearchState {
 /**
  * Unsplash asset browser used in category image selection.
  *
- * Hidden behavior: debounces query changes, supports infinite scrolling and
- * triggers Unsplash download tracking when an image is selected.
+ * Supports filtering by orientation, sort order, and dominant color.
+ * Debounces query changes, supports infinite scrolling and triggers
+ * Unsplash download tracking when an image is selected.
  *
  * @param props - Initial query, selection callback and close handler.
  * @returns Full-screen media picker overlay.
@@ -87,6 +140,8 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
   const { messages } = useI18n();
   const categoriesMessages = messages.categories;
   const common = messages.common;
+  const unsplash = categoriesMessages.unsplash;
+
   const [state, dispatch] = useReducer(reducer, {
     query: defaultQuery,
     photos: [],
@@ -94,11 +149,14 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
     page: 1,
     status: "idle",
     error: null,
+    orientation: "",
+    orderBy: "",
+    color: "",
   });
 
-  const { query, photos, total, status, error } = state;
+  const { query, photos, total, status, error, orientation, orderBy, color } = state;
 
-  // Refs to avoid stale closures in IntersectionObserver
+  // Refs to avoid stale closures in IntersectionObserver and effects
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -106,30 +164,37 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRun = useRef(true);
+  const loadingMoreRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const search = useCallback(
-    async (q: string, pg: number, append: boolean) => {
+    async (q: string, pg: number, append: boolean, ori: string, order: string, col: string) => {
       if (!q.trim()) {
         dispatch({ type: "search-success", photos: [], total: 0, append: false });
         return;
       }
       dispatch(append ? { type: "load-more-start" } : { type: "search-start" });
       try {
+        const params = new URLSearchParams({ q, page: String(pg) });
+        if (ori) params.set("orientation", ori);
+        if (order) params.set("order_by", order);
+        if (col) params.set("color", col);
         const result = await api.get<UnsplashSearchResult>(
-          `/admin/unsplash/search?q=${encodeURIComponent(q)}&page=${pg}`,
+          `/admin/unsplash/search?${params.toString()}`,
         );
         dispatch({ type: "search-success", photos: result.results, total: result.total, append });
       } catch (e) {
         dispatch({
           type: "search-error",
-          error: e instanceof Error ? e.message : categoriesMessages.unsplash.searchError,
+          error: e instanceof Error ? e.message : unsplash.searchError,
           append,
         });
+      } finally {
+        if (append) loadingMoreRef.current = false;
       }
     },
-    [categoriesMessages.unsplash.searchError],
+    [unsplash.searchError],
   );
 
   const searchRef = useRef(search);
@@ -137,20 +202,26 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
     searchRef.current = search;
   }, [search]);
 
-  // First run: search immediately (no debounce). Subsequent changes: debounced + reset page.
+  // First run: search immediately (no debounce). Subsequent query/filter changes: debounced + reset page.
   useEffect(() => {
     if (isFirstRun.current) {
       isFirstRun.current = false;
-      if (query.trim()) search(query, 1, false);
+      if (query.trim()) {
+        const { orientation: o, orderBy: ob, color: c } = stateRef.current;
+        search(query, 1, false, o, ob, c);
+      }
       return;
     }
-    dispatch({ type: "set-query", query });
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(query, 1, false), 400);
+    debounceRef.current = setTimeout(() => {
+      const { query: q, orientation: o, orderBy: ob, color: c } = stateRef.current;
+      search(q, 1, false, o, ob, c);
+    }, 400);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query, search]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: searchRef stays current via its own effect
+  }, [query, orientation, orderBy, color]);
 
   // Infinite scroll: observe sentinel div at the bottom of the list.
   // photos.length in deps ensures re-observation after appending results,
@@ -164,12 +235,11 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const { status: s, page: p, query: q } = stateRef.current;
-        if (entries[0].isIntersecting && s !== "loading-more") {
-          const nextPage = p + 1;
-          dispatch({ type: "next-page" });
-          searchRef.current(q, nextPage, true);
-        }
+        if (!entries[0].isIntersecting || loadingMoreRef.current) return;
+        const { page: p, query: q, orientation: o, orderBy: ob, color: c } = stateRef.current;
+        loadingMoreRef.current = true;
+        dispatch({ type: "next-page" });
+        searchRef.current(q, p + 1, true, o, ob, c);
       },
       { root: container, threshold: 0.1 },
     );
@@ -188,15 +258,21 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
   const isLoading = status === "loading";
   const isLoadingMore = status === "loading-more";
 
+  const chipClass = (active: boolean) =>
+    `px-2 py-0.5 text-xs rounded border transition-colors ${
+      active
+        ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
+        : "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
+    }`;
+
   return (
     <OverlayCard
       open
       onClose={onClose}
       size="fullscreen"
       aria-label={categoriesMessages.editCard.unsplash}
-
     >
-      {/* Header */}
+      {/* Search header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--ds-border-subtle)] shrink-0">
         <div className="relative flex-1">
           <MagnifyingGlassIcon
@@ -207,7 +283,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
             type="text"
             value={query}
             onChange={(e) => dispatch({ type: "set-query", query: e.target.value })}
-            placeholder={categoriesMessages.unsplash.searchPlaceholder}
+            placeholder={unsplash.searchPlaceholder}
             className="w-full pl-8 pr-3 py-1.5 text-sm border border-[var(--ds-border)] rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           />
         </div>
@@ -215,17 +291,87 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
           type="button"
           onClick={onClose}
           className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] rounded-control hover:bg-[var(--ds-bg-elevated)]"
-          aria-label={categoriesMessages.unsplash.closeAria}
+          aria-label={unsplash.closeAria}
         >
           <XCircleIcon weight="duotone" className="w-5 h-5" />
         </button>
+      </div>
+
+      {/* Filter bar */}
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-[var(--ds-border-subtle)] shrink-0 flex-wrap">
+        {/* Orientation */}
+        <div className="flex items-center gap-1">
+          {(
+            [
+              { value: "", label: unsplash.orientationAll },
+              { value: "landscape", label: unsplash.orientationLandscape },
+              { value: "portrait", label: unsplash.orientationPortrait },
+              { value: "squarish", label: unsplash.orientationSquarish },
+            ] as const
+          ).map(({ value, label }) => (
+            <button
+              key={value || "all"}
+              type="button"
+              onClick={() => dispatch({ type: "set-orientation", orientation: value })}
+              className={chipClass(orientation === value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-px h-4 bg-[var(--ds-border-subtle)] shrink-0" />
+
+        {/* Sort order */}
+        <div className="flex items-center gap-1">
+          {(
+            [
+              { value: "", label: unsplash.orderByRelevant },
+              { value: "latest", label: unsplash.orderByLatest },
+            ] as const
+          ).map(({ value, label }) => (
+            <button
+              key={value || "relevant"}
+              type="button"
+              onClick={() => dispatch({ type: "set-order-by", orderBy: value })}
+              className={chipClass(orderBy === value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-px h-4 bg-[var(--ds-border-subtle)] shrink-0" />
+
+        {/* Color filter */}
+        <div className="flex items-center gap-1.5" aria-label={unsplash.filterColor}>
+          {COLORS.map(({ value, css, labelKey }) => {
+            const label = unsplash[labelKey];
+            const isActive = color === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => dispatch({ type: "set-color", color: isActive ? "" : value })}
+                className={`w-4.5 h-4.5 rounded-full border transition-all ${
+                  isActive
+                    ? "ring-2 ring-offset-1 ring-[var(--color-primary)] scale-110 border-transparent"
+                    : "border-[var(--ds-border)] opacity-80 hover:opacity-100 hover:scale-110"
+                }`}
+                style={{ background: css }}
+                aria-label={label}
+                title={label}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* Content */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4">
         {!query.trim() && (
           <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
-            {categoriesMessages.unsplash.searchHint}
+            {unsplash.searchHint}
           </p>
         )}
 
@@ -242,7 +388,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
 
         {!isLoading && !error && photos.length === 0 && query.trim() && (
           <p className="text-center text-sm text-[var(--ds-text-subtle)] py-12">
-            {categoriesMessages.unsplash.emptyPrefix} &bdquo;{query}&ldquo;
+            {unsplash.emptyPrefix} &bdquo;{query}&ldquo;
           </p>
         )}
 
@@ -255,7 +401,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onClose }: Unspla
                   type="button"
                   onClick={() => handleSelect(photo)}
                   className="group relative aspect-video overflow-hidden rounded-control bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                  title={`${categoriesMessages.unsplash.addTitlePrefix} ${photo.user.name}`}
+                  title={`${unsplash.addTitlePrefix} ${photo.user.name}`}
                 >
                   <img
                     src={photo.urls.small}

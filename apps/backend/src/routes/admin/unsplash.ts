@@ -29,8 +29,11 @@ unsplashRoutes.use("*", requireAdmin);
 unsplashRoutes.get("/unsplash/search", async (c) => {
   const q = c.req.query("q") ?? "";
   const page = c.req.query("page") ?? "1";
+  const orientation = c.req.query("orientation");
+  const orderBy = c.req.query("order_by");
+  const color = c.req.query("color");
   try {
-    const data = await searchManagedUnsplashPhotos(q, page);
+    const data = await searchManagedUnsplashPhotos(q, page, orientation, orderBy, color);
     return ok(c, data);
   } catch (error) {
     return respondError(c, error);

@@ -295,6 +295,27 @@ export interface DashboardMessages {
       searchHint: string;
       emptyPrefix: string;
       addTitlePrefix: string;
+      filterOrientation: string;
+      orientationAll: string;
+      orientationLandscape: string;
+      orientationPortrait: string;
+      orientationSquarish: string;
+      filterOrderBy: string;
+      orderByRelevant: string;
+      orderByLatest: string;
+      filterColor: string;
+      colorAny: string;
+      colorBlackAndWhite: string;
+      colorBlack: string;
+      colorWhite: string;
+      colorYellow: string;
+      colorOrange: string;
+      colorRed: string;
+      colorPurple: string;
+      colorMagenta: string;
+      colorGreen: string;
+      colorTeal: string;
+      colorBlue: string;
     };
   };
   media: {
@@ -1303,6 +1324,27 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         searchHint: "Suchbegriff eingeben, um Bilder zu finden",
         emptyPrefix: "Keine Bilder gefunden für",
         addTitlePrefix: "Foto von",
+        filterOrientation: "Ausrichtung",
+        orientationAll: "Alle",
+        orientationLandscape: "Querformat",
+        orientationPortrait: "Hochformat",
+        orientationSquarish: "Quadratisch",
+        filterOrderBy: "Sortierung",
+        orderByRelevant: "Relevanz",
+        orderByLatest: "Neueste",
+        filterColor: "Farbe",
+        colorAny: "Alle Farben",
+        colorBlackAndWhite: "Schwarz-Weiß",
+        colorBlack: "Schwarz",
+        colorWhite: "Weiß",
+        colorYellow: "Gelb",
+        colorOrange: "Orange",
+        colorRed: "Rot",
+        colorPurple: "Lila",
+        colorMagenta: "Magenta",
+        colorGreen: "Grün",
+        colorTeal: "Türkis",
+        colorBlue: "Blau",
       },
     },
     media: {
@@ -2310,6 +2352,27 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         searchHint: "Enter a search term to find images",
         emptyPrefix: "No images found for",
         addTitlePrefix: "Photo by",
+        filterOrientation: "Orientation",
+        orientationAll: "All",
+        orientationLandscape: "Landscape",
+        orientationPortrait: "Portrait",
+        orientationSquarish: "Square",
+        filterOrderBy: "Sort by",
+        orderByRelevant: "Relevant",
+        orderByLatest: "Latest",
+        filterColor: "Color",
+        colorAny: "Any color",
+        colorBlackAndWhite: "Black & White",
+        colorBlack: "Black",
+        colorWhite: "White",
+        colorYellow: "Yellow",
+        colorOrange: "Orange",
+        colorRed: "Red",
+        colorPurple: "Purple",
+        colorMagenta: "Magenta",
+        colorGreen: "Green",
+        colorTeal: "Teal",
+        colorBlue: "Blue",
       },
     },
     media: {

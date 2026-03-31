@@ -31,17 +31,27 @@ function getUnsplashApiKey() {
  *
  * @param query - Search phrase.
  * @param page - 1-based page number as string.
+ * @param orientation - Optional orientation filter: landscape | portrait | squarish.
+ * @param orderBy - Optional sort order: relevant | latest.
+ * @param color - Optional dominant color filter.
  * @returns Normalized search payload with `results` and `total`.
  * @throws {HttpError} When Unsplash is not configured or request fails.
  */
 export async function searchUnsplashPhotos(
   query: string,
   page = "1",
+  orientation?: string,
+  orderBy?: string,
+  color?: string,
 ): Promise<UnsplashSearchResult> {
   if (!query) return { results: [], total: 0 };
 
   const key = getUnsplashApiKey();
-  const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=30&page=${page}`;
+  const params = new URLSearchParams({ query, per_page: "30", page });
+  if (orientation) params.set("orientation", orientation);
+  if (orderBy) params.set("order_by", orderBy);
+  if (color) params.set("color", color);
+  const url = `https://api.unsplash.com/search/photos?${params.toString()}`;
   const response = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
 
   if (!response.ok) {
