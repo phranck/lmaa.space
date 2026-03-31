@@ -10,6 +10,7 @@ import {
   deleteManagedMediaAsset,
   listHeroCacheMediaItems,
   listManagedMediaAssets,
+  refetchSingleUnsplashMeta,
   syncMediaFromStorage,
   updateManagedMediaAsset,
   uploadManagedMediaAsset,
@@ -62,6 +63,16 @@ mediaRoutes.patch(
     return ok(c, result.asset);
   },
 );
+
+mediaRoutes.post("/media/cache/refetch/:unsplashId", requireAdmin, async (c) => {
+  const unsplashId = c.req.param("unsplashId");
+  if (!unsplashId) return fail(c, 400, "Missing unsplashId");
+
+  const updated = await refetchSingleUnsplashMeta(unsplashId);
+  if (!updated) return fail(c, 502, "Failed to fetch from Unsplash");
+
+  return ok(c, { updated: true });
+});
 
 mediaRoutes.post("/media/sync", requireAdmin, async (c) => {
   const result = await syncMediaFromStorage();

@@ -352,6 +352,8 @@ export interface DashboardMessages {
     deleteDescription: string;
     cacheFolderDescription: string;
     cacheFolderEmpty: string;
+    refetchMeta: string;
+    refetchMetaPending: string;
     table: {
       name: string;
       type: string;
@@ -1444,6 +1446,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       cacheFolderDescription: "Gecachete Hero-Banner-Bilder",
       cacheFolderEmpty: "Noch keine Bilder gecacht.",
+      refetchMeta: "Metadaten aktualisieren",
+      refetchMetaPending: "Aktualisiere…",
     },
     submissions: {
       title: "Meldungen",
@@ -2503,6 +2507,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       cacheFolderDescription: "Cached hero banner images",
       cacheFolderEmpty: "No images cached yet.",
+      refetchMeta: "Refresh metadata",
+      refetchMetaPending: "Refreshing…",
     },
     submissions: {
       title: "Reports",

@@ -4,10 +4,27 @@ import type { MediaAsset } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
+export interface HeroCacheUnsplashMeta {
+  unsplashId: string;
+  width: number | null;
+  height: number | null;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number | null;
+  photographerName: string;
+  photographerUrl: string;
+  locationCity: string | null;
+  locationCountry: string | null;
+  createdAtUnsplash: string | null;
+}
+
 export interface HeroCacheItem {
   imageId: number;
   url: string;
   sizeBytes: number;
+  unsplash: HeroCacheUnsplashMeta | null;
 }
 
 export function useAdminMedia() {
@@ -21,6 +38,18 @@ export function useHeroCacheMedia() {
   return useQuery({
     queryKey: ["media-cache"],
     queryFn: () => api.get<HeroCacheItem[]>("/admin/media/cache"),
+  });
+}
+
+export function useRefetchUnsplashMeta() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (unsplashId: string) =>
+      api.post<{ updated: boolean }>(`/admin/media/cache/refetch/${unsplashId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["media-cache"] });
+    },
   });
 }
 

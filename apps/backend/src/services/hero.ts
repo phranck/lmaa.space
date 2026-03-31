@@ -1,3 +1,4 @@
+import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 import { env } from "../config/env.js";
 import type { HeroImage } from "../db/schema.js";
 import {
@@ -16,6 +17,7 @@ import {
   setHeroImageFocalPoint,
   setHeroImageSelected,
 } from "../repositories/hero.js";
+import { updateUnsplashImageLocation, upsertUnsplashImage } from "../repositories/unsplash-images.js";
 
 const s3CacheEnabled = () => !!(env.S3_ENDPOINT && env.S3_BUCKET);
 
@@ -167,13 +169,59 @@ export async function getAdminHeroImages(): Promise<HeroImage[]> {
 }
 
 export async function addHeroImage(data: {
+  unsplashId: string;
   url: string;
+  urlSmall: string;
   photographer: string;
   photographerUrl: string;
   downloadLocation: string;
+  width: number;
+  height: number;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number;
+  createdAt: string;
 }): Promise<HeroImage> {
-  const image = await createHeroImage(data);
+  const unsplashImage = await upsertUnsplashImage({
+    unsplashId: data.unsplashId,
+    urlSmall: data.urlSmall,
+    urlRegular: data.url,
+    width: data.width,
+    height: data.height,
+    color: data.color,
+    blurHash: data.blurHash,
+    description: data.description,
+    altDescription: data.altDescription,
+    likes: data.likes,
+    photographerName: data.photographer,
+    photographerUrl: data.photographerUrl,
+    downloadLocation: data.downloadLocation,
+    createdAtUnsplash: new Date(data.createdAt),
+  });
+
+  const image = await createHeroImage({
+    unsplashImageId: unsplashImage.id,
+    url: data.url,
+    photographer: data.photographer,
+    photographerUrl: data.photographerUrl,
+    downloadLocation: data.downloadLocation,
+  });
+
   triggerHeroImageCache(image.id, image.url);
+
+  // Background-fetch location data from Unsplash /photos/:id
+  fetchUnsplashPhotoDetail(data.unsplashId)
+    .then(async (location) => {
+      if (location) {
+        await updateUnsplashImageLocation(unsplashImage.id, location);
+      }
+    })
+    .catch((err: unknown) => {
+      console.error(`[unsplash-location] Failed to fetch location for ${data.unsplashId}:`, err);
+    });
+
   return image;
 }
 

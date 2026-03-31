@@ -27,10 +27,20 @@ export function useAddHeroImage() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: {
+      unsplashId: string;
       url: string;
+      urlSmall: string;
       photographer: string;
       photographerUrl: string;
       downloadLocation: string;
+      width: number;
+      height: number;
+      color: string | null;
+      blurHash: string | null;
+      description: string | null;
+      altDescription: string | null;
+      likes: number;
+      createdAt: string;
     }) => api.post<HeroImage>("/admin/hero-images", data),
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
   });

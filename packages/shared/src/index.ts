@@ -20,6 +20,8 @@ export * from "./types/media.js";
 export * from "./types/affiliate.js";
 /** Billing/cost domain models. */
 export * from "./types/billing.js";
+/** Unsplash image metadata models. */
+export * from "./types/unsplash.js";
 /** API error parsing and normalization helpers. */
 export * from "./utils/api-error.js";
 /** Social media validation and normalization. */

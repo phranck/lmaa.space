@@ -1,4 +1,4 @@
-import { FileIcon, ImageIcon } from "@phosphor-icons/react";
+import { FileIcon } from "@phosphor-icons/react";
 
 import type { MediaAsset } from "@lmaa/shared";
 
@@ -23,37 +23,31 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
     <button
       type="button"
       onClick={() => onSelect(asset.id)}
-      className={`relative text-left bg-[var(--ds-surface)] rounded-card border flex flex-col overflow-hidden card-hover ${
-        selected
-          ? "border-[var(--color-primary)] ring-2 ring-[color-mix(in_srgb,var(--color-primary)_22%,transparent)]"
-          : "border-[var(--ds-border)]"
-      }`}
+      className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors text-center"
     >
-      <div className="aspect-[4/3] overflow-hidden rounded-t-[var(--radius-card)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
+      <div
+        className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
+          selected
+            ? "border-[var(--color-primary)]"
+            : "border-transparent hover:border-[var(--ds-border)]"
+        }`}
+      >
         {imageAsset ? (
           <img src={asset.url} alt="" loading="lazy" className="w-full h-full object-cover" />
         ) : (
-          <div className="flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
+          <div className="w-full h-full bg-[var(--ds-bg-elevated)] flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
             <FileIcon weight="duotone" className="w-10 h-10" />
-            <span className="text-xs font-semibold tracking-wide">{getMediaTypeLabel(asset)}</span>
+            <span className="text-[10px] font-semibold tracking-wide">{getMediaTypeLabel(asset)}</span>
           </div>
         )}
       </div>
-      <div className="p-3 flex flex-col gap-2">
-        <div>
-          <p className="font-medium text-[var(--ds-text)] text-sm truncate">{asset.displayName}</p>
-          <p className="text-xs text-[var(--ds-text-subtle)] truncate">{asset.originalName}</p>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
-          {imageAsset ? (
-            <ImageIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
-          ) : (
-            <FileIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
-          )}
-          <span>{getMediaTypeLabel(asset)}</span>
-          <span>·</span>
-          <span>{formatBytes(asset.sizeBytes, locale)}</span>
-        </div>
+      <div className="w-full px-0.5">
+        <p className={`text-xs font-medium truncate ${selected ? "text-[var(--color-primary)]" : "text-[var(--ds-text)]"}`}>
+          {asset.displayName}
+        </p>
+        <p className="text-[10px] text-[var(--ds-text-muted)] truncate">
+          {formatBytes(asset.sizeBytes, locale)}
+        </p>
       </div>
     </button>
   );
