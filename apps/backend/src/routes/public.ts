@@ -19,6 +19,7 @@ import { getMediaAliasMap } from "../services/admin-media.js";
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
+import { getCurrentHeroImage } from "../services/hero.js";
 import { ZeropsApiRequestError, ZeropsClient } from "../services/network-clients/zerops-client.js";
 import {
   validateShopUrl,
@@ -451,6 +452,14 @@ publicRoutes.get("/media-aliases", publicReadLimit, async (c) => {
   const map = await getMediaAliasMap();
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, map);
+});
+
+// GET /api/hero?state=<visitor-state> -- refresh-count-based hero image rotation
+publicRoutes.get("/hero", publicReadLimit, async (c) => {
+  const rawState = c.req.query("state") ?? null;
+  const image = await getCurrentHeroImage(rawState);
+  c.header("Cache-Control", "no-store");
+  return ok(c, image);
 });
 
 // Debug endpoint: cache stats (dev only)

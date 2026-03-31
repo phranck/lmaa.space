@@ -148,13 +148,13 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     });
   }
 
-  function handleUnsplashSelect(imageUrl: string, photographer: string, photographerUrl: string) {
+  function handleUnsplashSelect({ url, photographer, photographerUrl }: { url: string; photographer: string; photographerUrl: string; downloadLocation: string }) {
     setImage({
-      previewUrl: imageUrl,
+      previewUrl: url,
       photographer,
       photographerUrl,
       pendingFile: null,
-      pendingUnsplashUrl: imageUrl,
+      pendingUnsplashUrl: url,
       deleted: false,
       loadError: false,
     });

@@ -288,6 +288,20 @@
       "when": 1774910852436,
       "tag": "0040_conscious_nemesis",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1774971227316,
+      "tag": "0041_futuristic_raider",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1774976152692,
+      "tag": "0042_huge_korath",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,30 @@ const categories = await apiGet<Category[]>("/categories");
 const stats = await apiGet<{ shopCount: number }>("/stats");
 const shopCount = stats.shopCount;
 
+interface HeroImageResult {
+  url: string;
+  photographer: string;
+  photographerUrl: string;
+  focalPointY: number;
+  nextState: string | null;
+}
+
+const heroState = Astro.cookies.get("hero-state")?.value ?? "";
+const heroImage = await apiGet<HeroImageResult | null>(
+  heroState ? `/hero?state=${heroState}` : "/hero",
+).catch(() => null);
+
+if (heroImage?.nextState) {
+  Astro.cookies.set("hero-state", heroImage.nextState, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+    httpOnly: false,
+  });
+}
+
+const heroSrc = heroImage?.url ?? "/images/hero.jpg";
+
 const site = Astro.site?.origin ?? "https://lmaa.space";
 const jsonLd = {
   "@context": "https://schema.org",
@@ -30,11 +54,12 @@ const jsonLd = {
   <!-- Hero -->
   <section class="relative overflow-hidden text-white">
     <img
-      src="/images/hero.jpg"
+      src={heroSrc}
       alt=""
       aria-hidden="true"
       fetchpriority="high"
       class="absolute inset-0 w-full h-full object-cover"
+      style={`object-position: 50% ${heroImage?.focalPointY ?? 50}%`}
     />
     <div class="absolute inset-0 bg-stone-950/70"></div>
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-12 text-center">

@@ -717,3 +717,40 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   auth: text("auth").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ---------------------------------------------------------------------------
+// Hero Images
+// ---------------------------------------------------------------------------
+
+export type HeroScheduleSlot = {
+  slot: number;
+  time: string; // "HH:MM" in local time (Europe/Berlin)
+  imageId: number;
+};
+
+/**
+ * Pool of Unsplash images available for the homepage hero banner.
+ */
+export const heroImages = pgTable("hero_images", {
+  id: serial("id").primaryKey(),
+  url: text("url").notNull(),
+  photographer: text("photographer").notNull(),
+  photographerUrl: text("photographer_url").notNull(),
+  downloadLocation: text("download_location").notNull(),
+  isSelected: boolean("is_selected").notNull().default(false),
+  focalPointY: integer("focal_point_y").notNull().default(50),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type HeroImage = typeof heroImages.$inferSelect;
+
+/**
+ * Daily hero rotation schedule -- one row per day, lazy-generated on first request.
+ */
+export const heroDailySchedule = pgTable("hero_daily_schedule", {
+  id: serial("id").primaryKey(),
+  date: text("date").notNull().unique(), // ISO date "YYYY-MM-DD"
+  schedule: jsonb("schedule").$type<HeroScheduleSlot[]>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
