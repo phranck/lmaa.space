@@ -1,0 +1,351 @@
+import {
+  ArrowsClockwiseIcon,
+  ArrowsVerticalIcon,
+  CheckCircleIcon,
+  CircleIcon,
+  ImageIcon,
+  ImagesIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+
+import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
+
+import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { Dialog, dialogBtnDestructive, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import { PageFooter } from "@/components/ui/PageFooter.tsx";
+import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
+import {
+  type HeroImage,
+  useAddHeroImage,
+  useDeleteHeroImage,
+  useHeroImages,
+  useHeroRotation,
+  useHeroRotationInterval,
+  useSetHeroImageFocalPoint,
+  useToggleHeroImageSelected,
+} from "@/features/content/hooks/useHeroImages.ts";
+
+interface HeroImageCardProps {
+  image: HeroImage;
+  rotationEnabled: boolean;
+  onToggleSelect: () => void;
+  onDelete: () => void;
+  togglePending: boolean;
+  deletePending: boolean;
+  m: ReturnType<typeof useI18n>["messages"]["landingPage"]["heroBanner"];
+}
+
+function HeroImageCard({
+  image,
+  rotationEnabled,
+  onToggleSelect,
+  onDelete,
+  togglePending,
+  deletePending,
+  m,
+}: HeroImageCardProps) {
+  const [focalY, setFocalY] = useState(image.focalPointY ?? 50);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const setFocalPoint = useSetHeroImageFocalPoint();
+
+  useEffect(() => {
+    setFocalY(image.focalPointY ?? 50);
+  }, [image.focalPointY]);
+
+  const startDrag = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const calcY = (clientY: number) => {
+      const el = containerRef.current;
+      if (!el) return 50;
+      const rect = el.getBoundingClientRect();
+      return Math.max(0, Math.min(100, Math.round(((clientY - rect.top) / rect.height) * 100)));
+    };
+
+    setFocalY(calcY(e.clientY));
+
+    const onMove = (ev: MouseEvent) => {
+      setFocalY(calcY(ev.clientY));
+    };
+
+    const onUp = (ev: MouseEvent) => {
+      const y = calcY(ev.clientY);
+      setFocalY(y);
+      setFocalPoint.mutate({ id: image.id, focalPointY: y });
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className={`group relative rounded-control overflow-hidden border-2 transition-colors ${
+        image.isSelected ? "border-[var(--color-primary)]" : "border-transparent"
+      }`}
+    >
+      <img
+        src={image.url}
+        alt=""
+        className="w-full aspect-video object-cover"
+        style={{ objectPosition: `50% ${focalY}%` }}
+        loading="lazy"
+        draggable={false}
+      />
+
+      {/* Focal point line */}
+      <div
+        className="absolute inset-x-0 z-20 flex items-center cursor-ns-resize select-none"
+        style={{ top: `${focalY}%`, transform: "translateY(-50%)" }}
+        onMouseDown={startDrag}
+        title={m.focalPointDrag}
+      >
+        <div className="w-full h-px bg-white/60 shadow-[0_0_3px_rgba(0,0,0,0.8)] group-hover:bg-white/90 transition-colors" />
+        <div className="absolute right-1.5 w-5 h-5 rounded-full bg-white/80 group-hover:bg-white flex items-center justify-center shadow-md transition-colors">
+          <ArrowsVerticalIcon weight="bold" className="w-3 h-3 text-stone-700" />
+        </div>
+      </div>
+
+      {/* Active badge */}
+      {image.isSelected && (
+        <div className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--color-primary)] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full z-10">
+          <CheckCircleIcon weight="fill" className="w-3 h-3" />
+          {m.selectedBadge}
+        </div>
+      )}
+
+      {/* Photographer credit */}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-2 z-10">
+        <p className="text-white text-[10px] truncate">
+          {m.photographerCredit} {image.photographer}
+        </p>
+      </div>
+
+      {/* Action overlay */}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 z-10">
+        <button
+          type="button"
+          onClick={onToggleSelect}
+          disabled={togglePending}
+          className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-white text-stone-900 rounded-control hover:bg-stone-100 disabled:opacity-50"
+          title={image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
+        >
+          {image.isSelected ? (
+            <CircleIcon weight="regular" className="w-3.5 h-3.5" />
+          ) : (
+            <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          )}
+          {image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={deletePending}
+          className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-white text-[var(--ds-btn-danger-text,#ef4444)] rounded-control hover:bg-red-50 disabled:opacity-50"
+          title={m.removeImage}
+        >
+          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+          {m.removeImage}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Hero Banner tab inside the Landing Page editor.
+ *
+ * Lets admins collect Unsplash images into a pool and mark individual images
+ * as active for the daily hero rotation on the public homepage.
+ */
+export function HeroBannerTab() {
+  const { messages } = useI18n();
+  const m = messages.landingPage.heroBanner;
+
+  const { data: images = [], isLoading } = useHeroImages();
+  const addMutation = useAddHeroImage();
+  const deleteMutation = useDeleteHeroImage();
+  const toggleMutation = useToggleHeroImageSelected();
+  const rotation = useHeroRotation();
+  const intervalConfig = useHeroRotationInterval();
+
+  const [showBrowser, setShowBrowser] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+
+  // Local state for interval input
+  const [localInterval, setLocalInterval] = useState(intervalConfig.interval);
+
+  // Sync local state when server data loads
+  useEffect(() => {
+    setLocalInterval(intervalConfig.interval);
+  }, [intervalConfig.interval]);
+
+  const intervalDirty = localInterval !== intervalConfig.interval;
+
+  const hasSelected = images.some((img) => img.isSelected);
+
+  return (
+    <>
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+        <div className="p-4 space-y-4">
+
+          {/* Rotation Section */}
+          <DashboardSection expanded={rotation.enabled}>
+            <DashboardSection.Header
+              icon={<ArrowsClockwiseIcon weight="duotone" className="w-4 h-4" />}
+              title={m.rotationLabel}
+              addOn={
+                <ToggleSwitch
+                  checked={rotation.enabled}
+                  onChange={rotation.setEnabled}
+                  disabled={rotation.isPending}
+                />
+              }
+            />
+            <DashboardSection.Body>
+              <div className="flex items-center gap-3">
+                <label htmlFor="rotation-interval" className="text-sm text-[var(--ds-text)] shrink-0">
+                  {m.rotationInterval}
+                </label>
+                <input
+                  id="rotation-interval"
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={localInterval}
+                  onChange={(e) => setLocalInterval(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
+                  className="w-14 text-sm text-center border border-[var(--ds-border)] rounded-control px-2 py-1 bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+                <span className="text-sm text-[var(--ds-text-muted)]">{m.rotationIntervalSuffix}</span>
+                {intervalDirty && (
+                  <button
+                    type="button"
+                    disabled={intervalConfig.isSaving}
+                    onClick={() => intervalConfig.save(localInterval)}
+                    className="ml-auto flex items-center gap-1.5 h-8 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:bg-[var(--ds-btn-primary-hover-bg)] hover:border-[var(--ds-btn-primary-hover-border)] disabled:opacity-50"
+                  >
+                    {m.rotationIntervalSave}
+                  </button>
+                )}
+              </div>
+            </DashboardSection.Body>
+          </DashboardSection>
+
+          {/* Image Pool Section */}
+          <DashboardSection>
+            <DashboardSection.Header
+              icon={<ImagesIcon weight="duotone" className="w-4 h-4" />}
+              title={m.imagePool}
+            />
+            <DashboardSection.Body>
+              {/* Hint when nothing is selected */}
+              {!isLoading && images.length > 0 && !hasSelected && (
+                <p className="text-sm text-[var(--ds-text-subtle)] bg-[var(--ds-bg-elevated)] border border-[var(--ds-border-subtle)] rounded-control px-4 py-3">
+                  {m.noImagesSelected}
+                </p>
+              )}
+
+              {/* Empty state */}
+              {!isLoading && images.length === 0 && (
+                <ContentUnavailableView
+                  icon={<ImageIcon weight="duotone" aria-hidden />}
+                  title={m.imagePoolEmpty}
+                  subtitle={m.imagePoolHint}
+                />
+              )}
+
+              {/* Image grid */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {images.map((image) => (
+                    <HeroImageCard
+                      key={image.id}
+                      image={image}
+                      rotationEnabled={rotation.enabled}
+                      onToggleSelect={() =>
+                        toggleMutation.mutate({ id: image.id, selected: !image.isSelected })
+                      }
+                      onDelete={() => setDeleteTarget(image.id)}
+                      togglePending={toggleMutation.isPending}
+                      deletePending={deleteMutation.isPending}
+                      m={m}
+                    />
+                  ))}
+                </div>
+              )}
+            </DashboardSection.Body>
+          </DashboardSection>
+
+        </div>
+      </div>
+
+      {/* Footer: "Bilder hinzufügen" button */}
+      <PageFooter>
+        <button
+          type="button"
+          onClick={() => setShowBrowser(true)}
+          className="flex items-center gap-1.5 h-9 px-3 text-sm border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:bg-[var(--ds-btn-primary-hover-bg)] hover:border-[var(--ds-btn-primary-hover-border)]"
+        >
+          <PlusIcon weight="bold" className="w-3.5 h-3.5" />
+          {m.addImages}
+        </button>
+      </PageFooter>
+
+      {/* Unsplash Browser */}
+      {showBrowser && (
+        <UnsplashBrowser
+          onSelect={(photo) => {
+            addMutation.mutate(photo);
+            setShowBrowser(false);
+          }}
+          onSelectMultiple={(photos) => {
+            for (const photo of photos) {
+              addMutation.mutate(photo);
+            }
+            setShowBrowser(false);
+          }}
+          onClose={() => setShowBrowser(false)}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      <Dialog
+        open={deleteTarget !== null}
+        title={m.removeConfirmTitle}
+        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
+        onClose={() => setDeleteTarget(null)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">{m.removeConfirmDescription}</p>
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setDeleteTarget(null)}
+            className={dialogBtnSecondary}
+          >
+            {messages.common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteMutation.isPending}
+            onClick={() => {
+              if (deleteTarget === null) return;
+              deleteMutation.mutate(deleteTarget, { onSuccess: () => setDeleteTarget(null) });
+            }}
+            className={dialogBtnDestructive}
+          >
+            {m.removeImage}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
+    </>
+  );
+}

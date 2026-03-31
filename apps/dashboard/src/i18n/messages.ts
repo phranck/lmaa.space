@@ -39,6 +39,7 @@ export interface DashboardMessages {
       submissions: string;
       shops: string;
       categories: string;
+      landingPage: string;
       media: string;
       users: string;
       pages: string;
@@ -316,6 +317,8 @@ export interface DashboardMessages {
       colorGreen: string;
       colorTeal: string;
       colorBlue: string;
+      selectedCount: string;
+      addSelected: string;
     };
   };
   media: {
@@ -352,6 +355,32 @@ export interface DashboardMessages {
       type: string;
       size: string;
       updated: string;
+    };
+  };
+  landingPage: {
+    title: string;
+    tabHeroBanner: string;
+    heroBanner: {
+      addImages: string;
+      imagePool: string;
+      imagePoolEmpty: string;
+      imagePoolHint: string;
+      selectedBadge: string;
+      markSelected: string;
+      markDeselected: string;
+      markActive: string;
+      removeImage: string;
+      removeConfirmTitle: string;
+      removeConfirmDescription: string;
+      photographerCredit: string;
+      noImagesSelected: string;
+      rotationLabel: string;
+      rotationOn: string;
+      rotationOff: string;
+      rotationInterval: string;
+      rotationIntervalSuffix: string;
+      rotationIntervalSave: string;
+      focalPointDrag: string;
     };
   };
   submissions: {
@@ -1065,6 +1094,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         submissions: "Meldungen",
         shops: "Shops",
         categories: "Kategorien",
+        landingPage: "Startseite",
         media: "Media",
         users: "Benutzer",
         pages: "Seiten",
@@ -1345,6 +1375,34 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         colorGreen: "Grün",
         colorTeal: "Türkis",
         colorBlue: "Blau",
+        selectedCount: "ausgewählt",
+        addSelected: "Hinzufügen",
+      },
+    },
+    landingPage: {
+      title: "Startseite",
+      tabHeroBanner: "Hero Banner",
+      heroBanner: {
+        addImages: "Bilder hinzufügen",
+        imagePool: "Bildersammlung",
+        imagePoolEmpty: "Noch keine Bilder gesammelt.",
+        imagePoolHint: "Füge Bilder aus Unsplash hinzu. Markierte Bilder werden auf der Startseite rotiert.",
+        selectedBadge: "Aktiv",
+        markSelected: "Für Rotation aktivieren",
+        markDeselected: "Aus Rotation entfernen",
+        markActive: "Als aktives Bild setzen",
+        removeImage: "Entfernen",
+        removeConfirmTitle: "Bild entfernen?",
+        removeConfirmDescription: "Das Bild wird aus der Sammlung gelöscht.",
+        photographerCredit: "Foto von",
+        noImagesSelected: "Kein Bild als aktiv markiert – auf der Startseite wird das Standard-Bild angezeigt.",
+        rotationLabel: "Rotation",
+        rotationOn: "Ein",
+        rotationOff: "Aus",
+        rotationInterval: "Bild wechseln nach",
+        rotationIntervalSuffix: "Seitenaufrufen",
+        rotationIntervalSave: "Speichern",
+        focalPointDrag: "Bildausschnitt anpassen",
       },
     },
     media: {
@@ -2094,6 +2152,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         submissions: "Reports",
         shops: "Shops",
         categories: "Categories",
+        landingPage: "Landing Page",
         media: "Media",
         users: "Users",
         pages: "Pages",
@@ -2373,6 +2432,34 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         colorGreen: "Green",
         colorTeal: "Teal",
         colorBlue: "Blue",
+        selectedCount: "selected",
+        addSelected: "Add",
+      },
+    },
+    landingPage: {
+      title: "Landing Page",
+      tabHeroBanner: "Hero Banner",
+      heroBanner: {
+        addImages: "Add images",
+        imagePool: "Image collection",
+        imagePoolEmpty: "No images collected yet.",
+        imagePoolHint: "Add images from Unsplash. Marked images will be rotated on the homepage.",
+        selectedBadge: "Active",
+        markSelected: "Activate for rotation",
+        markDeselected: "Remove from rotation",
+        markActive: "Set as active image",
+        removeImage: "Remove",
+        removeConfirmTitle: "Remove image?",
+        removeConfirmDescription: "This image will be deleted from the collection.",
+        photographerCredit: "Photo by",
+        noImagesSelected: "No image marked as active – the default image will be shown on the homepage.",
+        rotationLabel: "Rotation",
+        rotationOn: "On",
+        rotationOff: "Off",
+        rotationInterval: "Change image after",
+        rotationIntervalSuffix: "page loads",
+        rotationIntervalSave: "Save",
+        focalPointDrag: "Adjust focal point",
       },
     },
     media: {

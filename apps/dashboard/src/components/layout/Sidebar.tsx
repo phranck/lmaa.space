@@ -645,6 +645,17 @@ export function Sidebar({
                     )}
                   </NavLink>
                   {isAdmin && (
+                    <NavLink to="/landing-page" onClick={onItemClick} className="contents">
+                      {({ isActive }) => (
+                        <DashboardSection.Item
+                          icon={<HouseSimpleIcon weight="duotone" className="w-4 h-4" />}
+                          label={s.landingPage}
+                          active={isActive}
+                        />
+                      )}
+                    </NavLink>
+                  )}
+                  {isAdmin && (
                     <PagesGroup
                       onItemClick={onItemClick}
                       globalOpenState={groupOpenState}

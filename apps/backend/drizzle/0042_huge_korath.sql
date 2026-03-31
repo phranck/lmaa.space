@@ -1,0 +1,1 @@
+ALTER TABLE "hero_images" ADD COLUMN "focal_point_y" integer DEFAULT 50 NOT NULL;

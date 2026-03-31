@@ -37,6 +37,12 @@ const CategoriesPage = lazy(() =>
   })),
 );
 
+const LandingPagePage = lazy(() =>
+  import("@/features/content/landing-page/LandingPagePage.tsx").then((m) => ({
+    default: m.LandingPagePage,
+  })),
+);
+
 const ShopsPage = lazy(() =>
   import("@/features/content/shops/ShopsPage.tsx").then((m) => ({
     default: m.ShopsPage,
@@ -268,6 +274,14 @@ function AppRoutes() {
             element={
               <Suspense fallback={<ContentEditorLoadingFallback />}>
                 <CategoriesPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="landing-page"
+            element={
+              <Suspense fallback={<ContentEditorLoadingFallback />}>
+                <LandingPagePage />
               </Suspense>
             }
           />
