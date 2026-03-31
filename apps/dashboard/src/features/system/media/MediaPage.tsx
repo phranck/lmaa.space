@@ -36,7 +36,6 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
-  type HeroCacheItem,
   useAdminMedia,
   useDeleteMedia,
   useHeroCacheMedia,
