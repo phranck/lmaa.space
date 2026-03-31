@@ -1,4 +1,11 @@
+import { env } from "../config/env.js";
 import type { HeroImage } from "../db/schema.js";
+import {
+  getHeroCacheImageUrl,
+  isHeroCacheImageStored,
+  putHeroCacheImage,
+  removeHeroCacheImage,
+} from "../lib/media-storage.js";
 import { getSetting, putSetting } from "../repositories/app-settings.js";
 import {
   clearHeroImageSelections,
@@ -9,6 +16,31 @@ import {
   setHeroImageFocalPoint,
   setHeroImageSelected,
 } from "../repositories/hero.js";
+
+const s3CacheEnabled = () => !!(env.S3_ENDPOINT && env.S3_BUCKET);
+
+async function downloadAndCacheHeroImage(id: number, url: string): Promise<void> {
+  if (!s3CacheEnabled()) return;
+  if (await isHeroCacheImageStored(id)) return;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch image for cache: ${res.status}`);
+  const buffer = Buffer.from(await res.arrayBuffer());
+  await putHeroCacheImage(id, buffer);
+}
+
+function triggerHeroImageCache(id: number, url: string): void {
+  downloadAndCacheHeroImage(id, url).catch((err: unknown) => {
+    console.error(`[hero-image-cache] Failed to cache image ${id}:`, err);
+  });
+}
+
+export async function warmupHeroImageCache(): Promise<void> {
+  if (!s3CacheEnabled()) return;
+  const images = await listHeroImages();
+  for (const image of images) {
+    triggerHeroImageCache(image.id, image.url);
+  }
+}
 
 export type { HeroImage };
 
@@ -140,11 +172,18 @@ export async function addHeroImage(data: {
   photographerUrl: string;
   downloadLocation: string;
 }): Promise<HeroImage> {
-  return createHeroImage(data);
+  const image = await createHeroImage(data);
+  triggerHeroImageCache(image.id, image.url);
+  return image;
 }
 
 export async function removeHeroImage(id: number): Promise<void> {
-  return deleteHeroImage(id);
+  await deleteHeroImage(id);
+  if (s3CacheEnabled()) {
+    removeHeroCacheImage(id).catch((err: unknown) => {
+      console.error(`[hero-image-cache] Failed to remove cached image ${id}:`, err);
+    });
+  }
 }
 
 export async function updateHeroImageFocalPoint(id: number, focalPointY: number): Promise<HeroImage> {
@@ -186,7 +225,7 @@ export async function getCurrentHeroImage(rawState: string | null): Promise<{
     // Single-active mode: return the one marked image, no state tracking
     const image = selected[0];
     return {
-      url: image.url,
+      url: s3CacheEnabled() ? getHeroCacheImageUrl(image.id) : image.url,
       photographer: image.photographer,
       photographerUrl: image.photographerUrl,
       focalPointY: image.focalPointY,
@@ -200,7 +239,7 @@ export async function getCurrentHeroImage(rawState: string | null): Promise<{
   if (!result) return null;
 
   return {
-    url: result.image.url,
+    url: s3CacheEnabled() ? getHeroCacheImageUrl(result.image.id) : result.image.url,
     photographer: result.image.photographer,
     photographerUrl: result.image.photographerUrl,
     focalPointY: result.image.focalPointY,
