@@ -448,7 +448,7 @@ export function MediaPage() {
                 chromeless
                 icon={<FolderIcon weight="duotone" aria-hidden />}
                 title="unsplash"
-                subtitle={mediaMessagesunsplashFolderEmpty}
+                subtitle={mediaMessages.cacheFolderEmpty}
                 className="flex-1 min-h-0"
               />
             )
@@ -476,7 +476,7 @@ export function MediaPage() {
                     >
                       <FolderIcon weight="duotone" className="w-5 h-5 text-amber-500 shrink-0" />
                       <span className="flex-1 text-sm font-mono text-[var(--ds-text)]">unsplash/</span>
-                      <span className="text-xs text-[var(--ds-text-subtle)]">{cacheItems.length > 0 ? `${cacheItems.length} Bilder` : mediaMessagesunsplashFolderDescription}</span>
+                      <span className="text-xs text-[var(--ds-text-subtle)]">{cacheItems.length > 0 ? `${cacheItems.length} Bilder` : mediaMessages.cacheFolderDescription}</span>
                     </button>
                     <MediaTable assets={assets} selectedId={selectedId} onSelect={setSelectedId} />
                   </div>
@@ -492,7 +492,7 @@ export function MediaPage() {
                     >
                       <FolderIcon weight="duotone" className="w-10 h-10 text-amber-500" />
                       <span className="text-sm font-mono font-medium text-[var(--ds-text)]">unsplash/</span>
-                      <span className="text-xs text-[var(--ds-text-subtle)]">{cacheItems.length > 0 ? `${cacheItems.length} Bilder` : mediaMessagesunsplashFolderDescription}</span>
+                      <span className="text-xs text-[var(--ds-text-subtle)]">{cacheItems.length > 0 ? `${cacheItems.length} Bilder` : mediaMessages.cacheFolderDescription}</span>
                     </button>
                     {assets.map((asset) => (
                       <MediaGridItem

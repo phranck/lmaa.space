@@ -24,7 +24,7 @@ export function PageSplitLayout({
   return (
     <div
       className={cx(
-        "grid flex-1 min-h-0 grid-cols-1 gap-4",
+        "grid grid-cols-1 gap-4",
         columnsClassName ?? "xl:grid-cols-[minmax(0,1fr)_22rem]",
         className,
       )}
