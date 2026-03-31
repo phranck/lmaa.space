@@ -1,5 +1,6 @@
 import type { MediaAsset as SharedMediaAsset } from "@lmaa/shared";
 
+import { fetchFullUnsplashPhoto } from "./unsplash.js";
 import {
   type HeroCacheObject,
   type S3MediaMeta,
@@ -18,6 +19,8 @@ import {
   listMediaAssets,
   updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
+import { listHeroImagesWithUnsplash } from "../repositories/hero.js";
+import { upsertUnsplashImage } from "../repositories/unsplash-images.js";
 
 function mapMediaAsset(row: {
   id: number;
@@ -54,8 +57,83 @@ function mapMediaAsset(row: {
 
 export type { HeroCacheObject };
 
-export async function listHeroCacheMediaItems(): Promise<HeroCacheObject[]> {
-  return listHeroCacheObjects();
+export interface HeroCacheMediaItem extends HeroCacheObject {
+  unsplash: {
+    unsplashId: string;
+    width: number | null;
+    height: number | null;
+    color: string | null;
+    blurHash: string | null;
+    description: string | null;
+    altDescription: string | null;
+    likes: number | null;
+    photographerName: string;
+    photographerUrl: string;
+    locationCity: string | null;
+    locationCountry: string | null;
+    createdAtUnsplash: string | null;
+  } | null;
+}
+
+export async function listHeroCacheMediaItems(): Promise<HeroCacheMediaItem[]> {
+  const [cacheObjects, heroImages] = await Promise.all([
+    listHeroCacheObjects(),
+    listHeroImagesWithUnsplash(),
+  ]);
+
+  const unsplashByImageId = new Map<number, HeroCacheMediaItem["unsplash"]>();
+  for (const hi of heroImages) {
+    if (hi.unsplash) {
+      unsplashByImageId.set(hi.heroId, {
+        unsplashId: hi.unsplash.unsplashId,
+        width: hi.unsplash.width,
+        height: hi.unsplash.height,
+        color: hi.unsplash.color,
+        blurHash: hi.unsplash.blurHash,
+        description: hi.unsplash.description,
+        altDescription: hi.unsplash.altDescription,
+        likes: hi.unsplash.likes,
+        photographerName: hi.unsplash.photographerName,
+        photographerUrl: hi.unsplash.photographerUrl,
+        locationCity: hi.unsplash.locationCity,
+        locationCountry: hi.unsplash.locationCountry,
+        createdAtUnsplash: hi.unsplash.createdAtUnsplash?.toISOString() ?? null,
+      });
+    }
+  }
+
+  return cacheObjects.map((obj) => ({
+    ...obj,
+    unsplash: unsplashByImageId.get(obj.imageId) ?? null,
+  }));
+}
+
+export async function refetchSingleUnsplashMeta(unsplashId: string): Promise<boolean> {
+  const data = await fetchFullUnsplashPhoto(unsplashId);
+  if (!data) return false;
+
+  await upsertUnsplashImage({
+    unsplashId,
+    urlSmall: data.urlSmall,
+    urlRegular: data.urlRegular,
+    width: data.width,
+    height: data.height,
+    color: data.color,
+    blurHash: data.blurHash,
+    description: data.description,
+    altDescription: data.altDescription,
+    likes: data.likes,
+    photographerName: data.photographerName,
+    photographerUrl: data.photographerUrl,
+    downloadLocation: data.downloadLocation,
+    createdAtUnsplash: new Date(data.createdAtUnsplash),
+    locationCity: data.locationCity,
+    locationCountry: data.locationCountry,
+    locationLat: data.locationLat,
+    locationLng: data.locationLng,
+    locationFetched: true,
+  });
+  return true;
 }
 
 export async function listManagedMediaAssets(): Promise<SharedMediaAsset[]> {

@@ -25,10 +25,20 @@ const rotationIntervalSchema = z.object({
 });
 
 const addHeroImageSchema = z.object({
+  unsplashId: z.string().min(1),
   url: z.string().url(),
+  urlSmall: z.string().url(),
   photographer: z.string().min(1),
   photographerUrl: z.string().url(),
   downloadLocation: z.string().url(),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  color: z.string().nullable(),
+  blurHash: z.string().nullable(),
+  description: z.string().nullable(),
+  altDescription: z.string().nullable(),
+  likes: z.number().int(),
+  createdAt: z.string(),
 });
 
 const toggleSelectedSchema = z.object({

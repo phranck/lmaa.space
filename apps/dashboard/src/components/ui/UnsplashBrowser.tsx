@@ -10,6 +10,14 @@ interface UnsplashPhoto {
   urls: { small: string; regular: string };
   user: { name: string; link: string };
   downloadLocation: string;
+  width: number;
+  height: number;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number;
+  createdAt: string;
 }
 
 interface UnsplashSearchResult {
@@ -18,10 +26,20 @@ interface UnsplashSearchResult {
 }
 
 export interface UnsplashSelectedPhoto {
+  unsplashId: string;
   url: string;
+  urlSmall: string;
   photographer: string;
   photographerUrl: string;
   downloadLocation: string;
+  width: number;
+  height: number;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number;
+  createdAt: string;
 }
 
 export interface UnsplashBrowserProps {
@@ -247,6 +265,25 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
     return () => observer.disconnect();
   }, [hasMore, photos.length]);
 
+  function mapPhoto(p: UnsplashPhoto): UnsplashSelectedPhoto {
+    return {
+      unsplashId: p.id,
+      url: p.urls.regular,
+      urlSmall: p.urls.small,
+      photographer: p.user.name,
+      photographerUrl: p.user.link,
+      downloadLocation: p.downloadLocation,
+      width: p.width,
+      height: p.height,
+      color: p.color,
+      blurHash: p.blurHash,
+      description: p.description,
+      altDescription: p.altDescription,
+      likes: p.likes,
+      createdAt: p.createdAt,
+    };
+  }
+
   function handlePhotoClick(photo: UnsplashPhoto) {
     if (multiSelect) {
       setSelectedIds((prev) => {
@@ -262,12 +299,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
       api
         .post("/admin/unsplash/download", { downloadLocation: photo.downloadLocation })
         .catch(() => {});
-      onSelect({
-        url: photo.urls.regular,
-        photographer: photo.user.name,
-        photographerUrl: photo.user.link,
-        downloadLocation: photo.downloadLocation,
-      });
+      onSelect(mapPhoto(photo));
     }
   }
 
@@ -279,14 +311,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
         .post("/admin/unsplash/download", { downloadLocation: photo.downloadLocation })
         .catch(() => {});
     }
-    onSelectMultiple(
-      selected.map((p) => ({
-        url: p.urls.regular,
-        photographer: p.user.name,
-        photographerUrl: p.user.link,
-        downloadLocation: p.downloadLocation,
-      })),
-    );
+    onSelectMultiple(selected.map(mapPhoto));
   }
 
   const isLoading = status === "loading";

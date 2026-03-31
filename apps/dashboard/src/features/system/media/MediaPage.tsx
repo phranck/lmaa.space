@@ -5,14 +5,13 @@ import {
   FileIcon,
   FolderIcon,
   ImageIcon,
-  LinkIcon,
   ListBulletsIcon,
   PencilSimpleIcon,
   PlusCircleIcon,
   SquaresFourIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui";
@@ -41,6 +40,7 @@ import {
   useAdminMedia,
   useDeleteMedia,
   useHeroCacheMedia,
+  useRefetchUnsplashMeta,
   useRenameMedia,
   useSyncMedia,
   useUploadMedia,
@@ -108,6 +108,8 @@ export function MediaPage() {
   const renameMedia = useRenameMedia();
   const deleteMedia = useDeleteMedia();
   const syncMedia = useSyncMedia();
+  const refetchMeta = useRefetchUnsplashMeta();
+  const [refetchingImageId, setRefetchingImageId] = useState<number | null>(null);
 
   const selectedAsset = assets.find((asset) => asset.id === selectedId) ?? null;
   const selectedCacheItem = cacheItems.find((item) => item.imageId === selectedCacheItemId) ?? null;
@@ -200,6 +202,20 @@ export function MediaPage() {
     void handleUpload(event.dataTransfer.files);
   }
 
+  const handleRefetchAll = useCallback(async () => {
+    const items = cacheItems.filter((item) => item.unsplash?.unsplashId);
+    for (const item of items) {
+      if (!item.unsplash) continue;
+      setRefetchingImageId(item.imageId);
+      try {
+        await refetchMeta.mutateAsync(item.unsplash.unsplashId);
+      } catch {
+        // continue with next image
+      }
+    }
+    setRefetchingImageId(null);
+  }, [cacheItems, refetchMeta]);
+
   async function handleCopyUrl() {
     if (!selectedAsset) return;
     await navigator.clipboard.writeText(selectedAsset.url);
@@ -246,15 +262,26 @@ export function MediaPage() {
         ) : undefined}
       >
         {currentFolder === "cache" ? (
-          <SegmentedControl
-            value={viewMode}
-            onChange={(value) => setViewMode(value as ViewMode)}
-            storageKey={getSegmentedStorageKey(user?.id, "media:view")}
-            options={[
-              { value: "list", icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" /> },
-              { value: "grid", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
-            ]}
-          />
+          <>
+            <SegmentedControl
+              value={viewMode}
+              onChange={(value) => setViewMode(value as ViewMode)}
+              storageKey={getSegmentedStorageKey(user?.id, "media:view")}
+              options={[
+                { value: "list", icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" /> },
+                { value: "grid", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
+              ]}
+            />
+            <button
+              type="button"
+              onClick={() => void handleRefetchAll()}
+              disabled={refetchingImageId !== null}
+              className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] disabled:opacity-60"
+            >
+              <ArrowsClockwiseIcon weight="duotone" className={`w-3.5 h-3.5 ${refetchingImageId !== null ? "animate-spin" : ""}`} />
+              {refetchingImageId !== null ? mediaMessages.refetchMetaPending : mediaMessages.refetchMeta}
+            </button>
+          </>
         ) : (
           <>
             <SegmentedControl
@@ -319,7 +346,7 @@ export function MediaPage() {
                 {cacheLoading && (
                   <div className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" : "space-y-2"}>
                     {Array.from({ length: 6 }, (_, i) => `cache-sk-${i}`).map((key) => (
-                      <div key={key} className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`} />
+                      <div key={key} className={`bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`} />
                     ))}
                   </div>
                 )}
@@ -330,12 +357,17 @@ export function MediaPage() {
                         key={item.imageId}
                         type="button"
                         onClick={() => setSelectedCacheItemId(item.imageId)}
-                        className={`group relative rounded-card overflow-hidden border-2 transition-colors text-left ${item.imageId === selectedCacheItemId ? "border-[var(--color-primary)]" : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border)]"}`}
+                        className={`group relative rounded-xl overflow-hidden border-2 transition-colors text-left ${item.imageId === selectedCacheItemId ? "border-[var(--color-primary)]" : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border)]"}`}
                       >
                         <img src={item.url} alt="" className="w-full aspect-[4/3] object-cover" loading="lazy" />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
                           <p className="text-white text-[10px] font-mono truncate">unsplash/{item.imageId}</p>
                         </div>
+                        {refetchingImageId === item.imageId && (
+                          <div className="absolute top-2 right-2 rounded-full bg-black/50 p-1">
+                            <ArrowsClockwiseIcon weight="bold" className="w-4 h-4 text-white animate-spin" />
+                          </div>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -358,7 +390,14 @@ export function MediaPage() {
                           >
                             <td className="px-3 py-2.5 font-mono text-[var(--ds-text)]">
                               <div className="flex items-center gap-2">
-                                <img src={item.url} alt="" className="w-8 h-8 rounded object-cover shrink-0" loading="lazy" />
+                                <div className="relative shrink-0">
+                                  <img src={item.url} alt="" className="w-8 h-8 rounded object-cover" loading="lazy" />
+                                  {refetchingImageId === item.imageId && (
+                                    <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40">
+                                      <ArrowsClockwiseIcon weight="bold" className="w-3.5 h-3.5 text-white animate-spin" />
+                                    </div>
+                                  )}
+                                </div>
                                 unsplash/{item.imageId}
                               </div>
                             </td>
@@ -398,6 +437,57 @@ export function MediaPage() {
                               <p className="text-[var(--ds-text-subtle)]">Key</p>
                               <p className="text-[var(--ds-text)] font-mono">unsplash/{selectedCacheItem.imageId}</p>
                             </div>
+                            {selectedCacheItem.unsplash && (
+                              <>
+                                {selectedCacheItem.unsplash.width && selectedCacheItem.unsplash.height && (
+                                  <div>
+                                    <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
+                                    <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.width} x {selectedCacheItem.unsplash.height}px</p>
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-[var(--ds-text-subtle)]">Fotograf</p>
+                                  <a href={selectedCacheItem.unsplash.photographerUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:underline">
+                                    {selectedCacheItem.unsplash.photographerName}
+                                  </a>
+                                </div>
+                                {selectedCacheItem.unsplash.description && (
+                                  <div>
+                                    <p className="text-[var(--ds-text-subtle)]">Beschreibung</p>
+                                    <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.description}</p>
+                                  </div>
+                                )}
+                                {selectedCacheItem.unsplash.color && (
+                                  <div>
+                                    <p className="text-[var(--ds-text-subtle)]">Farbe</p>
+                                    <div className="flex items-center gap-2">
+                                      <span className="inline-block w-4 h-4 rounded-sm border border-[var(--ds-border)]" style={{ backgroundColor: selectedCacheItem.unsplash.color }} />
+                                      <span className="text-[var(--ds-text)] font-mono">{selectedCacheItem.unsplash.color}</span>
+                                    </div>
+                                  </div>
+                                )}
+                                {(selectedCacheItem.unsplash.locationCity || selectedCacheItem.unsplash.locationCountry) && (
+                                  <div>
+                                    <p className="text-[var(--ds-text-subtle)]">Aufnahmeort</p>
+                                    <p className="text-[var(--ds-text)]">
+                                      {[selectedCacheItem.unsplash.locationCity, selectedCacheItem.unsplash.locationCountry].filter(Boolean).join(", ")}
+                                    </p>
+                                  </div>
+                                )}
+                                {selectedCacheItem.unsplash.likes != null && (
+                                  <div>
+                                    <p className="text-[var(--ds-text-subtle)]">Likes</p>
+                                    <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.likes.toLocaleString(locale)}</p>
+                                  </div>
+                                )}
+                                {selectedCacheItem.unsplash.createdAtUnsplash && (
+                                  <div>
+                                    <p className="text-[var(--ds-text-subtle)]">Aufnahmedatum</p>
+                                    <p className="text-[var(--ds-text)]">{formatMediaDate(selectedCacheItem.unsplash.createdAtUnsplash, locale)}</p>
+                                  </div>
+                                )}
+                              </>
+                            )}
                             <div>
                               <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
                               <p className="text-[var(--ds-text)]">{formatBytes(selectedCacheItem.sizeBytes, locale)}</p>
@@ -418,15 +508,6 @@ export function MediaPage() {
                               <CopyIcon weight="duotone" className="w-4 h-4" />
                               {cacheCopied ? mediaMessages.copied : mediaMessages.copyUrl}
                             </button>
-                            <a
-                              href={selectedCacheItem.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
-                            >
-                              <LinkIcon weight="duotone" className="w-4 h-4" />
-                              {mediaMessages.openFile}
-                            </a>
                           </div>
                         </DashboardSection.Body>
                       </DashboardSection>
@@ -461,7 +542,7 @@ export function MediaPage() {
                 {isLoading && (
                   <div className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" : "space-y-2"}>
                     {Array.from({ length: 8 }, (_, index) => `media-sk-${index}`).map((key) => (
-                      <div key={key} className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`} />
+                      <div key={key} className={`bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`} />
                     ))}
                   </div>
                 )}
@@ -483,16 +564,20 @@ export function MediaPage() {
                 )}
 
                 {!isLoading && viewMode === "grid" && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
                     {/* unsplash/ folder tile */}
                     <button
                       type="button"
                       onClick={() => setCurrentFolder("cache")}
-                      className="group relative rounded-card overflow-hidden border-2 border-[var(--ds-border-subtle)] hover:border-[var(--color-primary)] transition-colors flex flex-col items-center justify-center aspect-[4/3] bg-[var(--ds-bg-elevated)] gap-2"
+                      className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors text-center"
                     >
-                      <FolderIcon weight="duotone" className="w-10 h-10 text-amber-500" />
-                      <span className="text-sm font-mono font-medium text-[var(--ds-text)]">unsplash/</span>
-                      <span className="text-xs text-[var(--ds-text-subtle)]">{cacheItems.length > 0 ? `${cacheItems.length} Bilder` : mediaMessages.cacheFolderDescription}</span>
+                      <div className="w-full aspect-square rounded-lg flex flex-col items-center justify-center bg-[var(--ds-bg-elevated)] border-2 border-transparent hover:border-[var(--ds-border)] transition-colors gap-2">
+                        <FolderIcon weight="duotone" className="w-16 h-16 text-amber-500" />
+                      </div>
+                      <div className="w-full px-0.5">
+                        <p className="text-xs font-medium text-[var(--ds-text)] font-mono truncate">unsplash/</p>
+                        <p className="text-[10px] text-[var(--ds-text-muted)] truncate">{cacheItems.length > 0 ? `${cacheItems.length} Bilder` : mediaMessages.cacheFolderDescription}</p>
+                      </div>
                     </button>
                     {assets.map((asset) => (
                       <MediaGridItem
@@ -632,15 +717,6 @@ export function MediaPage() {
                             <CopyIcon weight="duotone" className="w-4 h-4" />
                             {copied ? mediaMessages.copied : mediaMessages.copyUrl}
                           </button>
-                          <a
-                            href={selectedAsset.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
-                          >
-                            <LinkIcon weight="duotone" className="w-4 h-4" />
-                            {mediaMessages.openFile}
-                          </a>
                         </div>
                       </DashboardSection.Body>
                     </DashboardSection>

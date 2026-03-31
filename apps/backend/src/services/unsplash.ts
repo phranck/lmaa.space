@@ -6,15 +6,41 @@ interface UnsplashPhoto {
   urls: { small: string; regular: string };
   user: { name: string; links: { html: string } };
   links: { download_location: string };
+  width: number;
+  height: number;
+  color: string | null;
+  blur_hash: string | null;
+  description: string | null;
+  alt_description: string | null;
+  likes: number;
+  created_at: string;
 }
 
+interface UnsplashPhotoDetail extends UnsplashPhoto {
+  location: {
+    city: string | null;
+    country: string | null;
+    position: { latitude: number | null; longitude: number | null } | null;
+  } | null;
+}
+
+export type UnsplashSearchResultItem = {
+  id: string;
+  urls: { small: string; regular: string };
+  user: { name: string; link: string };
+  downloadLocation: string;
+  width: number;
+  height: number;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number;
+  createdAt: string;
+};
+
 type UnsplashSearchResult = {
-  results: Array<{
-    id: string;
-    urls: { small: string; regular: string };
-    user: { name: string; link: string };
-    downloadLocation: string;
-  }>;
+  results: UnsplashSearchResultItem[];
   total: number;
 };
 
@@ -28,14 +54,6 @@ function getUnsplashApiKey() {
 
 /**
  * Searches Unsplash and returns normalized payload for admin media picker.
- *
- * @param query - Search phrase.
- * @param page - 1-based page number as string.
- * @param orientation - Optional orientation filter: landscape | portrait | squarish.
- * @param orderBy - Optional sort order: relevant | latest.
- * @param color - Optional dominant color filter.
- * @returns Normalized search payload with `results` and `total`.
- * @throws {HttpError} When Unsplash is not configured or request fails.
  */
 export async function searchUnsplashPhotos(
   query: string,
@@ -66,15 +84,103 @@ export async function searchUnsplashPhotos(
       urls: { small: photo.urls.small, regular: photo.urls.regular },
       user: { name: photo.user.name, link: photo.user.links.html },
       downloadLocation: photo.links.download_location,
+      width: photo.width,
+      height: photo.height,
+      color: photo.color,
+      blurHash: photo.blur_hash,
+      description: photo.description,
+      altDescription: photo.alt_description,
+      likes: photo.likes,
+      createdAt: photo.created_at,
     })),
   };
 }
 
 /**
+ * Fetches full photo detail from Unsplash including location data.
+ * This requires a separate API call to /photos/:id.
+ */
+export async function fetchUnsplashPhotoDetail(photoId: string): Promise<{
+  city: string | null;
+  country: string | null;
+  lat: number | null;
+  lng: number | null;
+} | null> {
+  const key = env.UNSPLASH_ACCESS_KEY;
+  if (!key) return null;
+
+  const url = `https://api.unsplash.com/photos/${photoId}`;
+  const response = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
+
+  if (!response.ok) return null;
+
+  const photo = (await response.json()) as UnsplashPhotoDetail;
+  if (!photo.location) return null;
+
+  return {
+    city: photo.location.city,
+    country: photo.location.country,
+    lat: photo.location.position?.latitude ?? null,
+    lng: photo.location.position?.longitude ?? null,
+  };
+}
+
+/**
+ * Fetches full photo data from Unsplash /photos/:id including all metadata and location.
+ * Used for re-fetching metadata of existing images.
+ */
+export async function fetchFullUnsplashPhoto(photoId: string): Promise<{
+  urlSmall: string;
+  urlRegular: string;
+  width: number;
+  height: number;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number;
+  photographerName: string;
+  photographerUrl: string;
+  downloadLocation: string;
+  createdAtUnsplash: string;
+  locationCity: string | null;
+  locationCountry: string | null;
+  locationLat: number | null;
+  locationLng: number | null;
+} | null> {
+  const key = env.UNSPLASH_ACCESS_KEY;
+  if (!key) return null;
+
+  const url = `https://api.unsplash.com/photos/${photoId}`;
+  const response = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
+
+  if (!response.ok) return null;
+
+  const photo = (await response.json()) as UnsplashPhotoDetail;
+
+  return {
+    urlSmall: photo.urls.small,
+    urlRegular: photo.urls.regular,
+    width: photo.width,
+    height: photo.height,
+    color: photo.color,
+    blurHash: photo.blur_hash,
+    description: photo.description,
+    altDescription: photo.alt_description,
+    likes: photo.likes,
+    photographerName: photo.user.name,
+    photographerUrl: photo.user.links.html,
+    downloadLocation: photo.links.download_location,
+    createdAtUnsplash: photo.created_at,
+    locationCity: photo.location?.city ?? null,
+    locationCountry: photo.location?.country ?? null,
+    locationLat: photo.location?.position?.latitude ?? null,
+    locationLng: photo.location?.position?.longitude ?? null,
+  };
+}
+
+/**
  * Calls Unsplash download-tracking endpoint.
- *
- * @param downloadLocation - Unsplash-provided tracking endpoint URL.
- * @returns `true` when request was attempted with configured API key; otherwise `false`.
  */
 export async function triggerUnsplashDownload(downloadLocation: string): Promise<boolean> {
   const key = env.UNSPLASH_ACCESS_KEY;

@@ -28,6 +28,7 @@ export const categories = pgTable("categories", {
   icon: text("icon").notNull().default(""),
   description: text("description").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
+  unsplashImageId: integer("unsplash_image_id"),
   imageUrl: text("image_url"),
   imagePhotographer: text("image_photographer"),
   imagePhotographerUrl: text("image_photographer_url"),
@@ -729,10 +730,42 @@ export type HeroScheduleSlot = {
 };
 
 /**
+ * Shared Unsplash image metadata -- referenced by hero_images, categories,
+ * and any future feature that uses Unsplash photos.
+ */
+export const unsplashImages = pgTable("unsplash_images", {
+  id: serial("id").primaryKey(),
+  unsplashId: text("unsplash_id").notNull().unique(),
+  urlSmall: text("url_small").notNull(),
+  urlRegular: text("url_regular").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  color: text("color"),
+  blurHash: text("blur_hash"),
+  description: text("description"),
+  altDescription: text("alt_description"),
+  likes: integer("likes"),
+  photographerName: text("photographer_name").notNull(),
+  photographerUrl: text("photographer_url").notNull(),
+  downloadLocation: text("download_location").notNull(),
+  locationCity: text("location_city"),
+  locationCountry: text("location_country"),
+  locationLat: doublePrecision("location_lat"),
+  locationLng: doublePrecision("location_lng"),
+  locationFetched: boolean("location_fetched").notNull().default(false),
+  createdAtUnsplash: timestamp("created_at_unsplash"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type UnsplashImage = typeof unsplashImages.$inferSelect;
+export type UnsplashImageInsert = typeof unsplashImages.$inferInsert;
+
+/**
  * Pool of Unsplash images available for the homepage hero banner.
  */
 export const heroImages = pgTable("hero_images", {
   id: serial("id").primaryKey(),
+  unsplashImageId: integer("unsplash_image_id").references(() => unsplashImages.id, { onDelete: "set null" }),
   url: text("url").notNull(),
   photographer: text("photographer").notNull(),
   photographerUrl: text("photographer_url").notNull(),

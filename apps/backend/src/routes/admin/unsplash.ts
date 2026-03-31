@@ -8,6 +8,7 @@ import {
   searchManagedUnsplashPhotos,
   triggerManagedUnsplashDownload,
 } from "../../services/admin-unsplash.js";
+import { fetchUnsplashPhotoDetail } from "../../services/unsplash.js";
 
 const unsplashDownloadSchema = z.object({
   downloadLocation: z
@@ -45,4 +46,15 @@ unsplashRoutes.post("/unsplash/download", zValidator("json", unsplashDownloadSch
   const { downloadLocation } = c.req.valid("json");
   const result = await triggerManagedUnsplashDownload(downloadLocation);
   return ok(c, result);
+});
+
+// Fetch full photo detail (location data) from Unsplash /photos/:id
+unsplashRoutes.get("/unsplash/photos/:id", async (c) => {
+  const photoId = c.req.param("id");
+  try {
+    const location = await fetchUnsplashPhotoDetail(photoId);
+    return ok(c, { location });
+  } catch (error) {
+    return respondError(c, error);
+  }
 });
