@@ -8,6 +8,7 @@ import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   deleteManagedMediaAsset,
+  listHeroCacheMediaItems,
   listManagedMediaAssets,
   syncMediaFromStorage,
   updateManagedMediaAsset,
@@ -22,6 +23,11 @@ export const mediaRoutes = new Hono<{ Variables: AuthVariables }>();
 mediaRoutes.get("/media", requireAdmin, async (c) => {
   const assets = await listManagedMediaAssets();
   return ok(c, assets);
+});
+
+mediaRoutes.get("/media/cache", requireAdmin, async (c) => {
+  const items = await listHeroCacheMediaItems();
+  return ok(c, items);
 });
 
 mediaRoutes.post("/media", requireAdmin, async (c) => {

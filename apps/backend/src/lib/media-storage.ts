@@ -275,13 +275,48 @@ export interface S3ObjectEntry {
 }
 
 // ---------------------------------------------------------------------------
-// Hero image cache — stored under .cache/ prefix in the same bucket
+// Hero image cache — stored under unsplash/ prefix in the same bucket
 // ---------------------------------------------------------------------------
 
-const HERO_CACHE_PREFIX = ".cache/";
+const HERO_CACHE_PREFIX = "unsplash/";
 
 export function getHeroCacheImageUrl(id: number): string {
   return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${HERO_CACHE_PREFIX}${id}`;
+}
+
+export interface HeroCacheObject {
+  imageId: number;
+  url: string;
+  sizeBytes: number;
+}
+
+/**
+ * Lists all hero image cache objects stored under the unsplash/ prefix.
+ */
+export async function listHeroCacheObjects(): Promise<HeroCacheObject[]> {
+  const items: HeroCacheObject[] = [];
+  let continuationToken: string | undefined;
+
+  do {
+    const listResp = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: env.S3_BUCKET,
+        Prefix: HERO_CACHE_PREFIX,
+        ContinuationToken: continuationToken,
+      }),
+    );
+
+    for (const obj of listResp.Contents ?? []) {
+      if (!obj.Key || !obj.Size) continue;
+      const imageId = Number.parseInt(obj.Key.slice(HERO_CACHE_PREFIX.length), 10);
+      if (Number.isNaN(imageId)) continue;
+      items.push({ imageId, url: getHeroCacheImageUrl(imageId), sizeBytes: obj.Size });
+    }
+
+    continuationToken = listResp.IsTruncated ? listResp.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  return items;
 }
 
 export async function isHeroCacheImageStored(id: number): Promise<boolean> {

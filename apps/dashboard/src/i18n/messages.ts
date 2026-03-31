@@ -350,6 +350,8 @@ export interface DashboardMessages {
     unsupportedPreview: string;
     deleteTitle: string;
     deleteDescription: string;
+    cacheFolderDescription: string;
+    cacheFolderEmpty: string;
     table: {
       name: string;
       type: string;
@@ -1440,6 +1442,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         size: "Größe",
         updated: "Geändert",
       },
+      cacheFolderDescription: "Gecachete Hero-Banner-Bilder",
+      cacheFolderEmpty: "Noch keine Bilder gecacht.",
     },
     submissions: {
       title: "Meldungen",
@@ -2497,6 +2501,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         size: "Size",
         updated: "Updated",
       },
+      cacheFolderDescription: "Cached hero banner images",
+      cacheFolderEmpty: "No images cached yet.",
     },
     submissions: {
       title: "Reports",

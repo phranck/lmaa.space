@@ -4,10 +4,23 @@ import type { MediaAsset } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
+export interface HeroCacheItem {
+  imageId: number;
+  url: string;
+  sizeBytes: number;
+}
+
 export function useAdminMedia() {
   return useQuery({
     queryKey: ["media-admin"],
     queryFn: () => api.get<MediaAsset[]>("/admin/media"),
+  });
+}
+
+export function useHeroCacheMedia() {
+  return useQuery({
+    queryKey: ["media-cache"],
+    queryFn: () => api.get<HeroCacheItem[]>("/admin/media/cache"),
   });
 }
 

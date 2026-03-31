@@ -1,9 +1,11 @@
 import type { MediaAsset as SharedMediaAsset } from "@lmaa/shared";
 
 import {
+  type HeroCacheObject,
   type S3MediaMeta,
   getMediaPublicUrl,
   listAllStoredMedia,
+  listHeroCacheObjects,
   removeStoredMedia,
   storeUploadedMedia,
   updateStoredMediaMeta,
@@ -48,6 +50,12 @@ function mapMediaAsset(row: {
     updatedAt: row.updatedAt.toISOString(),
     createdByUsername: row.createdByUsername,
   };
+}
+
+export type { HeroCacheObject };
+
+export async function listHeroCacheMediaItems(): Promise<HeroCacheObject[]> {
+  return listHeroCacheObjects();
 }
 
 export async function listManagedMediaAssets(): Promise<SharedMediaAsset[]> {
