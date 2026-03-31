@@ -5,10 +5,19 @@ import { searchUnsplashPhotos, triggerUnsplashDownload } from "./unsplash.js";
  *
  * @param query - Search term.
  * @param page - 1-based result page.
+ * @param orientation - Optional orientation filter.
+ * @param orderBy - Optional sort order.
+ * @param color - Optional dominant color filter.
  * @returns Normalized Unsplash search payload.
  */
-export async function searchManagedUnsplashPhotos(query: string, page: string) {
-  return searchUnsplashPhotos(query, page);
+export async function searchManagedUnsplashPhotos(
+  query: string,
+  page: string,
+  orientation?: string,
+  orderBy?: string,
+  color?: string,
+) {
+  return searchUnsplashPhotos(query, page, orientation, orderBy, color);
 }
 
 /**
