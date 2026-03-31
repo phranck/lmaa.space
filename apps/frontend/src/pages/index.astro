@@ -31,7 +31,7 @@ if (heroImage?.nextState) {
   });
 }
 
-const heroSrc = heroImage?.url ?? "/images/hero.jpg";
+const heroSrc = heroImage?.url;
 
 const site = Astro.site?.origin ?? "https://lmaa.space";
 const jsonLd = {
@@ -52,15 +52,17 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <!-- Hero -->
-  <section class="relative overflow-hidden text-white">
-    <img
-      src={heroSrc}
-      alt=""
-      aria-hidden="true"
-      fetchpriority="high"
-      class="absolute inset-0 w-full h-full object-cover"
-      style={`object-position: 50% ${heroImage?.focalPointY ?? 50}%`}
-    />
+  <section class="relative overflow-hidden text-white bg-stone-950">
+    {heroSrc && (
+      <img
+        src={heroSrc}
+        alt=""
+        aria-hidden="true"
+        fetchpriority="high"
+        class="absolute inset-0 w-full h-full object-cover"
+        style={`object-position: 50% ${heroImage?.focalPointY ?? 50}%`}
+      />
+    )}
     <div class="absolute inset-0 bg-stone-950/70"></div>
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-12 text-center">
       <p class="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">

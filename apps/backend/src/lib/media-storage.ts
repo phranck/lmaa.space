@@ -274,6 +274,46 @@ export interface S3ObjectEntry {
   metadata: Partial<S3MediaMeta>;
 }
 
+// ---------------------------------------------------------------------------
+// Hero image cache — stored under .cache/ prefix in the same bucket
+// ---------------------------------------------------------------------------
+
+const HERO_CACHE_PREFIX = ".cache/";
+
+export function getHeroCacheImageUrl(id: number): string {
+  return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${HERO_CACHE_PREFIX}${id}`;
+}
+
+export async function isHeroCacheImageStored(id: number): Promise<boolean> {
+  try {
+    await s3.send(new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: `${HERO_CACHE_PREFIX}${id}` }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function putHeroCacheImage(id: number, buffer: Buffer): Promise<void> {
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: `${HERO_CACHE_PREFIX}${id}`,
+      Body: buffer,
+      ContentType: "image/jpeg",
+    }),
+  );
+}
+
+export async function removeHeroCacheImage(id: number): Promise<void> {
+  try {
+    await s3.send(
+      new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: `${HERO_CACHE_PREFIX}${id}` }),
+    );
+  } catch {
+    // Ignore — object may not exist
+  }
+}
+
 /**
  * Lists all objects in the bucket with their user-metadata.
  */
@@ -291,6 +331,7 @@ export async function listAllStoredMedia(): Promise<S3ObjectEntry[]> {
 
     for (const obj of listResp.Contents ?? []) {
       if (!obj.Key || !obj.Size) continue;
+      if (obj.Key.startsWith(HERO_CACHE_PREFIX)) continue;
 
       const head = await s3.send(
         new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: obj.Key }),
