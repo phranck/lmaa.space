@@ -6,7 +6,11 @@ import { API_BASE } from "@/lib/client-api";
 import { getLikedShopIds, saveLikedShopIds } from "@/lib/liked-shops";
 
 // ── Browser fingerprint ─────────────────────────────────────────────
+let cachedFingerprint: string | null = null;
+
 async function generateFingerprint(): Promise<string> {
+  if (cachedFingerprint) return cachedFingerprint;
+
   const parts = [
     navigator.userAgent,
     navigator.language,
@@ -16,9 +20,12 @@ async function generateFingerprint(): Promise<string> {
   ];
   const data = new TextEncoder().encode(parts.join("|"));
   const hash = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
+  const result = Array.from(new Uint8Array(hash))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+
+  cachedFingerprint = result;
+  return result;
 }
 
 // ── Nav visibility ──────────────────────────────────────────────────
