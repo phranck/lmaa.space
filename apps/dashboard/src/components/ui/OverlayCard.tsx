@@ -216,68 +216,56 @@ export function OverlayCard({
     "aria-label": ariaLabel,
   };
 
-  const renderCard = () => {
-    if (isResizable) {
-      const { storageKey, defaultWidth, minWidth, minHeight } = size;
-      return (
-        <ResizableDialogCard
-          ref={dialogRef}
-          storageKey={storageKey}
-          defaultWidth={defaultWidth}
-          minWidth={minWidth}
-          minHeight={minHeight}
-          className={[
-            "flex flex-col rounded-[var(--radius-card)] shadow-2xl",
-            cardAnimClass,
-            className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          style={style}
-          {...dialogProps}
-        >
-          {children}
-        </ResizableDialogCard>
-      );
-    }
-
-    if (isFullscreen) {
-      return (
-        <div
-          ref={dialogRef}
-          className={[
-            "relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden",
-            cardAnimClass,
-            className,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          style={{ width: "85vw", height: "85vh", ...style }}
-          {...dialogProps}
-        >
-          {children}
-        </div>
-      );
-    }
-
-    // fixed-sm / fixed-md
-    return (
-      <div
-        ref={dialogRef}
-        className={[
-          `relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl w-full ${fixedMaxWidth}`,
-          cardAnimClass,
-          className,
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        style={style}
-        {...dialogProps}
-      >
-        {children}
-      </div>
-    );
-  };
+  const cardContent = isResizable ? (
+    <ResizableDialogCard
+      ref={dialogRef}
+      storageKey={(size as ResizableSize).storageKey}
+      defaultWidth={(size as ResizableSize).defaultWidth}
+      minWidth={(size as ResizableSize).minWidth}
+      minHeight={(size as ResizableSize).minHeight}
+      className={[
+        "flex flex-col rounded-[var(--radius-card)] shadow-2xl",
+        cardAnimClass,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={style}
+      {...dialogProps}
+    >
+      {children}
+    </ResizableDialogCard>
+  ) : isFullscreen ? (
+    <div
+      ref={dialogRef}
+      className={[
+        "relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-[var(--radius-card)] shadow-2xl flex flex-col overflow-hidden",
+        cardAnimClass,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={{ width: "85vw", height: "85vh", ...style }}
+      {...dialogProps}
+    >
+      {children}
+    </div>
+  ) : (
+    <div
+      ref={dialogRef}
+      className={[
+        `relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl w-full ${fixedMaxWidth}`,
+        cardAnimClass,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={style}
+      {...dialogProps}
+    >
+      {children}
+    </div>
+  );
 
   return (
     <div
@@ -298,7 +286,7 @@ export function OverlayCard({
         onClick={handleBackdropClick}
         onAnimationEnd={handleBackdropAnimationEnd}
       />
-      {renderCard()}
+      {cardContent}
     </div>
   );
 }
