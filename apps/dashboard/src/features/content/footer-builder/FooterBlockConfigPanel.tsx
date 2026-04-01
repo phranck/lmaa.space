@@ -1,7 +1,10 @@
 import { Suspense, lazy } from "react";
 
 import type { FooterBlock } from "@lmaa/contracts";
-import { MarkdownEditor } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { Card } from "@/components/ui/Card.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
@@ -73,12 +76,14 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
       {block.type === "text" && (
         <div className="flex flex-col gap-1">
           <span className={labelClass}>{footerMessages.contentLabel}</span>
-          <MarkdownEditor
-            value={block.markdown}
-            onChange={(v) => onChange({ ...block, markdown: v })}
-            height="180px"
-            showHints={false}
-          />
+          <Suspense fallback={<div className="h-[180px] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+            <MarkdownEditor
+              value={block.markdown}
+              onChange={(v) => onChange({ ...block, markdown: v })}
+              height="180px"
+              showHints={false}
+            />
+          </Suspense>
         </div>
       )}
 

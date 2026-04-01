@@ -1,7 +1,11 @@
 import { TrashIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 
-import { Checkbox, FormLabel, FormOptional, MarkdownEditor, formInputClass } from "@lmaa/ui";
+import { Checkbox, FormLabel, FormOptional, formInputClass } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
@@ -71,14 +75,16 @@ export function ShopDeleteReasonCard({
               <FormOptional>{shopsMessages.deleteCard.optional}</FormOptional>
             </span>
           </FormLabel>
-          <MarkdownEditor
-            id="shop-delete-reason"
-            value={reason}
-            onChange={setReason}
-            rows={5}
-            resizable
-            placeholder={shopsMessages.deleteCard.reasonPlaceholder}
-          />
+          <Suspense fallback={<div className="h-[7.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+            <MarkdownEditor
+              id="shop-delete-reason"
+              value={reason}
+              onChange={setReason}
+              rows={5}
+              resizable
+              placeholder={shopsMessages.deleteCard.reasonPlaceholder}
+            />
+          </Suspense>
         </div>
 
         <Checkbox

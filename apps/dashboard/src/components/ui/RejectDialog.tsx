@@ -1,13 +1,17 @@
 import { CopyIcon, EnvelopeSimpleIcon, XCircleIcon } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
 
-import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
+import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
-export interface RejectDialogMessages {
+interface RejectDialogMessages {
   cancel: string;
   comment: string;
   copyUrl: string;
@@ -135,15 +139,17 @@ export function RejectDialog({
           <FormLabel htmlFor="reject-note">
             {messages.comment} <FormOptional>{messages.optional}</FormOptional>
           </FormLabel>
-          <MarkdownEditor
-            id="reject-note"
-            value={adminNote}
-            onChange={onAdminNoteChange}
-            onPaste={handleAdminNotePaste}
-            rows={3}
-            resizable
-            placeholder={messages.commentPlaceholder}
-          />
+          <Suspense fallback={<div className="h-[4.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+            <MarkdownEditor
+              id="reject-note"
+              value={adminNote}
+              onChange={onAdminNoteChange}
+              onPaste={handleAdminNotePaste}
+              rows={3}
+              resizable
+              placeholder={messages.commentPlaceholder}
+            />
+          </Suspense>
           <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
         </div>
 
@@ -151,14 +157,16 @@ export function RejectDialog({
           <FormLabel htmlFor="reject-long">
             {messages.rejectionLongLabel} <FormOptional>{messages.optional}</FormOptional>
           </FormLabel>
-          <MarkdownEditor
-            id="reject-long"
-            value={rejectionLongText}
-            onChange={onRejectionLongTextChange}
-            rows={6}
-            resizable
-            placeholder={messages.rejectionLongPlaceholder}
-          />
+          <Suspense fallback={<div className="h-[9rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+            <MarkdownEditor
+              id="reject-long"
+              value={rejectionLongText}
+              onChange={onRejectionLongTextChange}
+              rows={6}
+              resizable
+              placeholder={messages.rejectionLongPlaceholder}
+            />
+          </Suspense>
         </div>
 
         {notification && (

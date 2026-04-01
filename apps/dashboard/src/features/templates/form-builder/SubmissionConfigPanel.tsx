@@ -26,10 +26,14 @@ import {
   StorefrontIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
-import { DashboardSection, FormLabel, MarkdownEditor } from "@lmaa/ui";
+import { DashboardSection, FormLabel } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
@@ -506,14 +510,16 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                 Text
               </FormLabel>
             </DashboardSection.Body>
-            <MarkdownEditor
-              id="submission-success-message"
-              value={cfg.successMessage ?? ""}
-              onChange={(value) => updateField("successMessage", value)}
-              placeholder={m.successMessagePlaceholder}
-              rows={4}
-              className="!rounded-none !rounded-b-xl !border-x-0 !border-b-0"
-            />
+            <Suspense fallback={<div className="h-[6rem] rounded-b-xl border-t border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+              <MarkdownEditor
+                id="submission-success-message"
+                value={cfg.successMessage ?? ""}
+                onChange={(value) => updateField("successMessage", value)}
+                placeholder={m.successMessagePlaceholder}
+                rows={4}
+                className="!rounded-none !rounded-b-xl !border-x-0 !border-b-0"
+              />
+            </Suspense>
           </>
         )}
       </DashboardSection>
