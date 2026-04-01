@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 /** A single entry from the Drizzle migration journal (`_journal.json`). */
-export interface MigrationJournalEntry {
+interface MigrationJournalEntry {
   idx: number;
   version: string;
   when: number;

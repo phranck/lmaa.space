@@ -14,7 +14,7 @@ import { UserAvatar } from "@/features/system/users/UserAvatar.tsx";
 
 const SKIP_KEY = "logout-skip-confirm";
 
-export interface FooterUserInfoProps {
+interface FooterUserInfoProps {
   username?: string;
   firstName?: string | null;
   lastName?: string | null;

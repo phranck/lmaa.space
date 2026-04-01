@@ -28,20 +28,6 @@ function resolveApiBase(): string {
 const API_BASE = resolveApiBase();
 
 /**
- * Resolves backend-hosted upload URLs for frontend rendering.
- *
- * Relative `/uploads/*` paths stay relative (served via same-origin proxy).
- * Absolute URLs stay unchanged.
- *
- * @param url - Raw image URL from API responses.
- * @returns Image URL or `null` when input is empty.
- */
-export function resolveImageUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  return url;
-}
-
-/**
  * Executes a typed GET request against the backend API.
  *
  * @typeParam T - Expected `data` payload type.

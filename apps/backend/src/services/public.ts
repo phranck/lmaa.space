@@ -75,7 +75,7 @@ const LIKE_TOKEN_MAX_AGE_S = 30 * 60;
  * @param shopId - Shop id to bind the token to.
  * @returns Token string in format `hmac.timestamp`.
  */
-export function generateLikeToken(shopId: number): string {
+function generateLikeToken(shopId: number): string {
   const timestamp = Math.floor(Date.now() / 1000);
   const payload = `${shopId}:${timestamp}`;
   const hmac = createHmac("sha256", env.IP_HASH_SALT).update(payload).digest("hex");

@@ -22,7 +22,7 @@ import {
 } from "react-icons/si";
 
 /** Definition of a social media platform including its display label and icon component. */
-export interface PlatformDef {
+interface PlatformDef {
   key: string;
   label: string;
   icon: ComponentType<{ size?: number }>;
