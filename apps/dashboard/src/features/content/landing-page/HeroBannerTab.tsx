@@ -1,6 +1,5 @@
 import {
   ArrowsClockwiseIcon,
-  ArrowsVerticalIcon,
   CheckCircleIcon,
   CircleIcon,
   ImageIcon,
@@ -8,9 +7,9 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
+import { DashboardSection, FocalPointOverlay, ToggleSwitch, useFocalPointDrag } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { Dialog, dialogBtnDestructive, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
@@ -47,42 +46,12 @@ function HeroImageCard({
   deletePending,
   m,
 }: HeroImageCardProps) {
-  const [focalY, setFocalY] = useState(image.focalPointY ?? 50);
-  const containerRef = useRef<HTMLDivElement>(null);
   const setFocalPoint = useSetHeroImageFocalPoint();
-
-  useEffect(() => {
-    setFocalY(image.focalPointY ?? 50);
-  }, [image.focalPointY]);
-
-  const startDrag = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const calcY = (clientY: number) => {
-      const el = containerRef.current;
-      if (!el) return 50;
-      const rect = el.getBoundingClientRect();
-      return Math.max(0, Math.min(100, Math.round(((clientY - rect.top) / rect.height) * 100)));
-    };
-
-    setFocalY(calcY(e.clientY));
-
-    const onMove = (ev: MouseEvent) => {
-      setFocalY(calcY(ev.clientY));
-    };
-
-    const onUp = (ev: MouseEvent) => {
-      const y = calcY(ev.clientY);
-      setFocalY(y);
-      setFocalPoint.mutate({ id: image.id, focalPointY: y });
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-    };
-
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  };
+  const handleCommit = useCallback(
+    (y: number) => setFocalPoint.mutate({ id: image.id, focalPointY: y }),
+    [image.id, setFocalPoint],
+  );
+  const { focalY, containerRef, startDrag } = useFocalPointDrag(image.focalPointY ?? 50, handleCommit);
 
   return (
     <div
@@ -100,18 +69,7 @@ function HeroImageCard({
         draggable={false}
       />
 
-      {/* Focal point line */}
-      <div
-        className="absolute inset-x-0 z-20 flex items-center cursor-ns-resize select-none"
-        style={{ top: `${focalY}%`, transform: "translateY(-50%)" }}
-        onMouseDown={startDrag}
-        title={m.focalPointDrag}
-      >
-        <div className="w-full h-px bg-white/60 shadow-[0_0_3px_rgba(0,0,0,0.8)] group-hover:bg-white/90 transition-colors" />
-        <div className="absolute right-1.5 w-5 h-5 rounded-full bg-white/80 group-hover:bg-white flex items-center justify-center shadow-md transition-colors">
-          <ArrowsVerticalIcon weight="bold" className="w-3 h-3 text-stone-700" />
-        </div>
-      </div>
+      <FocalPointOverlay focalY={focalY} onMouseDown={startDrag} title={m.focalPointDrag} />
 
       {/* Active badge */}
       {image.isSelected && (

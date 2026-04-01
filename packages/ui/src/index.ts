@@ -76,6 +76,8 @@ export type { SocialMediaIconsProps } from "./SocialMediaIcons.tsx";
 export { Tabs, TabList, TabTrigger, TabContent } from "./Tabs.tsx";
 /** Re-exported props for Tabs. */
 export type { TabsProps, TabListProps, TabTriggerProps, TabContentProps } from "./Tabs.tsx";
+/** Focal point overlay and drag hook for image cropping control. */
+export { FocalPointOverlay, useFocalPointDrag } from "./FocalPointOverlay.tsx";
 /** Shared shop edit form and value contracts. */
 export { ShopEditForm, EMPTY_SHOP_FORM_VALUE } from "./ShopEditForm.tsx";
 /** Re-exported contracts for `ShopEditForm`. */

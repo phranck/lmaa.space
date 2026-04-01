@@ -82,6 +82,7 @@ export default function FilterableCategoryGrid({
           imageUrl: c.imageUrl ?? null,
           imagePhotographer: c.imagePhotographer ?? null,
           imagePhotographerUrl: c.imagePhotographerUrl ?? null,
+          imageFocalPointY: c.imageFocalPointY ?? 50,
           shopCount: c.shopCount ?? 0,
         })),
       );
