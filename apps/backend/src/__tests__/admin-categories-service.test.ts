@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const repoMocks = vi.hoisted(() => ({
   categoryExists: vi.fn(),
   clearAdminCategoryImage: vi.fn(),
+  getCategoryUnsplashImageId: vi.fn(),
   setAdminCategoryImage: vi.fn(),
 }));
 
@@ -10,9 +11,17 @@ const imageUploadMocks = vi.hoisted(() => ({
   processImageUpload: vi.fn(),
 }));
 
+const mediaStorageMocks = vi.hoisted(() => ({
+  deleteUnsplashCacheImage: vi.fn(),
+}));
+
 vi.mock("../repositories/admin-categories.js", () => repoMocks);
 vi.mock("../lib/image-upload.js", () => imageUploadMocks);
+vi.mock("../lib/media-storage.js", () => mediaStorageMocks);
 vi.mock("../lib/result.js", async (importOriginal) => importOriginal());
+vi.mock("./unsplash.js", () => ({ fetchUnsplashPhotoDetail: vi.fn() }));
+vi.mock("../config/env.js", () => ({ env: {} }));
+vi.mock("../repositories/unsplash-images.js", () => ({ updateUnsplashImageLocation: vi.fn(), upsertUnsplashImage: vi.fn() }));
 
 import {
   removeManagedAdminCategoryImage,
@@ -82,6 +91,7 @@ describe("removeManagedAdminCategoryImage", () => {
 
   it("clears image and returns category", async () => {
     repoMocks.categoryExists.mockResolvedValue(true);
+    repoMocks.getCategoryUnsplashImageId.mockResolvedValue(null);
     repoMocks.clearAdminCategoryImage.mockResolvedValue({ id: 1, name: "Mode", imageUrl: null });
 
     const result = await removeManagedAdminCategoryImage(1);
@@ -90,5 +100,20 @@ describe("removeManagedAdminCategoryImage", () => {
       ok: true,
       category: { id: 1, name: "Mode", imageUrl: null },
     });
+  });
+
+  it("deletes cache image when unsplashImageId exists", async () => {
+    repoMocks.categoryExists.mockResolvedValue(true);
+    repoMocks.getCategoryUnsplashImageId.mockResolvedValue(42);
+    repoMocks.clearAdminCategoryImage.mockResolvedValue({ id: 1, name: "Mode", imageUrl: null });
+    mediaStorageMocks.deleteUnsplashCacheImage.mockResolvedValue(undefined);
+
+    const result = await removeManagedAdminCategoryImage(1);
+
+    expect(result).toEqual({
+      ok: true,
+      category: { id: 1, name: "Mode", imageUrl: null },
+    });
+    expect(mediaStorageMocks.deleteUnsplashCacheImage).toHaveBeenCalledWith("categorie", 42);
   });
 });
