@@ -15,7 +15,7 @@ import {
   HandTapIcon,
   UploadIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type {
@@ -148,36 +148,67 @@ export function FormBuilderEditPage() {
   const saveMutation = useSaveFormConfig(formName);
   const setActive = useSetFormConfigActive();
 
-  const [rows, setRows] = useState<FormRow[]>([]);
-  const [slug, setSlug] = useState<string>("");
-  const [submissionConfig, setSubmissionConfig] = useState<SubmissionConfig | undefined>();
-  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error" | "slug_conflict">(
-    "idle",
+  const [formState, setFormState] = useState<{
+    rows: FormRow[];
+    slug: string;
+    submissionConfig: SubmissionConfig | undefined;
+    isDirty: boolean;
+  }>({ rows: [], slug: "", submissionConfig: undefined, isDirty: false });
+  interface BuilderUIState {
+    selectedFieldId: string | null;
+    saveStatus: "idle" | "saved" | "error" | "slug_conflict";
+    showExportWarning: boolean;
+    activeDrag: {
+      id: string;
+      field?: FormField;
+      row?: FormRow;
+      paletteType?: FieldType;
+    } | null;
+  }
+
+  const [uiState, dispatchUI] = useReducer(
+    (prev: BuilderUIState, action: Partial<BuilderUIState>): BuilderUIState => ({ ...prev, ...action }),
+    { selectedFieldId: null, saveStatus: "idle", showExportWarning: false, activeDrag: null },
   );
-  const [isDirty, setIsDirty] = useState(false);
-  const [showExportWarning, setShowExportWarning] = useState(false);
-  const [activeDrag, setActiveDrag] = useState<{
-    id: string;
-    field?: FormField;
-    row?: FormRow;
-    paletteType?: FieldType;
-  } | null>(null);
+  const { selectedFieldId, saveStatus, showExportWarning, activeDrag } = uiState;
+
+  const { rows, slug, submissionConfig, isDirty } = formState;
+
+  const setRows = (updater: FormRow[] | ((prev: FormRow[]) => FormRow[])) => {
+    setFormState((prev) => ({
+      ...prev,
+      rows: typeof updater === "function" ? updater(prev.rows) : updater,
+    }));
+  };
+
+  const setSlug = (value: string) => {
+    setFormState((prev) => ({ ...prev, slug: value }));
+  };
+
+  const setSubmissionConfig = (value: SubmissionConfig | undefined) => {
+    setFormState((prev) => ({ ...prev, submissionConfig: value }));
+  };
+
+  const setIsDirty = (value: boolean) => {
+    setFormState((prev) => ({ ...prev, isDirty: value }));
+  };
 
   // Sync server state into local rows, slug and submissionConfig once loaded
   useEffect(() => {
     if (config !== undefined) {
-      setRows(config?.rows ?? []);
-      setSlug(config?.slug ?? formName);
-      setSubmissionConfig(config?.submissionConfig);
-      setIsDirty(false);
+      setFormState({
+        rows: config?.rows ?? [],
+        slug: config?.slug ?? formName,
+        submissionConfig: config?.submissionConfig,
+        isDirty: false,
+      });
     }
   }, [config, formName]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        setSelectedFieldId(null);
+        dispatchUI({ selectedFieldId: null });
         (document.activeElement as HTMLElement)?.blur();
       }
     }
@@ -197,7 +228,7 @@ export function FormBuilderEditPage() {
 
     if (id.startsWith("palette:")) {
       const { type } = resolvePaletteId(id.replace("palette:", ""), m.fieldTypes);
-      setActiveDrag({ id, paletteType: type });
+      dispatchUI({ activeDrag: { id, paletteType: type } });
       return;
     }
 
@@ -205,16 +236,16 @@ export function FormBuilderEditPage() {
       const [, rowId, fieldId] = id.split(":");
       const row = rows.find((r) => r.id === rowId);
       const field = row?.fields.find((f) => f.id === fieldId);
-      setActiveDrag({ id, field });
+      dispatchUI({ activeDrag: { id, field } });
       return;
     }
 
     const row = rows.find((r) => r.id === id);
-    setActiveDrag({ id, row });
+    dispatchUI({ activeDrag: { id, row } });
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    setActiveDrag(null);
+    dispatchUI({ activeDrag: null });
     const { active, over } = event;
     if (!over) return;
 
@@ -247,7 +278,7 @@ export function FormBuilderEditPage() {
               r.id === targetRow.id ? { ...r, fields: [...r.fields, newField] } : r,
             ),
           );
-          setSelectedFieldId(newField.id);
+          dispatchUI({ selectedFieldId: newField.id });
           return;
         }
       }
@@ -259,7 +290,7 @@ export function FormBuilderEditPage() {
       };
       const newRow = makeNewRow(newField);
       setRows((prev) => [...prev, newRow]);
-      setSelectedFieldId(newField.id);
+      dispatchUI({ selectedFieldId: newField.id });
       return;
     }
 
@@ -292,11 +323,11 @@ export function FormBuilderEditPage() {
   }
 
   function handleSelectField(fieldId: string) {
-    setSelectedFieldId((prev) => (prev === fieldId ? null : fieldId));
+    dispatchUI({ selectedFieldId: selectedFieldId === fieldId ? null : fieldId });
   }
 
   function handleDeleteField(rowId: string, fieldId: string) {
-    if (selectedFieldId === fieldId) setSelectedFieldId(null);
+    if (selectedFieldId === fieldId) dispatchUI({ selectedFieldId: null });
     setRows((prev) =>
       prev
         .map((row) => {
@@ -319,14 +350,14 @@ export function FormBuilderEditPage() {
   }
 
   function handleSave() {
-    setSaveStatus("idle");
+    dispatchUI({ saveStatus: "idle" });
     saveMutation.mutate(
       { rows, slug: slug || undefined, submissionConfig },
       {
         onSuccess: () => {
-          setSaveStatus("saved");
+          dispatchUI({ saveStatus: "saved" });
           setIsDirty(false);
-          setTimeout(() => setSaveStatus("idle"), 3000);
+          setTimeout(() => dispatchUI({ saveStatus: "idle" }), 3000);
         },
         onError: (err: unknown) => {
           const status =
@@ -334,9 +365,9 @@ export function FormBuilderEditPage() {
               ? (err as { status: number }).status
               : 0;
           if (status === 409) {
-            setSaveStatus("slug_conflict");
+            dispatchUI({ saveStatus: "slug_conflict" });
           } else {
-            setSaveStatus("error");
+            dispatchUI({ saveStatus: "error" });
           }
         },
       },
@@ -348,8 +379,8 @@ export function FormBuilderEditPage() {
   function handleExport() {
     if (!config) return;
     if (isDirty) {
-      setShowExportWarning(true);
-      setTimeout(() => setShowExportWarning(false), 3000);
+      dispatchUI({ showExportWarning: true });
+      setTimeout(() => dispatchUI({ showExportWarning: false }), 3000);
       return;
     }
     exportFormConfigSingle(config.name, slug, rows, submissionConfig);
@@ -375,38 +406,16 @@ export function FormBuilderEditPage() {
         title={`${m.title}: ${formName}`}
         leading={<HeaderBackButton label={m.listTitle} onClick={() => navigate("/forms")} />}
       >
-        <div className="flex items-center gap-3">
-          {showExportWarning && (
-            <span className="text-sm text-amber-600 font-medium">{m.exportUnsavedWarning}</span>
-          )}
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={!config}
-            className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
-          >
-            <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
-            {m.exportForm}
-          </button>
-          {saveStatus === "saved" && (
-            <span className="text-sm text-green-600 font-medium">{m.saved}</span>
-          )}
-          {saveStatus === "error" && (
-            <span className="text-sm text-red-600 font-medium">{m.saveError}</span>
-          )}
-          {saveStatus === "slug_conflict" && (
-            <span className="text-sm text-red-600 font-medium">{m.slugConflict}</span>
-          )}
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saveMutation.isPending}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
-          >
-            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-            {saveMutation.isPending ? messages.common.saving : m.save}
-          </button>
-        </div>
+        <BuilderHeaderActions
+          showExportWarning={showExportWarning}
+          saveStatus={saveStatus}
+          isSaving={saveMutation.isPending}
+          hasConfig={!!config}
+          onExport={handleExport}
+          onSave={handleSave}
+          m={m}
+          savingLabel={messages.common.saving}
+        />
       </PageHeader>
 
       {/* Slug editor */}
@@ -445,7 +454,7 @@ export function FormBuilderEditPage() {
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onDragCancel={() => setActiveDrag(null)}
+          onDragCancel={() => dispatchUI({ activeDrag: null })}
         >
           <div className="flex gap-4 items-start">
             <div className="shrink-0">
@@ -505,33 +514,7 @@ export function FormBuilderEditPage() {
           </div>
 
           <DragOverlay>
-            {activeDrag?.field && (
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm shadow-xl ring-1 ring-[var(--color-primary)]/30 cursor-grabbing">
-                <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
-                  {activeDrag.field.label}
-                </span>
-                <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-color-neutral-400)] text-[var(--ds-color-neutral-400)]">
-                  {activeDrag.field.type.slice(0, 3)}
-                </span>
-              </div>
-            )}
-            {activeDrag?.row && (
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm shadow-xl cursor-grabbing">
-                {activeDrag.row.fields.map((f) => (
-                  <span
-                    key={f.id}
-                    className="px-2 py-0.5 rounded bg-[var(--ds-color-neutral-400)] text-xs text-[var(--ds-text)] truncate max-w-32"
-                  >
-                    {f.label}
-                  </span>
-                ))}
-              </div>
-            )}
-            {activeDrag?.paletteType && (
-              <div className="px-3 py-2 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm font-medium text-[var(--ds-text)] shadow-xl cursor-grabbing">
-                {defaultFieldLabel(activeDrag.paletteType, m.fieldTypes)}
-              </div>
-            )}
+            <BuilderDragOverlayContent activeDrag={activeDrag} fieldTypes={m.fieldTypes} />
           </DragOverlay>
         </DndContext>
       </div>
@@ -548,4 +531,118 @@ export function FormBuilderEditPage() {
       />
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+interface BuilderHeaderActionsProps {
+  showExportWarning: boolean;
+  saveStatus: "idle" | "saved" | "error" | "slug_conflict";
+  isSaving: boolean;
+  hasConfig: boolean;
+  onExport: () => void;
+  onSave: () => void;
+  m: ReturnType<typeof useI18n>["messages"]["formBuilder"];
+  savingLabel: string;
+}
+
+function BuilderHeaderActions({
+  showExportWarning,
+  saveStatus,
+  isSaving,
+  hasConfig,
+  onExport,
+  onSave,
+  m,
+  savingLabel,
+}: BuilderHeaderActionsProps) {
+  return (
+    <div className="flex items-center gap-3">
+      {showExportWarning && (
+        <span className="text-sm text-amber-600 font-medium">{m.exportUnsavedWarning}</span>
+      )}
+      <button
+        type="button"
+        onClick={onExport}
+        disabled={!hasConfig}
+        className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
+      >
+        <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
+        {m.exportForm}
+      </button>
+      {saveStatus === "saved" && (
+        <span className="text-sm text-green-600 font-medium">{m.saved}</span>
+      )}
+      {saveStatus === "error" && (
+        <span className="text-sm text-red-600 font-medium">{m.saveError}</span>
+      )}
+      {saveStatus === "slug_conflict" && (
+        <span className="text-sm text-red-600 font-medium">{m.slugConflict}</span>
+      )}
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={isSaving}
+        className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
+      >
+        <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+        {isSaving ? savingLabel : m.save}
+      </button>
+    </div>
+  );
+}
+
+function BuilderDragOverlayContent({
+  activeDrag,
+  fieldTypes,
+}: {
+  activeDrag: {
+    id: string;
+    field?: FormField;
+    row?: FormRow;
+    paletteType?: FieldType;
+  } | null;
+  fieldTypes: Record<string, string>;
+}) {
+  if (!activeDrag) return null;
+
+  if (activeDrag.field) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm shadow-xl ring-1 ring-[var(--color-primary)]/30 cursor-grabbing">
+        <span className="flex-1 min-w-0 truncate font-medium text-[var(--ds-text)]">
+          {activeDrag.field.label}
+        </span>
+        <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-medium bg-[var(--ds-color-neutral-400)] text-[var(--ds-color-neutral-400)]">
+          {activeDrag.field.type.slice(0, 3)}
+        </span>
+      </div>
+    );
+  }
+
+  if (activeDrag.row) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] text-sm shadow-xl cursor-grabbing">
+        {activeDrag.row.fields.map((f) => (
+          <span
+            key={f.id}
+            className="px-2 py-0.5 rounded bg-[var(--ds-color-neutral-400)] text-xs text-[var(--ds-text)] truncate max-w-32"
+          >
+            {f.label}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (activeDrag.paletteType) {
+    return (
+      <div className="px-3 py-2 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm font-medium text-[var(--ds-text)] shadow-xl cursor-grabbing">
+        {defaultFieldLabel(activeDrag.paletteType, fieldTypes)}
+      </div>
+    );
+  }
+
+  return null;
 }

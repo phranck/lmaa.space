@@ -12,7 +12,7 @@ import {
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { ArrowClockwiseIcon, DownloadIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { nanoid } from "nanoid";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import type { FooterBlock, FooterColumn, FooterConfig, FooterStyle } from "@lmaa/contracts";
 import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
@@ -32,6 +32,20 @@ import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "../hooks
 
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];
+
+interface FooterBuilderState {
+  config: FooterConfig | null;
+  selection: Selection;
+  previewUrl: string | null;
+  savedOk: boolean;
+  activeDrag: { label: string } | null;
+}
+
+type FooterBuilderAction = Partial<FooterBuilderState>;
+
+function footerBuilderReducer(state: FooterBuilderState, action: FooterBuilderAction): FooterBuilderState {
+  return { ...state, ...action };
+}
 
 function buildDefaultBlock(type: FooterBlockType): FooterBlock {
   switch (type) {
@@ -88,11 +102,14 @@ export function FooterBuilderPage() {
   const save = useSaveFooterConfig();
   const { mutate: createPreviewSession, isPending: isPreviewPending } = useFooterPreview();
 
-  const [config, setConfig] = useState<FooterConfig | null>(null);
-  const [selection, setSelection] = useState<Selection>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [savedOk, setSavedOk] = useState(false);
-  const [activeDrag, setActiveDrag] = useState<{ label: string } | null>(null);
+  const [state, dispatch] = useReducer(footerBuilderReducer, {
+    config: null,
+    selection: null,
+    previewUrl: null,
+    savedOk: false,
+    activeDrag: null,
+  });
+  const { config, selection, previewUrl, savedOk, activeDrag } = state;
   const blockTypeLabels: Record<FooterBlockType, string> = {
     headline: footerMessages.blockLabels.headline,
     text: footerMessages.blockLabels.markdown,
@@ -106,9 +123,9 @@ export function FooterBuilderPage() {
 
   useEffect(() => {
     if (loaded && config === null) {
-      setConfig(loaded);
+      dispatch({ config: loaded });
       createPreviewSession(loaded, {
-        onSuccess: ({ token }) => setPreviewUrl(buildFooterPreviewUrl(token)),
+        onSuccess: ({ token }) => dispatch({ previewUrl: buildFooterPreviewUrl(token) }),
       });
     }
   }, [loaded, config, createPreviewSession]);
@@ -116,13 +133,13 @@ export function FooterBuilderPage() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   function handleChange(updated: FooterConfig) {
-    setConfig(updated);
+    dispatch({ config: updated });
   }
 
   function handleReloadPreview() {
     if (!config) return;
     createPreviewSession(config, {
-      onSuccess: ({ token }) => setPreviewUrl(buildFooterPreviewUrl(token)),
+      onSuccess: ({ token }) => dispatch({ previewUrl: buildFooterPreviewUrl(token) }),
     });
   }
 
@@ -145,7 +162,7 @@ export function FooterBuilderPage() {
     if (!config) return;
     const col = config.columns.find((c) => c.id === colId);
     if (col && selection?.kind === "block" && col.blocks.some((b) => b.id === selection.id)) {
-      setSelection(null);
+      dispatch({ selection: null });
     }
     updateColumns(config.columns.filter((c) => c.id !== colId));
   }
@@ -157,7 +174,7 @@ export function FooterBuilderPage() {
 
   function handleDeleteBlock(colId: string, blockId: string) {
     if (!config) return;
-    if (selection?.kind === "block" && selection.id === blockId) setSelection(null);
+    if (selection?.kind === "block" && selection.id === blockId) dispatch({ selection: null });
     updateColumns(
       config.columns.map((c) =>
         c.id === colId ? { ...c, blocks: c.blocks.filter((b) => b.id !== blockId) } : c,
@@ -183,20 +200,20 @@ export function FooterBuilderPage() {
     const id = String(event.active.id);
     if (id.startsWith("palette:")) {
       const type = id.replace("palette:", "") as FooterBlockType;
-      setActiveDrag({ label: blockTypeLabels[type] });
+      dispatch({ activeDrag: { label: blockTypeLabels[type] } });
     } else if (id.startsWith("block:")) {
       const [, colId, blockId] = id.split(":");
       const block = config?.columns
         .find((c) => c.id === colId)
         ?.blocks.find((b) => b.id === blockId);
-      setActiveDrag({
+      dispatch({ activeDrag: {
         label:
           block?.type === "headline"
             ? block.text || blockTypeLabels.headline
             : block?.type === "button"
               ? block.label || blockTypeLabels.button
               : blockTypeLabels[block?.type ?? "headline"],
-      });
+      } });
     }
   }
 
@@ -215,7 +232,7 @@ export function FooterBuilderPage() {
       const oldIdx = config.columns.findIndex((c) => c.id === fromColId);
       const newIdx = config.columns.findIndex((c) => c.id === toColId);
       if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return;
-      setConfig({ ...config, columns: arrayMove(config.columns, oldIdx, newIdx) });
+      dispatch({ config: { ...config, columns: arrayMove(config.columns, oldIdx, newIdx) } });
       return;
     }
 
@@ -248,11 +265,11 @@ export function FooterBuilderPage() {
       return c;
     });
 
-    setConfig({ ...config, columns: newCols });
+    dispatch({ config: { ...config, columns: newCols } });
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    setActiveDrag(null);
+    dispatch({ activeDrag: null });
     if (!config) return;
 
     const { active, over } = event;
@@ -287,7 +304,7 @@ export function FooterBuilderPage() {
         return { ...c, blocks };
       });
       handleChange({ ...config, columns: newCols });
-      setSelection({ kind: "block", id: newBlock.id });
+      dispatch({ selection: { kind: "block", id: newBlock.id } });
       return;
     }
 
@@ -318,8 +335,8 @@ export function FooterBuilderPage() {
     if (!config) return;
     save.mutate(config, {
       onSuccess: () => {
-        setSavedOk(true);
-        setTimeout(() => setSavedOk(false), 2000);
+        dispatch({ savedOk: true });
+        setTimeout(() => dispatch({ savedOk: false }), 2000);
       },
     });
   }
@@ -365,7 +382,7 @@ export function FooterBuilderPage() {
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveDrag(null)}
+        onDragCancel={() => dispatch({ activeDrag: null })}
       >
         <div className="flex gap-4 items-start">
           {/* Palette sidebar */}
@@ -385,9 +402,9 @@ export function FooterBuilderPage() {
                   column={col}
                   selectedBlockId={selectedBlockId}
                   onSelectBlock={(id) =>
-                    setSelection((prev) =>
-                      prev?.kind === "block" && prev.id === id ? null : { kind: "block", id },
-                    )
+                    dispatch({
+                      selection: selection?.kind === "block" && selection.id === id ? null : { kind: "block", id },
+                    })
                   }
                   onDeleteBlock={(blockId) => handleDeleteBlock(col.id, blockId)}
                   onChangeSpan={(span) => handleChangeSpan(col.id, span)}
@@ -428,35 +445,67 @@ export function FooterBuilderPage() {
         </DragOverlay>
       </DndContext>
 
-      {/* Preview card — click header to open style settings */}
-      <Card>
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--ds-border)]">
-          <button
-            type="button"
-            onClick={() => setSelection({ kind: "style" })}
-            className={`min-w-0 flex-1 text-left text-xs font-semibold uppercase tracking-wider ${
-              showStyle
-                ? "text-[var(--color-primary)]"
-                : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
-            }`}
-          >
-            Vorschau
-          </button>
-          <button
-            type="button"
-            onClick={handleReloadPreview}
-            disabled={isPreviewPending}
-            className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-50"
-          >
-            <ArrowClockwiseIcon
-              weight="duotone"
-              className={`w-3.5 h-3.5 ${isPreviewPending ? "animate-spin" : ""}`}
-            />
-            Reload
-          </button>
-        </div>
-        <FooterPreview src={previewUrl} heightPx={previewHeightPx} isLoading={isPreviewPending} />
-      </Card>
+      <FooterPreviewCard
+        showStyle={showStyle}
+        previewUrl={previewUrl}
+        previewHeightPx={previewHeightPx}
+        isPreviewPending={isPreviewPending}
+        onOpenStyle={() => dispatch({ selection: { kind: "style" } })}
+        onReload={handleReloadPreview}
+      />
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+interface FooterPreviewCardProps {
+  showStyle: boolean;
+  previewUrl: string | null;
+  previewHeightPx: number;
+  isPreviewPending: boolean;
+  onOpenStyle: () => void;
+  onReload: () => void;
+}
+
+function FooterPreviewCard({
+  showStyle,
+  previewUrl,
+  previewHeightPx,
+  isPreviewPending,
+  onOpenStyle,
+  onReload,
+}: FooterPreviewCardProps) {
+  return (
+    <Card>
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--ds-border)]">
+        <button
+          type="button"
+          onClick={onOpenStyle}
+          className={`min-w-0 flex-1 text-left text-xs font-semibold uppercase tracking-wider ${
+            showStyle
+              ? "text-[var(--color-primary)]"
+              : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
+          }`}
+        >
+          Vorschau
+        </button>
+        <button
+          type="button"
+          onClick={onReload}
+          disabled={isPreviewPending}
+          className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-50"
+        >
+          <ArrowClockwiseIcon
+            weight="duotone"
+            className={`w-3.5 h-3.5 ${isPreviewPending ? "animate-spin" : ""}`}
+          />
+          Reload
+        </button>
+      </div>
+      <FooterPreview src={previewUrl} heightPx={previewHeightPx} isLoading={isPreviewPending} />
+    </Card>
   );
 }
