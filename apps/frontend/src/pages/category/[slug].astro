@@ -1,5 +1,6 @@
 ---
 import FilterableCategoryShops from "@/components/islands/FilterableCategoryShops";
+import UnsplashAttribution from "@/components/UnsplashAttribution.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { buildFilterQuery, parseFiltersFromUrl } from "@/lib/filter-query";
@@ -82,16 +83,11 @@ const jsonLd = {
     />
     <div class="absolute inset-0 bg-stone-900/65"></div>
     {category.imagePhotographer && category.imagePhotographerUrl && (
-      <p class="absolute right-3 bottom-2 text-[10px] text-white/50 z-10">
-        Photo{" "}
-        <a href={`${category.imagePhotographerUrl}?utm_source=lmaa_space&utm_medium=referral`} target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/70">
-          {category.imagePhotographer}
-        </a>
-        {" @ "}
-        <a href="https://unsplash.com?utm_source=lmaa_space&utm_medium=referral" target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/70">
-          Unsplash
-        </a>
-      </p>
+      <UnsplashAttribution
+        photographer={category.imagePhotographer}
+        photographerUrl={category.imagePhotographerUrl}
+        class="z-10"
+      />
     )}
     <div class="absolute inset-0 flex flex-col justify-end px-6 sm:px-10 pb-8">
       <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-white">
