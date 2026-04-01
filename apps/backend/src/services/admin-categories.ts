@@ -1,12 +1,9 @@
 import { fetchUnsplashPhotoDetail } from "./unsplash.js";
-import { env } from "../config/env.js";
 import { processImageUpload } from "../lib/image-upload.js";
-import { deleteUnsplashCacheImage, isUnsplashCacheImageStored, putUnsplashCacheImage } from "../lib/media-storage.js";
 import { failure, success } from "../lib/result.js";
 import {
   categoryExists,
   clearAdminCategoryImage,
-  getCategoryUnsplashImageId,
   setAdminCategoryImage,
   setAdminCategoryUnsplashImage,
 } from "../repositories/admin-categories.js";
@@ -45,20 +42,9 @@ export async function uploadManagedAdminCategoryImage(id: number, file: unknown)
   return success({ category });
 }
 
-const s3CacheEnabled = () => !!(env.S3_ENDPOINT && env.S3_BUCKET);
-
-async function downloadAndCacheCategoryImage(unsplashImageId: number, url: string): Promise<void> {
-  if (!s3CacheEnabled()) return;
-  if (await isUnsplashCacheImageStored("categorie", unsplashImageId)) return;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch image for cache: ${res.status}`);
-  const buffer = Buffer.from(await res.arrayBuffer());
-  await putUnsplashCacheImage("categorie", unsplashImageId, buffer);
-}
-
 /**
- * Sets an Unsplash image on a category: upserts the unsplash_images row,
- * sets the FK, and triggers S3 caching.
+ * Sets an Unsplash image on a category: upserts the unsplash_images row
+ * and sets the FK.
  */
 export async function setManagedAdminCategoryUnsplashImage(
   id: number,
@@ -108,11 +94,7 @@ export async function setManagedAdminCategoryUnsplashImage(
 
   if (!category) return failure("not_found");
 
-  // Background cache + location fetch
-  downloadAndCacheCategoryImage(unsplashImage.id, data.url).catch((err: unknown) => {
-    console.error(`[unsplash-cache] Failed to cache category image ${unsplashImage.id}:`, err);
-  });
-
+  // Background location fetch
   fetchUnsplashPhotoDetail(data.unsplashId)
     .then(async (location) => {
       if (location) {
@@ -138,17 +120,9 @@ export async function removeManagedAdminCategoryImage(id: number) {
     return failure("not_found");
   }
 
-  const unsplashImageId = await getCategoryUnsplashImageId(id);
-
   const category = await clearAdminCategoryImage(id);
   if (!category) {
     return failure("not_found");
-  }
-
-  if (unsplashImageId) {
-    deleteUnsplashCacheImage("categorie", unsplashImageId).catch((err: unknown) => {
-      console.error(`[unsplash-cache] Failed to delete cached category image ${unsplashImageId}:`, err);
-    });
   }
 
   return success({ category });

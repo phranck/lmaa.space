@@ -1,16 +1,10 @@
 import type { MediaAsset as SharedMediaAsset } from "@lmaa/shared";
 
-import { fetchFullUnsplashPhoto } from "./unsplash.js";
 import {
-  type UnsplashCacheObject,
   type S3MediaMeta,
   getMediaPublicUrl,
   listAllStoredMedia,
-  listUnsplashCacheObjects,
-  purgeUnsplashCache,
-  putUnsplashCacheImage,
   removeStoredMedia,
-  deleteUnsplashCacheImage,
   storeUploadedMedia,
   updateStoredMediaMeta,
 } from "../lib/media-storage.js";
@@ -22,15 +16,6 @@ import {
   listMediaAssets,
   updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
-import {
-  linkCategoryToUnsplashImage,
-  listAllUnsplashImages,
-  listUnlinkedUnsplashCategories,
-  listUnsplashCacheSources,
-  upsertUnsplashImage,
-} from "../repositories/unsplash-images.js";
-
-export type { UnsplashCacheSource } from "../repositories/unsplash-images.js";
 
 function mapMediaAsset(row: {
   id: number;
@@ -63,150 +48,6 @@ function mapMediaAsset(row: {
     updatedAt: row.updatedAt.toISOString(),
     createdByUsername: row.createdByUsername,
   };
-}
-
-export type { UnsplashCacheObject };
-
-export interface UnsplashCacheMediaItem extends UnsplashCacheObject {
-  unsplash: {
-    unsplashId: string;
-    width: number | null;
-    height: number | null;
-    color: string | null;
-    blurHash: string | null;
-    description: string | null;
-    altDescription: string | null;
-    likes: number | null;
-    photographerName: string;
-    photographerUrl: string;
-    locationCity: string | null;
-    locationCountry: string | null;
-    createdAtUnsplash: string | null;
-  } | null;
-}
-
-export async function listUnsplashCacheMediaItems(): Promise<UnsplashCacheMediaItem[]> {
-  const [cacheObjects, allUnsplash] = await Promise.all([
-    listUnsplashCacheObjects(),
-    listAllUnsplashImages(),
-  ]);
-
-  const unsplashById = new Map(allUnsplash.map((u) => [u.id, u]));
-
-  return cacheObjects.map((obj) => {
-    const u = unsplashById.get(obj.unsplashImageId);
-    return {
-      ...obj,
-      unsplash: u ? {
-        unsplashId: u.unsplashId,
-        width: u.width,
-        height: u.height,
-        color: u.color,
-        blurHash: u.blurHash,
-        description: u.description,
-        altDescription: u.altDescription,
-        likes: u.likes,
-        photographerName: u.photographerName,
-        photographerUrl: u.photographerUrl,
-        locationCity: u.locationCity,
-        locationCountry: u.locationCountry,
-        createdAtUnsplash: u.createdAtUnsplash?.toISOString() ?? null,
-      } : null,
-    };
-  });
-}
-
-export async function refetchSingleUnsplashMeta(
-  unsplashId: string,
-  cacheType: "hero" | "categorie",
-): Promise<boolean> {
-  const data = await fetchFullUnsplashPhoto(unsplashId);
-  if (!data) return false;
-
-  const row = await upsertUnsplashImage({
-    unsplashId,
-    urlSmall: data.urlSmall,
-    urlRegular: data.urlRegular,
-    width: data.width,
-    height: data.height,
-    color: data.color,
-    blurHash: data.blurHash,
-    description: data.description,
-    altDescription: data.altDescription,
-    likes: data.likes,
-    photographerName: data.photographerName,
-    photographerUrl: data.photographerUrl,
-    downloadLocation: data.downloadLocation,
-    createdAtUnsplash: new Date(data.createdAtUnsplash),
-    locationCity: data.locationCity,
-    locationCountry: data.locationCountry,
-    locationLat: data.locationLat,
-    locationLng: data.locationLng,
-    locationFetched: true,
-  });
-
-  // Re-download and cache the image
-  try {
-    const res = await fetch(data.urlRegular);
-    if (res.ok) {
-      const buffer = Buffer.from(await res.arrayBuffer());
-      await putUnsplashCacheImage(cacheType, row.id, buffer);
-    }
-  } catch {
-    // Image re-cache is best-effort
-  }
-
-  return true;
-}
-
-/**
- * Extracts the URL path (without query params) for comparison.
- */
-function unsplashUrlPath(url: string): string {
-  try {
-    return new URL(url).pathname;
-  } catch {
-    return url;
-  }
-}
-
-/**
- * Backfills `unsplashImageId` for categories with Unsplash image URLs but
- * no FK set, matching by URL path against existing unsplash_images rows.
- */
-async function backfillCategoryUnsplashIds(): Promise<void> {
-  const unlinked = await listUnlinkedUnsplashCategories();
-  if (unlinked.length === 0) return;
-
-  const allUnsplash = await listAllUnsplashImages();
-  const unsplashByPath = new Map(
-    allUnsplash.map((u) => [unsplashUrlPath(u.urlRegular), u]),
-  );
-
-  for (const cat of unlinked) {
-    const path = unsplashUrlPath(cat.imageUrl);
-    const match = unsplashByPath.get(path);
-    if (match) {
-      await linkCategoryToUnsplashImage(cat.id, match.id);
-    }
-  }
-}
-
-export async function getUnsplashCacheSources() {
-  await backfillCategoryUnsplashIds();
-  return listUnsplashCacheSources();
-}
-
-export async function deleteUnsplashCacheItem(
-  type: "hero" | "categorie",
-  unsplashImageId: number,
-): Promise<void> {
-  await deleteUnsplashCacheImage(type, unsplashImageId);
-}
-
-export async function purgeUnsplashCacheItems(): Promise<{ deleted: number }> {
-  const deleted = await purgeUnsplashCache();
-  return { deleted };
 }
 
 export async function listManagedMediaAssets(): Promise<SharedMediaAsset[]> {
@@ -286,15 +127,8 @@ export async function deleteManagedMediaAsset(id: number) {
   return { ok: true as const };
 }
 
-const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"]);
-
 function inferKindFromContentType(contentType: string): "image" | "document" {
   return contentType.startsWith("image/") ? "image" : "document";
-}
-
-function inferExtension(key: string): string {
-  const dot = key.lastIndexOf(".");
-  return dot >= 0 ? key.slice(dot).toLowerCase() : "";
 }
 
 export async function syncMediaFromStorage(): Promise<{

@@ -3,7 +3,6 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { getDomain } from "tldts";
 
 import { env } from "../config/env.js";
-import { getUnsplashCacheUrl } from "../lib/media-storage.js";
 import { type Result, failure, success } from "../lib/result.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
 import {
@@ -353,18 +352,7 @@ export function getManagedPublicCacheStats() {
   return success({ data: getCacheStats() });
 }
 
-const s3CacheEnabled = () => !!(env.S3_ENDPOINT && env.S3_BUCKET);
-
-// HOTFIX: Always fall back to original Unsplash URL until all category images
-// have been re-assigned with correct unsplash_images entries and cached in S3.
-// TODO(cleanup): Remove fallback once legacy unsplash_images entries are resolved.
-function resolveCategoryImageUrl(row: { imageUrl: string | null; unsplashImageId: number | null }): string | null {
-  if (s3CacheEnabled() && row.unsplashImageId) {
-    const cacheUrl = getUnsplashCacheUrl("categorie", row.unsplashImageId);
-    // Return cache URL only if the original imageUrl is not an Unsplash URL,
-    // or if we can trust the cache. For now, prefer the original URL as fallback.
-    if (!row.imageUrl) return cacheUrl;
-  }
+function resolveCategoryImageUrl(row: { imageUrl: string | null }): string | null {
   return row.imageUrl;
 }
 
