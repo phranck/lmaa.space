@@ -26,7 +26,7 @@ zerops:
         NODE_ENV: production
         DATABASE_URL: ${postgres_connectionString}
         DATABASE_URL_MIGRATOR: ${postgres_connectionString}
-        RUN_MIGRATIONS_ON_STARTUP: "false"
+        RUN_MIGRATIONS_ON_STARTUP: "true"
         # Secrets (set in Zerops dashboard):
         # RESEND_API_KEY
         # SESSION_SECRET
