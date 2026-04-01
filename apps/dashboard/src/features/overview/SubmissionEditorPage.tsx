@@ -9,11 +9,15 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useReducer, useState } from "react";
+import { Suspense, lazy, useReducer, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import { type Submission, generateRejectionToken } from "@lmaa/shared";
-import { CharCounter, FormLabel, FormOptional, MarkdownEditor } from "@lmaa/ui";
+import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
@@ -399,6 +403,67 @@ function LoadedSubmissionEditorPage({
         <ShopEditorFormContent controller={controller} />
       </EditorPageShell>
 
+      <SubmissionDialogs
+        submission={submission}
+        submitterEmail={submitterEmail}
+        reviewState={reviewState}
+        dispatchReview={dispatchReview}
+        reviewMutation={reviewMutation}
+        deleteMutation={deleteMutation}
+        emailTemplates={emailTemplates}
+        controller={controller}
+        combinedSavedPhase={combinedSavedPhase}
+        showDeleteDialog={showDeleteDialog}
+        setShowDeleteDialog={setShowDeleteDialog}
+        handleApprove={handleApprove}
+        handleReject={handleReject}
+        navigateBack={navigateBack}
+        common={common}
+        submissionsMessages={submissionsMessages}
+      />
+    </>
+  );
+}
+
+interface SubmissionDialogsProps {
+  submission: Submission;
+  submitterEmail: string;
+  reviewState: ReviewState;
+  dispatchReview: React.Dispatch<ReviewAction>;
+  reviewMutation: ReturnType<typeof useReviewSubmission>;
+  deleteMutation: ReturnType<typeof useDeleteSubmission>;
+  emailTemplates: Array<{ id: number; name: string }>;
+  controller: ReturnType<typeof useShopEditorController>;
+  combinedSavedPhase: ReturnType<typeof useSaveNotification>["phase"];
+  showDeleteDialog: boolean;
+  setShowDeleteDialog: (open: boolean) => void;
+  handleApprove: (close?: boolean) => Promise<void>;
+  handleReject: () => void;
+  navigateBack: () => void;
+  common: DashboardMessages["common"];
+  submissionsMessages: DashboardMessages["submissions"];
+}
+
+function SubmissionDialogs({
+  submission,
+  submitterEmail,
+  reviewState,
+  dispatchReview,
+  reviewMutation,
+  deleteMutation,
+  emailTemplates,
+  controller,
+  combinedSavedPhase,
+  showDeleteDialog,
+  setShowDeleteDialog,
+  handleApprove,
+  handleReject,
+  navigateBack,
+  common,
+  submissionsMessages,
+}: SubmissionDialogsProps) {
+  return (
+    <>
       <ApproveSubmissionReviewCard
         adminNote={reviewState.adminNote}
         cancelLabel={common.cancel}
@@ -824,14 +889,16 @@ function ApproveSubmissionReviewCard({
           <FormLabel htmlFor="submission-editor-admin-note">
             {commentLabel} <FormOptional>{optionalLabel}</FormOptional>
           </FormLabel>
-          <MarkdownEditor
-            id="submission-editor-admin-note"
-            value={adminNote}
-            onChange={onAdminNoteChange}
-            rows={3}
-            resizable
-            placeholder={commentPlaceholder}
-          />
+          <Suspense fallback={<div className="h-[4.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+            <MarkdownEditor
+              id="submission-editor-admin-note"
+              value={adminNote}
+              onChange={onAdminNoteChange}
+              rows={3}
+              resizable
+              placeholder={commentPlaceholder}
+            />
+          </Suspense>
           <CharCounter value={adminNote} max={1200} className="block mt-1 text-right" />
         </div>
 
