@@ -1,5 +1,4 @@
 import { QrCodeIcon, ShareNetworkIcon } from "@phosphor-icons/react";
-import QRCodeStyling from "qr-code-styling";
 import { useEffect, useReducer, useRef, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
@@ -85,31 +84,33 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (!qrRef.current) return;
 
-    const qrCode = new QRCodeStyling({
-      width: 200,
-      height: 200,
-      data: syncUrl,
-      margin: 8,
-      type: "svg",
-      dotsOptions: {
-        color: "#292524",
-        type: "rounded",
-      },
-      cornersSquareOptions: {
-        type: "extra-rounded",
-        color: "#292524",
-      },
-      cornersDotOptions: {
-        type: "dot",
-        color: "#292524",
-      },
-      backgroundOptions: {
-        color: "#ffffff",
-      },
-    });
+    import("qr-code-styling").then(({ default: QRCodeStyling }) => {
+      const qrCode = new QRCodeStyling({
+        width: 200,
+        height: 200,
+        data: syncUrl,
+        margin: 8,
+        type: "svg",
+        dotsOptions: {
+          color: "#292524",
+          type: "rounded",
+        },
+        cornersSquareOptions: {
+          type: "extra-rounded",
+          color: "#292524",
+        },
+        cornersDotOptions: {
+          type: "dot",
+          color: "#292524",
+        },
+        backgroundOptions: {
+          color: "#ffffff",
+        },
+      });
 
-    qrRef.current.innerHTML = "";
-    qrCode.append(qrRef.current);
+      qrRef.current!.innerHTML = "";
+      qrCode.append(qrRef.current!);
+    });
   }, [syncUrl]);
 
   async function handleShare() {
@@ -205,29 +206,32 @@ export default function LikedShopsGrid() {
   });
   const { shops, loading, showSync, importData, importDone } = state;
 
-  function loadShops() {
+  function loadShops(signal?: AbortSignal) {
     const likedIds = getLikedShopIds();
     if (likedIds.size === 0) {
       dispatch({ shops: [], loading: false });
       return;
     }
 
-    fetchJson<Shop[]>("/shops")
+    fetchJson<Shop[]>("/shops", { signal })
       .then((shops) => {
         dispatch({ shops: shops.filter((s) => likedIds.has(String(s.id))) });
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         // Silent fail
       })
       .finally(() => dispatch({ loading: false }));
   }
 
   useEffect(() => {
+    const controller = new AbortController();
     const pending = parseImportParam();
     if (pending) {
       dispatch({ importData: pending });
     }
-    loadShops();
+    loadShops(controller.signal);
+    return () => controller.abort();
   }, []);
 
   function handleImportMerge() {
