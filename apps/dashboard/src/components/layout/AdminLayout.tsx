@@ -141,7 +141,7 @@ function AdminLayoutInner() {
             {hasCustomTitleContent ? (
               <div className="min-w-0 overflow-hidden leading-tight">{titleContent}</div>
             ) : (
-              <span className="font-semibold text-sm text-[var(--ds-text)] truncate">
+              <span className="font-semibold text-sm text-[var(--ds-text)] font-serif truncate">
                 {title || messages.layout.pageFallbackTitle}
               </span>
             )}

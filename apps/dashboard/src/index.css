@@ -1,5 +1,28 @@
 @import "@lmaa/shared/styles/tokens.css";
 
+/* Barlow Condensed — used for headings and titles */
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/barlow-condensed-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/barlow-condensed-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/barlow-condensed-700.woff2") format("woff2");
+}
+
 /* Dashboard-specific token overrides */
 :root {
   --radius-control: 0.5rem; /* 8px */
@@ -265,6 +288,10 @@ input:-webkit-autofill {
 
 html {
   font-size: 18px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--ds-font-serif);
 }
 
 body {

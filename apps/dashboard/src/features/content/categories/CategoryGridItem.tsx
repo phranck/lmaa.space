@@ -21,23 +21,24 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
   const categoriesMessages = messages.categories;
 
   return (
-    <div className="relative bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border)] flex flex-col card-hover">
-      <div className="aspect-[4/3] overflow-hidden rounded-t-[var(--radius-card)]">
+    <div className="relative bg-[var(--ds-surface)] rounded-2xl overflow-hidden border border-[var(--ds-border)] flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      <div className="aspect-video overflow-hidden cursor-pointer" onClick={() => onEdit(category.id)}>
         <img
           src={category.imageUrl ?? `/images/${category.slug}.jpg`}
           alt=""
           loading="lazy"
           className="w-full h-full object-cover bg-[var(--ds-bg-elevated)]"
+          style={{ objectPosition: `50% ${category.imageFocalPointY ?? 50}%` }}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
           }}
         />
       </div>
-      <div className="p-3 flex flex-col gap-2">
+      <div className="px-4 py-3 flex flex-col">
         <div>
-          <p className="font-medium text-[var(--ds-text)] text-sm truncate">{category.name}</p>
+          <p className="font-semibold font-serif text-[var(--ds-text)] text-lg leading-snug truncate">{category.name}</p>
           {category.shopCount !== undefined && (
-            <p className="text-xs text-[var(--ds-text-subtle)]">
+            <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5">
               {category.shopCount}{" "}
               {category.shopCount === 1
                 ? categoriesMessages.card.shopSingular
@@ -45,7 +46,7 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
             </p>
           )}
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 mt-2">
           <button
             type="button"
             onClick={() => onEdit(category.id)}
