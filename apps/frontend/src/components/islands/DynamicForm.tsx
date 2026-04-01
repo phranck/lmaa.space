@@ -11,7 +11,7 @@ import { AlertDialog } from "@lmaa/ui";
 
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { API_BASE } from "@/lib/client-api";
-import { renderMarkdown } from "@/lib/markdown";
+import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
 import { getSafeActionUrl, getSafeConfigHref } from "@/lib/safe-url";
 
 import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
@@ -199,23 +199,7 @@ interface SuccessScreenProps {
  * @returns Success screen markup.
  */
 function SuccessScreen({ onReset, headline, message }: SuccessScreenProps) {
-  const messageRef = useRef<HTMLDivElement>(null);
-  const renderKeyRef = useRef(0);
-
-  useEffect(() => {
-    const el = messageRef.current;
-    if (!el) return;
-    if (!message) {
-      el.innerHTML = "";
-      return;
-    }
-    const currentKey = ++renderKeyRef.current;
-    void renderMarkdown(message).then((html) => {
-      if (renderKeyRef.current === currentKey && messageRef.current) {
-        messageRef.current.innerHTML = html;
-      }
-    });
-  }, [message]);
+  const messageRef = useMarkdownHtml(message);
 
   return (
     <div className="max-w-lg mx-auto px-4 py-24 text-center">
@@ -860,31 +844,15 @@ const RICHTEXT_VARIANT_CLASSES: Record<RichTextVariant, string> = {
  * Renders a read-only Markdown block inside the form.
  *
  * The Markdown content (`field.content`) is converted to HTML asynchronously
- * via {@link renderMarkdown} and injected with `innerHTML`. The visual style
- * is determined by `field.variant`.
+ * via {@link useMarkdownHtml} and injected into the container ref. The visual
+ * style is determined by `field.variant`.
  *
  * @param props       - Component props.
  * @param props.field - The richtext field with `content` and optional `variant`.
  * @returns A styled container with rendered HTML, or `null` when there is no content.
  */
 function RichTextBlock({ field }: { field: FormField }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const renderKeyRef = useRef(0);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (!field.content) {
-      el.innerHTML = "";
-      return;
-    }
-    const currentKey = ++renderKeyRef.current;
-    void renderMarkdown(field.content).then((html) => {
-      if (renderKeyRef.current === currentKey && containerRef.current) {
-        containerRef.current.innerHTML = html;
-      }
-    });
-  }, [field.content]);
+  const containerRef = useMarkdownHtml(field.content);
 
   if (!field.content) return null;
 
@@ -1302,6 +1270,9 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         },
       }}
     >
+      {/* preventDefault is required: this is a client:only React island with no
+         server action. Submission is handled entirely via client-side API calls,
+         so the native browser form submit (page reload) must be suppressed. */}
       <form
         onSubmit={(event) => {
           event.preventDefault();
