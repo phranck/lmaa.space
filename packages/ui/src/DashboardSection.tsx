@@ -79,7 +79,7 @@ function DashboardSectionHeader({ icon, title, addOn, className = "" }: Dashboar
       } ${className}`}
     >
       <span className="shrink-0 text-[var(--ds-text-muted)]">{icon}</span>
-      <span className="text-sm font-medium text-[var(--ds-text)]">{title}</span>
+      <span className="text-lg font-medium font-serif text-[var(--ds-text)]">{title}</span>
       {addOn && <span className="ml-auto flex items-center">{addOn}</span>}
     </div>
   );
