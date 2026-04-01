@@ -13,8 +13,8 @@ import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { UnsplashBrowser } from "@/features/content/categories/UnsplashBrowser.tsx";
 import {
   useAdminCategories,
   useSaveCategory,
