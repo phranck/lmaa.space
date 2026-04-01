@@ -81,6 +81,8 @@ export default function ShopCardReact({
               alt=""
               aria-hidden="true"
               loading="lazy"
+              width={48}
+              height={48}
               className="w-full h-full object-contain"
             />
           ) : (
