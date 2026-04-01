@@ -1,4 +1,17 @@
+import {
+  BrowsersIcon,
+  ChartLineIcon,
+  CursorClickIcon,
+  FileTextIcon,
+  GlobeIcon,
+  LinkIcon,
+  MagnifyingGlassIcon,
+  StorefrontIcon,
+  TagIcon,
+} from "@phosphor-icons/react";
 import { Suspense, lazy, useCallback, useMemo, useState } from "react";
+
+import { DashboardSection } from "@lmaa/ui";
 
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -12,7 +25,7 @@ import {
   previousValueFromChange,
   relativeChange,
 } from "@/features/analytics/analytics-utils.ts";
-import { EventListCard } from "@/features/analytics/EventListCard.tsx";
+import { EventListCard } from "@/features/analytics/AnalyticsListCard.tsx";
 import {
   type UmamiPeriod,
   useUmamiCategoryClicks,
@@ -212,101 +225,110 @@ export function AnalyticsSection() {
       </div>
 
       {(pvLoading || chartData.length > 0) && (
-        <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-base font-medium text-[var(--ds-text)]">
-              {analyticsMessages.traffic}
-            </p>
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
-                <span className="w-3 h-0.5 rounded-full bg-amber-400 inline-block" />
-                {analyticsMessages.visitors}
-              </span>
-              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
-                <span className="w-3 h-0.5 rounded-full bg-stone-400 inline-block" />
-                {analyticsMessages.pageviews}
-              </span>
-            </div>
-          </div>
-          {pvLoading ? (
-            <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
-          ) : (
-            <Suspense
-              fallback={
-                <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+        <div className="mb-4">
+          <DashboardSection>
+            <DashboardSection.Header
+              icon={<ChartLineIcon weight="duotone" className="w-4 h-4" />}
+              title={analyticsMessages.traffic}
+              addOn={
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
+                    <span className="w-3 h-0.5 rounded-full bg-amber-400 inline-block" />
+                    {analyticsMessages.visitors}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
+                    <span className="w-3 h-0.5 rounded-full bg-stone-400 inline-block" />
+                    {analyticsMessages.pageviews}
+                  </span>
+                </div>
               }
-            >
-              <TrafficAreaChart
-                data={chartData}
-                maxValue={pvMaxVal}
-                ticks={intTicks(pvMaxVal)}
-                theme={{
-                  gridColor,
-                  tickColor,
-                  tooltipBg,
-                  tooltipBorder,
-                  tooltipColor,
-                }}
-                visitorsLabel={analyticsMessages.visitors}
-                pageviewsLabel={analyticsMessages.pageviews}
-                formatNumber={formatNumber}
-              />
-            </Suspense>
-          )}
+            />
+            <DashboardSection.Body>
+              {pvLoading ? (
+                <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+              ) : (
+                <Suspense
+                  fallback={
+                    <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+                  }
+                >
+                  <TrafficAreaChart
+                    data={chartData}
+                    maxValue={pvMaxVal}
+                    ticks={intTicks(pvMaxVal)}
+                    theme={{
+                      gridColor,
+                      tickColor,
+                      tooltipBg,
+                      tooltipBorder,
+                      tooltipColor,
+                    }}
+                    visitorsLabel={analyticsMessages.visitors}
+                    pageviewsLabel={analyticsMessages.pageviews}
+                    formatNumber={formatNumber}
+                  />
+                </Suspense>
+              )}
+            </DashboardSection.Body>
+          </DashboardSection>
         </div>
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
         <EventListCard
           title={analyticsMessages.topSearchTerms}
+          icon={<MagnifyingGlassIcon weight="duotone" className="w-4 h-4" />}
           rows={searchTerms ?? []}
           isLoading={searchTermsLoading}
         />
         <EventListCard
           title={analyticsMessages.topCategoriesByClicks}
+          icon={<TagIcon weight="duotone" className="w-4 h-4" />}
           rows={categoryClicks ?? []}
           isLoading={categoryClicksLoading}
         />
         <EventListCard
           title={analyticsMessages.topShopsByVisitClicks}
+          icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
           rows={shopVisitClicks ?? []}
           isLoading={shopVisitClicksLoading}
         />
         <EventListCard
           title={analyticsMessages.topLinkClicks}
+          icon={<CursorClickIcon weight="duotone" className="w-4 h-4" />}
           rows={siteLinkClicks ?? []}
           isLoading={siteLinkClicksLoading}
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-        <div>
-          <MetricList
-            title={analyticsMessages.topPages}
-            type="url"
-            period={period}
-            renderLabel={(x) => (x === "/" ? analyticsMessages.home : x)}
-          />
-        </div>
-        <div>
-          <MetricList
-            title={analyticsMessages.sources}
-            type="referrer"
-            period={period}
-            renderLabel={(x) => x || analyticsMessages.direct}
-          />
-        </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-3">
+        <MetricList
+          title={analyticsMessages.topPages}
+          icon={<FileTextIcon weight="duotone" className="w-4 h-4" />}
+          type="url"
+          period={period}
+          renderLabel={(x) => (x === "/" ? analyticsMessages.home : x)}
+        />
+        <MetricList
+          title={analyticsMessages.sources}
+          icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
+          type="referrer"
+          period={period}
+          renderLabel={(x) => x || analyticsMessages.direct}
+        />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mt-3">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         <TabbedMetricCard
           title={analyticsMessages.environment}
+          icon={<BrowsersIcon weight="duotone" className="w-4 h-4" />}
           tabs={environmentTabs}
           period={period}
           storageKey={getSegmentedStorageKey(user?.id, "analytics:environment")}
         />
         <TabbedMetricCard
           title={analyticsMessages.location}
+          icon={<GlobeIcon weight="duotone" className="w-4 h-4" />}
           tabs={locationTabs}
           period={period}
           storageKey={getSegmentedStorageKey(user?.id, "analytics:location")}

@@ -1,3 +1,7 @@
+import type { ReactNode } from "react";
+
+import { DashboardSection } from "@lmaa/ui";
+
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   COLLAPSIBLE_ROW_LIMIT,
@@ -57,12 +61,13 @@ function MetricRowList({
 
 interface MetricListProps {
   title: string;
+  icon: ReactNode;
   type: UmamiMetricType;
   period: UmamiPeriod;
   renderLabel?: (x: string) => string;
 }
 
-export function MetricList({ title, type, period, renderLabel }: MetricListProps) {
+export function MetricList({ title, icon, type, period, renderLabel }: MetricListProps) {
   const { messages, formatNumber } = useI18n();
   const analyticsMessages = messages.dashboard.analytics;
   const { data, isLoading } = useUmamiMetrics(type, period);
@@ -72,27 +77,29 @@ export function MetricList({ title, type, period, renderLabel }: MetricListProps
   const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
 
   return (
-    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
-      <p className="text-base font-medium text-[var(--ds-text)]">{title}</p>
-      {isLoading && (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((k) => (
-            <div key={k} className="h-7 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
-          ))}
-        </div>
-      )}
-      {!isLoading && rows.length === 0 && (
-        <p className="text-sm text-[var(--ds-text-subtle)] py-4 text-center">
-          {analyticsMessages.noData}
-        </p>
-      )}
-      {!isLoading && rows.length > 0 && (
-        <CollapsibleList
-          canCollapse={canCollapse}
-          collapsedContent={<MetricRowList rows={collapsedRows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
-          expandedContent={<MetricRowList rows={rows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
-        />
-      )}
-    </div>
+    <DashboardSection>
+      <DashboardSection.Header icon={icon} title={title} />
+      <DashboardSection.Body>
+        {isLoading && (
+          <div className="space-y-2">
+            {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((k) => (
+              <div key={k} className="h-7 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
+            ))}
+          </div>
+        )}
+        {!isLoading && rows.length === 0 && (
+          <p className="text-sm text-[var(--ds-text-subtle)] py-4 text-center">
+            {analyticsMessages.noData}
+          </p>
+        )}
+        {!isLoading && rows.length > 0 && (
+          <CollapsibleList
+            canCollapse={canCollapse}
+            collapsedContent={<MetricRowList rows={collapsedRows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+            expandedContent={<MetricRowList rows={rows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+          />
+        )}
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }

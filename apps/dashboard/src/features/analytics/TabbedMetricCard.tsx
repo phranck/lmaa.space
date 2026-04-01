@@ -1,6 +1,8 @@
 import { type ReactNode, useState } from "react";
 import { FaGlobe } from "react-icons/fa6";
 
+import { DashboardSection } from "@lmaa/ui";
+
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -85,12 +87,13 @@ function TabbedMetricRowList({
 
 interface TabbedMetricCardProps {
   title: string;
+  icon: ReactNode;
   tabs: readonly MetricTabConfig[];
   period: UmamiPeriod;
   storageKey: string;
 }
 
-export function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardProps) {
+export function TabbedMetricCard({ title, icon, tabs, period, storageKey }: TabbedMetricCardProps) {
   const { locale, messages, formatNumber } = useI18n();
   const analyticsMessages = messages.dashboard.analytics;
   const [activeType, setActiveType] = useState<UmamiMetricType>(tabs[0]?.value ?? "country");
@@ -102,40 +105,44 @@ export function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetr
   const total = rows.reduce((sum, row) => sum + row.y, 0);
 
   return (
-    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <p className="text-base font-semibold text-[var(--ds-text)]">{title}</p>
-        <SegmentedControl
-          value={activeType}
-          onChange={setActiveType}
-          storageKey={storageKey}
-          options={tabs.map((tab) => ({ value: tab.value, label: tab.label }))}
-        />
-      </div>
-
-      <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-2 border-b border-[var(--ds-border-subtle)] text-sm font-medium text-[var(--ds-text-subtle)]">
-        <span>{activeTab.columnLabel}</span>
-        <span className="text-right">{analyticsMessages.visitors}</span>
-        <span className="text-right">{analyticsMessages.percentColumn}</span>
-      </div>
-
-      {isLoading ? (
-        <div className="space-y-2 pt-3">
-          {Array.from({ length: 6 }, (_, i) => `env-sk-${title}-${i}`).map((k) => (
-            <div key={k} className="h-6 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
-          ))}
+    <DashboardSection>
+      <DashboardSection.Header
+        icon={icon}
+        title={title}
+        addOn={
+          <SegmentedControl
+            value={activeType}
+            onChange={setActiveType}
+            storageKey={storageKey}
+            options={tabs.map((tab) => ({ value: tab.value, label: tab.label }))}
+          />
+        }
+      />
+      <DashboardSection.Body>
+        <div className="grid grid-cols-[1fr_auto_auto] gap-3 pb-2 border-b border-[var(--ds-border-subtle)] text-sm font-medium text-[var(--ds-text-subtle)]">
+          <span>{activeTab.columnLabel}</span>
+          <span className="text-right">{analyticsMessages.visitors}</span>
+          <span className="text-right">{analyticsMessages.percentColumn}</span>
         </div>
-      ) : rows.length === 0 ? (
-        <p className="text-sm text-[var(--ds-text-subtle)] py-6 text-center">
-          {analyticsMessages.noData}
-        </p>
-      ) : (
-        <CollapsibleList
-          canCollapse={canCollapse}
-          collapsedContent={<TabbedMetricRowList rows={collapsedRows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
-          expandedContent={<TabbedMetricRowList rows={rows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
-        />
-      )}
-    </div>
+
+        {isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 6 }, (_, i) => `env-sk-${title}-${i}`).map((k) => (
+              <div key={k} className="h-6 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <p className="text-sm text-[var(--ds-text-subtle)] py-6 text-center">
+            {analyticsMessages.noData}
+          </p>
+        ) : (
+          <CollapsibleList
+            canCollapse={canCollapse}
+            collapsedContent={<TabbedMetricRowList rows={collapsedRows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+            expandedContent={<TabbedMetricRowList rows={rows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+          />
+        )}
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }

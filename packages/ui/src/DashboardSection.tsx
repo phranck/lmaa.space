@@ -74,7 +74,7 @@ function DashboardSectionHeader({ icon, title, addOn, className = "" }: Dashboar
 
   return (
     <div
-      className={`flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-section-header-bg)] transition-[border-radius] duration-200 ${
+      className={`flex items-center gap-2 px-4 py-1.5 bg-[var(--ds-section-header-bg)] transition-[border-radius] duration-200 ${
         expanded ? "rounded-t-xl" : "rounded-xl"
       } ${className}`}
     >
