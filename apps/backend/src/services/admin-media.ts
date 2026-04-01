@@ -23,7 +23,6 @@ import {
   updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
 import {
-  findByUnsplashId,
   linkCategoryToUnsplashImage,
   listAllUnsplashImages,
   listUnlinkedUnsplashCategories,
@@ -121,24 +120,6 @@ export async function refetchSingleUnsplashMeta(
   unsplashId: string,
   cacheType: "hero" | "categorie",
 ): Promise<boolean> {
-  // For legacy placeholder IDs, skip API call and cache from stored URL
-  if (unsplashId.startsWith("legacy-")) {
-    const existing = await findByUnsplashId(unsplashId);
-    if (!existing) return false;
-
-    try {
-      const res = await fetch(existing.urlRegular);
-      if (res.ok) {
-        const buffer = Buffer.from(await res.arrayBuffer());
-        await putUnsplashCacheImage(cacheType, existing.id, buffer);
-        return true;
-      }
-    } catch {
-      // best-effort
-    }
-    return false;
-  }
-
   const data = await fetchFullUnsplashPhoto(unsplashId);
   if (!data) return false;
 
