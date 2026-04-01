@@ -1,6 +1,6 @@
 import { CaretDownIcon, CaretUpIcon, IconContext } from "@phosphor-icons/react";
 import { SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
 import { useController, useForm } from "react-hook-form";
 
 import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
@@ -868,6 +868,252 @@ function RichTextBlock({ field }: { field: FormField }) {
 }
 
 // ---------------------------------------------------------------------------
+// Form state (useReducer)
+// ---------------------------------------------------------------------------
+
+interface FormState {
+  categoryIds: number[];
+  regionCodes: string[];
+  staticMultiSelects: Record<string, string[]>;
+  submitting: boolean;
+  submitError: { message: string; shopName?: string; rejectionUrl?: string } | null;
+  submitted: boolean;
+  multiSelectErrors: Record<string, string>;
+}
+
+const initialFormState: FormState = {
+  categoryIds: [],
+  regionCodes: [],
+  staticMultiSelects: {},
+  submitting: false,
+  submitError: null,
+  submitted: false,
+  multiSelectErrors: {},
+};
+
+function formReducer(s: FormState, patch: Partial<FormState>): FormState {
+  return { ...s, ...patch };
+}
+
+// ---------------------------------------------------------------------------
+// FieldRenderer
+// ---------------------------------------------------------------------------
+
+interface FieldRendererProps {
+  field: FormField;
+  errors: ReturnType<typeof useForm<SimpleFields>>["formState"]["errors"];
+  multiSelectErrors: Record<string, string>;
+  control: ReturnType<typeof useForm<SimpleFields>>["control"];
+  register: ReturnType<typeof useForm<SimpleFields>>["register"];
+  getValues: ReturnType<typeof useForm<SimpleFields>>["getValues"];
+  setValue: ReturnType<typeof useForm<SimpleFields>>["setValue"];
+  categories: Category[];
+  categoryIds: number[];
+  onCategoryIdsChange: (ids: number[]) => void;
+  regionCodes: string[];
+  onRegionCodesChange: (codes: string[]) => void;
+  getStaticMultiSelected: (fieldId: string) => string[];
+  setStaticMultiSelected: (fieldId: string, values: string[]) => void;
+  formConfig: FormConfig;
+  submitting: boolean;
+}
+
+/**
+ * Renders the appropriate input element for a single {@link FormField}.
+ *
+ * Dispatches to the correct sub-component or inline markup based on
+ * `field.type`. Returns `null` for field types that produce no user-facing
+ * input (e.g. `"button"`).
+ */
+function FieldRenderer({
+  field,
+  errors,
+  multiSelectErrors,
+  control,
+  register,
+  getValues,
+  setValue,
+  categories,
+  categoryIds,
+  onCategoryIdsChange,
+  regionCodes,
+  onRegionCodesChange,
+  getStaticMultiSelected,
+  setStaticMultiSelected,
+  formConfig,
+  submitting,
+}: FieldRendererProps) {
+  const key = fieldKey(field);
+  const fieldError = errors[key]?.message ?? multiSelectErrors[key];
+
+  switch (field.type) {
+    case "text":
+    case "email":
+    case "password":
+      if (field.inputType === "url") {
+        return <UrlField field={field} control={control} error={fieldError} />;
+      }
+      return <TextInputField field={field} control={control} error={fieldError} />;
+
+    case "textarea":
+      return <TextareaField field={field} control={control} error={fieldError} />;
+
+    case "select":
+      return <SelectField field={field} register={register} error={fieldError} />;
+
+    case "multi-select":
+      if (field.optionsSource === "categories") {
+        return (
+          <CategoryMultiSelect
+            field={field}
+            categories={categories}
+            selected={categoryIds}
+            onChange={onCategoryIdsChange}
+            error={fieldError}
+          />
+        );
+      }
+      if (field.optionsSource === "regions") {
+        return (
+          <RegionMultiSelect
+            field={field}
+            selected={regionCodes}
+            onChange={onRegionCodesChange}
+            error={fieldError}
+          />
+        );
+      }
+      return (
+        <StaticMultiSelect
+          field={field}
+          selected={getStaticMultiSelected(key)}
+          onChange={(vals) => setStaticMultiSelected(key, vals)}
+          error={fieldError}
+        />
+      );
+
+    case "checkbox":
+      return (
+        <div>
+          <label className="flex items-center gap-2 text-sm text-[var(--ds-text)]">
+            <input
+              type="checkbox"
+              className="rounded border-[var(--ds-border)]"
+              {...register(key, buildValidationRules(field))}
+            />
+            {field.label}
+            {field.required && (
+              <SealWarningIcon
+                weight="duotone"
+                className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+              />
+            )}
+          </label>
+          {fieldError && <p className={errorClass}>{fieldError}</p>}
+        </div>
+      );
+
+    case "richtext":
+      return <RichTextBlock field={field} />;
+
+    case "headline": {
+      const Tag = field.headlineLevel ?? "h2";
+      const headlineClass: Record<string, string> = {
+        h1: "text-3xl text-[var(--ds-text)]",
+        h2: "text-2xl text-[var(--ds-text)]",
+        h3: "text-xl text-[var(--ds-text)]",
+      };
+      return (
+        <Tag className={headlineClass[Tag]}>
+          {field.label}
+        </Tag>
+      );
+    }
+
+    case "button": {
+      const btnType = field.buttonType ?? "button";
+      const isSubmit = btnType === "submit";
+      const btnWidth = field.buttonWidth ?? "automatic";
+      const btnAlign = field.buttonAlign ?? "left";
+      const alignClass =
+        btnAlign === "center"
+          ? "justify-center"
+          : btnAlign === "right"
+            ? "justify-end"
+            : "justify-start";
+      const displayMode = field.buttonIcon ? (field.buttonDisplay ?? "both") : "text";
+
+      function handleButtonAction() {
+        const action = field.buttonAction;
+        if (!action) return;
+        const allFields = formConfig.rows.flatMap((r) => r.fields);
+        const sourceField = allFields.find((f) => f.id === action.sourceFieldId);
+        if (!sourceField) return;
+        const srcKey = fieldKey(sourceField);
+        const val = (getValues(srcKey as keyof SimpleFields) as string) ?? "";
+        switch (action.type) {
+          case "open-url": {
+            const safeUrl = getSafeActionUrl(val);
+            if (safeUrl) window.open(safeUrl, "_blank", "noopener,noreferrer");
+            break;
+          }
+          case "copy-clipboard":
+            if (val) navigator.clipboard.writeText(val).catch(() => {});
+            break;
+          case "clear-field":
+            setValue(srcKey as keyof SimpleFields, "" as never);
+            break;
+        }
+      }
+
+      return (
+        <div className={`flex items-start pt-[1.625rem] min-w-0 ${alignClass}`}>
+          <button
+            type={btnType}
+            disabled={isSubmit && submitting}
+            title={displayMode === "icon" && field.label ? field.label : undefined}
+            onClick={
+              field.buttonAction && (field.buttonType ?? "button") === "button"
+                ? handleButtonAction
+                : undefined
+            }
+            className={`flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors ${
+              btnWidth === "full" ? "w-full justify-center" : isSubmit ? "max-sm:w-full max-sm:justify-center" : ""
+            } ${
+              isSubmit
+                ? "bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-60"
+                : "border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)]"
+            }`}
+          >
+            {displayMode !== "text" && field.buttonIcon && (
+              <LazyButtonIcon name={field.buttonIcon} width={18} height={18} />
+            )}
+            {displayMode !== "icon" && (
+              <span className="truncate">
+                {isSubmit && submitting ? "Wird gesendet…" : field.label}
+              </span>
+            )}
+          </button>
+        </div>
+      );
+    }
+
+    case "separator":
+      return <hr className="border-[var(--ds-border)]" />;
+
+    case "paragraph":
+      return (
+        <p className="text-sm text-[var(--ds-text)] leading-relaxed">
+          {field.content}
+        </p>
+      );
+
+    default:
+      return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -895,19 +1141,8 @@ export default function DynamicForm({ formConfig, categories }: Props) {
     formState: { errors },
   } = useForm<SimpleFields>({ mode: "onSubmit" });
 
-  // --- manual state for multi-select fields ---
-  const [categoryIds, setCategoryIds] = useState<number[]>([]);
-  const [regionCodes, setRegionCodes] = useState<string[]>([]);
-  // generic multi-select fields with static options (keyed by fieldKey(field))
-  const [staticMultiSelects, setStaticMultiSelects] = useState<Record<string, string[]>>({});
-
-  // --- submission state ---
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<{ message: string; shopName?: string; rejectionUrl?: string } | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-
-  // --- manual validation errors for multi-select fields ---
-  const [multiSelectErrors, setMultiSelectErrors] = useState<Record<string, string>>({});
+  // --- form state (useReducer) ---
+  const [state, dispatch] = useReducer(formReducer, initialFormState);
 
   // --- helpers ---
 
@@ -918,7 +1153,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
    * @returns Array of selected option strings, empty array when nothing is selected.
    */
   function getStaticMultiSelected(fieldId: string): string[] {
-    return staticMultiSelects[fieldId] ?? [];
+    return state.staticMultiSelects[fieldId] ?? [];
   }
 
   /**
@@ -928,7 +1163,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
    * @param values  - The new array of selected option strings.
    */
   function setStaticMultiSelected(fieldId: string, values: string[]) {
-    setStaticMultiSelects((prev) => ({ ...prev, [fieldId]: values }));
+    dispatch({ staticMultiSelects: { ...state.staticMultiSelects, [fieldId]: values } });
   }
 
   /**
@@ -948,11 +1183,11 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         if (field.type !== "multi-select" || !field.required) continue;
 
         if (field.optionsSource === "categories") {
-          if (categoryIds.length === 0) {
+          if (state.categoryIds.length === 0) {
             newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
           }
         } else if (field.optionsSource === "regions") {
-          if (regionCodes.length === 0) {
+          if (state.regionCodes.length === 0) {
             newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
           }
         } else {
@@ -964,7 +1199,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       }
     }
 
-    setMultiSelectErrors(newErrors);
+    dispatch({ multiSelectErrors: newErrors });
     return Object.keys(newErrors).length === 0;
   }
 
@@ -981,8 +1216,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
   async function onSubmit(data: SimpleFields) {
     if (!validateMultiSelects()) return;
 
-    setSubmitError(null);
-    setSubmitting(true);
+    dispatch({ submitError: null, submitting: true });
 
     try {
       const payload: Record<string, unknown> = {};
@@ -995,11 +1229,11 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           const key = fieldKey(field);
           if (field.type === "multi-select") {
             if (field.optionsSource === "categories") {
-              payload[key] = categoryIds;
+              payload[key] = state.categoryIds;
             } else if (field.optionsSource === "regions") {
-              payload[key] = regionCodes;
+              payload[key] = state.regionCodes;
             } else {
-              payload[key] = staticMultiSelects[key] ?? [];
+              payload[key] = state.staticMultiSelects[key] ?? [];
             }
           } else {
             const val = data[key];
@@ -1020,10 +1254,12 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           const body = await res.json().catch(() => null);
           const error = body && typeof body === "object" && "error" in body ? (body as Record<string, unknown>).error : null;
           const errorObj = error && typeof error === "object" ? (error as Record<string, unknown>) : null;
-          setSubmitError({
-            message: typeof errorObj?.message === "string" ? errorObj.message : "Dieser Shop ist bereits bekannt.",
-            shopName: typeof errorObj?.shopName === "string" ? errorObj.shopName : undefined,
-            rejectionUrl: typeof errorObj?.rejectionUrl === "string" ? errorObj.rejectionUrl : undefined,
+          dispatch({
+            submitError: {
+              message: typeof errorObj?.message === "string" ? errorObj.message : "Dieser Shop ist bereits bekannt.",
+              shopName: typeof errorObj?.shopName === "string" ? errorObj.shopName : undefined,
+              rejectionUrl: typeof errorObj?.rejectionUrl === "string" ? errorObj.rejectionUrl : undefined,
+            },
           });
           return;
         }
@@ -1034,12 +1270,12 @@ export default function DynamicForm({ formConfig, categories }: Props) {
       if (safeRedirect) {
         window.location.href = safeRedirect;
       } else {
-        setSubmitted(true);
+        dispatch({ submitted: true });
       }
     } catch (error) {
-      setSubmitError({ message: getSubmissionErrorMessage(error) });
+      dispatch({ submitError: { message: getSubmissionErrorMessage(error) } });
     } finally {
-      setSubmitting(false);
+      dispatch({ submitting: false });
     }
   }
 
@@ -1050,18 +1286,13 @@ export default function DynamicForm({ formConfig, categories }: Props) {
    * submission error so the user can submit another entry.
    */
   function handleReset() {
-    setSubmitted(false);
     reset();
-    setCategoryIds([]);
-    setRegionCodes([]);
-    setStaticMultiSelects({});
-    setMultiSelectErrors({});
-    setSubmitError(null);
+    dispatch(initialFormState);
   }
 
   // --- success screen ---
 
-  if (submitted) {
+  if (state.submitted) {
     return (
       <SuccessScreen
         onReset={handleReset}
@@ -1069,192 +1300,6 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         message={formConfig.submissionConfig?.successMessage}
       />
     );
-  }
-
-  // --- field renderer ---
-
-  /**
-   * Renders the appropriate input element for a single {@link FormField}.
-   *
-   * Dispatches to the correct sub-component or inline markup based on
-   * `field.type`. Returns `null` for field types that produce no user-facing
-   * input (e.g. `"button"`).
-   *
-   * @param field - The field definition to render.
-   * @returns The rendered React element, or `null`.
-   */
-  function renderField(field: FormField) {
-    const key = fieldKey(field);
-    const fieldError = errors[key]?.message ?? multiSelectErrors[key];
-
-    switch (field.type) {
-      case "text":
-      case "email":
-      case "password":
-        if (field.inputType === "url") {
-          return <UrlField key={field.id} field={field} control={control} error={fieldError} />;
-        }
-        return <TextInputField key={field.id} field={field} control={control} error={fieldError} />;
-
-      case "textarea":
-        return <TextareaField key={field.id} field={field} control={control} error={fieldError} />;
-
-      case "select":
-        return <SelectField key={field.id} field={field} register={register} error={fieldError} />;
-
-      case "multi-select":
-        if (field.optionsSource === "categories") {
-          return (
-            <CategoryMultiSelect
-              key={field.id}
-              field={field}
-              categories={categories}
-              selected={categoryIds}
-              onChange={setCategoryIds}
-              error={fieldError}
-            />
-          );
-        }
-        if (field.optionsSource === "regions") {
-          return (
-            <RegionMultiSelect
-              key={field.id}
-              field={field}
-              selected={regionCodes}
-              onChange={setRegionCodes}
-              error={fieldError}
-            />
-          );
-        }
-        return (
-          <StaticMultiSelect
-            key={field.id}
-            field={field}
-            selected={getStaticMultiSelected(key)}
-            onChange={(vals) => setStaticMultiSelected(key, vals)}
-            error={fieldError}
-          />
-        );
-
-      case "checkbox":
-        return (
-          <div key={field.id}>
-            <label className="flex items-center gap-2 text-sm text-[var(--ds-text)]">
-              <input
-                type="checkbox"
-                className="rounded border-[var(--ds-border)]"
-                {...register(key, buildValidationRules(field))}
-              />
-              {field.label}
-              {field.required && (
-                <SealWarningIcon
-                  weight="duotone"
-                  className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
-                />
-              )}
-            </label>
-            {fieldError && <p className={errorClass}>{fieldError}</p>}
-          </div>
-        );
-
-      case "richtext":
-        return <RichTextBlock key={field.id} field={field} />;
-
-      case "headline": {
-        const Tag = field.headlineLevel ?? "h2";
-        const headlineClass: Record<string, string> = {
-          h1: "text-3xl text-[var(--ds-text)]",
-          h2: "text-2xl text-[var(--ds-text)]",
-          h3: "text-xl text-[var(--ds-text)]",
-        };
-        return (
-          <Tag key={field.id} className={headlineClass[Tag]}>
-            {field.label}
-          </Tag>
-        );
-      }
-
-      case "button": {
-        const btnType = field.buttonType ?? "button";
-        const isSubmit = btnType === "submit";
-        const btnWidth = field.buttonWidth ?? "automatic";
-        const btnAlign = field.buttonAlign ?? "left";
-        const alignClass =
-          btnAlign === "center"
-            ? "justify-center"
-            : btnAlign === "right"
-              ? "justify-end"
-              : "justify-start";
-        const displayMode = field.buttonIcon ? (field.buttonDisplay ?? "both") : "text";
-
-        function handleButtonAction() {
-          const action = field.buttonAction;
-          if (!action) return;
-          const allFields = formConfig.rows.flatMap((r) => r.fields);
-          const sourceField = allFields.find((f) => f.id === action.sourceFieldId);
-          if (!sourceField) return;
-          const srcKey = fieldKey(sourceField);
-          const val = (getValues(srcKey as keyof SimpleFields) as string) ?? "";
-          switch (action.type) {
-            case "open-url": {
-              const safeUrl = getSafeActionUrl(val);
-              if (safeUrl) window.open(safeUrl, "_blank", "noopener,noreferrer");
-              break;
-            }
-            case "copy-clipboard":
-              if (val) navigator.clipboard.writeText(val).catch(() => {});
-              break;
-            case "clear-field":
-              setValue(srcKey as keyof SimpleFields, "" as never);
-              break;
-          }
-        }
-
-        return (
-          <div key={field.id} className={`flex items-start pt-[1.625rem] min-w-0 ${alignClass}`}>
-            <button
-              type={btnType}
-              disabled={isSubmit && submitting}
-              title={displayMode === "icon" && field.label ? field.label : undefined}
-              onClick={
-                field.buttonAction && (field.buttonType ?? "button") === "button"
-                  ? handleButtonAction
-                  : undefined
-              }
-              className={`flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors ${
-                btnWidth === "full" ? "w-full justify-center" : isSubmit ? "max-sm:w-full max-sm:justify-center" : ""
-              } ${
-                isSubmit
-                  ? "bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-60"
-                  : "border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)]"
-              }`}
-            >
-              {displayMode !== "text" && field.buttonIcon && (
-                <LazyButtonIcon name={field.buttonIcon} width={18} height={18} />
-              )}
-              {displayMode !== "icon" && (
-                <span className="truncate">
-                  {isSubmit && submitting ? "Wird gesendet…" : field.label}
-                </span>
-              )}
-            </button>
-          </div>
-        );
-      }
-
-      case "separator":
-        return <hr key={field.id} className="border-[var(--ds-border)]" />;
-
-      case "paragraph":
-        return (
-          <p key={field.id} className="text-sm text-[var(--ds-text)] leading-relaxed">
-            {field.content}
-          </p>
-        );
-
-      default:
-        return null;
-    }
   }
 
   // --- layout ---
@@ -1323,7 +1368,24 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                       const mobileSpan = isLinked ? Math.round(span * scale) : 12;
                       return (
                         <div key={field.id} className={isLinked ? "max-sm:![grid-column:var(--mobile-span)]" : "max-sm:!col-span-12"} style={{ gridColumn: `span ${span}`, "--mobile-span": `span ${mobileSpan}` } as React.CSSProperties}>
-                          {renderField(field)}
+                          <FieldRenderer
+                            field={field}
+                            errors={errors}
+                            multiSelectErrors={state.multiSelectErrors}
+                            control={control}
+                            register={register}
+                            getValues={getValues}
+                            setValue={setValue}
+                            categories={categories}
+                            categoryIds={state.categoryIds}
+                            onCategoryIdsChange={(ids) => dispatch({ categoryIds: ids })}
+                            regionCodes={state.regionCodes}
+                            onRegionCodesChange={(codes) => dispatch({ regionCodes: codes })}
+                            getStaticMultiSelected={getStaticMultiSelected}
+                            setStaticMultiSelected={setStaticMultiSelected}
+                            formConfig={formConfig}
+                            submitting={state.submitting}
+                          />
                         </div>
                       );
                     });
@@ -1335,17 +1397,17 @@ export default function DynamicForm({ formConfig, categories }: Props) {
         })()}
 
         <AlertDialog
-          open={!!submitError}
-          title={submitError?.rejectionUrl ? "Shop abgelehnt" : "Shop bereits vorhanden"}
-          variant={submitError?.rejectionUrl ? "warning" : "error"}
+          open={!!state.submitError}
+          title={state.submitError?.rejectionUrl ? "Shop abgelehnt" : "Shop bereits vorhanden"}
+          variant={state.submitError?.rejectionUrl ? "warning" : "error"}
           buttonLabel="Verstanden"
-          onClose={() => setSubmitError(null)}
+          onClose={() => dispatch({ submitError: null })}
         >
-          {submitError?.rejectionUrl ? (
+          {state.submitError?.rejectionUrl ? (
             <>
-              <p>Der Shop <strong>{submitError.shopName}</strong> wurde bereits geprüft und abgelehnt. Eine ausführliche Begründung für die Ablehnung kannst du {" "}
+              <p>Der Shop <strong>{state.submitError.shopName}</strong> wurde bereits geprüft und abgelehnt. Eine ausführliche Begründung für die Ablehnung kannst du {" "}
                 <a
-                  href={submitError.rejectionUrl}
+                  href={state.submitError.rejectionUrl}
                   className="text-[var(--ds-accent)] underline hover:no-underline"
                 >
                   hier einsehen
@@ -1353,7 +1415,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               </p>
             </>
           ) : (
-            <p>Da hatte wohl jemand bereits die gleiche Idee!<br />Der Shop <strong>{submitError?.shopName}</strong> ist schon eingetragen.</p>
+            <p>Da hatte wohl jemand bereits die gleiche Idee!<br />Der Shop <strong>{state.submitError?.shopName}</strong> ist schon eingetragen.</p>
           )}
         </AlertDialog>
       </form>
