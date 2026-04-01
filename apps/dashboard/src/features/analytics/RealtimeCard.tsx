@@ -1,5 +1,7 @@
 import { Suspense, lazy, useMemo } from "react";
 
+import { DashboardSection } from "@lmaa/ui";
+
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";
 import { formatMinute, intTicks } from "@/features/analytics/analytics-utils.ts";
@@ -58,107 +60,118 @@ export function RealtimeCard() {
     : [];
   const rtMaxVal = Math.max(...chartData.map((d) => Math.max(d.visitors, d.pageviews)), 1);
 
+  const liveIcon = (
+    <span className="relative flex h-2 w-2">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+    </span>
+  );
+
+  const headerAddOn = (
+    <div className="flex items-center gap-5">
+      {realtime && (
+        <>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-bold text-[var(--ds-text)]">
+              {formatNumber(active?.visitors ?? realtime.totals.visitors ?? 0)}
+            </span>
+            <span className="text-sm text-[var(--ds-text-subtle)]">
+              {active?.visitors != null
+                ? analyticsMessages.realtime.active5m
+                : analyticsMessages.visitors}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-bold text-[var(--ds-text)]">
+              {formatNumber(realtime.totals.pageviews ?? realtime.totals.views ?? 0)}
+            </span>
+            <span className="text-sm text-[var(--ds-text-subtle)]">
+              {analyticsMessages.realtime.pageviews30m}
+            </span>
+          </div>
+        </>
+      )}
+      <span className="text-sm text-[var(--ds-text-subtle)]">
+        {analyticsMessages.realtime.updatedEvery30s}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 mb-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-        </span>
-        <p className="text-base font-medium text-[var(--ds-text)]">
-          {analyticsMessages.realtime.title}
-        </p>
-
-        {realtime && (
-          <div className="flex items-center gap-5 ml-4">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-bold text-[var(--ds-text)]">
-                {formatNumber(active?.visitors ?? realtime.totals.visitors ?? 0)}
-              </span>
-              <span className="text-sm text-[var(--ds-text-subtle)]">
-                {active?.visitors != null
-                  ? analyticsMessages.realtime.active5m
-                  : analyticsMessages.visitors}
-              </span>
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-bold text-[var(--ds-text)]">
-                {formatNumber(realtime.totals.pageviews ?? realtime.totals.views ?? 0)}
-              </span>
-              <span className="text-sm text-[var(--ds-text-subtle)]">
-                {analyticsMessages.realtime.pageviews30m}
-              </span>
-            </div>
-          </div>
-        )}
-
-        <span className="ml-auto text-sm text-[var(--ds-text-subtle)]">
-          {analyticsMessages.realtime.updatedEvery30s}
-        </span>
-      </div>
-
-      {rtLoading ? (
-        <div className="h-24 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
-      ) : !realtime ? (
-        <p className="text-sm text-[var(--ds-text-subtle)]">{analyticsMessages.noRealtimeData}</p>
-      ) : (
-        <div className="flex gap-4 items-start">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-4 mb-2">
-              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
-                <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
-                {analyticsMessages.visitors}
-              </span>
-              <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
-                <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
-                {analyticsMessages.pageviews}
-              </span>
-            </div>
-            <Suspense
-              fallback={
-                <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
-              }
-            >
-              <RealtimeBarsChart
-                data={chartData}
-                maxValue={rtMaxVal}
-                ticks={intTicks(rtMaxVal)}
-                cursorColor={cursorColor}
-                theme={{
-                  gridColor,
-                  tickColor,
-                  tooltipBg,
-                  tooltipBorder,
-                  tooltipColor,
-                }}
-                visitorsLabel={analyticsMessages.visitors}
-                pageviewsLabel={analyticsMessages.pageviews}
-                formatNumber={formatNumber}
-              />
-            </Suspense>
-          </div>
-
-          {topUrls.length > 0 && (
-            <div className="w-1/4 shrink-0 pl-4 border-l border-[var(--ds-border-subtle)]">
-              <p className="text-sm font-medium text-[var(--ds-text-muted)] mb-2">
-                {analyticsMessages.topPages}
-              </p>
-              <div className="space-y-1.5">
-                {topUrls.map(([url, count]) => (
-                  <div key={url} className="flex items-center gap-2 text-sm">
-                    <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={url}>
-                      {url === "/" ? analyticsMessages.home : url}
-                    </span>
-                    <span className="shrink-0 text-right text-sm text-[var(--ds-text-subtle)]">
-                      {formatNumber(count)}
-                    </span>
-                  </div>
-                ))}
+    <div className="mb-4">
+      <DashboardSection>
+        <DashboardSection.Header
+          icon={liveIcon}
+          title={analyticsMessages.realtime.title}
+          addOn={headerAddOn}
+        />
+        <DashboardSection.Body>
+          {rtLoading ? (
+            <div className="h-24 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+          ) : !realtime ? (
+            <p className="text-sm text-[var(--ds-text-subtle)]">
+              {analyticsMessages.noRealtimeData}
+            </p>
+          ) : (
+            <div className="flex gap-4 items-start">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-4 mb-2">
+                  <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block shrink-0" />
+                    {analyticsMessages.visitors}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-sm text-[var(--ds-text-muted)]">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 inline-block shrink-0" />
+                    {analyticsMessages.pageviews}
+                  </span>
+                </div>
+                <Suspense
+                  fallback={
+                    <div className="h-40 bg-[var(--ds-bg-elevated)] rounded-lg animate-pulse" />
+                  }
+                >
+                  <RealtimeBarsChart
+                    data={chartData}
+                    maxValue={rtMaxVal}
+                    ticks={intTicks(rtMaxVal)}
+                    cursorColor={cursorColor}
+                    theme={{
+                      gridColor,
+                      tickColor,
+                      tooltipBg,
+                      tooltipBorder,
+                      tooltipColor,
+                    }}
+                    visitorsLabel={analyticsMessages.visitors}
+                    pageviewsLabel={analyticsMessages.pageviews}
+                    formatNumber={formatNumber}
+                  />
+                </Suspense>
               </div>
+
+              {topUrls.length > 0 && (
+                <div className="w-1/4 shrink-0 pl-4 border-l border-[var(--ds-border-subtle)]">
+                  <p className="text-sm font-medium text-[var(--ds-text-muted)] mb-2">
+                    {analyticsMessages.topPages}
+                  </p>
+                  <div className="space-y-1.5">
+                    {topUrls.map(([url, count]) => (
+                      <div key={url} className="flex items-center gap-2 text-sm">
+                        <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={url}>
+                          {url === "/" ? analyticsMessages.home : url}
+                        </span>
+                        <span className="shrink-0 text-right text-sm text-[var(--ds-text-subtle)]">
+                          {formatNumber(count)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
+        </DashboardSection.Body>
+      </DashboardSection>
     </div>
   );
 }
