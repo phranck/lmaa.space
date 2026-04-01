@@ -60,6 +60,8 @@ const jsonLd = {
         alt=""
         aria-hidden="true"
         fetchpriority="high"
+        width={1920}
+        height={640}
         class="absolute inset-0 w-full h-full object-cover"
         style={`object-position: 50% ${heroImage?.focalPointY ?? 50}%`}
       />
@@ -173,7 +175,7 @@ const jsonLd = {
 
   <!-- Categories (filterable) -->
   <FilterableCategoryGrid
-    client:load
+    client:idle
     categories={categories}
     shopCount={shopCount}
   />
