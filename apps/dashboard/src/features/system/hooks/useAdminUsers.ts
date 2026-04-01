@@ -31,6 +31,7 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: ["users-admin"],
     queryFn: () => api.get<AdminUser[]>("/admin/users"),
+    staleTime: 60 * 1000,
   });
 }
 

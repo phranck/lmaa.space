@@ -44,7 +44,7 @@ export function EmailPreview({
         })
         .then(({ html }) => setSrcDoc(html))
         .catch(() => {});
-    }, 300);
+    }, 800);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };

@@ -10,7 +10,7 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import { REGION_CODES, type AdminShopListItem, type ShopSummary } from "@lmaa/shared";
 
@@ -27,7 +27,7 @@ interface ShopTableProps {
   onSortChange: (sort: SortState | null) => void;
 }
 
-function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"] }) {
+const VisibilityBadge = memo(function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"] }) {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;
 
@@ -56,7 +56,7 @@ function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"]
     );
   }
   return null;
-}
+});
 
 /**
  * Table presentation of shop rows with moderation actions.

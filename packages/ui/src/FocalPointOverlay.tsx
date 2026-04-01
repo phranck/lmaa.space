@@ -75,7 +75,7 @@ export function FocalPointOverlay({ focalY, onMouseDown, title }: FocalPointOver
       aria-valuemin={0}
       aria-valuemax={100}
       aria-label={title ?? "Focal point"}
-      className="absolute inset-x-0 z-20 flex items-center cursor-ns-resize select-none"
+      className="absolute inset-x-0 z-20 flex items-center cursor-ns-resize select-none outline-none"
       style={{ top: `${focalY}%`, transform: "translateY(-50%)" }}
       onMouseDown={onMouseDown}
       title={title}

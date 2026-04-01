@@ -29,6 +29,7 @@ export function useAdminShops(visibility?: ShopVisibility) {
     queryKey: ["shops-admin", visibility],
     queryFn: () =>
       api.get<AdminShopListItem[]>(`/admin/shops${visibility ? `?visibility=${visibility}` : ""}`),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -43,6 +44,7 @@ export function useShopVisibilityCounts() {
   return useQuery({
     queryKey: ["shops-admin", "counts"],
     queryFn: () => api.get<ShopVisibilityCounts>("/admin/shops/counts"),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -99,6 +101,7 @@ export function useAdminShop(id: number | null) {
     queryKey: getAdminShopQueryKey(id),
     queryFn: id === null ? undefined : getAdminShopQueryFn(id),
     enabled: id !== null,
+    staleTime: 60 * 1000,
   });
 }
 

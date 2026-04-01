@@ -1,7 +1,5 @@
 import {
-  ListBulletsIcon,
   PlusCircleIcon,
-  SquaresFourIcon,
   TagIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
@@ -16,19 +14,14 @@ import {
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { CategoryEditCard } from "@/features/content/categories/CategoryEditCard.tsx";
 import { CategoryGridItem } from "@/features/content/categories/CategoryGridItem.tsx";
-import { CategoryTable } from "@/features/content/categories/CategoryTable.tsx";
 import {
   useAdminCategories,
   useDeleteCategory,
 } from "@/features/content/hooks/useAdminCategories.ts";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-
-type ViewMode = "list" | "grid";
 
 /**
  * Category management page with list/grid toggle and CRUD actions.
@@ -40,7 +33,6 @@ export function CategoriesPage() {
   const categoriesMessages = messages.categories;
   const common = messages.common;
   const { user: me } = useAuth();
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [editTarget, setEditTarget] = useState<number | "new" | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
@@ -52,19 +44,6 @@ export function CategoriesPage() {
   return (
     <PageLayout>
       <PageHeader title={categoriesMessages.title}>
-        <SegmentedControl
-          value={viewMode}
-          onChange={setViewMode}
-          storageKey={getSegmentedStorageKey(me?.id, "categories:view")}
-          options={[
-            {
-              value: "list" as const,
-              icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" />,
-            },
-            { value: "grid" as const, icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
-          ]}
-        />
-
         <button
           type="button"
           onClick={() => setEditTarget("new")}
@@ -77,17 +56,11 @@ export function CategoriesPage() {
 
       <PageBody>
         {isLoading && (
-          <div
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-                : "space-y-2"
-            }
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {Array.from({ length: 8 }, (_, i) => `sk-${i}`).map((key) => (
               <div
                 key={key}
-                className={`bg-[var(--ds-surface)] rounded-card border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-14"}`}
+                className="bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)] animate-pulse aspect-video"
               />
             ))}
           </div>
@@ -103,17 +76,7 @@ export function CategoriesPage() {
           />
         )}
 
-        {!isLoading && categories.length > 0 && viewMode === "list" && (
-          <div className="-mx-3 -mt-3">
-            <CategoryTable
-              categories={categories}
-              onEdit={setEditTarget}
-              onDelete={me?.role !== "moderator" ? setDeleteId : undefined}
-            />
-          </div>
-        )}
-
-        {!isLoading && categories.length > 0 && viewMode === "grid" && (
+        {!isLoading && categories.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {categories.map((cat) => (
               <CategoryGridItem

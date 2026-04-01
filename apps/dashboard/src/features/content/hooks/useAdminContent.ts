@@ -13,6 +13,7 @@ export function useContentPages() {
   return useQuery({
     queryKey: ["content-pages"],
     queryFn: () => api.get<ContentPageSummary[]>("/admin/content"),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -27,6 +28,7 @@ export function useAdminContentPage(slug: string) {
     queryKey: ["content-admin", slug],
     queryFn: () => api.get<ContentPage>(`/admin/content/${slug}`),
     enabled: !!slug,
+    staleTime: 60 * 1000,
   });
 }
 
