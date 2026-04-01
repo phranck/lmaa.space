@@ -1,4 +1,5 @@
 import {
+  ArrowsVerticalIcon,
   DownloadIcon,
   MagnifyingGlassIcon,
   TagIcon,
@@ -18,6 +19,7 @@ import { UnsplashBrowser } from "@/features/content/categories/UnsplashBrowser.t
 import {
   useAdminCategories,
   useSaveCategory,
+  useSetCategoryFocalPoint,
 } from "@/features/content/hooks/useAdminCategories.ts";
 import type {
   CategoryFormData,
@@ -75,7 +77,9 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   const isNew = categoryId === "new";
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
   const [showUnsplash, setShowUnsplash] = useState(false);
+  const setFocalPoint = useSetCategoryFocalPoint();
 
   const { data: categories = [] } = useAdminCategories(!isNew);
   const category = isNew ? undefined : categories.find((c) => c.id === categoryId);
@@ -92,6 +96,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     loadError: false,
   });
 
+  const [focalY, setFocalY] = useState(category?.imageFocalPointY ?? 50);
+
   // Populate form when editing existing category
   // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used -- sync only when category changes, not on every property update
   useEffect(() => {
@@ -101,6 +107,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         slug: category.slug,
         description: category.description ?? "",
       });
+      setFocalY(category.imageFocalPointY ?? 50);
       setImage({
         previewUrl: category.imageUrl ?? null,
         photographer: category.imagePhotographer ?? null,
@@ -193,6 +200,33 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     });
   }
 
+  function startFocalDrag(e: React.MouseEvent) {
+    if (isNew || !category) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const calcY = (clientY: number) => {
+      const el = imageContainerRef.current;
+      if (!el) return 50;
+      const rect = el.getBoundingClientRect();
+      return Math.max(0, Math.min(100, Math.round(((clientY - rect.top) / rect.height) * 100)));
+    };
+
+    setFocalY(calcY(e.clientY));
+
+    const onMove = (ev: MouseEvent) => setFocalY(calcY(ev.clientY));
+    const onUp = (ev: MouseEvent) => {
+      const y = calcY(ev.clientY);
+      setFocalY(y);
+      setFocalPoint.mutate({ id: category.id, focalPointY: y });
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
   const displayImageUrl = image.loadError
     ? null
     : (image.previewUrl ??
@@ -215,14 +249,29 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         onEscape={handleEscape}
       >
         {/* Image Panel -- 50 % */}
-        <div className="relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]">
+        <div ref={imageContainerRef} className="group relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]">
           {displayImageUrl && !image.loadError ? (
-            <img
-              src={displayImageUrl}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-              onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
-            />
+            <>
+              <img
+                src={displayImageUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                draggable={false}
+                onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
+              />
+              {!isNew && (
+                <div
+                  className="absolute inset-x-0 z-20 flex items-center cursor-ns-resize select-none"
+                  style={{ top: `${focalY}%`, transform: "translateY(-50%)" }}
+                  onMouseDown={startFocalDrag}
+                >
+                  <div className="w-full h-px bg-white/60 shadow-[0_0_3px_rgba(0,0,0,0.8)] group-hover:bg-white/90 transition-colors" />
+                  <div className="absolute right-1.5 w-5 h-5 rounded-full bg-white/80 group-hover:bg-white flex items-center justify-center shadow-md transition-colors">
+                    <ArrowsVerticalIcon weight="bold" className="w-3 h-3 text-stone-700" />
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
               <MagnifyingGlassIcon weight="duotone" className="w-10 h-10" />

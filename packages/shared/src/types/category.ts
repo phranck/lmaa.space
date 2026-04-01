@@ -11,6 +11,7 @@ export interface Category {
   imageUrl?: string | null;
   imagePhotographer?: string | null;
   imagePhotographerUrl?: string | null;
+  imageFocalPointY?: number;
   shopCount?: number;
   createdAt: string;
   updatedAt: string;

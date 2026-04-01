@@ -7,6 +7,7 @@ interface CategoryCardProps {
   imageUrl: string | null;
   imagePhotographer: string | null;
   imagePhotographerUrl: string | null;
+  imageFocalPointY: number;
   shopCount: number;
   href: string;
 }
@@ -23,6 +24,7 @@ export default function CategoryCard({
   imageUrl,
   imagePhotographer,
   imagePhotographerUrl,
+  imageFocalPointY,
   shopCount,
   href,
 }: CategoryCardProps) {
@@ -43,6 +45,7 @@ export default function CategoryCard({
           alt=""
           aria-hidden="true"
           className="w-full h-full object-cover"
+          style={{ objectPosition: `50% ${imageFocalPointY}%` }}
           loading="lazy"
           data-img-fallback=""
         />

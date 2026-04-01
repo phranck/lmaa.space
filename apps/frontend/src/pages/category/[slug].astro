@@ -18,6 +18,7 @@ interface CategoryPageView {
   imageUrl?: string | null;
   imagePhotographer?: string | null;
   imagePhotographerUrl?: string | null;
+  imageFocalPointY?: number;
   shops: Shop[];
 }
 
@@ -31,7 +32,7 @@ try {
   const endpoint = hasFilters
     ? `/filtered/categories/${slug}?${filterQuery}`
     : `/categories/${slug}`;
-  const remote = await apiGet<{ name: string; imageUrl?: string | null; imagePhotographer?: string | null; imagePhotographerUrl?: string | null; shops: Shop[] }>(
+  const remote = await apiGet<{ name: string; imageUrl?: string | null; imagePhotographer?: string | null; imagePhotographerUrl?: string | null; imageFocalPointY?: number; shops: Shop[] }>(
     endpoint,
   );
   category = {
@@ -39,6 +40,7 @@ try {
     imageUrl: remote.imageUrl ?? null,
     imagePhotographer: remote.imagePhotographer ?? null,
     imagePhotographerUrl: remote.imagePhotographerUrl ?? null,
+    imageFocalPointY: remote.imageFocalPointY ?? 50,
     shops: remote.shops,
   };
 } catch (err) {
@@ -82,6 +84,7 @@ const jsonLd = {
       aria-hidden="true"
       fetchpriority="high"
       class="w-full h-full object-cover"
+      style={`object-position: 50% ${category.imageFocalPointY ?? 50}%`}
     />
     <div class="absolute inset-0 bg-stone-900/65"></div>
     {category.imagePhotographer && category.imagePhotographerUrl && (

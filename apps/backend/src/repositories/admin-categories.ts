@@ -98,6 +98,15 @@ export async function categoryExists(id: number): Promise<boolean> {
   return Boolean(category);
 }
 
+export async function setAdminCategoryFocalPoint(id: number, focalPointY: number): Promise<Category | null> {
+  const [category] = await db
+    .update(categories)
+    .set({ imageFocalPointY: focalPointY, updatedAt: new Date() })
+    .where(eq(categories.id, id))
+    .returning();
+  return category ?? null;
+}
+
 export async function getCategoryUnsplashImageId(id: number): Promise<number | null> {
   const [row] = await db
     .select({ unsplashImageId: categories.unsplashImageId })
