@@ -1,6 +1,6 @@
 import type { ShopEditFormValue } from "@lmaa/ui";
 
-export function parseCoordinate(value: string) {
+function parseCoordinate(value: string) {
   const trimmed = value.trim();
   if (trimmed.length === 0) return null;
   const parsed = Number(trimmed);

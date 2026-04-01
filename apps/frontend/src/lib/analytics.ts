@@ -1,7 +1,7 @@
 type AnalyticsPrimitive = string | number | boolean | null;
 
 /** Named events tracked via the Umami analytics integration. */
-export type WebsiteAnalyticsEventName =
+type WebsiteAnalyticsEventName =
   | "site-search"
   | "category-click"
   | "shop-visit-click"
