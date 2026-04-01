@@ -44,6 +44,8 @@ export default function CategoryCard({
           src={imageUrl ?? `/images/${slug}.jpg`}
           alt=""
           aria-hidden="true"
+          width={640}
+          height={360}
           className="w-full h-full object-cover"
           style={{ objectPosition: `50% ${imageFocalPointY}%` }}
           loading="lazy"
