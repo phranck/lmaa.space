@@ -1,11 +1,12 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
 
 import FilterToggleButton from "@/components/FilterToggleButton";
 import ShopCardReact from "@/components/ShopCardReact";
-import { API_BASE } from "@/lib/client-api";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
+import { useGridAnimation } from "@/hooks/useGridAnimation";
+import { fetchJson } from "@/lib/fetch-json";
 import { type ShopFilters, buildFilterQuery } from "@/lib/filter-query";
 
 import ShopFilterBar from "./ShopFilterBar";
@@ -46,10 +47,10 @@ export default function FilterableCategoryShops({
   const [showFilter, setShowFilter] = useState(hasInitialFilters);
   const [shops, setShops] = useState<Shop[]>(initialShops);
   const [filtersActive, setFiltersActive] = useState(hasInitialFilters);
+  // Intentional: initialFilters is an SSR hydration value that never changes from the parent.
   const [currentFilters, setCurrentFilters] =
     useState<ShopFilters>(initialFilters);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [gridRef] = useAutoAnimate({ duration: 250, easing: "ease-out" });
+  const gridRef = useGridAnimation();
 
   const fetchFiltered = useCallback(
     (filters: ShopFilters) => {
@@ -71,11 +72,10 @@ export default function FilterableCategoryShops({
         return;
       }
 
-      fetch(`${API_BASE}/filtered/categories/${slug}?${query}`)
-        .then((r) => r.json())
-        .then((json) => {
-          if (json.data?.shops) {
-            setShops(json.data.shops as Shop[]);
+      fetchJson<{ shops: Shop[] }>(`/filtered/categories/${slug}?${query}`)
+        .then((data) => {
+          if (data.shops) {
+            setShops(data.shops);
           }
         })
         .catch(() => {});
@@ -83,13 +83,7 @@ export default function FilterableCategoryShops({
     [slug, initialShops],
   );
 
-  const handleFilterChange = useCallback(
-    (filters: ShopFilters) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchFiltered(filters), 400);
-    },
-    [fetchFiltered],
-  );
+  const handleFilterChange = useDebouncedCallback(fetchFiltered);
 
   return (
     <>

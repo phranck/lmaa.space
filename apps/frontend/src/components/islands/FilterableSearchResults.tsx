@@ -1,11 +1,12 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { XCircleIcon } from "@phosphor-icons/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
 
 import ShopCardReact from "@/components/ShopCardReact";
-import { API_BASE } from "@/lib/client-api";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
+import { useGridAnimation } from "@/hooks/useGridAnimation";
+import { fetchJson } from "@/lib/fetch-json";
 import {
   type ShopFilters,
   buildCategoryHref,
@@ -54,12 +55,12 @@ export default function FilterableSearchResults({
   initialResults,
   initialFilters,
 }: FilterableSearchResultsProps) {
+  // Intentional: initial* props are SSR hydration values that never change from the parent.
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<SearchResults>(initialResults);
   const [currentFilters, setCurrentFilters] =
     useState<ShopFilters>(initialFilters);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [shopGridRef] = useAutoAnimate({ duration: 250, easing: "ease-out" });
+  const shopGridRef = useGridAnimation();
 
   const fetchResults = useCallback(
     (q: string, filters: ShopFilters) => {
@@ -85,10 +86,8 @@ export default function FilterableSearchResults({
       const apiParams = new URLSearchParams(filterQuery);
       apiParams.set("q", q);
 
-      fetch(`${API_BASE}/filtered/search?${apiParams}`)
-        .then((r) => r.json())
-        .then((json) => {
-          const data = json.data ?? {};
+      fetchJson<SearchResults>(`/filtered/search?${apiParams}`)
+        .then((data) => {
           setResults({
             shops: data.shops ?? [],
             categories: data.categories ?? [],
@@ -100,13 +99,7 @@ export default function FilterableSearchResults({
     [],
   );
 
-  const scheduleSearch = useCallback(
-    (q: string, filters: ShopFilters) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchResults(q, filters), 400);
-    },
-    [fetchResults],
-  );
+  const scheduleSearch = useDebouncedCallback(fetchResults);
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -122,7 +115,6 @@ export default function FilterableSearchResults({
   const handleSubmit = useCallback(
     (e: { preventDefault(): void }) => {
       e.preventDefault();
-      if (debounceRef.current) clearTimeout(debounceRef.current);
       fetchResults(query.trim(), currentFilters);
     },
     [query, currentFilters, fetchResults],
