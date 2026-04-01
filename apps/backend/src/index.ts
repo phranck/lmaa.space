@@ -17,7 +17,6 @@ import { requestId } from "./middleware/request-id.js";
 import { adminRoutes } from "./routes/admin/index.js";
 import { publicRoutes } from "./routes/public.js";
 import { sitemapRoutes } from "./routes/sitemap.js";
-import { warmupHeroImageCache } from "./services/hero.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 import { startReminderScheduler } from "./services/shop-reminders.js";
 
@@ -89,10 +88,6 @@ async function startServer() {
   if (env.RUN_MIGRATIONS_ON_STARTUP) {
     await runMigrations();
   }
-
-  warmupHeroImageCache().catch((err) => {
-    logger.error({ err }, "hero image cache warmup failed");
-  });
 
   const timers = [startSessionCleanupJob(), startRateLimitCleanupJob(), startCacheCleanupJob(), startReminderScheduler()];
 
