@@ -1,3 +1,5 @@
+import UnsplashAttribution from "@/components/UnsplashAttribution";
+
 interface CategoryCardProps {
   id: number;
   name: string;
@@ -14,8 +16,6 @@ interface CategoryCardProps {
  *
  * Links to the category page at the provided `href`.
  */
-const UTM = "?utm_source=lmaa_space&utm_medium=referral";
-
 export default function CategoryCard({
   id,
   name,
@@ -35,7 +35,7 @@ export default function CategoryCard({
       data-category-slug={slug}
       data-category-name={name}
     >
-      <a href={href} className="absolute inset-0 z-0" aria-label={name} />
+      <a href={href} className="absolute inset-0 z-[1]" aria-label={name} />
 
       <div className="aspect-video overflow-hidden relative">
         <img
@@ -55,16 +55,12 @@ export default function CategoryCard({
           </span>
         </div>
         {imagePhotographer && imagePhotographerUrl && (
-          <p className="absolute right-2 bottom-1.5 text-[9px] text-white/70 drop-shadow-sm z-10">
-            Photo{" "}
-            <a href={`${imagePhotographerUrl}${UTM}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-white/90">
-              {imagePhotographer}
-            </a>
-            {" @ "}
-            <a href={`https://unsplash.com${UTM}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-white/90">
-              Unsplash
-            </a>
-          </p>
+          <UnsplashAttribution
+            photographer={imagePhotographer}
+            photographerUrl={imagePhotographerUrl}
+            gradient
+            className="z-[2]"
+          />
         )}
       </div>
 
