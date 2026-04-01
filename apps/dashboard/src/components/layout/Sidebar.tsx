@@ -530,7 +530,7 @@ export function Sidebar({
     <>
       {!bare && <SidebarHeader />}
 
-      <nav className="flex-1 overflow-y-auto px-3">
+      <nav className="flex-1 overflow-y-auto px-3 pb-3">
         <div className="sticky top-0 z-10 -mx-3 px-3 pt-3 pb-2 bg-[var(--ds-card-bg,var(--ds-surface))]">
           <button
             type="button"
