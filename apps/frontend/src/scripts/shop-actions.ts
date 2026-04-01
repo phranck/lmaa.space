@@ -123,20 +123,12 @@ async function generateFingerprint(): Promise<string> {
     .join("");
 }
 
+import { getLikedShopIds, saveLikedShopIds } from "@/lib/liked-shops";
+
 // ── Like (localStorage) ──────────────────────────────────────────────
-const LIKES_KEY = "lmaa-liked-shops";
 
-function getLikedShops(): Set<string> {
-  try {
-    const raw = localStorage.getItem(LIKES_KEY);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function saveLikedShops(ids: Set<string>) {
-  localStorage.setItem(LIKES_KEY, JSON.stringify([...ids]));
+function saveLikedShopsAndUpdateNav(ids: Set<string>) {
+  saveLikedShopIds(ids);
   updateMyShopsNavVisibility(ids.size > 0);
 }
 
@@ -171,13 +163,13 @@ function applyLikeState(btn: HTMLElement, liked: boolean) {
 // Restore like state on page load (detail page button)
 document.querySelectorAll<HTMLElement>("[data-action='like']").forEach((btn) => {
   const shopId = btn.dataset.shopId;
-  if (shopId && getLikedShops().has(shopId)) {
+  if (shopId && getLikedShopIds().has(shopId)) {
     applyLikeState(btn, true);
   }
 });
 
 // Show like indicators on Astro-rendered shop cards
-const likedShops = getLikedShops();
+const likedShops = getLikedShopIds();
 document.querySelectorAll<HTMLElement>("[data-shop-id]").forEach((card) => {
   const shopId = card.dataset.shopId;
   if (shopId && likedShops.has(shopId)) {
@@ -214,7 +206,7 @@ document.addEventListener("click", (e) => {
   const shopId = btn.dataset.shopId;
   if (!shopId) return;
 
-  const liked = getLikedShops();
+  const liked = getLikedShopIds();
   const isNowLiked = !liked.has(shopId);
 
   if (isNowLiked) {
@@ -224,7 +216,7 @@ document.addEventListener("click", (e) => {
     liked.delete(shopId);
   }
 
-  saveLikedShops(liked);
+  saveLikedShopsAndUpdateNav(liked);
   applyLikeState(btn, isNowLiked);
 
   // Optimistic like count update
