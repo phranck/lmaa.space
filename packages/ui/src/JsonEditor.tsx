@@ -88,6 +88,8 @@ const highlightStyle = HighlightStyle.define([
 
 const jsonTheme = [editorTheme, syntaxHighlighting(highlightStyle)];
 
+const EMPTY_EXTENSIONS: Extension[] = [];
+
 export function JsonEditor({
   id,
   value,
@@ -98,7 +100,7 @@ export function JsonEditor({
   minHeight = "9rem",
   resizable = false,
   readOnly = false,
-  extensions: extraExtensions = [],
+  extensions: extraExtensions = EMPTY_EXTENSIONS,
   className = "",
 }: JsonEditorProps) {
   // Ref so the stable extension closure always calls the latest handler
