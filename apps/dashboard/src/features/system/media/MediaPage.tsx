@@ -48,6 +48,7 @@ import {
 } from "@/features/system/media/media-utils.ts";
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import { MediaTable } from "@/features/system/media/MediaTable.tsx";
+import type { DashboardLocale } from "@/i18n/messages.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type ViewMode = "list" | "grid";
@@ -426,7 +427,7 @@ interface MediaDetailSidebarProps {
   onCopyUrl: () => void;
   copied: boolean;
   isRenaming: boolean;
-  locale: string;
+  locale: DashboardLocale;
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
   common: ReturnType<typeof useI18n>["messages"]["common"];
 }
@@ -522,7 +523,7 @@ function MediaDetailSidebar({
 
 interface MediaInfoSectionProps {
   asset: MediaAsset;
-  locale: string;
+  locale: DashboardLocale;
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
   copied: boolean;
   onCopyUrl: () => void;

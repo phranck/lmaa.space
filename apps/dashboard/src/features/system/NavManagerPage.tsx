@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DownloadIcon, ListIcon, PlusCircleIcon, XCircleIcon } from "@phosphor-icons/react";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer } from "react";
 
 import type { NavId } from "@lmaa/shared";
 
