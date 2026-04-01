@@ -64,6 +64,18 @@ const jsonLd = {
       />
     )}
     <div class="absolute inset-0 bg-stone-950/70"></div>
+    {heroImage?.photographer && heroImage?.photographerUrl && (
+      <p class="absolute right-3 bottom-2 text-[10px] text-white/50 z-10">
+        Photo{" "}
+        <a href={`${heroImage.photographerUrl}?utm_source=lmaa_space&utm_medium=referral`} target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/70">
+          {heroImage.photographer}
+        </a>
+        {" @ "}
+        <a href="https://unsplash.com?utm_source=lmaa_space&utm_medium=referral" target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/70">
+          Unsplash
+        </a>
+      </p>
+    )}
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-12 text-center">
       <p class="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">
         Kuratiert · Unabhängig · Kostenlos
