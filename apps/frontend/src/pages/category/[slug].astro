@@ -31,12 +31,14 @@ try {
   const endpoint = hasFilters
     ? `/filtered/categories/${slug}?${filterQuery}`
     : `/categories/${slug}`;
-  const remote = await apiGet<{ name: string; imageUrl?: string | null; shops: Shop[] }>(
+  const remote = await apiGet<{ name: string; imageUrl?: string | null; imagePhotographer?: string | null; imagePhotographerUrl?: string | null; shops: Shop[] }>(
     endpoint,
   );
   category = {
     name: remote.name,
     imageUrl: remote.imageUrl ?? null,
+    imagePhotographer: remote.imagePhotographer ?? null,
+    imagePhotographerUrl: remote.imagePhotographerUrl ?? null,
     shops: remote.shops,
   };
 } catch (err) {

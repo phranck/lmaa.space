@@ -59,7 +59,7 @@ export default function CategoryCard({
             photographer={imagePhotographer}
             photographerUrl={imagePhotographerUrl}
             gradient
-            className="z-[2]"
+            className="z-[2] opacity-0 group-hover:opacity-100 transition-opacity"
           />
         )}
       </div>
