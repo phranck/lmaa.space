@@ -30,6 +30,10 @@ export {
   formLabelClass,
   formOptionalClass,
 } from "./FormPrimitives.tsx";
+/** Shared form field wrapper composing label, error, hint and optional/required indicators. */
+export { FormField } from "./FormField.tsx";
+/** Re-exported props for `FormField`. */
+export type { FormFieldProps } from "./FormField.tsx";
 /** Shared dashboard section card with header (icon + title), body and optional footer. */
 export { DashboardSection } from "./DashboardSection.tsx";
 /** Re-exported props for `DashboardSection`. */
