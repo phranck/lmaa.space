@@ -8,17 +8,30 @@ const LIKES_KEY = "lmaa-liked-shops";
 
 // ── localStorage helpers ────────────────────────────────────────────
 
+let cache: Set<string> | null = null;
+
 export function getLikedShopIds(): Set<string> {
+  if (cache) return cache;
+
   try {
     const raw = localStorage.getItem(LIKES_KEY);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    cache = raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    return cache;
   } catch {
     return new Set();
   }
 }
 
 export function saveLikedShopIds(ids: Set<string>): void {
+  cache = ids;
   localStorage.setItem(LIKES_KEY, JSON.stringify([...ids]));
+}
+
+// Invalidate cache when another tab changes localStorage
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === LIKES_KEY) cache = null;
+  });
 }
 
 // ── Compact URL encoding ────────────────────────────────────────────
