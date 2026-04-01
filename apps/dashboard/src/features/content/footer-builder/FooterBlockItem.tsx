@@ -61,7 +61,15 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
       style={style}
       {...attributes}
       {...listeners}
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className={`group/block relative flex w-full items-center gap-2 px-3 py-2.5 rounded-control border text-sm cursor-pointer ${
         isSelected
           ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)]"

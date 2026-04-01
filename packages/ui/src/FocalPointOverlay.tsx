@@ -1,5 +1,5 @@
 import { ArrowsVerticalIcon } from "@phosphor-icons/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 /**
  * Hook that provides focal point Y drag state and persistence.
@@ -13,11 +13,13 @@ export function useFocalPointDrag(
   onCommit: (focalPointY: number) => void,
 ) {
   const [focalY, setFocalY] = useState(initialValue);
+  const [prevInitial, setPrevInitial] = useState(initialValue);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  if (initialValue !== prevInitial) {
+    setPrevInitial(initialValue);
     setFocalY(initialValue);
-  }, [initialValue]);
+  }
 
   const startDrag = useCallback(
     (e: React.MouseEvent) => {
@@ -67,6 +69,12 @@ interface FocalPointOverlayProps {
 export function FocalPointOverlay({ focalY, onMouseDown, title }: FocalPointOverlayProps) {
   return (
     <div
+      role="slider"
+      tabIndex={0}
+      aria-valuenow={focalY}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={title ?? "Focal point"}
       className="absolute inset-x-0 z-20 flex items-center cursor-ns-resize select-none"
       style={{ top: `${focalY}%`, transform: "translateY(-50%)" }}
       onMouseDown={onMouseDown}

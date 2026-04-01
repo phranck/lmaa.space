@@ -13,8 +13,8 @@ export const formBtnBaseClass =
   "flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-medium transition-colors disabled:opacity-40";
 export const formErrorClass = "text-red-500 text-xs mt-1";
 
-export function FormLabel({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cx(formLabelClass, className)} {...props} />;
+export function FormLabel({ className, htmlFor, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
+  return <label htmlFor={htmlFor} className={cx(formLabelClass, className)} {...props} />;
 }
 
 export function FormLabelText({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
