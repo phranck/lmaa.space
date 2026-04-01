@@ -52,22 +52,23 @@ function filterGridReducer(state: FilterGridState, action: FilterGridAction): Fi
   return { ...state, ...action };
 }
 
+function mapInitialCategories(cats: Category[]): FilteredCategory[] {
+  return cats.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    imageUrl: c.imageUrl ?? null,
+    imagePhotographer: c.imagePhotographer ?? null,
+    imagePhotographerUrl: c.imagePhotographerUrl ?? null,
+    imageFocalPointY: c.imageFocalPointY ?? 50,
+    shopCount: c.shopCount ?? 0,
+  }));
+}
+
 export default function FilterableCategoryGrid({
   categories: initialCategories,
   shopCount: initialShopCount,
 }: FilterableCategoryGridProps) {
-  const mapInitialCategories = (cats: Category[]): FilteredCategory[] =>
-    cats.map((c) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.slug,
-      imageUrl: c.imageUrl ?? null,
-      imagePhotographer: c.imagePhotographer ?? null,
-      imagePhotographerUrl: c.imagePhotographerUrl ?? null,
-      imageFocalPointY: c.imageFocalPointY ?? 50,
-      shopCount: c.shopCount ?? 0,
-    }));
-
   const [state, dispatch] = useReducer(filterGridReducer, {
     showFilter: false,
     categories: mapInitialCategories(initialCategories),
