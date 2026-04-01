@@ -1,10 +1,8 @@
 import {
   ArrowsClockwiseIcon,
-  CopyIcon,
   FileIcon,
   ImageIcon,
   ListBulletsIcon,
-  PencilSimpleIcon,
   PlusCircleIcon,
   SquaresFourIcon,
   TrashIcon,
@@ -12,7 +10,6 @@ import {
 import { useEffect, useReducer, useRef, useState } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
-import { DashboardSection } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -40,15 +37,9 @@ import {
   useSyncMedia,
   useUploadMedia,
 } from "@/features/system/hooks/useAdminMedia.ts";
-import {
-  formatBytes,
-  formatMediaDate,
-  getMediaTypeLabel,
-  isImageAsset,
-} from "@/features/system/media/media-utils.ts";
+import { MediaDetailSidebar } from "@/features/system/media/MediaDetailSidebar.tsx";
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import { MediaTable } from "@/features/system/media/MediaTable.tsx";
-import type { DashboardLocale } from "@/i18n/messages.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type ViewMode = "list" | "grid";
@@ -66,32 +57,6 @@ type MediaPageAction = Partial<MediaPageState>;
 
 function mediaPageReducer(state: MediaPageState, action: MediaPageAction): MediaPageState {
   return { ...state, ...action };
-}
-
-function MediaPreview({
-  asset,
-  unsupportedPreview,
-}: {
-  asset: MediaAsset;
-  unsupportedPreview: string;
-}) {
-  if (isImageAsset(asset)) {
-    return (
-      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--ds-bg-elevated)]">
-        <img src={asset.url} alt="" className="w-full h-full object-cover" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="aspect-[4/3] rounded-xl bg-[var(--ds-bg-elevated)] border border-dashed border-[var(--ds-border)] flex flex-col items-center justify-center gap-3 text-[var(--ds-text-subtle)]">
-      <FileIcon weight="duotone" className="w-12 h-12" />
-      <div className="text-center">
-        <p className="text-sm font-medium text-[var(--ds-text)]">{getMediaTypeLabel(asset)}</p>
-        <p className="text-xs">{unsupportedPreview}</p>
-      </div>
-    </div>
-  );
 }
 
 export function MediaPage() {
@@ -411,182 +376,5 @@ export function MediaPage() {
         </Dialog.Footer>
       </Dialog>
     </PageLayout>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-interface MediaDetailSidebarProps {
-  asset: MediaAsset;
-  draft: { name: string; alias: string };
-  onDraftChange: (draft: { name: string; alias: string }) => void;
-  onSaveMeta: () => void;
-  onDelete: () => void;
-  onCopyUrl: () => void;
-  copied: boolean;
-  isRenaming: boolean;
-  locale: DashboardLocale;
-  mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
-  common: ReturnType<typeof useI18n>["messages"]["common"];
-}
-
-function MediaDetailSidebar({
-  asset,
-  draft,
-  onDraftChange,
-  onSaveMeta,
-  onDelete,
-  onCopyUrl,
-  copied,
-  isRenaming,
-  locale,
-  mediaMessages,
-  common,
-}: MediaDetailSidebarProps) {
-  return (
-    <div className="space-y-3">
-      <DashboardSection>
-        <DashboardSection.Header
-          icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
-          title={mediaMessages.previewTitle}
-        />
-        <DashboardSection.Body>
-          <MediaPreview
-            asset={asset}
-            unsupportedPreview={mediaMessages.unsupportedPreview}
-          />
-        </DashboardSection.Body>
-      </DashboardSection>
-
-      <DashboardSection>
-        <DashboardSection.Header
-          icon={<PencilSimpleIcon weight="duotone" className="w-4 h-4" />}
-          title={mediaMessages.detailsTitle}
-        />
-        <DashboardSection.Body>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-[var(--ds-text)]">
-              {mediaMessages.displayName}
-            </span>
-            <input
-              type="text"
-              value={draft.name}
-              onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
-              className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-          </label>
-
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-[var(--ds-text)]">Alias</span>
-            <input
-              type="text"
-              value={draft.alias}
-              onChange={(event) => onDraftChange({ ...draft, alias: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
-              placeholder="z.B. sepa-qr"
-              className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm font-mono bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            />
-            <p className="text-xs text-[var(--ds-text-subtle)]">
-              {draft.alias ? `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]` : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
-            </p>
-          </label>
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onSaveMeta}
-              disabled={
-                isRenaming ||
-                draft.name.trim().length === 0 ||
-                (draft.name.trim() === asset.displayName && (draft.alias.trim() || null) === (asset.alias ?? null))
-              }
-              className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-            >
-              {isRenaming ? common.saving : mediaMessages.saveName}
-            </button>
-            <button
-              type="button"
-              onClick={onDelete}
-              className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-            >
-              <TrashIcon weight="duotone" className="w-4 h-4" />
-            </button>
-          </div>
-        </DashboardSection.Body>
-      </DashboardSection>
-
-      <MediaInfoSection asset={asset} locale={locale} mediaMessages={mediaMessages} copied={copied} onCopyUrl={onCopyUrl} />
-    </div>
-  );
-}
-
-interface MediaInfoSectionProps {
-  asset: MediaAsset;
-  locale: DashboardLocale;
-  mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
-  copied: boolean;
-  onCopyUrl: () => void;
-}
-
-function MediaInfoSection({ asset, locale, mediaMessages, copied, onCopyUrl }: MediaInfoSectionProps) {
-  return (
-    <DashboardSection>
-      <DashboardSection.Header
-        icon={<FileIcon weight="duotone" className="w-4 h-4" />}
-        title={mediaMessages.infoTitle}
-      />
-      <DashboardSection.Body>
-        <div className="space-y-3 text-sm">
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.originalName}</p>
-            <p className="text-[var(--ds-text)] break-all">{asset.originalName}</p>
-          </div>
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileType}</p>
-            <p className="text-[var(--ds-text)]">{asset.mimeType}</p>
-          </div>
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
-            <p className="text-[var(--ds-text)]">{formatBytes(asset.sizeBytes, locale)}</p>
-          </div>
-          {asset.width && asset.height && (
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
-              <p className="text-[var(--ds-text)]">{asset.width} x {asset.height}px</p>
-            </div>
-          )}
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.createdAt}</p>
-            <p className="text-[var(--ds-text)]">{formatMediaDate(asset.createdAt, locale)}</p>
-          </div>
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.updatedAt}</p>
-            <p className="text-[var(--ds-text)]">{formatMediaDate(asset.updatedAt, locale)}</p>
-          </div>
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.uploadedBy}</p>
-            <p className="text-[var(--ds-text)]">{asset.createdByUsername ?? "---"}</p>
-          </div>
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
-            <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
-              {asset.url}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onCopyUrl}
-            className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
-          >
-            <CopyIcon weight="duotone" className="w-4 h-4" />
-            {copied ? mediaMessages.copied : mediaMessages.copyUrl}
-          </button>
-        </div>
-      </DashboardSection.Body>
-    </DashboardSection>
   );
 }
