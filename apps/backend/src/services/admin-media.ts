@@ -10,6 +10,7 @@ import {
   purgeUnsplashCache,
   putUnsplashCacheImage,
   removeStoredMedia,
+  deleteUnsplashCacheImage,
   storeUploadedMedia,
   updateStoredMediaMeta,
 } from "../lib/media-storage.js";
@@ -213,6 +214,13 @@ async function backfillCategoryUnsplashIds(): Promise<void> {
 export async function getUnsplashCacheSources() {
   await backfillCategoryUnsplashIds();
   return listUnsplashCacheSources();
+}
+
+export async function deleteUnsplashCacheItem(
+  type: "hero" | "categorie",
+  unsplashImageId: number,
+): Promise<void> {
+  await deleteUnsplashCacheImage(type, unsplashImageId);
 }
 
 export async function purgeUnsplashCacheItems(): Promise<{ deleted: number }> {

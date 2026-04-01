@@ -5,7 +5,7 @@ import {
   getUnsplashCacheUrl,
   isUnsplashCacheImageStored,
   putUnsplashCacheImage,
-  removeUnsplashCacheImage,
+  deleteUnsplashCacheImage,
 } from "../lib/media-storage.js";
 import { getSetting, putSetting } from "../repositories/app-settings.js";
 import {
@@ -230,7 +230,7 @@ export async function addHeroImage(data: {
 export async function removeHeroImage(id: number): Promise<void> {
   const deleted = await deleteHeroImage(id);
   if (s3CacheEnabled() && deleted?.unsplashImageId) {
-    removeUnsplashCacheImage("hero", deleted.unsplashImageId).catch((err: unknown) => {
+    deleteUnsplashCacheImage("hero", deleted.unsplashImageId).catch((err: unknown) => {
       console.error(`[unsplash-cache] Failed to remove cached hero image ${deleted.unsplashImageId}:`, err);
     });
   }

@@ -8,6 +8,7 @@ import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   deleteManagedMediaAsset,
+  deleteUnsplashCacheItem,
   getUnsplashCacheSources,
   listManagedMediaAssets,
   listUnsplashCacheMediaItems,
@@ -81,6 +82,16 @@ mediaRoutes.post("/media/cache/refetch/:type/:unsplashId", requireAdmin, async (
   if (!updated) return fail(c, 502, "Failed to fetch from Unsplash");
 
   return ok(c, { updated: true });
+});
+
+mediaRoutes.delete("/media/cache/:type/:id", requireAdmin, async (c) => {
+  const type = c.req.param("type");
+  const id = parseId(c.req.param("id"));
+  if (type !== "hero" && type !== "categorie") return fail(c, 400, "Invalid type (hero or categorie)");
+  if (!id) return fail(c, 400, "Invalid id");
+
+  await deleteUnsplashCacheItem(type, id);
+  return ok(c, { deleted: true });
 });
 
 mediaRoutes.delete("/media/cache", requireAdmin, async (c) => {

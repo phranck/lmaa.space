@@ -54,6 +54,18 @@ export function useRefetchUnsplashMeta() {
   });
 }
 
+export function useDeleteUnsplashCacheItem() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ type, unsplashImageId }: { type: "hero" | "categorie"; unsplashImageId: number }) =>
+      api.delete<{ deleted: boolean }>(`/admin/media/cache/${type}/${unsplashImageId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["media-cache"] });
+    },
+  });
+}
+
 export function usePurgeUnsplashCache() {
   const qc = useQueryClient();
 

@@ -98,6 +98,15 @@ export async function categoryExists(id: number): Promise<boolean> {
   return Boolean(category);
 }
 
+export async function getCategoryUnsplashImageId(id: number): Promise<number | null> {
+  const [row] = await db
+    .select({ unsplashImageId: categories.unsplashImageId })
+    .from(categories)
+    .where(eq(categories.id, id))
+    .limit(1);
+  return row?.unsplashImageId ?? null;
+}
+
 /**
  * Sets a direct category image URL and clears attribution fields.
  *
@@ -166,6 +175,7 @@ export async function clearAdminCategoryImage(id: number): Promise<Category | nu
       imageUrl: null,
       imagePhotographer: null,
       imagePhotographerUrl: null,
+      unsplashImageId: null,
       updatedAt: new Date(),
     })
     .where(eq(categories.id, id))
