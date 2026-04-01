@@ -1,68 +1,17 @@
 import { QrCodeIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import QRCodeStyling from "qr-code-styling";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
 
 import ShopCardReact from "@/components/ShopCardReact";
-import { API_BASE } from "@/lib/client-api";
-
-const LIKES_KEY = "lmaa-liked-shops";
-
-// ── Compact URL encoding ─────────────────────────────────────────────
-// Sorted numeric IDs → delta-encoded → base36 → joined with "-"
-function encodeLikedIds(ids: string[]): string {
-  const nums = ids.map(Number).filter((n) => n > 0).sort((a, b) => a - b);
-  if (nums.length === 0) return "";
-  const deltas: number[] = [nums[0]];
-  for (let i = 1; i < nums.length; i++) {
-    deltas.push(nums[i] - nums[i - 1]);
-  }
-  return deltas.map((d) => d.toString(36)).join("-");
-}
-
-function decodeLikedIds(encoded: string): string[] {
-  if (!encoded) return [];
-  const deltas = encoded.split("-").map((s) => Number.parseInt(s, 36));
-  if (deltas.some((d) => Number.isNaN(d))) return [];
-  const ids: number[] = [];
-  let current = 0;
-  for (const delta of deltas) {
-    current += delta;
-    ids.push(current);
-  }
-  return ids.map(String);
-}
-
-// ── localStorage helpers ─────────────────────────────────────────────
-function getLikedShopIds(): Set<string> {
-  try {
-    const raw = localStorage.getItem(LIKES_KEY);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function saveLikedShopIds(ids: Set<string>) {
-  localStorage.setItem(LIKES_KEY, JSON.stringify([...ids]));
-}
-
-// ── Parse import param from URL (without applying) ───────────────────
-function parseImportParam(): { ids: string[]; cleanUrl: string } | null {
-  const params = new URLSearchParams(window.location.search);
-  const encoded = params.get("s");
-  if (!encoded) return null;
-
-  const ids = decodeLikedIds(encoded);
-  if (ids.length === 0) return null;
-
-  params.delete("s");
-  const clean = params.toString();
-  const cleanUrl = `${window.location.pathname}${clean ? `?${clean}` : ""}`;
-
-  return { ids, cleanUrl };
-}
+import { fetchJson } from "@/lib/fetch-json";
+import {
+  encodeLikedIds,
+  getLikedShopIds,
+  parseImportParam,
+  saveLikedShopIds,
+} from "@/lib/liked-shops";
 
 // ── Import Dialog ────────────────────────────────────────────────────
 function ImportDialog({
@@ -182,10 +131,23 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div
+      role="button"
+      tabIndex={0}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+    >
       <div
+        role="dialog"
         className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
           Shops synchronisieren
@@ -219,36 +181,51 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
 }
 
 // ── Main component ───────────────────────────────────────────────────
+interface LikedShopsState {
+  shops: Shop[];
+  loading: boolean;
+  showSync: boolean;
+  importData: { ids: string[]; cleanUrl: string } | null;
+  importDone: boolean;
+}
+
+type LikedShopsAction = Partial<LikedShopsState>;
+
+function likedShopsReducer(state: LikedShopsState, action: LikedShopsAction): LikedShopsState {
+  return { ...state, ...action };
+}
+
 export default function LikedShopsGrid() {
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showSync, setShowSync] = useState(false);
-  const [importData, setImportData] = useState<{ ids: string[]; cleanUrl: string } | null>(null);
-  const [importDone, setImportDone] = useState(false);
+  const [state, dispatch] = useReducer(likedShopsReducer, {
+    shops: [],
+    loading: true,
+    showSync: false,
+    importData: null,
+    importDone: false,
+  });
+  const { shops, loading, showSync, importData, importDone } = state;
 
   function loadShops() {
     const likedIds = getLikedShopIds();
     if (likedIds.size === 0) {
-      setShops([]);
-      setLoading(false);
+      dispatch({ shops: [], loading: false });
       return;
     }
 
-    fetch(`${API_BASE}/shops`)
-      .then((res) => res.json())
-      .then((json: { data: Shop[] }) => {
-        setShops(json.data.filter((s) => likedIds.has(String(s.id))));
+    fetchJson<Shop[]>("/shops")
+      .then((shops) => {
+        dispatch({ shops: shops.filter((s) => likedIds.has(String(s.id))) });
       })
       .catch(() => {
         // Silent fail
       })
-      .finally(() => setLoading(false));
+      .finally(() => dispatch({ loading: false }));
   }
 
   useEffect(() => {
     const pending = parseImportParam();
     if (pending) {
-      setImportData(pending);
+      dispatch({ importData: pending });
     }
     loadShops();
   }, []);
@@ -261,8 +238,7 @@ export default function LikedShopsGrid() {
     }
     saveLikedShopIds(existing);
     window.history.replaceState({}, "", importData.cleanUrl);
-    setImportData(null);
-    setImportDone(true);
+    dispatch({ importData: null, importDone: true });
     loadShops();
   }
 
@@ -270,8 +246,7 @@ export default function LikedShopsGrid() {
     if (!importData) return;
     saveLikedShopIds(new Set(importData.ids));
     window.history.replaceState({}, "", importData.cleanUrl);
-    setImportData(null);
-    setImportDone(true);
+    dispatch({ importData: null, importDone: true });
     loadShops();
   }
 
@@ -310,7 +285,7 @@ export default function LikedShopsGrid() {
           <div className="flex justify-end mb-4">
             <button
               type="button"
-              onClick={() => setShowSync(true)}
+              onClick={() => dispatch({ showSync: true })}
               className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-medium text-stone-600 border border-stone-200 hover:bg-stone-100 transition-colors cursor-pointer"
             >
               <QrCodeIcon weight="duotone" className="w-4 h-4" />
@@ -336,7 +311,7 @@ export default function LikedShopsGrid() {
         </>
       )}
 
-      {showSync && <SyncDialog onClose={() => setShowSync(false)} />}
+      {showSync && <SyncDialog onClose={() => dispatch({ showSync: false })} />}
     </>
   );
 }
