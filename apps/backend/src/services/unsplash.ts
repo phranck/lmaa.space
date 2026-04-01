@@ -179,29 +179,6 @@ export async function fetchFullUnsplashPhoto(photoId: string): Promise<{
   };
 }
 
-/**
- * Lists photos by a specific Unsplash user. Returns up to `perPage` results
- * for the given page. Used for backfilling category images.
- */
-export async function listUnsplashUserPhotos(
-  username: string,
-  page = 1,
-  perPage = 30,
-): Promise<UnsplashPhoto[]> {
-  const key = env.UNSPLASH_ACCESS_KEY;
-  if (!key) return [];
-
-  const params = new URLSearchParams({
-    page: String(page),
-    per_page: String(perPage),
-  });
-  const url = `https://api.unsplash.com/users/${username}/photos?${params.toString()}`;
-  const response = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
-
-  if (!response.ok) return [];
-
-  return (await response.json()) as UnsplashPhoto[];
-}
 
 /**
  * Calls Unsplash download-tracking endpoint.
