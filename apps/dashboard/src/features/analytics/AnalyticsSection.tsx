@@ -155,7 +155,7 @@ export function AnalyticsSection() {
   const hasStats = stats && stats.visitors != null && stats.pageviews != null;
 
   return (
-    <div>
+    <div className="pb-3">
       <RealtimeCard />
 
       <div className="flex items-center justify-between mb-4">
