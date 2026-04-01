@@ -62,15 +62,14 @@ export function Dropdown<T extends string = string>({
     ? options.filter((o) => o.label.toLowerCase().includes(searchQuery.toLowerCase()))
     : options;
 
-  useEffect(() => {
-    if (open) {
-      setSearchQuery("");
-      setHighlightIndex(options.findIndex((o) => o.value === value));
-      if (searchable) {
-        requestAnimationFrame(() => searchInputRef.current?.focus());
-      }
+  const openDropdown = useCallback(() => {
+    setOpen(true);
+    setSearchQuery("");
+    setHighlightIndex(options.findIndex((o) => o.value === value));
+    if (searchable) {
+      requestAnimationFrame(() => searchInputRef.current?.focus());
     }
-  }, [open, options, value, searchable]);
+  }, [options, value, searchable]);
 
   const selectOption = useCallback(
     (v: T) => {
@@ -85,7 +84,7 @@ export function Dropdown<T extends string = string>({
       if (!open) {
         if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          setOpen(true);
+          openDropdown();
         }
         return;
       }
@@ -127,7 +126,7 @@ export function Dropdown<T extends string = string>({
           break;
       }
     },
-    [open, filteredOptions, highlightIndex, selectOption, searchable],
+    [open, filteredOptions, highlightIndex, selectOption, searchable, openDropdown],
   );
 
   const current = options.find((o) => o.value === value);
@@ -143,7 +142,7 @@ export function Dropdown<T extends string = string>({
       <div ref={ref} className="relative">
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => (open ? setOpen(false) : openDropdown())}
           onKeyDown={handleKeyDown}
           aria-haspopup="listbox"
           aria-expanded={open}
