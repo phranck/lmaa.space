@@ -130,12 +130,20 @@ function DashboardSectionItem({
 }: DashboardSectionItemProps) {
   return (
     <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={`flex items-center gap-3 py-2 px-3 rounded-control text-sm font-medium ${
         active
           ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
           : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
       } ${className}`}
       onClick={onClick}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
     >
       <span className="shrink-0 opacity-70">{icon}</span>
       <span className="flex-1">{label}</span>

@@ -87,7 +87,15 @@ export function BuilderField({ field, rowId, isSelected, onSelect, onDelete }: B
       style={style}
       {...attributes}
       {...listeners}
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className={`group/field relative flex w-full items-center px-3 py-2.5 rounded-control border text-sm cursor-pointer text-left ${
         (field.span ?? 12) <= 2 ? "justify-center" : "justify-start gap-2"
       } ${
