@@ -21,16 +21,14 @@ interface PageHeaderProps {
  * @returns Consistent page heading row.
  */
 export function PageHeader({ title, titleContent, leading, children }: PageHeaderProps) {
-  const { setTitle, setTitleContent, leadingEl, actionsEl } = usePageHeaderContext();
+  const { setTitleState, leadingEl, actionsEl } = usePageHeaderContext();
 
   useEffect(() => {
-    setTitle(title);
-    setTitleContent(titleContent ?? null);
+    setTitleState({ title, titleContent: titleContent ?? null });
     return () => {
-      setTitle("");
-      setTitleContent(null);
+      setTitleState({ title: "", titleContent: null });
     };
-  }, [title, titleContent, setTitle, setTitleContent]);
+  }, [title, titleContent, setTitleState]);
 
   if (!leadingEl && !actionsEl) return null;
 
