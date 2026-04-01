@@ -1,18 +1,13 @@
 import {
   ArrowSquareOutIcon,
-  CheckCircleIcon,
-  EnvelopeSimpleIcon,
-  GraphIcon,
   HandshakeIcon,
-  MinusCircleIcon,
   PlayIcon,
-  StorefrontIcon,
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { type ReactNode, useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 
-import type { AffiliateScanJob, AffiliateScanResult, AffiliateScanStatus, AffiliateNetworkId, AffiliateTrackingStatus } from "@lmaa/shared";
+import type { AffiliateScanResult, AffiliateScanStatus } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { ExportButton } from "@/components/ui/ExportButton.tsx";
@@ -25,6 +20,9 @@ import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { StatusBadge as SharedStatusBadge } from "@/components/ui/StatusBadge.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { type StatCardDef, STATUS_COLORS, TRACKING_COLORS } from "@/features/affiliate/affiliate-constants.ts";
+import { AffiliateDetailPane } from "@/features/affiliate/AffiliateDetailPane.tsx";
+import { AffiliateStatBar } from "@/features/affiliate/AffiliateStatBar.tsx";
 import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
 import {
   useCancelBatchScan,
@@ -40,57 +38,19 @@ import {
   useUpdateAffiliateTracking,
 } from "@/features/affiliate/hooks/useAffiliateScans.ts";
 
-// -- Config --
-
-interface StatCardDef {
-  key: "total" | AffiliateScanStatus;
-  filterValue: string;
-  icon: ReactNode;
-  iconBg: string;
-  iconColor: string;
-  activeBorder: string;
-  activeGlow: string;
+interface AffiliateListState {
+  search: string;
+  statusFilter: string;
+  selected: AffiliateScanResult | null;
+  paneVisible: boolean;
+  paneClosing: boolean;
+  sortOrder: "newest" | "oldest";
+  showDeleteAll: boolean;
 }
-
-const STAT_CARDS: StatCardDef[] = [
-  { key: "total", filterValue: "", icon: <StorefrontIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-purple-500/12", iconColor: "text-purple-400", activeBorder: "border-purple-400", activeGlow: "shadow-[0_0_12px_rgba(168,85,247,0.35)]" },
-  { key: "direct", filterValue: "direct", icon: <CheckCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-green-500/12", iconColor: "text-green-400", activeBorder: "border-green-400", activeGlow: "shadow-[0_0_12px_rgba(74,222,128,0.35)]" },
-  { key: "network", filterValue: "network", icon: <GraphIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-amber-500/12", iconColor: "text-amber-400", activeBorder: "border-amber-400", activeGlow: "shadow-[0_0_12px_rgba(251,191,36,0.35)]" },
-  { key: "inquiry", filterValue: "inquiry", icon: <EnvelopeSimpleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-orange-500/12", iconColor: "text-orange-400", activeBorder: "border-orange-400", activeGlow: "shadow-[0_0_12px_rgba(251,146,60,0.35)]" },
-  { key: "none", filterValue: "none", icon: <MinusCircleIcon weight="duotone" className="w-5 h-5" />, iconBg: "bg-zinc-500/10", iconColor: "text-zinc-400", activeBorder: "border-zinc-400", activeGlow: "shadow-[0_0_12px_rgba(161,161,170,0.25)]" },
-];
-
-const STATUS_COLORS: Record<AffiliateScanStatus, string> = {
-  direct: "bg-green-500/12 text-green-400",
-  network: "bg-amber-500/12 text-amber-400",
-  inquiry: "bg-orange-500/12 text-orange-400",
-  none: "bg-zinc-500/10 text-zinc-400",
-};
-
-const TRACKING_COLORS: Record<AffiliateTrackingStatus, string> = {
-  open: "bg-zinc-500/10 text-zinc-400",
-  contacted: "bg-blue-500/12 text-blue-400",
-  confirmed: "bg-green-500/12 text-green-400",
-  rejected: "bg-red-500/12 text-red-400",
-  closed: "bg-purple-500/12 text-purple-400",
-};
-
-
-// -- Main Page --
 
 export function AffiliateListPage() {
   const { messages } = useI18n();
   const t = messages.affiliate;
-
-  interface AffiliateListState {
-    search: string;
-    statusFilter: string;
-    selected: AffiliateScanResult | null;
-    paneVisible: boolean;
-    paneClosing: boolean;
-    sortOrder: "newest" | "oldest";
-    showDeleteAll: boolean;
-  }
 
   const [state, dispatch] = useReducer(
     (prev: AffiliateListState, action: Partial<AffiliateListState>): AffiliateListState => ({ ...prev, ...action }),
@@ -223,7 +183,6 @@ export function AffiliateListPage() {
         t={t}
       />
 
-      {/* Scrollable table area */}
       <div className="flex flex-1 min-h-0">
         <div className="flex-1 overflow-auto">
           {isLoading ? (
@@ -306,7 +265,6 @@ export function AffiliateListPage() {
             </table>
           )}
         </div>
-
       </div>
 
       {paneVisible && selected && (
@@ -403,275 +361,5 @@ export function AffiliateListPage() {
         </OverlayCard.Footer>
       </OverlayCard>
     </PageLayout>
-  );
-}
-
-const SUPPORTED_NETWORKS = new Set<string>(["Awin", "Tradedoubler", "Adcell"]);
-
-function getNetworkId(networkName: string | null): AffiliateNetworkId | null {
-  if (!networkName) return null;
-  const lower = networkName.toLowerCase();
-  if (lower === "awin") return "awin";
-  if (lower === "tradedoubler") return "tradedoubler";
-  if (lower === "adcell") return "adcell";
-  return null;
-}
-
-function ApplyAtNetworkButton({ scan }: { scan: AffiliateScanResult }) {
-  const { messages } = useI18n();
-  const t = messages.affiliate.detail;
-
-  const networkId = getNetworkId(scan.networkName);
-  const applyUrl = scan.networkProgramUrl ?? scan.applicationUrl;
-
-  if (!networkId || !SUPPORTED_NETWORKS.has(scan.networkName ?? "")) return null;
-
-  return (
-    <div className="space-y-2">
-      {applyUrl && (
-        <a
-          href={applyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full h-9 flex items-center justify-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          <ArrowSquareOutIcon weight="duotone" className="w-3.5 h-3.5" />
-          {t.applyAtNetwork}
-        </a>
-      )}
-      {scan.networkProgramId && (
-        <p className="text-xs text-[var(--ds-text-muted)]">
-          {t.networkProgramId}: {scan.networkProgramId}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function DetailField({
-  label,
-  value,
-  isLink,
-}: {
-  label: string;
-  value: string | null;
-  isLink?: boolean;
-}) {
-  if (!value) return null;
-  return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">{label}</p>
-      {isLink ? (
-        <a
-          href={value}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm text-[var(--color-primary)] hover:underline break-all flex items-center gap-1 mt-0.5"
-        >
-          {value}
-          <ArrowSquareOutIcon className="w-3 h-3 shrink-0" />
-        </a>
-      ) : (
-        <p className="text-sm text-[var(--ds-text)] mt-0.5 whitespace-pre-wrap">{value}</p>
-      )}
-    </div>
-  );
-}
-
-// biome-ignore lint/suspicious/noExplicitAny: mutation type from TanStack Query
-type TrackingMutation = { mutate: (...args: any[]) => void };
-
-type AffiliateMessages = ReturnType<typeof useI18n>["messages"]["affiliate"];
-
-interface AffiliateStatBarProps {
-  statusFilter: string;
-  onStatusFilterChange: (filter: string) => void;
-  getStatValue: (key: "total" | AffiliateScanStatus) => number;
-  getStatLabel: (card: StatCardDef) => string;
-  job: AffiliateScanJob | null;
-  isJobActive: boolean;
-  cancelBatch: { mutate: (id: number) => void; isPending: boolean };
-  ollamaAvailable: boolean;
-  t: AffiliateMessages;
-}
-
-function AffiliateStatBar({
-  statusFilter,
-  onStatusFilterChange,
-  getStatValue,
-  getStatLabel,
-  job,
-  isJobActive,
-  cancelBatch,
-  ollamaAvailable,
-  t,
-}: AffiliateStatBarProps) {
-  return (
-    <div className="shrink-0 bg-[var(--ds-surface)]">
-      <div className="grid grid-cols-5 gap-3 px-4 pt-3 pb-3">
-        {STAT_CARDS.map((card) => {
-          const isActive = statusFilter === card.filterValue;
-          return (
-            <button
-              key={card.key}
-              type="button"
-              onClick={() => onStatusFilterChange(isActive && card.filterValue !== "" ? "" : card.filterValue)}
-              className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all cursor-pointer ${
-                isActive
-                  ? `${card.activeBorder} ${card.activeGlow} bg-[var(--ds-bg-elevated)]`
-                  : "border-[var(--ds-border-subtle)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border)]"
-              }`}
-            >
-              <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
-                {card.icon}
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
-                {getStatLabel(card)}
-              </p>
-              <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
-            </button>
-          );
-        })}
-      </div>
-
-      {isJobActive && job && (
-        <div className="flex items-center gap-3 mx-4 mb-3 p-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
-          <div className="w-5 h-5 shrink-0 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-          <div className="flex-1">
-            <div className="flex items-center justify-between text-sm mb-1">
-              <span className="font-medium text-[var(--ds-text)]">
-                {cancelBatch.isPending ? t.batch.cancelling : t.batch.running}
-              </span>
-              <span className="text-[var(--ds-text-muted)]">
-                {t.batch.progress
-                  .replace("{completed}", String(job.completedShops + job.failedShops))
-                  .replace("{total}", String(job.totalShops))}
-              </span>
-            </div>
-            <div className="h-2 rounded-full bg-[var(--ds-surface-hover)] overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[var(--color-primary)] transition-all"
-                style={{
-                  width: `${job.totalShops > 0 ? ((job.completedShops + job.failedShops) / job.totalShops) * 100 : 0}%`,
-                }}
-              />
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => cancelBatch.mutate(job.id)}
-            disabled={cancelBatch.isPending}
-            className="h-8 px-3 text-sm rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] disabled:opacity-50"
-          >
-            {cancelBatch.isPending ? t.batch.cancelling : t.batch.cancel}
-          </button>
-        </div>
-      )}
-
-      {!ollamaAvailable && (
-        <p className="text-xs text-amber-600 dark:text-amber-400 px-4 mb-3">{t.ollamaUnavailable}</p>
-      )}
-    </div>
-  );
-}
-
-interface AffiliateDetailPaneProps {
-  selected: AffiliateScanResult;
-  paneClosing: boolean;
-  onAnimationEnd: () => void;
-  onClose: () => void;
-  onSelectedChange: (updated: AffiliateScanResult | null) => void;
-  updateTracking: TrackingMutation;
-  t: AffiliateMessages;
-}
-
-function AffiliateDetailPane({
-  selected,
-  paneClosing,
-  onAnimationEnd,
-  onClose,
-  onSelectedChange,
-  updateTracking,
-  t,
-}: AffiliateDetailPaneProps) {
-  return (
-    <div
-      onAnimationEnd={onAnimationEnd}
-      className={`fixed top-14 right-0 bottom-0 w-80 z-20 border-l border-[var(--ds-border)] bg-[var(--ds-surface)] flex flex-col ${
-        paneClosing ? "animate-[slideOut_200ms_ease-in-out_forwards]" : "animate-[slideIn_200ms_ease-in-out_forwards]"
-      }`}
-    >
-      <div className="flex items-center justify-between p-4 border-b border-[var(--ds-border)]">
-        <h2 className="font-semibold text-[var(--ds-text)] truncate">{selected.shopName}</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-        >
-          <XCircleIcon weight="duotone" className="w-5 h-5" />
-        </button>
-      </div>
-      <div className="flex-1 overflow-auto p-4 space-y-5">
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-            {t.table.tracking}
-          </label>
-          <select
-            value={selected.trackingStatus}
-            onChange={(e) => {
-              const newStatus = e.target.value as AffiliateTrackingStatus;
-              updateTracking.mutate(
-                { shopId: selected.shopId, trackingStatus: newStatus, trackingNote: selected.trackingNote },
-                {
-                  onSuccess: () =>
-                    onSelectedChange({ ...selected, trackingStatus: newStatus }),
-                },
-              );
-            }}
-            className="w-full h-9 mt-1 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm"
-          >
-            <option value="open">{t.tracking.open}</option>
-            <option value="contacted">{t.tracking.contacted}</option>
-            <option value="confirmed">{t.tracking.confirmed}</option>
-            <option value="rejected">{t.tracking.rejected}</option>
-            <option value="closed">{t.tracking.closed}</option>
-          </select>
-          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
-            {t.detail.lastUpdated}: {new Date(selected.updatedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-          </p>
-        </div>
-        <ApplyAtNetworkButton scan={selected} />
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-            {t.detail.trackingNote}
-          </label>
-          <textarea
-            value={selected.trackingNote ?? ""}
-            onChange={(e) => onSelectedChange({ ...selected, trackingNote: e.target.value })}
-            onBlur={() => {
-              updateTracking.mutate({
-                shopId: selected.shopId,
-                trackingStatus: selected.trackingStatus,
-                trackingNote: selected.trackingNote,
-              });
-            }}
-            placeholder={t.detail.trackingNotePlaceholder}
-            rows={3}
-            className="w-full mt-1 p-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm resize-none"
-          />
-        </div>
-        <DetailField label={t.detail.recommendation} value={selected.recommendation} />
-        <DetailField label={t.detail.programUrl} value={selected.programUrl} isLink />
-        {selected.applicationUrl !== selected.programUrl && (
-          <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
-        )}
-        <DetailField label={t.detail.contactEmail} value={selected.contactEmail} />
-        <DetailField label={t.detail.compensationModel} value={selected.compensationModel} />
-        <DetailField label={t.detail.cookieDuration} value={selected.cookieDuration} />
-        <DetailField label={t.detail.payoutThreshold} value={selected.payoutThreshold} />
-        <DetailField label={t.detail.requirements} value={selected.requirements} />
-        <DetailField label={t.detail.notes} value={selected.notes} />
-      </div>
-    </div>
   );
 }
