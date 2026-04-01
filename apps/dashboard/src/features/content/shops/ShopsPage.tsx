@@ -12,8 +12,6 @@ import {
 import { useEffect, useMemo, useReducer, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
-import type { ShopVisibility } from "@lmaa/shared";
-
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
@@ -26,6 +24,15 @@ import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type SortState } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
+import {
+  EXPORT_LIMITS,
+  type ExportLimit,
+  type GeoFilter,
+  INITIAL_FILTER_STATE,
+  type VisibilityFilter,
+  parseShopsSort,
+  shopsFilterReducer,
+} from "@/features/content/shops/shop-filter-state.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 
 import {
@@ -33,60 +40,6 @@ import {
   useImportShopReviewResults,
   useShopVisibilityCounts,
 } from "./hooks/useAdminShops.ts";
-
-type VisibilityFilter = "all" | ShopVisibility;
-type GeoFilter = "all" | "with" | "without" | "needsReview";
-const SHOP_SORTABLE_COLUMNS = new Set(["name", "region", "likes"]);
-
-function parseShopsSort(searchParams: URLSearchParams): SortState | null {
-  const id = searchParams.get("sort");
-  const dir = searchParams.get("dir");
-  if (!id || !dir) return null;
-  if (!SHOP_SORTABLE_COLUMNS.has(id)) return null;
-  if (dir !== "asc" && dir !== "desc") return null;
-  return { id, dir };
-}
-
-const EXPORT_LIMITS = [10, 20, 30, 50, 100, 150, 200] as const;
-type ExportLimit = (typeof EXPORT_LIMITS)[number];
-
-type ShopsFilterState = {
-  categoryFilter: string;
-  visibilityFilter: VisibilityFilter;
-  geoFilter: GeoFilter;
-  exportLimit: ExportLimit;
-  importError: string | null;
-};
-
-type ShopsFilterAction =
-  | { type: "setCategoryFilter"; value: string }
-  | { type: "setVisibilityFilter"; value: VisibilityFilter }
-  | { type: "setGeoFilter"; value: GeoFilter }
-  | { type: "setExportLimit"; value: ExportLimit }
-  | { type: "setImportError"; value: string | null };
-
-const INITIAL_FILTER_STATE: ShopsFilterState = {
-  categoryFilter: "all",
-  visibilityFilter: "public",
-  geoFilter: "all",
-  exportLimit: 50,
-  importError: null,
-};
-
-function shopsFilterReducer(state: ShopsFilterState, action: ShopsFilterAction): ShopsFilterState {
-  switch (action.type) {
-    case "setCategoryFilter":
-      return { ...state, categoryFilter: action.value };
-    case "setVisibilityFilter":
-      return { ...state, visibilityFilter: action.value };
-    case "setGeoFilter":
-      return { ...state, geoFilter: action.value };
-    case "setExportLimit":
-      return { ...state, exportLimit: action.value };
-    case "setImportError":
-      return { ...state, importError: action.value };
-  }
-}
 
 /**
  * Shop management route with filters and moderation actions.
