@@ -32,6 +32,7 @@ export const categories = pgTable("categories", {
   imageUrl: text("image_url"),
   imagePhotographer: text("image_photographer"),
   imagePhotographerUrl: text("image_photographer_url"),
+  imageFocalPointY: integer("image_focal_point_y").notNull().default(50),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

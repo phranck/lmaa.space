@@ -28,6 +28,7 @@ interface FilteredCategory {
   imageUrl: string | null;
   imagePhotographer: string | null;
   imagePhotographerUrl: string | null;
+  imageFocalPointY: number;
   shopCount: number;
 }
 
@@ -49,6 +50,7 @@ export default function FilterableCategoryGrid({
       imageUrl: c.imageUrl ?? null,
       imagePhotographer: c.imagePhotographer ?? null,
       imagePhotographerUrl: c.imagePhotographerUrl ?? null,
+      imageFocalPointY: c.imageFocalPointY ?? 50,
       shopCount: c.shopCount ?? 0,
     })),
   );
@@ -173,6 +175,7 @@ export default function FilterableCategoryGrid({
               imageUrl={cat.imageUrl}
               imagePhotographer={cat.imagePhotographer ?? null}
               imagePhotographerUrl={cat.imagePhotographerUrl ?? null}
+              imageFocalPointY={cat.imageFocalPointY}
               shopCount={cat.shopCount}
               href={buildCategoryHref(cat.slug, currentFilters)}
             />

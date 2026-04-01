@@ -11,6 +11,7 @@ import {
   createAdminCategory,
   deleteAdminCategory,
   listAdminCategories,
+  setAdminCategoryFocalPoint,
   updateAdminCategory,
 } from "../../repositories/admin-categories.js";
 import {
@@ -141,6 +142,25 @@ categoriesRoutes.post("/categories/:id/image", requireAdmin, async (c) => {
 
   return ok(c, result.category);
 });
+
+// Update focal point
+const focalPointSchema = z.object({
+  focalPointY: z.number().int().min(0).max(100),
+});
+
+categoriesRoutes.patch(
+  "/categories/:id/focal-point",
+  requireAdmin,
+  zValidator("json", focalPointSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
+    const { focalPointY } = c.req.valid("json");
+    const category = await setAdminCategoryFocalPoint(id, Math.max(0, Math.min(100, Math.round(focalPointY))));
+    if (!category) return fail(c, 404, "Category not found");
+    return ok(c, category);
+  },
+);
 
 // Delete image of a category
 categoriesRoutes.delete("/categories/:id/image", requireAdmin, async (c) => {

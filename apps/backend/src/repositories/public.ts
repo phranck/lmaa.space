@@ -64,6 +64,7 @@ export async function listPublicCategoriesWithShopCount() {
       imageUrl: categories.imageUrl,
       imagePhotographer: categories.imagePhotographer,
       imagePhotographerUrl: categories.imagePhotographerUrl,
+      imageFocalPointY: categories.imageFocalPointY,
       unsplashImageId: categories.unsplashImageId,
       shopCount: count(shops.id),
     })
@@ -109,6 +110,7 @@ export async function getPublicCategoryBySlug(slug: string) {
       imageUrl: categories.imageUrl,
       imagePhotographer: categories.imagePhotographer,
       imagePhotographerUrl: categories.imagePhotographerUrl,
+      imageFocalPointY: categories.imageFocalPointY,
       unsplashImageId: categories.unsplashImageId,
     })
     .from(categories)

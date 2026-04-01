@@ -1,0 +1,1 @@
+ALTER TABLE "categories" ADD COLUMN "image_focal_point_y" integer DEFAULT 50 NOT NULL;

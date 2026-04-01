@@ -111,6 +111,15 @@ export function useSaveCategory(categoryId: number | "new") {
  *
  * @returns React Query mutation for category deletion.
  */
+export function useSetCategoryFocalPoint() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, focalPointY }: { id: number; focalPointY: number }) =>
+      api.patch<Category>(`/admin/categories/${id}/focal-point`, { focalPointY }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories-admin"] }),
+  });
+}
+
 export function useDeleteCategory() {
   const qc = useQueryClient();
   return useMutation({
