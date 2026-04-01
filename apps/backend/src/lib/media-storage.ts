@@ -352,7 +352,7 @@ export async function putUnsplashCacheImage(type: UnsplashCacheType, unsplashIma
   );
 }
 
-export async function removeUnsplashCacheImage(type: UnsplashCacheType, unsplashImageId: number): Promise<void> {
+export async function deleteUnsplashCacheImage(type: UnsplashCacheType, unsplashImageId: number): Promise<void> {
   try {
     await s3.send(
       new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: unsplashCacheKey(type, unsplashImageId) }),

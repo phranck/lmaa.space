@@ -1,11 +1,12 @@
 import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 import { env } from "../config/env.js";
 import { processImageUpload } from "../lib/image-upload.js";
-import { isUnsplashCacheImageStored, putUnsplashCacheImage } from "../lib/media-storage.js";
+import { deleteUnsplashCacheImage, isUnsplashCacheImageStored, putUnsplashCacheImage } from "../lib/media-storage.js";
 import { failure, success } from "../lib/result.js";
 import {
   categoryExists,
   clearAdminCategoryImage,
+  getCategoryUnsplashImageId,
   setAdminCategoryImage,
   setAdminCategoryUnsplashImage,
 } from "../repositories/admin-categories.js";
@@ -137,9 +138,17 @@ export async function removeManagedAdminCategoryImage(id: number) {
     return failure("not_found");
   }
 
+  const unsplashImageId = await getCategoryUnsplashImageId(id);
+
   const category = await clearAdminCategoryImage(id);
   if (!category) {
     return failure("not_found");
+  }
+
+  if (unsplashImageId) {
+    deleteUnsplashCacheImage("categorie", unsplashImageId).catch((err: unknown) => {
+      console.error(`[unsplash-cache] Failed to delete cached category image ${unsplashImageId}:`, err);
+    });
   }
 
   return success({ category });

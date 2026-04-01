@@ -352,6 +352,9 @@ export interface DashboardMessages {
     deleteDescription: string;
     cacheFolderDescription: string;
     cacheFolderEmpty: string;
+    deleteCacheItem: string;
+    deleteCacheItemTitle: string;
+    deleteCacheItemDescription: string;
     refetchMeta: string;
     refetchMetaPending: string;
     purgeCache: string;
@@ -1449,6 +1452,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       cacheFolderDescription: "Gecachete Hero-Banner-Bilder",
       cacheFolderEmpty: "Noch keine Bilder gecacht.",
+      deleteCacheItem: "Aus Cache entfernen",
+      deleteCacheItemTitle: "Bild aus Cache entfernen",
+      deleteCacheItemDescription: "Das Bild wird aus dem Cache gelöscht. Es kann über den Refetch-Button neu geladen werden.",
       refetchMeta: "Metadaten aktualisieren",
       refetchMetaPending: "Aktualisiere…",
       purgeCache: "Cache leeren",
@@ -2513,6 +2519,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       },
       cacheFolderDescription: "Cached hero banner images",
       cacheFolderEmpty: "No images cached yet.",
+      deleteCacheItem: "Remove from cache",
+      deleteCacheItemTitle: "Remove image from cache",
+      deleteCacheItemDescription: "The image will be removed from cache. You can re-download it using the refresh button.",
       refetchMeta: "Refresh metadata",
       refetchMetaPending: "Refreshing…",
       purgeCache: "Purge cache",

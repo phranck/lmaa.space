@@ -38,6 +38,7 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   useAdminMedia,
   useDeleteMedia,
+  useDeleteUnsplashCacheItem,
   usePurgeUnsplashCache,
   useRefetchUnsplashMeta,
   useRenameMedia,
@@ -113,8 +114,10 @@ export function MediaPage() {
   const syncMedia = useSyncMedia();
   const refetchMeta = useRefetchUnsplashMeta();
   const purgeCache = usePurgeUnsplashCache();
+  const deleteCacheItem = useDeleteUnsplashCacheItem();
   const [refetchingImageId, setRefetchingImageId] = useState<number | null>(null);
   const [showPurgeDialog, setShowPurgeDialog] = useState(false);
+  const [deleteCacheTarget, setDeleteCacheTarget] = useState<{ type: "hero" | "categorie"; unsplashImageId: number } | null>(null);
 
   const selectedAsset = assets.find((asset) => asset.id === selectedId) ?? null;
   const selectedCacheItem = cacheItems.find((item) => item.unsplashImageId === selectedCacheItemId && item.type === selectedCacheItemType) ?? null;
@@ -434,11 +437,13 @@ export function MediaPage() {
                     {!cacheLoading && filteredItems.length > 0 && viewMode === "grid" && (
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {filteredItems.map((item) => (
-                          <button
+                          <div
                             key={item.unsplashImageId}
-                            type="button"
+                            role="button"
+                            tabIndex={0}
                             onClick={() => { setSelectedCacheItemId(item.unsplashImageId); setSelectedCacheItemType(item.type); }}
-                            className={`group relative rounded-xl overflow-hidden border-2 transition-colors text-left ${item.unsplashImageId === selectedCacheItemId && item.type === selectedCacheItemType ? "border-[var(--color-primary)]" : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border)]"}`}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setSelectedCacheItemId(item.unsplashImageId); setSelectedCacheItemType(item.type); } }}
+                            className={`group relative rounded-xl overflow-hidden border-2 transition-colors text-left cursor-pointer ${item.unsplashImageId === selectedCacheItemId && item.type === selectedCacheItemType ? "border-[var(--color-primary)]" : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border)]"}`}
                           >
                             <img src={item.url} alt="" className="w-full aspect-[4/3] object-cover" loading="lazy" />
                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
@@ -449,7 +454,18 @@ export function MediaPage() {
                                 <ArrowsClockwiseIcon weight="bold" className="w-4 h-4 text-white animate-spin" />
                               </div>
                             )}
-                          </button>
+                            {/* Delete overlay */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setDeleteCacheTarget({ type: item.type, unsplashImageId: item.unsplashImageId }); }}
+                                className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-white text-[var(--ds-btn-danger-text,#ef4444)] rounded-control hover:bg-red-50"
+                              >
+                                <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+                                {mediaMessages.deleteCacheItem}
+                              </button>
+                            </div>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -920,6 +936,47 @@ export function MediaPage() {
             className={dialogBtnDestructive}
           >
             {purgeCache.isPending ? "…" : mediaMessages.purgeCache}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
+
+      <Dialog
+        open={deleteCacheTarget !== null}
+        title={mediaMessages.deleteCacheItemTitle}
+        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
+        onClose={() => setDeleteCacheTarget(null)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">
+            {mediaMessages.deleteCacheItemDescription}
+          </p>
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setDeleteCacheTarget(null)}
+            className={dialogBtnSecondary}
+          >
+            {common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={deleteCacheItem.isPending}
+            onClick={() => {
+              if (!deleteCacheTarget) return;
+              deleteCacheItem.mutate(deleteCacheTarget, {
+                onSuccess: () => {
+                  if (selectedCacheItemId === deleteCacheTarget.unsplashImageId && selectedCacheItemType === deleteCacheTarget.type) {
+                    setSelectedCacheItemId(null);
+                    setSelectedCacheItemType(null);
+                  }
+                  setDeleteCacheTarget(null);
+                },
+              });
+            }}
+            className={dialogBtnDestructive}
+          >
+            {deleteCacheItem.isPending ? "…" : common.delete}
           </button>
         </Dialog.Footer>
       </Dialog>
