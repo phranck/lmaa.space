@@ -170,8 +170,13 @@ const SCOPED_CSS = /* css */ `
 }
 `;
 
-const LAYERS_ICON_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" fill="currentColor" style="margin-top:-3px"><path d="M230.91 124 128 180.07 25.09 124a8 8 0 0 0-10.18 12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-10.18-12ZM128 236.07 25.09 180a8 8 0 1 0-7.58 14.12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-7.58-14.12Zm-99.49-128 104-56a8 8 0 0 1 7.58 0l104 56a8 8 0 0 1 0 14.12l-104 56a8 8 0 0 1-7.58 0l-104-56a8 8 0 0 1 0-14.12Z"/></svg>';
+function LayersIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" fill="currentColor" style={{ marginTop: -3 }}>
+      <path d="M230.91 124 128 180.07 25.09 124a8 8 0 0 0-10.18 12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-10.18-12ZM128 236.07 25.09 180a8 8 0 1 0-7.58 14.12l104 56a8 8 0 0 0 7.58 0l104-56a8 8 0 0 0-7.58-14.12Zm-99.49-128 104-56a8 8 0 0 1 7.58 0l104 56a8 8 0 0 1 0 14.12l-104 56a8 8 0 0 1-7.58 0l-104-56a8 8 0 0 1 0-14.12Z" />
+    </svg>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Props
@@ -412,8 +417,9 @@ function LayerSwitcher({
         title="Kartenstil"
         aria-label="Kartenstil wechseln"
         onClick={handleToggle}
-        dangerouslySetInnerHTML={{ __html: LAYERS_ICON_SVG }}
-      />
+      >
+        <LayersIcon />
+      </button>
     </div>
   );
 }
@@ -478,8 +484,9 @@ export function ShopLocationMap({
   const markerPosition = shopPosition ?? browserPosition;
 
   return (
-    <div className={`slm-root relative overflow-hidden ${className}`}>
-      <style dangerouslySetInnerHTML={{ __html: SCOPED_CSS }} />
+    <div role="application" aria-label={name ? `Karte: ${name}` : "Karte"} className={`slm-root relative overflow-hidden ${className}`}>
+      {/* Scoped CSS for Leaflet map styling -- static trusted content */}
+      <style>{SCOPED_CSS}</style>
       <MapContainer
         center={(shopPosition ?? DACH_CENTER) as LatLngExpression}
         zoom={shopPosition ? prefs.zoom : 6}

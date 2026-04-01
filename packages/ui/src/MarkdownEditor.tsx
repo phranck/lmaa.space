@@ -76,6 +76,8 @@ const highlightStyle = HighlightStyle.define([
 
 const lmaaTheme = [editorTheme, syntaxHighlighting(highlightStyle)];
 
+const EMPTY_EXTENSIONS: Extension[] = [];
+
 // --- Keymap ---
 
 function wrapSelection(view: EditorView, before: string, after: string): boolean {
@@ -184,7 +186,7 @@ export function MarkdownEditor({
   height,
   resizable = false,
   showHints = true,
-  extensions: extraExtensions = [],
+  extensions: extraExtensions = EMPTY_EXTENSIONS,
   className = "",
 }: MarkdownEditorProps) {
   const rowsHeight = `${rows * 1.5}rem`;
