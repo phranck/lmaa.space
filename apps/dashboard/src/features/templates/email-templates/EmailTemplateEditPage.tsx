@@ -1,9 +1,12 @@
 import { CheckCircleIcon, DownloadIcon, SealWarningIcon } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
-import { MarkdownEditor } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
@@ -82,29 +85,48 @@ export function EmailTemplateEditPage() {
   const createMutation = useCreateEmailTemplate();
   const updateMutation = useUpdateEmailTemplate(numId);
 
-  const [name, setName] = useState("");
-  const [subject, setSubject] = useState("");
-  const [headerBannerUrl, setHeaderBannerUrl] = useState("");
-  const [headerText, setHeaderText] = useState("");
-  const [bodyText, setBodyText] = useState("");
-  const [footerBannerUrl, setFooterBannerUrl] = useState("");
-  const [footerText, setFooterText] = useState("");
+  interface TemplateFormFields {
+    name: string;
+    subject: string;
+    headerBannerUrl: string;
+    headerText: string;
+    bodyText: string;
+    footerBannerUrl: string;
+    footerText: string;
+  }
+
+  const [form, setForm] = useState<TemplateFormFields>({
+    name: "",
+    subject: "",
+    headerBannerUrl: "",
+    headerText: "",
+    bodyText: "",
+    footerBannerUrl: "",
+    footerText: "",
+  });
+  const { name, subject, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText } = form;
+
+  const updateField = <K extends keyof TemplateFormFields>(key: K, value: TemplateFormFields[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Populate form when loading existing template
-  useEffect(() => {
-    if (existing) {
-      setName(existing.name);
-      setSubject(existing.subject);
-      setHeaderBannerUrl(existing.headerBannerUrl ?? "");
-      setHeaderText(existing.headerText ?? "");
-      setBodyText(existing.bodyText);
-      setFooterBannerUrl(existing.footerBannerUrl ?? "");
-      setFooterText(existing.footerText ?? "");
-    }
-  }, [existing]);
+  // Populate form when existing template data arrives (adjust-state-during-render pattern)
+  const [syncedExistingId, setSyncedExistingId] = useState<number | undefined>();
+  if (existing && existing.id !== syncedExistingId) {
+    setSyncedExistingId(existing.id);
+    setForm({
+      name: existing.name,
+      subject: existing.subject,
+      headerBannerUrl: existing.headerBannerUrl ?? "",
+      headerText: existing.headerText ?? "",
+      bodyText: existing.bodyText,
+      footerBannerUrl: existing.footerBannerUrl ?? "",
+      footerText: existing.footerText ?? "",
+    });
+  }
 
   function buildPayload(): EmailTemplateInput {
     return {
@@ -199,7 +221,7 @@ export function EmailTemplateEditPage() {
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => updateField("name", e.target.value)}
           placeholder={m.newTemplate}
           className="w-64 px-2 py-1 text-sm font-mono bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
         />
@@ -220,7 +242,7 @@ export function EmailTemplateEditPage() {
               <TextInput
                 id="tpl-subject"
                 value={subject}
-                onChange={setSubject}
+                onChange={(v) => updateField("subject", v)}
                 placeholder={m.subjectPlaceholder}
               />
             </Field>
@@ -231,47 +253,53 @@ export function EmailTemplateEditPage() {
                 <TextInput
                   id="tpl-header-banner"
                   value={headerBannerUrl}
-                  onChange={setHeaderBannerUrl}
+                  onChange={(v) => updateField("headerBannerUrl", v)}
                   placeholder="https://example.com/header.png"
                 />
               </Field>
               <Field label={m.headerText} htmlFor="tpl-header-text">
-                <MarkdownEditor
-                  id="tpl-header-text"
-                  value={headerText}
-                  onChange={setHeaderText}
-                  rows={4}
-                />
+                <Suspense fallback={<div className="h-[6rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+                  <MarkdownEditor
+                    id="tpl-header-text"
+                    value={headerText}
+                    onChange={(v) => updateField("headerText", v)}
+                    rows={4}
+                  />
+                </Suspense>
               </Field>
             </SectionCard>
 
             {/* Body */}
             <SectionCard title={m.sectionBody}>
               <Field label={m.bodyText} htmlFor="tpl-body-text" required>
-                <MarkdownEditor
-                  id="tpl-body-text"
-                  value={bodyText}
-                  onChange={setBodyText}
-                  rows={12}
-                />
+                <Suspense fallback={<div className="h-[18rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+                  <MarkdownEditor
+                    id="tpl-body-text"
+                    value={bodyText}
+                    onChange={(v) => updateField("bodyText", v)}
+                    rows={12}
+                  />
+                </Suspense>
               </Field>
             </SectionCard>
 
             {/* Footer */}
             <SectionCard title={m.sectionFooter}>
               <Field label={m.footerText} htmlFor="tpl-footer-text">
-                <MarkdownEditor
-                  id="tpl-footer-text"
-                  value={footerText}
-                  onChange={setFooterText}
-                  rows={4}
-                />
+                <Suspense fallback={<div className="h-[6rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+                  <MarkdownEditor
+                    id="tpl-footer-text"
+                    value={footerText}
+                    onChange={(v) => updateField("footerText", v)}
+                    rows={4}
+                  />
+                </Suspense>
               </Field>
               <Field label={m.footerBanner} htmlFor="tpl-footer-banner">
                 <TextInput
                   id="tpl-footer-banner"
                   value={footerBannerUrl}
-                  onChange={setFooterBannerUrl}
+                  onChange={(v) => updateField("footerBannerUrl", v)}
                   placeholder="https://example.com/footer.png"
                 />
               </Field>
