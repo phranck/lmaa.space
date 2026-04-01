@@ -10,8 +10,8 @@ import type { Category } from "@lmaa/shared";
 import { AlertDialog } from "@lmaa/ui";
 
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
-import { API_BASE } from "@/lib/client-api";
 import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
+import { API_BASE } from "@/lib/client-api";
 import { getSafeActionUrl, getSafeConfigHref } from "@/lib/safe-url";
 
 import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
