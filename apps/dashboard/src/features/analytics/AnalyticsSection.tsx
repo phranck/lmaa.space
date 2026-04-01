@@ -648,20 +648,26 @@ interface MetricListProps {
   renderLabel?: (x: string) => string;
 }
 
-function MetricList({ title, type, period, renderLabel }: MetricListProps) {
-  const { messages, formatNumber } = useI18n();
-  const analyticsMessages = messages.dashboard.analytics;
-  const { data, isLoading } = useUmamiMetrics(type, period);
-  const rows = data ?? [];
-  const max = rows[0]?.y ?? 1;
-  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
-  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
-
-  const renderRows = (listRows: typeof rows) => (
+function MetricRowList({
+  rows,
+  type,
+  max,
+  renderLabel,
+  unknownLabel,
+  formatNumber,
+}: {
+  rows: { x: unknown; y: number }[];
+  type: UmamiMetricType;
+  max: number;
+  renderLabel?: (x: string) => string;
+  unknownLabel: string;
+  formatNumber: (n: number) => string;
+}) {
+  return (
     <ul className="space-y-2">
-      {listRows.map((row) => {
+      {rows.map((row) => {
         const rowText = toMetricText(row.x);
-        const rowLabel = renderLabel ? renderLabel(rowText) : rowText || analyticsMessages.unknown;
+        const rowLabel = renderLabel ? renderLabel(rowText) : rowText || unknownLabel;
         return (
           <li key={`${type}-${rowText}`} className="flex items-center gap-2 text-sm">
             <span className="shrink-0 w-5 text-base leading-none">
@@ -684,6 +690,16 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
       })}
     </ul>
   );
+}
+
+function MetricList({ title, type, period, renderLabel }: MetricListProps) {
+  const { messages, formatNumber } = useI18n();
+  const analyticsMessages = messages.dashboard.analytics;
+  const { data, isLoading } = useUmamiMetrics(type, period);
+  const rows = data ?? [];
+  const max = rows[0]?.y ?? 1;
+  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
+  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
@@ -703,8 +719,8 @@ function MetricList({ title, type, period, renderLabel }: MetricListProps) {
       {!isLoading && rows.length > 0 && (
         <CollapsibleList
           canCollapse={canCollapse}
-          collapsedContent={renderRows(collapsedRows)}
-          expandedContent={renderRows(rows)}
+          collapsedContent={<MetricRowList rows={collapsedRows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+          expandedContent={<MetricRowList rows={rows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
         />
       )}
     </div>
@@ -717,17 +733,21 @@ interface EventListCardProps {
   isLoading: boolean;
 }
 
-function EventListCard({ title, rows, isLoading }: EventListCardProps) {
-  const { messages, formatNumber } = useI18n();
-  const analyticsMessages = messages.dashboard.analytics;
-  const max = rows[0]?.total ?? 1;
-  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
-  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
-
-  const renderRows = (listRows: UmamiEventValueRow[]) => (
+function EventRowList({
+  rows,
+  max,
+  keyPrefix,
+  formatNumber,
+}: {
+  rows: UmamiEventValueRow[];
+  max: number;
+  keyPrefix: string;
+  formatNumber: (n: number) => string;
+}) {
+  return (
     <ul className="space-y-2">
-      {listRows.map((row) => (
-        <li key={`${title}-${row.value}`} className="flex items-center gap-2 text-sm">
+      {rows.map((row) => (
+        <li key={`${keyPrefix}-${row.value}`} className="flex items-center gap-2 text-sm">
           <span className="flex-1 truncate text-[var(--ds-text-muted)]" title={row.value}>
             {row.value}
           </span>
@@ -744,6 +764,14 @@ function EventListCard({ title, rows, isLoading }: EventListCardProps) {
       ))}
     </ul>
   );
+}
+
+function EventListCard({ title, rows, isLoading }: EventListCardProps) {
+  const { messages, formatNumber } = useI18n();
+  const analyticsMessages = messages.dashboard.analytics;
+  const max = rows[0]?.total ?? 1;
+  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
+  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4 flex flex-col gap-3">
@@ -761,8 +789,8 @@ function EventListCard({ title, rows, isLoading }: EventListCardProps) {
       ) : (
         <CollapsibleList
           canCollapse={canCollapse}
-          collapsedContent={renderRows(collapsedRows)}
-          expandedContent={renderRows(rows)}
+          collapsedContent={<EventRowList rows={collapsedRows} max={max} keyPrefix={title} formatNumber={formatNumber} />}
+          expandedContent={<EventRowList rows={rows} max={max} keyPrefix={title} formatNumber={formatNumber} />}
         />
       )}
     </div>
@@ -776,30 +804,36 @@ interface TabbedMetricCardProps {
   storageKey: string;
 }
 
-function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardProps) {
-  const { locale, messages, formatNumber } = useI18n();
-  const analyticsMessages = messages.dashboard.analytics;
-  const [activeType, setActiveType] = useState<UmamiMetricType>(tabs[0]?.value ?? "country");
-  const activeTab = tabs.find((tab) => tab.value === activeType) ?? tabs[0];
-  const { data, isLoading } = useUmamiMetrics(activeTab.value, period);
-  const rows = data ?? [];
-  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
-  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
-  const total = rows.reduce((sum, row) => sum + row.y, 0);
-
-  const renderRows = (listRows: typeof rows) => (
+function TabbedMetricRowList({
+  rows,
+  total,
+  activeType,
+  activeTab,
+  locale,
+  unknownLabel,
+  formatNumber,
+}: {
+  rows: { x: unknown; y: number }[];
+  total: number;
+  activeType: UmamiMetricType;
+  activeTab: MetricTabConfig;
+  locale: DashboardLocale;
+  unknownLabel: string;
+  formatNumber: (n: number) => string;
+}) {
+  return (
     <ul className="pt-2 space-y-1.5">
-      {listRows.map((row) => {
+      {rows.map((row) => {
         const percentage = total > 0 ? Math.round((row.y / total) * 100) : 0;
         const rowText = toMetricText(row.x);
         let label = activeTab.renderLabel
           ? activeTab.renderLabel(rowText)
-          : rowText || analyticsMessages.unknown;
+          : rowText || unknownLabel;
         const EnvironmentIcon = getEnvironmentIcon(activeType, rowText);
         let leadingVisual: ReactNode = null;
 
         if (activeType === "country" || activeType === "region" || activeType === "city") {
-          const parsed = parseLocationDisplay(activeType, rowText, locale, analyticsMessages.unknown);
+          const parsed = parseLocationDisplay(activeType, rowText, locale, unknownLabel);
           label = parsed.label;
           leadingVisual = parsed.flag ? (
             <span className="shrink-0 leading-none">{parsed.flag}</span>
@@ -833,6 +867,18 @@ function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardP
       })}
     </ul>
   );
+}
+
+function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardProps) {
+  const { locale, messages, formatNumber } = useI18n();
+  const analyticsMessages = messages.dashboard.analytics;
+  const [activeType, setActiveType] = useState<UmamiMetricType>(tabs[0]?.value ?? "country");
+  const activeTab = tabs.find((tab) => tab.value === activeType) ?? tabs[0];
+  const { data, isLoading } = useUmamiMetrics(activeTab.value, period);
+  const rows = data ?? [];
+  const collapsedRows = rows.slice(0, COLLAPSIBLE_ROW_LIMIT);
+  const canCollapse = rows.length > COLLAPSIBLE_ROW_LIMIT;
+  const total = rows.reduce((sum, row) => sum + row.y, 0);
 
   return (
     <div className="bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] shadow-sm p-4">
@@ -865,8 +911,8 @@ function TabbedMetricCard({ title, tabs, period, storageKey }: TabbedMetricCardP
       ) : (
         <CollapsibleList
           canCollapse={canCollapse}
-          collapsedContent={renderRows(collapsedRows)}
-          expandedContent={renderRows(rows)}
+          collapsedContent={<TabbedMetricRowList rows={collapsedRows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+          expandedContent={<TabbedMetricRowList rows={rows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
         />
       )}
     </div>
