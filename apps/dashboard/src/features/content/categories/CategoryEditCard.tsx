@@ -87,6 +87,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     photographerUrl: null,
     pendingFile: null,
     pendingUnsplashUrl: null,
+    pendingUnsplashData: null,
     deleted: false,
     loadError: false,
   });
@@ -106,6 +107,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         photographerUrl: category.imagePhotographerUrl ?? null,
         pendingFile: null,
         pendingUnsplashUrl: null,
+        pendingUnsplashData: null,
         deleted: false,
         loadError: false,
       });
@@ -143,18 +145,35 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
       photographerUrl: null,
       pendingFile: file,
       pendingUnsplashUrl: null,
+      pendingUnsplashData: null,
       deleted: false,
       loadError: false,
     });
   }
 
-  function handleUnsplashSelect({ url, photographer, photographerUrl }: { url: string; photographer: string; photographerUrl: string; downloadLocation: string }) {
+  function handleUnsplashSelect(photo: {
+    unsplashId: string;
+    url: string;
+    urlSmall: string;
+    photographer: string;
+    photographerUrl: string;
+    downloadLocation: string;
+    width: number;
+    height: number;
+    color: string | null;
+    blurHash: string | null;
+    description: string | null;
+    altDescription: string | null;
+    likes: number;
+    createdAt: string;
+  }) {
     setImage({
-      previewUrl: url,
-      photographer,
-      photographerUrl,
+      previewUrl: photo.url,
+      photographer: photo.photographer,
+      photographerUrl: photo.photographerUrl,
       pendingFile: null,
-      pendingUnsplashUrl: url,
+      pendingUnsplashUrl: photo.url,
+      pendingUnsplashData: photo,
       deleted: false,
       loadError: false,
     });
@@ -168,6 +187,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
       photographerUrl: null,
       pendingFile: null,
       pendingUnsplashUrl: null,
+      pendingUnsplashData: null,
       deleted: true,
       loadError: false,
     });

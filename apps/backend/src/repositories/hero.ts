@@ -36,10 +36,11 @@ export async function createHeroImage(data: {
 }
 
 /**
- * Deletes a hero image by id.
+ * Deletes a hero image by id. Returns the deleted row or null.
  */
-export async function deleteHeroImage(id: number): Promise<void> {
-  await db.delete(heroImages).where(eq(heroImages.id, id));
+export async function deleteHeroImage(id: number): Promise<HeroImage | null> {
+  const [row] = await db.delete(heroImages).where(eq(heroImages.id, id)).returning();
+  return row ?? null;
 }
 
 /**

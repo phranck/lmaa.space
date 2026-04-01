@@ -354,6 +354,9 @@ export interface DashboardMessages {
     cacheFolderEmpty: string;
     refetchMeta: string;
     refetchMetaPending: string;
+    purgeCache: string;
+    purgeCacheTitle: string;
+    purgeCacheDescription: string;
     table: {
       name: string;
       type: string;
@@ -1448,6 +1451,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       cacheFolderEmpty: "Noch keine Bilder gecacht.",
       refetchMeta: "Metadaten aktualisieren",
       refetchMetaPending: "Aktualisiere…",
+      purgeCache: "Cache leeren",
+      purgeCacheTitle: "Cache leeren",
+      purgeCacheDescription: "Alle gecachten Unsplash-Bilder werden unwiderruflich gelöscht. Die Bilder können über den Refetch-Button neu geladen werden.",
     },
     submissions: {
       title: "Meldungen",
@@ -2509,6 +2515,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       cacheFolderEmpty: "No images cached yet.",
       refetchMeta: "Refresh metadata",
       refetchMetaPending: "Refreshing…",
+      purgeCache: "Purge cache",
+      purgeCacheTitle: "Purge cache",
+      purgeCacheDescription: "All cached Unsplash images will be permanently deleted. You can re-download them using the refresh button.",
     },
     submissions: {
       title: "Reports",

@@ -4,7 +4,7 @@ import type { MediaAsset } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
-export interface HeroCacheUnsplashMeta {
+export interface UnsplashCacheMeta {
   unsplashId: string;
   width: number | null;
   height: number | null;
@@ -20,11 +20,12 @@ export interface HeroCacheUnsplashMeta {
   createdAtUnsplash: string | null;
 }
 
-export interface HeroCacheItem {
-  imageId: number;
+export interface UnsplashCacheItem {
+  unsplashImageId: number;
+  type: "hero" | "categorie";
   url: string;
   sizeBytes: number;
-  unsplash: HeroCacheUnsplashMeta | null;
+  unsplash: UnsplashCacheMeta | null;
 }
 
 export function useAdminMedia() {
@@ -34,10 +35,10 @@ export function useAdminMedia() {
   });
 }
 
-export function useHeroCacheMedia() {
+export function useUnsplashCacheMedia() {
   return useQuery({
     queryKey: ["media-cache"],
-    queryFn: () => api.get<HeroCacheItem[]>("/admin/media/cache"),
+    queryFn: () => api.get<UnsplashCacheItem[]>("/admin/media/cache"),
   });
 }
 
@@ -45,8 +46,19 @@ export function useRefetchUnsplashMeta() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (unsplashId: string) =>
-      api.post<{ updated: boolean }>(`/admin/media/cache/refetch/${unsplashId}`),
+    mutationFn: ({ type, unsplashId }: { type: "hero" | "categorie"; unsplashId: string }) =>
+      api.post<{ updated: boolean }>(`/admin/media/cache/refetch/${type}/${unsplashId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["media-cache"] });
+    },
+  });
+}
+
+export function usePurgeUnsplashCache() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => api.delete<{ deleted: number }>("/admin/media/cache"),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["media-cache"] });
     },

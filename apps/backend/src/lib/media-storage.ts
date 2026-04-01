@@ -275,42 +275,54 @@ export interface S3ObjectEntry {
 }
 
 // ---------------------------------------------------------------------------
-// Hero image cache — stored under unsplash/ prefix in the same bucket
+// Unsplash image cache — stored under unsplash/{type}/ prefix in the same bucket
 // ---------------------------------------------------------------------------
 
-const HERO_CACHE_PREFIX = "unsplash/";
+export type UnsplashCacheType = "hero" | "categorie";
 
-export function getHeroCacheImageUrl(id: number): string {
-  return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${HERO_CACHE_PREFIX}${id}`;
+const UNSPLASH_ROOT_PREFIX = "unsplash/";
+
+function unsplashCacheKey(type: UnsplashCacheType, unsplashImageId: number): string {
+  return `${UNSPLASH_ROOT_PREFIX}${type}/${unsplashImageId}`;
 }
 
-export interface HeroCacheObject {
-  imageId: number;
+export function getUnsplashCacheUrl(type: UnsplashCacheType, unsplashImageId: number): string {
+  return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${unsplashCacheKey(type, unsplashImageId)}`;
+}
+
+export interface UnsplashCacheObject {
+  unsplashImageId: number;
+  type: UnsplashCacheType;
   url: string;
   sizeBytes: number;
 }
 
 /**
- * Lists all hero image cache objects stored under the unsplash/ prefix.
+ * Lists all Unsplash cache objects stored under unsplash/ prefix (hero + categorie).
  */
-export async function listHeroCacheObjects(): Promise<HeroCacheObject[]> {
-  const items: HeroCacheObject[] = [];
+export async function listUnsplashCacheObjects(): Promise<UnsplashCacheObject[]> {
+  const items: UnsplashCacheObject[] = [];
   let continuationToken: string | undefined;
 
   do {
     const listResp = await s3.send(
       new ListObjectsV2Command({
         Bucket: env.S3_BUCKET,
-        Prefix: HERO_CACHE_PREFIX,
+        Prefix: UNSPLASH_ROOT_PREFIX,
         ContinuationToken: continuationToken,
       }),
     );
 
     for (const obj of listResp.Contents ?? []) {
       if (!obj.Key || !obj.Size) continue;
-      const imageId = Number.parseInt(obj.Key.slice(HERO_CACHE_PREFIX.length), 10);
-      if (Number.isNaN(imageId)) continue;
-      items.push({ imageId, url: getHeroCacheImageUrl(imageId), sizeBytes: obj.Size });
+      const suffix = obj.Key.slice(UNSPLASH_ROOT_PREFIX.length);
+      const slashIdx = suffix.indexOf("/");
+      if (slashIdx < 0) continue;
+      const type = suffix.slice(0, slashIdx) as UnsplashCacheType;
+      if (type !== "hero" && type !== "categorie") continue;
+      const unsplashImageId = Number.parseInt(suffix.slice(slashIdx + 1), 10);
+      if (Number.isNaN(unsplashImageId)) continue;
+      items.push({ unsplashImageId, type, url: getUnsplashCacheUrl(type, unsplashImageId), sizeBytes: obj.Size });
     }
 
     continuationToken = listResp.IsTruncated ? listResp.NextContinuationToken : undefined;
@@ -319,34 +331,63 @@ export async function listHeroCacheObjects(): Promise<HeroCacheObject[]> {
   return items;
 }
 
-export async function isHeroCacheImageStored(id: number): Promise<boolean> {
+export async function isUnsplashCacheImageStored(type: UnsplashCacheType, unsplashImageId: number): Promise<boolean> {
   try {
-    await s3.send(new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: `${HERO_CACHE_PREFIX}${id}` }));
+    await s3.send(new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: unsplashCacheKey(type, unsplashImageId) }));
     return true;
   } catch {
     return false;
   }
 }
 
-export async function putHeroCacheImage(id: number, buffer: Buffer): Promise<void> {
+export async function putUnsplashCacheImage(type: UnsplashCacheType, unsplashImageId: number, buffer: Buffer): Promise<void> {
+  const webpBuffer = await sharp(buffer).webp({ quality: 85 }).toBuffer();
   await s3.send(
     new PutObjectCommand({
       Bucket: env.S3_BUCKET,
-      Key: `${HERO_CACHE_PREFIX}${id}`,
-      Body: buffer,
-      ContentType: "image/jpeg",
+      Key: unsplashCacheKey(type, unsplashImageId),
+      Body: webpBuffer,
+      ContentType: "image/webp",
     }),
   );
 }
 
-export async function removeHeroCacheImage(id: number): Promise<void> {
+export async function removeUnsplashCacheImage(type: UnsplashCacheType, unsplashImageId: number): Promise<void> {
   try {
     await s3.send(
-      new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: `${HERO_CACHE_PREFIX}${id}` }),
+      new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: unsplashCacheKey(type, unsplashImageId) }),
     );
   } catch {
     // Ignore — object may not exist
   }
+}
+
+/**
+ * Deletes all cached Unsplash images (hero + categorie).
+ */
+export async function purgeUnsplashCache(): Promise<number> {
+  let deleted = 0;
+  let continuationToken: string | undefined;
+
+  do {
+    const listResp = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: env.S3_BUCKET,
+        Prefix: UNSPLASH_ROOT_PREFIX,
+        ContinuationToken: continuationToken,
+      }),
+    );
+
+    for (const obj of listResp.Contents ?? []) {
+      if (!obj.Key) continue;
+      await s3.send(new DeleteObjectCommand({ Bucket: env.S3_BUCKET, Key: obj.Key }));
+      deleted += 1;
+    }
+
+    continuationToken = listResp.IsTruncated ? listResp.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  return deleted;
 }
 
 /**
@@ -366,7 +407,7 @@ export async function listAllStoredMedia(): Promise<S3ObjectEntry[]> {
 
     for (const obj of listResp.Contents ?? []) {
       if (!obj.Key || !obj.Size) continue;
-      if (obj.Key.startsWith(HERO_CACHE_PREFIX)) continue;
+      if (obj.Key.startsWith(UNSPLASH_ROOT_PREFIX)) continue;
 
       const head = await s3.send(
         new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: obj.Key }),

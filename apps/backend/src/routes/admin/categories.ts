@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { z } from "zod";
 
 import { categoryBodySchema, categoryUpdateSchema } from "@lmaa/contracts";
 
@@ -14,6 +15,7 @@ import {
 } from "../../repositories/admin-categories.js";
 import {
   removeManagedAdminCategoryImage,
+  setManagedAdminCategoryUnsplashImage,
   uploadManagedAdminCategoryImage,
 } from "../../services/admin-categories.js";
 
@@ -86,6 +88,40 @@ categoriesRoutes.delete("/categories/:id", requireAdmin, async (c) => {
   await deleteAdminCategory(id);
   return ok(c, { message: "Category deleted" });
 });
+
+const unsplashImageSchema = z.object({
+  unsplashId: z.string().min(1),
+  url: z.string().url(),
+  urlSmall: z.string().url(),
+  photographer: z.string().min(1),
+  photographerUrl: z.string().url(),
+  downloadLocation: z.string().url(),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  color: z.string().nullable(),
+  blurHash: z.string().nullable(),
+  description: z.string().nullable(),
+  altDescription: z.string().nullable(),
+  likes: z.number().int(),
+  createdAt: z.string(),
+});
+
+// Set Unsplash image on a category (upserts unsplash_images, sets FK, caches)
+categoriesRoutes.post(
+  "/categories/:id/unsplash-image",
+  requireAdmin,
+  zValidator("json", unsplashImageSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
+
+    const body = c.req.valid("json");
+    const result = await setManagedAdminCategoryUnsplashImage(id, body);
+    if (!result.ok) return fail(c, 404, "Category not found");
+
+    return ok(c, result.category);
+  },
+);
 
 // Image upload for a category
 categoriesRoutes.post("/categories/:id/image", requireAdmin, async (c) => {
