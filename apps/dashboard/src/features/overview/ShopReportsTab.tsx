@@ -5,7 +5,7 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { useMemo, useReducer } from "react";
 
 import { generateRejectionToken } from "@lmaa/shared";
 
@@ -41,16 +41,20 @@ export function ShopReportsTab() {
   const dismiss = useDismissShopConcern();
   const deleteMutation = useDeleteShop();
   const setVisibilityMutation = useSetShopVisibility();
-  const [editShopId, setEditShopId] = useState<number | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    reportId: number;
-    shopId: number;
-    shopName: string;
-  } | null>(null);
-  const [rejectTarget, setRejectTarget] = useState<RejectTarget | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [rejectLongText, setRejectLongText] = useState("");
-  const [rejectToken, setRejectToken] = useState<string | null>(null);
+  interface ShopReportsState {
+    editShopId: number | null;
+    deleteTarget: { reportId: number; shopId: number; shopName: string } | null;
+    rejectTarget: RejectTarget | null;
+    rejectReason: string;
+    rejectLongText: string;
+    rejectToken: string | null;
+  }
+
+  const [state, dispatch] = useReducer(
+    (prev: ShopReportsState, action: Partial<ShopReportsState>): ShopReportsState => ({ ...prev, ...action }),
+    { editShopId: null, deleteTarget: null, rejectTarget: null, rejectReason: "", rejectLongText: "", rejectToken: null },
+  );
+  const { editShopId, deleteTarget, rejectTarget, rejectReason, rejectLongText, rejectToken } = state;
   const columns = useMemo<ColumnDef<(typeof reports)[number]>[]>(
     () => [
       {
@@ -110,7 +114,7 @@ export function ShopReportsTab() {
               label={submissionsMessages.shopReports.done}
             />
             <TableActionButton
-              onClick={() => setEditShopId(report.shopId)}
+              onClick={() => dispatch({ editShopId: report.shopId })}
               icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
               label={submissionsMessages.shopReports.edit}
             />
@@ -131,11 +135,11 @@ export function ShopReportsTab() {
             <TableActionButton
               variant="danger"
               onClick={() =>
-                setDeleteTarget({
+                dispatch({ deleteTarget: {
                   reportId: report.id,
                   shopId: report.shopId,
                   shopName: report.shopName,
-                })
+                } })
               }
               icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
               label={submissionsMessages.shopReports.delete}
@@ -156,17 +160,11 @@ export function ShopReportsTab() {
   );
 
   function openRejectDialog(report: RejectTarget) {
-    setRejectTarget(report);
-    setRejectReason("");
-    setRejectLongText("");
-    setRejectToken(generateRejectionToken());
+    dispatch({ rejectTarget: report, rejectReason: "", rejectLongText: "", rejectToken: generateRejectionToken() });
   }
 
   function closeRejectDialog() {
-    setRejectTarget(null);
-    setRejectReason("");
-    setRejectLongText("");
-    setRejectToken(null);
+    dispatch({ rejectTarget: null, rejectReason: "", rejectLongText: "", rejectToken: null });
   }
 
   function handleRejectShop() {
@@ -217,8 +215,8 @@ export function ShopReportsTab() {
       {editShopId !== null && (
         <ShopEditCard
           shopId={editShopId}
-          onClose={() => setEditShopId(null)}
-          onSaved={() => setEditShopId(null)}
+          onClose={() => dispatch({ editShopId: null })}
+          onSaved={() => dispatch({ editShopId: null })}
         />
       )}
 
@@ -233,12 +231,12 @@ export function ShopReportsTab() {
               {
                 onSuccess: () => {
                   dismiss.mutate(deleteTarget.reportId);
-                  setDeleteTarget(null);
+                  dispatch({ deleteTarget: null });
                 },
               },
             );
           }}
-          onCancel={() => setDeleteTarget(null)}
+          onCancel={() => dispatch({ deleteTarget: null })}
         />
       )}
 
@@ -249,9 +247,9 @@ export function ShopReportsTab() {
         name={rejectTarget?.shopName ?? ""}
         url={rejectTarget?.shopUrl ?? ""}
         adminNote={rejectReason}
-        onAdminNoteChange={setRejectReason}
+        onAdminNoteChange={(v) => dispatch({ rejectReason: v })}
         rejectionLongText={rejectLongText}
-        onRejectionLongTextChange={setRejectLongText}
+        onRejectionLongTextChange={(v) => dispatch({ rejectLongText: v })}
         rejectionToken={rejectToken}
         onSubmit={handleRejectShop}
         isPending={setVisibilityMutation.isPending}

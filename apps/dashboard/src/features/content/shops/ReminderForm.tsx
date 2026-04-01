@@ -1,5 +1,5 @@
 import { ClockIcon, EnvelopeSimpleIcon, TrashIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useReducer } from "react";
 
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
 import { AlertDialog, FormLabel, ToggleSwitch, formBtnBaseClass, formInputClass } from "@lmaa/ui";
@@ -30,44 +30,51 @@ export interface ReminderFormProps {
   isDeleting: boolean;
 }
 
+interface ReminderFormState {
+  remindAt: string;
+  note: string;
+  recurrence: ReminderRecurrence;
+  customInterval: string;
+  customUnit: "days" | "weeks" | "months" | "years";
+  customDaysOfWeek: Set<number>;
+  sendEmail: boolean;
+  emailTemplateId: number | null;
+  validationError: string | null;
+}
+
+type ReminderFormAction = Partial<ReminderFormState>;
+
+function reminderFormReducer(state: ReminderFormState, action: ReminderFormAction): ReminderFormState {
+  return { ...state, ...action };
+}
+
 export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
   const { data: emailTemplates = [] } = useEmailTemplates();
 
-  const [remindAt, setRemindAt] = useState<string>(() =>
-    initial?.remindAt ? initial.remindAt.slice(0, 16) : "",
-  );
-  const [note, setNote] = useState<string>(initial?.note ?? "");
-  const [recurrence, setRecurrence] = useState<ReminderRecurrence>(
-    initial?.recurrence ?? "never",
-  );
-  const [customInterval, setCustomInterval] = useState<string>(
-    initial?.recurrenceCustomDays != null ? String(initial.recurrenceCustomDays) : "1",
-  );
-  const [customUnit, setCustomUnit] = useState<"days" | "weeks" | "months" | "years">(
-    (initial?.recurrenceUnit as "days" | "weeks" | "months" | "years") ?? "weeks",
-  );
-  const [customDaysOfWeek, setCustomDaysOfWeek] = useState<Set<number>>(() => {
-    if (initial?.recurrenceDaysOfWeek) {
-      return new Set(initial.recurrenceDaysOfWeek.split(",").map(Number).filter(Boolean));
-    }
-    return new Set<number>();
+  const [form, dispatch] = useReducer(reminderFormReducer, {
+    remindAt: initial?.remindAt ? initial.remindAt.slice(0, 16) : "",
+    note: initial?.note ?? "",
+    recurrence: initial?.recurrence ?? "never",
+    customInterval: initial?.recurrenceCustomDays != null ? String(initial.recurrenceCustomDays) : "1",
+    customUnit: (initial?.recurrenceUnit as "days" | "weeks" | "months" | "years") ?? "weeks",
+    customDaysOfWeek: initial?.recurrenceDaysOfWeek
+      ? new Set(initial.recurrenceDaysOfWeek.split(",").map(Number).filter(Boolean))
+      : new Set<number>(),
+    sendEmail: initial?.sendEmail ?? false,
+    emailTemplateId: initial?.emailTemplateId ?? null,
+    validationError: null,
   });
-  const [sendEmail, setSendEmail] = useState<boolean>(initial?.sendEmail ?? false);
-  const [emailTemplateId, setEmailTemplateId] = useState<number | null>(
-    initial?.emailTemplateId ?? null,
-  );
-  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const { remindAt, note, recurrence, customInterval, customUnit, customDaysOfWeek, sendEmail, emailTemplateId, validationError } = form;
 
   const toggleDay = (day: number) => {
-    setCustomDaysOfWeek((prev) => {
-      const next = new Set(prev);
-      if (next.has(day)) {
-        next.delete(day);
-      } else {
-        next.add(day);
-      }
-      return next;
-    });
+    const next = new Set(customDaysOfWeek);
+    if (next.has(day)) {
+      next.delete(day);
+    } else {
+      next.add(day);
+    }
+    dispatch({ customDaysOfWeek: next });
   };
 
   return (
@@ -75,7 +82,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
       {/* Date + time */}
       <div>
         <FormLabel>Datum &amp; Uhrzeit</FormLabel>
-        <DateTimePicker value={remindAt} onChange={setRemindAt} />
+        <DateTimePicker value={remindAt} onChange={(v) => dispatch({ remindAt: v })} />
       </div>
 
       {/* Recurrence */}
@@ -84,7 +91,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
         <select
           id="reminder-recurrence"
           value={recurrence}
-          onChange={(e) => setRecurrence(e.target.value as ReminderRecurrence)}
+          onChange={(e) => dispatch({ recurrence: e.target.value as ReminderRecurrence })}
           className={formInputClass}
         >
           {RECURRENCE_OPTIONS.map((opt) => (
@@ -103,8 +110,10 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
             <select
               value={customUnit}
               onChange={(e) => {
-                setCustomUnit(e.target.value as "days" | "weeks" | "months" | "years");
-                setCustomDaysOfWeek(new Set());
+                dispatch({
+                  customUnit: e.target.value as "days" | "weeks" | "months" | "years",
+                  customDaysOfWeek: new Set(),
+                });
               }}
               className={`${formInputClass} flex-1`}
             >
@@ -123,7 +132,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
               min={1}
               max={999}
               value={customInterval}
-              onChange={(e) => setCustomInterval(e.target.value)}
+              onChange={(e) => dispatch({ customInterval: e.target.value })}
               className="px-2 py-1.5 w-16 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
             <span className="text-xs text-[var(--ds-text-muted)]">
@@ -163,7 +172,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
         <textarea
           id="reminder-note"
           value={note}
-          onChange={(e) => setNote(e.target.value)}
+          onChange={(e) => dispatch({ note: e.target.value })}
           maxLength={500}
           rows={2}
           placeholder="Worum geht es bei dieser Prüfung?"
@@ -178,7 +187,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
             <EnvelopeSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
             E-Mail senden
           </span>
-          <ToggleSwitch checked={sendEmail} onChange={setSendEmail} />
+          <ToggleSwitch checked={sendEmail} onChange={(v) => dispatch({ sendEmail: v })} />
         </div>
 
         {sendEmail && emailTemplates.length > 0 && (
@@ -189,7 +198,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
             <select
               id="reminder-email-template"
               value={emailTemplateId ?? ""}
-              onChange={(e) => setEmailTemplateId(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) => dispatch({ emailTemplateId: e.target.value ? Number(e.target.value) : null })}
               className={formInputClass}
             >
               <option value="">Standard (ohne Template)</option>
@@ -223,7 +232,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
         open={validationError !== null}
         title="Erinnerung kann nicht gespeichert werden"
         variant="warning"
-        onClose={() => setValidationError(null)}
+        onClose={() => dispatch({ validationError: null })}
       >
         <p>{validationError}</p>
       </AlertDialog>
@@ -239,7 +248,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
             if (remindAt && new Date(remindAt) < new Date()) errors.push("Der Zeitpunkt liegt in der Vergangenheit.");
             if (recurrence === "custom" && (!Number(customInterval) || Number(customInterval) < 1)) errors.push("Das Wiederholungs-Intervall muss mindestens 1 sein.");
             if (errors.length > 0) {
-              setValidationError(errors.join("\n"));
+              dispatch({ validationError: errors.join("\n") });
               return;
             }
             const interval = Number(customInterval) || 1;
