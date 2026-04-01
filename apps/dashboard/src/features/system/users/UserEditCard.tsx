@@ -1,70 +1,37 @@
-import { DownloadIcon, TrashIcon, TrayArrowUpIcon, UserCircleIcon } from "@phosphor-icons/react";
+import { DownloadIcon, UserCircleIcon } from "@phosphor-icons/react";
 import md5 from "blueimp-md5";
-import {
-  type ChangeEvent,
-  type Reducer,
-  type RefObject,
-  useEffect,
-  useReducer,
-  useRef,
-} from "react";
+import { type ChangeEvent, useEffect, useReducer, useRef } from "react";
 
 import type { AdminLocale, AdminUser } from "@lmaa/shared";
-import { FormLabel, formInputClass } from "@lmaa/ui";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
-import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import type { DashboardMessages } from "@/i18n/messages.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
-
 import {
   useAdminUsers,
   useDeleteUserAvatar,
   useSaveUserAvatar,
   useSetGravatarAvatar,
   useUpdateUser,
-} from "../hooks/useAdminUsers.ts";
+} from "@/features/system/hooks/useAdminUsers.ts";
+import {
+  type AvatarState,
+  createInitialDraft,
+  userEditDraftReducer,
+} from "@/features/system/users/user-edit-state.ts";
+import { UserAvatarEditor } from "@/features/system/users/UserAvatarEditor.tsx";
+import { UserProfileFields } from "@/features/system/users/UserProfileFields.tsx";
+import type { DashboardMessages } from "@/i18n/messages.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 interface UserEditCardProps {
   userId: number;
   onClose: () => void;
   onSaved: () => void;
 }
-
-type EditableRole = "admin" | "moderator";
-
-interface AvatarState {
-  previewUrl: string | null;
-  pendingFile: File | null;
-  pendingGravatarUrl: string | null;
-  deleted: boolean;
-}
-
-interface UserEditDraftState {
-  username: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  locale: AdminLocale;
-  role: EditableRole;
-  logoutConfirm: boolean;
-  avatar: AvatarState;
-}
-
-type UserEditField = "username" | "email" | "password" | "firstName" | "lastName";
-
-type UserEditDraftAction =
-  | { type: "setField"; field: UserEditField; value: string }
-  | { type: "setLocale"; value: AdminLocale }
-  | { type: "setRole"; value: EditableRole }
-  | { type: "setLogoutConfirm"; value: boolean }
-  | { type: "setAvatar"; value: AvatarState };
 
 interface UserEditCardFormProps {
   common: DashboardMessages["common"];
@@ -77,237 +44,6 @@ interface UserEditCardFormProps {
   showSaved: ReturnType<typeof useSaveNotification>["show"];
   user: AdminUser;
   usersMessages: DashboardMessages["users"];
-}
-
-const EMPTY_AVATAR_STATE: AvatarState = {
-  previewUrl: null,
-  pendingFile: null,
-  pendingGravatarUrl: null,
-  deleted: false,
-};
-
-const userEditDraftReducer: Reducer<UserEditDraftState, UserEditDraftAction> = (state, action) => {
-  switch (action.type) {
-    case "setField":
-      return { ...state, [action.field]: action.value };
-    case "setLocale":
-      return { ...state, locale: action.value };
-    case "setRole":
-      return { ...state, role: action.value };
-    case "setLogoutConfirm":
-      return { ...state, logoutConfirm: action.value };
-    case "setAvatar":
-      return { ...state, avatar: action.value };
-    default:
-      return state;
-  }
-};
-
-function createInitialDraft(user: AdminUser): UserEditDraftState {
-  return {
-    username: user.username,
-    email: user.email,
-    password: "",
-    firstName: user.firstName ?? "",
-    lastName: user.lastName ?? "",
-    locale: user.locale,
-    role: user.role === "moderator" ? "moderator" : "admin",
-    logoutConfirm: localStorage.getItem("logout-skip-confirm") !== "true",
-    avatar: { ...EMPTY_AVATAR_STATE, previewUrl: user.avatarUrl ?? null },
-  };
-}
-
-function UserAvatarEditor({
-  currentAvatarUrl,
-  displayUsername,
-  fileInputRef,
-  onFileChange,
-  onRemoveAvatar,
-  onUseGravatar,
-  usersMessages,
-}: {
-  currentAvatarUrl: string | null;
-  displayUsername: string;
-  fileInputRef: RefObject<HTMLInputElement | null>;
-  onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  onRemoveAvatar: () => void;
-  onUseGravatar: () => void;
-  usersMessages: DashboardMessages["users"];
-}) {
-  return (
-    <div className="flex flex-col items-center gap-3 shrink-0">
-      <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
-        {currentAvatarUrl ? (
-          <img
-            src={currentAvatarUrl}
-            alt={displayUsername}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <span className="text-3xl font-bold text-[var(--ds-text-subtle)] select-none">
-            {displayUsername[0]?.toUpperCase()}
-          </span>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-1.5 w-full">
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
-        >
-          <TrayArrowUpIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
-          {usersMessages.editCard.uploadImage}
-        </button>
-        <button
-          type="button"
-          onClick={onUseGravatar}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
-        >
-          <UserCircleIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
-          {usersMessages.editCard.useGravatar}
-        </button>
-        {currentAvatarUrl && (
-          <button
-            type="button"
-            onClick={onRemoveAvatar}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700"
-          >
-            <TrashIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
-            {usersMessages.editCard.removeAvatar}
-          </button>
-        )}
-      </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="hidden"
-        onChange={onFileChange}
-      />
-    </div>
-  );
-}
-
-function UserProfileFields({
-  canChangeRole,
-  draft,
-  logoutConfirmLabel,
-  me,
-  onFieldChange,
-  onLocaleChange,
-  onLogoutConfirmChange,
-  onRoleChange,
-  userId,
-  usersMessages,
-}: {
-  canChangeRole: boolean;
-  draft: UserEditDraftState;
-  logoutConfirmLabel: string;
-  me: AdminUser | null;
-  onFieldChange: (field: UserEditField, value: string) => void;
-  onLocaleChange: (value: AdminLocale) => void;
-  onLogoutConfirmChange: (value: boolean) => void;
-  onRoleChange: (value: EditableRole) => void;
-  userId: number;
-  usersMessages: DashboardMessages["users"];
-}) {
-  return (
-    <div className="flex-1 space-y-3 min-w-0">
-      <div>
-        <FormLabel htmlFor="user-edit-username">{usersMessages.editCard.username}</FormLabel>
-        <input
-          id="user-edit-username"
-          type="text"
-          value={draft.username}
-          onChange={(e) => onFieldChange("username", e.target.value)}
-          className={formInputClass}
-        />
-      </div>
-
-      <div>
-        <FormLabel htmlFor="user-edit-email">{usersMessages.editCard.email}</FormLabel>
-        <input
-          id="user-edit-email"
-          type="email"
-          value={draft.email}
-          onChange={(e) => onFieldChange("email", e.target.value)}
-          className={formInputClass}
-        />
-      </div>
-
-      <div>
-        <FormLabel htmlFor="user-edit-first-name">{usersMessages.editCard.firstName}</FormLabel>
-        <input
-          id="user-edit-first-name"
-          type="text"
-          value={draft.firstName}
-          onChange={(e) => onFieldChange("firstName", e.target.value)}
-          className={formInputClass}
-        />
-      </div>
-
-      <div>
-        <FormLabel htmlFor="user-edit-last-name">{usersMessages.editCard.lastName}</FormLabel>
-        <input
-          id="user-edit-last-name"
-          type="text"
-          value={draft.lastName}
-          onChange={(e) => onFieldChange("lastName", e.target.value)}
-          className={formInputClass}
-        />
-      </div>
-
-      {canChangeRole && (
-        <div>
-          <FormLabel htmlFor="user-edit-role">{usersMessages.editCard.role}</FormLabel>
-          <select
-            id="user-edit-role"
-            value={draft.role}
-            onChange={(e) => onRoleChange(e.target.value as EditableRole)}
-            className={formInputClass}
-          >
-            <option value="admin">{usersMessages.editCard.roleAdmin}</option>
-            <option value="moderator">{usersMessages.editCard.roleModerator}</option>
-          </select>
-        </div>
-      )}
-
-      <div>
-        <FormLabel htmlFor="user-edit-password">{usersMessages.editCard.password}</FormLabel>
-        <input
-          id="user-edit-password"
-          type="password"
-          value={draft.password}
-          onChange={(e) => onFieldChange("password", e.target.value)}
-          placeholder={usersMessages.editCard.passwordPlaceholder}
-          className={formInputClass}
-        />
-      </div>
-
-      {me?.id === userId && (
-        <>
-          <div>
-            <FormLabel>{usersMessages.editCard.language}</FormLabel>
-            <div className="inline-block">
-              <LanguageToggle value={draft.locale} onChange={onLocaleChange} />
-            </div>
-          </div>
-
-          <label className="flex items-center gap-2 cursor-pointer select-none px-[5px] pt-1">
-            <input
-              type="checkbox"
-              checked={draft.logoutConfirm}
-              onChange={(e) => onLogoutConfirmChange(e.target.checked)}
-              className="w-4 h-4 rounded accent-[var(--color-primary)]"
-            />
-            <span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>
-          </label>
-        </>
-      )}
-    </div>
-  );
 }
 
 function UserEditCardForm({
@@ -417,7 +153,7 @@ function UserEditCardForm({
       firstName?: string;
       lastName?: string;
       locale?: AdminLocale;
-      role?: EditableRole;
+      role?: "admin" | "moderator";
     } = {};
 
     if (draft.username !== user.username) profileChanges.username = draft.username;
@@ -540,12 +276,6 @@ function UserEditCardForm({
   );
 }
 
-/**
- * Modal card for editing one dashboard user.
- *
- * @param props - User id and close/save callbacks.
- * @returns User edit modal.
- */
 export function UserEditCard({ userId, onClose, onSaved }: UserEditCardProps) {
   const { messages } = useI18n();
   const common = messages.common;
