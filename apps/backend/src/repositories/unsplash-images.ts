@@ -1,9 +1,11 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, like } from "drizzle-orm";
 
 import { db } from "../db/index.js";
 import {
   type UnsplashImage,
   type UnsplashImageInsert,
+  categories,
+  heroImages,
   unsplashImages,
 } from "../db/schema.js";
 
@@ -65,6 +67,135 @@ export async function updateUnsplashImageLocation(
       locationFetched: true,
     })
     .where(eq(unsplashImages.id, id));
+}
+
+export interface UnsplashCacheSource {
+  unsplashImageId: number;
+  unsplashId: string;
+  type: "hero" | "categorie";
+  url: string;
+}
+
+/**
+ * Returns unsplash_images rows with placeholder IDs (e.g. `legacy-*`)
+ * that need resolution via the Unsplash API.
+ */
+export async function listLegacyUnsplashImages(): Promise<UnsplashImage[]> {
+  return db
+    .select()
+    .from(unsplashImages)
+    .where(like(unsplashImages.unsplashId, "legacy-%"));
+}
+
+/**
+ * Replaces a legacy unsplash_images entry with real Unsplash data.
+ * Updates the row in-place by PK, preserving all FK references.
+ */
+export async function replaceLegacyUnsplashImage(
+  id: number,
+  data: Omit<UnsplashImageInsert, "locationCity" | "locationCountry" | "locationLat" | "locationLng" | "locationFetched">,
+): Promise<UnsplashImage> {
+  const [row] = await db
+    .update(unsplashImages)
+    .set({
+      unsplashId: data.unsplashId,
+      urlSmall: data.urlSmall,
+      urlRegular: data.urlRegular,
+      width: data.width,
+      height: data.height,
+      color: data.color,
+      blurHash: data.blurHash,
+      description: data.description,
+      altDescription: data.altDescription,
+      likes: data.likes,
+      photographerName: data.photographerName,
+      photographerUrl: data.photographerUrl,
+      downloadLocation: data.downloadLocation,
+      createdAtUnsplash: data.createdAtUnsplash,
+    })
+    .where(eq(unsplashImages.id, id))
+    .returning();
+  return row;
+}
+
+interface UnlinkedCategory {
+  id: number;
+  imageUrl: string;
+  imagePhotographerUrl: string | null;
+}
+
+/**
+ * Returns categories with Unsplash image URLs but no `unsplashImageId` FK.
+ */
+export async function listUnlinkedUnsplashCategories(): Promise<UnlinkedCategory[]> {
+  const rows = await db
+    .select({
+      id: categories.id,
+      imageUrl: categories.imageUrl,
+      imagePhotographerUrl: categories.imagePhotographerUrl,
+    })
+    .from(categories)
+    .where(
+      and(
+        isNull(categories.unsplashImageId),
+        isNotNull(categories.imageUrl),
+        like(categories.imageUrl, "%images.unsplash.com%"),
+      ),
+    );
+
+  return rows.filter((r): r is UnlinkedCategory => r.imageUrl !== null);
+}
+
+/**
+ * Sets the `unsplashImageId` FK on a category row.
+ */
+export async function linkCategoryToUnsplashImage(categoryId: number, unsplashImageId: number): Promise<void> {
+  await db
+    .update(categories)
+    .set({ unsplashImageId })
+    .where(eq(categories.id, categoryId));
+}
+
+/** Lists all unsplash images referenced by hero_images or categories. */
+export async function listUnsplashCacheSources(): Promise<UnsplashCacheSource[]> {
+  const heroRows = await db
+    .select({
+      unsplashImageId: unsplashImages.id,
+      unsplashId: unsplashImages.unsplashId,
+      url: unsplashImages.urlRegular,
+    })
+    .from(heroImages)
+    .innerJoin(unsplashImages, eq(heroImages.unsplashImageId, unsplashImages.id))
+    .where(isNotNull(heroImages.unsplashImageId));
+
+  const catRows = await db
+    .select({
+      unsplashImageId: unsplashImages.id,
+      unsplashId: unsplashImages.unsplashId,
+      url: unsplashImages.urlRegular,
+    })
+    .from(categories)
+    .innerJoin(unsplashImages, eq(categories.unsplashImageId, unsplashImages.id))
+    .where(isNotNull(categories.unsplashImageId));
+
+  const seen = new Set<string>();
+  const sources: UnsplashCacheSource[] = [];
+
+  for (const row of heroRows) {
+    const key = `hero-${row.unsplashImageId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    sources.push({ ...row, type: "hero" });
+  }
+
+  for (const row of catRows) {
+    const key = `categorie-${row.unsplashImageId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    sources.push({ ...row, type: "categorie" });
+  }
+
+  return sources;
 }
 
 /** Get a single unsplash_images row by internal PK. */

@@ -16,6 +16,26 @@ export interface CategoryFormData {
 }
 
 /**
+ * Full Unsplash photo data needed for the backend upsert + cache flow.
+ */
+export interface PendingUnsplashData {
+  unsplashId: string;
+  url: string;
+  urlSmall: string;
+  photographer: string;
+  photographerUrl: string;
+  downloadLocation: string;
+  width: number;
+  height: number;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number;
+  createdAt: string;
+}
+
+/**
  * Client-side category image workflow state.
  */
 export interface CategoryImageState {
@@ -24,6 +44,7 @@ export interface CategoryImageState {
   photographerUrl: string | null;
   pendingFile: File | null;
   pendingUnsplashUrl: string | null;
+  pendingUnsplashData: PendingUnsplashData | null;
   deleted: boolean;
   loadError: boolean;
 }
@@ -75,12 +96,8 @@ export function useSaveCategory(categoryId: number | "new") {
         const fd = new FormData();
         fd.append("image", image.pendingFile);
         await api.upload(`/admin/categories/${id}/image`, fd);
-      } else if (image.pendingUnsplashUrl) {
-        await api.patch(`/admin/categories/${id}`, {
-          imageUrl: image.pendingUnsplashUrl,
-          imagePhotographer: image.photographer,
-          imagePhotographerUrl: image.photographerUrl,
-        });
+      } else if (image.pendingUnsplashData) {
+        await api.post(`/admin/categories/${id}/unsplash-image`, image.pendingUnsplashData);
       }
 
       return saved;

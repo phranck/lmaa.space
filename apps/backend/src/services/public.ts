@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { getDomain } from "tldts";
 
 import { env } from "../config/env.js";
+import { getUnsplashCacheUrl } from "../lib/media-storage.js";
 import { type Result, failure, success } from "../lib/result.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
 import {
@@ -164,7 +165,13 @@ export async function getManagedPublicCategoryBySlug(slug: string) {
   }
 
   const categoryShops = await listPublicShopsByCategoryId(category.id);
-  return success({ data: { ...category, shops: categoryShops } });
+  return success({
+    data: {
+      ...category,
+      imageUrl: resolveCategoryImageUrl(category),
+      shops: categoryShops,
+    },
+  });
 }
 
 /**
@@ -346,8 +353,24 @@ export function getManagedPublicCacheStats() {
   return success({ data: getCacheStats() });
 }
 
+const s3CacheEnabled = () => !!(env.S3_ENDPOINT && env.S3_BUCKET);
+
+function resolveCategoryImageUrl(row: { imageUrl: string | null; unsplashImageId: number | null }): string | null {
+  if (s3CacheEnabled() && row.unsplashImageId) {
+    return getUnsplashCacheUrl("categorie", row.unsplashImageId);
+  }
+  return row.imageUrl;
+}
+
 export async function getManagedPublicCategories() {
-  return listPublicCategoriesWithShopCount();
+  const rows = await listPublicCategoriesWithShopCount();
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    imageUrl: resolveCategoryImageUrl(row),
+    shopCount: row.shopCount,
+  }));
 }
 
 export async function getManagedPublicNavItems(navId: "header" | "footer") {
@@ -371,7 +394,14 @@ export async function getManagedPublicRejectionPageByToken(token: string) {
 // ---------------------------------------------------------------------------
 
 export async function getFilteredPublicCategories(filters: ShopFilterParams) {
-  return listFilteredCategoriesWithCount(filters);
+  const rows = await listFilteredCategoriesWithCount(filters);
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    imageUrl: resolveCategoryImageUrl(row),
+    shopCount: row.shopCount,
+  }));
 }
 
 export async function getFilteredPublicCategoryBySlug(
@@ -384,7 +414,13 @@ export async function getFilteredPublicCategoryBySlug(
   }
 
   const shops = await listFilteredShopsByCategoryId(category.id, filters);
-  return success({ data: { ...category, shops } });
+  return success({
+    data: {
+      ...category,
+      imageUrl: resolveCategoryImageUrl(category),
+      shops,
+    },
+  });
 }
 
 export async function getFilteredPublicShops(filters: ShopFilterParams) {

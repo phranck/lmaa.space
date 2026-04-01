@@ -38,10 +38,11 @@ import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   useAdminMedia,
   useDeleteMedia,
-  useHeroCacheMedia,
+  usePurgeUnsplashCache,
   useRefetchUnsplashMeta,
   useRenameMedia,
   useSyncMedia,
+  useUnsplashCacheMedia,
   useUploadMedia,
 } from "@/features/system/hooks/useAdminMedia.ts";
 import {
@@ -52,6 +53,7 @@ import {
 } from "@/features/system/media/media-utils.ts";
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import { MediaTable } from "@/features/system/media/MediaTable.tsx";
+import { api } from "@/lib/api.ts";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type ViewMode = "list" | "grid";
@@ -90,7 +92,9 @@ export function MediaPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedCacheItemId, setSelectedCacheItemId] = useState<number | null>(null);
+  const [selectedCacheItemType, setSelectedCacheItemType] = useState<"hero" | "categorie" | null>(null);
   const [currentFolder, setCurrentFolder] = useState<"root" | "cache">("root");
+  const [cacheSubFolder, setCacheSubFolder] = useState<"hero" | "categorie" | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftAlias, setDraftAlias] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
@@ -102,16 +106,18 @@ export function MediaPage() {
   const dragDepthRef = useRef(0);
 
   const { data: assets = [], isLoading } = useAdminMedia();
-  const { data: cacheItems = [], isLoading: cacheLoading } = useHeroCacheMedia();
+  const { data: cacheItems = [], isLoading: cacheLoading } = useUnsplashCacheMedia();
   const uploadMedia = useUploadMedia();
   const renameMedia = useRenameMedia();
   const deleteMedia = useDeleteMedia();
   const syncMedia = useSyncMedia();
   const refetchMeta = useRefetchUnsplashMeta();
+  const purgeCache = usePurgeUnsplashCache();
   const [refetchingImageId, setRefetchingImageId] = useState<number | null>(null);
+  const [showPurgeDialog, setShowPurgeDialog] = useState(false);
 
   const selectedAsset = assets.find((asset) => asset.id === selectedId) ?? null;
-  const selectedCacheItem = cacheItems.find((item) => item.imageId === selectedCacheItemId) ?? null;
+  const selectedCacheItem = cacheItems.find((item) => item.unsplashImageId === selectedCacheItemId && item.type === selectedCacheItemType) ?? null;
 
   useEffect(() => {
     if (assets.length === 0) {
@@ -126,7 +132,8 @@ export function MediaPage() {
 
   useEffect(() => {
     if (currentFolder === "cache" && !selectedCacheItemId && cacheItems.length > 0) {
-      setSelectedCacheItemId(cacheItems[0].imageId);
+      setSelectedCacheItemId(cacheItems[0].unsplashImageId);
+      setSelectedCacheItemType(cacheItems[0].type);
     }
   }, [currentFolder, cacheItems, selectedCacheItemId]);
 
@@ -202,18 +209,17 @@ export function MediaPage() {
   }
 
   const handleRefetchAll = useCallback(async () => {
-    const items = cacheItems.filter((item) => item.unsplash?.unsplashId);
-    for (const item of items) {
-      if (!item.unsplash) continue;
-      setRefetchingImageId(item.imageId);
+    const sources = await api.get<{ unsplashImageId: number; unsplashId: string; type: "hero" | "categorie" }[]>("/admin/media/cache/sources");
+    for (const source of sources) {
+      setRefetchingImageId(source.unsplashImageId);
       try {
-        await refetchMeta.mutateAsync(item.unsplash.unsplashId);
+        await refetchMeta.mutateAsync({ type: source.type, unsplashId: source.unsplashId });
       } catch {
         // continue with next image
       }
     }
     setRefetchingImageId(null);
-  }, [cacheItems, refetchMeta]);
+  }, [refetchMeta]);
 
   async function handleCopyUrl() {
     if (!selectedAsset) return;
@@ -244,41 +250,76 @@ export function MediaPage() {
   return (
     <PageLayout>
       <PageHeader
-        title={currentFolder === "cache" ? "unsplash" : mediaMessages.title}
+        title={currentFolder === "cache" ? (cacheSubFolder ?? "unsplash") : mediaMessages.title}
         titleContent={currentFolder === "cache" ? (
           <div className="flex items-center gap-1.5 text-sm">
             <button
               type="button"
-              onClick={() => { setCurrentFolder("root"); setSelectedCacheItemId(null); }}
+              onClick={() => {
+                if (cacheSubFolder) {
+                  setCacheSubFolder(null);
+                  setSelectedCacheItemId(null);
+                  setSelectedCacheItemType(null);
+                } else {
+                  setCurrentFolder("root");
+                  setSelectedCacheItemId(null);
+                  setSelectedCacheItemType(null);
+                }
+              }}
               className="flex items-center gap-1 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
             >
               <ArrowLeftIcon weight="bold" className="w-3.5 h-3.5" />
-              <span>{mediaMessages.title}</span>
+              <span>{cacheSubFolder ? "unsplash" : mediaMessages.title}</span>
             </button>
             <span className="text-[var(--ds-text-muted)]">/</span>
-            <span className="font-semibold text-[var(--ds-text)]">unsplash</span>
+            {cacheSubFolder ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => { setCacheSubFolder(null); setSelectedCacheItemId(null); setSelectedCacheItemType(null); }}
+                  className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
+                >
+                  unsplash
+                </button>
+                <span className="text-[var(--ds-text-muted)]">/</span>
+                <span className="font-semibold text-[var(--ds-text)]">{cacheSubFolder}</span>
+              </>
+            ) : (
+              <span className="font-semibold text-[var(--ds-text)]">unsplash</span>
+            )}
           </div>
         ) : undefined}
       >
         {currentFolder === "cache" ? (
           <>
-            <SegmentedControl
-              value={viewMode}
-              onChange={(value) => setViewMode(value as ViewMode)}
-              storageKey={getSegmentedStorageKey(user?.id, "media:view")}
-              options={[
-                { value: "list", icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" /> },
-                { value: "grid", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
-              ]}
-            />
+            {cacheSubFolder && (
+              <SegmentedControl
+                value={viewMode}
+                onChange={(value) => setViewMode(value as ViewMode)}
+                storageKey={getSegmentedStorageKey(user?.id, "media:view")}
+                options={[
+                  { value: "list", icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" /> },
+                  { value: "grid", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
+                ]}
+              />
+            )}
             <button
               type="button"
               onClick={() => void handleRefetchAll()}
-              disabled={refetchingImageId !== null}
+              disabled={refetchingImageId !== null || purgeCache.isPending}
               className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] disabled:opacity-60"
             >
               <ArrowsClockwiseIcon weight="duotone" className={`w-3.5 h-3.5 ${refetchingImageId !== null ? "animate-spin" : ""}`} />
               {refetchingImageId !== null ? mediaMessages.refetchMetaPending : mediaMessages.refetchMeta}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowPurgeDialog(true)}
+              disabled={refetchingImageId !== null || purgeCache.isPending || cacheItems.length === 0}
+              className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60"
+            >
+              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+              {mediaMessages.purgeCache}
             </button>
           </>
         ) : (
@@ -339,199 +380,232 @@ export function MediaPage() {
       >
         {currentFolder === "cache" ? (
           /* ── Cache folder view ─────────────────────────────────────── */
-          cacheItems.length > 0 || cacheLoading ? (
-            <PageSplitLayout>
-              <PageSplitMain>
-                {cacheLoading && (
-                  <div className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" : "space-y-2"}>
-                    {Array.from({ length: 6 }, (_, i) => `cache-sk-${i}`).map((key) => (
-                      <div key={key} className={`bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`} />
-                    ))}
-                  </div>
-                )}
-                {!cacheLoading && viewMode === "grid" && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {cacheItems.map((item) => (
+          cacheSubFolder === null ? (
+            /* ── Sub-folder listing (hero/, categorie/) ──────────────── */
+            (() => {
+              const heroCount = cacheItems.filter((i) => i.type === "hero").length;
+              const categorieCount = cacheItems.filter((i) => i.type === "categorie").length;
+              return (
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {(["hero", "categorie"] as const).map((type) => {
+                    const cnt = type === "hero" ? heroCount : categorieCount;
+                    return (
                       <button
-                        key={item.imageId}
+                        key={type}
                         type="button"
-                        onClick={() => setSelectedCacheItemId(item.imageId)}
-                        className={`group relative rounded-xl overflow-hidden border-2 transition-colors text-left ${item.imageId === selectedCacheItemId ? "border-[var(--color-primary)]" : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border)]"}`}
+                        onClick={() => setCacheSubFolder(type)}
+                        className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors text-center"
                       >
-                        <img src={item.url} alt="" className="w-full aspect-[4/3] object-cover" loading="lazy" />
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
-                          <p className="text-white text-[10px] font-mono truncate">unsplash/{item.imageId}</p>
+                        <div className="w-full aspect-square rounded-lg flex flex-col items-center justify-center bg-[var(--ds-bg-elevated)] border-2 border-transparent hover:border-[var(--ds-border)] transition-colors gap-2">
+                          <FolderIcon weight="duotone" className="w-16 h-16 text-amber-500" />
                         </div>
-                        {refetchingImageId === item.imageId && (
-                          <div className="absolute top-2 right-2 rounded-full bg-black/50 p-1">
-                            <ArrowsClockwiseIcon weight="bold" className="w-4 h-4 text-white animate-spin" />
-                          </div>
-                        )}
+                        <div className="w-full px-0.5">
+                          <p className="text-xs font-medium text-[var(--ds-text)] font-mono truncate">{type}/</p>
+                          <p className="text-[10px] text-[var(--ds-text-muted)] truncate">{cnt > 0 ? `${cnt} Bilder` : mediaMessages.cacheFolderEmpty}</p>
+                        </div>
                       </button>
-                    ))}
-                  </div>
-                )}
-                {!cacheLoading && viewMode === "list" && (
-                  <div className="-mx-3 -mt-3">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-[var(--ds-border-subtle)]">
-                          <th className="px-3 py-2 text-left text-xs font-medium text-[var(--ds-text-subtle)]">Key</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {cacheItems.map((item) => (
-                          <tr
-                            key={item.imageId}
-                            onClick={() => setSelectedCacheItemId(item.imageId)}
-                            className={`border-b border-[var(--ds-border-subtle)] cursor-pointer transition-colors ${item.imageId === selectedCacheItemId ? "bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)]" : "hover:bg-[var(--ds-bg-elevated)]"}`}
-                          >
-                            <td className="px-3 py-2.5 font-mono text-[var(--ds-text)]">
-                              <div className="flex items-center gap-2">
-                                <div className="relative shrink-0">
-                                  <img src={item.url} alt="" className="w-8 h-8 rounded object-cover" loading="lazy" />
-                                  {refetchingImageId === item.imageId && (
-                                    <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40">
-                                      <ArrowsClockwiseIcon weight="bold" className="w-3.5 h-3.5 text-white animate-spin" />
-                                    </div>
-                                  )}
-                                </div>
-                                unsplash/{item.imageId}
-                              </div>
-                            </td>
-                            <td className="px-3 py-2.5 text-[var(--ds-text-muted)]">{formatBytes(item.sizeBytes, locale)}</td>
-                          </tr>
+                    );
+                  })}
+                </div>
+              );
+            })()
+          ) : (
+            /* ── Sub-folder content (filtered by type) ───────────────── */
+            (() => {
+              const filteredItems = cacheItems.filter((i) => i.type === cacheSubFolder);
+              return (
+                <PageSplitLayout>
+                  <PageSplitMain>
+                    {cacheLoading && (
+                      <div className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" : "space-y-2"}>
+                        {Array.from({ length: 6 }, (_, i) => `cache-sk-${i}`).map((key) => (
+                          <div key={key} className={`bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`} />
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </PageSplitMain>
-
-              <PageSplitAside className="self-start xl:sticky xl:top-[4.75rem]">
-                <div className="space-y-3">
-                  {selectedCacheItem ? (
-                    <>
-                      <DashboardSection>
-                        <DashboardSection.Header
-                          icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
-                          title={mediaMessages.previewTitle}
-                        />
-                        <DashboardSection.Body>
-                          <div className="rounded-xl overflow-hidden bg-[var(--ds-bg-elevated)]">
-                            <img src={selectedCacheItem.url} alt="" className="w-full aspect-[4/3] object-cover" />
-                          </div>
-                        </DashboardSection.Body>
-                      </DashboardSection>
-
-                      <DashboardSection>
-                        <DashboardSection.Header
-                          icon={<FileIcon weight="duotone" className="w-4 h-4" />}
-                          title={mediaMessages.infoTitle}
-                        />
-                        <DashboardSection.Body>
-                          <div className="space-y-3 text-sm">
-                            <div>
-                              <p className="text-[var(--ds-text-subtle)]">Key</p>
-                              <p className="text-[var(--ds-text)] font-mono">unsplash/{selectedCacheItem.imageId}</p>
+                      </div>
+                    )}
+                    {!cacheLoading && filteredItems.length === 0 && (
+                      <ContentUnavailableView
+                        icon={<FolderIcon weight="duotone" aria-hidden />}
+                        title={cacheSubFolder}
+                        subtitle={mediaMessages.cacheFolderEmpty}
+                        className="min-h-[22rem]"
+                      />
+                    )}
+                    {!cacheLoading && filteredItems.length > 0 && viewMode === "grid" && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {filteredItems.map((item) => (
+                          <button
+                            key={item.unsplashImageId}
+                            type="button"
+                            onClick={() => { setSelectedCacheItemId(item.unsplashImageId); setSelectedCacheItemType(item.type); }}
+                            className={`group relative rounded-xl overflow-hidden border-2 transition-colors text-left ${item.unsplashImageId === selectedCacheItemId && item.type === selectedCacheItemType ? "border-[var(--color-primary)]" : "border-[var(--ds-border-subtle)] hover:border-[var(--ds-border)]"}`}
+                          >
+                            <img src={item.url} alt="" className="w-full aspect-[4/3] object-cover" loading="lazy" />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5">
+                              <p className="text-white text-[10px] font-mono truncate">{item.unsplashImageId}</p>
                             </div>
-                            {selectedCacheItem.unsplash && (
-                              <>
-                                {selectedCacheItem.unsplash.width && selectedCacheItem.unsplash.height && (
-                                  <div>
-                                    <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
-                                    <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.width} x {selectedCacheItem.unsplash.height}px</p>
+                            {refetchingImageId === item.unsplashImageId && (
+                              <div className="absolute top-2 right-2 rounded-full bg-black/50 p-1">
+                                <ArrowsClockwiseIcon weight="bold" className="w-4 h-4 text-white animate-spin" />
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {!cacheLoading && filteredItems.length > 0 && viewMode === "list" && (
+                      <div className="-mx-3 -mt-3">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-[var(--ds-border-subtle)]">
+                              <th className="px-3 py-2 text-left text-xs font-medium text-[var(--ds-text-subtle)]">Key</th>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredItems.map((item) => (
+                              <tr
+                                key={item.unsplashImageId}
+                                onClick={() => { setSelectedCacheItemId(item.unsplashImageId); setSelectedCacheItemType(item.type); }}
+                                className={`border-b border-[var(--ds-border-subtle)] cursor-pointer transition-colors ${item.unsplashImageId === selectedCacheItemId && item.type === selectedCacheItemType ? "bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)]" : "hover:bg-[var(--ds-bg-elevated)]"}`}
+                              >
+                                <td className="px-3 py-2.5 font-mono text-[var(--ds-text)]">
+                                  <div className="flex items-center gap-2">
+                                    <div className="relative shrink-0">
+                                      <img src={item.url} alt="" className="w-8 h-8 rounded object-cover" loading="lazy" />
+                                      {refetchingImageId === item.unsplashImageId && (
+                                        <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40">
+                                          <ArrowsClockwiseIcon weight="bold" className="w-3.5 h-3.5 text-white animate-spin" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    {item.unsplashImageId}
                                   </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-[var(--ds-text-muted)]">{formatBytes(item.sizeBytes, locale)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </PageSplitMain>
+
+                  <PageSplitAside className="self-start xl:sticky xl:top-[4.75rem]">
+                    <div className="space-y-3">
+                      {selectedCacheItem ? (
+                        <>
+                          <DashboardSection>
+                            <DashboardSection.Header
+                              icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+                              title={mediaMessages.previewTitle}
+                            />
+                            <DashboardSection.Body>
+                              <div className="rounded-xl overflow-hidden bg-[var(--ds-bg-elevated)]">
+                                <img src={selectedCacheItem.url} alt="" className="w-full aspect-[4/3] object-cover" />
+                              </div>
+                            </DashboardSection.Body>
+                          </DashboardSection>
+
+                          <DashboardSection>
+                            <DashboardSection.Header
+                              icon={<FileIcon weight="duotone" className="w-4 h-4" />}
+                              title={mediaMessages.infoTitle}
+                            />
+                            <DashboardSection.Body>
+                              <div className="space-y-3 text-sm">
+                                <div>
+                                  <p className="text-[var(--ds-text-subtle)]">Key</p>
+                                  <p className="text-[var(--ds-text)] font-mono">{selectedCacheItem.type}/{selectedCacheItem.unsplashImageId}</p>
+                                </div>
+                                {selectedCacheItem.unsplash && (
+                                  <>
+                                    {selectedCacheItem.unsplash.width && selectedCacheItem.unsplash.height && (
+                                      <div>
+                                        <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
+                                        <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.width} x {selectedCacheItem.unsplash.height}px</p>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <p className="text-[var(--ds-text-subtle)]">Fotograf</p>
+                                      <a href={selectedCacheItem.unsplash.photographerUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:underline">
+                                        {selectedCacheItem.unsplash.photographerName}
+                                      </a>
+                                    </div>
+                                    {selectedCacheItem.unsplash.description && (
+                                      <div>
+                                        <p className="text-[var(--ds-text-subtle)]">Beschreibung</p>
+                                        <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.description}</p>
+                                      </div>
+                                    )}
+                                    {selectedCacheItem.unsplash.color && (
+                                      <div>
+                                        <p className="text-[var(--ds-text-subtle)]">Farbe</p>
+                                        <div className="flex items-center gap-2">
+                                          <span className="inline-block w-4 h-4 rounded-sm border border-[var(--ds-border)]" style={{ backgroundColor: selectedCacheItem.unsplash.color }} />
+                                          <span className="text-[var(--ds-text)] font-mono">{selectedCacheItem.unsplash.color}</span>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {(selectedCacheItem.unsplash.locationCity || selectedCacheItem.unsplash.locationCountry) && (
+                                      <div>
+                                        <p className="text-[var(--ds-text-subtle)]">Aufnahmeort</p>
+                                        <p className="text-[var(--ds-text)]">
+                                          {[selectedCacheItem.unsplash.locationCity, selectedCacheItem.unsplash.locationCountry].filter(Boolean).join(", ")}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {selectedCacheItem.unsplash.likes != null && (
+                                      <div>
+                                        <p className="text-[var(--ds-text-subtle)]">Likes</p>
+                                        <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.likes.toLocaleString(locale)}</p>
+                                      </div>
+                                    )}
+                                    {selectedCacheItem.unsplash.createdAtUnsplash && (
+                                      <div>
+                                        <p className="text-[var(--ds-text-subtle)]">Aufnahmedatum</p>
+                                        <p className="text-[var(--ds-text)]">{formatMediaDate(selectedCacheItem.unsplash.createdAtUnsplash, locale)}</p>
+                                      </div>
+                                    )}
+                                  </>
                                 )}
                                 <div>
-                                  <p className="text-[var(--ds-text-subtle)]">Fotograf</p>
-                                  <a href={selectedCacheItem.unsplash.photographerUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:underline">
-                                    {selectedCacheItem.unsplash.photographerName}
-                                  </a>
+                                  <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
+                                  <p className="text-[var(--ds-text)]">{formatBytes(selectedCacheItem.sizeBytes, locale)}</p>
                                 </div>
-                                {selectedCacheItem.unsplash.description && (
-                                  <div>
-                                    <p className="text-[var(--ds-text-subtle)]">Beschreibung</p>
-                                    <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.description}</p>
+                                <div>
+                                  <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
+                                  <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
+                                    {selectedCacheItem.url}
                                   </div>
-                                )}
-                                {selectedCacheItem.unsplash.color && (
-                                  <div>
-                                    <p className="text-[var(--ds-text-subtle)]">Farbe</p>
-                                    <div className="flex items-center gap-2">
-                                      <span className="inline-block w-4 h-4 rounded-sm border border-[var(--ds-border)]" style={{ backgroundColor: selectedCacheItem.unsplash.color }} />
-                                      <span className="text-[var(--ds-text)] font-mono">{selectedCacheItem.unsplash.color}</span>
-                                    </div>
-                                  </div>
-                                )}
-                                {(selectedCacheItem.unsplash.locationCity || selectedCacheItem.unsplash.locationCountry) && (
-                                  <div>
-                                    <p className="text-[var(--ds-text-subtle)]">Aufnahmeort</p>
-                                    <p className="text-[var(--ds-text)]">
-                                      {[selectedCacheItem.unsplash.locationCity, selectedCacheItem.unsplash.locationCountry].filter(Boolean).join(", ")}
-                                    </p>
-                                  </div>
-                                )}
-                                {selectedCacheItem.unsplash.likes != null && (
-                                  <div>
-                                    <p className="text-[var(--ds-text-subtle)]">Likes</p>
-                                    <p className="text-[var(--ds-text)]">{selectedCacheItem.unsplash.likes.toLocaleString(locale)}</p>
-                                  </div>
-                                )}
-                                {selectedCacheItem.unsplash.createdAtUnsplash && (
-                                  <div>
-                                    <p className="text-[var(--ds-text-subtle)]">Aufnahmedatum</p>
-                                    <p className="text-[var(--ds-text)]">{formatMediaDate(selectedCacheItem.unsplash.createdAtUnsplash, locale)}</p>
-                                  </div>
-                                )}
-                              </>
-                            )}
-                            <div>
-                              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
-                              <p className="text-[var(--ds-text)]">{formatBytes(selectedCacheItem.sizeBytes, locale)}</p>
-                            </div>
-                            <div>
-                              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
-                              <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
-                                {selectedCacheItem.url}
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={async () => { await navigator.clipboard.writeText(selectedCacheItem.url); setCacheCopied(true); }}
-                              className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
-                            >
-                              <CopyIcon weight="duotone" className="w-4 h-4" />
-                              {cacheCopied ? mediaMessages.copied : mediaMessages.copyUrl}
-                            </button>
-                          </div>
-                        </DashboardSection.Body>
-                      </DashboardSection>
-                    </>
-                  ) : (
-                    <ContentUnavailableView
-                      icon={<ImageIcon weight="duotone" aria-hidden />}
-                      title={mediaMessages.previewTitle}
-                      subtitle={mediaMessages.selectPrompt}
-                      className="min-h-[22rem]"
-                    />
-                  )}
-                </div>
-              </PageSplitAside>
-            </PageSplitLayout>
-          ) : (
-            !cacheLoading && (
-              <ContentUnavailableView
-                chromeless
-                icon={<FolderIcon weight="duotone" aria-hidden />}
-                title="unsplash"
-                subtitle={mediaMessages.cacheFolderEmpty}
-                className="flex-1 min-h-0"
-              />
-            )
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={async () => { await navigator.clipboard.writeText(selectedCacheItem.url); setCacheCopied(true); }}
+                                  className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
+                                >
+                                  <CopyIcon weight="duotone" className="w-4 h-4" />
+                                  {cacheCopied ? mediaMessages.copied : mediaMessages.copyUrl}
+                                </button>
+                              </div>
+                            </DashboardSection.Body>
+                          </DashboardSection>
+                        </>
+                      ) : (
+                        <ContentUnavailableView
+                          icon={<ImageIcon weight="duotone" aria-hidden />}
+                          title={mediaMessages.previewTitle}
+                          subtitle={mediaMessages.selectPrompt}
+                          className="min-h-[22rem]"
+                        />
+                      )}
+                    </div>
+                  </PageSplitAside>
+                </PageSplitLayout>
+              );
+            })()
           )
         ) : (
           /* ── Root view ─────────────────────────────────────────────── */
@@ -807,6 +881,45 @@ export function MediaPage() {
             className={dialogBtnDestructive}
           >
             {deleteMedia.isPending ? "…" : common.delete}
+          </button>
+        </Dialog.Footer>
+      </Dialog>
+
+      <Dialog
+        open={showPurgeDialog}
+        title={mediaMessages.purgeCacheTitle}
+        titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
+        onClose={() => setShowPurgeDialog(false)}
+      >
+        <div className="px-6 py-3">
+          <p className="text-sm text-[var(--ds-text-muted)]">
+            {mediaMessages.purgeCacheDescription}
+          </p>
+        </div>
+        <Dialog.Footer>
+          <button
+            type="button"
+            onClick={() => setShowPurgeDialog(false)}
+            className={dialogBtnSecondary}
+          >
+            {common.cancel}
+          </button>
+          <button
+            type="button"
+            disabled={purgeCache.isPending}
+            onClick={() => {
+              purgeCache.mutate(undefined, {
+                onSuccess: () => {
+                  setShowPurgeDialog(false);
+                  setSelectedCacheItemId(null);
+                  setSelectedCacheItemType(null);
+                  setCacheSubFolder(null);
+                },
+              });
+            }}
+            className={dialogBtnDestructive}
+          >
+            {purgeCache.isPending ? "…" : mediaMessages.purgeCache}
           </button>
         </Dialog.Footer>
       </Dialog>

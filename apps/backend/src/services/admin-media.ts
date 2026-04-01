@@ -2,11 +2,13 @@ import type { MediaAsset as SharedMediaAsset } from "@lmaa/shared";
 
 import { fetchFullUnsplashPhoto } from "./unsplash.js";
 import {
-  type HeroCacheObject,
+  type UnsplashCacheObject,
   type S3MediaMeta,
   getMediaPublicUrl,
   listAllStoredMedia,
-  listHeroCacheObjects,
+  listUnsplashCacheObjects,
+  purgeUnsplashCache,
+  putUnsplashCacheImage,
   removeStoredMedia,
   storeUploadedMedia,
   updateStoredMediaMeta,
@@ -19,8 +21,16 @@ import {
   listMediaAssets,
   updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
-import { listHeroImagesWithUnsplash } from "../repositories/hero.js";
-import { upsertUnsplashImage } from "../repositories/unsplash-images.js";
+import {
+  findByUnsplashId,
+  linkCategoryToUnsplashImage,
+  listAllUnsplashImages,
+  listUnlinkedUnsplashCategories,
+  listUnsplashCacheSources,
+  upsertUnsplashImage,
+} from "../repositories/unsplash-images.js";
+
+export type { UnsplashCacheSource } from "../repositories/unsplash-images.js";
 
 function mapMediaAsset(row: {
   id: number;
@@ -55,9 +65,9 @@ function mapMediaAsset(row: {
   };
 }
 
-export type { HeroCacheObject };
+export type { UnsplashCacheObject };
 
-export interface HeroCacheMediaItem extends HeroCacheObject {
+export interface UnsplashCacheMediaItem extends UnsplashCacheObject {
   unsplash: {
     unsplashId: string;
     width: number | null;
@@ -75,44 +85,63 @@ export interface HeroCacheMediaItem extends HeroCacheObject {
   } | null;
 }
 
-export async function listHeroCacheMediaItems(): Promise<HeroCacheMediaItem[]> {
-  const [cacheObjects, heroImages] = await Promise.all([
-    listHeroCacheObjects(),
-    listHeroImagesWithUnsplash(),
+export async function listUnsplashCacheMediaItems(): Promise<UnsplashCacheMediaItem[]> {
+  const [cacheObjects, allUnsplash] = await Promise.all([
+    listUnsplashCacheObjects(),
+    listAllUnsplashImages(),
   ]);
 
-  const unsplashByImageId = new Map<number, HeroCacheMediaItem["unsplash"]>();
-  for (const hi of heroImages) {
-    if (hi.unsplash) {
-      unsplashByImageId.set(hi.heroId, {
-        unsplashId: hi.unsplash.unsplashId,
-        width: hi.unsplash.width,
-        height: hi.unsplash.height,
-        color: hi.unsplash.color,
-        blurHash: hi.unsplash.blurHash,
-        description: hi.unsplash.description,
-        altDescription: hi.unsplash.altDescription,
-        likes: hi.unsplash.likes,
-        photographerName: hi.unsplash.photographerName,
-        photographerUrl: hi.unsplash.photographerUrl,
-        locationCity: hi.unsplash.locationCity,
-        locationCountry: hi.unsplash.locationCountry,
-        createdAtUnsplash: hi.unsplash.createdAtUnsplash?.toISOString() ?? null,
-      });
-    }
-  }
+  const unsplashById = new Map(allUnsplash.map((u) => [u.id, u]));
 
-  return cacheObjects.map((obj) => ({
-    ...obj,
-    unsplash: unsplashByImageId.get(obj.imageId) ?? null,
-  }));
+  return cacheObjects.map((obj) => {
+    const u = unsplashById.get(obj.unsplashImageId);
+    return {
+      ...obj,
+      unsplash: u ? {
+        unsplashId: u.unsplashId,
+        width: u.width,
+        height: u.height,
+        color: u.color,
+        blurHash: u.blurHash,
+        description: u.description,
+        altDescription: u.altDescription,
+        likes: u.likes,
+        photographerName: u.photographerName,
+        photographerUrl: u.photographerUrl,
+        locationCity: u.locationCity,
+        locationCountry: u.locationCountry,
+        createdAtUnsplash: u.createdAtUnsplash?.toISOString() ?? null,
+      } : null,
+    };
+  });
 }
 
-export async function refetchSingleUnsplashMeta(unsplashId: string): Promise<boolean> {
+export async function refetchSingleUnsplashMeta(
+  unsplashId: string,
+  cacheType: "hero" | "categorie",
+): Promise<boolean> {
+  // For legacy placeholder IDs, skip API call and cache from stored URL
+  if (unsplashId.startsWith("legacy-")) {
+    const existing = await findByUnsplashId(unsplashId);
+    if (!existing) return false;
+
+    try {
+      const res = await fetch(existing.urlRegular);
+      if (res.ok) {
+        const buffer = Buffer.from(await res.arrayBuffer());
+        await putUnsplashCacheImage(cacheType, existing.id, buffer);
+        return true;
+      }
+    } catch {
+      // best-effort
+    }
+    return false;
+  }
+
   const data = await fetchFullUnsplashPhoto(unsplashId);
   if (!data) return false;
 
-  await upsertUnsplashImage({
+  const row = await upsertUnsplashImage({
     unsplashId,
     urlSmall: data.urlSmall,
     urlRegular: data.urlRegular,
@@ -133,7 +162,62 @@ export async function refetchSingleUnsplashMeta(unsplashId: string): Promise<boo
     locationLng: data.locationLng,
     locationFetched: true,
   });
+
+  // Re-download and cache the image
+  try {
+    const res = await fetch(data.urlRegular);
+    if (res.ok) {
+      const buffer = Buffer.from(await res.arrayBuffer());
+      await putUnsplashCacheImage(cacheType, row.id, buffer);
+    }
+  } catch {
+    // Image re-cache is best-effort
+  }
+
   return true;
+}
+
+/**
+ * Extracts the URL path (without query params) for comparison.
+ */
+function unsplashUrlPath(url: string): string {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Backfills `unsplashImageId` for categories with Unsplash image URLs but
+ * no FK set, matching by URL path against existing unsplash_images rows.
+ */
+async function backfillCategoryUnsplashIds(): Promise<void> {
+  const unlinked = await listUnlinkedUnsplashCategories();
+  if (unlinked.length === 0) return;
+
+  const allUnsplash = await listAllUnsplashImages();
+  const unsplashByPath = new Map(
+    allUnsplash.map((u) => [unsplashUrlPath(u.urlRegular), u]),
+  );
+
+  for (const cat of unlinked) {
+    const path = unsplashUrlPath(cat.imageUrl);
+    const match = unsplashByPath.get(path);
+    if (match) {
+      await linkCategoryToUnsplashImage(cat.id, match.id);
+    }
+  }
+}
+
+export async function getUnsplashCacheSources() {
+  await backfillCategoryUnsplashIds();
+  return listUnsplashCacheSources();
+}
+
+export async function purgeUnsplashCacheItems(): Promise<{ deleted: number }> {
+  const deleted = await purgeUnsplashCache();
+  return { deleted };
 }
 
 export async function listManagedMediaAssets(): Promise<SharedMediaAsset[]> {

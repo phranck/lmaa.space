@@ -8,8 +8,10 @@ import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   deleteManagedMediaAsset,
-  listHeroCacheMediaItems,
+  getUnsplashCacheSources,
   listManagedMediaAssets,
+  listUnsplashCacheMediaItems,
+  purgeUnsplashCacheItems,
   refetchSingleUnsplashMeta,
   syncMediaFromStorage,
   updateManagedMediaAsset,
@@ -26,8 +28,13 @@ mediaRoutes.get("/media", requireAdmin, async (c) => {
   return ok(c, assets);
 });
 
+mediaRoutes.get("/media/cache/sources", requireAdmin, async (c) => {
+  const sources = await getUnsplashCacheSources();
+  return ok(c, sources);
+});
+
 mediaRoutes.get("/media/cache", requireAdmin, async (c) => {
-  const items = await listHeroCacheMediaItems();
+  const items = await listUnsplashCacheMediaItems();
   return ok(c, items);
 });
 
@@ -64,14 +71,21 @@ mediaRoutes.patch(
   },
 );
 
-mediaRoutes.post("/media/cache/refetch/:unsplashId", requireAdmin, async (c) => {
+mediaRoutes.post("/media/cache/refetch/:type/:unsplashId", requireAdmin, async (c) => {
+  const type = c.req.param("type");
   const unsplashId = c.req.param("unsplashId");
+  if (type !== "hero" && type !== "categorie") return fail(c, 400, "Invalid type (hero or categorie)");
   if (!unsplashId) return fail(c, 400, "Missing unsplashId");
 
-  const updated = await refetchSingleUnsplashMeta(unsplashId);
+  const updated = await refetchSingleUnsplashMeta(unsplashId, type);
   if (!updated) return fail(c, 502, "Failed to fetch from Unsplash");
 
   return ok(c, { updated: true });
+});
+
+mediaRoutes.delete("/media/cache", requireAdmin, async (c) => {
+  const result = await purgeUnsplashCacheItems();
+  return ok(c, result);
 });
 
 mediaRoutes.post("/media/sync", requireAdmin, async (c) => {

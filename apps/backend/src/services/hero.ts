@@ -2,10 +2,10 @@ import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 import { env } from "../config/env.js";
 import type { HeroImage } from "../db/schema.js";
 import {
-  getHeroCacheImageUrl,
-  isHeroCacheImageStored,
-  putHeroCacheImage,
-  removeHeroCacheImage,
+  getUnsplashCacheUrl,
+  isUnsplashCacheImageStored,
+  putUnsplashCacheImage,
+  removeUnsplashCacheImage,
 } from "../lib/media-storage.js";
 import { getSetting, putSetting } from "../repositories/app-settings.js";
 import {
@@ -21,18 +21,18 @@ import { updateUnsplashImageLocation, upsertUnsplashImage } from "../repositorie
 
 const s3CacheEnabled = () => !!(env.S3_ENDPOINT && env.S3_BUCKET);
 
-async function downloadAndCacheHeroImage(id: number, url: string): Promise<void> {
+async function downloadAndCacheHeroImage(unsplashImageId: number, url: string): Promise<void> {
   if (!s3CacheEnabled()) return;
-  if (await isHeroCacheImageStored(id)) return;
+  if (await isUnsplashCacheImageStored("hero", unsplashImageId)) return;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch image for cache: ${res.status}`);
   const buffer = Buffer.from(await res.arrayBuffer());
-  await putHeroCacheImage(id, buffer);
+  await putUnsplashCacheImage("hero", unsplashImageId, buffer);
 }
 
-function triggerHeroImageCache(id: number, url: string): void {
-  downloadAndCacheHeroImage(id, url).catch((err: unknown) => {
-    console.error(`[hero-image-cache] Failed to cache image ${id}:`, err);
+function triggerHeroImageCache(unsplashImageId: number, url: string): void {
+  downloadAndCacheHeroImage(unsplashImageId, url).catch((err: unknown) => {
+    console.error(`[unsplash-cache] Failed to cache hero image ${unsplashImageId}:`, err);
   });
 }
 
@@ -40,7 +40,9 @@ export async function warmupHeroImageCache(): Promise<void> {
   if (!s3CacheEnabled()) return;
   const images = await listHeroImages();
   for (const image of images) {
-    triggerHeroImageCache(image.id, image.url);
+    if (image.unsplashImageId) {
+      triggerHeroImageCache(image.unsplashImageId, image.url);
+    }
   }
 }
 
@@ -209,7 +211,7 @@ export async function addHeroImage(data: {
     downloadLocation: data.downloadLocation,
   });
 
-  triggerHeroImageCache(image.id, image.url);
+  triggerHeroImageCache(unsplashImage.id, image.url);
 
   // Background-fetch location data from Unsplash /photos/:id
   fetchUnsplashPhotoDetail(data.unsplashId)
@@ -226,10 +228,10 @@ export async function addHeroImage(data: {
 }
 
 export async function removeHeroImage(id: number): Promise<void> {
-  await deleteHeroImage(id);
-  if (s3CacheEnabled()) {
-    removeHeroCacheImage(id).catch((err: unknown) => {
-      console.error(`[hero-image-cache] Failed to remove cached image ${id}:`, err);
+  const deleted = await deleteHeroImage(id);
+  if (s3CacheEnabled() && deleted?.unsplashImageId) {
+    removeUnsplashCacheImage("hero", deleted.unsplashImageId).catch((err: unknown) => {
+      console.error(`[unsplash-cache] Failed to remove cached hero image ${deleted.unsplashImageId}:`, err);
     });
   }
 }
@@ -273,7 +275,7 @@ export async function getCurrentHeroImage(rawState: string | null): Promise<{
     // Single-active mode: return the one marked image, no state tracking
     const image = selected[0];
     return {
-      url: s3CacheEnabled() ? getHeroCacheImageUrl(image.id) : image.url,
+      url: s3CacheEnabled() && image.unsplashImageId ? getUnsplashCacheUrl("hero", image.unsplashImageId) : image.url,
       photographer: image.photographer,
       photographerUrl: image.photographerUrl,
       focalPointY: image.focalPointY,
@@ -287,7 +289,7 @@ export async function getCurrentHeroImage(rawState: string | null): Promise<{
   if (!result) return null;
 
   return {
-    url: s3CacheEnabled() ? getHeroCacheImageUrl(result.image.id) : result.image.url,
+    url: s3CacheEnabled() && result.image.unsplashImageId ? getUnsplashCacheUrl("hero", result.image.unsplashImageId) : result.image.url,
     photographer: result.image.photographer,
     photographerUrl: result.image.photographerUrl,
     focalPointY: result.image.focalPointY,

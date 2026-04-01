@@ -127,6 +127,33 @@ export async function setAdminCategoryImage(
 }
 
 /**
+ * Sets an Unsplash image on a category via FK and attribution fields.
+ */
+export async function setAdminCategoryUnsplashImage(
+  id: number,
+  data: {
+    unsplashImageId: number;
+    imageUrl: string;
+    imagePhotographer: string;
+    imagePhotographerUrl: string;
+  },
+): Promise<Category | null> {
+  const [category] = await db
+    .update(categories)
+    .set({
+      unsplashImageId: data.unsplashImageId,
+      imageUrl: data.imageUrl,
+      imagePhotographer: data.imagePhotographer,
+      imagePhotographerUrl: data.imagePhotographerUrl,
+      updatedAt: new Date(),
+    })
+    .where(eq(categories.id, id))
+    .returning();
+
+  return category ?? null;
+}
+
+/**
  * Removes image and attribution metadata from a category.
  *
  * @param id - Category id.
