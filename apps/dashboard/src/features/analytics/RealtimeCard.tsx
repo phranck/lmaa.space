@@ -75,7 +75,7 @@ export function RealtimeCard() {
             <span className="text-xl font-bold text-[var(--ds-text)]">
               {formatNumber(active?.visitors ?? realtime.totals.visitors ?? 0)}
             </span>
-            <span className="text-sm text-[var(--ds-text-subtle)]">
+            <span className="text-sm text-[var(--ds-text-muted)]">
               {active?.visitors != null
                 ? analyticsMessages.realtime.active5m
                 : analyticsMessages.visitors}
@@ -85,13 +85,13 @@ export function RealtimeCard() {
             <span className="text-xl font-bold text-[var(--ds-text)]">
               {formatNumber(realtime.totals.pageviews ?? realtime.totals.views ?? 0)}
             </span>
-            <span className="text-sm text-[var(--ds-text-subtle)]">
+            <span className="text-sm text-[var(--ds-text-muted)]">
               {analyticsMessages.realtime.pageviews30m}
             </span>
           </div>
         </>
       )}
-      <span className="text-sm text-[var(--ds-text-subtle)]">
+      <span className="text-sm text-[var(--ds-text-muted)]">
         {analyticsMessages.realtime.updatedEvery30s}
       </span>
     </div>
