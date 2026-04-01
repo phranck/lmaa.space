@@ -16,7 +16,11 @@ import type {
   InputType,
   RichTextVariant,
 } from "@lmaa/contracts";
-import { FormLabelText, MarkdownEditor } from "@lmaa/ui";
+import { FormLabelText } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -191,79 +195,8 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
         </label>
       )}
 
-      {/* Richtext: content editor */}
-      {isRichText && (
-        <div className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.content}
-          </FormLabelText>
-          <MarkdownEditor
-            value={field.content ?? ""}
-            onChange={(val) => set("content", val || undefined)}
-            rows={field.rows}
-          />
-        </div>
-      )}
-
-      {/* Richtext: variant picker */}
-      {isRichText && (
-        <div className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.variant}
-          </FormLabelText>
-          <div className="grid grid-cols-2 gap-1.5">
-            {(
-              [
-                {
-                  value: "default",
-                  label: m.variantDefault,
-                  base: "bg-[var(--ds-surface)] text-[var(--ds-text)]",
-                  active: "border-2 border-[var(--ds-text-muted)]",
-                  inactive: "border border-[var(--ds-border)]",
-                },
-                {
-                  value: "info",
-                  label: m.variantInfo,
-                  base: "bg-blue-50 dark:bg-blue-950/50 text-blue-900 dark:text-blue-300",
-                  active: "border-2 border-blue-400 dark:border-blue-500",
-                  inactive: "border border-blue-200 dark:border-blue-800",
-                },
-                {
-                  value: "warning",
-                  label: m.variantWarning,
-                  base: "bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300",
-                  active: "border-2 border-amber-400 dark:border-amber-500",
-                  inactive: "border border-amber-200 dark:border-amber-800",
-                },
-                {
-                  value: "hint",
-                  label: m.variantHint,
-                  base: "bg-green-50 dark:bg-green-950/50 text-green-900 dark:text-green-300",
-                  active: "border-2 border-green-500 dark:border-green-500",
-                  inactive: "border border-green-200 dark:border-green-800",
-                },
-              ] as {
-                value: RichTextVariant;
-                label: string;
-                base: string;
-                active: string;
-                inactive: string;
-              }[]
-            ).map(({ value, label, base, active, inactive }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => set("variant", value)}
-                className={`h-8 rounded-control text-xs font-medium ${base} ${
-                  (field.variant ?? "default") === value ? active : inactive
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Richtext: content editor + variant picker */}
+      {isRichText && <RichTextFieldConfig field={field} onChange={onChange} m={m} />}
 
       {/* Placeholder */}
       {hasPlaceholder && (
@@ -411,116 +344,257 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
         </label>
       )}
 
-      {/* Button type — only for button fields */}
+      {/* Button config — type, width, alignment, icon, display, action */}
       {isButton && (
-        <div className="flex flex-col gap-1">
+        <ButtonFieldConfig field={field} onChange={onChange} allFields={allFields} m={m} />
+      )}
+
+      {/* Validation min/max — only for text/textarea */}
+      {hasValidationMinMax && (
+        <div className="flex flex-col gap-2">
           <FormLabelText>
-            {m.buttonType}
+            {m.validation}
           </FormLabelText>
-          <div className="flex flex-col gap-1.5">
-            {(
-              [
-                { value: "button", label: m.buttonTypeButton },
-                { value: "submit", label: m.buttonTypeSubmit },
-                { value: "reset", label: m.buttonTypeReset },
-              ] as { value: "button" | "submit" | "reset"; label: string }[]
-            ).map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => set("buttonType", value)}
-                className={`h-8 rounded-control border text-xs font-medium ${
-                  (field.buttonType ?? "button") === value
-                    ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                    : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="flex gap-2">
+            <label className="flex-1 min-w-0 flex flex-col gap-1">
+              <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMin}</span>
+              <input
+                type="number"
+                value={field.validation?.min ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value !== "" ? Number(e.target.value) : undefined;
+                  set("validation", { ...field.validation, min: val });
+                }}
+                className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
+              />
+            </label>
+            <label className="flex-1 min-w-0 flex flex-col gap-1">
+              <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMax}</span>
+              <input
+                type="number"
+                value={field.validation?.max ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value !== "" ? Number(e.target.value) : undefined;
+                  set("validation", { ...field.validation, max: val });
+                }}
+                className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
+              />
+            </label>
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* Button width */}
-      {isButton && (
-        <div className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.buttonWidth}
-          </FormLabelText>
-          <div className="flex gap-1.5">
-            {(
-              [
-                { value: "automatic", label: m.buttonWidthAutomatic },
-                { value: "full", label: m.buttonWidthFull },
-              ] as { value: "automatic" | "full"; label: string }[]
-            ).map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => set("buttonWidth", value)}
-                className={`flex-1 h-8 rounded-control border text-xs font-medium ${
-                  (field.buttonWidth ?? "automatic") === value
-                    ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                    : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
-      {/* Button alignment */}
-      {isButton && (
-        <div className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.buttonAlign}
-          </FormLabelText>
-          <div className="flex gap-1.5">
-            {(
-              [
-                { value: "left", label: m.buttonAlignLeft },
-                { value: "center", label: m.buttonAlignCenter },
-                { value: "right", label: m.buttonAlignRight },
-              ] as { value: "left" | "center" | "right"; label: string }[]
-            ).map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => set("buttonAlign", value)}
-                className={`flex-1 h-8 rounded-control border text-xs font-medium ${
-                  (field.buttonAlign ?? "left") === value
-                    ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                    : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+type PanelMessages = ReturnType<typeof useI18n>["messages"]["formBuilder"]["panel"];
 
-      {/* Button icon picker */}
-      {isButton && (
-        <Suspense
-          fallback={
-            <div className="h-48 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
-          }
-        >
-          <IconPicker
-            value={field.buttonIcon}
-            onChange={(name) => set("buttonIcon", name)}
-            noneLabel={m.buttonIconNone}
-            label={m.buttonIcon}
+interface RichTextFieldConfigProps {
+  field: FormField;
+  onChange: (updated: FormField) => void;
+  m: PanelMessages;
+}
+
+function RichTextFieldConfig({ field, onChange, m }: RichTextFieldConfigProps) {
+  function set<K extends keyof FormField>(key: K, value: FormField[K]) {
+    onChange({ ...field, [key]: value });
+  }
+
+  return (
+    <>
+      <div className="flex flex-col gap-1">
+        <FormLabelText>
+          {m.content}
+        </FormLabelText>
+        <Suspense fallback={<div className="h-[6rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+          <MarkdownEditor
+            value={field.content ?? ""}
+            onChange={(val) => set("content", val || undefined)}
+            rows={field.rows}
           />
         </Suspense>
-      )}
+      </div>
 
-      {/* Button display mode — only shown when an icon is selected */}
-      {isButton && field.buttonIcon && (
+      <div className="flex flex-col gap-1">
+        <FormLabelText>
+          {m.variant}
+        </FormLabelText>
+        <div className="grid grid-cols-2 gap-1.5">
+          {(
+            [
+              {
+                value: "default",
+                label: m.variantDefault,
+                base: "bg-[var(--ds-surface)] text-[var(--ds-text)]",
+                active: "border-2 border-[var(--ds-text-muted)]",
+                inactive: "border border-[var(--ds-border)]",
+              },
+              {
+                value: "info",
+                label: m.variantInfo,
+                base: "bg-blue-50 dark:bg-blue-950/50 text-blue-900 dark:text-blue-300",
+                active: "border-2 border-blue-400 dark:border-blue-500",
+                inactive: "border border-blue-200 dark:border-blue-800",
+              },
+              {
+                value: "warning",
+                label: m.variantWarning,
+                base: "bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300",
+                active: "border-2 border-amber-400 dark:border-amber-500",
+                inactive: "border border-amber-200 dark:border-amber-800",
+              },
+              {
+                value: "hint",
+                label: m.variantHint,
+                base: "bg-green-50 dark:bg-green-950/50 text-green-900 dark:text-green-300",
+                active: "border-2 border-green-500 dark:border-green-500",
+                inactive: "border border-green-200 dark:border-green-800",
+              },
+            ] as {
+              value: RichTextVariant;
+              label: string;
+              base: string;
+              active: string;
+              inactive: string;
+            }[]
+          ).map(({ value, label, base, active, inactive }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => set("variant", value)}
+              className={`h-8 rounded-control text-xs font-medium ${base} ${
+                (field.variant ?? "default") === value ? active : inactive
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+interface ButtonFieldConfigProps {
+  field: FormField;
+  onChange: (updated: FormField) => void;
+  allFields: { id: string; label: string }[];
+  m: PanelMessages;
+}
+
+function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigProps) {
+  function set<K extends keyof FormField>(key: K, value: FormField[K]) {
+    onChange({ ...field, [key]: value });
+  }
+
+  return (
+    <>
+      {/* Button type */}
+      <div className="flex flex-col gap-1">
+        <FormLabelText>
+          {m.buttonType}
+        </FormLabelText>
+        <div className="flex flex-col gap-1.5">
+          {(
+            [
+              { value: "button", label: m.buttonTypeButton },
+              { value: "submit", label: m.buttonTypeSubmit },
+              { value: "reset", label: m.buttonTypeReset },
+            ] as { value: "button" | "submit" | "reset"; label: string }[]
+          ).map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => set("buttonType", value)}
+              className={`h-8 rounded-control border text-xs font-medium ${
+                (field.buttonType ?? "button") === value
+                  ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                  : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Button width */}
+      <div className="flex flex-col gap-1">
+        <FormLabelText>
+          {m.buttonWidth}
+        </FormLabelText>
+        <div className="flex gap-1.5">
+          {(
+            [
+              { value: "automatic", label: m.buttonWidthAutomatic },
+              { value: "full", label: m.buttonWidthFull },
+            ] as { value: "automatic" | "full"; label: string }[]
+          ).map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => set("buttonWidth", value)}
+              className={`flex-1 h-8 rounded-control border text-xs font-medium ${
+                (field.buttonWidth ?? "automatic") === value
+                  ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                  : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Button alignment */}
+      <div className="flex flex-col gap-1">
+        <FormLabelText>
+          {m.buttonAlign}
+        </FormLabelText>
+        <div className="flex gap-1.5">
+          {(
+            [
+              { value: "left", label: m.buttonAlignLeft },
+              { value: "center", label: m.buttonAlignCenter },
+              { value: "right", label: m.buttonAlignRight },
+            ] as { value: "left" | "center" | "right"; label: string }[]
+          ).map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => set("buttonAlign", value)}
+              className={`flex-1 h-8 rounded-control border text-xs font-medium ${
+                (field.buttonAlign ?? "left") === value
+                  ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+                  : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Button icon picker */}
+      <Suspense
+        fallback={
+          <div className="h-48 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+        }
+      >
+        <IconPicker
+          value={field.buttonIcon}
+          onChange={(name) => set("buttonIcon", name)}
+          noneLabel={m.buttonIconNone}
+          label={m.buttonIcon}
+        />
+      </Suspense>
+
+      {/* Button display mode -- only shown when an icon is selected */}
+      {field.buttonIcon && (
         <div className="flex flex-col gap-1">
           <FormLabelText>
             {m.buttonDisplay}
@@ -550,8 +624,8 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
         </div>
       )}
 
-      {/* Button action — only for buttonType === "button" */}
-      {isButton && (field.buttonType ?? "button") === "button" && (
+      {/* Button action -- only for buttonType === "button" */}
+      {(field.buttonType ?? "button") === "button" && (
         <div className="flex flex-col gap-1">
           <FormLabelText>
             {m.buttonAction}
@@ -605,7 +679,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
                 }}
                 className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
               >
-                <option value="">—</option>
+                <option value="">---</option>
                 {allFields.map((f) => (
                   <option key={f.id} value={f.id}>
                     {f.label}
@@ -616,41 +690,6 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           )}
         </div>
       )}
-
-      {/* Validation min/max — only for text/textarea */}
-      {hasValidationMinMax && (
-        <div className="flex flex-col gap-2">
-          <FormLabelText>
-            {m.validation}
-          </FormLabelText>
-          <div className="flex gap-2">
-            <label className="flex-1 min-w-0 flex flex-col gap-1">
-              <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMin}</span>
-              <input
-                type="number"
-                value={field.validation?.min ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value !== "" ? Number(e.target.value) : undefined;
-                  set("validation", { ...field.validation, min: val });
-                }}
-                className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
-              />
-            </label>
-            <label className="flex-1 min-w-0 flex flex-col gap-1">
-              <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMax}</span>
-              <input
-                type="number"
-                value={field.validation?.max ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value !== "" ? Number(e.target.value) : undefined;
-                  set("validation", { ...field.validation, max: val });
-                }}
-                className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
-              />
-            </label>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 }

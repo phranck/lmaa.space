@@ -9,7 +9,7 @@ import {
   SquaresFourIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui";
@@ -52,6 +52,21 @@ import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type ViewMode = "list" | "grid";
 
+interface MediaPageState {
+  selectedId: number | null;
+  draft: { name: string; alias: string };
+  actionError: string | null;
+  copied: boolean;
+  deleteTarget: MediaAsset | null;
+  isDragActive: boolean;
+}
+
+type MediaPageAction = Partial<MediaPageState>;
+
+function mediaPageReducer(state: MediaPageState, action: MediaPageAction): MediaPageState {
+  return { ...state, ...action };
+}
+
 function MediaPreview({
   asset,
   unsupportedPreview,
@@ -84,13 +99,15 @@ export function MediaPage() {
   const mediaMessages = messages.media;
   const common = messages.common;
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [draftName, setDraftName] = useState("");
-  const [draftAlias, setDraftAlias] = useState("");
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<MediaAsset | null>(null);
-  const [isDragActive, setIsDragActive] = useState(false);
+  const [state, dispatch] = useReducer(mediaPageReducer, {
+    selectedId: null,
+    draft: { name: "", alias: "" },
+    actionError: null,
+    copied: false,
+    deleteTarget: null,
+    isDragActive: false,
+  });
+  const { selectedId, draft, actionError, copied, deleteTarget, isDragActive } = state;
   const inputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
 
@@ -104,31 +121,33 @@ export function MediaPage() {
 
   useEffect(() => {
     if (assets.length === 0) {
-      setSelectedId(null);
+      dispatch({ selectedId: null });
       return;
     }
 
     if (!selectedId || !assets.some((asset) => asset.id === selectedId)) {
-      setSelectedId(assets[0].id);
+      dispatch({ selectedId: assets[0].id });
     }
   }, [assets, selectedId]);
 
   useEffect(() => {
-    setDraftName(selectedAsset?.displayName ?? "");
-    setDraftAlias(selectedAsset?.alias ?? "");
-    setCopied(false);
+    dispatch({ draft: {
+      name: selectedAsset?.displayName ?? "",
+      alias: selectedAsset?.alias ?? "",
+    } });
+    dispatch({ copied: false });
   }, [selectedAsset]);
 
   useEffect(() => {
     if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(false), 1500);
+    const timer = window.setTimeout(() => dispatch({ copied: false }), 1500);
     return () => window.clearTimeout(timer);
   }, [copied]);
 
   async function handleUpload(files: FileList | null) {
     if (!files?.length) return;
 
-    setActionError(null);
+    dispatch({ actionError: null });
     let lastUploaded: MediaAsset | null = null;
 
     try {
@@ -137,10 +156,10 @@ export function MediaPage() {
       }
 
       if (lastUploaded) {
-        setSelectedId(lastUploaded.id);
+        dispatch({ selectedId: lastUploaded.id });
       }
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : mediaMessages.uploadError);
+      dispatch({ actionError: error instanceof Error ? error.message : mediaMessages.uploadError });
     }
   }
 
@@ -152,7 +171,7 @@ export function MediaPage() {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     dragDepthRef.current += 1;
-    setIsDragActive(true);
+    dispatch({ isDragActive: true });
   }
 
   function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
@@ -166,7 +185,7 @@ export function MediaPage() {
     event.preventDefault();
     dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
     if (dragDepthRef.current === 0) {
-      setIsDragActive(false);
+      dispatch({ isDragActive: false });
     }
   }
 
@@ -174,33 +193,33 @@ export function MediaPage() {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     dragDepthRef.current = 0;
-    setIsDragActive(false);
+    dispatch({ isDragActive: false });
     void handleUpload(event.dataTransfer.files);
   }
 
   async function handleCopyUrl() {
     if (!selectedAsset) return;
     await navigator.clipboard.writeText(selectedAsset.url);
-    setCopied(true);
+    dispatch({ copied: true });
   }
 
   async function handleSaveMeta() {
     if (!selectedAsset) return;
 
-    const nextName = draftName.trim();
-    const nextAlias = draftAlias.trim() || null;
+    const nextName = draft.name.trim();
+    const nextAlias = draft.alias.trim() || null;
     if (!nextName) return;
 
     const nameChanged = nextName !== selectedAsset.displayName;
     const aliasChanged = nextAlias !== (selectedAsset.alias ?? null);
     if (!nameChanged && !aliasChanged) return;
 
-    setActionError(null);
+    dispatch({ actionError: null });
 
     try {
       await renameMedia.mutateAsync({ id: selectedAsset.id, displayName: nextName, alias: nextAlias });
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : mediaMessages.renameError);
+      dispatch({ actionError: error instanceof Error ? error.message : mediaMessages.renameError });
     }
   }
 
@@ -272,7 +291,7 @@ export function MediaPage() {
 
               {!isLoading && viewMode === "list" && (
                 <div className="-mx-3 -mt-3">
-                  <MediaTable assets={assets} selectedId={selectedId} onSelect={setSelectedId} />
+                  <MediaTable assets={assets} selectedId={selectedId} onSelect={(id) => dispatch({ selectedId: id })} />
                 </div>
               )}
 
@@ -283,7 +302,7 @@ export function MediaPage() {
                       key={asset.id}
                       asset={asset}
                       selected={asset.id === selectedId}
-                      onSelect={setSelectedId}
+                      onSelect={(id) => dispatch({ selectedId: id })}
                     />
                   ))}
                 </div>
@@ -292,134 +311,19 @@ export function MediaPage() {
 
             <PageSplitAside className="self-start xl:sticky xl:top-[4.75rem]">
               {selectedAsset ? (
-                <div className="space-y-3">
-                  <DashboardSection>
-                    <DashboardSection.Header
-                      icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
-                      title={mediaMessages.previewTitle}
-                    />
-                    <DashboardSection.Body>
-                      <MediaPreview
-                        asset={selectedAsset}
-                        unsupportedPreview={mediaMessages.unsupportedPreview}
-                      />
-                    </DashboardSection.Body>
-                  </DashboardSection>
-
-                  <DashboardSection>
-                    <DashboardSection.Header
-                      icon={<PencilSimpleIcon weight="duotone" className="w-4 h-4" />}
-                      title={mediaMessages.detailsTitle}
-                    />
-                    <DashboardSection.Body>
-                      <label className="block space-y-1.5">
-                        <span className="text-sm font-medium text-[var(--ds-text)]">
-                          {mediaMessages.displayName}
-                        </span>
-                        <input
-                          type="text"
-                          value={draftName}
-                          onChange={(event) => setDraftName(event.target.value)}
-                          className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                        />
-                      </label>
-
-                      <label className="block space-y-1.5">
-                        <span className="text-sm font-medium text-[var(--ds-text)]">Alias</span>
-                        <input
-                          type="text"
-                          value={draftAlias}
-                          onChange={(event) => setDraftAlias(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                          placeholder="z.B. sepa-qr"
-                          className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm font-mono bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                        />
-                        <p className="text-xs text-[var(--ds-text-subtle)]">
-                          {draftAlias ? `Verwendung: [[image:${draftAlias}]] oder [[pdf:${draftAlias}]]` : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
-                        </p>
-                      </label>
-
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void handleSaveMeta()}
-                          disabled={
-                            renameMedia.isPending ||
-                            draftName.trim().length === 0 ||
-                            (draftName.trim() === selectedAsset.displayName && (draftAlias.trim() || null) === (selectedAsset.alias ?? null))
-                          }
-                          className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-                        >
-                          {renameMedia.isPending ? common.saving : mediaMessages.saveName}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(selectedAsset)}
-                          className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-                        >
-                          <TrashIcon weight="duotone" className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </DashboardSection.Body>
-                  </DashboardSection>
-
-                  <DashboardSection>
-                    <DashboardSection.Header
-                      icon={<FileIcon weight="duotone" className="w-4 h-4" />}
-                      title={mediaMessages.infoTitle}
-                    />
-                    <DashboardSection.Body>
-                      <div className="space-y-3 text-sm">
-                        <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.originalName}</p>
-                          <p className="text-[var(--ds-text)] break-all">{selectedAsset.originalName}</p>
-                        </div>
-                        <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileType}</p>
-                          <p className="text-[var(--ds-text)]">{selectedAsset.mimeType}</p>
-                        </div>
-                        <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
-                          <p className="text-[var(--ds-text)]">{formatBytes(selectedAsset.sizeBytes, locale)}</p>
-                        </div>
-                        {selectedAsset.width && selectedAsset.height && (
-                          <div>
-                            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
-                            <p className="text-[var(--ds-text)]">{selectedAsset.width} × {selectedAsset.height}px</p>
-                          </div>
-                        )}
-                        <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.createdAt}</p>
-                          <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.createdAt, locale)}</p>
-                        </div>
-                        <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.updatedAt}</p>
-                          <p className="text-[var(--ds-text)]">{formatMediaDate(selectedAsset.updatedAt, locale)}</p>
-                        </div>
-                        <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.uploadedBy}</p>
-                          <p className="text-[var(--ds-text)]">{selectedAsset.createdByUsername ?? "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
-                          <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
-                            {selectedAsset.url}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void handleCopyUrl()}
-                          className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
-                        >
-                          <CopyIcon weight="duotone" className="w-4 h-4" />
-                          {copied ? mediaMessages.copied : mediaMessages.copyUrl}
-                        </button>
-                      </div>
-                    </DashboardSection.Body>
-                  </DashboardSection>
-                </div>
+                <MediaDetailSidebar
+                  asset={selectedAsset}
+                  draft={draft}
+                  onDraftChange={(updated) => dispatch({ draft: updated })}
+                  onSaveMeta={() => void handleSaveMeta()}
+                  onDelete={() => dispatch({ deleteTarget: selectedAsset })}
+                  onCopyUrl={() => void handleCopyUrl()}
+                  copied={copied}
+                  isRenaming={renameMedia.isPending}
+                  locale={locale}
+                  mediaMessages={mediaMessages}
+                  common={common}
+                />
               ) : (
                 <ContentUnavailableView
                   icon={<FileIcon weight="duotone" aria-hidden />}
@@ -466,7 +370,7 @@ export function MediaPage() {
         open={deleteTarget !== null}
         title={mediaMessages.deleteTitle}
         titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => dispatch({ deleteTarget: null })}
       >
         <div className="px-6 py-3">
           <p className="text-sm text-[var(--ds-text-muted)]">
@@ -477,7 +381,7 @@ export function MediaPage() {
         <Dialog.Footer>
           <button
             type="button"
-            onClick={() => setDeleteTarget(null)}
+            onClick={() => dispatch({ deleteTarget: null })}
             className={dialogBtnSecondary}
           >
             {common.cancel}
@@ -490,12 +394,12 @@ export function MediaPage() {
               deleteMedia.mutate(deleteTarget.id, {
                 onSuccess: () => {
                   if (selectedId === deleteTarget.id) {
-                    setSelectedId(null);
+                    dispatch({ selectedId: null });
                   }
-                  setDeleteTarget(null);
+                  dispatch({ deleteTarget: null });
                 },
                 onError: (error) => {
-                  setActionError(error instanceof Error ? error.message : common.unknownError);
+                  dispatch({ actionError: error instanceof Error ? error.message : common.unknownError });
                 },
               });
             }}
@@ -506,5 +410,182 @@ export function MediaPage() {
         </Dialog.Footer>
       </Dialog>
     </PageLayout>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+interface MediaDetailSidebarProps {
+  asset: MediaAsset;
+  draft: { name: string; alias: string };
+  onDraftChange: (draft: { name: string; alias: string }) => void;
+  onSaveMeta: () => void;
+  onDelete: () => void;
+  onCopyUrl: () => void;
+  copied: boolean;
+  isRenaming: boolean;
+  locale: string;
+  mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
+  common: ReturnType<typeof useI18n>["messages"]["common"];
+}
+
+function MediaDetailSidebar({
+  asset,
+  draft,
+  onDraftChange,
+  onSaveMeta,
+  onDelete,
+  onCopyUrl,
+  copied,
+  isRenaming,
+  locale,
+  mediaMessages,
+  common,
+}: MediaDetailSidebarProps) {
+  return (
+    <div className="space-y-3">
+      <DashboardSection>
+        <DashboardSection.Header
+          icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+          title={mediaMessages.previewTitle}
+        />
+        <DashboardSection.Body>
+          <MediaPreview
+            asset={asset}
+            unsupportedPreview={mediaMessages.unsupportedPreview}
+          />
+        </DashboardSection.Body>
+      </DashboardSection>
+
+      <DashboardSection>
+        <DashboardSection.Header
+          icon={<PencilSimpleIcon weight="duotone" className="w-4 h-4" />}
+          title={mediaMessages.detailsTitle}
+        />
+        <DashboardSection.Body>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium text-[var(--ds-text)]">
+              {mediaMessages.displayName}
+            </span>
+            <input
+              type="text"
+              value={draft.name}
+              onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
+              className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            />
+          </label>
+
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium text-[var(--ds-text)]">Alias</span>
+            <input
+              type="text"
+              value={draft.alias}
+              onChange={(event) => onDraftChange({ ...draft, alias: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
+              placeholder="z.B. sepa-qr"
+              className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm font-mono bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            />
+            <p className="text-xs text-[var(--ds-text-subtle)]">
+              {draft.alias ? `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]` : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
+            </p>
+          </label>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onSaveMeta}
+              disabled={
+                isRenaming ||
+                draft.name.trim().length === 0 ||
+                (draft.name.trim() === asset.displayName && (draft.alias.trim() || null) === (asset.alias ?? null))
+              }
+              className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
+            >
+              {isRenaming ? common.saving : mediaMessages.saveName}
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
+            >
+              <TrashIcon weight="duotone" className="w-4 h-4" />
+            </button>
+          </div>
+        </DashboardSection.Body>
+      </DashboardSection>
+
+      <MediaInfoSection asset={asset} locale={locale} mediaMessages={mediaMessages} copied={copied} onCopyUrl={onCopyUrl} />
+    </div>
+  );
+}
+
+interface MediaInfoSectionProps {
+  asset: MediaAsset;
+  locale: string;
+  mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
+  copied: boolean;
+  onCopyUrl: () => void;
+}
+
+function MediaInfoSection({ asset, locale, mediaMessages, copied, onCopyUrl }: MediaInfoSectionProps) {
+  return (
+    <DashboardSection>
+      <DashboardSection.Header
+        icon={<FileIcon weight="duotone" className="w-4 h-4" />}
+        title={mediaMessages.infoTitle}
+      />
+      <DashboardSection.Body>
+        <div className="space-y-3 text-sm">
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.originalName}</p>
+            <p className="text-[var(--ds-text)] break-all">{asset.originalName}</p>
+          </div>
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileType}</p>
+            <p className="text-[var(--ds-text)]">{asset.mimeType}</p>
+          </div>
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
+            <p className="text-[var(--ds-text)]">{formatBytes(asset.sizeBytes, locale)}</p>
+          </div>
+          {asset.width && asset.height && (
+            <div>
+              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
+              <p className="text-[var(--ds-text)]">{asset.width} x {asset.height}px</p>
+            </div>
+          )}
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.createdAt}</p>
+            <p className="text-[var(--ds-text)]">{formatMediaDate(asset.createdAt, locale)}</p>
+          </div>
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.updatedAt}</p>
+            <p className="text-[var(--ds-text)]">{formatMediaDate(asset.updatedAt, locale)}</p>
+          </div>
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.uploadedBy}</p>
+            <p className="text-[var(--ds-text)]">{asset.createdByUsername ?? "---"}</p>
+          </div>
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
+            <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
+              {asset.url}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onCopyUrl}
+            className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
+          >
+            <CopyIcon weight="duotone" className="w-4 h-4" />
+            {copied ? mediaMessages.copied : mediaMessages.copyUrl}
+          </button>
+        </div>
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }

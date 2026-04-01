@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DownloadIcon, ListIcon, PlusCircleIcon, XCircleIcon } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 
 import type { NavId } from "@lmaa/shared";
 
@@ -176,18 +176,39 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
   const { data: allForms = [] } = useFormConfigs();
   const saveNav = useSaveNav(navId);
 
-  const [items, setItems] = useState<NavItemState[]>([]);
-  const [dirty, setDirty] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [addType, setAddType] = useState<"page" | "url" | "form">("page");
-  const [addPageSlug, setAddPageSlug] = useState("");
-  const [addUrl, setAddUrl] = useState("");
-  const [addLabel, setAddLabel] = useState("");
-  const [addTarget, setAddTarget] = useState<"_self" | "_blank">("_self");
+  interface NavColumnState {
+    items: NavItemState[];
+    dirty: boolean;
+    saveError: string | null;
+    addType: "page" | "url" | "form";
+    addPageSlug: string;
+    addUrl: string;
+    addLabel: string;
+    addTarget: "_self" | "_blank";
+  }
+
+  const [state, dispatch] = useReducer(
+    (prev: NavColumnState, action: Partial<NavColumnState>): NavColumnState => ({ ...prev, ...action }),
+    {
+      items: [],
+      dirty: false,
+      saveError: null,
+      addType: "page",
+      addPageSlug: "",
+      addUrl: "",
+      addLabel: "",
+      addTarget: "_self",
+    },
+  );
+  const { items, dirty, saveError, addType, addPageSlug, addUrl, addLabel, addTarget } = state;
+
+  const setItems = (updater: NavItemState[] | ((prev: NavItemState[]) => NavItemState[])) => {
+    dispatch({ items: typeof updater === "function" ? updater(items) : updater });
+  };
 
   useEffect(() => {
-    setItems(
-      serverItems.map((si) => ({
+    dispatch({
+      items: serverItems.map((si) => ({
         id: si.id,
         pageSlug: si.pageSlug ?? null,
         pageTitle: si.pageTitle ?? null,
@@ -195,8 +216,8 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
         target: (si.target as "_self" | "_blank") ?? "_self",
         label: si.label ?? "",
       })),
-    );
-    setDirty(false);
+      dirty: false,
+    });
   }, [serverItems]);
 
   const sensors = useSensors(
@@ -212,17 +233,17 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
       const newIndex = prev.findIndex((i) => i.id === over.id);
       return arrayMove(prev, oldIndex, newIndex);
     });
-    setDirty(true);
+    dispatch({ dirty: true });
   }
 
   function handleRemove(id: number) {
     setItems((prev) => prev.filter((i) => i.id !== id));
-    setDirty(true);
+    dispatch({ dirty: true });
   }
 
   function handleLabelChange(id: number, label: string) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, label } : i)));
-    setDirty(true);
+    dispatch({ dirty: true });
   }
 
   function handleAddPage() {
@@ -245,8 +266,8 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           label: "",
         },
       ]);
-      setAddPageSlug("");
-      setDirty(true);
+      dispatch({ addPageSlug: "" });
+      dispatch({ dirty: true });
       return;
     }
     const page = allPages.find((p) => p.slug === addPageSlug);
@@ -263,8 +284,8 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
         label: "",
       },
     ]);
-    setAddPageSlug("");
-    setDirty(true);
+    dispatch({ addPageSlug: "" });
+    dispatch({ dirty: true });
   }
 
   function handleAddUrl() {
@@ -286,10 +307,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
         label: derivedLabel,
       },
     ]);
-    setAddUrl("");
-    setAddLabel("");
-    setAddTarget("_self");
-    setDirty(true);
+    dispatch({ addUrl: "", addLabel: "", addTarget: "_self", dirty: true });
   }
 
   function handleAddStatic(route: { label: string; url: string }) {
@@ -305,11 +323,11 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
         label: "",
       },
     ]);
-    setDirty(true);
+    dispatch({ dirty: true });
   }
 
   async function handleSave() {
-    setSaveError(null);
+    dispatch({ saveError: null });
     try {
       await saveNav.mutateAsync(
         items.map((i) => ({
@@ -319,9 +337,9 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
           target: i.target,
         })),
       );
-      setDirty(false);
+      dispatch({ dirty: false });
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : text.errorSaving);
+      dispatch({ saveError: err instanceof Error ? err.message : text.errorSaving });
     }
   }
 
@@ -373,116 +391,171 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
         </DndContext>
       )}
 
-      {/* Add section */}
-      <div className="border-t border-[var(--ds-border)] pt-3 space-y-3">
-        {/* Type toggle */}
-        <div className="flex gap-2">
+      <NavColumnAddSection
+        addType={addType}
+        addPageSlug={addPageSlug}
+        addUrl={addUrl}
+        addLabel={addLabel}
+        availablePages={availablePages}
+        availableForms={availableForms}
+        availableStatics={availableStatics}
+        text={text}
+        onTypeChange={(type) => dispatch({ addType: type })}
+        onPageSlugChange={(slug) => dispatch({ addPageSlug: slug })}
+        onUrlChange={(url) => dispatch({ addUrl: url })}
+        onLabelChange={(label) => dispatch({ addLabel: label })}
+        onAddPage={handleAddPage}
+        onAddUrl={handleAddUrl}
+        onAddStatic={handleAddStatic}
+      />
+    </div>
+  );
+}
+
+interface NavColumnAddSectionProps {
+  addType: "page" | "url" | "form";
+  addPageSlug: string;
+  addUrl: string;
+  addLabel: string;
+  availablePages: { slug: string; title: string }[];
+  availableForms: { name: string; slug: string | null }[];
+  availableStatics: { label: string; url: string }[];
+  text: NavText;
+  onTypeChange: (type: "page" | "url" | "form") => void;
+  onPageSlugChange: (slug: string) => void;
+  onUrlChange: (url: string) => void;
+  onLabelChange: (label: string) => void;
+  onAddPage: () => void;
+  onAddUrl: () => void;
+  onAddStatic: (route: { label: string; url: string }) => void;
+}
+
+function NavColumnAddSection({
+  addType,
+  addPageSlug,
+  addUrl,
+  addLabel,
+  availablePages,
+  availableForms,
+  availableStatics,
+  text,
+  onTypeChange,
+  onPageSlugChange,
+  onUrlChange,
+  onLabelChange,
+  onAddPage,
+  onAddUrl,
+  onAddStatic,
+}: NavColumnAddSectionProps) {
+  return (
+    <div className="border-t border-[var(--ds-border)] pt-3 space-y-3">
+      {/* Type toggle */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => onTypeChange("page")}
+          className={`px-3 py-1 text-xs rounded-control border ${
+            addType === "page"
+              ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
+              : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
+          }`}
+        >
+          {text.typePage}
+        </button>
+        <button
+          type="button"
+          onClick={() => onTypeChange("url")}
+          className={`px-3 py-1 text-xs rounded-control border ${
+            addType === "url"
+              ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
+              : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
+          }`}
+        >
+          {text.typeUrl}
+        </button>
+      </div>
+
+      {addType === "page" ? (
+        <div className="flex items-center gap-2">
+          <select
+            value={addPageSlug}
+            onChange={(e) => onPageSlugChange(e.target.value)}
+            className="flex-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+          >
+            <option value="">{text.choosePageOrForm}</option>
+            {availablePages.length > 0 && (
+              <optgroup label={text.typePage}>
+                {availablePages.map((p) => (
+                  <option key={p.slug} value={p.slug}>
+                    {p.title} (/{p.slug})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {availableForms.length > 0 && (
+              <optgroup label={text.forms}>
+                {availableForms.map((f) => (
+                  <option key={f.name} value={`form:${f.slug}`}>
+                    {f.name} (/{f.slug})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </select>
           <button
             type="button"
-            onClick={() => setAddType("page")}
-            className={`px-3 py-1 text-xs rounded-control border ${
-              addType === "page"
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-                : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
-            }`}
+            onClick={onAddPage}
+            disabled={!addPageSlug}
+            className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
+            title={text.add}
           >
-            {text.typePage}
-          </button>
-          <button
-            type="button"
-            onClick={() => setAddType("url")}
-            className={`px-3 py-1 text-xs rounded-control border ${
-              addType === "url"
-                ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-                : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
-            }`}
-          >
-            {text.typeUrl}
+            <PlusCircleIcon weight="duotone" className="w-5 h-5" />
           </button>
         </div>
-
-        {addType === "page" ? (
+      ) : (
+        <div className="space-y-2">
+          {/* Static route shortcuts */}
+          {availableStatics.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {availableStatics.map((r) => (
+                <button
+                  key={r.url}
+                  type="button"
+                  onClick={() => onAddStatic(r)}
+                  className="px-2 py-1 text-xs bg-[var(--ds-surface-hover)] hover:bg-[var(--ds-nav-hover-bg)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] rounded border border-[var(--ds-border)] font-mono"
+                >
+                  {r.url}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-2">
-            <select
-              value={addPageSlug}
-              onChange={(e) => setAddPageSlug(e.target.value)}
-              className="flex-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-            >
-              <option value="">{text.choosePageOrForm}</option>
-              {availablePages.length > 0 && (
-                <optgroup label={text.typePage}>
-                  {availablePages.map((p) => (
-                    <option key={p.slug} value={p.slug}>
-                      {p.title} (/{p.slug})
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              {availableForms.length > 0 && (
-                <optgroup label={text.forms}>
-                  {availableForms.map((f) => (
-                    <option key={f.name} value={`form:${f.slug}`}>
-                      {f.name} (/{f.slug})
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
+            <input
+              type="text"
+              value={addUrl}
+              onChange={(e) => onUrlChange(e.target.value)}
+              placeholder={text.urlPlaceholder}
+              className="flex-1 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] font-mono"
+            />
+            <input
+              type="text"
+              value={addLabel}
+              onChange={(e) => onLabelChange(e.target.value)}
+              placeholder={text.labelPlaceholder}
+              className="w-24 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+            />
             <button
               type="button"
-              onClick={handleAddPage}
-              disabled={!addPageSlug}
+              onClick={onAddUrl}
+              disabled={!addUrl.trim()}
               className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
               title={text.add}
             >
               <PlusCircleIcon weight="duotone" className="w-5 h-5" />
             </button>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {/* Static route shortcuts */}
-            {availableStatics.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {availableStatics.map((r) => (
-                  <button
-                    key={r.url}
-                    type="button"
-                    onClick={() => handleAddStatic(r)}
-                    className="px-2 py-1 text-xs bg-[var(--ds-surface-hover)] hover:bg-[var(--ds-nav-hover-bg)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] rounded border border-[var(--ds-border)] font-mono"
-                  >
-                    {r.url}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={addUrl}
-                onChange={(e) => setAddUrl(e.target.value)}
-                placeholder={text.urlPlaceholder}
-                className="flex-1 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] font-mono"
-              />
-              <input
-                type="text"
-                value={addLabel}
-                onChange={(e) => setAddLabel(e.target.value)}
-                placeholder={text.labelPlaceholder}
-                className="w-24 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-              />
-              <button
-                type="button"
-                onClick={handleAddUrl}
-                disabled={!addUrl.trim()}
-                className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
-                title={text.add}
-              >
-                <PlusCircleIcon weight="duotone" className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

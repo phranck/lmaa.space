@@ -10,7 +10,7 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useReducer } from "react";
 
 import type { AffiliateScanResult, AffiliateScanStatus, AffiliateNetworkId, AffiliateTrackingStatus } from "@lmaa/shared";
 
@@ -82,29 +82,33 @@ export function AffiliateListPage() {
   const { messages } = useI18n();
   const t = messages.affiliate;
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [selected, setSelected] = useState<AffiliateScanResult | null>(null);
-  const [paneVisible, setPaneVisible] = useState(false);
-  const [paneClosing, setPaneClosing] = useState(false);
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
-  const [showDeleteAll, setShowDeleteAll] = useState(false);
+  interface AffiliateListState {
+    search: string;
+    statusFilter: string;
+    selected: AffiliateScanResult | null;
+    paneVisible: boolean;
+    paneClosing: boolean;
+    sortOrder: "newest" | "oldest";
+    showDeleteAll: boolean;
+  }
+
+  const [state, dispatch] = useReducer(
+    (prev: AffiliateListState, action: Partial<AffiliateListState>): AffiliateListState => ({ ...prev, ...action }),
+    { search: "", statusFilter: "", selected: null, paneVisible: false, paneClosing: false, sortOrder: "newest", showDeleteAll: false },
+  );
+  const { search, statusFilter, selected, paneVisible, paneClosing, sortOrder, showDeleteAll } = state;
 
   const openPane = useCallback((scan: AffiliateScanResult) => {
-    setSelected(scan);
-    setPaneClosing(false);
-    setPaneVisible(true);
+    dispatch({ selected: scan, paneClosing: false, paneVisible: true });
   }, []);
 
   const closePane = useCallback(() => {
-    setPaneClosing(true);
+    dispatch({ paneClosing: true });
   }, []);
 
   const handlePaneAnimationEnd = useCallback(() => {
     if (paneClosing) {
-      setPaneVisible(false);
-      setPaneClosing(false);
-      setSelected(null);
+      dispatch({ paneVisible: false, paneClosing: false, selected: null });
     }
   }, [paneClosing]);
 
@@ -197,7 +201,7 @@ export function AffiliateListPage() {
           />
           <FilterDropdown
             value={sortOrder}
-            onChange={setSortOrder}
+            onChange={(v) => dispatch({ sortOrder: v as "newest" | "oldest" })}
             options={[
               { value: "newest", label: messages.submissions.sort.newFirst },
               { value: "oldest", label: messages.submissions.sort.oldFirst },
@@ -207,73 +211,17 @@ export function AffiliateListPage() {
         </div>
       </PageHeader>
 
-      {/* Fixed: Stat Cards + Batch Progress */}
-      <div className="shrink-0 bg-[var(--ds-surface)]">
-        <div className="grid grid-cols-5 gap-3 px-4 pt-3 pb-3">
-          {STAT_CARDS.map((card) => {
-            const isActive = statusFilter === card.filterValue;
-            return (
-              <button
-                key={card.key}
-                type="button"
-                onClick={() => setStatusFilter(isActive && card.filterValue !== "" ? "" : card.filterValue)}
-                className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all cursor-pointer ${
-                  isActive
-                    ? `${card.activeBorder} ${card.activeGlow} bg-[var(--ds-bg-elevated)]`
-                    : "border-[var(--ds-border-subtle)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border)]"
-                }`}
-              >
-                <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
-                  {card.icon}
-                </div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
-                  {getStatLabel(card)}
-                </p>
-                <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        {isJobActive && job && (
-          <div className="flex items-center gap-3 mx-4 mb-3 p-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
-            {/* Spinner */}
-            <div className="w-5 h-5 shrink-0 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-            <div className="flex-1">
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="font-medium text-[var(--ds-text)]">
-                  {cancelBatch.isPending ? t.batch.cancelling : t.batch.running}
-                </span>
-                <span className="text-[var(--ds-text-muted)]">
-                  {t.batch.progress
-                    .replace("{completed}", String(job.completedShops + job.failedShops))
-                    .replace("{total}", String(job.totalShops))}
-                </span>
-              </div>
-              <div className="h-2 rounded-full bg-[var(--ds-surface-hover)] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[var(--color-primary)] transition-all"
-                  style={{
-                    width: `${job.totalShops > 0 ? ((job.completedShops + job.failedShops) / job.totalShops) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => cancelBatch.mutate(job.id)}
-              disabled={cancelBatch.isPending}
-              className="h-8 px-3 text-sm rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] disabled:opacity-50"
-            >
-              {cancelBatch.isPending ? t.batch.cancelling : t.batch.cancel}
-            </button>
-          </div>
-        )}
-
-        {!ollamaAvailable && (
-          <p className="text-xs text-amber-600 dark:text-amber-400 px-4 mb-3">{t.ollamaUnavailable}</p>
-        )}
-      </div>
+      <AffiliateStatBar
+        statusFilter={statusFilter}
+        onStatusFilterChange={(filter) => dispatch({ statusFilter: filter })}
+        getStatValue={getStatValue}
+        getStatLabel={getStatLabel}
+        job={job ?? null}
+        isJobActive={isJobActive}
+        cancelBatch={cancelBatch}
+        ollamaAvailable={ollamaAvailable}
+        t={t}
+      />
 
       {/* Scrollable table area */}
       <div className="flex flex-1 min-h-0">
@@ -361,86 +309,16 @@ export function AffiliateListPage() {
 
       </div>
 
-      {/* Detail Panel - fixed, full height from header to bottom */}
       {paneVisible && selected && (
-        <div
+        <AffiliateDetailPane
+          selected={selected}
+          paneClosing={paneClosing}
           onAnimationEnd={handlePaneAnimationEnd}
-          className={`fixed top-14 right-0 bottom-0 w-80 z-20 border-l border-[var(--ds-border)] bg-[var(--ds-surface)] flex flex-col ${
-            paneClosing ? "animate-[slideOut_200ms_ease-in-out_forwards]" : "animate-[slideIn_200ms_ease-in-out_forwards]"
-          }`}
-        >
-          <div className="flex items-center justify-between p-4 border-b border-[var(--ds-border)]">
-            <h2 className="font-semibold text-[var(--ds-text)] truncate">{selected.shopName}</h2>
-            <button
-              type="button"
-              onClick={closePane}
-              className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            >
-              <XCircleIcon weight="duotone" className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-auto p-4 space-y-5">
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-                {t.table.tracking}
-              </label>
-              <select
-                value={selected.trackingStatus}
-                onChange={(e) => {
-                  const newStatus = e.target.value as AffiliateTrackingStatus;
-                  updateTracking.mutate(
-                    { shopId: selected.shopId, trackingStatus: newStatus, trackingNote: selected.trackingNote },
-                    {
-                      onSuccess: () =>
-                        setSelected((prev) => (prev ? { ...prev, trackingStatus: newStatus } : null)),
-                    },
-                  );
-                }}
-                className="w-full h-9 mt-1 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm"
-              >
-                <option value="open">{t.tracking.open}</option>
-                <option value="contacted">{t.tracking.contacted}</option>
-                <option value="confirmed">{t.tracking.confirmed}</option>
-                <option value="rejected">{t.tracking.rejected}</option>
-                <option value="closed">{t.tracking.closed}</option>
-              </select>
-              <p className="text-xs text-[var(--ds-text-muted)] mt-1">
-                {t.detail.lastUpdated}: {new Date(selected.updatedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-              </p>
-            </div>
-            <ApplyAtNetworkButton scan={selected} />
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
-                {t.detail.trackingNote}
-              </label>
-              <textarea
-                value={selected.trackingNote ?? ""}
-                onChange={(e) => setSelected((prev) => (prev ? { ...prev, trackingNote: e.target.value } : null))}
-                onBlur={() => {
-                  updateTracking.mutate({
-                    shopId: selected.shopId,
-                    trackingStatus: selected.trackingStatus,
-                    trackingNote: selected.trackingNote,
-                  });
-                }}
-                placeholder={t.detail.trackingNotePlaceholder}
-                rows={3}
-                className="w-full mt-1 p-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm resize-none"
-              />
-            </div>
-            <DetailField label={t.detail.recommendation} value={selected.recommendation} />
-            <DetailField label={t.detail.programUrl} value={selected.programUrl} isLink />
-            {selected.applicationUrl !== selected.programUrl && (
-              <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
-            )}
-            <DetailField label={t.detail.contactEmail} value={selected.contactEmail} />
-            <DetailField label={t.detail.compensationModel} value={selected.compensationModel} />
-            <DetailField label={t.detail.cookieDuration} value={selected.cookieDuration} />
-            <DetailField label={t.detail.payoutThreshold} value={selected.payoutThreshold} />
-            <DetailField label={t.detail.requirements} value={selected.requirements} />
-            <DetailField label={t.detail.notes} value={selected.notes} />
-          </div>
-        </div>
+          onClose={closePane}
+          onSelectedChange={(updated) => dispatch({ selected: updated })}
+          updateTracking={updateTracking}
+          t={t}
+        />
       )}
 
       <PageFooter>
@@ -448,14 +326,14 @@ export function AffiliateListPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => dispatch({ search: e.target.value })}
             placeholder={t.searchPlaceholder}
             className="py-1.5 w-104 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
           />
           {search ? (
             <button
               type="button"
-              onClick={() => setSearch("")}
+              onClick={() => dispatch({ search: "" })}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
             >
               <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
@@ -477,7 +355,7 @@ export function AffiliateListPage() {
         />
         <TableActionButton
           variant="danger"
-          onClick={() => setShowDeleteAll(true)}
+          onClick={() => dispatch({ showDeleteAll: true })}
           disabled={sortedScans.length === 0}
           icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
           label={messages.common.delete}
@@ -486,7 +364,7 @@ export function AffiliateListPage() {
 
       <OverlayCard
         open={showDeleteAll}
-        onClose={() => setShowDeleteAll(false)}
+        onClose={() => dispatch({ showDeleteAll: false })}
         size="fixed-sm"
         aria-label={t.deleteTitle}
       >
@@ -502,7 +380,7 @@ export function AffiliateListPage() {
         <OverlayCard.Footer className="flex justify-end gap-3">
           <button
             type="button"
-            onClick={() => setShowDeleteAll(false)}
+            onClick={() => dispatch({ showDeleteAll: false })}
             className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
           >
             {messages.common.cancel}
@@ -513,8 +391,7 @@ export function AffiliateListPage() {
             onClick={() => {
               deleteAll.mutate(undefined, {
                 onSuccess: () => {
-                  setShowDeleteAll(false);
-                  setSelected(null);
+                  dispatch({ showDeleteAll: false, selected: null });
                 },
               });
             }}
@@ -597,6 +474,204 @@ function DetailField({
       ) : (
         <p className="text-sm text-[var(--ds-text)] mt-0.5 whitespace-pre-wrap">{value}</p>
       )}
+    </div>
+  );
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: mutation type from TanStack Query
+type TrackingMutation = { mutate: (...args: any[]) => void };
+
+type AffiliateMessages = ReturnType<typeof useI18n>["messages"]["affiliate"];
+
+interface AffiliateStatBarProps {
+  statusFilter: string;
+  onStatusFilterChange: (filter: string) => void;
+  getStatValue: (key: "total" | AffiliateScanStatus) => number;
+  getStatLabel: (card: StatCardDef) => string;
+  job: { id: string; status: string; completedShops: number; failedShops: number; totalShops: number } | null;
+  isJobActive: boolean;
+  cancelBatch: { mutate: (id: string) => void; isPending: boolean };
+  ollamaAvailable: boolean;
+  t: AffiliateMessages;
+}
+
+function AffiliateStatBar({
+  statusFilter,
+  onStatusFilterChange,
+  getStatValue,
+  getStatLabel,
+  job,
+  isJobActive,
+  cancelBatch,
+  ollamaAvailable,
+  t,
+}: AffiliateStatBarProps) {
+  return (
+    <div className="shrink-0 bg-[var(--ds-surface)]">
+      <div className="grid grid-cols-5 gap-3 px-4 pt-3 pb-3">
+        {STAT_CARDS.map((card) => {
+          const isActive = statusFilter === card.filterValue;
+          return (
+            <button
+              key={card.key}
+              type="button"
+              onClick={() => onStatusFilterChange(isActive && card.filterValue !== "" ? "" : card.filterValue)}
+              className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all cursor-pointer ${
+                isActive
+                  ? `${card.activeBorder} ${card.activeGlow} bg-[var(--ds-bg-elevated)]`
+                  : "border-[var(--ds-border-subtle)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border)]"
+              }`}
+            >
+              <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${card.iconBg} ${card.iconColor}`}>
+                {card.icon}
+              </div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)] truncate">
+                {getStatLabel(card)}
+              </p>
+              <p className="text-xl font-bold text-[var(--ds-text)] ml-auto tabular-nums">{getStatValue(card.key)}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {isJobActive && job && (
+        <div className="flex items-center gap-3 mx-4 mb-3 p-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
+          <div className="w-5 h-5 shrink-0 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+          <div className="flex-1">
+            <div className="flex items-center justify-between text-sm mb-1">
+              <span className="font-medium text-[var(--ds-text)]">
+                {cancelBatch.isPending ? t.batch.cancelling : t.batch.running}
+              </span>
+              <span className="text-[var(--ds-text-muted)]">
+                {t.batch.progress
+                  .replace("{completed}", String(job.completedShops + job.failedShops))
+                  .replace("{total}", String(job.totalShops))}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-[var(--ds-surface-hover)] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[var(--color-primary)] transition-all"
+                style={{
+                  width: `${job.totalShops > 0 ? ((job.completedShops + job.failedShops) / job.totalShops) * 100 : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => cancelBatch.mutate(job.id)}
+            disabled={cancelBatch.isPending}
+            className="h-8 px-3 text-sm rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] disabled:opacity-50"
+          >
+            {cancelBatch.isPending ? t.batch.cancelling : t.batch.cancel}
+          </button>
+        </div>
+      )}
+
+      {!ollamaAvailable && (
+        <p className="text-xs text-amber-600 dark:text-amber-400 px-4 mb-3">{t.ollamaUnavailable}</p>
+      )}
+    </div>
+  );
+}
+
+interface AffiliateDetailPaneProps {
+  selected: AffiliateScanResult;
+  paneClosing: boolean;
+  onAnimationEnd: () => void;
+  onClose: () => void;
+  onSelectedChange: (updated: AffiliateScanResult | null) => void;
+  updateTracking: TrackingMutation;
+  t: AffiliateMessages;
+}
+
+function AffiliateDetailPane({
+  selected,
+  paneClosing,
+  onAnimationEnd,
+  onClose,
+  onSelectedChange,
+  updateTracking,
+  t,
+}: AffiliateDetailPaneProps) {
+  return (
+    <div
+      onAnimationEnd={onAnimationEnd}
+      className={`fixed top-14 right-0 bottom-0 w-80 z-20 border-l border-[var(--ds-border)] bg-[var(--ds-surface)] flex flex-col ${
+        paneClosing ? "animate-[slideOut_200ms_ease-in-out_forwards]" : "animate-[slideIn_200ms_ease-in-out_forwards]"
+      }`}
+    >
+      <div className="flex items-center justify-between p-4 border-b border-[var(--ds-border)]">
+        <h2 className="font-semibold text-[var(--ds-text)] truncate">{selected.shopName}</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+        >
+          <XCircleIcon weight="duotone" className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="flex-1 overflow-auto p-4 space-y-5">
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
+            {t.table.tracking}
+          </label>
+          <select
+            value={selected.trackingStatus}
+            onChange={(e) => {
+              const newStatus = e.target.value as AffiliateTrackingStatus;
+              updateTracking.mutate(
+                { shopId: selected.shopId, trackingStatus: newStatus, trackingNote: selected.trackingNote },
+                {
+                  onSuccess: () =>
+                    onSelectedChange({ ...selected, trackingStatus: newStatus }),
+                },
+              );
+            }}
+            className="w-full h-9 mt-1 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm"
+          >
+            <option value="open">{t.tracking.open}</option>
+            <option value="contacted">{t.tracking.contacted}</option>
+            <option value="confirmed">{t.tracking.confirmed}</option>
+            <option value="rejected">{t.tracking.rejected}</option>
+            <option value="closed">{t.tracking.closed}</option>
+          </select>
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
+            {t.detail.lastUpdated}: {new Date(selected.updatedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        </div>
+        <ApplyAtNetworkButton scan={selected} />
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-muted)]">
+            {t.detail.trackingNote}
+          </label>
+          <textarea
+            value={selected.trackingNote ?? ""}
+            onChange={(e) => onSelectedChange({ ...selected, trackingNote: e.target.value })}
+            onBlur={() => {
+              updateTracking.mutate({
+                shopId: selected.shopId,
+                trackingStatus: selected.trackingStatus,
+                trackingNote: selected.trackingNote,
+              });
+            }}
+            placeholder={t.detail.trackingNotePlaceholder}
+            rows={3}
+            className="w-full mt-1 p-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm resize-none"
+          />
+        </div>
+        <DetailField label={t.detail.recommendation} value={selected.recommendation} />
+        <DetailField label={t.detail.programUrl} value={selected.programUrl} isLink />
+        {selected.applicationUrl !== selected.programUrl && (
+          <DetailField label={t.detail.applicationUrl} value={selected.applicationUrl} isLink />
+        )}
+        <DetailField label={t.detail.contactEmail} value={selected.contactEmail} />
+        <DetailField label={t.detail.compensationModel} value={selected.compensationModel} />
+        <DetailField label={t.detail.cookieDuration} value={selected.cookieDuration} />
+        <DetailField label={t.detail.payoutThreshold} value={selected.payoutThreshold} />
+        <DetailField label={t.detail.requirements} value={selected.requirements} />
+        <DetailField label={t.detail.notes} value={selected.notes} />
+      </div>
     </div>
   );
 }
