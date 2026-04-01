@@ -62,6 +62,7 @@ export function useAdminCategories(enabled = true) {
     queryKey: ["categories-admin"],
     queryFn: () => api.get<Category[]>("/admin/categories"),
     enabled,
+    staleTime: 60 * 1000,
   });
 }
 

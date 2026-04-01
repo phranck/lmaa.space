@@ -1,5 +1,5 @@
 import { FileIcon, ImageIcon } from "@phosphor-icons/react";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
 
@@ -18,7 +18,7 @@ interface MediaTableProps {
   onSelect: (id: number) => void;
 }
 
-function MediaThumb({ asset }: { asset: MediaAsset }) {
+const MediaThumb = memo(function MediaThumb({ asset }: { asset: MediaAsset }) {
   const imageAsset = isImageAsset(asset);
 
   return (
@@ -30,7 +30,7 @@ function MediaThumb({ asset }: { asset: MediaAsset }) {
       )}
     </div>
   );
-}
+});
 
 export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
   const { locale, messages } = useI18n();

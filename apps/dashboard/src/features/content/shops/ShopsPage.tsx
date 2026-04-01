@@ -106,6 +106,9 @@ export function ShopsPage() {
     [shops, searchLower, categoryFilter, geoFilter],
   );
 
+  const countsKey = counts
+    ? `${counts.all}-${counts.public}-${counts.onhold}-${counts.deleted}-${counts.rejected}`
+    : "";
   const filterOptions = useMemo<DropdownOption<VisibilityFilter>[]>(
     () => [
       {
@@ -139,7 +142,7 @@ export function ShopsPage() {
         count: counts?.rejected,
       },
     ],
-    [shopsMessages, counts],
+    [shopsMessages, countsKey, counts],
   );
 
   const geoFilterOptions = useMemo<DropdownOption<GeoFilter>[]>(

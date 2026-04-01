@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api.ts";
+
+const UMAMI_STALE = 2 * 60 * 1000;
 
 /**
  * Supported period filters for Umami analytics queries.
@@ -101,8 +103,7 @@ export function useUmamiStats(period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-stats", period],
     queryFn: () => api.get<UmamiStats | null>(`/admin/umami/stats?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -116,8 +117,7 @@ export function useUmamiPageviews(period: UmamiPeriod) {
   return useQuery({
     queryKey: ["umami-pageviews", period],
     queryFn: () => api.get<UmamiPageviews | null>(`/admin/umami/pageviews?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -161,8 +161,7 @@ export function useUmamiMetrics(type: UmamiMetricType, period: UmamiPeriod) {
     queryKey: ["umami-metrics", type, period],
     queryFn: () =>
       api.get<UmamiMetricRow[] | null>(`/admin/umami/metrics?type=${type}&period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -171,8 +170,7 @@ export function useUmamiSearchTerms(period: UmamiPeriod) {
     queryKey: ["umami-events", "search-terms", period],
     queryFn: () =>
       api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/search-terms?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -181,8 +179,7 @@ export function useUmamiCategoryClicks(period: UmamiPeriod) {
     queryKey: ["umami-events", "category-clicks", period],
     queryFn: () =>
       api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/category-clicks?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -191,8 +188,7 @@ export function useUmamiShopVisitClicks(period: UmamiPeriod) {
     queryKey: ["umami-events", "shop-visits", period],
     queryFn: () =>
       api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/shop-visits?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -201,8 +197,7 @@ export function useUmamiShopVisitTotal(period: UmamiPeriod) {
     queryKey: ["umami-events", "shop-visits-total", period],
     queryFn: () =>
       api.get<UmamiEventTotal | null>(`/admin/umami/events/shop-visits/total?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -211,8 +206,7 @@ export function useUmamiSiteLinkClicks(period: UmamiPeriod) {
     queryKey: ["umami-events", "site-links", period],
     queryFn: () =>
       api.get<UmamiEventValueRow[] | null>(`/admin/umami/events/site-links?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }
 
@@ -221,7 +215,6 @@ export function useUmamiInteractionTotal(period: UmamiPeriod) {
     queryKey: ["umami-events", "interaction-total", period],
     queryFn: () =>
       api.get<UmamiEventTotal | null>(`/admin/umami/events/interactions/total?period=${period}`),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: UMAMI_STALE,
   });
 }

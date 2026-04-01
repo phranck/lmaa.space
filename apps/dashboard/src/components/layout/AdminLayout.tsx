@@ -33,17 +33,17 @@ function useSidebarWidth() {
   const startX = useRef(0);
   const startW = useRef(0);
 
-  const onMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      isResizing.current = true;
-      startX.current = e.clientX;
-      startW.current = width;
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-    },
-    [width],
-  );
+  const widthRef = useRef(width);
+  widthRef.current = width;
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    startX.current = e.clientX;
+    startW.current = widthRef.current;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, []);
 
   useEffect(() => {
     function onMove(e: MouseEvent) {
