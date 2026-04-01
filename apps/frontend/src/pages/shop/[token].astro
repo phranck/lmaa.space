@@ -24,12 +24,25 @@ if (!token || !/^[a-z0-9]+$/.test(token)) {
   return Astro.redirect("/404");
 }
 
+// Breadcrumb: flat, max 3 levels
+const from = Astro.url.searchParams.get("from");
+const fromSlug = Astro.url.searchParams.get("slug");
+const fromQuery = Astro.url.searchParams.get("q");
+
+// Fetch shop + category image in parallel when navigating from a category page
+const shopPromise = apiGet<Shop>(`/shops/${token}`);
+const categoryFromSlugPromise = (from === "category" && fromSlug)
+  ? apiGet<{ imageUrl?: string | null }>(`/categories/${fromSlug}`).catch(() => null)
+  : Promise.resolve(null);
+
 let shop: Shop;
 try {
-  shop = await apiGet<Shop>(`/shops/${token}`);
+  [shop] = await Promise.all([shopPromise, categoryFromSlugPromise]);
 } catch {
   return Astro.redirect("/404");
 }
+
+const categoryFromSlugResult = await categoryFromSlugPromise;
 
 const shopToken = encodeShopToken(shop.id);
 
@@ -37,21 +50,8 @@ const domain = shopDomain(shop.url);
 const visitUrl = shopRefUrl(shop.url);
 const descriptionHtml = shop.description ? await renderMarkdown(shop.description) : null;
 
-// Breadcrumb: flat, max 3 levels
-const from = Astro.url.searchParams.get("from");
-const fromSlug = Astro.url.searchParams.get("slug");
-const fromQuery = Astro.url.searchParams.get("q");
-
 // Category hero image (when navigating from a category page)
-let categoryImageUrl: string | null = null;
-if (from === "category" && fromSlug) {
-  try {
-    const cat = await apiGet<{ imageUrl?: string | null }>(`/categories/${fromSlug}`);
-    categoryImageUrl = cat.imageUrl ?? null;
-  } catch {
-    // ignore — no hero banner
-  }
-}
+let categoryImageUrl: string | null = categoryFromSlugResult?.imageUrl ?? null;
 
 // Fallback: use first category's banner when not coming from a category page
 if (!categoryImageUrl && shop.categories.length > 0) {
