@@ -1,11 +1,12 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useReducer } from "react";
 
 import type { Category } from "@lmaa/shared";
 
 import CategoryCard from "@/components/CategoryCard";
 import FilterToggleButton from "@/components/FilterToggleButton";
-import { API_BASE } from "@/lib/client-api";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
+import { useGridAnimation } from "@/hooks/useGridAnimation";
+import { fetchJson } from "@/lib/fetch-json";
 import {
   type ShopFilters,
   buildCategoryHref,
@@ -37,13 +38,26 @@ interface FilteredCategory {
  *
  * Hydrates from SSR-rendered categories and re-fetches on filter changes via the API.
  */
+interface FilterGridState {
+  showFilter: boolean;
+  categories: FilteredCategory[];
+  shopCount: number;
+  filtersActive: boolean;
+  currentFilters: ShopFilters;
+}
+
+type FilterGridAction = Partial<FilterGridState>;
+
+function filterGridReducer(state: FilterGridState, action: FilterGridAction): FilterGridState {
+  return { ...state, ...action };
+}
+
 export default function FilterableCategoryGrid({
   categories: initialCategories,
   shopCount: initialShopCount,
 }: FilterableCategoryGridProps) {
-  const [showFilter, setShowFilter] = useState(false);
-  const [categories, setCategories] = useState<FilteredCategory[]>(
-    initialCategories.map((c) => ({
+  const mapInitialCategories = (cats: Category[]): FilteredCategory[] =>
+    cats.map((c) => ({
       id: c.id,
       name: c.name,
       slug: c.slug,
@@ -52,65 +66,42 @@ export default function FilterableCategoryGrid({
       imagePhotographerUrl: c.imagePhotographerUrl ?? null,
       imageFocalPointY: c.imageFocalPointY ?? 50,
       shopCount: c.shopCount ?? 0,
-    })),
-  );
-  const [shopCount, setShopCount] = useState(initialShopCount);
-  const [filtersActive, setFiltersActive] = useState(false);
-  const [currentFilters, setCurrentFilters] = useState<ShopFilters>({
-    city: "",
-    radius: 50,
-    country: [],
-    region: [],
+    }));
+
+  const [state, dispatch] = useReducer(filterGridReducer, {
+    showFilter: false,
+    categories: mapInitialCategories(initialCategories),
+    shopCount: initialShopCount,
+    filtersActive: false,
+    currentFilters: { city: "", radius: 50, country: [], region: [] },
   });
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [gridRef] = useAutoAnimate({ duration: 250, easing: "ease-out" });
+  const { showFilter, categories, shopCount, filtersActive, currentFilters } = state;
+  const gridRef = useGridAnimation();
 
   const fetchFiltered = useCallback((filters: ShopFilters) => {
     const hasFilters =
       filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
 
-    setFiltersActive(hasFilters);
-    setCurrentFilters(filters);
+    dispatch({ filtersActive: hasFilters, currentFilters: filters });
 
     if (!hasFilters) {
-      // Reset to initial data
-      setCategories(
-        initialCategories.map((c) => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          imageUrl: c.imageUrl ?? null,
-          imagePhotographer: c.imagePhotographer ?? null,
-          imagePhotographerUrl: c.imagePhotographerUrl ?? null,
-          imageFocalPointY: c.imageFocalPointY ?? 50,
-          shopCount: c.shopCount ?? 0,
-        })),
-      );
-      setShopCount(initialShopCount);
+      dispatch({
+        categories: mapInitialCategories(initialCategories),
+        shopCount: initialShopCount,
+      });
       return;
     }
 
     const query = buildFilterQuery(filters);
-    fetch(`${API_BASE}/filtered/categories?${query}`)
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.data) {
-          const filtered = json.data as FilteredCategory[];
-          setCategories(filtered);
-          const total = filtered.reduce((sum, c) => sum + c.shopCount, 0);
-          setShopCount(total);
-        }
+    fetchJson<FilteredCategory[]>(`/filtered/categories?${query}`)
+      .then((filtered) => {
+        const total = filtered.reduce((sum, c) => sum + c.shopCount, 0);
+        dispatch({ categories: filtered, shopCount: total });
       })
       .catch(() => {});
   }, [initialCategories, initialShopCount]);
 
-  const handleFilterChange = useCallback(
-    (filters: ShopFilters) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchFiltered(filters), 400);
-    },
-    [fetchFiltered],
-  );
+  const handleFilterChange = useDebouncedCallback(fetchFiltered);
 
   const visibleCategories = filtersActive
     ? categories.filter((c) => c.shopCount > 0)
@@ -134,7 +125,7 @@ export default function FilterableCategoryGrid({
           <FilterToggleButton
             showFilter={showFilter}
             filtersActive={filtersActive}
-            onClick={() => setShowFilter((v) => !v)}
+            onClick={() => dispatch({ showFilter: !showFilter })}
           />
         </div>
       </div>
