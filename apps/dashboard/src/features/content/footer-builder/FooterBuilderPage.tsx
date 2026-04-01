@@ -464,7 +464,7 @@ export function FooterBuilderPage() {
 interface FooterPreviewCardProps {
   showStyle: boolean;
   previewUrl: string | null;
-  previewHeightPx: number;
+  previewHeightPx: string;
   isPreviewPending: boolean;
   onOpenStyle: () => void;
   onReload: () => void;

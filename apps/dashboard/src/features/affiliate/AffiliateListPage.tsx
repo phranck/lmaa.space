@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { type ReactNode, useCallback, useEffect, useReducer } from "react";
 
-import type { AffiliateScanResult, AffiliateScanStatus, AffiliateNetworkId, AffiliateTrackingStatus } from "@lmaa/shared";
+import type { AffiliateScanJob, AffiliateScanResult, AffiliateScanStatus, AffiliateNetworkId, AffiliateTrackingStatus } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { ExportButton } from "@/components/ui/ExportButton.tsx";
@@ -488,9 +488,9 @@ interface AffiliateStatBarProps {
   onStatusFilterChange: (filter: string) => void;
   getStatValue: (key: "total" | AffiliateScanStatus) => number;
   getStatLabel: (card: StatCardDef) => string;
-  job: { id: string; status: string; completedShops: number; failedShops: number; totalShops: number } | null;
+  job: AffiliateScanJob | null;
   isJobActive: boolean;
-  cancelBatch: { mutate: (id: string) => void; isPending: boolean };
+  cancelBatch: { mutate: (id: number) => void; isPending: boolean };
   ollamaAvailable: boolean;
   t: AffiliateMessages;
 }

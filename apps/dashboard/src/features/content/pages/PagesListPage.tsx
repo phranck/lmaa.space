@@ -7,7 +7,7 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { useMemo, useReducer, useState } from "react";
+import { useMemo, useReducer } from "react";
 import { useNavigate } from "react-router";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
