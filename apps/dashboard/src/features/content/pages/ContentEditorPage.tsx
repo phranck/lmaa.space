@@ -6,11 +6,15 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { useCallback, useEffect, useReducer } from "react";
+import { Suspense, lazy, useCallback, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { ContentPage } from "@lmaa/shared";
-import { DashboardSection, MarkdownEditor } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui";
+
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -586,13 +590,15 @@ export function ContentEditorPage() {
           )}
 
           {page && (
-            <MarkdownEditor
-              key={slug}
-              value={currentContent}
-              onChange={handleChange}
-              height="100%"
-              className="rounded-none border-none"
-            />
+            <Suspense fallback={<div className="h-64 bg-[var(--ds-input-bg)] animate-pulse" />}>
+              <MarkdownEditor
+                key={slug}
+                value={currentContent}
+                onChange={handleChange}
+                height="100%"
+                className="rounded-none border-none"
+              />
+            </Suspense>
           )}
 
           {save.isError && (
