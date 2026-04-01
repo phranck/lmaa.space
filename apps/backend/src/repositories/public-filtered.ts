@@ -102,10 +102,14 @@ export async function listFilteredCategoriesWithCount(filters: ShopFilterParams)
       name: string;
       slug: string;
       imageUrl: string | null;
+      imagePhotographer: string | null;
+      imagePhotographerUrl: string | null;
       unsplashImageId: number | null;
       shopCount: number;
     }>(sql`
       SELECT c.id, c.name, c.slug, c.image_url as "imageUrl",
+             c.image_photographer as "imagePhotographer",
+             c.image_photographer_url as "imagePhotographerUrl",
              c.unsplash_image_id as "unsplashImageId",
              COUNT(DISTINCT s.id)::int as "shopCount"
       FROM categories c
@@ -124,10 +128,14 @@ export async function listFilteredCategoriesWithCount(filters: ShopFilterParams)
     name: string;
     slug: string;
     imageUrl: string | null;
+    imagePhotographer: string | null;
+    imagePhotographerUrl: string | null;
     unsplashImageId: number | null;
     shopCount: number;
   }>(sql`
     SELECT c.id, c.name, c.slug, c.image_url as "imageUrl",
+           c.image_photographer as "imagePhotographer",
+           c.image_photographer_url as "imagePhotographerUrl",
            c.unsplash_image_id as "unsplashImageId",
            COUNT(DISTINCT s.id)::int as "shopCount"
     FROM categories c

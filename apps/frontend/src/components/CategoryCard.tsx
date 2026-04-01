@@ -3,6 +3,8 @@ interface CategoryCardProps {
   name: string;
   slug: string;
   imageUrl: string | null;
+  imagePhotographer: string | null;
+  imagePhotographerUrl: string | null;
   shopCount: number;
   href: string;
 }
@@ -12,24 +14,29 @@ interface CategoryCardProps {
  *
  * Links to the category page at the provided `href`.
  */
+const UTM = "?utm_source=lmaa_space&utm_medium=referral";
+
 export default function CategoryCard({
   id,
   name,
   slug,
   imageUrl,
+  imagePhotographer,
+  imagePhotographerUrl,
   shopCount,
   href,
 }: CategoryCardProps) {
   return (
-    <a
-      href={href}
-      className="group block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+    <div
+      className="group relative block rounded-2xl overflow-hidden border border-stone-200 bg-white hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
       data-analytics-event="category-click"
       data-analytics-source="homepage-card"
       data-category-id={String(id)}
       data-category-slug={slug}
       data-category-name={name}
     >
+      <a href={href} className="absolute inset-0 z-0" aria-label={name} />
+
       <div className="aspect-video overflow-hidden relative">
         <img
           src={imageUrl ?? `/images/${slug}.jpg`}
@@ -47,6 +54,18 @@ export default function CategoryCard({
             {name.charAt(0).toUpperCase()}
           </span>
         </div>
+        {imagePhotographer && imagePhotographerUrl && (
+          <p className="absolute right-2 bottom-1.5 text-[9px] text-white/70 drop-shadow-sm z-10">
+            Photo{" "}
+            <a href={`${imagePhotographerUrl}${UTM}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-white/90">
+              {imagePhotographer}
+            </a>
+            {" @ "}
+            <a href={`https://unsplash.com${UTM}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-white/90">
+              Unsplash
+            </a>
+          </p>
+        )}
       </div>
 
       <div className="px-4 py-3">
@@ -57,6 +76,6 @@ export default function CategoryCard({
           {shopCount} {shopCount === 1 ? "Shop" : "Shops"}
         </p>
       </div>
-    </a>
+    </div>
   );
 }

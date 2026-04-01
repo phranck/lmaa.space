@@ -363,6 +363,8 @@ export async function getManagedPublicCategories() {
     name: row.name,
     slug: row.slug,
     imageUrl: resolveCategoryImageUrl(row),
+    imagePhotographer: row.imagePhotographer,
+    imagePhotographerUrl: row.imagePhotographerUrl,
     shopCount: row.shopCount,
   }));
 }
@@ -394,6 +396,8 @@ export async function getFilteredPublicCategories(filters: ShopFilterParams) {
     name: row.name,
     slug: row.slug,
     imageUrl: resolveCategoryImageUrl(row),
+    imagePhotographer: row.imagePhotographer,
+    imagePhotographerUrl: row.imagePhotographerUrl,
     shopCount: row.shopCount,
   }));
 }

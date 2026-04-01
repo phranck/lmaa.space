@@ -62,6 +62,8 @@ export async function listPublicCategoriesWithShopCount() {
       name: categories.name,
       slug: categories.slug,
       imageUrl: categories.imageUrl,
+      imagePhotographer: categories.imagePhotographer,
+      imagePhotographerUrl: categories.imagePhotographerUrl,
       unsplashImageId: categories.unsplashImageId,
       shopCount: count(shops.id),
     })
@@ -105,6 +107,8 @@ export async function getPublicCategoryBySlug(slug: string) {
       name: categories.name,
       slug: categories.slug,
       imageUrl: categories.imageUrl,
+      imagePhotographer: categories.imagePhotographer,
+      imagePhotographerUrl: categories.imagePhotographerUrl,
       unsplashImageId: categories.unsplashImageId,
     })
     .from(categories)

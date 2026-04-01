@@ -15,6 +15,8 @@ if (!slug) {
 interface CategoryPageView {
   name: string;
   imageUrl?: string | null;
+  imagePhotographer?: string | null;
+  imagePhotographerUrl?: string | null;
   shops: Shop[];
 }
 
@@ -79,6 +81,18 @@ const jsonLd = {
       class="w-full h-full object-cover"
     />
     <div class="absolute inset-0 bg-stone-900/65"></div>
+    {category.imagePhotographer && category.imagePhotographerUrl && (
+      <p class="absolute right-3 bottom-2 text-[10px] text-white/50 z-10">
+        Photo{" "}
+        <a href={`${category.imagePhotographerUrl}?utm_source=lmaa_space&utm_medium=referral`} target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/70">
+          {category.imagePhotographer}
+        </a>
+        {" @ "}
+        <a href="https://unsplash.com?utm_source=lmaa_space&utm_medium=referral" target="_blank" rel="noopener noreferrer" class="font-semibold hover:text-white/70">
+          Unsplash
+        </a>
+      </p>
+    )}
     <div class="absolute inset-0 flex flex-col justify-end px-6 sm:px-10 pb-8">
       <h1 class="font-serif text-2xl sm:text-3xl font-semibold text-white">
         {category.name}
