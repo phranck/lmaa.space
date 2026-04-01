@@ -56,9 +56,7 @@ function HeroImageCard({
   return (
     <div
       ref={containerRef}
-      className={`group relative rounded-control overflow-hidden border-2 transition-colors ${
-        image.isSelected ? "border-[var(--color-primary)]" : "border-transparent"
-      }`}
+      className="group relative rounded-control overflow-hidden"
     >
       <img
         src={image.url}
