@@ -1,6 +1,6 @@
 import { CaretDownIcon, CaretUpIcon, CaretUpDownIcon } from "@phosphor-icons/react";
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -101,12 +101,12 @@ export function DataTable<T>({
   allowUnsorted = true,
 }: DataTableProps<T>) {
   const [uncontrolledSort, setUncontrolledSort] = useState<SortState | null>(initialSort);
-  const sort = controlledSort ?? uncontrolledSort;
-
-  useEffect(() => {
-    if (controlledSort !== undefined) return;
+  const [prevInitialSort, setPrevInitialSort] = useState(initialSort);
+  if (initialSort !== prevInitialSort) {
+    setPrevInitialSort(initialSort);
     setUncontrolledSort(initialSort);
-  }, [controlledSort, initialSort]);
+  }
+  const sort = controlledSort ?? uncontrolledSort;
 
   function handleSort(col: ColumnDef<T>) {
     if (!col.sortKey) return;

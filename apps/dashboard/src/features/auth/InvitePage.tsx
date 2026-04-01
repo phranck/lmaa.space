@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { AdminInviteState, AdminUser } from "@lmaa/shared";
@@ -10,6 +10,13 @@ import { api } from "@/lib/api.ts";
 
 const inputClassName =
   "w-full h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
+
+interface FormState {
+  password: string;
+  confirmPassword: string;
+  submitError: string;
+  isSubmitting: boolean;
+}
 
 /**
  * Public password-setup page for invited dashboard users.
@@ -24,36 +31,37 @@ export function InvitePage() {
   const common = messages.common;
   const inviteMessages = messages.auth.invite;
 
-  const [inviteState, setInviteState] = useState<AdminInviteState | null>(null);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadState, setLoadState] = useState<{
+    inviteState: AdminInviteState | null;
+    error: string;
+    isLoading: boolean;
+  }>({ inviteState: null, error: "", isLoading: true });
+  const [form, updateForm] = useReducer(
+    (state: FormState, patch: Partial<FormState>): FormState => ({ ...state, ...patch }),
+    { password: "", confirmPassword: "", submitError: "", isSubmitting: false },
+  );
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadInvite() {
       if (!token) {
-        setError(inviteMessages.invalidLink);
-        setIsLoading(false);
+        setLoadState({ inviteState: null, error: inviteMessages.invalidLink, isLoading: false });
         return;
       }
 
       try {
         const state = await api.get<AdminInviteState>(`/admin/invite/${token}`);
         if (!cancelled) {
-          setInviteState(state);
-          setError("");
+          setLoadState({ inviteState: state, error: "", isLoading: false });
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : inviteMessages.invalidLink);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
+          setLoadState({
+            inviteState: null,
+            error: err instanceof Error ? err.message : inviteMessages.invalidLink,
+            isLoading: false,
+          });
         }
       }
     }
@@ -64,23 +72,25 @@ export function InvitePage() {
     };
   }, [inviteMessages.invalidLink, token]);
 
+  const { inviteState, error: loadError, isLoading } = loadState;
+  const error = form.submitError || loadError;
+
   async function handleSubmit() {
-    if (!token || password.length < 8) return;
-    if (password !== confirmPassword) {
-      setError(inviteMessages.passwordMismatch);
+    if (!token || form.password.length < 8) return;
+    if (form.password !== form.confirmPassword) {
+      updateForm({ submitError: inviteMessages.passwordMismatch });
       return;
     }
 
-    setError("");
-    setIsSubmitting(true);
+    updateForm({ submitError: "", isSubmitting: true });
     try {
-      await api.post<AdminUser>("/admin/invite/accept", { token, password });
+      await api.post<AdminUser>("/admin/invite/accept", { token, password: form.password });
       await refresh();
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : common.unknownError);
+      updateForm({ submitError: err instanceof Error ? err.message : common.unknownError });
     } finally {
-      setIsSubmitting(false);
+      updateForm({ isSubmitting: false });
     }
   }
 
@@ -114,8 +124,8 @@ export function InvitePage() {
                   <input
                     id="invite-password"
                     type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={form.password}
+                    onChange={(e) => updateForm({ password: e.target.value })}
                     minLength={8}
                     className={inputClassName}
                   />
@@ -131,8 +141,8 @@ export function InvitePage() {
                   <input
                     id="invite-password-confirm"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={form.confirmPassword}
+                    onChange={(e) => updateForm({ confirmPassword: e.target.value })}
                     minLength={8}
                     className={inputClassName}
                   />
@@ -158,11 +168,11 @@ export function InvitePage() {
             {inviteState && (
               <button
                 type="button"
-                disabled={isSubmitting || password.length < 8 || confirmPassword.length < 8}
+                disabled={form.isSubmitting || form.password.length < 8 || form.confirmPassword.length < 8}
                 onClick={handleSubmit}
                 className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
               >
-                {isSubmitting ? inviteMessages.submitLoading : inviteMessages.submit}
+                {form.isSubmitting ? inviteMessages.submitLoading : inviteMessages.submit}
               </button>
             )}
           </div>
