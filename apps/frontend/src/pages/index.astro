@@ -102,7 +102,7 @@ const jsonLd = {
             />
             <span
               id="hero-search-shortcut"
-              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs font-medium pointer-events-none hidden"
+              class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none hidden"
               aria-hidden="true"
             ></span>
             <button
@@ -135,7 +135,8 @@ const jsonLd = {
             const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
             if (!isTouchDevice) {
               const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
-              shortcut.textContent = isMac ? '\u2318K' : '\u2303K';
+              const kbdStyle = 'display:inline-flex;align-items:center;justify-content:center;padding:1px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:5px;font-size:11px;color:rgb(168,162,158);font-family:inherit;line-height:1.5';
+              shortcut.innerHTML = `<kbd style="${kbdStyle}">${isMac ? '\u2318' : 'Ctrl'}</kbd><kbd style="${kbdStyle}">K</kbd>`;
               shortcut.classList.remove('hidden');
             }
 
