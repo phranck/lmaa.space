@@ -286,6 +286,29 @@ input:-webkit-autofill {
   }
 }
 
+/* KPI card: responsive layout via container query */
+.kpi-layout {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+@container (max-width: 180px) {
+  .kpi-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+@container (max-width: 130px) {
+  .kpi-value { font-size: var(--ds-text-xl) !important; }
+}
+@container (max-width: 100px) {
+  .kpi-value { font-size: var(--ds-text-lg) !important; }
+}
+@container (max-width: 75px) {
+  .kpi-value { font-size: var(--ds-text-base) !important; }
+}
+
 html {
   font-size: 18px;
 }
