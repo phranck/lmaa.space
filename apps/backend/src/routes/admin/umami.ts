@@ -28,7 +28,9 @@ umamiRoutes.use("*", requireAdmin);
 const periodQuery = z.object({ period: z.enum(["today", "7d", "30d", "60d", "90d"]).optional() });
 const metricsQuery = z.object({
   period: z.enum(["today", "7d", "30d", "60d", "90d"]).optional(),
-  type: z.enum(["url", "country", "referrer"]).optional(),
+  type: z
+    .enum(["url", "referrer", "browser", "os", "device", "country", "region", "city"])
+    .optional(),
 });
 
 // GET /api/admin/umami/stats?period=today|7d|30d
