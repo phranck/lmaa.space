@@ -178,12 +178,25 @@ export async function listAllPublicShopsWithCategories() {
 /**
  * Executes PostgreSQL full-text search over public shops.
  *
+ * When `postalCodePrefix` is provided, shops are also matched by the postal
+ * code of their headquarters (prefix match, whitespace-insensitive). Postal
+ * matches are ranked between URL and description matches.
+ *
  * @param query - Raw user search query (websearch syntax).
+ * @param options.postalCodePrefix - Normalized postal prefix (uppercase, no whitespace) or `null`.
  * @returns Ranked result rows limited to top matches.
  */
-export async function searchPublicShops(query: string) {
+export async function searchPublicShops(
+  query: string,
+  options: { postalCodePrefix?: string | null } = {},
+) {
   const escaped = query.replace(/[%_\\\\]/g, "\\\\$&");
   const pattern = `%${escaped}%`;
+  const postalPrefix = options.postalCodePrefix ?? null;
+  const postalPattern = postalPrefix ? `${postalPrefix}%` : null;
+  const postalMatch = postalPattern
+    ? sql`REGEXP_REPLACE(UPPER(hq.postal_code), '[[:space:]\-]', '', 'g') LIKE ${postalPattern}`
+    : sql`false`;
 
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
@@ -200,17 +213,20 @@ export async function searchPublicShops(query: string) {
            CASE
              WHEN s.name ILIKE ${pattern} THEN 1
              WHEN s.url ILIKE ${pattern} THEN 2
-             WHEN s.description ILIKE ${pattern} THEN 3
-             ELSE 4
+             WHEN bool_or(${postalMatch}) THEN 3
+             WHEN s.description ILIKE ${pattern} THEN 4
+             ELSE 5
            END as rank
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
     LEFT JOIN categories c ON c.id = sc.category_id
+    LEFT JOIN shop_headquarters hq ON hq.shop_id = s.id
     WHERE s.is_active = true AND s.visibility = 'public'
       AND (
         s.name ILIKE ${pattern}
         OR s.url ILIKE ${pattern}
         OR s.description ILIKE ${pattern}
+        OR ${postalMatch}
         OR EXISTS (
           SELECT 1 FROM shop_categories sc2
           JOIN categories c2 ON c2.id = sc2.category_id

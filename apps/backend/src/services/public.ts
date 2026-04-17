@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { getDomain } from "tldts";
 
 import { env } from "../config/env.js";
+import { extractEuropeanPostalCodePrefix } from "../lib/postal-code.js";
 import { type Result, failure, success } from "../lib/result.js";
 import type { ShopFilterParams } from "../lib/shop-filters.js";
 import {
@@ -231,7 +232,8 @@ export async function searchManagedPublicCatalog(queryRaw: string | undefined) {
     return { shops: [], categories: [], query: query ?? "", total: 0 };
   }
 
-  const matchingShops = await searchPublicShops(query);
+  const postalCodePrefix = extractEuropeanPostalCodePrefix(query);
+  const matchingShops = await searchPublicShops(query, { postalCodePrefix });
   const escapedQuery = query.toLowerCase().replace(/[%_\\]/g, "\\$&");
   const matchingCategories = await searchPublicCategoriesByEscapedQuery(escapedQuery);
 
@@ -445,7 +447,8 @@ export async function searchFilteredPublicCatalog(
     return { shops: [], categories: [], query: query ?? "", total: 0 };
   }
 
-  const matchingShops = await searchFilteredPublicShops(query, filters);
+  const postalCodePrefix = extractEuropeanPostalCodePrefix(query);
+  const matchingShops = await searchFilteredPublicShops(query, filters, { postalCodePrefix });
   const escapedQuery = query.toLowerCase().replace(/[%_\\]/g, "\\$&");
   const matchingCategories = await searchPublicCategoriesByEscapedQuery(escapedQuery);
 
