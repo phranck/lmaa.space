@@ -1,4 +1,4 @@
-import { createApiRequestError } from "@lmaa/shared";
+import { createApiRequestError, createNetworkRequestError } from "@lmaa/shared";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
 const FETCH_TIMEOUT_MS = 30_000;
@@ -19,7 +19,9 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 /**
- * Executes a fetch with an AbortController-based timeout.
+ * Executes a fetch with an AbortController-based timeout, translating
+ * transport failures (timeout, abort, dropped connection) into typed
+ * `ApiRequestError` instances with stable `code` and English message.
  */
 async function fetchWithTimeout(
   url: string,
@@ -27,10 +29,22 @@ async function fetchWithTimeout(
   timeoutMs = FETCH_TIMEOUT_MS,
 ): Promise<Response> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  let timedOut = false;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
 
   try {
     return await fetch(url, { ...init, signal: controller.signal });
+  } catch (cause) {
+    if (timedOut) {
+      throw createNetworkRequestError("timeout", cause);
+    }
+    if (cause instanceof DOMException && cause.name === "AbortError") {
+      throw createNetworkRequestError("aborted", cause);
+    }
+    throw createNetworkRequestError("network", cause);
   } finally {
     clearTimeout(timeoutId);
   }
