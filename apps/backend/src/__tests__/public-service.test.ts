@@ -214,6 +214,20 @@ describe("searchManagedPublicCatalog", () => {
       query: "fair",
       total: 2,
     });
+    expect(publicRepoMocks.searchPublicShops).toHaveBeenCalledWith("fair", {
+      postalCodePrefix: null,
+    });
+  });
+
+  it("forwards a postal code prefix when the query looks like a European postal code", async () => {
+    publicRepoMocks.searchPublicShops.mockResolvedValue([]);
+    publicRepoMocks.searchPublicCategoriesByEscapedQuery.mockResolvedValue([]);
+
+    await searchManagedPublicCatalog("77716");
+
+    expect(publicRepoMocks.searchPublicShops).toHaveBeenCalledWith("77716", {
+      postalCodePrefix: "77716",
+    });
   });
 
   it("escapes special SQL characters in category search", async () => {
@@ -387,7 +401,24 @@ describe("searchFilteredPublicCatalog", () => {
     const result = await searchFilteredPublicCatalog("fair", { country: "DE" });
 
     expect(result).toEqual({ shops: [{ id: 1 }], categories: [], query: "fair", total: 1 });
-    expect(filteredRepoMocks.searchFilteredPublicShops).toHaveBeenCalledWith("fair", { country: "DE" });
+    expect(filteredRepoMocks.searchFilteredPublicShops).toHaveBeenCalledWith(
+      "fair",
+      { country: "DE" },
+      { postalCodePrefix: null },
+    );
+  });
+
+  it("forwards a postal code prefix when the filtered query looks like a postal code", async () => {
+    filteredRepoMocks.searchFilteredPublicShops.mockResolvedValue([]);
+    publicRepoMocks.searchPublicCategoriesByEscapedQuery.mockResolvedValue([]);
+
+    await searchFilteredPublicCatalog("1234 AB", { country: "NL" });
+
+    expect(filteredRepoMocks.searchFilteredPublicShops).toHaveBeenCalledWith(
+      "1234 AB",
+      { country: "NL" },
+      { postalCodePrefix: "1234AB" },
+    );
   });
 });
 

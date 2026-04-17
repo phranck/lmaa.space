@@ -225,9 +225,15 @@ export async function listFilteredPublicShops(filters: ShopFilterParams) {
 export async function searchFilteredPublicShops(
   query: string,
   filters: ShopFilterParams,
+  options: { postalCodePrefix?: string | null } = {},
 ) {
   const escaped = query.replace(/[%_\\\\]/g, "\\\\$&");
   const pattern = `%${escaped}%`;
+  const postalPrefix = options.postalCodePrefix ?? null;
+  const postalPattern = postalPrefix ? `${postalPrefix}%` : null;
+  const postalMatch = postalPattern
+    ? sql`REGEXP_REPLACE(UPPER(hq.postal_code), '[[:space:]\-]', '', 'g') LIKE ${postalPattern}`
+    : sql`false`;
 
   const f = await resolveFilters(filters);
   const extra = whereFragment(buildConditions(f));
@@ -246,8 +252,9 @@ export async function searchFilteredPublicShops(
            CASE
              WHEN s.name ILIKE ${pattern} THEN 1
              WHEN s.url ILIKE ${pattern} THEN 2
-             WHEN s.description ILIKE ${pattern} THEN 3
-             ELSE 4
+             WHEN bool_or(${postalMatch}) THEN 3
+             WHEN s.description ILIKE ${pattern} THEN 4
+             ELSE 5
            END as rank
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
@@ -258,6 +265,7 @@ export async function searchFilteredPublicShops(
         s.name ILIKE ${pattern}
         OR s.url ILIKE ${pattern}
         OR s.description ILIKE ${pattern}
+        OR ${postalMatch}
         OR EXISTS (
           SELECT 1 FROM shop_categories sc2
           JOIN categories c2 ON c2.id = sc2.category_id
