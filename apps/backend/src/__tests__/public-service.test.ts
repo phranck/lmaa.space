@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const publicRepoMocks = vi.hoisted(() => ({
   countPublicShops: vi.fn(),
+  findPendingSubmissionByDomain: vi.fn(),
   findRejectedSubmissionByDomain: vi.fn(),
   findShopByDomain: vi.fn(),
   getFullPublicShopById: vi.fn(),

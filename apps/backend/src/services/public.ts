@@ -22,6 +22,7 @@ import {
 import {
   type PublicShopRow,
   countPublicShops,
+  findPendingSubmissionByDomain,
   findRejectedSubmissionByDomain,
   findShopByDomain,
   getFullPublicShopById,
@@ -282,6 +283,14 @@ export async function validateShopUrl(urlRaw: string | undefined) {
       status: "rejected" as const,
       shopName: submission.shopName,
       rejectionUrl,
+    };
+  }
+
+  const pending = await findPendingSubmissionByDomain(domain);
+  if (pending) {
+    return {
+      status: "pending" as const,
+      shopName: pending.shopName,
     };
   }
 

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const repoMocks = vi.hoisted(() => ({
   findShopByDomain: vi.fn(),
   findRejectedSubmissionByDomain: vi.fn(),
+  findPendingSubmissionByDomain: vi.fn(),
 }));
 
 vi.mock("../repositories/public.js", async (importOriginal) => {
@@ -16,6 +17,7 @@ describe("validateShopUrl", () => {
   beforeEach(() => {
     repoMocks.findShopByDomain.mockReset();
     repoMocks.findRejectedSubmissionByDomain.mockReset();
+    repoMocks.findPendingSubmissionByDomain.mockReset();
   });
 
   it("returns available for undefined input", async () => {
@@ -39,11 +41,13 @@ describe("validateShopUrl", () => {
   it("returns available when no matching shop or submission exists", async () => {
     repoMocks.findShopByDomain.mockResolvedValue(null);
     repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
+    repoMocks.findPendingSubmissionByDomain.mockResolvedValue(null);
 
     const result = await validateShopUrl("https://new-shop.de");
     expect(result).toEqual({ status: "available" });
     expect(repoMocks.findShopByDomain).toHaveBeenCalledWith("new-shop.de");
     expect(repoMocks.findRejectedSubmissionByDomain).toHaveBeenCalledWith("new-shop.de");
+    expect(repoMocks.findPendingSubmissionByDomain).toHaveBeenCalledWith("new-shop.de");
   });
 
   it("returns published when shop is public", async () => {
@@ -113,6 +117,7 @@ describe("validateShopUrl", () => {
   it("normalizes subdomains to DOMAIN.TLD before lookup", async () => {
     repoMocks.findShopByDomain.mockResolvedValue(null);
     repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
+    repoMocks.findPendingSubmissionByDomain.mockResolvedValue(null);
 
     await validateShopUrl("https://shop.store.example.com/path?q=1");
     expect(repoMocks.findShopByDomain).toHaveBeenCalledWith("example.com");
@@ -121,8 +126,38 @@ describe("validateShopUrl", () => {
   it("trims whitespace from input", async () => {
     repoMocks.findShopByDomain.mockResolvedValue(null);
     repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
+    repoMocks.findPendingSubmissionByDomain.mockResolvedValue(null);
 
     await validateShopUrl("  https://example.de  ");
     expect(repoMocks.findShopByDomain).toHaveBeenCalledWith("example.de");
+  });
+
+  it("returns pending when submission is awaiting moderation", async () => {
+    repoMocks.findShopByDomain.mockResolvedValue(null);
+    repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
+    repoMocks.findPendingSubmissionByDomain.mockResolvedValue({
+      id: 42,
+      shopName: "Good Karma Coffee",
+      shopUrl: "https://goodkarmacoffee.de",
+    });
+
+    const result = await validateShopUrl("https://www.goodkarmacoffee.de");
+    expect(result).toEqual({ status: "pending", shopName: "Good Karma Coffee" });
+    expect(repoMocks.findPendingSubmissionByDomain).toHaveBeenCalledWith("goodkarmacoffee.de");
+  });
+
+  it("treats www. and apex forms as the same domain", async () => {
+    repoMocks.findShopByDomain.mockResolvedValue(null);
+    repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
+    repoMocks.findPendingSubmissionByDomain.mockImplementation(async (domain: string) =>
+      domain === "goodkarmacoffee.de"
+        ? { id: 42, shopName: "Good Karma", shopUrl: "https://goodkarmacoffee.de" }
+        : null,
+    );
+
+    const apex = await validateShopUrl("https://goodkarmacoffee.de");
+    const www = await validateShopUrl("https://www.goodkarmacoffee.de");
+    expect(apex.status).toBe("pending");
+    expect(www.status).toBe("pending");
   });
 });

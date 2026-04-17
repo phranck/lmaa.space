@@ -73,6 +73,16 @@ submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), as
   });
 
   if (!result.ok) {
+    if (result.reason === "shop_exists") {
+      c.status(409);
+      return c.json({
+        error: {
+          message: `A public shop for this domain already exists: ${result.existingShopName}. Reject this duplicate submission instead of approving it.`,
+          code: "DOMAIN_CONFLICT",
+          existingShopName: result.existingShopName,
+        },
+      });
+    }
     return fail(c, 404, "Submission not found");
   }
 

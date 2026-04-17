@@ -32,7 +32,10 @@ interface ReviewAdminSubmissionInput {
  *
  * @param input - Moderation payload.
  * @returns
- * - `{ ok: false, reason: "not_found" }` when submission does not exist.
+ * - `{ ok: false, reason: "not_found" }` when submission does not exist or was already finalized.
+ * - `{ ok: false, reason: "shop_exists", existingShopName }` when approving and
+ *   another public shop already claims the same registered domain (e.g. after
+ *   a separate duplicate submission was approved first).
  * - `{ ok: true, submission }` when review is persisted.
  *
  * @remarks
@@ -41,7 +44,7 @@ interface ReviewAdminSubmissionInput {
  * - May hydrate and persist OG image for newly created shop.
  */
 export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
-  const { submission, newShop } = await reviewSubmission({
+  const { submission, newShop, conflict } = await reviewSubmission({
     id: input.id,
     status: input.status,
     adminNote: input.adminNote,
@@ -49,6 +52,14 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     rejectionToken: input.rejectionToken,
     adminId: input.adminId,
   });
+
+  if (conflict) {
+    return {
+      ok: false as const,
+      reason: "shop_exists" as const,
+      existingShopName: conflict.existingShopName,
+    };
+  }
 
   if (!submission) {
     return failure("not_found");

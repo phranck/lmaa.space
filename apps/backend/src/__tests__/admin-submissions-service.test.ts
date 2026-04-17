@@ -81,6 +81,29 @@ describe("admin-submissions service", () => {
     expect(deleteSubmission).not.toHaveBeenCalled();
   });
 
+  it("returns shop_exists when approve conflicts with an existing public shop", async () => {
+    reviewSubmission.mockResolvedValue({
+      submission: null,
+      newShop: null,
+      conflict: { existingShopId: 11, existingShopName: "Good Karma Coffee" },
+    });
+    const service = await loadServiceModule();
+
+    await expect(
+      service.reviewAdminSubmission({
+        id: 442,
+        status: "approved",
+        adminId: 1,
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      reason: "shop_exists",
+      existingShopName: "Good Karma Coffee",
+    });
+
+    expect(hydrateShopOgImageInBackground).not.toHaveBeenCalled();
+  });
+
   it("skips OG hydration when an approved submission already has an og image", async () => {
     reviewSubmission.mockResolvedValue({
       submission: {
