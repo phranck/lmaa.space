@@ -150,6 +150,7 @@ publicRoutes.post(
         return c.json({
           error: {
             message: "Der Shop ist bereits eingetragen.",
+            status: "published",
             shopName: urlCheck.shopName,
           },
         });
@@ -159,8 +160,19 @@ publicRoutes.post(
         return c.json({
           error: {
             message: "Dieser Shop wurde bereits geprüft und abgelehnt.",
+            status: "rejected",
             shopName: urlCheck.shopName,
             rejectionUrl: urlCheck.rejectionUrl,
+          },
+        });
+      }
+      if (urlCheck.status === "pending") {
+        c.status(409);
+        return c.json({
+          error: {
+            message: "Dieser Shop wurde bereits eingereicht und wartet auf Prüfung.",
+            status: "pending",
+            shopName: urlCheck.shopName,
           },
         });
       }

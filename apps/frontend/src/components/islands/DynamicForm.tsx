@@ -876,7 +876,12 @@ interface FormState {
   regionCodes: string[];
   staticMultiSelects: Record<string, string[]>;
   submitting: boolean;
-  submitError: { message: string; shopName?: string; rejectionUrl?: string } | null;
+  submitError: {
+    message: string;
+    status?: "published" | "rejected" | "pending";
+    shopName?: string;
+    rejectionUrl?: string;
+  } | null;
   submitted: boolean;
   multiSelectErrors: Record<string, string>;
 }
@@ -1254,9 +1259,15 @@ export default function DynamicForm({ formConfig, categories }: Props) {
           const body = await res.json().catch(() => null);
           const error = body && typeof body === "object" && "error" in body ? (body as Record<string, unknown>).error : null;
           const errorObj = error && typeof error === "object" ? (error as Record<string, unknown>) : null;
+          const rawStatus = errorObj?.status;
+          const status =
+            rawStatus === "published" || rawStatus === "rejected" || rawStatus === "pending"
+              ? rawStatus
+              : undefined;
           dispatch({
             submitError: {
               message: typeof errorObj?.message === "string" ? errorObj.message : "Dieser Shop ist bereits bekannt.",
+              status,
               shopName: typeof errorObj?.shopName === "string" ? errorObj.shopName : undefined,
               rejectionUrl: typeof errorObj?.rejectionUrl === "string" ? errorObj.rejectionUrl : undefined,
             },
@@ -1398,24 +1409,45 @@ export default function DynamicForm({ formConfig, categories }: Props) {
 
         <AlertDialog
           open={!!state.submitError}
-          title={state.submitError?.rejectionUrl ? "Shop abgelehnt" : "Shop bereits vorhanden"}
-          variant={state.submitError?.rejectionUrl ? "warning" : "error"}
+          title={
+            state.submitError?.status === "rejected"
+              ? "Shop abgelehnt"
+              : state.submitError?.status === "pending"
+                ? "Shop wird bereits geprüft"
+                : "Shop bereits vorhanden"
+          }
+          variant={state.submitError?.status === "rejected" ? "warning" : "error"}
           buttonLabel="Verstanden"
           onClose={() => dispatch({ submitError: null })}
         >
-          {state.submitError?.rejectionUrl ? (
-            <>
-              <p>Der Shop <strong>{state.submitError.shopName}</strong> wurde bereits geprüft und abgelehnt. Eine ausführliche Begründung für die Ablehnung kannst du {" "}
+          {state.submitError?.status === "rejected" ? (
+            <p>
+              Der Shop <strong>{state.submitError.shopName}</strong> wurde bereits geprüft und abgelehnt.
+              Eine ausführliche Begründung für die Ablehnung kannst du{" "}
+              {state.submitError.rejectionUrl ? (
                 <a
                   href={state.submitError.rejectionUrl}
                   className="text-[var(--ds-accent)] underline hover:no-underline"
                 >
                   hier einsehen
-                </a>.
-              </p>
-            </>
+                </a>
+              ) : (
+                "beim Betreiber anfragen"
+              )}
+              .
+            </p>
+          ) : state.submitError?.status === "pending" ? (
+            <p>
+              Da hatte wohl jemand bereits die gleiche Idee!
+              <br />
+              Der Shop <strong>{state.submitError.shopName}</strong> wurde schon eingereicht und wartet auf Prüfung.
+            </p>
           ) : (
-            <p>Da hatte wohl jemand bereits die gleiche Idee!<br />Der Shop <strong>{state.submitError?.shopName}</strong> ist schon eingetragen.</p>
+            <p>
+              Da hatte wohl jemand bereits die gleiche Idee!
+              <br />
+              Der Shop <strong>{state.submitError?.shopName}</strong> ist schon eingetragen.
+            </p>
           )}
         </AlertDialog>
       </form>

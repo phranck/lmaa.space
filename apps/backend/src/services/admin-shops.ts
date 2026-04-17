@@ -4,6 +4,7 @@ import {
   fetchShopPreviewImageFromHomepage,
   hydrateShopOgImageInBackground,
 } from "./preview-images.js";
+import { validateShopUrl } from "./public.js";
 import { db } from "../db/index.js";
 import { categories } from "../db/schema.js";
 import { failure, success } from "../lib/result.js";
@@ -36,15 +37,34 @@ interface DeleteAdminShopData {
 /**
  * Creates a new shop from admin UI and schedules OG image hydration.
  *
+ * Blocks creation when a shop or submission for the same registered domain
+ * already exists to prevent duplicate entries (e.g. `example.de` vs
+ * `www.example.de`).
+ *
  * @param data - Validated create payload.
- * @returns Newly created shop payload with empty `categories` placeholder.
+ * @returns
+ * - `{ ok: true, shop }` when the shop was inserted.
+ * - `{ ok: false, reason: "domain_conflict", conflictStatus, conflictShopName }`
+ *   when another shop or submission already claims the same registered domain.
+ *   `conflictStatus` mirrors the `validateShopUrl` status (`"published"`,
+ *   `"rejected"`, or `"pending"`).
  *
  * @remarks
- * Side effects:
+ * Side effects on success:
  * - Invalidates shared public shop cache key.
  * - Starts fire-and-forget OG image hydration and persistence.
  */
 export async function createManagedAdminShop(data: CreateAdminShopData) {
+  const urlCheck = await validateShopUrl(data.url);
+  if (urlCheck.status !== "available") {
+    return {
+      ok: false as const,
+      reason: "domain_conflict" as const,
+      conflictStatus: urlCheck.status,
+      conflictShopName: urlCheck.shopName,
+    };
+  }
+
   const shop = await createAdminShop(data);
 
   invalidateCache(SHOPS_CACHE_KEY);
@@ -53,7 +73,7 @@ export async function createManagedAdminShop(data: CreateAdminShopData) {
     await setAdminShopOgImage(shop.id, imageUrl);
   });
 
-  return { ...shop, categories: [] };
+  return success({ shop: { ...shop, categories: [] } });
 }
 
 /**

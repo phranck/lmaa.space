@@ -65,8 +65,19 @@ shopsRoutes.get("/shops/:id", async (c) => {
 
 shopsRoutes.post("/shops", zValidator("json", shopBodySchema), async (c) => {
   const body = c.req.valid("json");
-  const shop = await createManagedAdminShop(body);
-  return ok(c, shop, 201);
+  const result = await createManagedAdminShop(body);
+  if (!result.ok) {
+    c.status(409);
+    return c.json({
+      error: {
+        message: "A shop or submission for this domain already exists.",
+        code: "DOMAIN_CONFLICT",
+        conflictStatus: result.conflictStatus,
+        conflictShopName: result.conflictShopName,
+      },
+    });
+  }
+  return ok(c, result.shop, 201);
 });
 
 const updateShopHandler = zValidator("json", shopUpdateSchema);

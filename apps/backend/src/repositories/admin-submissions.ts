@@ -1,4 +1,5 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
+import { getDomain } from "tldts";
 
 import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
 
@@ -48,10 +49,15 @@ interface SubmissionReviewData {
 
 /**
  * Result of a review transaction including optional newly created shop.
+ *
+ * `conflict` is only populated when approving a submission whose registered
+ * domain is already claimed by an existing public shop; in that case neither
+ * `submission` nor `newShop` is returned and no writes occur.
  */
 interface SubmissionReviewResult {
   submission: Submission | null;
   newShop: Pick<Shop, "id" | "url"> | null;
+  conflict: { existingShopId: number; existingShopName: string } | null;
 }
 
 /**
@@ -134,16 +140,36 @@ export async function reviewSubmission(
 ): Promise<SubmissionReviewResult> {
   return db.transaction(async (tx) => {
     const [current] = await tx
-      .select({ status: submissions.status })
+      .select({ status: submissions.status, shopUrl: submissions.shopUrl })
       .from(submissions)
       .where(eq(submissions.id, data.id));
 
     if (!current) {
-      return { submission: null, newShop: null };
+      return { submission: null, newShop: null, conflict: null };
     }
 
     if (current.status === "approved" || current.status === "rejected") {
-      return { submission: null, newShop: null };
+      return { submission: null, newShop: null, conflict: null };
+    }
+
+    if (data.status === "approved") {
+      const domain = getDomain(current.shopUrl);
+      if (domain) {
+        const existingRows = await tx.execute<{ id: number; name: string; url: string }>(sql`
+          SELECT id, name, url FROM shops
+          WHERE url LIKE ${"%" + domain + "%"}
+            AND visibility = 'public'
+          LIMIT 10
+        `);
+        const conflict = existingRows.find((row) => getDomain(row.url) === domain);
+        if (conflict) {
+          return {
+            submission: null,
+            newShop: null,
+            conflict: { existingShopId: conflict.id, existingShopName: conflict.name },
+          };
+        }
+      }
     }
 
     const [submission] = await tx
@@ -162,11 +188,11 @@ export async function reviewSubmission(
       .returning();
 
     if (!submission) {
-      return { submission: null, newShop: null };
+      return { submission: null, newShop: null, conflict: null };
     }
 
     if (data.status !== "approved") {
-      return { submission, newShop: null };
+      return { submission, newShop: null, conflict: null };
     }
 
     const categoryRows = await tx
@@ -197,7 +223,7 @@ export async function reviewSubmission(
 
     await copySubmissionHeadquartersToShop(tx, submission.id, shop.id);
 
-    return { submission, newShop: shop };
+    return { submission, newShop: shop, conflict: null };
   });
 }
 

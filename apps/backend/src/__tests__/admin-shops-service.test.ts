@@ -17,6 +17,10 @@ const previewMocks = vi.hoisted(() => ({
   hydrateShopOgImageInBackground: vi.fn(),
 }));
 
+const publicServiceMocks = vi.hoisted(() => ({
+  validateShopUrl: vi.fn(),
+}));
+
 const cacheMocks = vi.hoisted(() => ({
   SHOPS_CACHE_KEY: "shops:all",
   invalidateCache: vi.fn(),
@@ -36,6 +40,7 @@ const mapperMock = vi.hoisted(() => ({
 
 vi.mock("../repositories/admin-shops.js", () => repoMocks);
 vi.mock("../services/preview-images.js", () => previewMocks);
+vi.mock("../services/public.js", () => publicServiceMocks);
 vi.mock("../middleware/cache.js", () => cacheMocks);
 vi.mock("../db/index.js", () => dbMock);
 vi.mock("../db/schema.js", () => schemaMock);
@@ -56,14 +61,21 @@ import {
 } from "../services/admin-shops.js";
 
 describe("createManagedAdminShop", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    publicServiceMocks.validateShopUrl.mockResolvedValue({ status: "available" });
+  });
 
   it("creates a shop, invalidates cache, and triggers OG hydration", async () => {
     repoMocks.createAdminShop.mockResolvedValue({ id: 1, url: "https://shop.de", name: "Shop" });
 
     const result = await createManagedAdminShop({ name: "Shop", url: "https://shop.de" } as never);
 
-    expect(result).toEqual({ id: 1, url: "https://shop.de", name: "Shop", categories: [] });
+    expect(result).toEqual({
+      ok: true,
+      shop: { id: 1, url: "https://shop.de", name: "Shop", categories: [] },
+    });
+    expect(publicServiceMocks.validateShopUrl).toHaveBeenCalledWith("https://shop.de");
     expect(cacheMocks.invalidateCache).toHaveBeenCalledWith("shops:all");
     expect(previewMocks.hydrateShopOgImageInBackground).toHaveBeenCalledWith(
       "https://shop.de",
@@ -80,6 +92,47 @@ describe("createManagedAdminShop", () => {
     await callback("https://cdn.example.com/og.png");
 
     expect(repoMocks.setAdminShopOgImage).toHaveBeenCalledWith(42, "https://cdn.example.com/og.png");
+  });
+
+  it("blocks creation when a pending submission for the same domain exists", async () => {
+    publicServiceMocks.validateShopUrl.mockResolvedValue({
+      status: "pending",
+      shopName: "Good Karma Coffee",
+    });
+
+    const result = await createManagedAdminShop({
+      name: "Shop",
+      url: "https://www.goodkarmacoffee.de",
+    } as never);
+
+    expect(result).toEqual({
+      ok: false,
+      reason: "domain_conflict",
+      conflictStatus: "pending",
+      conflictShopName: "Good Karma Coffee",
+    });
+    expect(repoMocks.createAdminShop).not.toHaveBeenCalled();
+    expect(cacheMocks.invalidateCache).not.toHaveBeenCalled();
+  });
+
+  it("blocks creation when the domain belongs to a published shop", async () => {
+    publicServiceMocks.validateShopUrl.mockResolvedValue({
+      status: "published",
+      shopName: "Existing Shop",
+    });
+
+    const result = await createManagedAdminShop({
+      name: "Duplicate",
+      url: "https://existing.de",
+    } as never);
+
+    expect(result).toEqual({
+      ok: false,
+      reason: "domain_conflict",
+      conflictStatus: "published",
+      conflictShopName: "Existing Shop",
+    });
+    expect(repoMocks.createAdminShop).not.toHaveBeenCalled();
   });
 });
 

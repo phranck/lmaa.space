@@ -124,6 +124,25 @@ describe("submissionsRoutes", () => {
 
       expect(res.status).toBe(404);
     });
+
+    it("returns 409 when approving a submission whose domain already has a public shop", async () => {
+      serviceMocks.reviewAdminSubmission.mockResolvedValue({
+        ok: false,
+        reason: "shop_exists",
+        existingShopName: "Good Karma Coffee",
+      });
+
+      const res = await app.request("/submissions/442", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "approved" }),
+      });
+
+      expect(res.status).toBe(409);
+      const body = (await res.json()) as { error: { code: string; existingShopName: string } };
+      expect(body.error.code).toBe("DOMAIN_CONFLICT");
+      expect(body.error.existingShopName).toBe("Good Karma Coffee");
+    });
   });
 
   describe("DELETE /submissions/:id", () => {

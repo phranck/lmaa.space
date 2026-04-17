@@ -289,6 +289,37 @@ export async function findRejectedSubmissionByDomain(domain: string) {
   return candidates.find((row) => getDomain(row.shopUrl) === domain) ?? null;
 }
 
+interface PendingSubmissionRow {
+  id: number;
+  shopName: string;
+  shopUrl: string;
+}
+
+/**
+ * Finds a submission awaiting moderation by domain (DOMAIN.TLD).
+ *
+ * Matches submissions whose status is either `pending` or `onhold`, i.e. those
+ * that will still produce a published shop once approved. Used by the domain
+ * deduplication check to block new submissions for a domain that is already
+ * queued for review.
+ *
+ * @param domain - Normalized domain (e.g. "goodkarmacoffee.de").
+ * @returns Matching submission row or `null`.
+ */
+export async function findPendingSubmissionByDomain(domain: string) {
+  const { getDomain } = await import("tldts");
+
+  const candidates = await db.execute<PendingSubmissionRow & Record<string, unknown>>(sql`
+    SELECT s.id, s.shop_name AS "shopName", s.shop_url AS "shopUrl"
+    FROM submissions s
+    WHERE s.shop_url LIKE ${"%" + domain + "%"}
+      AND s.status IN ('pending', 'onhold')
+    LIMIT 10
+  `);
+
+  return candidates.find((row) => getDomain(row.shopUrl) === domain) ?? null;
+}
+
 /**
  * Submission payload accepted from the public website.
  */
