@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const publicRepoMocks = vi.hoisted(() => ({
+  countPendingSubmissions: vi.fn(),
   countPublicShops: vi.fn(),
   findPendingSubmissionByDomain: vi.fn(),
   findRejectedSubmissionByDomain: vi.fn(),
@@ -99,10 +100,11 @@ describe("hashIp", () => {
 describe("getManagedPublicStats", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns shop count", async () => {
+  it("returns shop count and pending review count", async () => {
     publicRepoMocks.countPublicShops.mockResolvedValue(42);
+    publicRepoMocks.countPendingSubmissions.mockResolvedValue(7);
     const result = await getManagedPublicStats();
-    expect(result).toEqual({ shopCount: 42 });
+    expect(result).toEqual({ shopCount: 42, pendingReviewCount: 7 });
   });
 });
 

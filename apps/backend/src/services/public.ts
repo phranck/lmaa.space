@@ -22,6 +22,7 @@ import {
 } from "../repositories/public-filtered.js";
 import {
   type PublicShopRow,
+  countPendingSubmissions,
   countPublicShops,
   findPendingSubmissionByDomain,
   findRejectedSubmissionByDomain,
@@ -144,11 +145,14 @@ export async function toggleShopLike(
 /**
  * Returns website counters shown in public overview widgets.
  *
- * @returns Object with current public shop count.
+ * @returns Object with current public shop count and pending submission count.
  */
 export async function getManagedPublicStats() {
-  const shopCount = await countPublicShops();
-  return { shopCount };
+  const [shopCount, pendingReviewCount] = await Promise.all([
+    countPublicShops(),
+    countPendingSubmissions(),
+  ]);
+  return { shopCount, pendingReviewCount };
 }
 
 /**

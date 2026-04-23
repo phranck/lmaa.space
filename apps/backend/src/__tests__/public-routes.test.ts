@@ -85,13 +85,18 @@ describe("publicRoutes", () => {
   });
 
   describe("GET /stats", () => {
-    it("returns shop count", async () => {
-      publicServiceMocks.getManagedPublicStats.mockResolvedValue({ shopCount: 42 });
+    it("returns shop count and pending review count", async () => {
+      publicServiceMocks.getManagedPublicStats.mockResolvedValue({
+        shopCount: 42,
+        pendingReviewCount: 7,
+      });
 
       const res = await app.request("/stats");
 
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ data: { shopCount: 42 } });
+      expect(await res.json()).toEqual({
+        data: { shopCount: 42, pendingReviewCount: 7 },
+      });
     });
   });
 

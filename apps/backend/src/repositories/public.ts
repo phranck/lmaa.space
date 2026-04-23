@@ -96,6 +96,19 @@ export async function countPublicShops(): Promise<number> {
 }
 
 /**
+ * Counts submissions still awaiting moderation.
+ *
+ * @returns Number of submissions with `status = 'pending'`.
+ */
+export async function countPendingSubmissions(): Promise<number> {
+  const [row] = await db
+    .select({ total: count(submissions.id) })
+    .from(submissions)
+    .where(eq(submissions.status, "pending"));
+  return row?.total ?? 0;
+}
+
+/**
  * Resolves a category by slug.
  *
  * @param slug - URL slug.

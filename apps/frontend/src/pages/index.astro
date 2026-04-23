@@ -7,8 +7,11 @@ import { apiGet } from "@/lib/api";
 import type { Category } from "@lmaa/shared";
 
 const categories = await apiGet<Category[]>("/categories");
-const stats = await apiGet<{ shopCount: number }>("/stats");
+const stats = await apiGet<{ shopCount: number; pendingReviewCount: number }>(
+  "/stats",
+);
 const shopCount = stats.shopCount;
+const pendingReviewCount = stats.pendingReviewCount;
 
 interface HeroImageResult {
   url: string;
@@ -179,6 +182,7 @@ const jsonLd = {
     client:idle
     categories={categories}
     shopCount={shopCount}
+    pendingReviewCount={pendingReviewCount}
   />
 
   <!-- CTA -->
