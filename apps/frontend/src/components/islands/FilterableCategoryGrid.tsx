@@ -20,6 +20,8 @@ interface FilterableCategoryGridProps {
   categories: Category[];
   /** Total shop count (from /api/stats). */
   shopCount: number;
+  /** Submissions awaiting moderation (from /api/stats). */
+  pendingReviewCount: number;
 }
 
 interface FilteredCategory {
@@ -68,6 +70,7 @@ function mapInitialCategories(cats: Category[]): FilteredCategory[] {
 export default function FilterableCategoryGrid({
   categories: initialCategories,
   shopCount: initialShopCount,
+  pendingReviewCount,
 }: FilterableCategoryGridProps) {
   const [state, dispatch] = useReducer(filterGridReducer, {
     showFilter: false,
@@ -122,6 +125,7 @@ export default function FilterableCategoryGrid({
         <div className="flex items-center justify-between sm:justify-end sm:gap-4">
           <span className="text-sm text-stone-600">
             {shopCount} Shops in {categoryCount} Kategorien
+            {pendingReviewCount > 0 ? ` · ${pendingReviewCount} in Review` : ""}
           </span>
           <FilterToggleButton
             showFilter={showFilter}
