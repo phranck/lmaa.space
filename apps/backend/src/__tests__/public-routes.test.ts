@@ -378,7 +378,10 @@ describe("publicRoutes", () => {
 
   describe("GET /filtered/categories", () => {
     it("returns filtered categories", async () => {
-      publicServiceMocks.getFilteredPublicCategories.mockResolvedValue([{ id: 1 }]);
+      publicServiceMocks.getFilteredPublicCategories.mockResolvedValue({
+        categories: [{ id: 1 }],
+        totalShops: 1,
+      });
 
       const res = await app.request("/filtered/categories?country=DE");
 

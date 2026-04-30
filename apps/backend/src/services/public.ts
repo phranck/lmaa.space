@@ -14,6 +14,7 @@ import {
 } from "../middleware/cache.js";
 import { loadShopHeadquartersMap } from "../repositories/headquarters.js";
 import {
+  countFilteredPublicShops,
   listAvailableFilterCountries,
   listFilteredCategoriesWithCount,
   listFilteredPublicShops,
@@ -406,8 +407,11 @@ export async function getManagedPublicRejectionPageByToken(token: string) {
 // ---------------------------------------------------------------------------
 
 export async function getFilteredPublicCategories(filters: ShopFilterParams) {
-  const rows = await listFilteredCategoriesWithCount(filters);
-  return rows.map((row) => ({
+  const [rows, totalShops] = await Promise.all([
+    listFilteredCategoriesWithCount(filters),
+    countFilteredPublicShops(filters),
+  ]);
+  const categories = rows.map((row) => ({
     id: row.id,
     name: row.name,
     slug: row.slug,
@@ -417,6 +421,7 @@ export async function getFilteredPublicCategories(filters: ShopFilterParams) {
     imageFocalPointY: row.imageFocalPointY,
     shopCount: row.shopCount,
   }));
+  return { categories, totalShops };
 }
 
 export async function getFilteredPublicCategoryBySlug(
