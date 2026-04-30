@@ -154,6 +154,33 @@ export async function listFilteredCategoriesWithCount(filters: ShopFilterParams)
 }
 
 // ---------------------------------------------------------------------------
+// Total unique shop count across all categories (with filters)
+// ---------------------------------------------------------------------------
+
+export async function countFilteredPublicShops(filters: ShopFilterParams): Promise<number> {
+  const f = await resolveFilters(filters);
+
+  if (!hasActiveFilters(f)) {
+    const rows = await db.execute<{ count: number }>(sql`
+      SELECT COUNT(DISTINCT s.id)::int as count
+      FROM shops s
+      WHERE s.is_active = true AND s.visibility = 'public'
+    `);
+    return rows[0]?.count ?? 0;
+  }
+
+  const extra = whereFragment(buildConditions(f));
+  const rows = await db.execute<{ count: number }>(sql`
+    SELECT COUNT(DISTINCT s.id)::int as count
+    FROM shops s
+    LEFT JOIN shop_headquarters hq ON hq.shop_id = s.id
+    WHERE s.is_active = true AND s.visibility = 'public'
+    ${extra}
+  `);
+  return rows[0]?.count ?? 0;
+}
+
+// ---------------------------------------------------------------------------
 // Shops for a specific category (with filters)
 // ---------------------------------------------------------------------------
 

@@ -97,10 +97,11 @@ export default function FilterableCategoryGrid({
     }
 
     const query = buildFilterQuery(filters);
-    fetchJson<FilteredCategory[]>(`/filtered/categories?${query}`)
-      .then((filtered) => {
-        const total = filtered.reduce((sum, c) => sum + c.shopCount, 0);
-        dispatch({ categories: filtered, shopCount: total });
+    fetchJson<{ categories: FilteredCategory[]; totalShops: number }>(
+      `/filtered/categories?${query}`,
+    )
+      .then((result) => {
+        dispatch({ categories: result.categories, shopCount: result.totalShops });
       })
       .catch(() => {});
   }, [initialCategories, initialShopCount]);
