@@ -45,6 +45,7 @@ export default defineConfig({
   },
   server: {
     port: 5174,
+    allowedHosts: ["dashboard.lmaa.test"],
     proxy: {
       "/api/v1": {
         target: "http://localhost:3000",
