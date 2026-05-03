@@ -52,6 +52,7 @@ export interface DashboardMessages {
         footerBuilder: string;
         markdownWidgets: string;
         billing: string;
+        systemSettings: string;
         affiliate: string;
         affiliateSettings: string;
         expandAll: string;
@@ -1048,6 +1049,22 @@ export interface DashboardMessages {
       validating: string;
     };
   };
+  system: {
+    settings: {
+      title: string;
+      notificationsTab: string;
+      newShopSubmission: {
+        title: string;
+        recipientLabel: string;
+        recipientNotConfigured: string;
+        templateLabel: string;
+        templatePlaceholder: string;
+        templateLoading: string;
+        hint: string;
+        requireTemplateHint: string;
+      };
+    };
+  };
   errors: {
     boundary: {
       title: string;
@@ -1108,6 +1125,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Kosten",
+        systemSettings: "Einstellungen",
         affiliate: "Affiliate",
         affiliateSettings: "Einstellungen",
         expandAll: "Alles aufklappen",
@@ -2112,6 +2130,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         validating: "Teste...",
       },
     },
+    system: {
+      settings: {
+        title: "Einstellungen",
+        notificationsTab: "Benachrichtigungen",
+        newShopSubmission: {
+          title: "Neuer Shop-Vorschlag",
+          recipientLabel: "Empfänger",
+          recipientNotConfigured: "OWNER_EMAIL ist nicht konfiguriert.",
+          templateLabel: "E-Mail-Template",
+          templatePlaceholder: "Template wählen…",
+          templateLoading: "Lade Templates…",
+          hint: "Wird verschickt, sobald ein neuer Shop-Vorschlag eingeht.",
+          requireTemplateHint: "Bitte zuerst ein Template wählen, um die Benachrichtigung zu aktivieren.",
+        },
+      },
+    },
     errors: {
       boundary: {
         title: "Ein Fehler ist aufgetreten",
@@ -2167,6 +2201,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Billing",
+        systemSettings: "Settings",
         affiliate: "Affiliate",
         affiliateSettings: "Settings",
         expandAll: "Expand all",
@@ -3165,6 +3200,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         connectionValid: "Connection successful",
         connectionInvalid: "Connection failed",
         validating: "Testing...",
+      },
+    },
+    system: {
+      settings: {
+        title: "Settings",
+        notificationsTab: "Notifications",
+        newShopSubmission: {
+          title: "New shop suggestion",
+          recipientLabel: "Recipient",
+          recipientNotConfigured: "OWNER_EMAIL is not configured.",
+          templateLabel: "Email template",
+          templatePlaceholder: "Choose a template…",
+          templateLoading: "Loading templates…",
+          hint: "Sent whenever a new shop suggestion arrives.",
+          requireTemplateHint: "Pick a template first to enable the notification.",
+        },
       },
     },
     errors: {
