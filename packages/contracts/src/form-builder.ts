@@ -46,8 +46,9 @@ export type FieldOptionsSource = "categories" | "regions";
  * - `"open-url"`       — opens the source field value as a URL in a new tab
  * - `"copy-clipboard"` — copies the source field value to the clipboard
  * - `"clear-field"`    — clears the source field value
+ * - `"check-shop"`     — checks whether the source field URL already exists in the shop database
  */
-export type ButtonActionType = "open-url" | "copy-clipboard" | "clear-field";
+export type ButtonActionType = "open-url" | "copy-clipboard" | "clear-field" | "check-shop";
 
 /**
  * Defines a click action for a button field that reads or modifies another field.

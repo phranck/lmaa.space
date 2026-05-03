@@ -1,7 +1,7 @@
 import { CaretDownIcon, CaretUpIcon, IconContext } from "@phosphor-icons/react";
 import { SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
-import { useController, useForm } from "react-hook-form";
+import { useController, useForm, useWatch } from "react-hook-form";
 
 import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
 import { createApiRequestError } from "@lmaa/shared";
@@ -878,7 +878,7 @@ interface FormState {
   submitting: boolean;
   submitError: {
     message: string;
-    status?: "published" | "rejected" | "pending";
+    status?: "published" | "rejected" | "pending" | "available";
     shopName?: string;
     rejectionUrl?: string;
   } | null;
@@ -901,6 +901,140 @@ function formReducer(s: FormState, patch: Partial<FormState>): FormState {
 }
 
 // ---------------------------------------------------------------------------
+// ButtonField
+// ---------------------------------------------------------------------------
+
+interface CheckShopResult {
+  status: "available" | "published" | "rejected" | "pending";
+  shopName?: string;
+  rejectionUrl?: string;
+}
+
+interface ButtonFieldProps {
+  field: FormField;
+  formConfig: FormConfig;
+  control: ReturnType<typeof useForm<SimpleFields>>["control"];
+  setValue: ReturnType<typeof useForm<SimpleFields>>["setValue"];
+  submitting: boolean;
+  onCheckShopResult: (result: CheckShopResult) => void;
+}
+
+function ButtonField({
+  field,
+  formConfig,
+  control,
+  setValue,
+  submitting,
+  onCheckShopResult,
+}: ButtonFieldProps) {
+  const allFields = formConfig.rows.flatMap((r) => r.fields);
+  const sourceField = field.buttonAction
+    ? allFields.find((f) => f.id === field.buttonAction?.sourceFieldId)
+    : undefined;
+  const sourceKey = sourceField ? fieldKey(sourceField) : "";
+
+  // useWatch must be called unconditionally; pass empty key when no source.
+  const watchedRaw = useWatch({ control, name: sourceKey as keyof SimpleFields });
+  const watchedValue = typeof watchedRaw === "string" ? watchedRaw : "";
+
+  const btnType = field.buttonType ?? "button";
+  const isSubmit = btnType === "submit";
+  const btnWidth = field.buttonWidth ?? "automatic";
+  const btnAlign = field.buttonAlign ?? "left";
+  const alignClass =
+    btnAlign === "center"
+      ? "justify-center"
+      : btnAlign === "right"
+        ? "justify-end"
+        : "justify-start";
+  const displayMode = field.buttonIcon ? (field.buttonDisplay ?? "both") : "text";
+
+  const isCheckShopAction = field.buttonAction?.type === "check-shop";
+  const isCheckShopDisabled = isCheckShopAction && watchedValue.trim() === "";
+  const isDisabled = (isSubmit && submitting) || isCheckShopDisabled;
+
+  async function handleButtonAction() {
+    const action = field.buttonAction;
+    if (!action || !sourceField) return;
+    const val = watchedValue;
+    switch (action.type) {
+      case "open-url": {
+        const safeUrl = getSafeActionUrl(val);
+        if (safeUrl) window.open(safeUrl, "_blank", "noopener,noreferrer");
+        break;
+      }
+      case "copy-clipboard":
+        if (val) navigator.clipboard.writeText(val).catch(() => {});
+        break;
+      case "clear-field":
+        setValue(sourceKey as keyof SimpleFields, "" as never);
+        break;
+      case "check-shop": {
+        if (!val) return;
+        try {
+          const res = await fetch(`${API_BASE}/check-url?url=${encodeURIComponent(val)}`);
+          const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+          const data =
+            body && typeof body === "object"
+              ? (body.data as Record<string, unknown> | undefined)
+              : undefined;
+          const status = data?.status;
+          if (
+            status !== "available" &&
+            status !== "published" &&
+            status !== "pending" &&
+            status !== "rejected"
+          ) {
+            return;
+          }
+          onCheckShopResult({
+            status,
+            shopName: typeof data?.shopName === "string" ? data.shopName : undefined,
+            rejectionUrl: typeof data?.rejectionUrl === "string" ? data.rejectionUrl : undefined,
+          });
+        } catch {
+          // network failure — silently ignore; user can retry
+        }
+        break;
+      }
+    }
+  }
+
+  return (
+    <div className={`flex items-start pt-[1.625rem] min-w-0 ${alignClass}`}>
+      <button
+        type={btnType}
+        disabled={isDisabled}
+        title={displayMode === "icon" && field.label ? field.label : undefined}
+        onClick={
+          field.buttonAction && (field.buttonType ?? "button") === "button"
+            ? () => {
+                void handleButtonAction();
+              }
+            : undefined
+        }
+        className={`flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors ${
+          btnWidth === "full" ? "w-full justify-center" : isSubmit ? "max-sm:w-full max-sm:justify-center" : ""
+        } ${
+          isSubmit
+            ? "bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-60"
+            : "border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] disabled:opacity-60"
+        }`}
+      >
+        {displayMode !== "text" && field.buttonIcon && (
+          <LazyButtonIcon name={field.buttonIcon} width={18} height={18} />
+        )}
+        {displayMode !== "icon" && (
+          <span className="truncate">
+            {isSubmit && submitting ? "Wird gesendet…" : field.label}
+          </span>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // FieldRenderer
 // ---------------------------------------------------------------------------
 
@@ -910,7 +1044,6 @@ interface FieldRendererProps {
   multiSelectErrors: Record<string, string>;
   control: ReturnType<typeof useForm<SimpleFields>>["control"];
   register: ReturnType<typeof useForm<SimpleFields>>["register"];
-  getValues: ReturnType<typeof useForm<SimpleFields>>["getValues"];
   setValue: ReturnType<typeof useForm<SimpleFields>>["setValue"];
   categories: Category[];
   categoryIds: number[];
@@ -921,6 +1054,7 @@ interface FieldRendererProps {
   setStaticMultiSelected: (fieldId: string, values: string[]) => void;
   formConfig: FormConfig;
   submitting: boolean;
+  onCheckShopResult: (result: CheckShopResult) => void;
 }
 
 /**
@@ -936,7 +1070,6 @@ function FieldRenderer({
   multiSelectErrors,
   control,
   register,
-  getValues,
   setValue,
   categories,
   categoryIds,
@@ -947,6 +1080,7 @@ function FieldRenderer({
   setStaticMultiSelected,
   formConfig,
   submitting,
+  onCheckShopResult,
 }: FieldRendererProps) {
   const key = fieldKey(field);
   const fieldError = errors[key]?.message ?? multiSelectErrors[key];
@@ -1035,73 +1169,17 @@ function FieldRenderer({
       );
     }
 
-    case "button": {
-      const btnType = field.buttonType ?? "button";
-      const isSubmit = btnType === "submit";
-      const btnWidth = field.buttonWidth ?? "automatic";
-      const btnAlign = field.buttonAlign ?? "left";
-      const alignClass =
-        btnAlign === "center"
-          ? "justify-center"
-          : btnAlign === "right"
-            ? "justify-end"
-            : "justify-start";
-      const displayMode = field.buttonIcon ? (field.buttonDisplay ?? "both") : "text";
-
-      function handleButtonAction() {
-        const action = field.buttonAction;
-        if (!action) return;
-        const allFields = formConfig.rows.flatMap((r) => r.fields);
-        const sourceField = allFields.find((f) => f.id === action.sourceFieldId);
-        if (!sourceField) return;
-        const srcKey = fieldKey(sourceField);
-        const val = (getValues(srcKey as keyof SimpleFields) as string) ?? "";
-        switch (action.type) {
-          case "open-url": {
-            const safeUrl = getSafeActionUrl(val);
-            if (safeUrl) window.open(safeUrl, "_blank", "noopener,noreferrer");
-            break;
-          }
-          case "copy-clipboard":
-            if (val) navigator.clipboard.writeText(val).catch(() => {});
-            break;
-          case "clear-field":
-            setValue(srcKey as keyof SimpleFields, "" as never);
-            break;
-        }
-      }
-
+    case "button":
       return (
-        <div className={`flex items-start pt-[1.625rem] min-w-0 ${alignClass}`}>
-          <button
-            type={btnType}
-            disabled={isSubmit && submitting}
-            title={displayMode === "icon" && field.label ? field.label : undefined}
-            onClick={
-              field.buttonAction && (field.buttonType ?? "button") === "button"
-                ? handleButtonAction
-                : undefined
-            }
-            className={`flex items-center gap-1.5 h-9 px-3 rounded-control font-medium text-sm transition-colors ${
-              btnWidth === "full" ? "w-full justify-center" : isSubmit ? "max-sm:w-full max-sm:justify-center" : ""
-            } ${
-              isSubmit
-                ? "bg-[var(--ds-btn-filled-bg)] text-[var(--ds-btn-filled-fg)] hover:bg-[var(--ds-btn-filled-hover)] disabled:opacity-60"
-                : "border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)]"
-            }`}
-          >
-            {displayMode !== "text" && field.buttonIcon && (
-              <LazyButtonIcon name={field.buttonIcon} width={18} height={18} />
-            )}
-            {displayMode !== "icon" && (
-              <span className="truncate">
-                {isSubmit && submitting ? "Wird gesendet…" : field.label}
-              </span>
-            )}
-          </button>
-        </div>
+        <ButtonField
+          field={field}
+          formConfig={formConfig}
+          control={control}
+          setValue={setValue}
+          submitting={submitting}
+          onCheckShopResult={onCheckShopResult}
+        />
       );
-    }
 
     case "separator":
       return <hr className="border-[var(--ds-border)]" />;
@@ -1141,7 +1219,6 @@ export default function DynamicForm({ formConfig, categories }: Props) {
     control,
     handleSubmit,
     reset,
-    getValues,
     setValue,
     formState: { errors },
   } = useForm<SimpleFields>({ mode: "onSubmit" });
@@ -1385,7 +1462,6 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                             multiSelectErrors={state.multiSelectErrors}
                             control={control}
                             register={register}
-                            getValues={getValues}
                             setValue={setValue}
                             categories={categories}
                             categoryIds={state.categoryIds}
@@ -1396,6 +1472,16 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                             setStaticMultiSelected={setStaticMultiSelected}
                             formConfig={formConfig}
                             submitting={state.submitting}
+                            onCheckShopResult={(result) =>
+                              dispatch({
+                                submitError: {
+                                  message: "",
+                                  status: result.status,
+                                  shopName: result.shopName,
+                                  rejectionUrl: result.rejectionUrl,
+                                },
+                              })
+                            }
                           />
                         </div>
                       );
@@ -1414,9 +1500,17 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               ? "Shop abgelehnt"
               : state.submitError?.status === "pending"
                 ? "Shop wird bereits geprüft"
-                : "Shop bereits vorhanden"
+                : state.submitError?.status === "available"
+                  ? "Shop ist verfügbar"
+                  : "Shop bereits vorhanden"
           }
-          variant={state.submitError?.status === "rejected" ? "warning" : "error"}
+          variant={
+            state.submitError?.status === "rejected"
+              ? "warning"
+              : state.submitError?.status === "available"
+                ? "info"
+                : "error"
+          }
           buttonLabel="Verstanden"
           onClose={() => dispatch({ submitError: null })}
         >
@@ -1441,6 +1535,12 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               Da hatte wohl jemand bereits die gleiche Idee!
               <br />
               Der Shop <strong>{state.submitError.shopName}</strong> wurde schon eingereicht und wartet auf Prüfung.
+            </p>
+          ) : state.submitError?.status === "available" ? (
+            <p>
+              Der Shop ist noch nicht eingetragen.
+              <br />
+              Du kannst die Eintragung jetzt absenden.
             </p>
           ) : (
             <p>

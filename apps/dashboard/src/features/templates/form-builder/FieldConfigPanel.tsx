@@ -637,6 +637,7 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
                 { value: "open-url", label: m.buttonActionOpenUrl },
                 { value: "copy-clipboard", label: m.buttonActionCopyClipboard },
                 { value: "clear-field", label: m.buttonActionClearField },
+                { value: "check-shop", label: m.buttonActionCheckShop },
               ] as { value: ButtonActionType | undefined; label: string }[]
             ).map(({ value, label }) => (
               <button

@@ -834,6 +834,7 @@ export interface DashboardMessages {
       buttonActionOpenUrl: string;
       buttonActionCopyClipboard: string;
       buttonActionClearField: string;
+      buttonActionCheckShop: string;
       buttonActionSourceField: string;
       inputType: string;
       inputTypeText: string;
@@ -1897,6 +1898,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         buttonActionOpenUrl: "URL öffnen",
         buttonActionCopyClipboard: "Kopieren",
         buttonActionClearField: "Feld leeren",
+        buttonActionCheckShop: "Shop prüfen",
         buttonActionSourceField: "Quellfeld",
         inputType: "Input-Typ",
         inputTypeText: "Text",
@@ -2951,6 +2953,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         buttonActionOpenUrl: "Open URL",
         buttonActionCopyClipboard: "Copy",
         buttonActionClearField: "Clear field",
+        buttonActionCheckShop: "Check shop",
         buttonActionSourceField: "Source field",
         inputType: "Input type",
         inputTypeText: "Text",
