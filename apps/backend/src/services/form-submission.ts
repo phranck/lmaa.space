@@ -2,6 +2,7 @@ import type { SubmissionConfig } from "@lmaa/contracts";
 
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
+import { notifyOwnerOfNewShopSubmission } from "./owner-notifications.js";
 import { escapeHtml } from "../lib/html.js";
 import { logger } from "../lib/logger.js";
 import { createSubmissionFromFormData } from "../repositories/admin-submissions.js";
@@ -30,9 +31,11 @@ export async function executeSubmissionChain(
       case "store":
         await handleStore(formConfig.id, data);
         break;
-      case "create-shop-suggestion":
-        await createSubmissionFromFormData(data);
+      case "create-shop-suggestion": {
+        const submissionId = await createSubmissionFromFormData(data);
+        void notifyOwnerOfNewShopSubmission(submissionId, data);
         break;
+      }
       case "email": {
         const to =
           step.toFieldId && typeof data[step.toFieldId] === "string"

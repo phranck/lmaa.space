@@ -36,6 +36,7 @@ import {
   MarkdownLogoIcon,
   NotebookIcon,
   PauseCircleIcon,
+  SlidersHorizontalIcon,
   SquareHalfBottomIcon,
   SquaresFourIcon,
   StorefrontIcon,
@@ -774,6 +775,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<CreditCardIcon weight="duotone" className="w-4 h-4" />}
                         label={s.billing}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/system/settings" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<SlidersHorizontalIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.systemSettings}
                         active={isActive}
                       />
                     )}

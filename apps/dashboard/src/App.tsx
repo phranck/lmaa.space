@@ -163,6 +163,12 @@ const AffiliateSettingsPage = lazy(() =>
   })),
 );
 
+const SystemSettingsPage = lazy(() =>
+  import("@/features/system/settings/SystemSettingsPage.tsx").then((m) => ({
+    default: m.SystemSettingsPage,
+  })),
+);
+
 function AppRoutes() {
   const { user, isLoading, needsSetup } = useAuth();
 
@@ -382,6 +388,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <BillingPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="system/settings"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SystemSettingsPage />
                   </Suspense>
                 }
               />
