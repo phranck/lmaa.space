@@ -51,10 +51,13 @@ export default defineConfig({
       noExternal: ["marked"],
     },
     server: {
+      allowedHosts: ["lmaa.test"],
       proxy: {
         // 127.0.0.1 (not localhost) avoids IPv6 collisions with other local
-        // dev servers that bind to ::1:3000. Migration to pier-managed hosts
-        // will replace this proxy block entirely.
+        // dev servers that bind to ::1:3000. The proxy stays under pewee
+        // because pewee's Caddy routing is host-based only — same-origin
+        // /api/v1 calls from the frontend still need to be forwarded to the
+        // backend at the Vite layer.
         "/api/v1": {
           target: "http://127.0.0.1:3000",
           changeOrigin: true,
