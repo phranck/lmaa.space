@@ -18,7 +18,7 @@ const formFieldValidationSchema = z
   .optional();
 
 const buttonActionSchema = z.object({
-  type: z.enum(["open-url", "copy-clipboard", "clear-field"]),
+  type: z.enum(["open-url", "copy-clipboard", "clear-field", "check-shop"]),
   sourceFieldId: z.string().min(1).max(100),
 });
 
