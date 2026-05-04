@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node --env-file=.pewee.env ./node_modules/.bin/vite",
+    "dev": "node --env-file=.pewee.env ../../node_modules/vite/bin/vite.js",
     "build": "tsc -b && vite build",
     "preview": "vite preview --port 5174",
     "typecheck": "tsc -b --noEmit",
