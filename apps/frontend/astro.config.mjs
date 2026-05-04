@@ -10,6 +10,9 @@ export default defineConfig({
   site: "https://lmaa.space",
   output: "server",
   adapter: node({ mode: "standalone" }),
+  server: {
+    port: Number(process.env.PORT) || 4321,
+  },
   integrations: [
     UnoCSS({ injectReset: false }),
     react(),
