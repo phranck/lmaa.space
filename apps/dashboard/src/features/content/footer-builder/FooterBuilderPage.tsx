@@ -21,6 +21,7 @@ import { resolveFooterHeightPx } from "@lmaa/shared";
 import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { FRONTEND_URL } from "@/lib/env.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 import { FooterBlockConfigPanel } from "./FooterBlockConfigPanel.tsx";
@@ -83,10 +84,7 @@ function parseTargetId(id: string): { colId: string; blockId?: string } | null {
 }
 
 function buildFooterPreviewUrl(token: string) {
-  const frontendBase =
-    import.meta.env.VITE_FRONTEND_URL ??
-    (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space");
-  return `${frontendBase}/preview/footer?token=${token}`;
+  return `${FRONTEND_URL}/preview/footer?token=${token}`;
 }
 
 /**

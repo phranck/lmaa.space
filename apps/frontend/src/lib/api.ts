@@ -2,7 +2,6 @@
  * Server-side API client for Astro frontmatter/SSR only.
  * Runtime browser calls use PUBLIC_API_URL (/api/v1 via same-origin proxy).
  */
-const DEV_DEFAULT_API_URL = "http://localhost:3000/api/v1";
 const PROD_FETCH_TIMEOUT_MS = 8_000;
 const DEV_FETCH_TIMEOUT_MS = 5_000;
 
@@ -12,17 +11,16 @@ function normalizeApiBase(input: string): string {
 }
 
 function resolveApiBase(): string {
-  const configured = process.env.API_URL?.trim();
-  const fallback = import.meta.env.DEV ? DEV_DEFAULT_API_URL : "";
-  const value = configured || fallback;
+  const value =
+    process.env.BACKEND_URL?.trim() || process.env.API_URL?.trim();
 
   if (!value) {
-    throw new Error("Missing API_URL runtime env for frontend server.");
+    throw new Error(
+      "Missing BACKEND_URL/API_URL runtime env for frontend server.",
+    );
   }
 
-  const base = normalizeApiBase(value);
-
-  return base;
+  return normalizeApiBase(value);
 }
 
 const API_BASE = resolveApiBase();

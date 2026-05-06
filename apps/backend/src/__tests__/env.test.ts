@@ -2,17 +2,28 @@ import { describe, expect, it } from "vitest";
 
 import { DEFAULT_IP_HASH_SALT, envSchema } from "../config/env.js";
 
+const VALID_BASE = {
+  DATABASE_URL: "postgres://localhost/test",
+  PORT: "3000",
+  DASHBOARD_URL: "http://localhost:5174",
+  FRONTEND_URL: "http://localhost:4321",
+};
+
 describe("envSchema", () => {
   it("requires DATABASE_URL", () => {
     const result = envSchema.safeParse({});
     expect(result.success).toBe(false);
   });
 
-  it("accepts valid minimal config", () => {
+  it("requires PORT, DASHBOARD_URL and FRONTEND_URL", () => {
     const result = envSchema.safeParse({ DATABASE_URL: "postgres://localhost/test" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts valid minimal config", () => {
+    const result = envSchema.safeParse(VALID_BASE);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.PORT).toBe(3000);
       expect(result.data.NODE_ENV).toBe("development");
       expect(result.data.IP_HASH_SALT).toBe(DEFAULT_IP_HASH_SALT);
       expect(result.data.RUN_MIGRATIONS_ON_STARTUP).toBe(true);
@@ -21,7 +32,7 @@ describe("envSchema", () => {
 
   it("parses RUN_MIGRATIONS_ON_STARTUP", () => {
     const result = envSchema.safeParse({
-      DATABASE_URL: "postgres://localhost/test",
+      ...VALID_BASE,
       RUN_MIGRATIONS_ON_STARTUP: "false",
     });
     expect(result.success).toBe(true);
@@ -31,9 +42,7 @@ describe("envSchema", () => {
   });
 
   it("defaults DATABASE_URL_MIGRATOR to DATABASE_URL", () => {
-    const result = envSchema.safeParse({
-      DATABASE_URL: "postgres://localhost/test",
-    });
+    const result = envSchema.safeParse(VALID_BASE);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.DATABASE_URL_MIGRATOR).toBe("postgres://localhost/test");
@@ -42,6 +51,7 @@ describe("envSchema", () => {
 
   it("accepts an explicit DATABASE_URL_MIGRATOR", () => {
     const result = envSchema.safeParse({
+      ...VALID_BASE,
       DATABASE_URL: "postgres://localhost/runtime",
       DATABASE_URL_MIGRATOR: "postgres://localhost/migrator",
     });
@@ -53,7 +63,7 @@ describe("envSchema", () => {
 
   it("rejects IP_HASH_SALT shorter than 16 characters", () => {
     const result = envSchema.safeParse({
-      DATABASE_URL: "postgres://localhost/test",
+      ...VALID_BASE,
       IP_HASH_SALT: "short",
     });
     expect(result.success).toBe(false);
@@ -61,8 +71,8 @@ describe("envSchema", () => {
 
   it("accepts IP_HASH_SALT of 16+ characters", () => {
     const result = envSchema.safeParse({
+      ...VALID_BASE,
       NODE_ENV: "production",
-      DATABASE_URL: "postgres://localhost/test",
       IP_HASH_SALT: "this-is-a-valid-salt-value",
     });
     expect(result.success).toBe(true);
@@ -70,15 +80,15 @@ describe("envSchema", () => {
 
   it("requires IP_HASH_SALT in production", () => {
     const result = envSchema.safeParse({
+      ...VALID_BASE,
       NODE_ENV: "production",
-      DATABASE_URL: "postgres://localhost/test",
     });
     expect(result.success).toBe(false);
   });
 
   it("coerces PORT to number", () => {
     const result = envSchema.safeParse({
-      DATABASE_URL: "postgres://localhost/test",
+      ...VALID_BASE,
       PORT: "8080",
     });
     expect(result.success).toBe(true);

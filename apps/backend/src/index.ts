@@ -22,15 +22,10 @@ import { startReminderScheduler } from "./services/shop-reminders.js";
 
 const app = new Hono<{ Variables: { requestId: string } }>();
 
-const allowedOrigins =
-  env.NODE_ENV === "production"
-    ? ["https://dashboard.lmaa.space"]
-    : ["http://localhost:5173", "http://localhost:5174"];
-
 app.use(
   "*",
   cors({
-    origin: allowedOrigins,
+    origin: [env.DASHBOARD_URL],
     credentials: true,
   }),
 );

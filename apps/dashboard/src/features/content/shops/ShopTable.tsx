@@ -19,6 +19,7 @@ import { type ColumnDef, DataTable, type SortState } from "@/components/ui/Table
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { getRegionOptions } from "@/features/content/shops/shop-form-i18n.ts";
+import { FRONTEND_URL } from "@/lib/env.ts";
 
 interface ShopTableProps {
   shops: AdminShopListItem[];
@@ -189,7 +190,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
                 onClick={(e) => {
                   e.stopPropagation();
                   window.open(
-                    `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${shop.rejectionToken}`,
+                    `${FRONTEND_URL}/rejected/${shop.rejectionToken}`,
                     "_blank",
                   );
                 }}

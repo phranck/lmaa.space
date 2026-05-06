@@ -6,7 +6,20 @@ import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 import UnoCSS from "unocss/astro";
 
-export default defineConfig({
+function buildDevProxy() {
+  const backendUrl = process.env.BACKEND_URL?.trim();
+  if (!backendUrl) {
+    throw new Error(
+      "Missing BACKEND_URL. Define it in .env.local — manually or via pewee.",
+    );
+  }
+  return {
+    "/api/v1": { target: backendUrl, changeOrigin: true },
+    "/uploads": { target: backendUrl, changeOrigin: true },
+  };
+}
+
+export default defineConfig(({ command }) => ({
   site: "https://lmaa.space",
   output: "server",
   adapter: node({ mode: "standalone" }),
@@ -55,20 +68,7 @@ export default defineConfig({
     },
     server: {
       allowedHosts: ["lmaa.test"],
-      proxy: {
-        // pewee writes BACKEND_URL into .pewee.env at startup; same-origin
-        // /api/v1 calls from the frontend still need to be forwarded to the
-        // backend at the Vite layer because pewee's Caddy routing is
-        // host-based only. The 127.0.0.1 fallback is for non-pewee runs.
-        "/api/v1": {
-          target: process.env.BACKEND_URL ?? "http://127.0.0.1:3000",
-          changeOrigin: true,
-        },
-        "/uploads": {
-          target: process.env.BACKEND_URL ?? "http://127.0.0.1:3000",
-          changeOrigin: true,
-        },
-      },
+      ...(command === "dev" ? { proxy: buildDevProxy() } : {}),
     },
   },
-});
+}));

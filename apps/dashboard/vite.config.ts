@@ -4,7 +4,21 @@ import react from "@vitejs/plugin-react";
 import UnoCSS from "unocss/vite";
 import { defineConfig } from "vite";
 
-export default defineConfig({
+function buildDevProxy() {
+  const backendUrl = process.env.BACKEND_URL?.trim();
+  if (!backendUrl) {
+    throw new Error(
+      "Missing BACKEND_URL. Define it in .env.local — manually or via pewee.",
+    );
+  }
+  return {
+    "/api/v1": { target: backendUrl, changeOrigin: true },
+    // Uploaded category images served by backend
+    "/uploads": { target: backendUrl, changeOrigin: true },
+  };
+}
+
+export default defineConfig(({ command }) => ({
   plugins: [react(), UnoCSS()],
   resolve: {
     alias: {
@@ -46,16 +60,6 @@ export default defineConfig({
   server: {
     port: Number(process.env.PORT) || 5174,
     allowedHosts: ["dashboard.lmaa.test"],
-    proxy: {
-      "/api/v1": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
-      },
-      // Uploaded category images served by backend
-      "/uploads": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
-      },
-    },
+    ...(command === "serve" ? { proxy: buildDevProxy() } : {}),
   },
-});
+}));
