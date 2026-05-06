@@ -13,6 +13,7 @@ import type { Submission } from "@lmaa/shared";
 
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
+import { FRONTEND_URL } from "@/lib/env.ts";
 
 interface SubmissionToolbarProps {
   submission: Submission;
@@ -120,7 +121,7 @@ export function SubmissionToolbar({
             <EditorToolbarButton
               onClick={() =>
                 window.open(
-                  `${import.meta.env.VITE_FRONTEND_URL ?? (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space")}/rejected/${submission.rejectionToken}`,
+                  `${FRONTEND_URL}/rejected/${submission.rejectionToken}`,
                   "_blank",
                 )
               }

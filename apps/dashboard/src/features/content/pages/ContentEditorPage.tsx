@@ -26,6 +26,7 @@ import {
   usePatchContentPage,
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
+import { FRONTEND_URL } from "@/lib/env.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 const FONT_SIZE_KEY = "content-editor-source-font-size";
@@ -536,10 +537,7 @@ export function ContentEditorPage() {
           }}
           onSave={handleSave}
           onPreview={() => {
-            const base =
-              import.meta.env.VITE_FRONTEND_URL ??
-              (import.meta.env.DEV ? "http://localhost:4321" : "https://lmaa.space");
-            window.open(`${base}/${slug}`, "_blank");
+            window.open(`${FRONTEND_URL}/${slug}`, "_blank");
           }}
         />
       </PageHeader>

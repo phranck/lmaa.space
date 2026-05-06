@@ -8,7 +8,6 @@
  */
 import { defineMiddleware } from "astro:middleware";
 
-const DEV_DEFAULT_API_URL = "http://localhost:3000/api/v1";
 const WEBSITE_CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -22,18 +21,27 @@ const WEBSITE_CONTENT_SECURITY_POLICY = [
   "connect-src 'self' https://umami.layered.work",
   "form-action 'self'",
 ].join("; ");
-const FOOTER_PREVIEW_CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors https://dashboard.lmaa.space http://localhost:5174",
-  "script-src 'self' 'unsafe-inline' https://umami.layered.work",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https:",
-  "font-src 'self' data:",
-  "connect-src 'self' https://umami.layered.work",
-  "form-action 'self'",
-].join("; ");
+
+function buildFooterPreviewCsp(): string {
+  const dashboardUrl = process.env.DASHBOARD_URL?.trim();
+  if (!dashboardUrl) {
+    throw new Error(
+      "Missing DASHBOARD_URL. Define it in .env.local — manually or via pewee.",
+    );
+  }
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    `frame-ancestors ${dashboardUrl}`,
+    "script-src 'self' 'unsafe-inline' https://umami.layered.work",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://umami.layered.work",
+    "form-action 'self'",
+  ].join("; ");
+}
 
 function normalizeApiBase(input: string): string {
   const trimmed = input.trim().replace(/\/+$/, "");
@@ -46,25 +54,27 @@ function isLoopbackHost(hostname: string): boolean {
 }
 
 function resolveBackendOrigin(): string {
-  const configured = process.env.API_URL?.trim();
-  const fallback = import.meta.env.DEV ? DEV_DEFAULT_API_URL : "";
-  const value = configured || fallback;
+  const value =
+    process.env.BACKEND_URL?.trim() || process.env.API_URL?.trim();
 
   if (!value) {
-    throw new Error("Missing API_URL runtime env for frontend server.");
+    throw new Error(
+      "Missing BACKEND_URL/API_URL. Define it in .env.local — manually or via pewee.",
+    );
   }
 
   const apiBase = normalizeApiBase(value);
   const apiUrl = new URL(apiBase);
 
   if (process.env.NODE_ENV === "production" && isLoopbackHost(apiUrl.hostname)) {
-    throw new Error(`Invalid API_URL in production: ${apiBase}`);
+    throw new Error(`Invalid BACKEND_URL/API_URL in production: ${apiBase}`);
   }
 
   return `${apiUrl.protocol}//${apiUrl.host}`;
 }
 
 const BACKEND_ORIGIN = resolveBackendOrigin();
+const FOOTER_PREVIEW_CONTENT_SECURITY_POLICY = buildFooterPreviewCsp();
 
 function shouldProxy(pathname: string): boolean {
   return (

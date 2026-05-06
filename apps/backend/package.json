@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx --env-file=.env.local --env-file=.pewee.env --watch src/index.ts",
+    "dev": "tsx --env-file=.env.local --watch src/index.ts",
     "build": "tsup",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
