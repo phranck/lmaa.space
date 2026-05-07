@@ -16,8 +16,6 @@ export * from "./types/api.js";
 export * from "./types/content.js";
 /** Media library domain models. */
 export * from "./types/media.js";
-/** Affiliate scan domain models. */
-export * from "./types/affiliate.js";
 /** Billing/cost domain models. */
 export * from "./types/billing.js";
 /** Unsplash image metadata models. */

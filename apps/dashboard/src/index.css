@@ -86,29 +86,6 @@
   --ds-table-row-separator: hsl(215 10% 18%);
 }
 
-/* Affiliate detail pane slide animations */
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideOut {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-}
-
 /* Dark mode: CodeMirror selection (MarkdownEditor) */
 .dark .cm-selectionBackground,
 .dark .cm-editor.cm-focused .cm-selectionBackground {
