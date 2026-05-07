@@ -971,14 +971,9 @@ export interface DashboardMessages {
   };
   socialMedia: {
     title: string;
-    newAccount: string;
     editAccount: string;
-    addAccount: string;
-    mastodonHint: string;
     noAccounts: string;
     noAccountsHint: string;
-    active: string;
-    inactive: string;
     tokenStored: string;
     tokenMissing: string;
     tokenRequired: string;
@@ -989,6 +984,10 @@ export interface DashboardMessages {
     deleteConfirm: string;
     accessTokenPlaceholder: string;
     keepTokenPlaceholder: string;
+    addAccountTitle: string;
+    pickService: string;
+    changeService: string;
+    addMastodonAccount: string;
     fields: {
       label: string;
       instanceUrl: string;
@@ -999,6 +998,13 @@ export interface DashboardMessages {
       active: string;
     };
     visibility: Record<"public" | "unlisted" | "private" | "direct", string>;
+    columns: {
+      account: string;
+      instance: string;
+      visibility: string;
+      token: string;
+      status: string;
+    };
   };
   affiliate: {
     title: string;
@@ -2152,15 +2158,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     socialMedia: {
       title: "Social Media Accounts",
-      newAccount: "Mastodon Account hinzufügen",
       editAccount: "Mastodon Account bearbeiten",
-      addAccount: "Account speichern",
-      mastodonHint:
-        "Für automatische Posts wird ein User Access Token mit Scope write:statuses benötigt.",
       noAccounts: "Keine Accounts konfiguriert.",
-      noAccountsHint: "Hinterlege einen Mastodon Account für automatische Postings.",
-      active: "Aktiv",
-      inactive: "Inaktiv",
+      noAccountsHint: "Hinterlege einen Social Media Account für automatische Postings.",
       tokenStored: "Token hinterlegt",
       tokenMissing: "Kein Token",
       tokenRequired: "Bitte einen Access Token hinterlegen.",
@@ -2171,6 +2171,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       deleteConfirm: "Diesen Account wirklich löschen?",
       accessTokenPlaceholder: "Mastodon User Access Token",
       keepTokenPlaceholder: "Leer lassen, um den aktuellen Token zu behalten",
+      addAccountTitle: "Account hinzufügen",
+      pickService: "Wähle einen Dienst",
+      changeService: "Anderen Dienst wählen",
+      addMastodonAccount: "Mastodon Account hinzufügen",
       fields: {
         label: "Label",
         instanceUrl: "Instanz-URL",
@@ -2185,6 +2189,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         unlisted: "Unlisted",
         private: "Private",
         direct: "Direct",
+      },
+      columns: {
+        account: "Account",
+        instance: "Instanz",
+        visibility: "Sichtbarkeit",
+        token: "Token",
+        status: "Status",
       },
     },
     affiliate: {
@@ -3330,14 +3341,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     socialMedia: {
       title: "Social Media Accounts",
-      newAccount: "Add Mastodon account",
       editAccount: "Edit Mastodon account",
-      addAccount: "Save account",
-      mastodonHint: "Automatic posts require a user access token with the write:statuses scope.",
       noAccounts: "No accounts configured.",
-      noAccountsHint: "Add a Mastodon account for automatic posts.",
-      active: "Active",
-      inactive: "Inactive",
+      noAccountsHint: "Add a social media account for automated postings.",
       tokenStored: "Token stored",
       tokenMissing: "No token",
       tokenRequired: "Please enter an access token.",
@@ -3348,6 +3354,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       deleteConfirm: "Really delete this account?",
       accessTokenPlaceholder: "Mastodon user access token",
       keepTokenPlaceholder: "Leave empty to keep the current token",
+      addAccountTitle: "Add account",
+      pickService: "Choose a service",
+      changeService: "Choose a different service",
+      addMastodonAccount: "Add Mastodon account",
       fields: {
         label: "Label",
         instanceUrl: "Instance URL",
@@ -3362,6 +3372,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         unlisted: "Unlisted",
         private: "Private",
         direct: "Direct",
+      },
+      columns: {
+        account: "Account",
+        instance: "Instance",
+        visibility: "Visibility",
+        token: "Token",
+        status: "Status",
       },
     },
     affiliate: {
