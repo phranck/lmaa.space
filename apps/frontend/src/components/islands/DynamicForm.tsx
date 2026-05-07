@@ -867,6 +867,21 @@ function RichTextBlock({ field }: { field: FormField }) {
   );
 }
 
+function PublishedShopName({ name, url }: { name: string | undefined; url: string | undefined }) {
+  if (!name) return null;
+  if (!url) return <strong>{name}</strong>;
+  const isExternal = /^https?:\/\//i.test(url);
+  return (
+    <a
+      href={url}
+      className="font-bold text-[var(--ds-accent)] underline hover:no-underline"
+      {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {name}
+    </a>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Form state (useReducer)
 // ---------------------------------------------------------------------------
@@ -880,6 +895,7 @@ interface FormState {
     message: string;
     status?: "published" | "rejected" | "pending" | "available";
     shopName?: string;
+    shopUrl?: string;
     rejectionUrl?: string;
   } | null;
   submitted: boolean;
@@ -907,6 +923,7 @@ function formReducer(s: FormState, patch: Partial<FormState>): FormState {
 interface CheckShopResult {
   status: "available" | "published" | "rejected" | "pending";
   shopName?: string;
+  shopUrl?: string;
   rejectionUrl?: string;
 }
 
@@ -990,6 +1007,7 @@ function ButtonField({
           onCheckShopResult({
             status,
             shopName: typeof data?.shopName === "string" ? data.shopName : undefined,
+            shopUrl: typeof data?.shopUrl === "string" ? data.shopUrl : undefined,
             rejectionUrl: typeof data?.rejectionUrl === "string" ? data.rejectionUrl : undefined,
           });
         } catch {
@@ -1346,6 +1364,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
               message: typeof errorObj?.message === "string" ? errorObj.message : "Dieser Shop ist bereits bekannt.",
               status,
               shopName: typeof errorObj?.shopName === "string" ? errorObj.shopName : undefined,
+              shopUrl: typeof errorObj?.shopUrl === "string" ? errorObj.shopUrl : undefined,
               rejectionUrl: typeof errorObj?.rejectionUrl === "string" ? errorObj.rejectionUrl : undefined,
             },
           });
@@ -1478,6 +1497,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
                                   message: "",
                                   status: result.status,
                                   shopName: result.shopName,
+                                  shopUrl: result.shopUrl,
                                   rejectionUrl: result.rejectionUrl,
                                 },
                               })
@@ -1546,7 +1566,7 @@ export default function DynamicForm({ formConfig, categories }: Props) {
             <p>
               Da hatte wohl jemand bereits die gleiche Idee!
               <br />
-              Der Shop <strong>{state.submitError?.shopName}</strong> ist schon eingetragen.
+              Der Shop <PublishedShopName name={state.submitError?.shopName} url={state.submitError?.shopUrl} /> ist schon eingetragen.
             </p>
           )}
         </AlertDialog>
