@@ -42,8 +42,8 @@ export const envSchema = z
     TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("hallo@lmaa.space"),
-    DASHBOARD_URL: z.string().url(),
-    FRONTEND_URL: z.string().url(),
+    DASHBOARD_URL: z.string().url().optional(),
+    FRONTEND_URL: z.string().url().optional(),
     OWNER_EMAIL: z.string().email().optional(),
     UMAMI_URL: z.string().optional().default(""),
     UMAMI_USERNAME: z.string().optional().default(""),
@@ -93,6 +93,16 @@ export const envSchema = z
     IP_HASH_SALT: data.IP_HASH_SALT ?? DEFAULT_IP_HASH_SALT,
     DATABASE_URL_MIGRATOR: data.DATABASE_URL_MIGRATOR ?? data.DATABASE_URL,
     RUN_MIGRATIONS_ON_STARTUP: data.RUN_MIGRATIONS_ON_STARTUP === "true",
+    DASHBOARD_URL:
+      data.DASHBOARD_URL ??
+      (data.NODE_ENV === "production"
+        ? "https://dashboard.lmaa.space"
+        : "http://localhost:5174"),
+    FRONTEND_URL:
+      data.FRONTEND_URL ??
+      (data.NODE_ENV === "production"
+        ? "https://lmaa.space"
+        : "http://localhost:4321"),
   }));
 
 /**
