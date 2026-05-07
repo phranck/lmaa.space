@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
 import { DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
@@ -38,13 +39,16 @@ export function MastodonPostTemplateListPage() {
         header: m.templateName,
         sortKey: (template) => template.name.toLowerCase(),
         cell: (template) => (
-          <button
-            type="button"
-            onClick={() => navigate(`/mastodon-post-templates/${template.id}`)}
-            className="truncate text-left font-mono font-medium text-[var(--ds-text)] hover:underline"
-          >
-            {template.name}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate(`/mastodon-post-templates/${template.id}`)}
+              className="truncate text-left font-mono font-medium text-[var(--ds-text)] hover:underline"
+            >
+              {template.name}
+            </button>
+            {template.isSystemTemplate && <SystemTemplateBadge label={m.systemBadge} />}
+          </div>
         ),
       },
       {

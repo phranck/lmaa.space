@@ -11,7 +11,12 @@ const MarkdownEditor = lazy(() =>
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import {
+  SystemTemplateBadge,
+  SystemTemplateCheckbox,
+} from "@/components/ui/SystemTemplateBadge.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
 import {
   useCreateEmailTemplate,
@@ -77,6 +82,8 @@ export function EmailTemplateEditPage() {
   const { messages } = useI18n();
   const m = messages.emailTemplates;
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isOwner = Boolean(user?.isOwner);
   const { id: idParam } = useParams<{ id?: string }>();
   const isNew = !idParam || idParam === "new";
   const numId = isNew ? 0 : Number(idParam);
@@ -93,6 +100,7 @@ export function EmailTemplateEditPage() {
     bodyText: string;
     footerBannerUrl: string;
     footerText: string;
+    isSystemTemplate: boolean;
   }
 
   const [form, setForm] = useState<TemplateFormFields>({
@@ -103,6 +111,7 @@ export function EmailTemplateEditPage() {
     bodyText: "",
     footerBannerUrl: "",
     footerText: "",
+    isSystemTemplate: false,
   });
   const { name, subject, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText } = form;
 
@@ -125,6 +134,7 @@ export function EmailTemplateEditPage() {
       bodyText: existing.bodyText,
       footerBannerUrl: existing.footerBannerUrl ?? "",
       footerText: existing.footerText ?? "",
+      isSystemTemplate: existing.isSystemTemplate,
     });
   }
 
@@ -137,6 +147,7 @@ export function EmailTemplateEditPage() {
       bodyText,
       footerBannerUrl: footerBannerUrl.trim() || undefined,
       footerText: footerText || undefined,
+      isSystemTemplate: isOwner ? form.isSystemTemplate : undefined,
     };
   }
 
@@ -225,10 +236,14 @@ export function EmailTemplateEditPage() {
           placeholder={m.newTemplate}
           className="w-64 px-2 py-1 text-sm font-mono bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
         />
-        {existing?.isSystemTemplate && (
-          <span className="px-2 py-0.5 rounded text-xs bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]">
-            {m.systemBadge}
-          </span>
+        {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
+        {isOwner && (
+          <SystemTemplateCheckbox
+            checked={form.isSystemTemplate}
+            onChange={(value) => updateField("isSystemTemplate", value)}
+            label={m.systemCheckbox}
+            hint={m.systemHint}
+          />
         )}
       </div>
 

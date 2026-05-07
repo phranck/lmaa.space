@@ -65,7 +65,7 @@ export async function getManagedEmailTemplateById(
  * @returns `{ ok: true, data }` or `{ ok: false, reason: "name_taken" }`.
  */
 export async function createManagedEmailTemplate(
-  data: Omit<EmailTemplateInsert, "isSystemTemplate">,
+  data: EmailTemplateInsert,
 ): Promise<{ ok: true; data: EmailTemplate } | { ok: false; reason: "name_taken" }> {
   const existing = await getEmailTemplateByName(data.name);
   if (existing) return { ok: false, reason: "name_taken" };
@@ -80,7 +80,7 @@ export async function createManagedEmailTemplate(
  */
 export async function updateManagedEmailTemplate(
   id: number,
-  data: Partial<Omit<EmailTemplateInsert, "isSystemTemplate">>,
+  data: Partial<EmailTemplateInsert>,
 ): Promise<{ ok: true; data: EmailTemplate } | { ok: false; reason: "not_found" }> {
   const row = await updateEmailTemplate(id, data);
   if (!row) return { ok: false, reason: "not_found" };
