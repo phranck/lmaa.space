@@ -6,6 +6,7 @@ import { mastodonAccountCreateSchema, mastodonAccountUpdateSchema } from "@lmaa/
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
+import { verifyMastodonCredentials } from "../../services/mastodon-account-validator.js";
 import {
   createManagedMastodonAccount,
   deleteManagedMastodonAccount,
@@ -26,7 +27,17 @@ socialMediaAccountRoutes.post(
   "/social-media/mastodon/accounts",
   zValidator("json", mastodonAccountCreateSchema),
   async (c) => {
-    const account = await createManagedMastodonAccount(c.req.valid("json"));
+    const payload = c.req.valid("json");
+    const verify = await verifyMastodonCredentials(payload.instanceUrl, payload.accessToken);
+    if (!verify.ok) {
+      return verify.reason === "invalid_token"
+        ? fail(c, 400, "Mastodon rejected the access token")
+        : fail(c, 503, "Mastodon instance unreachable");
+    }
+    const account = await createManagedMastodonAccount({
+      ...payload,
+      username: payload.username ?? verify.username,
+    });
     return ok(c, account, 201);
   },
 );
@@ -37,7 +48,18 @@ socialMediaAccountRoutes.put(
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid ID");
-    const result = await updateManagedMastodonAccount(id, c.req.valid("json"));
+    const payload = c.req.valid("json");
+    if (payload.accessToken) {
+      const instanceUrl = payload.instanceUrl;
+      if (!instanceUrl) return fail(c, 400, "instanceUrl is required when updating the access token");
+      const verify = await verifyMastodonCredentials(instanceUrl, payload.accessToken);
+      if (!verify.ok) {
+        return verify.reason === "invalid_token"
+          ? fail(c, 400, "Mastodon rejected the access token")
+          : fail(c, 503, "Mastodon instance unreachable");
+      }
+    }
+    const result = await updateManagedMastodonAccount(id, payload);
     if (!result.ok) return fail(c, 404, "Mastodon account not found");
     return ok(c, result.data);
   },

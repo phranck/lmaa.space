@@ -14,7 +14,12 @@ const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.M
 import { Card } from "@/components/ui/Card.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import {
+  SystemTemplateBadge,
+  SystemTemplateCheckbox,
+} from "@/components/ui/SystemTemplateBadge.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
   useCreateMastodonPostTemplate,
   useMastodonPostTemplate,
@@ -46,29 +51,40 @@ export function MastodonPostTemplateEditPage() {
   const { messages } = useI18n();
   const m = messages.mastodonTemplates;
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isOwner = Boolean(user?.isOwner);
   const { id: idParam } = useParams<{ id?: string }>();
   const isNew = !idParam || idParam === "new";
   const numId = isNew ? 0 : Number(idParam);
   const { data: existing, isLoading } = useMastodonPostTemplate(numId);
   const createMutation = useCreateMastodonPostTemplate();
   const updateMutation = useUpdateMastodonPostTemplate(numId);
-  const [form, setForm] = useState<MastodonPostTemplateInput>({ name: "", bodyText: "" });
+  const [form, setForm] = useState<MastodonPostTemplateInput>({
+    name: "",
+    bodyText: "",
+    isSystemTemplate: false,
+  });
   const [syncedExistingId, setSyncedExistingId] = useState<number | undefined>();
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (existing && existing.id !== syncedExistingId) {
     setSyncedExistingId(existing.id);
-    setForm({ name: existing.name, bodyText: existing.bodyText });
+    setForm({
+      name: existing.name,
+      bodyText: existing.bodyText,
+      isSystemTemplate: existing.isSystemTemplate,
+    });
   }
 
   const preview = useMemo(() => renderPreview(form.bodyText), [form.bodyText]);
 
   function handleSave() {
     setError(null);
-    const payload = {
+    const payload: MastodonPostTemplateInput = {
       name: form.name.trim(),
       bodyText: form.bodyText,
+      isSystemTemplate: isOwner ? form.isSystemTemplate : undefined,
     };
 
     if (isNew) {
@@ -153,6 +169,15 @@ export function MastodonPostTemplateEditPage() {
           placeholder={m.newTemplate}
           className="w-64 rounded border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 py-1 font-mono text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
         />
+        {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
+        {isOwner && (
+          <SystemTemplateCheckbox
+            checked={form.isSystemTemplate ?? false}
+            onChange={(value) => setForm((current) => ({ ...current, isSystemTemplate: value }))}
+            label={m.systemCheckbox}
+            hint={m.systemHint}
+          />
+        )}
       </div>
 
       <div className="flex-1 overflow-hidden">

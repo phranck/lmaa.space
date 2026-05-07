@@ -71,11 +71,12 @@ export interface MastodonPostTemplate {
 export type MastodonPostTemplateInput = Omit<
   MastodonPostTemplate,
   "id" | "createdAt" | "updatedAt" | "isSystemTemplate"
->;
+> & { isSystemTemplate?: boolean };
 
 export const mastodonPostTemplateCreateSchema = z.object({
   name: z.string().trim().min(1).max(100),
   bodyText: z.string().max(50000),
+  isSystemTemplate: z.boolean().optional(),
 });
 
 export const mastodonPostTemplateUpdateSchema = mastodonPostTemplateCreateSchema.partial();

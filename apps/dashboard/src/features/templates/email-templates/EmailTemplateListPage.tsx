@@ -2,7 +2,6 @@ import {
   DownloadIcon,
   EnvelopeOpenIcon,
   FileTextIcon,
-  LockIcon,
   PlusCircleIcon,
   TrashIcon,
   UploadIcon,
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
 import type { ColumnDef } from "@/components/ui/Table.tsx";
 import { DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
@@ -116,12 +116,7 @@ export function EmailTemplateListPage() {
             >
               {tpl.name}
             </button>
-            {tpl.isSystemTemplate && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]">
-                <LockIcon weight="duotone" className="w-2.5 h-2.5" />
-                {m.systemBadge}
-              </span>
-            )}
+            {tpl.isSystemTemplate && <SystemTemplateBadge label={m.systemBadge} />}
           </div>
         ),
       },

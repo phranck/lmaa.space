@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import { encodeShopToken } from "@lmaa/shared";
 
+import { recordBackgroundError } from "./background-errors.js";
 import { env } from "../config/env.js";
 import type { MastodonPostTemplate, SocialMediaAccount, Submission } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
@@ -9,6 +10,34 @@ import { getMastodonPostTemplateById } from "../repositories/mastodon-post-templ
 import { listActiveMastodonAccounts } from "../repositories/social-media-accounts.js";
 
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
+
+// ---------------------------------------------------------------------------
+// Outbound rate-limit (per account, in-process)
+// Mirrors Mastodon's documented default: 300 requests per 5-minute window.
+// Buckets are NOT pruned; relies on resetAt-on-access cleanup (lazy reset).
+// If multi-instance ever lands, migrate to the DatabaseRateLimitStore pattern
+// in apps/backend/src/middleware/rate-limit.ts:61-103.
+// ---------------------------------------------------------------------------
+
+const RATE_LIMIT_MAX = 300;
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
+const accountBuckets = new Map<number, { count: number; resetAt: number }>();
+
+function consumeRateLimit(accountId: number): boolean {
+  const now = Date.now();
+  const bucket = accountBuckets.get(accountId);
+  if (!bucket || bucket.resetAt < now) {
+    accountBuckets.set(accountId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (bucket.count >= RATE_LIMIT_MAX) return false;
+  bucket.count++;
+  return true;
+}
+
+function resetRateLimitBuckets(): void {
+  accountBuckets.clear();
+}
 
 interface ApprovalPostContext {
   submission: Submission;
@@ -55,6 +84,10 @@ async function postToMastodon(
   submission: Submission,
   status: string,
 ): Promise<void> {
+  if (!consumeRateLimit(account.id)) {
+    throw new Error(`Mastodon rate limit reached for account ${account.id}`);
+  }
+
   const endpoint = new URL("/api/v1/statuses", account.instanceUrl);
   const body = new URLSearchParams();
   body.set("status", status);
@@ -75,6 +108,12 @@ async function postToMastodon(
     throw new Error(`Mastodon post failed with ${response.status}: ${text.slice(0, 300)}`);
   }
 }
+
+/**
+ * Exported solely for unit-testing private helpers.
+ * Do NOT use outside of test files.
+ */
+export const __test__ = { renderPlainTemplate, idempotencyKey, consumeRateLimit, resetRateLimitBuckets };
 
 /**
  * Sends an approval announcement to all active Mastodon accounts.
@@ -107,16 +146,18 @@ export function sendMastodonApprovalPost(templateId: number, context: ApprovalPo
         accounts.map((account) => postToMastodon(account, template, context.submission, status)),
       );
 
-      results.forEach((result, index) => {
+      for (let index = 0; index < results.length; index++) {
+        const result = results[index];
         if (result.status === "rejected") {
-          logger.error(
-            { err: result.reason, accountId: accounts[index]?.id, templateId },
-            "failed to send mastodon approval post",
-          );
+          await recordBackgroundError("mastodon-post", result.reason, {
+            accountId: accounts[index]?.id,
+            templateId,
+            submissionId: context.submission.id,
+          });
         }
-      });
+      }
     } catch (err) {
-      logger.error({ err, templateId }, "failed to prepare mastodon approval post");
+      await recordBackgroundError("mastodon-post", err, { templateId });
     }
   })();
 }

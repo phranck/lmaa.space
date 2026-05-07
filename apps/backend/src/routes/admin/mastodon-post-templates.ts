@@ -38,7 +38,11 @@ mastodonPostTemplateRoutes.post(
   "/mastodon-post-templates",
   zValidator("json", mastodonPostTemplateCreateSchema),
   async (c) => {
-    const result = await createManagedMastodonPostTemplate(c.req.valid("json"));
+    const payload = c.req.valid("json");
+    const safePayload = c.get("isOwner")
+      ? payload
+      : { ...payload, isSystemTemplate: undefined };
+    const result = await createManagedMastodonPostTemplate(safePayload);
     if (!result.ok) return fail(c, 409, "Template name already exists");
     return ok(c, result.data, 201);
   },
@@ -50,7 +54,11 @@ mastodonPostTemplateRoutes.put(
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid ID");
-    const result = await updateManagedMastodonPostTemplate(id, c.req.valid("json"));
+    const payload = c.req.valid("json");
+    const safePayload = c.get("isOwner")
+      ? payload
+      : { ...payload, isSystemTemplate: undefined };
+    const result = await updateManagedMastodonPostTemplate(id, safePayload);
     if (!result.ok) return fail(c, 404, "Mastodon post template not found");
     return ok(c, result.data);
   },

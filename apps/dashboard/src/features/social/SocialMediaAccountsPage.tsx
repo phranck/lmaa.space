@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 
 import type { MastodonAccount, MastodonVisibility } from "@lmaa/contracts";
+import type { ApiRequestError } from "@lmaa/shared";
 import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -184,12 +185,22 @@ export function SocialMediaAccountsPage() {
       { ...newForm, accessToken: newForm.accessToken.trim() },
       {
         onSuccess: () => setNewForm(emptyForm()),
-        onError: () => setError(t.saveError),
+        onError: (err) => {
+          const apiErr = err as ApiRequestError;
+          if (apiErr.status === 400) {
+            setError(t.tokenInvalid);
+          } else if (apiErr.status === 503) {
+            setError(t.instanceUnreachable);
+          } else {
+            setError(t.saveError);
+          }
+        },
       },
     );
   }
 
   function openEdit(account: MastodonAccount) {
+    setError(null);
     setEditTarget(account);
     setEditForm(formFromAccount(account));
   }
@@ -207,7 +218,16 @@ export function SocialMediaAccountsPage() {
       },
       {
         onSuccess: () => setEditTarget(null),
-        onError: () => setError(t.saveError),
+        onError: (err) => {
+          const apiErr = err as ApiRequestError;
+          if (apiErr.status === 400) {
+            setError(t.tokenInvalid);
+          } else if (apiErr.status === 503) {
+            setError(t.instanceUnreachable);
+          } else {
+            setError(t.saveError);
+          }
+        },
       },
     );
   }
@@ -345,7 +365,7 @@ export function SocialMediaAccountsPage() {
           open
           title={t.editAccount}
           titleIcon={<MastodonLogoIcon weight="duotone" className={dialogHeaderIconClass} />}
-          onClose={() => setEditTarget(null)}
+          onClose={() => { setEditTarget(null); setError(null); }}
         >
           <div className="px-6 py-4">
             <AccountForm
@@ -358,6 +378,7 @@ export function SocialMediaAccountsPage() {
             />
           </div>
           <Dialog.Footer>
+            {error && <p className="text-xs text-red-500">{error}</p>}
             <button
               type="button"
               onClick={() => setEditTarget(null)}
