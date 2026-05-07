@@ -56,7 +56,7 @@ function ensureStyles() {
 interface OverlayCardProps {
 	open: boolean;
 	onClose: () => void;
-	size?: "fixed-sm" | "fixed-md";
+	size?: "fixed-sm" | "fixed-md" | "fixed-lg";
 	"aria-label": string;
 	className?: string;
 	style?: React.CSSProperties;
@@ -223,7 +223,8 @@ export function OverlayCard({
 
 	const handleBackdropClick = isTopMost && backdropClose && !closing ? startClose : undefined;
 
-	const fixedMaxWidth = size === "fixed-md" ? "max-w-md" : "max-w-sm";
+	const fixedMaxWidth =
+		size === "fixed-lg" ? "max-w-lg" : size === "fixed-md" ? "max-w-md" : "max-w-sm";
 	const cardAnim = closing ? "lmaa-card-out 280ms ease forwards" : "lmaa-card-in 380ms ease forwards";
 	const backdropAnim = closing ? "lmaa-overlay-out 280ms ease forwards" : "lmaa-overlay-in 360ms ease forwards";
 	const effectiveZIndex = isRegistered ? zIndex + stackIndex * 100 : zIndex;

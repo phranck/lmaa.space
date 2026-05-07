@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import type { MastodonAccount } from "@lmaa/contracts";
 import type { ApiRequestError } from "@lmaa/shared";
-import { PLATFORM_MAP } from "@lmaa/ui";
+import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
 
 import {
   Dialog,
@@ -159,7 +159,7 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
 
   if (isCreate && !pickedService) {
     return (
-      <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="md">
+      <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="lg">
         <div className="px-6 py-4 space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--ds-text-muted)]">
             {t.pickService}
@@ -195,9 +195,9 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
   // ─── Stage B — service form ───────────────────────────────────────────────
 
   return (
-    <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="md">
-      {isCreate && (
-        <div className="px-6 pt-3">
+    <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="lg">
+      <div className="flex items-center gap-3 px-6 pt-3">
+        {isCreate && (
           <button
             type="button"
             onClick={handleBack}
@@ -206,8 +206,15 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
             <ArrowLeftIcon weight="bold" className="w-3 h-3" />
             {t.changeService}
           </button>
-        </div>
-      )}
+        )}
+        <label className="ml-auto inline-flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
+          <span>{t.fields.active}</span>
+          <ToggleSwitch
+            checked={form.isActive}
+            onChange={(isActive) => setForm({ ...form, isActive })}
+          />
+        </label>
+      </div>
       <div className="px-6 py-4">
         <MastodonAccountForm
           form={form}

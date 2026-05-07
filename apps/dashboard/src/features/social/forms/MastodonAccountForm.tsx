@@ -1,7 +1,7 @@
 import type React from "react";
 
 import type { MastodonVisibility } from "@lmaa/contracts";
-import { ToggleSwitch, formInputClass } from "@lmaa/ui";
+import { formInputClass } from "@lmaa/ui";
 
 import type { MastodonAccountFormInput } from "@/features/social/hooks/useMastodonAccounts.ts";
 
@@ -18,7 +18,6 @@ interface MastodonAccountFormProps {
     accessToken: string;
     accessTokenOptional: string;
     visibility: string;
-    active: string;
   };
   tokenPlaceholder: string;
   /** When true the access token field is required (create mode). */
@@ -93,13 +92,6 @@ export function MastodonAccountForm({
           ))}
         </select>
       </label>
-      <div className="flex items-end justify-between gap-3 rounded-control border border-[var(--ds-border)] px-3 py-2">
-        <span className="text-sm font-medium text-[var(--ds-text)]">{labels.active}</span>
-        <ToggleSwitch
-          checked={form.isActive}
-          onChange={(isActive) => onChange({ ...form, isActive })}
-        />
-      </div>
     </div>
   );
 }
