@@ -23,9 +23,7 @@ import {
   EnvelopeOpenIcon,
   EyeSlashIcon,
   FileIcon,
-  GearIcon,
   GearSixIcon,
-  HandshakeIcon,
   HouseSimpleIcon,
   ImageIcon,
   LinkIcon,
@@ -57,8 +55,6 @@ import {
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import { useActiveAffiliateScanJob } from "@/features/affiliate/hooks/useActiveAffiliateScanJob.ts";
-import { useAffiliateScans } from "@/features/affiliate/hooks/useAffiliateScans.ts";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useUpdateUiPreferences } from "@/features/auth/useUpdateUiPreferences.ts";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
@@ -90,11 +86,10 @@ const SIDEBAR_SECTION_IDS = [
   "content",
   "builders",
   "analytics",
-  "affiliate",
   "system",
 ] as const;
 type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
-const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "affiliate", "system"];
+const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "system"];
 
 function parseSectionOrder(dbOrder?: string[]): SidebarSectionId[] {
   if (!Array.isArray(dbOrder)) return [...SIDEBAR_SECTION_IDS];
@@ -453,68 +448,6 @@ function ReportsGroup({
   );
 }
 
-function AffiliateSidebarGroup({
-  onItemClick,
-  dragHandle,
-}: {
-  onItemClick?: () => void;
-  dragHandle?: ReactNode;
-}) {
-  const { messages } = useI18n();
-  const s = messages.layout.sidebar;
-  const { data: scans = [] } = useAffiliateScans({});
-  const { data: job } = useActiveAffiliateScanJob();
-  const isScanning = job?.status === "running" || job?.status === "pending";
-
-  return (
-    <DashboardSection>
-      <DashboardSection.Header
-        icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />}
-        title="Affiliate"
-        addOn={dragHandle}
-      />
-      <DashboardSection.Body className="!gap-0.5 !p-2">
-        <NavLink to="/affiliate" end onClick={onItemClick} className="contents">
-          {({ isActive }) => (
-            <DashboardSection.Item
-              icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />}
-              label={s.affiliate}
-              active={isActive}
-              addOn={
-                <>
-                  {isScanning && (
-                    <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/15 text-red-400 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shadow-[0_0_4px_rgba(248,113,113,0.8)]" />
-                      Live
-                    </span>
-                  )}
-                  {scans.length > 0 && (
-                    <span
-                      className={`h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0 ${!isScanning ? "ml-auto" : ""}`}
-                    >
-                      {scans.length}
-                    </span>
-                  )}
-                  <span className="w-3.5 shrink-0" />
-                </>
-              }
-            />
-          )}
-        </NavLink>
-        <NavLink to="/affiliate/settings" onClick={onItemClick} className="contents">
-          {({ isActive }) => (
-            <DashboardSection.Item
-              icon={<GearIcon weight="duotone" className="w-4 h-4" />}
-              label={s.affiliateSettings}
-              active={isActive}
-            />
-          )}
-        </NavLink>
-      </DashboardSection.Body>
-    </DashboardSection>
-  );
-}
-
 /**
  * Collapsible dashboard sidebar including navigation and footer actions.
  *
@@ -783,9 +716,6 @@ export function Sidebar({
                   </NavLink>
                 </DashboardSection.Body>
               </DashboardSection>
-            ),
-            affiliate: (dragHandle) => (
-              <AffiliateSidebarGroup onItemClick={onItemClick} dragHandle={dragHandle} />
             ),
             system: (dragHandle) => (
               <DashboardSection>

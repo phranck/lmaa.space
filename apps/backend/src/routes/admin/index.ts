@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 
-import { affiliateRoutes } from "./affiliate.js";
 import { authRoutes } from "./auth.js";
 import { backgroundErrorsRoutes } from "./background-errors.js";
 import { billingRoutes } from "./billing.js";
@@ -60,7 +59,6 @@ protectedRoutes.route("/", footerConfigRoutes);
 protectedRoutes.route("/", heroRoutes);
 protectedRoutes.route("/", markdownWidgetsRoutes);
 protectedRoutes.route("/", mediaRoutes);
-protectedRoutes.route("/", affiliateRoutes);
 protectedRoutes.route("/", shopRemindersRoutes);
 protectedRoutes.route("/", pushRoutes);
 protectedRoutes.route("/", settingsRoutes);
