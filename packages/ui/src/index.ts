@@ -76,6 +76,9 @@ export type { SocialMediaEditorMessages, SocialMediaEditorProps } from "./Social
 /** Read-only social media icon links (server-renderable). */
 export { SocialMediaIcons } from "./SocialMediaIcons.tsx";
 export type { SocialMediaIconsProps } from "./SocialMediaIcons.tsx";
+/** Social media platform registry (ordered list + O(1) map). */
+export { PLATFORMS, PLATFORM_MAP } from "./social-media-platforms.ts";
+export type { PlatformDef } from "./social-media-platforms.ts";
 /** Shared tab navigation component. */
 export { Tabs, TabList, TabTrigger, TabContent } from "./Tabs.tsx";
 /** Re-exported props for Tabs. */
