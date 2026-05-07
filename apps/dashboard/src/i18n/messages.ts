@@ -982,6 +982,8 @@ export interface DashboardMessages {
     tokenMissing: string;
     tokenRequired: string;
     saveError: string;
+    tokenInvalid: string;
+    instanceUnreachable: string;
     deleteAccount: string;
     deleteConfirm: string;
     accessTokenPlaceholder: string;
@@ -2145,6 +2147,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       tokenMissing: "Kein Token",
       tokenRequired: "Bitte einen Access Token hinterlegen.",
       saveError: "Fehler beim Speichern.",
+      tokenInvalid: "Der Access Token wurde von der Mastodon-Instanz abgelehnt.",
+      instanceUnreachable: "Die Mastodon-Instanz ist nicht erreichbar. Bitte die Instanz-URL prüfen.",
       deleteAccount: "Account löschen?",
       deleteConfirm: "Diesen Account wirklich löschen?",
       accessTokenPlaceholder: "Mastodon User Access Token",
@@ -3303,6 +3307,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       tokenMissing: "No token",
       tokenRequired: "Please enter an access token.",
       saveError: "Error saving.",
+      tokenInvalid: "The access token was rejected by the Mastodon instance.",
+      instanceUnreachable: "The Mastodon instance is unreachable. Please check the instance URL.",
       deleteAccount: "Delete account?",
       deleteConfirm: "Really delete this account?",
       accessTokenPlaceholder: "Mastodon user access token",
