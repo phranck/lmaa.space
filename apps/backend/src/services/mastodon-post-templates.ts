@@ -42,7 +42,7 @@ export async function getManagedMastodonPostTemplateById(
 }
 
 export async function createManagedMastodonPostTemplate(
-  data: Omit<MastodonPostTemplateInsert, "isSystemTemplate">,
+  data: MastodonPostTemplateInsert,
 ): Promise<{ ok: true; data: MastodonPostTemplate } | { ok: false; reason: "name_taken" }> {
   const existing = await getMastodonPostTemplateByName(data.name);
   if (existing) return { ok: false, reason: "name_taken" };
@@ -52,7 +52,7 @@ export async function createManagedMastodonPostTemplate(
 
 export async function updateManagedMastodonPostTemplate(
   id: number,
-  data: Partial<Omit<MastodonPostTemplateInsert, "isSystemTemplate">>,
+  data: Partial<MastodonPostTemplateInsert>,
 ): Promise<{ ok: true; data: MastodonPostTemplate } | { ok: false; reason: "not_found" }> {
   const row = await updateMastodonPostTemplate(id, data);
   if (!row) return { ok: false, reason: "not_found" };

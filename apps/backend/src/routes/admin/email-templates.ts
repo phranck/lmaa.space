@@ -68,8 +68,11 @@ emailTemplateRoutes.post(
   "/email-templates",
   zValidator("json", emailTemplateCreateSchema),
   async (c) => {
-    const data = c.req.valid("json");
-    const result = await createManagedEmailTemplate(data);
+    const payload = c.req.valid("json");
+    const safePayload = c.get("isOwner")
+      ? payload
+      : { ...payload, isSystemTemplate: undefined };
+    const result = await createManagedEmailTemplate(safePayload);
     if (!result.ok) {
       if (result.reason === "name_taken") return fail(c, 409, "Template name already exists");
       return fail(c, 500, "Unexpected error");
@@ -85,8 +88,11 @@ emailTemplateRoutes.put(
   async (c) => {
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) return fail(c, 400, "Invalid ID");
-    const data = c.req.valid("json");
-    const result = await updateManagedEmailTemplate(id, data);
+    const payload = c.req.valid("json");
+    const safePayload = c.get("isOwner")
+      ? payload
+      : { ...payload, isSystemTemplate: undefined };
+    const result = await updateManagedEmailTemplate(id, safePayload);
     if (!result.ok) return fail(c, 404, "Email template not found");
     return ok(c, result.data);
   },

@@ -19,7 +19,7 @@ export interface EmailTemplate {
 export type EmailTemplateInput = Omit<
   EmailTemplate,
   "id" | "createdAt" | "updatedAt" | "isSystemTemplate"
->;
+> & { isSystemTemplate?: boolean };
 
 /**
  * Email template create payload contract.
@@ -32,6 +32,7 @@ export const emailTemplateCreateSchema = z.object({
   bodyText: z.string().max(50000),
   footerBannerUrl: z.string().url().optional().or(z.literal("")),
   footerText: z.string().max(50000).optional(),
+  isSystemTemplate: z.boolean().optional(),
 });
 
 /**

@@ -923,6 +923,8 @@ export interface DashboardMessages {
     saveError: string;
     nameConflict: string;
     systemBadge: string;
+    systemHint: string;
+    systemCheckbox: string;
     tableCreated: string;
     preview: string;
     previewTitle: string;
@@ -962,6 +964,9 @@ export interface DashboardMessages {
     variablesTitle: string;
     variablesHint: string;
     variables: Record<string, string>;
+    systemBadge: string;
+    systemHint: string;
+    systemCheckbox: string;
   };
   socialMedia: {
     title: string;
@@ -2067,6 +2072,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
       nameConflict: "Ein Template mit diesem Namen existiert bereits.",
       systemBadge: "System",
+      systemHint: "System-Templates können nicht gelöscht werden.",
+      systemCheckbox: "System-Template",
       tableCreated: "Erstellt",
       preview: "Vorschau",
       previewTitle: "E-Mail-Vorschau",
@@ -2119,6 +2126,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         frontendUrl: "Öffentliche Frontend-URL",
         dashboardUrl: "Dashboard-URL",
       },
+      systemBadge: "System",
+      systemHint: "System-Templates können nicht gelöscht werden.",
+      systemCheckbox: "System-Template",
     },
     socialMedia: {
       title: "Social Media Accounts",
@@ -3221,6 +3231,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saveError: "Error saving. Please try again.",
       nameConflict: "A template with this name already exists.",
       systemBadge: "System",
+      systemHint: "System templates cannot be deleted.",
+      systemCheckbox: "System template",
       tableCreated: "Created",
       preview: "Preview",
       previewTitle: "Email Preview",
@@ -3273,6 +3285,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         frontendUrl: "Public frontend URL",
         dashboardUrl: "Dashboard URL",
       },
+      systemBadge: "System",
+      systemHint: "System templates cannot be deleted.",
+      systemCheckbox: "System template",
     },
     socialMedia: {
       title: "Social Media Accounts",
