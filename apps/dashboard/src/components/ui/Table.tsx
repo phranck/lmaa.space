@@ -1,6 +1,20 @@
 import { CaretDownIcon, CaretUpIcon, CaretUpDownIcon } from "@phosphor-icons/react";
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+
+// ─── Group type ───────────────────────────────────────────────────────────────
+
+/**
+ * Describes a named group of rows for use with the `groups` prop of `DataTable`.
+ *
+ * @typeParam T - Row object shape.
+ */
+export interface DataTableGroup<T> {
+  id: string;
+  /** Rendered as a single-cell row spanning all columns above the group's rows. */
+  header: ReactNode;
+  rows: T[];
+}
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -65,7 +79,9 @@ export interface SortState {
 
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
-  data: T[];
+  data?: T[];
+  /** When provided, rows are rendered in named groups with a section-header row before each group. `data` is ignored. */
+  groups?: DataTableGroup<T>[];
   getRowKey: (row: T) => string | number;
   getRowClassName?: (row: T) => string;
   /** Keeps the header visible while scrolling. Requires the app header height as top offset. */
@@ -91,7 +107,8 @@ interface DataTableProps<T> {
  */
 export function DataTable<T>({
   columns,
-  data,
+  data = [],
+  groups,
   getRowKey,
   getRowClassName,
   stickyHeader = false,
@@ -126,25 +143,34 @@ export function DataTable<T>({
     onSortChange?.(nextSort);
   }
 
+  function sortRows(rows: T[]): T[] {
+    if (!sort) return rows;
+    const col = columns.find((c) => c.id === sort.id);
+    if (!col?.sortKey) return rows;
+    return [...rows].sort((a, b) => {
+      // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
+      const av = col.sortKey!(a);
+      // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
+      const bv = col.sortKey!(b);
+      const cmp =
+        typeof av === "number" && typeof bv === "number"
+          ? av - bv
+          : String(av).localeCompare(String(bv), "de", {
+              numeric: true,
+              sensitivity: "base",
+            });
+      return sort.dir === "asc" ? cmp : -cmp;
+    });
+  }
+
   const sorted = useMemo(
-    () =>
-      sort
-        ? [...data].sort((a, b) => {
-            const col = columns.find((c) => c.id === sort.id);
-            if (!col?.sortKey) return 0;
-            const av = col.sortKey(a);
-            const bv = col.sortKey(b);
-            const cmp =
-              typeof av === "number" && typeof bv === "number"
-                ? av - bv
-                : String(av).localeCompare(String(bv), "de", {
-                    numeric: true,
-                    sensitivity: "base",
-                  });
-            return sort.dir === "asc" ? cmp : -cmp;
-          })
-        : data,
+    () => sortRows(data),
     [allowUnsorted, data, sort, columns],
+  );
+
+  const sortedGroups = useMemo(
+    () => groups?.map((g) => ({ ...g, rows: sortRows(g.rows) })),
+    [allowUnsorted, groups, sort, columns],
   );
 
   return (
@@ -192,18 +218,51 @@ export function DataTable<T>({
         </TableRow>
       </TableHead>
       <TableBody>
-        {sorted.map((row, index) => (
-          <TableRow
-            key={getRowKey(row)}
-            className={`${index % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""}`}
-          >
-            {columns.map((col) => (
-              <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
-                {col.cell(row)}
-              </Td>
+        {sortedGroups
+          ? (() => {
+              let stripeIndex = 0;
+              return sortedGroups.map((group) => (
+                <React.Fragment key={group.id}>
+                  <tr
+                    className="bg-[var(--ds-surface-inset)] hover:bg-transparent"
+                  >
+                    <td
+                      colSpan={columns.length}
+                      className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--ds-text-muted)]"
+                    >
+                      {group.header}
+                    </td>
+                  </tr>
+                  {group.rows.map((row) => {
+                    const idx = stripeIndex++;
+                    return (
+                      <TableRow
+                        key={getRowKey(row)}
+                        className={`${idx % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""}`}
+                      >
+                        {columns.map((col) => (
+                          <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
+                            {col.cell(row)}
+                          </Td>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
+                </React.Fragment>
+              ));
+            })()
+          : sorted.map((row, index) => (
+              <TableRow
+                key={getRowKey(row)}
+                className={`${index % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""}`}
+              >
+                {columns.map((col) => (
+                  <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
+                    {col.cell(row)}
+                  </Td>
+                ))}
+              </TableRow>
             ))}
-          </TableRow>
-        ))}
       </TableBody>
     </Table>
   );
