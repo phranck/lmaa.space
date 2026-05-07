@@ -196,6 +196,7 @@ describe("idempotencyKey", () => {
 const getMastodonPostTemplateById = vi.fn();
 const listActiveMastodonAccounts = vi.fn();
 const loggerMock = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+const recordBackgroundErrorMock = vi.fn();
 
 async function loadMastodonService() {
   vi.resetModules();
@@ -218,6 +219,10 @@ async function loadMastodonService() {
     listActiveMastodonAccounts,
   }));
 
+  vi.doMock("../services/background-errors.js", () => ({
+    recordBackgroundError: recordBackgroundErrorMock,
+  }));
+
   return import("../services/mastodon.js");
 }
 
@@ -234,6 +239,8 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
     loggerMock.info.mockReset();
     loggerMock.warn.mockReset();
     loggerMock.error.mockReset();
+    recordBackgroundErrorMock.mockReset();
+    recordBackgroundErrorMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -277,7 +284,7 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
     expect(body.get("visibility")).toBe("public");
   });
 
-  it("HTTP 401 → throws (error logged)", async () => {
+  it("HTTP 401 → throws (background error recorded)", async () => {
     const account = makeAccount(1);
     const template = makeTemplate({ bodyText: "Post: {{shopName}}" });
     const submission = makeSubmission();
@@ -302,13 +309,14 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
 
     await flushPromises();
 
-    expect(loggerMock.error).toHaveBeenCalledWith(
+    expect(recordBackgroundErrorMock).toHaveBeenCalledWith(
+      "mastodon-post",
+      expect.any(Error),
       expect.objectContaining({ accountId: account.id, templateId: template.id }),
-      "failed to send mastodon approval post",
     );
   });
 
-  it("HTTP 503 → throws with truncated response body (≤300 chars)", async () => {
+  it("HTTP 503 → throws with truncated response body (≤300 chars) and records background error", async () => {
     const account = makeAccount(2);
     const template = makeTemplate({ bodyText: "Hello {{shopName}}" });
     const submission = makeSubmission();
@@ -334,13 +342,13 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
 
     await flushPromises();
 
-    expect(loggerMock.error).toHaveBeenCalledTimes(1);
-    const errArg = (loggerMock.error.mock.calls[0] as [{ err: Error }, string])[0];
-    expect(errArg.err.message).toContain("503");
+    expect(recordBackgroundErrorMock).toHaveBeenCalledTimes(1);
+    const [, errArg] = recordBackgroundErrorMock.mock.calls[0] as [string, Error];
+    expect(errArg.message).toContain("503");
     // Body must be truncated to 300 chars
     const truncated = longBody.slice(0, 300);
-    expect(errArg.err.message).toContain(truncated);
-    expect(errArg.err.message).not.toContain("x".repeat(301));
+    expect(errArg.message).toContain(truncated);
+    expect(errArg.message).not.toContain("x".repeat(301));
   });
 });
 
@@ -356,6 +364,8 @@ describe("sendMastodonApprovalPost — guard rails", () => {
     loggerMock.info.mockReset();
     loggerMock.warn.mockReset();
     loggerMock.error.mockReset();
+    recordBackgroundErrorMock.mockReset();
+    recordBackgroundErrorMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -477,8 +487,9 @@ describe("sendMastodonApprovalPost — guard rails", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const service = await loadMastodonService();
+    const submission = makeSubmission();
     service.sendMastodonApprovalPost(template.id, {
-      submission: makeSubmission(),
+      submission,
       newShopId: 10,
       adminNote: "",
       categoryNames: [],
@@ -488,14 +499,15 @@ describe("sendMastodonApprovalPost — guard rails", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
-    expect(loggerMock.error).toHaveBeenCalledTimes(1);
-    expect(loggerMock.error).toHaveBeenCalledWith(
+    expect(recordBackgroundErrorMock).toHaveBeenCalledTimes(1);
+    expect(recordBackgroundErrorMock).toHaveBeenCalledWith(
+      "mastodon-post",
+      expect.any(Error),
       expect.objectContaining({
         accountId: account2.id,
         templateId: template.id,
-        err: expect.any(Error),
+        submissionId: submission.id,
       }),
-      "failed to send mastodon approval post",
     );
   });
 });

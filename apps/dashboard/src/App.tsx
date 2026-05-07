@@ -185,6 +185,12 @@ const SystemSettingsPage = lazy(() =>
   })),
 );
 
+const BackgroundErrorsPage = lazy(() =>
+  import("@/features/system/BackgroundErrorsPage.tsx").then((m) => ({
+    default: m.BackgroundErrorsPage,
+  })),
+);
+
 const SocialMediaAccountsPage = lazy(() =>
   import("@/features/social/SocialMediaAccountsPage.tsx").then((m) => ({
     default: m.SocialMediaAccountsPage,
@@ -442,6 +448,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SystemSettingsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="system/background-errors"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <BackgroundErrorsPage />
                   </Suspense>
                 }
               />

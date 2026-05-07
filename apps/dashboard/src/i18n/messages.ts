@@ -56,6 +56,7 @@ export interface DashboardMessages {
       billing: string;
       systemSettings: string;
       socialMediaAccounts: string;
+      backgroundErrors: string;
       affiliate: string;
       affiliateSettings: string;
       expandAll: string;
@@ -1127,6 +1128,22 @@ export interface DashboardMessages {
         requireTemplateHint: string;
       };
     };
+    backgroundErrors: {
+      title: string;
+      columnSource: string;
+      columnMessage: string;
+      columnOccurredAt: string;
+      columnStatus: string;
+      resolveAction: string;
+      statusOpen: string;
+      statusResolved: string;
+      noErrors: string;
+      noErrorsSubtitle: string;
+      filterSourcePlaceholder: string;
+      filterAll: string;
+      filterUnresolved: string;
+      filterResolved: string;
+    };
   };
   errors: {
     boundary: {
@@ -1192,6 +1209,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         billing: "Kosten",
         systemSettings: "Einstellungen",
         socialMediaAccounts: "Social Media Accounts",
+        backgroundErrors: "Hintergrundfehler",
         affiliate: "Affiliate",
         affiliateSettings: "Einstellungen",
         expandAll: "Alles aufklappen",
@@ -2299,6 +2317,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             "Bitte zuerst ein Template wählen, um die Benachrichtigung zu aktivieren.",
         },
       },
+      backgroundErrors: {
+        title: "Hintergrundfehler",
+        columnSource: "Quelle",
+        columnMessage: "Fehlermeldung",
+        columnOccurredAt: "Zeitpunkt",
+        columnStatus: "Status",
+        resolveAction: "Lösen",
+        statusOpen: "Offen",
+        statusResolved: "Gelöst",
+        noErrors: "Keine Fehler vorhanden",
+        noErrorsSubtitle: "Alle Hintergrunddienste laufen fehlerfrei.",
+        filterSourcePlaceholder: "Quelle filtern…",
+        filterAll: "Alle",
+        filterUnresolved: "Offen",
+        filterResolved: "Gelöst",
+      },
     },
     errors: {
       boundary: {
@@ -2359,6 +2393,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         billing: "Billing",
         systemSettings: "Settings",
         socialMediaAccounts: "Social Media Accounts",
+        backgroundErrors: "Background Errors",
         affiliate: "Affiliate",
         affiliateSettings: "Settings",
         expandAll: "Expand all",
@@ -3457,6 +3492,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           hint: "Sent whenever a new shop suggestion arrives.",
           requireTemplateHint: "Pick a template first to enable the notification.",
         },
+      },
+      backgroundErrors: {
+        title: "Background Errors",
+        columnSource: "Source",
+        columnMessage: "Error message",
+        columnOccurredAt: "Occurred at",
+        columnStatus: "Status",
+        resolveAction: "Resolve",
+        statusOpen: "Open",
+        statusResolved: "Resolved",
+        noErrors: "No errors found",
+        noErrorsSubtitle: "All background services are running without errors.",
+        filterSourcePlaceholder: "Filter by source…",
+        filterAll: "All",
+        filterUnresolved: "Open",
+        filterResolved: "Resolved",
       },
     },
     errors: {
