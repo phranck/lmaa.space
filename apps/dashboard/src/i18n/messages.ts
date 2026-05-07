@@ -971,14 +971,9 @@ export interface DashboardMessages {
   };
   socialMedia: {
     title: string;
-    newAccount: string;
     editAccount: string;
-    addAccount: string;
-    mastodonHint: string;
     noAccounts: string;
     noAccountsHint: string;
-    active: string;
-    inactive: string;
     tokenStored: string;
     tokenMissing: string;
     tokenRequired: string;
@@ -2163,15 +2158,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     socialMedia: {
       title: "Social Media Accounts",
-      newAccount: "Mastodon Account hinzufügen",
       editAccount: "Mastodon Account bearbeiten",
-      addAccount: "Account speichern",
-      mastodonHint:
-        "Für automatische Posts wird ein User Access Token mit Scope write:statuses benötigt.",
       noAccounts: "Keine Accounts konfiguriert.",
       noAccountsHint: "Hinterlege einen Social Media Account für automatische Postings.",
-      active: "Aktiv",
-      inactive: "Inaktiv",
       tokenStored: "Token hinterlegt",
       tokenMissing: "Kein Token",
       tokenRequired: "Bitte einen Access Token hinterlegen.",
@@ -3352,14 +3341,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     socialMedia: {
       title: "Social Media Accounts",
-      newAccount: "Add Mastodon account",
       editAccount: "Edit Mastodon account",
-      addAccount: "Save account",
-      mastodonHint: "Automatic posts require a user access token with the write:statuses scope.",
       noAccounts: "No accounts configured.",
       noAccountsHint: "Add a social media account for automated postings.",
-      active: "Active",
-      inactive: "Inactive",
       tokenStored: "Token stored",
       tokenMissing: "No token",
       tokenRequired: "Please enter an access token.",
