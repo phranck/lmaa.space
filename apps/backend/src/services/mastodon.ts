@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import { encodeShopToken } from "@lmaa/shared";
 
+import { recordBackgroundError } from "./background-errors.js";
 import { env } from "../config/env.js";
 import type { MastodonPostTemplate, SocialMediaAccount, Submission } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
@@ -113,16 +114,18 @@ export function sendMastodonApprovalPost(templateId: number, context: ApprovalPo
         accounts.map((account) => postToMastodon(account, template, context.submission, status)),
       );
 
-      results.forEach((result, index) => {
+      for (let index = 0; index < results.length; index++) {
+        const result = results[index];
         if (result.status === "rejected") {
-          logger.error(
-            { err: result.reason, accountId: accounts[index]?.id, templateId },
-            "failed to send mastodon approval post",
-          );
+          await recordBackgroundError("mastodon-post", result.reason, {
+            accountId: accounts[index]?.id,
+            templateId,
+            submissionId: context.submission.id,
+          });
         }
-      });
+      }
     } catch (err) {
-      logger.error({ err, templateId }, "failed to prepare mastodon approval post");
+      await recordBackgroundError("mastodon-post", err, { templateId });
     }
   })();
 }
