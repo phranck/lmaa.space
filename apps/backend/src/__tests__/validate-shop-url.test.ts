@@ -50,7 +50,7 @@ describe("validateShopUrl", () => {
     expect(repoMocks.findPendingSubmissionByDomain).toHaveBeenCalledWith("new-shop.de");
   });
 
-  it("returns published when shop is public", async () => {
+  it("returns published with detail link when shop is public", async () => {
     repoMocks.findShopByDomain.mockResolvedValue({
       id: 1,
       name: "Fair Fashion Store",
@@ -60,7 +60,23 @@ describe("validateShopUrl", () => {
     });
 
     const result = await validateShopUrl("https://www.fairfashion.de/about");
-    expect(result).toEqual({ status: "published", shopName: "Fair Fashion Store" });
+    expect(result).toEqual({
+      status: "published",
+      shopName: "Fair Fashion Store",
+      shopUrl: expect.stringMatching(/^\/shop\/[a-z0-9]+$/),
+    });
+  });
+
+  it("returns published with RickRoll for Amazon URLs without DB lookup", async () => {
+    const result = await validateShopUrl("https://www.amazon.de/dp/B000123");
+    expect(result).toEqual({
+      status: "published",
+      shopName: "Amazon",
+      shopUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    });
+    expect(repoMocks.findShopByDomain).not.toHaveBeenCalled();
+    expect(repoMocks.findRejectedSubmissionByDomain).not.toHaveBeenCalled();
+    expect(repoMocks.findPendingSubmissionByDomain).not.toHaveBeenCalled();
   });
 
   it("returns rejected with rejectionUrl when shop was rejected", async () => {
