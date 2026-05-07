@@ -511,3 +511,83 @@ describe("sendMastodonApprovalPost — guard rails", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// consumeRateLimit (via __test__ escape hatch)
+// ---------------------------------------------------------------------------
+
+describe("consumeRateLimit", () => {
+  let consumeRateLimit: (accountId: number) => boolean;
+  let resetRateLimitBuckets: () => void;
+
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    vi.resetModules();
+
+    vi.doMock("../config/env.js", () => ({
+      env: {
+        NODE_ENV: "test",
+        FRONTEND_URL: "https://example.com",
+        DASHBOARD_URL: "https://dashboard.example.com",
+      },
+    }));
+
+    vi.doMock("../lib/logger.js", () => ({
+      logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    }));
+
+    vi.doMock("../repositories/mastodon-post-templates.js", () => ({
+      getMastodonPostTemplateById: vi.fn(),
+    }));
+
+    vi.doMock("../repositories/social-media-accounts.js", () => ({
+      listActiveMastodonAccounts: vi.fn(),
+    }));
+
+    const mod = await import("../services/mastodon.js");
+    consumeRateLimit = mod.__test__.consumeRateLimit;
+    resetRateLimitBuckets = mod.__test__.resetRateLimitBuckets;
+
+    // Start each test with a clean bucket state
+    resetRateLimitBuckets();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("301st call in the same 5-minute window returns false (rate limit exceeded)", () => {
+    const accountId = 42;
+
+    // First 300 calls must succeed
+    for (let i = 0; i < 300; i++) {
+      expect(consumeRateLimit(accountId)).toBe(true);
+    }
+
+    // 301st call must be rejected
+    expect(consumeRateLimit(accountId)).toBe(false);
+  });
+
+  it("bucket resets after the 5-minute window expires", () => {
+    const accountId = 99;
+    const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
+
+    // Exhaust the bucket
+    for (let i = 0; i < 300; i++) {
+      consumeRateLimit(accountId);
+    }
+    expect(consumeRateLimit(accountId)).toBe(false);
+
+    // Advance time past the window — bucket should reset on next access
+    vi.advanceTimersByTime(RATE_LIMIT_WINDOW_MS + 1);
+
+    // First call after window expiry starts a fresh bucket → allowed
+    expect(consumeRateLimit(accountId)).toBe(true);
+    // And the 300th call in the new window is still allowed
+    for (let i = 1; i < 300; i++) {
+      expect(consumeRateLimit(accountId)).toBe(true);
+    }
+    // 301st in new window is blocked again
+    expect(consumeRateLimit(accountId)).toBe(false);
+  });
+});
