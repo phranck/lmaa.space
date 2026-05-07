@@ -162,7 +162,6 @@ export const shopHeadquarters = pgTable(
   ],
 );
 
-
 /**
  * Join table linking shops to categories.
  */
@@ -576,6 +575,53 @@ export type EmailTemplate = typeof emailTemplates.$inferSelect;
  */
 export type EmailTemplateInsert = typeof emailTemplates.$inferInsert;
 
+/**
+ * Social media credentials managed from the dashboard.
+ */
+export const socialMediaAccounts = pgTable(
+  "social_media_accounts",
+  {
+    id: serial("id").primaryKey(),
+    platform: text("platform").$type<"mastodon">().notNull().default("mastodon"),
+    label: text("label").notNull(),
+    instanceUrl: text("instance_url").notNull(),
+    username: text("username"),
+    accessToken: text("access_token").notNull(),
+    visibility: text("visibility")
+      .$type<"public" | "unlisted" | "private" | "direct">()
+      .notNull()
+      .default("public"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_social_media_accounts_platform_active").on(table.platform, table.isActive),
+    check("social_media_accounts_platform_check", sql`${table.platform} IN ('mastodon')`),
+    check(
+      "social_media_accounts_visibility_check",
+      sql`${table.visibility} IN ('public', 'unlisted', 'private', 'direct')`,
+    ),
+  ],
+);
+
+export type SocialMediaAccount = typeof socialMediaAccounts.$inferSelect;
+export type SocialMediaAccountInsert = typeof socialMediaAccounts.$inferInsert;
+
+/**
+ * Plain-text templates used for automatic Mastodon posts.
+ */
+export const mastodonPostTemplates = pgTable("mastodon_post_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  bodyText: text("body_text").notNull().default(""),
+  isSystemTemplate: boolean("is_system_template").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type MastodonPostTemplate = typeof mastodonPostTemplates.$inferSelect;
+export type MastodonPostTemplateInsert = typeof mastodonPostTemplates.$inferInsert;
 
 // ---------------------------------------------------------------------------
 // Affiliate Scans
@@ -657,7 +703,6 @@ export const affiliateScanJobs = pgTable("affiliate_scan_jobs", {
 
 export type AffiliateScanJob = typeof affiliateScanJobs.$inferSelect;
 export type AffiliateScanJobInsert = typeof affiliateScanJobs.$inferInsert;
-
 
 // ---------------------------------------------------------------------------
 // App Settings (generic key/value store)
@@ -766,7 +811,9 @@ export type UnsplashImageInsert = typeof unsplashImages.$inferInsert;
  */
 export const heroImages = pgTable("hero_images", {
   id: serial("id").primaryKey(),
-  unsplashImageId: integer("unsplash_image_id").references(() => unsplashImages.id, { onDelete: "set null" }),
+  unsplashImageId: integer("unsplash_image_id").references(() => unsplashImages.id, {
+    onDelete: "set null",
+  }),
   url: text("url").notNull(),
   photographer: text("photographer").notNull(),
   photographerUrl: text("photographer_url").notNull(),

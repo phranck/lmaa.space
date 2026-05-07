@@ -145,6 +145,22 @@ const EmailTemplateEditPage = lazy(() =>
   })),
 );
 
+const MastodonPostTemplateListPage = lazy(() =>
+  import("@/features/templates/mastodon-post-templates/MastodonPostTemplateListPage.tsx").then(
+    (m) => ({
+      default: m.MastodonPostTemplateListPage,
+    }),
+  ),
+);
+
+const MastodonPostTemplateEditPage = lazy(() =>
+  import("@/features/templates/mastodon-post-templates/MastodonPostTemplateEditPage.tsx").then(
+    (m) => ({
+      default: m.MastodonPostTemplateEditPage,
+    }),
+  ),
+);
+
 const FooterBuilderPage = lazy(() =>
   import("@/features/content/footer-builder/FooterBuilderPage.tsx").then((m) => ({
     default: m.FooterBuilderPage,
@@ -166,6 +182,12 @@ const AffiliateSettingsPage = lazy(() =>
 const SystemSettingsPage = lazy(() =>
   import("@/features/system/settings/SystemSettingsPage.tsx").then((m) => ({
     default: m.SystemSettingsPage,
+  })),
+);
+
+const SocialMediaAccountsPage = lazy(() =>
+  import("@/features/social/SocialMediaAccountsPage.tsx").then((m) => ({
+    default: m.SocialMediaAccountsPage,
   })),
 );
 
@@ -360,6 +382,30 @@ function AppRoutes() {
                 }
               />
               <Route
+                path="mastodon-post-templates"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <MastodonPostTemplateListPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="mastodon-post-templates/new"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <MastodonPostTemplateEditPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="mastodon-post-templates/:id"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <MastodonPostTemplateEditPage />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="pages"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
@@ -396,6 +442,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SystemSettingsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="social-media/accounts"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SocialMediaAccountsPage />
                   </Suspense>
                 }
               />

@@ -48,20 +48,23 @@ export interface DashboardMessages {
       formBuilder: string;
       formsOverview: string;
       emailTemplates: string;
-        emailTemplatesOverview: string;
-        footerBuilder: string;
-        markdownWidgets: string;
-        billing: string;
-        systemSettings: string;
-        affiliate: string;
-        affiliateSettings: string;
-        expandAll: string;
-        collapseAll: string;
-        expandAllAria: string;
-        collapseAllAria: string;
-        editProfile: string;
-        logout: string;
-        logoutConfirmTitle: string;
+      emailTemplatesOverview: string;
+      mastodonPostTemplates: string;
+      mastodonPostTemplatesOverview: string;
+      footerBuilder: string;
+      markdownWidgets: string;
+      billing: string;
+      systemSettings: string;
+      socialMediaAccounts: string;
+      affiliate: string;
+      affiliateSettings: string;
+      expandAll: string;
+      collapseAll: string;
+      expandAllAria: string;
+      collapseAllAria: string;
+      editProfile: string;
+      logout: string;
+      logoutConfirmTitle: string;
       logoutConfirmDescription: string;
       logoutConfirmAction: string;
       logoutSkipConfirm: string;
@@ -401,13 +404,13 @@ export interface DashboardMessages {
       oldFirst: string;
       newFirst: string;
     };
-      suggestions: {
-        nonePrefix: string;
-        noneHint: string;
-        categoriesMore: string;
-        rejectedAt: string;
-        submittedAt: string;
-        submittedBy: string;
+    suggestions: {
+      nonePrefix: string;
+      noneHint: string;
+      categoriesMore: string;
+      rejectedAt: string;
+      submittedAt: string;
+      submittedBy: string;
       reject: string;
       onhold: string;
       edit: string;
@@ -446,6 +449,9 @@ export interface DashboardMessages {
       notificationRejected: string;
       notificationNone: string;
       notificationHint: string;
+      mastodonNotificationLabel: string;
+      mastodonNotificationNone: string;
+      mastodonNotificationHint: string;
     };
     deadLinks: {
       none: string;
@@ -456,15 +462,15 @@ export interface DashboardMessages {
       confirmDeleteTitle: string;
       confirmDeleteDescription: string;
     };
-      shopReports: {
-        loading: string;
-        none: string;
-        noneHint: string;
-        done: string;
-        reject: string;
-        edit: string;
-        delete: string;
-      };
+    shopReports: {
+      loading: string;
+      none: string;
+      noneHint: string;
+      done: string;
+      reject: string;
+      edit: string;
+      delete: string;
+    };
   };
   users: {
     title: string;
@@ -936,6 +942,56 @@ export interface DashboardMessages {
     importSkip: string;
     importNewNameLabel: string;
   };
+  mastodonTemplates: {
+    listTitle: string;
+    newTemplate: string;
+    templateName: string;
+    bodyText: string;
+    deleteTemplate: string;
+    deleteTemplateConfirm: string;
+    noTemplates: string;
+    noTemplatesHint: string;
+    backToList: string;
+    save: string;
+    saved: string;
+    saveError: string;
+    nameConflict: string;
+    tableCreated: string;
+    previewTitle: string;
+    emptyPreview: string;
+    variablesTitle: string;
+    variablesHint: string;
+    variables: Record<string, string>;
+  };
+  socialMedia: {
+    title: string;
+    newAccount: string;
+    editAccount: string;
+    addAccount: string;
+    mastodonHint: string;
+    noAccounts: string;
+    noAccountsHint: string;
+    active: string;
+    inactive: string;
+    tokenStored: string;
+    tokenMissing: string;
+    tokenRequired: string;
+    saveError: string;
+    deleteAccount: string;
+    deleteConfirm: string;
+    accessTokenPlaceholder: string;
+    keepTokenPlaceholder: string;
+    fields: {
+      label: string;
+      instanceUrl: string;
+      username: string;
+      accessToken: string;
+      accessTokenOptional: string;
+      visibility: string;
+      active: string;
+    };
+    visibility: Record<"public" | "unlisted" | "private" | "direct", string>;
+  };
   affiliate: {
     title: string;
     searchPlaceholder: string;
@@ -1122,10 +1178,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Übersicht",
         emailTemplates: "E-Mail-Templates",
         emailTemplatesOverview: "Übersicht",
+        mastodonPostTemplates: "Mastodon-Post-Templates",
+        mastodonPostTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Kosten",
         systemSettings: "Einstellungen",
+        socialMediaAccounts: "Social Media Accounts",
         affiliate: "Affiliate",
         affiliateSettings: "Einstellungen",
         expandAll: "Alles aufklappen",
@@ -1405,7 +1464,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         addImages: "Bilder hinzufügen",
         imagePool: "Bildersammlung",
         imagePoolEmpty: "Noch keine Bilder gesammelt.",
-        imagePoolHint: "Füge Bilder aus Unsplash hinzu. Markierte Bilder werden auf der Startseite rotiert.",
+        imagePoolHint:
+          "Füge Bilder aus Unsplash hinzu. Markierte Bilder werden auf der Startseite rotiert.",
         selectedBadge: "Aktiv",
         markSelected: "Für Rotation aktivieren",
         markDeselected: "Aus Rotation entfernen",
@@ -1414,7 +1474,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         removeConfirmTitle: "Bild entfernen?",
         removeConfirmDescription: "Das Bild wird aus der Sammlung gelöscht.",
         photographerCredit: "Foto von",
-        noImagesSelected: "Kein Bild als aktiv markiert – auf der Startseite wird das Standard-Bild angezeigt.",
+        noImagesSelected:
+          "Kein Bild als aktiv markiert – auf der Startseite wird das Standard-Bild angezeigt.",
         rotationLabel: "Rotation",
         rotationOn: "Ein",
         rotationOff: "Aus",
@@ -1430,7 +1491,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploading: "Lade hoch…",
       uploadHint: "Erlaubt: Bilder, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis 10 MB",
       empty: "Noch keine Dateien vorhanden.",
-      emptyHint: "Lade Bilder oder Dokumente hoch, damit sie in Pages und anderen Inhalten nutzbar sind.",
+      emptyHint:
+        "Lade Bilder oder Dokumente hoch, damit sie in Pages und anderen Inhalten nutzbar sind.",
       selectPrompt: "Wähle links eine Datei aus, um Metadaten und die interne URL zu sehen.",
       detailsTitle: "Metadaten",
       previewTitle: "Vorschau",
@@ -1452,7 +1514,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploadError: "Datei konnte nicht hochgeladen werden.",
       unsupportedPreview: "Für diesen Dateityp ist keine Vorschau verfügbar.",
       deleteTitle: "Datei löschen?",
-      deleteDescription: "wird dauerhaft gelöscht und ist unter der internen URL nicht mehr erreichbar.",
+      deleteDescription:
+        "wird dauerhaft gelöscht und ist unter der internen URL nicht mehr erreichbar.",
       table: {
         name: "Name",
         type: "Typ",
@@ -1522,6 +1585,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         notificationRejected: "Template bei Ablehnung",
         notificationNone: "Keine E-Mail senden",
         notificationHint: "Nur wenn eine Einreicher-E-Mail vorhanden ist.",
+        mastodonNotificationLabel: "Mastodon-Post",
+        mastodonNotificationNone: "Keinen Mastodon-Post senden",
+        mastodonNotificationHint:
+          "Wird beim Freischalten mit den aktiven Mastodon-Accounts aus den Social-Media-Einstellungen gesendet.",
       },
       deadLinks: {
         none: "Keine gemeldeten defekten Links.",
@@ -1737,13 +1804,15 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             label: "HTML Widget",
             description: "Für Snippets wie Ko-fi oder andere kleine Drittanbieter-Widgets.",
             snippetLabel: "HTML-Snippet",
-            snippetHint: "Füge hier das Widget-Snippet ein. Externe Domains werden automatisch erkannt.",
+            snippetHint:
+              "Füge hier das Widget-Snippet ein. Externe Domains werden automatisch erkannt.",
           },
           iframe: {
             label: "Iframe Widget",
             description: "Für Einbettungen über eine externe URL.",
             urlLabel: "Iframe-URL",
-            urlHint: "Die Einbettung wird aus dieser URL erzeugt. Die nötige Frame-Freigabe wird automatisch gesetzt.",
+            urlHint:
+              "Die Einbettung wird aus dieser URL erzeugt. Die nötige Frame-Freigabe wird automatisch gesetzt.",
           },
         },
       },
@@ -2017,6 +2086,75 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Überspringen",
       importNewNameLabel: "Neuer Name",
     },
+    mastodonTemplates: {
+      listTitle: "Mastodon-Post-Templates",
+      newTemplate: "Neues Template",
+      templateName: "Name",
+      bodyText: "Post-Inhalt",
+      deleteTemplate: "Template löschen",
+      deleteTemplateConfirm: "Dieses Template wirklich löschen?",
+      noTemplates: "Noch keine Mastodon-Post-Templates vorhanden.",
+      noTemplatesHint: "Erstelle dein erstes Template über den +-Button.",
+      backToList: "← Alle Templates",
+      save: "Speichern",
+      saved: "Gespeichert",
+      saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
+      nameConflict: "Ein Template mit diesem Namen existiert bereits.",
+      tableCreated: "Erstellt",
+      previewTitle: "Post-Vorschau",
+      emptyPreview: "Die Vorschau erscheint, sobald Inhalt vorhanden ist.",
+      variablesTitle: "Globale Variablen",
+      variablesHint: "Diese Platzhalter kannst du im Template verwenden.",
+      variables: {
+        shopName: "Name des freigeschalteten Shops",
+        shopUrl: "Originale Shop-URL",
+        shopDescription: "Beschreibung aus dem Shop-Vorschlag",
+        shopRegion: "Regionen als kommagetrennte Liste",
+        shopShipping: "Versandhinweis",
+        shopPickup: "Abholhinweis",
+        shopContactEmail: "Kontakt-E-Mail des Shops",
+        shopCategories: "Kategorien des Shops",
+        shopPageUrl: "Öffentliche Detailseite auf lmaa.space",
+        adminNote: "Kommentar aus dem Freigabe-Dialog",
+        frontendUrl: "Öffentliche Frontend-URL",
+        dashboardUrl: "Dashboard-URL",
+      },
+    },
+    socialMedia: {
+      title: "Social Media Accounts",
+      newAccount: "Mastodon Account hinzufügen",
+      editAccount: "Mastodon Account bearbeiten",
+      addAccount: "Account speichern",
+      mastodonHint:
+        "Für automatische Posts wird ein User Access Token mit Scope write:statuses benötigt.",
+      noAccounts: "Keine Accounts konfiguriert.",
+      noAccountsHint: "Hinterlege einen Mastodon Account für automatische Postings.",
+      active: "Aktiv",
+      inactive: "Inaktiv",
+      tokenStored: "Token hinterlegt",
+      tokenMissing: "Kein Token",
+      tokenRequired: "Bitte einen Access Token hinterlegen.",
+      saveError: "Fehler beim Speichern.",
+      deleteAccount: "Account löschen?",
+      deleteConfirm: "Diesen Account wirklich löschen?",
+      accessTokenPlaceholder: "Mastodon User Access Token",
+      keepTokenPlaceholder: "Leer lassen, um den aktuellen Token zu behalten",
+      fields: {
+        label: "Label",
+        instanceUrl: "Instanz-URL",
+        username: "Benutzername",
+        accessToken: "Access Token",
+        accessTokenOptional: "Access Token (optional)",
+        visibility: "Sichtbarkeit",
+        active: "Aktiv",
+      },
+      visibility: {
+        public: "Public",
+        unlisted: "Unlisted",
+        private: "Private",
+        direct: "Direct",
+      },
+    },
     affiliate: {
       title: "Affiliate",
       searchPlaceholder: "Shop oder Netzwerk suchen…",
@@ -2123,7 +2261,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         adcellPublisherIdHint: "Deine Adcell Publisher-ID (zu finden im Adcell-Dashboard).",
         adcellApiPasswordLabel: "API-Passwort",
         adcellApiPasswordPlaceholder: "Adcell API Passwort",
-        adcellApiPasswordHint: "API-Passwort aus dem Adcell-Dashboard unter 'Einstellungen > API-Zugang'.",
+        adcellApiPasswordHint:
+          "API-Passwort aus dem Adcell-Dashboard unter 'Einstellungen > API-Zugang'.",
         validateConnection: "Verbindung testen",
         connectionValid: "Verbindung erfolgreich",
         connectionInvalid: "Verbindung fehlgeschlagen",
@@ -2142,7 +2281,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           templatePlaceholder: "Template wählen…",
           templateLoading: "Lade Templates…",
           hint: "Wird verschickt, sobald ein neuer Shop-Vorschlag eingeht.",
-          requireTemplateHint: "Bitte zuerst ein Template wählen, um die Benachrichtigung zu aktivieren.",
+          requireTemplateHint:
+            "Bitte zuerst ein Template wählen, um die Benachrichtigung zu aktivieren.",
         },
       },
     },
@@ -2198,10 +2338,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Overview",
         emailTemplates: "Email Templates",
         emailTemplatesOverview: "Overview",
+        mastodonPostTemplates: "Mastodon Post Templates",
+        mastodonPostTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Billing",
         systemSettings: "Settings",
+        socialMediaAccounts: "Social Media Accounts",
         affiliate: "Affiliate",
         affiliateSettings: "Settings",
         expandAll: "Expand all",
@@ -2489,7 +2632,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         removeConfirmTitle: "Remove image?",
         removeConfirmDescription: "This image will be deleted from the collection.",
         photographerCredit: "Photo by",
-        noImagesSelected: "No image marked as active – the default image will be shown on the homepage.",
+        noImagesSelected:
+          "No image marked as active – the default image will be shown on the homepage.",
         rotationLabel: "Rotation",
         rotationOn: "On",
         rotationOff: "Off",
@@ -2527,7 +2671,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploadError: "Could not upload file.",
       unsupportedPreview: "No preview is available for this file type.",
       deleteTitle: "Delete file?",
-      deleteDescription: "will be permanently deleted and will no longer be reachable via its internal URL.",
+      deleteDescription:
+        "will be permanently deleted and will no longer be reachable via its internal URL.",
       table: {
         name: "Name",
         type: "Type",
@@ -2597,6 +2742,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         notificationRejected: "Template on rejection",
         notificationNone: "Don't send email",
         notificationHint: "Only when a submitter email is available.",
+        mastodonNotificationLabel: "Mastodon post",
+        mastodonNotificationNone: "Don't send Mastodon post",
+        mastodonNotificationHint:
+          "Sent on approval through the active Mastodon accounts configured in Social Media settings.",
       },
       deadLinks: {
         none: "No reported dead links.",
@@ -2809,13 +2958,15 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             label: "HTML Widget",
             description: "For snippets like Ko-fi or other small third-party widgets.",
             snippetLabel: "HTML snippet",
-            snippetHint: "Paste the widget snippet here. External domains are detected automatically.",
+            snippetHint:
+              "Paste the widget snippet here. External domains are detected automatically.",
           },
           iframe: {
             label: "Iframe Widget",
             description: "For embeds via an external URL.",
             urlLabel: "Iframe URL",
-            urlHint: "The embed is generated from this URL. Required frame permissions are set automatically.",
+            urlHint:
+              "The embed is generated from this URL. Required frame permissions are set automatically.",
           },
         },
       },
@@ -3089,6 +3240,74 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Skip",
       importNewNameLabel: "New name",
     },
+    mastodonTemplates: {
+      listTitle: "Mastodon Post Templates",
+      newTemplate: "New Template",
+      templateName: "Name",
+      bodyText: "Post content",
+      deleteTemplate: "Delete template",
+      deleteTemplateConfirm: "Really delete this template?",
+      noTemplates: "No Mastodon post templates yet.",
+      noTemplatesHint: "Create your first template using the + button.",
+      backToList: "← All Templates",
+      save: "Save",
+      saved: "Saved",
+      saveError: "Error saving. Please try again.",
+      nameConflict: "A template with this name already exists.",
+      tableCreated: "Created",
+      previewTitle: "Post preview",
+      emptyPreview: "The preview appears once content is available.",
+      variablesTitle: "Global variables",
+      variablesHint: "You can use these placeholders in the template.",
+      variables: {
+        shopName: "Name of the approved shop",
+        shopUrl: "Original shop URL",
+        shopDescription: "Description from the shop suggestion",
+        shopRegion: "Regions as comma-separated list",
+        shopShipping: "Shipping note",
+        shopPickup: "Pickup note",
+        shopContactEmail: "Shop contact email",
+        shopCategories: "Shop categories",
+        shopPageUrl: "Public detail page on lmaa.space",
+        adminNote: "Comment from the approval dialog",
+        frontendUrl: "Public frontend URL",
+        dashboardUrl: "Dashboard URL",
+      },
+    },
+    socialMedia: {
+      title: "Social Media Accounts",
+      newAccount: "Add Mastodon account",
+      editAccount: "Edit Mastodon account",
+      addAccount: "Save account",
+      mastodonHint: "Automatic posts require a user access token with the write:statuses scope.",
+      noAccounts: "No accounts configured.",
+      noAccountsHint: "Add a Mastodon account for automatic posts.",
+      active: "Active",
+      inactive: "Inactive",
+      tokenStored: "Token stored",
+      tokenMissing: "No token",
+      tokenRequired: "Please enter an access token.",
+      saveError: "Error saving.",
+      deleteAccount: "Delete account?",
+      deleteConfirm: "Really delete this account?",
+      accessTokenPlaceholder: "Mastodon user access token",
+      keepTokenPlaceholder: "Leave empty to keep the current token",
+      fields: {
+        label: "Label",
+        instanceUrl: "Instance URL",
+        username: "Username",
+        accessToken: "Access token",
+        accessTokenOptional: "Access token (optional)",
+        visibility: "Visibility",
+        active: "Active",
+      },
+      visibility: {
+        public: "Public",
+        unlisted: "Unlisted",
+        private: "Private",
+        direct: "Direct",
+      },
+    },
     affiliate: {
       title: "Affiliate",
       searchPlaceholder: "Search shop or network…",
@@ -3195,7 +3414,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         adcellPublisherIdHint: "Your Adcell Publisher ID (found in the Adcell dashboard).",
         adcellApiPasswordLabel: "API Password",
         adcellApiPasswordPlaceholder: "Adcell API Password",
-        adcellApiPasswordHint: "API password from the Adcell dashboard under 'Settings > API Access'.",
+        adcellApiPasswordHint:
+          "API password from the Adcell dashboard under 'Settings > API Access'.",
         validateConnection: "Test connection",
         connectionValid: "Connection successful",
         connectionInvalid: "Connection failed",
