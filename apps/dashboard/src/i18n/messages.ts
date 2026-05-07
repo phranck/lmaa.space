@@ -899,6 +899,43 @@ export interface DashboardMessages {
     exportUnsavedWarning: string;
     moveRow: string;
     removeField: string;
+    textTokensHelp: {
+      open: string;
+      title: string;
+      description: string;
+      notations: {
+        title: string;
+        unicodeTitle: string;
+        unicodeBody: string;
+        namedTitle: string;
+        namedBody: string;
+        entityTitle: string;
+        entityBody: string;
+        edgeCaseNote: string;
+      };
+      tableTitle: string;
+      cols: {
+        token: string;
+        symbol: string;
+        codepoint: string;
+        description: string;
+      };
+      tokens: {
+        nbhy: string;
+        nbsp: string;
+        wj: string;
+        shy: string;
+        ndash: string;
+        mdash: string;
+        zwj: string;
+        zwnj: string;
+      };
+      exampleTitle: string;
+      exampleInputLabel: string;
+      exampleOutputLabel: string;
+      exampleNote: string;
+      close: string;
+    };
   };
   emailTemplates: {
     listTitle: string;
@@ -1958,6 +1995,49 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       exportUnsavedWarning: "Bitte zuerst speichern, bevor du exportierst.",
       moveRow: "Zeile verschieben",
       removeField: "Feld entfernen",
+      textTokensHelp: {
+        open: "Formatierungs-Hilfe",
+        title: "Formatierungs-Tokens",
+        description:
+          "In Bezeichnung, Platzhalter, Hilfstext, Inhalt und Optionen können typografische Sonderzeichen über Tokens eingegeben werden. Sie werden beim Rendern automatisch durch das jeweilige Unicode-Zeichen ersetzt.",
+        notations: {
+          title: "Drei Notationen",
+          unicodeTitle: "Unicode-Notation",
+          unicodeBody:
+            "U+XXXX (4–6 Hex-Ziffern). Beispiel: U+2011 wird zum geschützten Bindestrich ‑.",
+          namedTitle: "Benannte Tokens",
+          namedBody:
+            "{name} mit einem der unten gelisteten Namen. Beispiel: {nbhy} wird zum geschützten Bindestrich ‑.",
+          entityTitle: "HTML-Entities",
+          entityBody:
+            "&#NNN; (dezimal) oder &#xHH; (hexadezimal). Beispiel: &#8209; oder &#x2011; werden zum geschützten Bindestrich ‑.",
+          edgeCaseNote:
+            "Hinweis: U+XXXX funktioniert nur, wenn nach den Hex-Ziffern ein Nicht-Hex-Zeichen folgt (z.B. Leerzeichen, Punkt, Komma). Folgt direkt ein Buchstabe a–f, wird der Token nicht ersetzt — in dem Fall {nbhy} oder &#8209; verwenden.",
+        },
+        tableTitle: "Verfügbare benannte Tokens",
+        cols: {
+          token: "Token",
+          symbol: "Symbol",
+          codepoint: "Codepoint",
+          description: "Beschreibung",
+        },
+        tokens: {
+          nbhy: "Geschützter Bindestrich (kein Zeilenumbruch davor/danach)",
+          nbsp: "Geschütztes Leerzeichen",
+          wj: "Word Joiner (unsichtbar, verhindert Zeilenumbruch)",
+          shy: "Bedingter Trennstrich (nur bei Umbruch sichtbar)",
+          ndash: "Halbgeviertstrich (en dash)",
+          mdash: "Geviertstrich (em dash)",
+          zwj: "Zero-Width Joiner",
+          zwnj: "Zero-Width Non-Joiner",
+        },
+        exampleTitle: "Beispiel",
+        exampleInputLabel: "Eingabe",
+        exampleOutputLabel: "Ergebnis",
+        exampleNote:
+          "Der Bindestrich klebt am folgenden Wort und wird nicht alleine an ein Zeilenende umbrochen.",
+        close: "Schließen",
+      },
     },
     emailTemplates: {
       listTitle: "E-Mail-Templates",
@@ -3025,6 +3105,49 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       exportUnsavedWarning: "Please save before exporting.",
       moveRow: "Move row",
       removeField: "Remove field",
+      textTokensHelp: {
+        open: "Formatting help",
+        title: "Formatting tokens",
+        description:
+          "Label, placeholder, help text, content and options support typographic special characters via tokens. They are automatically replaced with the corresponding Unicode character when rendered.",
+        notations: {
+          title: "Three notations",
+          unicodeTitle: "Unicode notation",
+          unicodeBody:
+            "U+XXXX (4–6 hex digits). Example: U+2011 becomes the non-breaking hyphen ‑.",
+          namedTitle: "Named tokens",
+          namedBody:
+            "{name} using one of the names listed below. Example: {nbhy} becomes the non-breaking hyphen ‑.",
+          entityTitle: "HTML entities",
+          entityBody:
+            "&#NNN; (decimal) or &#xHH; (hex). Example: &#8209; or &#x2011; become the non-breaking hyphen ‑.",
+          edgeCaseNote:
+            "Note: U+XXXX only works when the hex digits are followed by a non-hex character (e.g. space, period, comma). If a letter a–f follows directly, the token is left untouched — in that case use {nbhy} or &#8209; instead.",
+        },
+        tableTitle: "Available named tokens",
+        cols: {
+          token: "Token",
+          symbol: "Symbol",
+          codepoint: "Codepoint",
+          description: "Description",
+        },
+        tokens: {
+          nbhy: "Non-breaking hyphen (no line break before/after)",
+          nbsp: "No-break space",
+          wj: "Word joiner (invisible, prevents line break)",
+          shy: "Soft hyphen (visible only at line break)",
+          ndash: "En dash",
+          mdash: "Em dash",
+          zwj: "Zero-width joiner",
+          zwnj: "Zero-width non-joiner",
+        },
+        exampleTitle: "Example",
+        exampleInputLabel: "Input",
+        exampleOutputLabel: "Result",
+        exampleNote:
+          "The hyphen sticks to the following word and is never wrapped onto its own line.",
+        close: "Close",
+      },
     },
     emailTemplates: {
       listTitle: "Email Templates",

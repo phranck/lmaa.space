@@ -28,5 +28,7 @@ export * from "./utils/social-media.js";
 export * from "./utils/rejection-token.js";
 /** Shop ID encoding/decoding for public URLs. */
 export * from "./utils/shop-token.js";
+/** User-friendly token expansion (`U+XXXX`, `{nbhy}`, `&#8209;`) for plain-text fields. */
+export * from "./utils/text-tokens.js";
 /** Shared footer CSS and style-var helper for frontend and backend preview. */
 export { FOOTER_STYLES_CSS, footerStyleVars, resolveFooterHeightPx } from "./footer-styles.js";

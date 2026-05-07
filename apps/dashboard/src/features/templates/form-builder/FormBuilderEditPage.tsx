@@ -13,6 +13,7 @@ import {
   DownloadIcon,
   GearIcon,
   HandTapIcon,
+  QuestionIcon,
   UploadIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useReducer, useState } from "react";
@@ -37,6 +38,7 @@ import { FieldConfigPanel, fieldTypeLabel } from "@/features/templates/form-buil
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { FieldPalette } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { SubmissionConfigPanel } from "@/features/templates/form-builder/SubmissionConfigPanel.tsx";
+import { TextTokensHelp } from "@/features/templates/form-builder/TextTokensHelp.tsx";
 import { exportFormConfigSingle } from "@/features/templates/hooks/formConfigExport.ts";
 import {
   useFormConfig,
@@ -171,6 +173,8 @@ export function FormBuilderEditPage() {
     { selectedFieldId: null, saveStatus: "idle", showExportWarning: false, activeDrag: null },
   );
   const { selectedFieldId, saveStatus, showExportWarning, activeDrag } = uiState;
+
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const { rows, slug, submissionConfig, isDirty } = formState;
 
@@ -413,6 +417,7 @@ export function FormBuilderEditPage() {
           hasConfig={!!config}
           onExport={handleExport}
           onSave={handleSave}
+          onOpenHelp={() => setHelpOpen(true)}
           m={m}
           savingLabel={messages.common.saving}
         />
@@ -529,6 +534,8 @@ export function FormBuilderEditPage() {
           .filter((f) => !["button", "headline", "separator", "paragraph"].includes(f.type))
           .map((f) => ({ id: f.name || f.id, label: f.label || f.name || f.id }))}
       />
+
+      <TextTokensHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }
@@ -544,6 +551,7 @@ interface BuilderHeaderActionsProps {
   hasConfig: boolean;
   onExport: () => void;
   onSave: () => void;
+  onOpenHelp: () => void;
   m: ReturnType<typeof useI18n>["messages"]["formBuilder"];
   savingLabel: string;
 }
@@ -555,6 +563,7 @@ function BuilderHeaderActions({
   hasConfig,
   onExport,
   onSave,
+  onOpenHelp,
   m,
   savingLabel,
 }: BuilderHeaderActionsProps) {
@@ -563,6 +572,15 @@ function BuilderHeaderActions({
       {showExportWarning && (
         <span className="text-sm text-amber-600 font-medium">{m.exportUnsavedWarning}</span>
       )}
+      <button
+        type="button"
+        onClick={onOpenHelp}
+        title={m.textTokensHelp.open}
+        aria-label={m.textTokensHelp.open}
+        className="flex items-center justify-center w-9 h-9 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
+      >
+        <QuestionIcon weight="duotone" className="w-4 h-4" />
+      </button>
       <button
         type="button"
         onClick={onExport}

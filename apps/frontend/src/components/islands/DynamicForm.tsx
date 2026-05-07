@@ -1,6 +1,6 @@
 import { CaretDownIcon, CaretUpIcon, IconContext } from "@phosphor-icons/react";
 import { SealWarningIcon, XCircleIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useController, useForm, useWatch } from "react-hook-form";
 
 import type { FormConfig, FormField, RichTextVariant } from "@lmaa/contracts";
@@ -12,6 +12,7 @@ import { AlertDialog } from "@lmaa/ui";
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
 import { API_BASE } from "@/lib/client-api";
+import { expandFormConfigText } from "@/lib/expand-form-config";
 import { getSafeActionUrl, getSafeConfigHref } from "@/lib/safe-url";
 
 import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
@@ -1230,7 +1231,9 @@ function FieldRenderer({
  * @param props - Form configuration and available categories.
  * @returns Rendered dynamic form or success screen after submission.
  */
-export default function DynamicForm({ formConfig, categories }: Props) {
+export default function DynamicForm({ formConfig: rawFormConfig, categories }: Props) {
+  const formConfig = useMemo(() => expandFormConfigText(rawFormConfig), [rawFormConfig]);
+
   // --- react-hook-form for simple scalar fields ---
   const {
     register,
