@@ -1,8 +1,4 @@
-import {
-  DndContext,
-  closestCenter,
-  type DragEndEvent,
-} from "@dnd-kit/core";
+import { DndContext, closestCenter, type DragEndEvent } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
@@ -33,10 +29,12 @@ import {
   ImageIcon,
   LinkIcon,
   ListBulletsIcon,
+  MastodonLogoIcon,
   MarkdownLogoIcon,
   NotebookIcon,
   PauseCircleIcon,
   SlidersHorizontalIcon,
+  ShareNetworkIcon,
   SquareHalfBottomIcon,
   SquaresFourIcon,
   StorefrontIcon,
@@ -75,6 +73,7 @@ import {
   useEmailTemplates,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
+import { useMastodonPostTemplates } from "@/features/templates/hooks/useMastodonPostTemplates.ts";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 const SIDEBAR_GROUP_STORAGE_KEYS = [
@@ -82,6 +81,7 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-pages-open",
   "sidebar-forms-open",
   "sidebar-email-templates-open",
+  "sidebar-mastodon-post-templates-open",
 ] as const;
 
 const SIDEBAR_SECTION_IDS = [
@@ -341,6 +341,55 @@ function EmailTemplatesGroup({
   );
 }
 
+function MastodonPostTemplatesGroup({
+  onItemClick,
+  globalOpenState,
+  globalOpenVersion,
+  onOpenChange,
+}: {
+  onItemClick?: () => void;
+  globalOpenState?: boolean | null;
+  globalOpenVersion?: number;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const { messages } = useI18n();
+  const s = messages.layout.sidebar;
+  const { data: templates } = useMastodonPostTemplates();
+
+  return (
+    <CollapsibleSidebarGroup
+      routeMatch="/mastodon-post-templates/*"
+      storageKey="sidebar-mastodon-post-templates-open"
+      icon={<MastodonLogoIcon weight="duotone" className="w-4 h-4" />}
+      label={s.mastodonPostTemplates}
+      badge={templates?.length ?? 0}
+      globalOpenState={globalOpenState}
+      globalOpenVersion={globalOpenVersion}
+      onOpenChange={onOpenChange}
+    >
+      <NavLink
+        to="/mastodon-post-templates"
+        end
+        onClick={onItemClick}
+        className={sidebarGroupItemClass}
+      >
+        {s.mastodonPostTemplatesOverview}
+      </NavLink>
+      {(templates ?? []).map((template) => (
+        <NavLink
+          key={template.id}
+          to={`/mastodon-post-templates/${template.id}`}
+          onClick={onItemClick}
+          className={sidebarGroupItemClass}
+        >
+          <MastodonLogoIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+          <span className="truncate">{template.name}</span>
+        </NavLink>
+      ))}
+    </CollapsibleSidebarGroup>
+  );
+}
+
 function SidebarSubItemBadge({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
@@ -418,7 +467,11 @@ function AffiliateSidebarGroup({
 
   return (
     <DashboardSection>
-      <DashboardSection.Header icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />} title="Affiliate" addOn={dragHandle} />
+      <DashboardSection.Header
+        icon={<HandshakeIcon weight="duotone" className="w-4 h-4" />}
+        title="Affiliate"
+        addOn={dragHandle}
+      />
       <DashboardSection.Body className="!gap-0.5 !p-2">
         <NavLink to="/affiliate" end onClick={onItemClick} className="contents">
           {({ isActive }) => (
@@ -435,7 +488,9 @@ function AffiliateSidebarGroup({
                     </span>
                   )}
                   {scans.length > 0 && (
-                    <span className={`h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0 ${!isScanning ? "ml-auto" : ""}`}>
+                    <span
+                      className={`h-5 min-w-5 flex items-center justify-center px-1.5 rounded-full text-xs font-medium bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] shrink-0 ${!isScanning ? "ml-auto" : ""}`}
+                    >
                       {scans.length}
                     </span>
                   )}
@@ -509,7 +564,10 @@ export function Sidebar({
     setGroupOpenVersion((version) => version + 1);
   }
 
-  function handleGroupOpenChange(storageKey: (typeof SIDEBAR_GROUP_STORAGE_KEYS)[number], open: boolean) {
+  function handleGroupOpenChange(
+    storageKey: (typeof SIDEBAR_GROUP_STORAGE_KEYS)[number],
+    open: boolean,
+  ) {
     setGroupStatus((current) => {
       if (current[storageKey] === open) return current;
       return { ...current, [storageKey]: open };
@@ -561,18 +619,14 @@ export function Sidebar({
             <span className="relative inline-grid overflow-hidden">
               <span
                 className={`col-start-1 row-start-1 transition-all duration-200 ease-out ${
-                  areAllGroupsOpen
-                    ? "-translate-y-1 opacity-0"
-                    : "translate-y-0 opacity-100"
+                  areAllGroupsOpen ? "-translate-y-1 opacity-0" : "translate-y-0 opacity-100"
                 }`}
               >
                 {s.expandAll}
               </span>
               <span
                 className={`col-start-1 row-start-1 transition-all duration-200 ease-out ${
-                  areAllGroupsOpen
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-1 opacity-0"
+                  areAllGroupsOpen ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
                 }`}
               >
                 {s.collapseAll}
@@ -689,6 +743,14 @@ export function Sidebar({
                       handleGroupOpenChange("sidebar-email-templates-open", open)
                     }
                   />
+                  <MastodonPostTemplatesGroup
+                    onItemClick={onItemClick}
+                    globalOpenState={groupOpenState}
+                    globalOpenVersion={groupOpenVersion}
+                    onOpenChange={(open) =>
+                      handleGroupOpenChange("sidebar-mastodon-post-templates-open", open)
+                    }
+                  />
                   <NavLink to="/footer-builder" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
@@ -784,6 +846,15 @@ export function Sidebar({
                       <DashboardSection.Item
                         icon={<SlidersHorizontalIcon weight="duotone" className="w-4 h-4" />}
                         label={s.systemSettings}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
+                  <NavLink to="/social-media/accounts" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.socialMediaAccounts}
                         active={isActive}
                       />
                     )}

@@ -25,6 +25,7 @@ export interface DashboardSectionProps {
 export interface DashboardSectionHeaderProps {
   icon: ReactNode;
   title: string;
+  subtitle?: string;
   /** Optional right-aligned content (e.g. a toggle switch). */
   addOn?: ReactNode;
   className?: string;
@@ -53,12 +54,14 @@ export interface DashboardSectionItemProps {
  * Card-like container for grouping dashboard sections.
  * Supports collapsible mode via the `expanded` prop.
  */
-export function DashboardSection({ children, expanded = true, className = "" }: DashboardSectionProps) {
+export function DashboardSection({
+  children,
+  expanded = true,
+  className = "",
+}: DashboardSectionProps) {
   return (
     <DashboardSectionContext.Provider value={{ expanded }}>
-      <div
-        className={`bg-[var(--ds-section-body-bg)] rounded-xl shadow-sm ${className}`}
-      >
+      <div className={`bg-[var(--ds-section-body-bg)] rounded-xl shadow-sm ${className}`}>
         {children}
       </div>
     </DashboardSectionContext.Provider>
@@ -69,7 +72,13 @@ export function DashboardSection({ children, expanded = true, className = "" }: 
 /*  DashboardSection.Header                                           */
 /* ------------------------------------------------------------------ */
 
-function DashboardSectionHeader({ icon, title, addOn, className = "" }: DashboardSectionHeaderProps) {
+function DashboardSectionHeader({
+  icon,
+  title,
+  subtitle,
+  addOn,
+  className = "",
+}: DashboardSectionHeaderProps) {
   const { expanded } = useContext(DashboardSectionContext);
 
   return (
@@ -79,8 +88,15 @@ function DashboardSectionHeader({ icon, title, addOn, className = "" }: Dashboar
       } ${className}`}
     >
       <span className="shrink-0 text-[var(--ds-text-muted)]">{icon}</span>
-      <span className="text-lg font-medium font-serif text-[var(--ds-text)]">{title}</span>
-      {addOn && <span className="ml-auto flex items-center">{addOn}</span>}
+      <span className="min-w-0 flex-1">
+        <span className="block text-lg font-medium font-serif text-[var(--ds-text)]">{title}</span>
+        {subtitle && (
+          <span className="block truncate text-xs font-sans text-[var(--ds-text-muted)]">
+            {subtitle}
+          </span>
+        )}
+      </span>
+      {addOn && <span className="ml-auto flex shrink-0 items-center">{addOn}</span>}
     </div>
   );
 }
@@ -89,16 +105,18 @@ function DashboardSectionHeader({ icon, title, addOn, className = "" }: Dashboar
 /*  DashboardSection.Body (animated collapsible via grid-rows trick)  */
 /* ------------------------------------------------------------------ */
 
-function DashboardSectionBody({ children, className = "" }: { children: ReactNode; className?: string }) {
+function DashboardSectionBody({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   const { expanded } = useContext(DashboardSectionContext);
 
   if (!expanded) return null;
 
-  return (
-    <div className={`flex flex-col gap-3 p-3 ${className}`}>
-      {children}
-    </div>
-  );
+  return <div className={`flex flex-col gap-3 p-3 ${className}`}>{children}</div>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -138,12 +156,16 @@ function DashboardSectionItem({
           : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
       } ${className}`}
       onClick={onClick}
-      onKeyDown={onClick ? (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      } : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
     >
       <span className="shrink-0 opacity-70">{icon}</span>
       <span className="flex-1">{label}</span>
