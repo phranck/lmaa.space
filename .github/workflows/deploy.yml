@@ -8,15 +8,15 @@ on:
       backend:
         description: "Deploy backend"
         type: boolean
-        default: false
+        default: true
       website:
         description: "Deploy website"
         type: boolean
-        default: false
+        default: true
       dashboard:
         description: "Deploy dashboard"
         type: boolean
-        default: false
+        default: true
 
 jobs:
   quality-gate:
@@ -44,55 +44,9 @@ jobs:
       - run: npm run build -w @lmaa/shared
       - run: npm test -w @lmaa/backend
 
-  detect-changes:
-    needs: [quality-gate, test]
-    runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.manual.outputs.backend || steps.filter.outputs.backend }}
-      website: ${{ steps.manual.outputs.website || steps.filter.outputs.website }}
-      dashboard: ${{ steps.manual.outputs.dashboard || steps.filter.outputs.dashboard }}
-    steps:
-      - name: Resolve manual deploy targets
-        if: github.event_name == 'workflow_dispatch'
-        id: manual
-        run: |
-          echo "backend=${{ inputs.backend && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
-          echo "website=${{ inputs.website && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
-          echo "dashboard=${{ inputs.dashboard && 'true' || 'false' }}" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v6
-        if: github.event_name != 'workflow_dispatch'
-      - uses: dorny/paths-filter@v4
-        if: github.event_name != 'workflow_dispatch'
-        id: filter
-        with:
-          filters: |
-            backend:
-              - 'apps/backend/**'
-              - 'packages/shared/**'
-              - 'packages/contracts/**'
-              - 'package.json'
-              - 'package-lock.json'
-              - 'zerops.yml'
-            website:
-              - 'apps/frontend/**'
-              - 'packages/shared/**'
-              - 'packages/ui/**'
-              - 'packages/contracts/**'
-              - 'package.json'
-              - 'package-lock.json'
-              - 'zerops.yml'
-            dashboard:
-              - 'apps/dashboard/**'
-              - 'packages/shared/**'
-              - 'packages/ui/**'
-              - 'packages/contracts/**'
-              - 'package.json'
-              - 'package-lock.json'
-              - 'zerops.yml'
-
   deploy-backend:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
+    needs: test
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -102,8 +56,8 @@ jobs:
           service-id: ${{ secrets.ZEROPS_BACKEND_SERVICE_ID }}
 
   deploy-website:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.website == 'true'
+    needs: test
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.website)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -113,8 +67,8 @@ jobs:
           service-id: ${{ secrets.ZEROPS_WEBSITE_SERVICE_ID }}
 
   deploy-dashboard:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.dashboard == 'true'
+    needs: test
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dashboard)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -124,15 +78,15 @@ jobs:
           service-id: ${{ secrets.ZEROPS_DASHBOARD_SERVICE_ID }}
 
   smoke-prod:
-    needs: [quality-gate, detect-changes, deploy-backend, deploy-website, deploy-dashboard]
+    needs: [deploy-backend, deploy-website, deploy-dashboard]
     if: |
       always() &&
-      needs.quality-gate.result == 'success' &&
-      needs.detect-changes.result == 'success' &&
-      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.website == 'true') &&
-      (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped') &&
-      (needs.deploy-website.result == 'success' || needs.deploy-website.result == 'skipped') &&
-      (needs.deploy-dashboard.result == 'success' || needs.deploy-dashboard.result == 'skipped')
+      needs.deploy-backend.result != 'failure' &&
+      needs.deploy-website.result != 'failure' &&
+      needs.deploy-dashboard.result != 'failure' &&
+      (needs.deploy-backend.result == 'success' ||
+       needs.deploy-website.result == 'success' ||
+       needs.deploy-dashboard.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
