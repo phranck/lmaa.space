@@ -64,6 +64,7 @@ import {
   getManagedPublicStats,
   getPublicFilterOptions,
   hashIp,
+  isAmazonStoreHostname,
   normalizeShopHostname,
   searchFilteredPublicCatalog,
   searchManagedPublicCatalog,
@@ -244,6 +245,36 @@ describe("searchManagedPublicCatalog", () => {
   });
 });
 
+describe("isAmazonStoreHostname", () => {
+  it("matches plain Amazon storefront domains", () => {
+    expect(isAmazonStoreHostname("amazon.de")).toBe(true);
+    expect(isAmazonStoreHostname("amazon.com")).toBe(true);
+    expect(isAmazonStoreHostname("amazon.co.uk")).toBe(true);
+    expect(isAmazonStoreHostname("amazon.com.br")).toBe(true);
+    expect(isAmazonStoreHostname("amazon.co.jp")).toBe(true);
+  });
+
+  it("matches Amazon shorteners", () => {
+    expect(isAmazonStoreHostname("amzn.to")).toBe(true);
+    expect(isAmazonStoreHostname("amzn.eu")).toBe(true);
+  });
+
+  it("matches subdomains of Amazon storefronts", () => {
+    expect(isAmazonStoreHostname("kindle.amazon.de")).toBe(true);
+    expect(isAmazonStoreHostname("smile.amazon.com")).toBe(true);
+  });
+
+  it("is case-insensitive", () => {
+    expect(isAmazonStoreHostname("AMAZON.DE")).toBe(true);
+  });
+
+  it("does not match unrelated domains containing the word amazon", () => {
+    expect(isAmazonStoreHostname("notamazon.com")).toBe(false);
+    expect(isAmazonStoreHostname("amazon.example.com")).toBe(false);
+    expect(isAmazonStoreHostname("example.com")).toBe(false);
+  });
+});
+
 describe("validateShopUrl", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -252,12 +283,43 @@ describe("validateShopUrl", () => {
     expect(result).toEqual({ status: "available" });
   });
 
-  it("returns published when shop exists", async () => {
-    publicRepoMocks.findShopByDomain.mockResolvedValue({ name: "Shop", visibility: "public" });
+  it("returns published with detail link when shop exists", async () => {
+    publicRepoMocks.findShopByDomain.mockResolvedValue({
+      id: 42,
+      name: "Shop",
+      visibility: "public",
+    });
 
     const result = await validateShopUrl("https://shop.de");
 
-    expect(result).toEqual({ status: "published", shopName: "Shop" });
+    expect(result).toEqual({
+      status: "published",
+      shopName: "Shop",
+      shopUrl: expect.stringMatching(/^\/shop\/[a-z0-9]+$/),
+    });
+  });
+
+  it("returns published with RickRoll for Amazon URLs without DB lookup", async () => {
+    const result = await validateShopUrl("https://www.amazon.de/dp/B000123");
+
+    expect(result).toEqual({
+      status: "published",
+      shopName: "Amazon",
+      shopUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    });
+    expect(publicRepoMocks.findShopByDomain).not.toHaveBeenCalled();
+    expect(publicRepoMocks.findRejectedSubmissionByDomain).not.toHaveBeenCalled();
+    expect(publicRepoMocks.findPendingSubmissionByDomain).not.toHaveBeenCalled();
+  });
+
+  it("returns published with RickRoll for amzn.to short links", async () => {
+    const result = await validateShopUrl("https://amzn.to/3xyz");
+
+    expect(result).toEqual({
+      status: "published",
+      shopName: "Amazon",
+      shopUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    });
   });
 
   it("returns rejected with URL when shop is rejected", async () => {

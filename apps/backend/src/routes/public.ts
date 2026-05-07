@@ -152,6 +152,7 @@ publicRoutes.post(
             message: "Der Shop ist bereits eingetragen.",
             status: "published",
             shopName: urlCheck.shopName,
+            shopUrl: urlCheck.shopUrl,
           },
         });
       }
