@@ -87,22 +87,33 @@ export const envSchema = z
         message: "TRUST_PROXY_IP_HEADER must be cf-connecting-ip in production",
       });
     }
+
+    if (data.NODE_ENV !== "production" && !data.DASHBOARD_URL) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["DASHBOARD_URL"],
+        message:
+          "DASHBOARD_URL is required in non-production. Define it in .env.local — manually or via pewee.",
+      });
+    }
+
+    if (data.NODE_ENV !== "production" && !data.FRONTEND_URL) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["FRONTEND_URL"],
+        message:
+          "FRONTEND_URL is required in non-production. Define it in .env.local — manually or via pewee.",
+      });
+    }
   })
   .transform((data) => ({
     ...data,
     IP_HASH_SALT: data.IP_HASH_SALT ?? DEFAULT_IP_HASH_SALT,
     DATABASE_URL_MIGRATOR: data.DATABASE_URL_MIGRATOR ?? data.DATABASE_URL,
     RUN_MIGRATIONS_ON_STARTUP: data.RUN_MIGRATIONS_ON_STARTUP === "true",
-    DASHBOARD_URL:
-      data.DASHBOARD_URL ??
-      (data.NODE_ENV === "production"
-        ? "https://dashboard.lmaa.space"
-        : "http://localhost:5174"),
-    FRONTEND_URL:
-      data.FRONTEND_URL ??
-      (data.NODE_ENV === "production"
-        ? "https://lmaa.space"
-        : "http://localhost:4321"),
+    // Production-only fallbacks; non-prod paths are blocked by superRefine above.
+    DASHBOARD_URL: data.DASHBOARD_URL ?? "https://dashboard.lmaa.space",
+    FRONTEND_URL: data.FRONTEND_URL ?? "https://lmaa.space",
   }));
 
 /**

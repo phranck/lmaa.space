@@ -22,12 +22,17 @@ const WEBSITE_CONTENT_SECURITY_POLICY = [
   "form-action 'self'",
 ].join("; ");
 
-const DASHBOARD_FRAME_ANCESTORS_DEFAULT =
-  "https://dashboard.lmaa.space http://localhost:5174";
+function resolveDashboardOriginForCsp(): string {
+  const explicit = process.env.DASHBOARD_URL?.trim();
+  if (explicit) return explicit;
+  if (process.env.NODE_ENV === "production") return "https://dashboard.lmaa.space";
+  throw new Error(
+    "Missing DASHBOARD_URL. Define it in .env.local — manually or via pewee.",
+  );
+}
 
 function buildFooterPreviewCsp(): string {
-  const dashboardUrl =
-    process.env.DASHBOARD_URL?.trim() || DASHBOARD_FRAME_ANCESTORS_DEFAULT;
+  const dashboardUrl = resolveDashboardOriginForCsp();
   return [
     "default-src 'self'",
     "base-uri 'self'",
