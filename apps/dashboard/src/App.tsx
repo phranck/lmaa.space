@@ -167,18 +167,6 @@ const FooterBuilderPage = lazy(() =>
   })),
 );
 
-const AffiliateListPage = lazy(() =>
-  import("@/features/affiliate/AffiliateListPage.tsx").then((m) => ({
-    default: m.AffiliateListPage,
-  })),
-);
-
-const AffiliateSettingsPage = lazy(() =>
-  import("@/features/affiliate/AffiliateSettingsPage.tsx").then((m) => ({
-    default: m.AffiliateSettingsPage,
-  })),
-);
-
 const SystemSettingsPage = lazy(() =>
   import("@/features/system/settings/SystemSettingsPage.tsx").then((m) => ({
     default: m.SystemSettingsPage,
@@ -472,22 +460,6 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <FooterBuilderPage />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="affiliate"
-                element={
-                  <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <AffiliateListPage />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="affiliate/settings"
-                element={
-                  <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <AffiliateSettingsPage />
                   </Suspense>
                 }
               />

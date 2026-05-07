@@ -20,7 +20,7 @@ import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
 import { getCurrentHeroImage } from "../services/hero.js";
-import { ZeropsApiRequestError, ZeropsClient } from "../services/network-clients/zerops-client.js";
+import { ZeropsApiRequestError, ZeropsClient } from "../services/zerops-client.js";
 import {
   validateShopUrl,
   createManagedDeadLinkReport,

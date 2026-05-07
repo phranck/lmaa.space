@@ -41,7 +41,7 @@ vi.mock("../middleware/auth.js", () => ({
 
 vi.mock("../config/env.js", () => envMock);
 
-vi.mock("../services/network-clients/zerops-client.js", () => ({
+vi.mock("../services/zerops-client.js", () => ({
   // Regular function (not arrow) so it can be used as a constructor with `new`.
   // Returning an explicit object from a constructor replaces `this`.
   ZeropsClient: vi.fn(function MockZeropsClient() {

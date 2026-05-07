@@ -57,8 +57,6 @@ export interface DashboardMessages {
       systemSettings: string;
       socialMediaAccounts: string;
       backgroundErrors: string;
-      affiliate: string;
-      affiliateSettings: string;
       expandAll: string;
       collapseAll: string;
       expandAllAria: string;
@@ -1006,119 +1004,6 @@ export interface DashboardMessages {
       status: string;
     };
   };
-  affiliate: {
-    title: string;
-    searchPlaceholder: string;
-    noScans: string;
-    noScansHint: string;
-    scanAll: string;
-    scanShop: string;
-    scanning: string;
-    importLabel: string;
-    exportLabel: string;
-    ollamaUnavailable: string;
-    deleteTitle: string;
-    deleteDescription: string;
-    stats: {
-      total: string;
-      withProgram: string;
-      withoutProgram: string;
-    };
-    status: {
-      direct: string;
-      network: string;
-      inquiry: string;
-      none: string;
-    };
-    tracking: {
-      open: string;
-      contacted: string;
-      confirmed: string;
-      rejected: string;
-      closed: string;
-    };
-    filters: {
-      allStatus: string;
-      allTracking: string;
-    };
-    table: {
-      shop: string;
-      status: string;
-      network: string;
-      commission: string;
-      tracking: string;
-      scannedAt: string;
-      actions: string;
-    };
-    detail: {
-      programUrl: string;
-      applicationUrl: string;
-      contactEmail: string;
-      compensationModel: string;
-      cookieDuration: string;
-      payoutThreshold: string;
-      requirements: string;
-      notes: string;
-      recommendation: string;
-      trackingNote: string;
-      trackingNotePlaceholder: string;
-      lastUpdated: string;
-      applyAtNetwork: string;
-      matchProgram: string;
-      matchingProgram: string;
-      programMatched: string;
-      noProgramMatch: string;
-      networkProgramId: string;
-    };
-    batch: {
-      running: string;
-      progress: string;
-      cancel: string;
-      cancelling: string;
-      completed: string;
-      failed: string;
-      cancelled: string;
-    };
-    import: {
-      success: string;
-      skipped: string;
-    };
-    settings: {
-      title: string;
-      ollamaSection: string;
-      hostLabel: string;
-      hostPlaceholder: string;
-      hostHint: string;
-      apiKeyLabel: string;
-      apiKeyPlaceholder: string;
-      apiKeyHint: string;
-      awinSection: string;
-      awinPublisherIdLabel: string;
-      awinPublisherIdPlaceholder: string;
-      awinPublisherIdHint: string;
-      awinApiTokenLabel: string;
-      awinApiTokenPlaceholder: string;
-      awinApiTokenHint: string;
-      tradedoublerSection: string;
-      tradedoublerPublisherIdLabel: string;
-      tradedoublerPublisherIdPlaceholder: string;
-      tradedoublerPublisherIdHint: string;
-      tradedoublerTokenLabel: string;
-      tradedoublerTokenPlaceholder: string;
-      tradedoublerTokenHint: string;
-      adcellSection: string;
-      adcellPublisherIdLabel: string;
-      adcellPublisherIdPlaceholder: string;
-      adcellPublisherIdHint: string;
-      adcellApiPasswordLabel: string;
-      adcellApiPasswordPlaceholder: string;
-      adcellApiPasswordHint: string;
-      validateConnection: string;
-      connectionValid: string;
-      connectionInvalid: string;
-      validating: string;
-    };
-  };
   system: {
     settings: {
       title: string;
@@ -1216,8 +1101,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         systemSettings: "Einstellungen",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Hintergrundfehler",
-        affiliate: "Affiliate",
-        affiliateSettings: "Einstellungen",
         expandAll: "Alles aufklappen",
         collapseAll: "Alles zuklappen",
         expandAllAria: "Alle Gruppen aufklappen",
@@ -2198,120 +2081,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         status: "Status",
       },
     },
-    affiliate: {
-      title: "Affiliate",
-      searchPlaceholder: "Shop oder Netzwerk suchen…",
-      noScans: "Noch keine Scan-Ergebnisse.",
-      noScansHint: "Starte einen Scan oder importiere bestehende Daten.",
-      scanAll: "Alle scannen",
-      scanShop: "Shop scannen",
-      scanning: "Wird gescannt…",
-      importLabel: "Importieren",
-      exportLabel: "Exportieren",
-      ollamaUnavailable: "Ollama nicht erreichbar. Scans sind deaktiviert.",
-      deleteTitle: "Scan-Ergebnis löschen?",
-      deleteDescription: "Das Scan-Ergebnis wird dauerhaft entfernt.",
-      stats: {
-        total: "Gesamt",
-        withProgram: "Mit Programm",
-        withoutProgram: "Ohne Programm",
-      },
-      status: {
-        direct: "Direkt",
-        network: "Netzwerk",
-        inquiry: "Anfrage",
-        none: "Keins",
-      },
-      tracking: {
-        open: "Offen",
-        contacted: "Kontaktiert",
-        confirmed: "Bestätigt",
-        rejected: "Abgelehnt",
-        closed: "Eingestellt",
-      },
-      filters: {
-        allStatus: "Alle Status",
-        allTracking: "Alle Tracking",
-      },
-      table: {
-        shop: "Shop",
-        status: "Status",
-        network: "Netzwerk",
-        commission: "Provision",
-        tracking: "Tracking",
-        scannedAt: "Gescannt",
-        actions: "Aktionen",
-      },
-      detail: {
-        programUrl: "Programm-URL",
-        applicationUrl: "Bewerbungs-URL",
-        contactEmail: "Kontakt-E-Mail",
-        compensationModel: "Vergütungsmodell",
-        cookieDuration: "Cookie-Laufzeit",
-        payoutThreshold: "Mindestauszahlung",
-        requirements: "Anforderungen",
-        notes: "Notizen",
-        recommendation: "Empfehlung",
-        trackingNote: "Tracking-Notiz",
-        trackingNotePlaceholder: "Notiz zum Outreach-Status…",
-        lastUpdated: "Zuletzt aktualisiert",
-        applyAtNetwork: "Beim Netzwerk bewerben",
-        matchProgram: "Programm suchen",
-        matchingProgram: "Suche…",
-        programMatched: "Programm gefunden",
-        noProgramMatch: "Kein Programm gefunden",
-        networkProgramId: "Netzwerk-Programm-ID",
-      },
-      batch: {
-        running: "Batch-Scan läuft",
-        progress: "{completed}/{total} abgeschlossen",
-        cancel: "Abbrechen",
-        cancelling: "Wird abgebrochen…",
-        completed: "Scan abgeschlossen",
-        failed: "Scan fehlgeschlagen",
-        cancelled: "Scan abgebrochen",
-      },
-      import: {
-        success: "{n} Ergebnisse importiert",
-        skipped: "{n} übersprungen (Shop nicht gefunden)",
-      },
-      settings: {
-        title: "Einstellungen",
-        ollamaSection: "Ollama (LLM-Provider)",
-        hostLabel: "Host-URL",
-        hostPlaceholder: "http://localhost:11434",
-        hostHint: "URL der Ollama-Instanz. Leer lassen fuer den Standard (localhost:11434).",
-        apiKeyLabel: "API Key",
-        apiKeyPlaceholder: "Ollama Cloud API Key",
-        apiKeyHint: "Nur fuer Ollama Cloud erforderlich. Wird als Bearer-Token gesendet.",
-        awinSection: "Awin",
-        awinPublisherIdLabel: "Publisher-ID",
-        awinPublisherIdPlaceholder: "z.B. 123456",
-        awinPublisherIdHint: "Deine Awin Publisher-ID (zu finden im Awin-Dashboard).",
-        awinApiTokenLabel: "API-Token",
-        awinApiTokenPlaceholder: "Awin API Token",
-        awinApiTokenHint: "API-Token aus dem Awin-Dashboard unter 'API Credentials'.",
-        tradedoublerSection: "Tradedoubler",
-        tradedoublerPublisherIdLabel: "Publisher-ID",
-        tradedoublerPublisherIdPlaceholder: "z.B. 789012",
-        tradedoublerPublisherIdHint: "Deine Tradedoubler Publisher-ID.",
-        tradedoublerTokenLabel: "API-Token",
-        tradedoublerTokenPlaceholder: "Tradedoubler API Token",
-        tradedoublerTokenHint: "Token aus dem Tradedoubler-Dashboard unter 'Manage tokens'.",
-        adcellSection: "Adcell",
-        adcellPublisherIdLabel: "Publisher-ID",
-        adcellPublisherIdPlaceholder: "z.B. 345678",
-        adcellPublisherIdHint: "Deine Adcell Publisher-ID (zu finden im Adcell-Dashboard).",
-        adcellApiPasswordLabel: "API-Passwort",
-        adcellApiPasswordPlaceholder: "Adcell API Passwort",
-        adcellApiPasswordHint:
-          "API-Passwort aus dem Adcell-Dashboard unter 'Einstellungen > API-Zugang'.",
-        validateConnection: "Verbindung testen",
-        connectionValid: "Verbindung erfolgreich",
-        connectionInvalid: "Verbindung fehlgeschlagen",
-        validating: "Teste...",
-      },
-    },
     system: {
       settings: {
         title: "Einstellungen",
@@ -2405,8 +2174,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         systemSettings: "Settings",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Background Errors",
-        affiliate: "Affiliate",
-        affiliateSettings: "Settings",
         expandAll: "Expand all",
         collapseAll: "Collapse all",
         expandAllAria: "Expand all groups",
@@ -3379,120 +3146,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         visibility: "Visibility",
         token: "Token",
         status: "Status",
-      },
-    },
-    affiliate: {
-      title: "Affiliate",
-      searchPlaceholder: "Search shop or network…",
-      noScans: "No scan results yet.",
-      noScansHint: "Start a scan or import existing data.",
-      scanAll: "Scan all",
-      scanShop: "Scan shop",
-      scanning: "Scanning…",
-      importLabel: "Import",
-      exportLabel: "Export",
-      ollamaUnavailable: "Ollama unavailable. Scans are disabled.",
-      deleteTitle: "Delete scan result?",
-      deleteDescription: "The scan result will be permanently removed.",
-      stats: {
-        total: "Total",
-        withProgram: "With program",
-        withoutProgram: "Without program",
-      },
-      status: {
-        direct: "Direct",
-        network: "Network",
-        inquiry: "Inquiry",
-        none: "None",
-      },
-      tracking: {
-        open: "Open",
-        contacted: "Contacted",
-        confirmed: "Confirmed",
-        rejected: "Rejected",
-        closed: "Closed",
-      },
-      filters: {
-        allStatus: "All statuses",
-        allTracking: "All tracking",
-      },
-      table: {
-        shop: "Shop",
-        status: "Status",
-        network: "Network",
-        commission: "Commission",
-        tracking: "Tracking",
-        scannedAt: "Scanned",
-        actions: "Actions",
-      },
-      detail: {
-        programUrl: "Program URL",
-        applicationUrl: "Application URL",
-        contactEmail: "Contact email",
-        compensationModel: "Compensation model",
-        cookieDuration: "Cookie duration",
-        payoutThreshold: "Payout threshold",
-        requirements: "Requirements",
-        notes: "Notes",
-        recommendation: "Recommendation",
-        trackingNote: "Tracking note",
-        trackingNotePlaceholder: "Note about outreach status…",
-        lastUpdated: "Last updated",
-        applyAtNetwork: "Apply at network",
-        matchProgram: "Match program",
-        matchingProgram: "Matching…",
-        programMatched: "Program matched",
-        noProgramMatch: "No program found",
-        networkProgramId: "Network program ID",
-      },
-      batch: {
-        running: "Batch scan running",
-        progress: "{completed}/{total} completed",
-        cancel: "Cancel",
-        cancelling: "Cancelling…",
-        completed: "Scan completed",
-        failed: "Scan failed",
-        cancelled: "Scan cancelled",
-      },
-      import: {
-        success: "{n} results imported",
-        skipped: "{n} skipped (shop not found)",
-      },
-      settings: {
-        title: "Settings",
-        ollamaSection: "Ollama (LLM Provider)",
-        hostLabel: "Host URL",
-        hostPlaceholder: "http://localhost:11434",
-        hostHint: "URL of the Ollama instance. Leave empty for default (localhost:11434).",
-        apiKeyLabel: "API Key",
-        apiKeyPlaceholder: "Ollama Cloud API Key",
-        apiKeyHint: "Only required for Ollama Cloud. Sent as Bearer token.",
-        awinSection: "Awin",
-        awinPublisherIdLabel: "Publisher ID",
-        awinPublisherIdPlaceholder: "e.g. 123456",
-        awinPublisherIdHint: "Your Awin Publisher ID (found in the Awin dashboard).",
-        awinApiTokenLabel: "API Token",
-        awinApiTokenPlaceholder: "Awin API Token",
-        awinApiTokenHint: "API token from the Awin dashboard under 'API Credentials'.",
-        tradedoublerSection: "Tradedoubler",
-        tradedoublerPublisherIdLabel: "Publisher ID",
-        tradedoublerPublisherIdPlaceholder: "e.g. 789012",
-        tradedoublerPublisherIdHint: "Your Tradedoubler Publisher ID.",
-        tradedoublerTokenLabel: "API Token",
-        tradedoublerTokenPlaceholder: "Tradedoubler API Token",
-        tradedoublerTokenHint: "Token from the Tradedoubler dashboard under 'Manage tokens'.",
-        adcellSection: "Adcell",
-        adcellPublisherIdLabel: "Publisher ID",
-        adcellPublisherIdPlaceholder: "e.g. 345678",
-        adcellPublisherIdHint: "Your Adcell Publisher ID (found in the Adcell dashboard).",
-        adcellApiPasswordLabel: "API Password",
-        adcellApiPasswordPlaceholder: "Adcell API Password",
-        adcellApiPasswordHint:
-          "API password from the Adcell dashboard under 'Settings > API Access'.",
-        validateConnection: "Test connection",
-        connectionValid: "Connection successful",
-        connectionInvalid: "Connection failed",
-        validating: "Testing...",
       },
     },
     system: {

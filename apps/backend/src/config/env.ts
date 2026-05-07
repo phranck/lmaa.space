@@ -50,7 +50,6 @@ export const envSchema = z
     UMAMI_PASSWORD: z.string().optional().default(""),
     UMAMI_WEBSITE_ID: z.string().optional().default(""),
     UNSPLASH_ACCESS_KEY: z.string().optional(),
-    OLLAMA_HOST: z.string().optional(),
     VAPID_PUBLIC_KEY: z.string().optional(),
     VAPID_PRIVATE_KEY: z.string().optional(),
     VAPID_SUBJECT: z.string().default("mailto:hallo@lmaa.space"),
