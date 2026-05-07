@@ -3,6 +3,7 @@ import {
   CopyIcon,
   DownloadIcon,
   FileTextIcon,
+  MastodonLogoIcon,
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
@@ -11,16 +12,17 @@ import { Suspense, lazy } from "react";
 import type { Submission } from "@lmaa/shared";
 import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
 
-const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
-);
+const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
 
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { NotificationTemplateSelect, RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, type useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import type { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
-import type { useDeleteSubmission, useReviewSubmission } from "@/features/overview/hooks/useSubmissions.ts";
+import type {
+  useDeleteSubmission,
+  useReviewSubmission,
+} from "@/features/overview/hooks/useSubmissions.ts";
 import type { ReviewAction, ReviewState } from "@/features/overview/submission-review-state.ts";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 
@@ -32,12 +34,14 @@ interface SubmissionDialogsProps {
   reviewMutation: ReturnType<typeof useReviewSubmission>;
   deleteMutation: ReturnType<typeof useDeleteSubmission>;
   emailTemplates: Array<{ id: number; name: string }>;
+  mastodonTemplates: Array<{ id: number; name: string }>;
   controller: ReturnType<typeof useShopEditorController>;
   combinedSavedPhase: ReturnType<typeof useSaveNotification>["phase"];
   showDeleteDialog: boolean;
   setShowDeleteDialog: (open: boolean) => void;
   handleApprove: (close?: boolean) => Promise<void>;
   handleReject: () => void;
+  handleMastodonTemplateChange: (value: number | undefined) => void;
   navigateBack: () => void;
   common: DashboardMessages["common"];
   submissionsMessages: DashboardMessages["submissions"];
@@ -51,12 +55,14 @@ export function SubmissionDialogs({
   reviewMutation,
   deleteMutation,
   emailTemplates,
+  mastodonTemplates,
   controller,
   combinedSavedPhase,
   showDeleteDialog,
   setShowDeleteDialog,
   handleApprove,
   handleReject,
+  handleMastodonTemplateChange,
   navigateBack,
   common,
   submissionsMessages,
@@ -95,6 +101,12 @@ export function SubmissionDialogs({
         notificationNoneLabel={submissionsMessages.suggestions.notificationNone}
         notificationHint={submissionsMessages.suggestions.notificationHint}
         hasSubmitterEmail={!!submitterEmail}
+        mastodonTemplates={mastodonTemplates}
+        mastodonTemplateId={reviewState.mastodonTemplateId}
+        onMastodonTemplateChange={handleMastodonTemplateChange}
+        mastodonNotificationLabel={submissionsMessages.suggestions.mastodonNotificationLabel}
+        mastodonNotificationNoneLabel={submissionsMessages.suggestions.mastodonNotificationNone}
+        mastodonNotificationHint={submissionsMessages.suggestions.mastodonNotificationHint}
       />
 
       <RejectDialog
@@ -271,6 +283,12 @@ interface ApproveSubmissionReviewCardProps {
   notificationNoneLabel: string;
   notificationHint: string;
   hasSubmitterEmail: boolean;
+  mastodonTemplates: Array<{ id: number; name: string }>;
+  mastodonTemplateId: number | undefined;
+  onMastodonTemplateChange: (value: number | undefined) => void;
+  mastodonNotificationLabel: string;
+  mastodonNotificationNoneLabel: string;
+  mastodonNotificationHint: string;
 }
 
 function ApproveSubmissionReviewCard({
@@ -301,6 +319,12 @@ function ApproveSubmissionReviewCard({
   notificationNoneLabel,
   notificationHint,
   hasSubmitterEmail,
+  mastodonTemplates,
+  mastodonTemplateId,
+  onMastodonTemplateChange,
+  mastodonNotificationLabel,
+  mastodonNotificationNoneLabel,
+  mastodonNotificationHint,
 }: ApproveSubmissionReviewCardProps) {
   return (
     <OverlayCard
@@ -336,7 +360,11 @@ function ApproveSubmissionReviewCard({
           <FormLabel htmlFor="submission-editor-admin-note">
             {commentLabel} <FormOptional>{optionalLabel}</FormOptional>
           </FormLabel>
-          <Suspense fallback={<div className="h-[4.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+          <Suspense
+            fallback={
+              <div className="h-[4.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+            }
+          >
             <MarkdownEditor
               id="submission-editor-admin-note"
               value={adminNote}
@@ -357,6 +385,15 @@ function ApproveSubmissionReviewCard({
           notificationNoneLabel={notificationNoneLabel}
           notificationHint={notificationHint}
           hasSubmitterEmail={hasSubmitterEmail}
+        />
+
+        <MastodonTemplateSelect
+          mastodonTemplates={mastodonTemplates}
+          mastodonTemplateId={mastodonTemplateId}
+          onMastodonTemplateChange={onMastodonTemplateChange}
+          label={mastodonNotificationLabel}
+          noneLabel={mastodonNotificationNoneLabel}
+          hint={mastodonNotificationHint}
         />
 
         {(isError || formSaveErrorMessage) && (
@@ -391,5 +428,48 @@ function ApproveSubmissionReviewCard({
         </button>
       </OverlayCard.Footer>
     </OverlayCard>
+  );
+}
+
+interface MastodonTemplateSelectProps {
+  mastodonTemplates: Array<{ id: number; name: string }>;
+  mastodonTemplateId: number | undefined;
+  onMastodonTemplateChange: (value: number | undefined) => void;
+  label: string;
+  noneLabel: string;
+  hint: string;
+}
+
+function MastodonTemplateSelect({
+  mastodonTemplates,
+  mastodonTemplateId,
+  onMastodonTemplateChange,
+  label,
+  noneLabel,
+  hint,
+}: MastodonTemplateSelectProps) {
+  return (
+    <div className="rounded-lg border border-[var(--ds-border)] p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <MastodonLogoIcon weight="duotone" className="h-4 w-4 text-[var(--ds-text-muted)]" />
+        <span className="text-sm font-medium text-[var(--ds-text)]">{label}</span>
+      </div>
+      <select
+        value={mastodonTemplateId ?? ""}
+        onChange={(event) => {
+          const value = event.target.value;
+          onMastodonTemplateChange(value ? Number(value) : undefined);
+        }}
+        className="h-9 w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 text-sm text-[var(--ds-text)]"
+      >
+        <option value="">{noneLabel}</option>
+        {mastodonTemplates.map((template) => (
+          <option key={template.id} value={template.id}>
+            {template.name}
+          </option>
+        ))}
+      </select>
+      <p className="mt-1.5 text-xs text-[var(--ds-text-subtle)]">{hint}</p>
+    </div>
   );
 }

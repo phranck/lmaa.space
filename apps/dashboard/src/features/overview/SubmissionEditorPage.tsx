@@ -1,7 +1,7 @@
 import { useReducer, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
-import { type Submission, generateRejectionToken } from "@lmaa/shared";
+import { SETTINGS_KEYS, type Submission, generateRejectionToken } from "@lmaa/shared";
 
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -13,13 +13,15 @@ import {
   useDeleteSubmission,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
-import {
-  EMPTY_REVIEW_STATE,
-  reviewReducer,
-} from "@/features/overview/submission-review-state.ts";
+import { EMPTY_REVIEW_STATE, reviewReducer } from "@/features/overview/submission-review-state.ts";
 import { SubmissionDialogs } from "@/features/overview/SubmissionDialogs.tsx";
 import { SubmissionToolbar } from "@/features/overview/SubmissionToolbar.tsx";
+import {
+  useMastodonApprovalTemplateSetting,
+  useSaveMastodonApprovalTemplateSetting,
+} from "@/features/social/hooks/useMastodonApprovalTemplateSetting.ts";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
+import { useMastodonPostTemplates } from "@/features/templates/hooks/useMastodonPostTemplates.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
@@ -132,6 +134,16 @@ function LoadedSubmissionEditorPage({
   const deleteMutation = useDeleteSubmission();
   const emailTemplatesQuery = useEmailTemplates();
   const emailTemplates = emailTemplatesQuery.data ?? [];
+  const mastodonTemplatesQuery = useMastodonPostTemplates();
+  const mastodonTemplates = mastodonTemplatesQuery.data ?? [];
+  const mastodonApprovalSettingQuery = useMastodonApprovalTemplateSetting();
+  const saveMastodonApprovalSetting = useSaveMastodonApprovalTemplateSetting();
+  const persistedMastodonTemplateId = (() => {
+    const raw = mastodonApprovalSettingQuery.data?.[SETTINGS_KEYS.MASTODON_APPROVAL_TEMPLATE_ID];
+    if (!raw) return undefined;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  })();
 
   const controller = useShopEditorController({
     submissionId: submission.id,
@@ -178,6 +190,7 @@ function LoadedSubmissionEditorPage({
     dispatchReview({
       type: "openApprove",
       adminNote: submission.adminNote ?? "",
+      mastodonTemplateId: persistedMastodonTemplateId,
     });
   }
 
@@ -204,6 +217,7 @@ function LoadedSubmissionEditorPage({
         status: "approved",
         adminNote: reviewState.adminNote,
         notificationTemplateId: reviewState.notificationTemplateId,
+        mastodonTemplateId: reviewState.mastodonTemplateId,
       });
 
       if (close) {
@@ -314,12 +328,17 @@ function LoadedSubmissionEditorPage({
         reviewMutation={reviewMutation}
         deleteMutation={deleteMutation}
         emailTemplates={emailTemplates}
+        mastodonTemplates={mastodonTemplates}
         controller={controller}
         combinedSavedPhase={combinedSavedPhase}
         showDeleteDialog={showDeleteDialog}
         setShowDeleteDialog={setShowDeleteDialog}
         handleApprove={handleApprove}
         handleReject={handleReject}
+        handleMastodonTemplateChange={(value) => {
+          dispatchReview({ type: "setMastodonTemplateId", value });
+          saveMastodonApprovalSetting.mutate(value);
+        }}
         navigateBack={navigateBack}
         common={common}
         submissionsMessages={submissionsMessages}

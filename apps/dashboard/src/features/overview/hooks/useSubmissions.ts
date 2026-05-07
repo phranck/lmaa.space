@@ -48,6 +48,7 @@ export function useReviewSubmission() {
       rejectionLongText,
       rejectionToken,
       notificationTemplateId,
+      mastodonTemplateId,
     }: {
       id: number;
       status: "approved" | "rejected" | "onhold" | "pending";
@@ -55,6 +56,7 @@ export function useReviewSubmission() {
       rejectionLongText?: string;
       rejectionToken?: string;
       notificationTemplateId?: number;
+      mastodonTemplateId?: number;
     }) =>
       api.patch<Submission>(`/admin/submissions/${id}`, {
         status,
@@ -62,6 +64,7 @@ export function useReviewSubmission() {
         rejectionLongText: rejectionLongText || undefined,
         rejectionToken: rejectionToken || undefined,
         notificationTemplateId: notificationTemplateId || undefined,
+        mastodonTemplateId: mastodonTemplateId || undefined,
       }),
     onSuccess: (_submission, variables) => {
       qc.invalidateQueries({ queryKey: ["submissions"] });

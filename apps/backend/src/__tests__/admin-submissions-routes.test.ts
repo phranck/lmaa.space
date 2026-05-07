@@ -113,6 +113,31 @@ describe("submissionsRoutes", () => {
       expect(await res.json()).toEqual({ data: { id: 1, status: "approved" } });
     });
 
+    it("passes selected notification and Mastodon template ids to the service", async () => {
+      serviceMocks.reviewAdminSubmission.mockResolvedValue({
+        ok: true,
+        submission: { id: 1, status: "approved" },
+      });
+
+      const res = await app.request("/submissions/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "approved",
+          notificationTemplateId: 7,
+          mastodonTemplateId: 9,
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(serviceMocks.reviewAdminSubmission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          notificationTemplateId: 7,
+          mastodonTemplateId: 9,
+        }),
+      );
+    });
+
     it("returns 404 when submission not found", async () => {
       serviceMocks.reviewAdminSubmission.mockResolvedValue({ ok: false, reason: "not_found" });
 

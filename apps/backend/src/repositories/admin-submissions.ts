@@ -1,4 +1,4 @@
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDomain } from "tldts";
 
 import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
@@ -13,6 +13,7 @@ import { db } from "../db/index.js";
 import {
   type Shop,
   type Submission,
+  categories,
   shopCategories,
   shops,
   submissionCategories,
@@ -124,6 +125,20 @@ async function hydrateSubmissionCategoryIds(
     categoryIds: categoryMap.get(row.id) ?? [],
     headquarters: headquartersMap.get(row.id) ?? null,
   }));
+}
+
+/**
+ * Returns category names linked to one submission.
+ */
+export async function getSubmissionCategoryNames(id: number): Promise<string[]> {
+  const rows = await db
+    .select({ name: categories.name })
+    .from(submissionCategories)
+    .innerJoin(categories, eq(categories.id, submissionCategories.categoryId))
+    .where(eq(submissionCategories.submissionId, id))
+    .orderBy(asc(categories.name));
+
+  return rows.map((row) => row.name);
 }
 
 /**
