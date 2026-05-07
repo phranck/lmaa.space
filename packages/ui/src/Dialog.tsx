@@ -8,7 +8,7 @@ interface DialogProps {
 	titleIcon?: ReactNode;
 	onClose: () => void;
 	children: ReactNode;
-	maxWidth?: "sm" | "md";
+	maxWidth?: "sm" | "md" | "lg";
 }
 
 interface DialogFooterProps {
@@ -29,7 +29,7 @@ function DialogFooter({ children, className }: DialogFooterProps) {
 export const dialogHeaderIconClass = "w-6 h-6 shrink-0 text-[var(--ds-text-muted)]";
 
 export function Dialog({ open, title, titleIcon, onClose, children, maxWidth = "sm" }: DialogProps) {
-	const size = maxWidth === "md" ? "fixed-md" : "fixed-sm";
+	const size = maxWidth === "lg" ? "fixed-lg" : maxWidth === "md" ? "fixed-md" : "fixed-sm";
 
 	return (
 		<OverlayCard open={open} onClose={onClose} size={size} aria-label={title}>
