@@ -6,18 +6,26 @@ import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 import UnoCSS from "unocss/astro";
 
-const isDevCommand = process.argv.includes("dev");
-
-function buildDevProxy() {
-  const backendUrl = process.env.BACKEND_URL?.trim();
-  if (!backendUrl) {
-    throw new Error(
-      "Missing BACKEND_URL. Define it in .env.local — manually or via pewee.",
-    );
-  }
+function devProxyPlugin() {
   return {
-    "/api/v1": { target: backendUrl, changeOrigin: true },
-    "/uploads": { target: backendUrl, changeOrigin: true },
+    name: "lmaa-dev-proxy",
+    apply: "serve",
+    config() {
+      const backendUrl = process.env.BACKEND_URL?.trim();
+      if (!backendUrl) {
+        throw new Error(
+          "Missing BACKEND_URL. Define it in .env.local — manually or via pewee.",
+        );
+      }
+      return {
+        server: {
+          proxy: {
+            "/api/v1": { target: backendUrl, changeOrigin: true },
+            "/uploads": { target: backendUrl, changeOrigin: true },
+          },
+        },
+      };
+    },
   };
 }
 
@@ -36,6 +44,7 @@ export default defineConfig({
     }),
   ],
   vite: {
+    plugins: [devProxyPlugin()],
     resolve: {
       alias: {
         "@": resolve("./src"),
@@ -70,7 +79,6 @@ export default defineConfig({
     },
     server: {
       allowedHosts: ["lmaa.test"],
-      ...(isDevCommand ? { proxy: buildDevProxy() } : {}),
     },
   },
 });
