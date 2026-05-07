@@ -77,6 +77,12 @@ async function postToMastodon(
 }
 
 /**
+ * Exported solely for unit-testing private helpers.
+ * Do NOT use outside of test files.
+ */
+export const __test__ = { renderPlainTemplate, idempotencyKey };
+
+/**
  * Sends an approval announcement to all active Mastodon accounts.
  */
 export function sendMastodonApprovalPost(templateId: number, context: ApprovalPostContext): void {
