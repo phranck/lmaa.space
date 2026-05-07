@@ -6,6 +6,8 @@ import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 import UnoCSS from "unocss/astro";
 
+const isDevCommand = process.argv.includes("dev");
+
 function buildDevProxy() {
   const backendUrl = process.env.BACKEND_URL?.trim();
   if (!backendUrl) {
@@ -19,7 +21,7 @@ function buildDevProxy() {
   };
 }
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   site: "https://lmaa.space",
   output: "server",
   adapter: node({ mode: "standalone" }),
@@ -68,7 +70,7 @@ export default defineConfig(({ command }) => ({
     },
     server: {
       allowedHosts: ["lmaa.test"],
-      ...(command === "dev" ? { proxy: buildDevProxy() } : {}),
+      ...(isDevCommand ? { proxy: buildDevProxy() } : {}),
     },
   },
-}));
+});
