@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const getSubmissionStatus = vi.fn();
 const deleteSubmission = vi.fn();
 const reviewSubmission = vi.fn();
+const getSubmissionCategoryNames = vi.fn();
 const hydrateShopOgImageInBackground = vi.fn();
 const setAdminShopOgImage = vi.fn();
+const sendMastodonApprovalPost = vi.fn();
 
 async function loadServiceModule() {
   vi.resetModules();
@@ -24,6 +26,7 @@ async function loadServiceModule() {
 
   vi.doMock("../repositories/admin-submissions.js", () => ({
     deleteSubmission,
+    getSubmissionCategoryNames,
     getSubmissionStatus,
     reviewSubmission,
   }));
@@ -36,6 +39,10 @@ async function loadServiceModule() {
     setAdminShopOgImage,
   }));
 
+  vi.doMock("../services/mastodon.js", () => ({
+    sendMastodonApprovalPost,
+  }));
+
   return import("../services/admin-submissions.js");
 }
 
@@ -44,8 +51,10 @@ describe("admin-submissions service", () => {
     getSubmissionStatus.mockReset();
     deleteSubmission.mockReset();
     reviewSubmission.mockReset();
+    getSubmissionCategoryNames.mockReset();
     hydrateShopOgImageInBackground.mockReset();
     setAdminShopOgImage.mockReset();
+    sendMastodonApprovalPost.mockReset();
   });
 
   it("allows deleting onhold submissions", async () => {
@@ -133,5 +142,45 @@ describe("admin-submissions service", () => {
 
     expect(hydrateShopOgImageInBackground).not.toHaveBeenCalled();
     expect(setAdminShopOgImage).not.toHaveBeenCalled();
+  });
+
+  it("sends a Mastodon approval post when a template is selected", async () => {
+    const submission = {
+      id: 5,
+      shopName: "Good Karma",
+      shopUrl: "https://goodkarma.example",
+      ogImage: "https://cdn.example.com/preview.png",
+    };
+    reviewSubmission.mockResolvedValue({
+      submission,
+      newShop: {
+        id: 17,
+        url: "https://goodkarma.example",
+      },
+      conflict: null,
+    });
+    getSubmissionCategoryNames.mockResolvedValue(["Coffee", "Food"]);
+    const service = await loadServiceModule();
+
+    await expect(
+      service.reviewAdminSubmission({
+        id: 5,
+        status: "approved",
+        adminId: 1,
+        adminNote: "Looks good",
+        mastodonTemplateId: 12,
+      }),
+    ).resolves.toEqual({
+      ok: true,
+      submission,
+    });
+
+    expect(getSubmissionCategoryNames).toHaveBeenCalledWith(5);
+    expect(sendMastodonApprovalPost).toHaveBeenCalledWith(12, {
+      submission,
+      newShopId: 17,
+      adminNote: "Looks good",
+      categoryNames: ["Coffee", "Food"],
+    });
   });
 });

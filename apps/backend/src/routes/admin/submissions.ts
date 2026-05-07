@@ -1,7 +1,12 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import { reviewSchema, submissionEditSchema, submissionReviewImportSchema, submissionStatusFilterSchema } from "@lmaa/contracts";
+import {
+  reviewSchema,
+  submissionEditSchema,
+  submissionReviewImportSchema,
+  submissionStatusFilterSchema,
+} from "@lmaa/contracts";
 
 import { db } from "../../db/index.js";
 import { categories } from "../../db/schema.js";
@@ -59,7 +64,14 @@ submissionsRoutes.get("/submissions/:id", async (c) => {
 submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
-  const { status, adminNote, rejectionLongText, rejectionToken, notificationTemplateId } = c.req.valid("json");
+  const {
+    status,
+    adminNote,
+    rejectionLongText,
+    rejectionToken,
+    notificationTemplateId,
+    mastodonTemplateId,
+  } = c.req.valid("json");
   const adminId = c.get("adminId");
 
   const result = await reviewAdminSubmission({
@@ -70,6 +82,7 @@ submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), as
     rejectionToken,
     adminId,
     notificationTemplateId,
+    mastodonTemplateId,
   });
 
   if (!result.ok) {
@@ -150,7 +163,9 @@ submissionsRoutes.post(
   async (c) => {
     const entries = c.req.valid("json");
 
-    const allCategories = await db.select({ id: categories.id, name: categories.name }).from(categories);
+    const allCategories = await db
+      .select({ id: categories.id, name: categories.name })
+      .from(categories);
     const categoryNameToId = new Map(
       allCategories.map((cat) => [cat.name.trim().toLocaleLowerCase("de-DE"), cat.id] as const),
     );
@@ -169,7 +184,10 @@ submissionsRoutes.post(
       }
 
       try {
-        const editData = mapShopJsonToSubmissionEditData(shopJson as Record<string, unknown>, categoryNameToId);
+        const editData = mapShopJsonToSubmissionEditData(
+          shopJson as Record<string, unknown>,
+          categoryNameToId,
+        );
         await editSubmission(submissionId, editData);
         await setReadyForReview(submissionId, true);
         imported += 1;

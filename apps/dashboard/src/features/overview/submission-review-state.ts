@@ -5,11 +5,12 @@ export type ReviewState = {
   rejectionToken: string | null;
   reviewMode: "approve" | "reject" | null;
   notificationTemplateId: number | undefined;
+  mastodonTemplateId: number | undefined;
 };
 
 export type ReviewAction =
   | { type: "close" }
-  | { type: "openApprove"; adminNote: string }
+  | { type: "openApprove"; adminNote: string; mastodonTemplateId?: number }
   | {
       type: "openReject";
       adminNote: string;
@@ -19,7 +20,8 @@ export type ReviewAction =
     }
   | { type: "setAdminNote"; value: string }
   | { type: "setRejectionLongText"; value: string }
-  | { type: "setNotificationTemplateId"; value: number | undefined };
+  | { type: "setNotificationTemplateId"; value: number | undefined }
+  | { type: "setMastodonTemplateId"; value: number | undefined };
 
 const STORAGE_KEY_APPROVED = "submissions:notification-template:approved";
 const STORAGE_KEY_REJECTED = "submissions:notification-template:rejected";
@@ -46,6 +48,7 @@ export const EMPTY_REVIEW_STATE: ReviewState = {
   rejectionToken: null,
   reviewMode: null,
   notificationTemplateId: undefined,
+  mastodonTemplateId: undefined,
 };
 
 export function reviewReducer(state: ReviewState, action: ReviewAction): ReviewState {
@@ -58,6 +61,7 @@ export function reviewReducer(state: ReviewState, action: ReviewAction): ReviewS
         reviewMode: "approve",
         adminNote: action.adminNote,
         notificationTemplateId: loadPersistedTemplateId(STORAGE_KEY_APPROVED),
+        mastodonTemplateId: action.mastodonTemplateId,
       };
     case "openReject":
       return {
@@ -67,15 +71,19 @@ export function reviewReducer(state: ReviewState, action: ReviewAction): ReviewS
         rejectionToken: action.rejectionToken,
         reviewMode: "reject",
         notificationTemplateId: loadPersistedTemplateId(STORAGE_KEY_REJECTED),
+        mastodonTemplateId: undefined,
       };
     case "setAdminNote":
       return { ...state, adminNote: action.value };
     case "setRejectionLongText":
       return { ...state, rejectionLongText: action.value };
     case "setNotificationTemplateId": {
-      const storageKey = state.reviewMode === "approve" ? STORAGE_KEY_APPROVED : STORAGE_KEY_REJECTED;
+      const storageKey =
+        state.reviewMode === "approve" ? STORAGE_KEY_APPROVED : STORAGE_KEY_REJECTED;
       persistTemplateId(storageKey, action.value);
       return { ...state, notificationTemplateId: action.value };
     }
+    case "setMastodonTemplateId":
+      return { ...state, mastodonTemplateId: action.value };
   }
 }

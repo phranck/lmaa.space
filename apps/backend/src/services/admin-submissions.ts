@@ -2,6 +2,7 @@ import type { SubmissionReviewStatus } from "@lmaa/shared";
 
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
+import { sendMastodonApprovalPost } from "./mastodon.js";
 import { hydrateShopOgImageInBackground } from "./preview-images.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
@@ -9,6 +10,7 @@ import { failure, success } from "../lib/result.js";
 import { setAdminShopOgImage } from "../repositories/admin-shops.js";
 import {
   deleteSubmission,
+  getSubmissionCategoryNames,
   getSubmissionStatus,
   reviewSubmission,
 } from "../repositories/admin-submissions.js";
@@ -25,6 +27,7 @@ interface ReviewAdminSubmissionInput {
   rejectionToken?: string;
   adminId: number;
   notificationTemplateId?: number;
+  mastodonTemplateId?: number;
 }
 
 /**
@@ -72,19 +75,25 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
   }
 
   if (input.notificationTemplateId && submission.submitterEmail) {
-    sendReviewNotification(
-      submission.submitterEmail,
-      input.notificationTemplateId,
-      {
-        shopName: submission.shopName,
-        shopUrl: submission.shopUrl,
-        adminNote: input.adminNote ?? "",
-        rejectionToken: submission.rejectionToken ?? "",
-        rejectionUrl: submission.rejectionToken
-          ? `${env.FRONTEND_URL}/rejected/${submission.rejectionToken}`
-          : "",
-      },
-    );
+    sendReviewNotification(submission.submitterEmail, input.notificationTemplateId, {
+      shopName: submission.shopName,
+      shopUrl: submission.shopUrl,
+      adminNote: input.adminNote ?? "",
+      rejectionToken: submission.rejectionToken ?? "",
+      rejectionUrl: submission.rejectionToken
+        ? `${env.FRONTEND_URL}/rejected/${submission.rejectionToken}`
+        : "",
+    });
+  }
+
+  if (input.status === "approved" && input.mastodonTemplateId && newShop) {
+    const categoryNames = await getSubmissionCategoryNames(input.id);
+    sendMastodonApprovalPost(input.mastodonTemplateId, {
+      submission,
+      newShopId: newShop.id,
+      adminNote: input.adminNote ?? "",
+      categoryNames,
+    });
   }
 
   return success({ submission });
