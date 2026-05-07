@@ -56,6 +56,7 @@ export interface DashboardMessages {
       billing: string;
       systemSettings: string;
       socialMediaAccounts: string;
+      backgroundErrors: string;
       affiliate: string;
       affiliateSettings: string;
       expandAll: string;
@@ -923,6 +924,8 @@ export interface DashboardMessages {
     saveError: string;
     nameConflict: string;
     systemBadge: string;
+    systemHint: string;
+    systemCheckbox: string;
     tableCreated: string;
     preview: string;
     previewTitle: string;
@@ -962,6 +965,9 @@ export interface DashboardMessages {
     variablesTitle: string;
     variablesHint: string;
     variables: Record<string, string>;
+    systemBadge: string;
+    systemHint: string;
+    systemCheckbox: string;
   };
   socialMedia: {
     title: string;
@@ -977,6 +983,8 @@ export interface DashboardMessages {
     tokenMissing: string;
     tokenRequired: string;
     saveError: string;
+    tokenInvalid: string;
+    instanceUnreachable: string;
     deleteAccount: string;
     deleteConfirm: string;
     accessTokenPlaceholder: string;
@@ -1120,6 +1128,22 @@ export interface DashboardMessages {
         requireTemplateHint: string;
       };
     };
+    backgroundErrors: {
+      title: string;
+      columnSource: string;
+      columnMessage: string;
+      columnOccurredAt: string;
+      columnStatus: string;
+      resolveAction: string;
+      statusOpen: string;
+      statusResolved: string;
+      noErrors: string;
+      noErrorsSubtitle: string;
+      filterSourcePlaceholder: string;
+      filterAll: string;
+      filterUnresolved: string;
+      filterResolved: string;
+    };
   };
   errors: {
     boundary: {
@@ -1185,6 +1209,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         billing: "Kosten",
         systemSettings: "Einstellungen",
         socialMediaAccounts: "Social Media Accounts",
+        backgroundErrors: "Hintergrundfehler",
         affiliate: "Affiliate",
         affiliateSettings: "Einstellungen",
         expandAll: "Alles aufklappen",
@@ -2067,6 +2092,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
       nameConflict: "Ein Template mit diesem Namen existiert bereits.",
       systemBadge: "System",
+      systemHint: "System-Templates können nicht gelöscht werden.",
+      systemCheckbox: "System-Template",
       tableCreated: "Erstellt",
       preview: "Vorschau",
       previewTitle: "E-Mail-Vorschau",
@@ -2119,6 +2146,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         frontendUrl: "Öffentliche Frontend-URL",
         dashboardUrl: "Dashboard-URL",
       },
+      systemBadge: "System",
+      systemHint: "System-Templates können nicht gelöscht werden.",
+      systemCheckbox: "System-Template",
     },
     socialMedia: {
       title: "Social Media Accounts",
@@ -2135,6 +2165,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       tokenMissing: "Kein Token",
       tokenRequired: "Bitte einen Access Token hinterlegen.",
       saveError: "Fehler beim Speichern.",
+      tokenInvalid: "Der Access Token wurde von der Mastodon-Instanz abgelehnt.",
+      instanceUnreachable: "Die Mastodon-Instanz ist nicht erreichbar. Bitte die Instanz-URL prüfen.",
       deleteAccount: "Account löschen?",
       deleteConfirm: "Diesen Account wirklich löschen?",
       accessTokenPlaceholder: "Mastodon User Access Token",
@@ -2285,6 +2317,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
             "Bitte zuerst ein Template wählen, um die Benachrichtigung zu aktivieren.",
         },
       },
+      backgroundErrors: {
+        title: "Hintergrundfehler",
+        columnSource: "Quelle",
+        columnMessage: "Fehlermeldung",
+        columnOccurredAt: "Zeitpunkt",
+        columnStatus: "Status",
+        resolveAction: "Lösen",
+        statusOpen: "Offen",
+        statusResolved: "Gelöst",
+        noErrors: "Keine Fehler vorhanden",
+        noErrorsSubtitle: "Alle Hintergrunddienste laufen fehlerfrei.",
+        filterSourcePlaceholder: "Quelle filtern…",
+        filterAll: "Alle",
+        filterUnresolved: "Offen",
+        filterResolved: "Gelöst",
+      },
     },
     errors: {
       boundary: {
@@ -2345,6 +2393,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         billing: "Billing",
         systemSettings: "Settings",
         socialMediaAccounts: "Social Media Accounts",
+        backgroundErrors: "Background Errors",
         affiliate: "Affiliate",
         affiliateSettings: "Settings",
         expandAll: "Expand all",
@@ -3221,6 +3270,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saveError: "Error saving. Please try again.",
       nameConflict: "A template with this name already exists.",
       systemBadge: "System",
+      systemHint: "System templates cannot be deleted.",
+      systemCheckbox: "System template",
       tableCreated: "Created",
       preview: "Preview",
       previewTitle: "Email Preview",
@@ -3273,6 +3324,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         frontendUrl: "Public frontend URL",
         dashboardUrl: "Dashboard URL",
       },
+      systemBadge: "System",
+      systemHint: "System templates cannot be deleted.",
+      systemCheckbox: "System template",
     },
     socialMedia: {
       title: "Social Media Accounts",
@@ -3288,6 +3342,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       tokenMissing: "No token",
       tokenRequired: "Please enter an access token.",
       saveError: "Error saving.",
+      tokenInvalid: "The access token was rejected by the Mastodon instance.",
+      instanceUnreachable: "The Mastodon instance is unreachable. Please check the instance URL.",
       deleteAccount: "Delete account?",
       deleteConfirm: "Really delete this account?",
       accessTokenPlaceholder: "Mastodon user access token",
@@ -3436,6 +3492,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           hint: "Sent whenever a new shop suggestion arrives.",
           requireTemplateHint: "Pick a template first to enable the notification.",
         },
+      },
+      backgroundErrors: {
+        title: "Background Errors",
+        columnSource: "Source",
+        columnMessage: "Error message",
+        columnOccurredAt: "Occurred at",
+        columnStatus: "Status",
+        resolveAction: "Resolve",
+        statusOpen: "Open",
+        statusResolved: "Resolved",
+        noErrors: "No errors found",
+        noErrorsSubtitle: "All background services are running without errors.",
+        filterSourcePlaceholder: "Filter by source…",
+        filterAll: "All",
+        filterUnresolved: "Open",
+        filterResolved: "Resolved",
       },
     },
     errors: {
