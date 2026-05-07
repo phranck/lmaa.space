@@ -4,7 +4,7 @@ import { env } from "../../config/env.js";
 import { fail, ok } from "../../lib/http.js";
 import { logger } from "../../lib/logger.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { ZeropsApiRequestError, ZeropsClient } from "../../services/network-clients/zerops-client.js";
+import { ZeropsApiRequestError, ZeropsClient } from "../../services/zerops-client.js";
 
 export const billingRoutes = new Hono<{ Variables: AuthVariables }>();
 

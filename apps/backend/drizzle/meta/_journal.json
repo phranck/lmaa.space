@@ -330,6 +330,13 @@
       "when": 1778159546127,
       "tag": "0046_good_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1778179938898,
+      "tag": "0047_early_sentinel",
+      "breakpoints": true
     }
   ]
 }

@@ -30,5 +30,3 @@ export * from "./admin-form-config";
 export * from "./footer-config";
 /** Admin markdown widget schemas. */
 export * from "./admin-markdown-widgets";
-/** Admin affiliate scan schemas. */
-export * from "./admin-affiliate";

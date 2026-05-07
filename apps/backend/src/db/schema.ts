@@ -16,7 +16,6 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
-import type { AffiliateScanJobError } from "@lmaa/shared";
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -622,87 +621,6 @@ export const mastodonPostTemplates = pgTable("mastodon_post_templates", {
 
 export type MastodonPostTemplate = typeof mastodonPostTemplates.$inferSelect;
 export type MastodonPostTemplateInsert = typeof mastodonPostTemplates.$inferInsert;
-
-// ---------------------------------------------------------------------------
-// Affiliate Scans
-// ---------------------------------------------------------------------------
-
-/**
- * One affiliate scan result per shop (upsert on shopId).
- */
-export const affiliateScans = pgTable(
-  "affiliate_scans",
-  {
-    id: serial("id").primaryKey(),
-    shopId: integer("shop_id")
-      .notNull()
-      .unique()
-      .references(() => shops.id, { onDelete: "cascade" }),
-    status: text("status")
-      .$type<"direct" | "network" | "inquiry" | "none">()
-      .notNull()
-      .default("none"),
-    programFound: boolean("program_found").notNull().default(false),
-    programType: text("program_type"),
-    programUrl: text("program_url"),
-    networkName: text("network_name"),
-    compensationModel: text("compensation_model"),
-    commission: text("commission"),
-    cookieDuration: text("cookie_duration"),
-    payoutThreshold: text("payout_threshold"),
-    applicationUrl: text("application_url"),
-    contactEmail: text("contact_email"),
-    requirements: text("requirements"),
-    notes: text("notes"),
-    recommendation: text("recommendation"),
-    trackingStatus: text("tracking_status")
-      .$type<"open" | "contacted" | "confirmed" | "rejected" | "closed">()
-      .notNull()
-      .default("open"),
-    networkProgramId: text("network_program_id"),
-    networkProgramUrl: text("network_program_url"),
-    trackingNote: text("tracking_note"),
-    scannedAt: timestamp("scanned_at").defaultNow().notNull(),
-    scannedBy: integer("scanned_by").references(() => adminUsers.id, { onDelete: "set null" }),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  (table) => [
-    index("idx_affiliate_scans_status").on(table.status),
-    index("idx_affiliate_scans_tracking").on(table.trackingStatus),
-    check(
-      "affiliate_scans_status_check",
-      sql`${table.status} IN ('direct', 'network', 'inquiry', 'none')`,
-    ),
-    check(
-      "affiliate_scans_tracking_check",
-      sql`${table.trackingStatus} IN ('open', 'contacted', 'confirmed', 'rejected', 'closed')`,
-    ),
-  ],
-);
-
-export type AffiliateScan = typeof affiliateScans.$inferSelect;
-export type AffiliateScanInsert = typeof affiliateScans.$inferInsert;
-
-/**
- * Batch scan job progress tracking.
- */
-export const affiliateScanJobs = pgTable("affiliate_scan_jobs", {
-  id: serial("id").primaryKey(),
-  status: text("status")
-    .$type<"pending" | "running" | "completed" | "failed" | "cancelled">()
-    .notNull()
-    .default("pending"),
-  totalShops: integer("total_shops").notNull().default(0),
-  completedShops: integer("completed_shops").notNull().default(0),
-  failedShops: integer("failed_shops").notNull().default(0),
-  errors: jsonb("errors").$type<AffiliateScanJobError[]>().notNull().default([]),
-  startedBy: integer("started_by").references(() => adminUsers.id, { onDelete: "set null" }),
-  startedAt: timestamp("started_at").defaultNow().notNull(),
-  completedAt: timestamp("completed_at"),
-});
-
-export type AffiliateScanJob = typeof affiliateScanJobs.$inferSelect;
-export type AffiliateScanJobInsert = typeof affiliateScanJobs.$inferInsert;
 
 // ---------------------------------------------------------------------------
 // App Settings (generic key/value store)
