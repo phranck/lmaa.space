@@ -8,7 +8,10 @@ import { Suspense, lazy, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import {
+  BLUESKY_FIXED_MAX_POST_CHARACTERS,
+  MASTODON_DEFAULT_MAX_POST_CHARACTERS,
   SOCIAL_MEDIA_POST_TEMPLATE_VARIABLES,
+  type SocialMediaPlatform,
   type SocialMediaPostTemplateInput,
 } from "@lmaa/contracts";
 
@@ -23,6 +26,7 @@ import {
 } from "@/components/ui/SystemTemplateBadge.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
+import { useMastodonAccount } from "@/features/social/hooks/useMastodonAccount.ts";
 import {
   useCreateSocialMediaPostTemplate,
   useSocialMediaPostTemplate,
@@ -72,6 +76,25 @@ export function SocialMediaPostTemplateEditPage() {
   const [syncedExistingId, setSyncedExistingId] = useState<number | undefined>();
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mastoQuery = useMastodonAccount();
+  const mastoMaxChars =
+    mastoQuery.data?.maxPostCharacters ?? MASTODON_DEFAULT_MAX_POST_CHARACTERS;
+
+  function togglePlatform(p: SocialMediaPlatform, on: boolean) {
+    setForm((current) => {
+      const next = new Set(current.platforms);
+      if (on) next.add(p);
+      else next.delete(p);
+      if (next.size === 0) next.add(p);
+      const platforms = Array.from(next) as SocialMediaPlatform[];
+      return {
+        ...current,
+        platforms,
+        bodyMastodon: next.has("mastodon") ? (current.bodyMastodon ?? "") : null,
+        bodyBluesky: next.has("bluesky") ? (current.bodyBluesky ?? "") : null,
+      };
+    });
+  }
 
   if (existing && existing.id !== syncedExistingId) {
     setSyncedExistingId(existing.id);
@@ -192,37 +215,54 @@ export function SocialMediaPostTemplateEditPage() {
       <div className="flex-1 overflow-hidden">
         <Card className="grid h-full grid-cols-1 overflow-hidden xl:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="min-w-0 overflow-y-auto border-r border-[var(--ds-border)] p-3">
-            <div className="mb-4 flex items-center gap-3 rounded-control border border-[var(--ds-border)] p-3 text-sm">
-              <span className="text-[var(--ds-text-muted)]">{m.platformsLabel}</span>
-              <label className="flex items-center gap-1.5 opacity-60">
-                <input type="checkbox" checked disabled aria-label={m.platformMastodon} />
-                <span>{m.platformMastodon}</span>
-              </label>
+            <div className="mb-4 space-y-2 rounded-control border border-[var(--ds-border)] p-3 text-sm">
+              <span className="block text-[var(--ds-text-muted)]">{m.platformsLabel}</span>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={form.platforms.includes("mastodon")}
+                    onChange={(event) => togglePlatform("mastodon", event.target.checked)}
+                  />
+                  <span>{m.platformMastodon}</span>
+                </label>
+                <label className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={form.platforms.includes("bluesky")}
+                    onChange={(event) => togglePlatform("bluesky", event.target.checked)}
+                  />
+                  <span>{m.platformBluesky}</span>
+                </label>
+              </div>
             </div>
-            <label className="space-y-1">
-              <span className="block text-xs font-medium text-[var(--ds-text-muted)]">
-                {m.bodyMastodonLabel}
-                <SealWarningIcon
-                  weight="duotone"
-                  className="ml-1 inline-block h-3 w-3 align-middle text-red-500"
-                />
-              </span>
-              <Suspense
-                fallback={
-                  <div className="h-[24rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
+
+            {form.platforms.includes("mastodon") && (
+              <BodyEditor
+                idBase="mastodon-post-body"
+                label={m.bodyMastodonLabel}
+                value={form.bodyMastodon ?? ""}
+                onChange={(bodyMastodon) =>
+                  setForm((current) => ({ ...current, bodyMastodon }))
                 }
-              >
-                <MarkdownEditor
-                  id="mastodon-post-body"
-                  value={form.bodyMastodon ?? ""}
-                  onChange={(bodyMastodon) =>
-                    setForm((current) => ({ ...current, bodyMastodon }))
+                counterMax={mastoMaxChars}
+                hint={!mastoQuery.data ? "(no Mastodon account configured)" : undefined}
+              />
+            )}
+
+            {form.platforms.includes("bluesky") && (
+              <div className="mt-4">
+                <BodyEditor
+                  idBase="bluesky-post-body"
+                  label={m.bodyBlueskyLabel}
+                  value={form.bodyBluesky ?? ""}
+                  onChange={(bodyBluesky) =>
+                    setForm((current) => ({ ...current, bodyBluesky }))
                   }
-                  rows={18}
-                  resizable
+                  counterMax={BLUESKY_FIXED_MAX_POST_CHARACTERS}
                 />
-              </Suspense>
-            </label>
+              </div>
+            )}
 
             <section className="mt-4 rounded-control border border-[var(--ds-border)] p-4">
               <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase text-[var(--ds-text-muted)]">
@@ -260,6 +300,49 @@ export function SocialMediaPostTemplateEditPage() {
           </aside>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function BodyEditor({
+  idBase,
+  label,
+  value,
+  onChange,
+  counterMax,
+  hint,
+}: {
+  idBase: string;
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  counterMax: number;
+  hint?: string;
+}) {
+  const remaining = counterMax - value.length;
+  const overLimit = remaining < 0;
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="font-medium text-[var(--ds-text-muted)]">
+          {label}
+          <SealWarningIcon
+            weight="duotone"
+            className="ml-1 inline-block h-3 w-3 align-middle text-red-500"
+          />
+          {hint && <span className="ml-2 italic">{hint}</span>}
+        </span>
+        <span className={overLimit ? "text-red-500" : "text-[var(--ds-text-muted)]"}>
+          {value.length} / {counterMax}
+        </span>
+      </div>
+      <Suspense
+        fallback={
+          <div className="h-[18rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
+        }
+      >
+        <MarkdownEditor id={idBase} value={value} onChange={onChange} rows={12} resizable />
+      </Suspense>
     </div>
   );
 }

@@ -2,7 +2,11 @@ import { ArrowLeftIcon } from "@phosphor-icons/react";
 import type React from "react";
 import { useState } from "react";
 
-import type { MastodonAccount } from "@lmaa/contracts";
+import {
+  type BlueskyAccount,
+  MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+  type MastodonAccount,
+} from "@lmaa/contracts";
 import type { ApiRequestError } from "@lmaa/shared";
 import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
 
@@ -12,12 +16,20 @@ import {
   dialogBtnSecondary,
 } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import {
+  type BlueskyAccountFormInput,
+  BlueskyAccountForm,
+} from "@/features/social/forms/BlueskyAccountForm.tsx";
 import { MastodonAccountForm } from "@/features/social/forms/MastodonAccountForm.tsx";
+import {
+  useCreateBlueskyAccount,
+  useUpdateBlueskyAccount,
+} from "@/features/social/hooks/useBlueskyAccount.ts";
 import {
   type MastodonAccountFormInput,
   useCreateMastodonAccount,
   useUpdateMastodonAccount,
-} from "@/features/social/hooks/useMastodonAccounts.ts";
+} from "@/features/social/hooks/useMastodonAccount.ts";
 import {
   type ServiceId,
   SUPPORTED_PLATFORMS,
@@ -25,127 +37,194 @@ import {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type DialogMode =
+export type AccountFormDialogTarget =
   | { mode: "create" }
-  | { mode: "edit"; account: MastodonAccount };
+  | { mode: "create"; platform: "mastodon" | "bluesky" }
+  | { mode: "edit"; platform: "mastodon"; account: MastodonAccount }
+  | { mode: "edit"; platform: "bluesky"; account: BlueskyAccount };
+
+interface AccountFormDialogProps {
+  target: AccountFormDialogTarget;
+  onClose: () => void;
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function emptyForm(): MastodonAccountFormInput {
+function emptyMastodonForm(): MastodonAccountFormInput {
   return {
     label: "",
     instanceUrl: "",
     username: "",
     accessToken: "",
     visibility: "public",
+    maxPostCharacters: MASTODON_DEFAULT_MAX_POST_CHARACTERS,
     isActive: true,
   };
 }
 
-function formFromAccount(account: MastodonAccount): MastodonAccountFormInput {
+function mastodonFormFromAccount(account: MastodonAccount): MastodonAccountFormInput {
   return {
     label: account.label,
     instanceUrl: account.instanceUrl,
     username: account.username ?? "",
     accessToken: "",
     visibility: account.visibility,
+    maxPostCharacters: account.maxPostCharacters,
     isActive: account.isActive,
   };
 }
 
-// ─── Props ───────────────────────────────────────────────────────────────────
+function emptyBlueskyForm(): BlueskyAccountFormInput {
+  return { label: "", handle: "", appPassword: "", isActive: true };
+}
 
-interface AccountFormDialogProps {
-  target: DialogMode;
-  onClose: () => void;
+function blueskyFormFromAccount(account: BlueskyAccount): BlueskyAccountFormInput {
+  return {
+    label: account.label,
+    handle: account.handle,
+    appPassword: "",
+    isActive: account.isActive,
+  };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-/**
- * Unified create/edit dialog for social media accounts.
- *
- * Create mode: Stage A shows a service-card picker; clicking a card advances
- * to Stage B (the service form). A back link returns to Stage A.
- *
- * Edit mode: opens directly on Stage B (service inferred as Mastodon until
- * multi-service support is added).
- */
 export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): React.ReactElement {
   const { messages } = useI18n();
   const t = messages.socialMedia;
   const common = messages.common;
 
   const isCreate = target.mode === "create";
+  const initialPlatform: ServiceId | null =
+    target.mode === "edit"
+      ? target.platform
+      : "platform" in target
+        ? target.platform
+        : null;
 
-  // In edit mode we go straight to the form — no picker stage.
-  const [pickedService, setPickedService] = useState<ServiceId | null>(
-    isCreate ? null : "mastodon",
+  const [pickedService, setPickedService] = useState<ServiceId | null>(initialPlatform);
+
+  const [mastodonForm, setMastodonForm] = useState<MastodonAccountFormInput>(() =>
+    target.mode === "edit" && target.platform === "mastodon"
+      ? mastodonFormFromAccount(target.account)
+      : emptyMastodonForm(),
   );
 
-  const [form, setForm] = useState<MastodonAccountFormInput>(
-    isCreate ? emptyForm() : formFromAccount((target as { mode: "edit"; account: MastodonAccount }).account),
+  const [blueskyForm, setBlueskyForm] = useState<BlueskyAccountFormInput>(() =>
+    target.mode === "edit" && target.platform === "bluesky"
+      ? blueskyFormFromAccount(target.account)
+      : emptyBlueskyForm(),
   );
 
   const [error, setError] = useState<string | null>(null);
 
-  const createAccount = useCreateMastodonAccount();
-  const updateAccount = useUpdateMastodonAccount();
+  const createMastodon = useCreateMastodonAccount();
+  const updateMastodon = useUpdateMastodonAccount();
+  const createBluesky = useCreateBlueskyAccount();
+  const updateBluesky = useUpdateBlueskyAccount();
 
-  const isSaving = createAccount.isPending || updateAccount.isPending;
+  const isSaving =
+    createMastodon.isPending ||
+    updateMastodon.isPending ||
+    createBluesky.isPending ||
+    updateBluesky.isPending;
 
   function handleBack(): void {
     setPickedService(null);
     setError(null);
-    setForm(emptyForm());
+    setMastodonForm(emptyMastodonForm());
+    setBlueskyForm(emptyBlueskyForm());
   }
 
-  function mapError(err: unknown): string {
+  function mapMastodonError(err: unknown): string {
     const apiErr = err as ApiRequestError;
+    if (apiErr.status === 409) return t.bluesky.conflictError; // generic conflict label
     if (apiErr.status === 400) return t.tokenInvalid;
     if (apiErr.status === 503) return t.instanceUnreachable;
     return t.saveError;
   }
 
-  function handleSave(): void {
-    setError(null);
+  function mapBlueskyError(err: unknown): string {
+    const apiErr = err as ApiRequestError;
+    if (apiErr.status === 409) return t.bluesky.conflictError;
+    if (apiErr.status === 400) return t.bluesky.invalidCredentialsError;
+    if (apiErr.status === 503) return t.bluesky.serviceUnreachableError;
+    return t.saveError;
+  }
 
+  function handleSaveMastodon(): void {
+    setError(null);
     if (isCreate) {
-      if (!form.accessToken?.trim()) {
+      if (!mastodonForm.accessToken?.trim()) {
         setError(t.tokenRequired);
         return;
       }
-      createAccount.mutate(
-        { ...form, accessToken: form.accessToken.trim() },
+      createMastodon.mutate(
+        { ...mastodonForm, accessToken: mastodonForm.accessToken.trim() },
         {
           onSuccess: () => onClose(),
-          onError: (err) => setError(mapError(err)),
+          onError: (err) => setError(mapMastodonError(err)),
         },
       );
-    } else {
-      const editTarget = (target as { mode: "edit"; account: MastodonAccount }).account;
-      updateAccount.mutate(
+    } else if (target.mode === "edit" && target.platform === "mastodon") {
+      updateMastodon.mutate(
         {
-          id: editTarget.id,
+          id: target.account.id,
           input: {
-            ...form,
-            accessToken: form.accessToken?.trim() || undefined,
+            ...mastodonForm,
+            accessToken: mastodonForm.accessToken?.trim() || undefined,
           },
         },
         {
           onSuccess: () => onClose(),
-          onError: (err) => setError(mapError(err)),
+          onError: (err) => setError(mapMastodonError(err)),
         },
       );
     }
   }
 
-  // ─── Dialog title / icon ──────────────────────────────────────────────────
+  function handleSaveBluesky(): void {
+    setError(null);
+    if (isCreate) {
+      if (!blueskyForm.appPassword.trim()) {
+        setError(t.bluesky.invalidCredentialsError);
+        return;
+      }
+      createBluesky.mutate(
+        { ...blueskyForm, appPassword: blueskyForm.appPassword.trim() },
+        {
+          onSuccess: () => onClose(),
+          onError: (err) => setError(mapBlueskyError(err)),
+        },
+      );
+    } else if (target.mode === "edit" && target.platform === "bluesky") {
+      updateBluesky.mutate(
+        {
+          id: target.account.id,
+          input: {
+            ...blueskyForm,
+            appPassword: blueskyForm.appPassword.trim() || undefined,
+          },
+        },
+        {
+          onSuccess: () => onClose(),
+          onError: (err) => setError(mapBlueskyError(err)),
+        },
+      );
+    }
+  }
+
+  function handleSave(): void {
+    if (pickedService === "mastodon") handleSaveMastodon();
+    else if (pickedService === "bluesky") handleSaveBluesky();
+  }
 
   const dialogTitle = (() => {
-    if (!isCreate) return t.editAccount;
+    if (target.mode === "edit") {
+      return target.platform === "bluesky" ? t.bluesky.sectionTitle : t.editAccount;
+    }
     if (!pickedService) return t.addAccountTitle;
-    return t.addMastodonAccount;
+    return pickedService === "bluesky" ? t.bluesky.addAccount : t.addMastodonAccount;
   })();
 
   const activePlatform = pickedService ? PLATFORM_MAP.get(pickedService) : undefined;
@@ -194,6 +273,14 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
 
   // ─── Stage B — service form ───────────────────────────────────────────────
 
+  const editingBluesky =
+    pickedService === "bluesky" || (target.mode === "edit" && target.platform === "bluesky");
+  const activeIsActive = editingBluesky ? blueskyForm.isActive : mastodonForm.isActive;
+  const setActiveIsActive = (isActive: boolean) => {
+    if (editingBluesky) setBlueskyForm({ ...blueskyForm, isActive });
+    else setMastodonForm({ ...mastodonForm, isActive });
+  };
+
   return (
     <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="lg">
       <div className="flex items-center gap-3 px-6 pt-3">
@@ -209,26 +296,40 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
         )}
         <label className="ml-auto inline-flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
           <span>{t.fields.active}</span>
-          <ToggleSwitch
-            checked={form.isActive}
-            onChange={(isActive) => setForm({ ...form, isActive })}
-          />
+          <ToggleSwitch checked={activeIsActive} onChange={setActiveIsActive} />
         </label>
       </div>
       <div className="px-6 py-4">
-        <MastodonAccountForm
-          form={form}
-          onChange={setForm}
-          visibilityLabels={t.visibility}
-          labels={t.fields}
-          tokenPlaceholder={isCreate ? t.accessTokenPlaceholder : t.keepTokenPlaceholder}
-          requireToken={isCreate}
-        />
+        {editingBluesky ? (
+          <BlueskyAccountForm
+            form={blueskyForm}
+            onChange={setBlueskyForm}
+            labels={{
+              label: t.fields.label,
+              handle: t.bluesky.handleLabel,
+              appPassword: t.bluesky.appPasswordLabel,
+              appPasswordKeepHint: t.bluesky.appPasswordKeepHint,
+            }}
+            requirePassword={isCreate}
+            hasStoredPassword={
+              target.mode === "edit" &&
+              target.platform === "bluesky" &&
+              target.account.hasAccessToken
+            }
+          />
+        ) : (
+          <MastodonAccountForm
+            form={mastodonForm}
+            onChange={setMastodonForm}
+            visibilityLabels={t.visibility}
+            labels={{ ...t.fields, maxPostCharacters: t.mastodonMaxPostCharactersLabel }}
+            tokenPlaceholder={isCreate ? t.accessTokenPlaceholder : t.keepTokenPlaceholder}
+            requireToken={isCreate}
+          />
+        )}
       </div>
       <Dialog.Footer>
-        {error && (
-          <p className="mr-auto text-xs text-red-500">{error}</p>
-        )}
+        {error && <p className="mr-auto text-xs text-red-500">{error}</p>}
         <button type="button" onClick={onClose} className={dialogBtnSecondary}>
           {common.cancel}
         </button>

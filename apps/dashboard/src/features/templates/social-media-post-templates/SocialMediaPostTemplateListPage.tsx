@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { SocialMediaPostTemplate } from "@lmaa/contracts";
+import { PLATFORM_MAP } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -48,6 +49,17 @@ export function SocialMediaPostTemplateListPage() {
               {template.name}
             </button>
             {template.isSystemTemplate && <SystemTemplateBadge label={m.systemBadge} />}
+          </div>
+        ),
+      },
+      {
+        id: "platforms",
+        header: m.platformsLabel,
+        cell: (template) => (
+          <div className="flex gap-1">
+            {template.platforms.map((platform) => (
+              <PlatformBadge key={platform} platform={platform} />
+            ))}
           </div>
         ),
       },
@@ -166,5 +178,17 @@ export function SocialMediaPostTemplateListPage() {
         </Dialog>
       )}
     </PageLayout>
+  );
+}
+
+function PlatformBadge({ platform }: { platform: string }) {
+  const def = PLATFORM_MAP.get(platform);
+  if (!def) return null;
+  const Icon = def.icon;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs">
+      <Icon size={10} />
+      <span>{def.label}</span>
+    </span>
   );
 }
