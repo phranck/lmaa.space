@@ -169,7 +169,10 @@ function buildValidationRules(
       if (!str) return true;
       const withScheme = /^https?:\/\//i.test(str) ? str : `https://${str}`;
       try {
-        new URL(withScheme);
+        const u = new URL(withScheme);
+        if (!/\.[a-z]{2,}$/i.test(u.hostname)) {
+          return "Bitte eine gültige URL eingeben (z.B. example.com)";
+        }
         return true;
       } catch {
         return "Bitte eine gültige URL eingeben (z.B. example.com)";
@@ -894,7 +897,7 @@ interface FormState {
   submitting: boolean;
   submitError: {
     message: string;
-    status?: "published" | "rejected" | "pending" | "available";
+    status?: "published" | "rejected" | "pending" | "available" | "invalid";
     shopName?: string;
     shopUrl?: string;
     rejectionUrl?: string;
@@ -922,7 +925,7 @@ function formReducer(s: FormState, patch: Partial<FormState>): FormState {
 // ---------------------------------------------------------------------------
 
 interface CheckShopResult {
-  status: "available" | "published" | "rejected" | "pending";
+  status: "available" | "published" | "rejected" | "pending" | "invalid";
   shopName?: string;
   shopUrl?: string;
   rejectionUrl?: string;
@@ -1001,7 +1004,8 @@ function ButtonField({
             status !== "available" &&
             status !== "published" &&
             status !== "pending" &&
-            status !== "rejected"
+            status !== "rejected" &&
+            status !== "invalid"
           ) {
             return;
           }
@@ -1525,7 +1529,9 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
                 ? "Shop wird bereits geprüft"
                 : state.submitError?.status === "available"
                   ? "Shop ist verfügbar"
-                  : "Shop bereits vorhanden"
+                  : state.submitError?.status === "invalid"
+                    ? "Ungültige URL"
+                    : "Shop bereits vorhanden"
           }
           variant={
             state.submitError?.status === "rejected"
@@ -1537,7 +1543,11 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
           buttonLabel="Verstanden"
           onClose={() => dispatch({ submitError: null })}
         >
-          {state.submitError?.status === "rejected" ? (
+          {state.submitError?.status === "invalid" ? (
+            <p>
+              Bitte eine gültige Shop-URL eingeben (z.B. <code>example.de</code>).
+            </p>
+          ) : state.submitError?.status === "rejected" ? (
             <p>
               Der Shop <strong>{state.submitError.shopName}</strong> wurde bereits geprüft und abgelehnt.
               Eine ausführliche Begründung für die Ablehnung kannst du{" "}

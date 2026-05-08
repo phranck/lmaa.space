@@ -38,6 +38,24 @@ describe("validateShopUrl", () => {
     expect(repoMocks.findShopByDomain).not.toHaveBeenCalled();
   });
 
+  it("returns invalid for URL without TLD", async () => {
+    const result = await validateShopUrl("https://lrlrl");
+    expect(result).toEqual({ status: "invalid" });
+    expect(repoMocks.findShopByDomain).not.toHaveBeenCalled();
+  });
+
+  it("returns invalid for localhost", async () => {
+    const result = await validateShopUrl("https://localhost");
+    expect(result).toEqual({ status: "invalid" });
+    expect(repoMocks.findShopByDomain).not.toHaveBeenCalled();
+  });
+
+  it("returns invalid for raw IP address", async () => {
+    const result = await validateShopUrl("https://192.168.1.1");
+    expect(result).toEqual({ status: "invalid" });
+    expect(repoMocks.findShopByDomain).not.toHaveBeenCalled();
+  });
+
   it("returns available when no matching shop or submission exists", async () => {
     repoMocks.findShopByDomain.mockResolvedValue(null);
     repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
