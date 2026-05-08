@@ -31,8 +31,6 @@ zerops:
         # SESSION_SECRET
         # EMAIL_FROM  (default: hallo@lmaa.space)
         # OWNER_EMAIL (recipient for report/submission notifications)
-        # BILLING_API_TOKEN (Personal Access Token for billing API)
-        # BILLING_CLIENT_ID (Client ID for billing status)
       initCommands:
         - node apps/backend/dist/db/doctor.js
         - node apps/backend/dist/db/migrate.js
