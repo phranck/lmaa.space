@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { ShareNetworkIcon } from "@phosphor-icons/react";
+import { ArrowsOutLineVerticalIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 
 import type { FooterBlock } from "@lmaa/contracts";
 
@@ -29,6 +29,7 @@ export function FooterBlockTypeIcon({ type }: { type: FooterBlockType }) {
     );
   }
   if (type === "social-media") return <ShareNetworkIcon size={16} weight="duotone" />;
+  if (type === "spacer") return <ArrowsOutLineVerticalIcon size={16} weight="duotone" />;
   return <FieldTypeIcon type={type} />;
 }
 
@@ -67,6 +68,7 @@ export function FooterPalette() {
     { type: "headline", label: footerMessages.blockLabels.headline },
     { type: "text", label: footerMessages.blockLabels.markdown },
     { type: "separator", label: footerMessages.blockLabels.separator },
+    { type: "spacer", label: footerMessages.blockLabels.spacer },
     { type: "social-media", label: footerMessages.blockLabels.socialMedia },
   ];
 

@@ -79,6 +79,11 @@ export const separatorBlockSchema = z.object({
   type: z.literal("separator"),
 });
 
+export const spacerBlockSchema = z.object({
+  id: z.string(),
+  type: z.literal("spacer"),
+});
+
 export const socialMediaBlockSchema = z.object({
   id: z.string(),
   type: z.literal("social-media"),
@@ -98,6 +103,7 @@ export const footerBlockSchema = z.union([
   buttonBlockSchema,
   footerNavBlockSchema,
   separatorBlockSchema,
+  spacerBlockSchema,
   socialMediaBlockSchema,
 ]);
 
@@ -121,6 +127,7 @@ export type TextBlock = z.infer<typeof textBlockSchema>;
 export type ButtonBlock = z.infer<typeof buttonBlockSchema>;
 export type FooterNavBlock = z.infer<typeof footerNavBlockSchema>;
 export type SeparatorBlock = z.infer<typeof separatorBlockSchema>;
+export type SpacerBlock = z.infer<typeof spacerBlockSchema>;
 export type SocialMediaBlock = z.infer<typeof socialMediaBlockSchema>;
 export type FooterBlock = z.infer<typeof footerBlockSchema>;
 export type FooterColumn = z.infer<typeof footerColumnSchema>;

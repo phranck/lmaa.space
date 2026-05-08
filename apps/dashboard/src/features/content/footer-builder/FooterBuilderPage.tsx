@@ -67,6 +67,8 @@ function buildDefaultBlock(type: FooterBlockType): FooterBlock {
       return { id: nanoid(), type: "footer-nav", direction: "vertical" };
     case "separator":
       return { id: nanoid(), type: "separator" };
+    case "spacer":
+      return { id: nanoid(), type: "spacer" };
     case "social-media":
       return { id: nanoid(), type: "social-media", align: "center", iconSize: "md" };
   }
@@ -116,6 +118,7 @@ export function FooterBuilderPage() {
     button: footerMessages.blockLabels.button,
     "footer-nav": footerMessages.blockLabels.footerNav,
     separator: footerMessages.blockLabels.separator,
+    spacer: footerMessages.blockLabels.spacer,
     "social-media": footerMessages.blockLabels.socialMedia,
   };
 

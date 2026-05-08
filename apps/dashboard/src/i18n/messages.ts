@@ -576,6 +576,7 @@ export interface DashboardMessages {
       iconSizeLabel: string;
       iconsLabel: string;
       iconsEmpty: string;
+      spacerHint: string;
       styleOptions: {
         filled: string;
         outline: string;
@@ -629,6 +630,7 @@ export interface DashboardMessages {
         button: string;
         footerNav: string;
         separator: string;
+        spacer: string;
         socialMedia: string;
       };
     };
@@ -1708,6 +1710,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         iconsLabel: "Icons (Reihenfolge per Drag)",
         iconsEmpty:
           'Keine Footer-fähigen Accounts. Lege unter Social Media einen an und aktiviere „Im Footer anzeigen".',
+        spacerHint:
+          "Schiebt nachfolgende Blöcke in der Spalte ans Ende — wie ein SwiftUI-Spacer.",
         styleOptions: {
           filled: "Gefüllt",
           outline: "Outline",
@@ -1761,6 +1765,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           button: "Button",
           footerNav: "Footer-Nav",
           separator: "Trennlinie",
+          spacer: "Spacer",
           socialMedia: "Social Media",
         },
       },
@@ -2859,6 +2864,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         iconsLabel: "Icons (drag to reorder)",
         iconsEmpty:
           'No footer-eligible accounts. Add one under Social Media and enable "Show in footer".',
+        spacerHint: "Pushes following blocks in the column to the bottom — like SwiftUI's Spacer.",
         styleOptions: {
           filled: "Filled",
           outline: "Outline",
@@ -2912,6 +2918,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           button: "Button",
           footerNav: "Footer nav",
           separator: "Separator",
+          spacer: "Spacer",
           socialMedia: "Social media",
         },
       },
