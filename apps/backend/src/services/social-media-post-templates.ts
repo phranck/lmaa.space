@@ -14,6 +14,7 @@ function rowToSocialMediaPostTemplate(row: {
   id: number;
   name: string;
   platforms: string[];
+  scopes: string[];
   bodyMastodon: string | null;
   bodyBluesky: string | null;
   isSystemTemplate: boolean;
@@ -24,6 +25,7 @@ function rowToSocialMediaPostTemplate(row: {
     id: row.id,
     name: row.name,
     platforms: row.platforms as SocialMediaPostTemplate["platforms"],
+    scopes: row.scopes as SocialMediaPostTemplate["scopes"],
     bodyMastodon: row.bodyMastodon,
     bodyBluesky: row.bodyBluesky,
     isSystemTemplate: row.isSystemTemplate,
