@@ -3,6 +3,7 @@ import SectionLabel from "@/components/SectionLabel.astro";
 import ShopAvatar from "@/components/ShopAvatar.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
+import { stripMarkdown } from "@/lib/markdown";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { shopDomain, shopRefUrl } from "@/lib/shop";
 import { slugToTitle } from "@/lib/slug";
@@ -131,7 +132,7 @@ const jsonLd = {
 };
 
 const metaDescription = shop.description
-  ? shop.description.replace(/\s+/g, " ").trim().slice(0, 160)
+  ? stripMarkdown(shop.description).slice(0, 160)
   : `${shop.name} auf lmaa.space. Lokale Märkte. Alternative Anbieter.`;
 ---
 
