@@ -1066,6 +1066,8 @@ export interface DashboardMessages {
       postTo: string;
       noPost: string;
       staleChoice: string;
+      postOverflowWarning: string;
+      approveBlockedHint: string;
     };
   };
   system: {
@@ -2214,6 +2216,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         postTo: "Posten an",
         noPost: "Kein Post",
         staleChoice: "Vorauswahl gehört zu einem nicht mehr verfügbaren Template",
+        postOverflowWarning:
+          "Mit den echten Submission-Daten überschreitet der Post das Plattform-Limit.",
+        approveBlockedHint: "Mindestens ein Post überschreitet das Zeichen-Limit.",
       },
     },
     system: {
@@ -3352,6 +3357,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         postTo: "Post to",
         noPost: "No post",
         staleChoice: "Saved choice points to a template that no longer exists",
+        postOverflowWarning:
+          "With the real submission values this post exceeds the platform limit.",
+        approveBlockedHint: "At least one post exceeds the character limit.",
       },
     },
     system: {
