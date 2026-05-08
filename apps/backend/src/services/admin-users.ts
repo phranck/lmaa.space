@@ -132,7 +132,7 @@ export async function createManagedAdminUser(
         inviteUrl,
         email: input.email,
       });
-      sendMail(input.email, subject, html).catch((err) => {
+      sendMail(input.email, subject, html, { errorSource: "welcome-email" }).catch((err) => {
         logger.error({ err }, "failed to send welcome email");
       });
     }

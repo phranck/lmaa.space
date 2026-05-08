@@ -204,9 +204,9 @@ function sendReviewNotification(
         return;
       }
       const { html, subject } = await renderEmailTemplate(template, variables);
-      await sendMail(to, subject, html);
+      await sendMail(to, subject, html, { errorSource: "review-notification" });
     } catch (err) {
-      logger.error({ err, to, templateId }, "failed to send review notification");
+      void recordBackgroundError("review-notification", err, { to, templateId });
     }
   })();
 }
