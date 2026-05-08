@@ -28,9 +28,9 @@ import {
   ImageIcon,
   LinkIcon,
   ListBulletsIcon,
-  MastodonLogoIcon,
   MarkdownLogoIcon,
   NotebookIcon,
+  PaperPlaneTiltIcon,
   PauseCircleIcon,
   SlidersHorizontalIcon,
   ShareNetworkIcon,
@@ -356,7 +356,7 @@ function MastodonPostTemplatesGroup({
     <CollapsibleSidebarGroup
       routeMatch="/mastodon-post-templates/*"
       storageKey="sidebar-mastodon-post-templates-open"
-      icon={<MastodonLogoIcon weight="duotone" className="w-4 h-4" />}
+      icon={<PaperPlaneTiltIcon weight="duotone" className="w-4 h-4" />}
       label={s.mastodonPostTemplates}
       badge={templates?.length ?? 0}
       globalOpenState={globalOpenState}
@@ -378,7 +378,7 @@ function MastodonPostTemplatesGroup({
           onClick={onItemClick}
           className={sidebarGroupItemClass}
         >
-          <MastodonLogoIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+          <PaperPlaneTiltIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
           <span className="truncate">{template.name}</span>
         </NavLink>
       ))}
