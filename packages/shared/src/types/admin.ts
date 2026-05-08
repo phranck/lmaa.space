@@ -33,6 +33,7 @@ export interface AdminStats {
   pendingSubmissions: number;
   totalSubmissions: number;
   deadLinkReports: number;
+  unresolvedBackgroundErrors: number;
 }
 
 /**
