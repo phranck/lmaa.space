@@ -79,12 +79,26 @@ export const separatorBlockSchema = z.object({
   type: z.literal("separator"),
 });
 
+export const socialMediaBlockSchema = z.object({
+  id: z.string(),
+  type: z.literal("social-media"),
+  align: z.enum(["left", "center", "right"]).default("center"),
+  iconSize: z.enum(["sm", "md", "lg"]).default("md"),
+  /**
+   * Optional explicit ordering of platform keys. When set, the renderer shows
+   * only the listed platforms in the given order; profiles not in the list are
+   * hidden. Unset means "show all footer-visible profiles in default order".
+   */
+  order: z.array(z.string()).optional(),
+});
+
 export const footerBlockSchema = z.union([
   headlineBlockSchema,
   textBlockSchema,
   buttonBlockSchema,
   footerNavBlockSchema,
   separatorBlockSchema,
+  socialMediaBlockSchema,
 ]);
 
 // ---------------------------------------------------------------------------
@@ -107,6 +121,7 @@ export type TextBlock = z.infer<typeof textBlockSchema>;
 export type ButtonBlock = z.infer<typeof buttonBlockSchema>;
 export type FooterNavBlock = z.infer<typeof footerNavBlockSchema>;
 export type SeparatorBlock = z.infer<typeof separatorBlockSchema>;
+export type SocialMediaBlock = z.infer<typeof socialMediaBlockSchema>;
 export type FooterBlock = z.infer<typeof footerBlockSchema>;
 export type FooterColumn = z.infer<typeof footerColumnSchema>;
 export type FooterConfig = z.infer<typeof footerConfigSchema>;

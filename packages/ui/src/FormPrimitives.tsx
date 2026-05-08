@@ -7,7 +7,7 @@ function cx(...parts: Array<string | undefined>) {
 export const formLabelClass = "block px-[5px] text-xs font-medium text-[var(--ds-text-subtle)] mb-1";
 export const formOptionalClass = "text-[var(--ds-text-subtle)] font-normal";
 export const formInputClass =
-  "w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
+  "w-full h-9 px-3 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 export const formHelpClass = "text-xs text-[var(--ds-text-subtle)]";
 export const formBtnBaseClass =
   "flex items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-medium transition-colors disabled:opacity-40";

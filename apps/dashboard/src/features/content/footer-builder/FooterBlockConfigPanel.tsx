@@ -1,6 +1,23 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { DotsSixVerticalIcon } from "@phosphor-icons/react";
 import { Suspense, lazy } from "react";
 
-import type { FooterBlock } from "@lmaa/contracts";
+import type { FooterBlock, SocialMediaBlock } from "@lmaa/contracts";
+import { PLATFORM_MAP } from "@lmaa/ui";
 
 const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
@@ -10,6 +27,7 @@ import { Card } from "@/components/ui/Card.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FooterBlockTypeIcon } from "@/features/content/footer-builder/FooterPalette.tsx";
+import { useFooterEligibleAccounts } from "@/features/social/hooks/useSocialMediaAccounts.ts";
 
 const IconPicker = lazy(() =>
   import("@/components/ui/IconPicker.tsx").then((module) => ({ default: module.IconPicker })),
@@ -38,6 +56,7 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
     button: footerMessages.blockLabels.button,
     "footer-nav": footerMessages.blockLabels.footerNav,
     separator: footerMessages.blockLabels.separator,
+    "social-media": footerMessages.blockLabels.socialMedia,
   };
   const buttonStyleOptions = [
     { value: "filled" as const, label: footerMessages.styleOptions.filled },
@@ -173,6 +192,124 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
           />
         </div>
       )}
+
+      {block.type === "social-media" && (
+        <>
+          <div className="flex flex-col gap-2">
+            <span className={labelClass}>{footerMessages.alignLabel}</span>
+            <SegmentSwitch
+              value={block.align ?? "center"}
+              onChange={(v) => onChange({ ...block, align: v })}
+              options={[
+                { value: "left" as const, label: footerMessages.alignOptions.left },
+                { value: "center" as const, label: footerMessages.alignOptions.center },
+                { value: "right" as const, label: footerMessages.alignOptions.right },
+              ]}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className={labelClass}>{footerMessages.iconSizeLabel}</span>
+            <SegmentSwitch
+              value={block.iconSize ?? "md"}
+              onChange={(v) => onChange({ ...block, iconSize: v })}
+              options={[
+                { value: "sm" as const, label: footerMessages.iconSizeOptions.sm },
+                { value: "md" as const, label: footerMessages.iconSizeOptions.md },
+                { value: "lg" as const, label: footerMessages.iconSizeOptions.lg },
+              ]}
+            />
+          </div>
+          <SocialMediaOrderEditor
+            block={block}
+            onChange={(updated) => onChange(updated)}
+            label={footerMessages.iconsLabel}
+            emptyHint={footerMessages.iconsEmpty}
+          />
+        </>
+      )}
     </Card>
+  );
+}
+
+interface SocialMediaOrderEditorProps {
+  block: SocialMediaBlock;
+  onChange: (updated: SocialMediaBlock) => void;
+  label: string;
+  emptyHint: string;
+}
+
+function SocialMediaOrderEditor({
+  block,
+  onChange,
+  label,
+  emptyHint,
+}: SocialMediaOrderEditorProps) {
+  const { data: accounts = [], isLoading } = useFooterEligibleAccounts();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+
+  // block.order acts as an ordering hint, not a whitelist: accounts added
+  // after the order was saved appear at the end; orphan keys (account removed
+  // or showInFooter toggled off) drop out.
+  const accountKeys: string[] = accounts.map((a) => a.platform);
+  const ordered = (block.order ?? []).filter((k) => accountKeys.includes(k));
+  const remaining = accountKeys.filter((k) => !ordered.includes(k));
+  const currentOrder = [...ordered, ...remaining];
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const ids = currentOrder;
+    const oldIndex = ids.indexOf(String(active.id));
+    const newIndex = ids.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    onChange({ ...block, order: arrayMove(ids, oldIndex, newIndex) });
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className={labelClass}>{label}</span>
+      {isLoading ? null : currentOrder.length === 0 ? (
+        <p className="text-xs italic text-[var(--ds-text-subtle)]">{emptyHint}</p>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={currentOrder} strategy={verticalListSortingStrategy}>
+            <ul className="flex flex-col gap-1">
+              {currentOrder.map((key) => {
+                const acc = accounts.find((a) => a.platform === key);
+                if (!acc) return null;
+                return <SocialMediaOrderItem key={key} platform={key} label={acc.label} />;
+              })}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
+  );
+}
+
+function SocialMediaOrderItem({ platform, label }: { platform: string; label: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: platform,
+  });
+  const def = PLATFORM_MAP.get(platform);
+  const Icon = def?.icon;
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="flex cursor-grab items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 py-1.5 text-sm text-[var(--ds-text)] hover:border-[var(--color-primary)] active:cursor-grabbing"
+    >
+      <DotsSixVerticalIcon className="h-4 w-4 shrink-0 text-[var(--ds-text-subtle)]" />
+      {Icon ? <Icon size={16} /> : null}
+      <span className="flex-1 truncate">{def?.label ?? platform}</span>
+      <span className="shrink-0 text-xs text-[var(--ds-text-subtle)]">{label}</span>
+    </li>
   );
 }

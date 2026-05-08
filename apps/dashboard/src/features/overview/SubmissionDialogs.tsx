@@ -35,8 +35,7 @@ import type {
   ReviewState,
   TemplateAssignment,
 } from "@/features/overview/submission-review-state.ts";
-import { useBlueskyAccount } from "@/features/social/hooks/useBlueskyAccount.ts";
-import { useMastodonAccount } from "@/features/social/hooks/useMastodonAccount.ts";
+import { usePostingAccount } from "@/features/social/hooks/useSocialMediaAccounts.ts";
 import { useTemplateChoices } from "@/features/social/hooks/useTemplateChoices.ts";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 
@@ -466,8 +465,8 @@ function TemplateAssignmentsSection({
 }: TemplateAssignmentsSectionProps) {
   const { messages } = useI18n();
   const a = messages.socialMedia.approve;
-  const masto = useMastodonAccount();
-  const bsky = useBlueskyAccount();
+  const masto = usePostingAccount("mastodon");
+  const bsky = usePostingAccount("bluesky");
   const choices = useTemplateChoices();
   const categoriesQuery = useAdminCategories();
   const categories = categoriesQuery.data ?? [];

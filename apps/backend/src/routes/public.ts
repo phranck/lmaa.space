@@ -41,6 +41,7 @@ import {
   searchFilteredPublicCatalog,
   toggleShopLike,
 } from "../services/public.js";
+import { listFooterSocialMediaAccounts } from "../services/social-media-accounts.js";
 
 /**
  * Public API routes consumed by the website and external clients.
@@ -325,6 +326,13 @@ publicRoutes.get("/footer-config", publicReadLimit, async (c) => {
   const config = await getFooterConfig();
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, config);
+});
+
+// GET /api/social-media-accounts/footer
+publicRoutes.get("/social-media-accounts/footer", publicReadLimit, async (c) => {
+  const accounts = await listFooterSocialMediaAccounts();
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, accounts);
 });
 
 // GET /api/markdown-widgets/:key

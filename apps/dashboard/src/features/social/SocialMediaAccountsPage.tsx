@@ -1,4 +1,5 @@
 import {
+  ArrowSquareOutIcon,
   PencilSimpleIcon,
   PlusCircleIcon,
   ShareNetworkIcon,
@@ -7,7 +8,7 @@ import {
 import type React from "react";
 import { useMemo, useState } from "react";
 
-import type { BlueskyAccount, MastodonAccount } from "@lmaa/contracts";
+import type { SocialMediaAccount } from "@lmaa/contracts";
 import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
@@ -27,59 +28,43 @@ import {
   type AccountFormDialogTarget,
 } from "@/features/social/AccountFormDialog.tsx";
 import {
-  useBlueskyAccount,
-  useDeleteBlueskyAccount,
-  useUpdateBlueskyAccount,
-} from "@/features/social/hooks/useBlueskyAccount.ts";
-import {
-  useDeleteMastodonAccount,
-  useMastodonAccount,
-  useUpdateMastodonAccount,
-} from "@/features/social/hooks/useMastodonAccount.ts";
+  useDeleteSocialMediaAccount,
+  useSocialMediaAccounts,
+  useUpdateSocialMediaAccount,
+} from "@/features/social/hooks/useSocialMediaAccounts.ts";
 
-type AccountRow =
-  | { kind: "mastodon"; account: MastodonAccount }
-  | { kind: "bluesky"; account: BlueskyAccount };
-
-type DeleteTarget =
-  | { platform: "mastodon"; id: number; label: string }
-  | { platform: "bluesky"; id: number; label: string };
+interface DeleteTarget {
+  id: number;
+  label: string;
+}
 
 export function SocialMediaAccountsPage(): React.ReactElement {
   const { messages } = useI18n();
   const t = messages.socialMedia;
   const common = messages.common;
 
-  const masto = useMastodonAccount();
-  const bsky = useBlueskyAccount();
-  const updateMasto = useUpdateMastodonAccount();
-  const deleteMasto = useDeleteMastodonAccount();
-  const updateBsky = useUpdateBlueskyAccount();
-  const deleteBsky = useDeleteBlueskyAccount();
+  const accountsQuery = useSocialMediaAccounts();
+  const updateMutation = useUpdateSocialMediaAccount();
+  const deleteMutation = useDeleteSocialMediaAccount();
 
   const [dialogTarget, setDialogTarget] = useState<AccountFormDialogTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
-  const isLoading = masto.isLoading || bsky.isLoading;
-  const isUpdating = updateMasto.isPending || updateBsky.isPending;
-  const isDeleting = deleteMasto.isPending || deleteBsky.isPending;
+  const isLoading = accountsQuery.isLoading;
+  const isUpdating = updateMutation.isPending;
+  const isDeleting = deleteMutation.isPending;
 
-  const rows = useMemo<AccountRow[]>(() => {
-    const list: AccountRow[] = [];
-    if (masto.data) list.push({ kind: "mastodon", account: masto.data });
-    if (bsky.data) list.push({ kind: "bluesky", account: bsky.data });
-    return list;
-  }, [masto.data, bsky.data]);
+  const rows = accountsQuery.data ?? [];
 
-  const columns: ColumnDef<AccountRow>[] = useMemo(
+  const columns: ColumnDef<SocialMediaAccount>[] = useMemo(
     () => [
       {
         id: "platform",
         header: t.columns.platform,
-        sortKey: (row) => row.kind,
+        sortKey: (row) => row.platform,
         cell: (row) => {
-          const platform = PLATFORM_MAP.get(row.kind);
-          if (!platform) return <span>{row.kind}</span>;
+          const platform = PLATFORM_MAP.get(row.platform);
+          if (!platform) return <span>{row.platform}</span>;
           const Icon = platform.icon;
           return (
             <span className="inline-flex items-center gap-2 text-[var(--ds-text)]">
@@ -90,53 +75,75 @@ export function SocialMediaAccountsPage(): React.ReactElement {
         },
       },
       {
-        id: "account",
+        id: "label",
         header: t.columns.account,
-        sortKey: (row) => row.account.label,
+        sortKey: (row) => row.label,
         cell: (row) => (
-          <span className="font-medium text-[var(--ds-text)]">{row.account.label}</span>
+          <span className="font-medium text-[var(--ds-text)]">{row.label}</span>
         ),
       },
       {
-        id: "identifier",
-        header: t.columns.identifier,
-        sortKey: (row) =>
-          row.kind === "mastodon" ? row.account.instanceUrl : row.account.handle,
-        cell: (row) => (
-          <span className="text-[var(--ds-text-muted)]">
-            {row.kind === "mastodon" ? row.account.instanceUrl : `@${row.account.handle}`}
-          </span>
-        ),
+        id: "profileUrl",
+        header: t.columns.profileUrl,
+        sortKey: (row) => row.profileUrl,
+        cell: (row) =>
+          row.profileUrl ? (
+            <a
+              href={row.profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex max-w-[20rem] items-center gap-1 truncate text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+              title={row.profileUrl}
+            >
+              <span className="truncate">{row.profileUrl}</span>
+              <ArrowSquareOutIcon weight="bold" className="h-3 w-3 shrink-0" />
+            </a>
+          ) : (
+            <span className="text-[var(--ds-text-muted)]">—</span>
+          ),
       },
       {
-        id: "tokenStatus",
-        header: t.columns.token,
+        id: "posting",
+        header: t.columns.posting,
+        sortKey: (row) => Number(row.canPost),
         cell: (row) => (
           <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-              row.account.hasAccessToken
+              row.canPost
                 ? "bg-green-500/10 text-green-600 dark:text-green-400"
                 : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
             }`}
           >
-            {row.account.hasAccessToken ? t.tokenStored : t.tokenMissing}
+            {row.canPost ? t.badges.yes : t.badges.no}
+          </span>
+        ),
+      },
+      {
+        id: "footer",
+        header: t.columns.footer,
+        sortKey: (row) => Number(row.showInFooter),
+        cell: (row) => (
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+              row.showInFooter
+                ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
+            }`}
+          >
+            {row.showInFooter ? t.badges.yes : t.badges.no}
           </span>
         ),
       },
       {
         id: "active",
         header: t.columns.status,
-        sortKey: (row) => Number(row.account.isActive),
+        sortKey: (row) => Number(row.isActive),
         cell: (row) => (
           <ToggleSwitch
-            checked={row.account.isActive}
-            disabled={isUpdating}
+            checked={row.isActive}
+            disabled={isUpdating || !row.canPost}
             onChange={(value) => {
-              if (row.kind === "mastodon") {
-                updateMasto.mutate({ id: row.account.id, input: { isActive: value } });
-              } else {
-                updateBsky.mutate({ id: row.account.id, input: { isActive: value } });
-              }
+              updateMutation.mutate({ id: row.id, input: { isActive: value } });
             }}
           />
         ),
@@ -151,31 +158,19 @@ export function SocialMediaAccountsPage(): React.ReactElement {
               variant="neutral"
               icon={<PencilSimpleIcon weight="duotone" className="w-3.5 h-3.5" />}
               label={common.edit}
-              onClick={() => {
-                if (row.kind === "mastodon") {
-                  setDialogTarget({ mode: "edit", platform: "mastodon", account: row.account });
-                } else {
-                  setDialogTarget({ mode: "edit", platform: "bluesky", account: row.account });
-                }
-              }}
+              onClick={() => setDialogTarget({ mode: "edit", account: row })}
             />
             <TableActionButton
               variant="danger"
               icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
               label={common.delete}
-              onClick={() =>
-                setDeleteTarget({
-                  platform: row.kind,
-                  id: row.account.id,
-                  label: row.account.label,
-                })
-              }
+              onClick={() => setDeleteTarget({ id: row.id, label: row.label })}
             />
           </div>
         ),
       },
     ],
-    [t, common, isUpdating, updateMasto, updateBsky],
+    [t, common, isUpdating, updateMutation],
   );
 
   return (
@@ -211,19 +206,14 @@ export function SocialMediaAccountsPage(): React.ReactElement {
           <DataTable
             columns={columns}
             data={rows}
-            getRowKey={(row) => `${row.kind}:${row.account.id}`}
+            getRowKey={(row) => `${row.platform}:${row.id}`}
             stickyHeader
           />
         )}
       </PageBody>
 
       {dialogTarget && (
-        <AccountFormDialog
-          target={dialogTarget}
-          existingMastodon={Boolean(masto.data)}
-          existingBluesky={Boolean(bsky.data)}
-          onClose={() => setDialogTarget(null)}
-        />
+        <AccountFormDialog target={dialogTarget} onClose={() => setDialogTarget(null)} />
       )}
 
       {deleteTarget && (
@@ -248,12 +238,9 @@ export function SocialMediaAccountsPage(): React.ReactElement {
               type="button"
               disabled={isDeleting}
               onClick={() => {
-                const onSuccess = () => setDeleteTarget(null);
-                if (deleteTarget.platform === "mastodon") {
-                  deleteMasto.mutate(deleteTarget.id, { onSuccess });
-                } else {
-                  deleteBsky.mutate(deleteTarget.id, { onSuccess });
-                }
+                deleteMutation.mutate(deleteTarget.id, {
+                  onSuccess: () => setDeleteTarget(null),
+                });
               }}
               className={dialogBtnDestructive}
             >

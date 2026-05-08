@@ -1,5 +1,6 @@
 ---
 import Footer from "@/components/Footer.astro";
+import type { SocialMediaProfile } from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import { apiGet } from "@/lib/api";
 import type { FooterConfig } from "@lmaa/contracts";
@@ -32,14 +33,16 @@ const resolvedOgImage = ogImage ?? new URL("/og-image.jpg", publicSite).href;
 let headerNav: NavItem[] = [];
 let footerNav: NavItem[] = [];
 let footerConfig: FooterConfig = { columns: [] };
+let socialMediaProfiles: SocialMediaProfile[] = [];
 try {
-  [headerNav, footerNav, footerConfig] = await Promise.all([
+  [headerNav, footerNav, footerConfig, socialMediaProfiles] = await Promise.all([
     apiGet<NavItem[]>("/nav/header"),
     apiGet<NavItem[]>("/nav/footer"),
     apiGet<FooterConfig>("/footer-config"),
+    apiGet<SocialMediaProfile[]>("/social-media-accounts/footer"),
   ]);
 } catch {
-  // Nav items and footer config optional – graceful degradation
+  // Nav items, footer config, and social profiles optional – graceful degradation
 }
 ---
 
@@ -120,7 +123,7 @@ try {
     <main class="flex-grow">
       <slot />
     </main>
-    <Footer config={footerConfig} navItems={footerNav} />
+    <Footer config={footerConfig} navItems={footerNav} socialMediaProfiles={socialMediaProfiles} />
     <script>
       import "@/styles/global.css";
       import "@/scripts/shop-actions.ts";

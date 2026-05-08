@@ -2,143 +2,70 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import {
-  blueskyAccountCreateSchema,
-  blueskyAccountUpdateSchema,
-  mastodonAccountCreateSchema,
-  mastodonAccountUpdateSchema,
+  socialMediaAccountCreateSchema,
+  socialMediaAccountUpdateSchema,
 } from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { verifyBlueskyCredentials } from "../../services/bluesky-account-validator.js";
-import { verifyMastodonCredentials } from "../../services/mastodon-account-validator.js";
 import {
-  createManagedBlueskyAccount,
-  createManagedMastodonAccount,
-  deleteManagedBlueskyAccount,
-  deleteManagedMastodonAccount,
-  getManagedBlueskyAccount,
-  getManagedMastodonAccount,
-  updateManagedBlueskyAccount,
-  updateManagedMastodonAccount,
+  createSocialMediaAccount,
+  deleteSocialMediaAccount,
+  listSocialMediaAccounts,
+  updateSocialMediaAccount,
 } from "../../services/social-media-accounts.js";
 
 export const socialMediaAccountRoutes = new Hono<{ Variables: AuthVariables }>();
 
 socialMediaAccountRoutes.use("*", requireAdmin);
 
-// ─── Mastodon ────────────────────────────────────────────────────────────────
-
-socialMediaAccountRoutes.get("/social-media/mastodon/account", async (c) => {
-  const account = await getManagedMastodonAccount();
-  return ok(c, account);
+socialMediaAccountRoutes.get("/social-media-accounts", async (c) => {
+  const accounts = await listSocialMediaAccounts();
+  return ok(c, accounts);
 });
 
 socialMediaAccountRoutes.post(
-  "/social-media/mastodon/account",
-  zValidator("json", mastodonAccountCreateSchema),
+  "/social-media-accounts",
+  zValidator("json", socialMediaAccountCreateSchema),
   async (c) => {
     const payload = c.req.valid("json");
-    const verify = await verifyMastodonCredentials(payload.instanceUrl, payload.accessToken);
-    if (!verify.ok) {
-      return verify.reason === "invalid_token"
-        ? fail(c, 400, "Mastodon rejected the access token")
-        : fail(c, 503, "Mastodon instance unreachable");
+    const result = await createSocialMediaAccount(payload);
+    if (result.ok) return ok(c, result.data, 201);
+    if (result.reason === "conflict") {
+      return fail(c, 409, `A posting account already exists for ${payload.platform}`);
     }
-    const result = await createManagedMastodonAccount({
-      ...payload,
-      username: payload.username ?? verify.username,
-    });
-    if (!result.ok) return fail(c, 409, "A Mastodon account is already configured");
-    return ok(c, result.data, 201);
+    if (result.reason === "credential_invalid") {
+      return fail(c, 400, result.message);
+    }
+    return fail(c, 503, result.message);
   },
 );
 
-socialMediaAccountRoutes.put(
-  "/social-media/mastodon/account/:id",
-  zValidator("json", mastodonAccountUpdateSchema),
+socialMediaAccountRoutes.patch(
+  "/social-media-accounts/:id",
+  zValidator("json", socialMediaAccountUpdateSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid ID");
     const payload = c.req.valid("json");
-    if (payload.accessToken) {
-      const instanceUrl = payload.instanceUrl;
-      if (!instanceUrl) {
-        return fail(c, 400, "instanceUrl is required when updating the access token");
-      }
-      const verify = await verifyMastodonCredentials(instanceUrl, payload.accessToken);
-      if (!verify.ok) {
-        return verify.reason === "invalid_token"
-          ? fail(c, 400, "Mastodon rejected the access token")
-          : fail(c, 503, "Mastodon instance unreachable");
-      }
+    const result = await updateSocialMediaAccount(id, payload);
+    if (result.ok) return ok(c, result.data);
+    if (result.reason === "not_found") return fail(c, 404, "Social media account not found");
+    if (result.reason === "conflict") {
+      return fail(c, 409, "A posting account already exists for this platform");
     }
-    const result = await updateManagedMastodonAccount(id, payload);
-    if (!result.ok) return fail(c, 404, "Mastodon account not found");
-    return ok(c, result.data);
+    if (result.reason === "credential_invalid") {
+      return fail(c, 400, result.message);
+    }
+    return fail(c, 503, result.message);
   },
 );
 
-socialMediaAccountRoutes.delete("/social-media/mastodon/account/:id", async (c) => {
+socialMediaAccountRoutes.delete("/social-media-accounts/:id", async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid ID");
-  const result = await deleteManagedMastodonAccount(id);
-  if (!result.ok) return fail(c, 404, "Mastodon account not found");
-  return ok(c, { deleted: true });
-});
-
-// ─── BlueSky ─────────────────────────────────────────────────────────────────
-
-socialMediaAccountRoutes.get("/social-media/bluesky/account", async (c) => {
-  const account = await getManagedBlueskyAccount();
-  return ok(c, account);
-});
-
-socialMediaAccountRoutes.post(
-  "/social-media/bluesky/account",
-  zValidator("json", blueskyAccountCreateSchema),
-  async (c) => {
-    const payload = c.req.valid("json");
-    const verify = await verifyBlueskyCredentials(payload.handle, payload.appPassword);
-    if (!verify.ok) {
-      return verify.reason === "invalid_credentials"
-        ? fail(c, 400, "BlueSky rejected the credentials")
-        : fail(c, 503, "BlueSky service unreachable");
-    }
-    const result = await createManagedBlueskyAccount(payload);
-    if (!result.ok) return fail(c, 409, "A BlueSky account is already configured");
-    return ok(c, result.data, 201);
-  },
-);
-
-socialMediaAccountRoutes.put(
-  "/social-media/bluesky/account/:id",
-  zValidator("json", blueskyAccountUpdateSchema),
-  async (c) => {
-    const id = parseId(c.req.param("id"));
-    if (!id) return fail(c, 400, "Invalid ID");
-    const payload = c.req.valid("json");
-    if (payload.appPassword) {
-      const handle = payload.handle;
-      if (!handle) return fail(c, 400, "handle is required when updating the app password");
-      const verify = await verifyBlueskyCredentials(handle, payload.appPassword);
-      if (!verify.ok) {
-        return verify.reason === "invalid_credentials"
-          ? fail(c, 400, "BlueSky rejected the credentials")
-          : fail(c, 503, "BlueSky service unreachable");
-      }
-    }
-    const result = await updateManagedBlueskyAccount(id, payload);
-    if (!result.ok) return fail(c, 404, "BlueSky account not found");
-    return ok(c, result.data);
-  },
-);
-
-socialMediaAccountRoutes.delete("/social-media/bluesky/account/:id", async (c) => {
-  const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid ID");
-  const result = await deleteManagedBlueskyAccount(id);
-  if (!result.ok) return fail(c, 404, "BlueSky account not found");
+  const result = await deleteSocialMediaAccount(id);
+  if (!result.ok) return fail(c, 404, "Social media account not found");
   return ok(c, { deleted: true });
 });

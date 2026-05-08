@@ -4,6 +4,9 @@ import { FaFacebook, FaTwitter } from "react-icons/fa6";
 import {
   SiApplepodcasts,
   SiBluesky,
+  SiCodeberg,
+  SiGithub,
+  SiGitlab,
   SiInstagram,
   SiLinkedin,
   SiMastodon,
@@ -49,6 +52,9 @@ export const PLATFORMS: PlatformDef[] = [
   { key: "mixcloud", label: "Mixcloud", icon: SiMixcloud },
   { key: "soundcloud", label: "SoundCloud", icon: SiSoundcloud },
   { key: "spotify", label: "Spotify", icon: SiSpotify },
+  { key: "github", label: "GitHub", icon: SiGithub },
+  { key: "gitlab", label: "GitLab", icon: SiGitlab },
+  { key: "codeberg", label: "Codeberg", icon: SiCodeberg },
   { key: "website", label: "Website", icon: GlobeIcon },
 ];
 

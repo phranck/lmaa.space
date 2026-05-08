@@ -1,6 +1,6 @@
 import type React from "react";
 
-import { formInputClass } from "@lmaa/ui";
+import { formInputClass, formLabelClass } from "@lmaa/ui";
 
 export interface BlueskyAccountFormInput {
   label: string;
@@ -13,7 +13,6 @@ interface BlueskyAccountFormProps {
   form: BlueskyAccountFormInput;
   onChange: (form: BlueskyAccountFormInput) => void;
   labels: {
-    label: string;
     handle: string;
     appPassword: string;
     appPasswordKeepHint: string;
@@ -36,18 +35,9 @@ export function BlueskyAccountForm({
   hasStoredPassword,
 }: BlueskyAccountFormProps): React.ReactElement {
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">{labels.label}</span>
-        <input
-          value={form.label}
-          onChange={(event) => onChange({ ...form, label: event.target.value })}
-          className={formInputClass}
-          placeholder="lmaa.space"
-        />
-      </label>
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">{labels.handle}</span>
+    <div className="flex flex-col gap-3">
+      <label>
+        <span className={formLabelClass}>{labels.handle}</span>
         <input
           value={form.handle}
           onChange={(event) => onChange({ ...form, handle: event.target.value })}
@@ -56,8 +46,8 @@ export function BlueskyAccountForm({
           required={requirePassword}
         />
       </label>
-      <label className="space-y-1 md:col-span-2">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">
+      <label>
+        <span className={formLabelClass}>
           {labels.appPassword}
           {!requirePassword && hasStoredPassword && (
             <span className="ml-2 text-[var(--ds-text-muted)]">
@@ -74,7 +64,7 @@ export function BlueskyAccountForm({
           autoComplete="new-password"
           required={requirePassword}
         />
-        <span className="block text-xs text-[var(--ds-text-muted)]">
+        <span className="mt-1 block text-xs text-[var(--ds-text-muted)]">
           {labels.appPasswordRecommendation}{" "}
           <a
             href={BLUESKY_APP_PASSWORDS_URL}

@@ -5,9 +5,19 @@ import {
   MASTODON_MAX_POST_CHARACTERS_LIMIT,
   type MastodonVisibility,
 } from "@lmaa/contracts";
-import { formInputClass } from "@lmaa/ui";
+import { formInputClass, formLabelClass } from "@lmaa/ui";
 
-import type { MastodonAccountFormInput } from "@/features/social/hooks/useMastodonAccount.ts";
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
+
+export interface MastodonAccountFormInput {
+  label: string;
+  instanceUrl: string;
+  username?: string;
+  accessToken?: string;
+  visibility: MastodonVisibility;
+  maxPostCharacters: number;
+  isActive: boolean;
+}
 
 const VISIBILITY_OPTIONS: MastodonVisibility[] = ["public", "unlisted", "private", "direct"];
 
@@ -16,7 +26,6 @@ interface MastodonAccountFormProps {
   onChange: (form: MastodonAccountFormInput) => void;
   visibilityLabels: Record<MastodonVisibility, string>;
   labels: {
-    label: string;
     instanceUrl: string;
     username: string;
     accessToken: string;
@@ -37,21 +46,15 @@ export function MastodonAccountForm({
   tokenPlaceholder,
   requireToken,
 }: MastodonAccountFormProps): React.ReactElement {
+  const visibilityOptions: DropdownOption<MastodonVisibility>[] = VISIBILITY_OPTIONS.map((v) => ({
+    value: v,
+    label: visibilityLabels[v],
+  }));
+
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">{labels.label}</span>
-        <input
-          value={form.label}
-          onChange={(event) => onChange({ ...form, label: event.target.value })}
-          className={formInputClass}
-          placeholder="lmaa.space"
-        />
-      </label>
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">
-          {labels.instanceUrl}
-        </span>
+      <label>
+        <span className={formLabelClass}>{labels.instanceUrl}</span>
         <input
           value={form.instanceUrl}
           onChange={(event) => onChange({ ...form, instanceUrl: event.target.value })}
@@ -59,8 +62,8 @@ export function MastodonAccountForm({
           placeholder="https://mastodon.social"
         />
       </label>
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">{labels.username}</span>
+      <label>
+        <span className={formLabelClass}>{labels.username}</span>
         <input
           value={form.username ?? ""}
           onChange={(event) => onChange({ ...form, username: event.target.value })}
@@ -68,8 +71,8 @@ export function MastodonAccountForm({
           placeholder="@lmaa"
         />
       </label>
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">
+      <label className="md:col-span-2">
+        <span className={formLabelClass}>
           {requireToken ? labels.accessToken : labels.accessTokenOptional}
         </span>
         <input
@@ -81,26 +84,18 @@ export function MastodonAccountForm({
           autoComplete="new-password"
         />
       </label>
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">{labels.visibility}</span>
-        <select
+      <div>
+        <span className={formLabelClass}>{labels.visibility}</span>
+        <Dropdown<MastodonVisibility>
           value={form.visibility}
-          onChange={(event) =>
-            onChange({ ...form, visibility: event.target.value as MastodonVisibility })
-          }
-          className={formInputClass}
-        >
-          {VISIBILITY_OPTIONS.map((visibility) => (
-            <option key={visibility} value={visibility}>
-              {visibilityLabels[visibility]}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="space-y-1">
-        <span className="text-xs font-medium text-[var(--ds-text-muted)]">
-          {labels.maxPostCharacters}
-        </span>
+          onChange={(value) => onChange({ ...form, visibility: value })}
+          options={visibilityOptions}
+          className="w-full"
+          portal
+        />
+      </div>
+      <label>
+        <span className={formLabelClass}>{labels.maxPostCharacters}</span>
         <input
           type="number"
           min={1}
