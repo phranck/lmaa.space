@@ -648,6 +648,7 @@ export const socialMediaPostTemplates = pgTable(
     platforms: text("platforms").array().notNull(),
     scopes: text("scopes")
       .array()
+      .$type<Array<"submission" | "category">>()
       .notNull()
       .default(sql`ARRAY['submission']::text[]`),
     bodyMastodon: text("body_mastodon"),

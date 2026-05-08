@@ -7,7 +7,7 @@ export const templateAssignmentSchema = z.object({
 export type TemplateAssignment = z.infer<typeof templateAssignmentSchema>;
 
 /**
- * Category create payload contract for admin routes.
+ * Category base contract (fields shared by create and update).
  */
 export const categoryBodySchema = z.object({
   name: z.string().min(1).max(100),
@@ -18,10 +18,18 @@ export const categoryBodySchema = z.object({
   imageUrl: z.string().url().nullable().optional(),
   imagePhotographer: z.string().max(200).nullable().optional(),
   imagePhotographerUrl: z.string().url().nullable().optional(),
+});
+
+/**
+ * Category create payload contract — accepts optional social-media post
+ * template assignments that fire on successful create.
+ */
+export const categoryCreateSchema = categoryBodySchema.extend({
   templateAssignments: z.array(templateAssignmentSchema).optional(),
 });
 
 /**
- * Category partial update payload contract for admin routes.
+ * Category partial update payload — does NOT accept templateAssignments
+ * (posting only fires on create).
  */
 export const categoryUpdateSchema = categoryBodySchema.partial();
