@@ -358,6 +358,13 @@
       "when": 1778274482822,
       "tag": "0050_social_media_accounts_generic",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1778283988144,
+      "tag": "0051_jazzy_yellowjacket",
+      "breakpoints": true
     }
   ]
 }

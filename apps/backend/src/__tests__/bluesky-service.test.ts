@@ -45,6 +45,7 @@ const template: SocialMediaPostTemplate = {
   id: 7,
   name: "welcome",
   platforms: ["bluesky"],
+  scopes: ["submission"],
   bodyMastodon: null,
   bodyBluesky: "Welcome {{shopName}} — {{shopUrl}}",
   isSystemTemplate: false,

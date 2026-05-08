@@ -646,6 +646,10 @@ export const socialMediaPostTemplates = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull().unique(),
     platforms: text("platforms").array().notNull(),
+    scopes: text("scopes")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['submission']::text[]`),
     bodyMastodon: text("body_mastodon"),
     bodyBluesky: text("body_bluesky"),
     isSystemTemplate: boolean("is_system_template").notNull().default(false),
@@ -664,6 +668,14 @@ export const socialMediaPostTemplates = pgTable(
     check(
       "social_media_post_templates_body_bluesky_when_selected",
       sql`array_position(${table.platforms}, 'bluesky') IS NULL OR ${table.bodyBluesky} IS NOT NULL`,
+    ),
+    check(
+      "social_media_post_templates_scopes_nonempty",
+      sql`cardinality(${table.scopes}) >= 1`,
+    ),
+    check(
+      "social_media_post_templates_scopes_valid",
+      sql`${table.scopes} <@ ARRAY['submission', 'category']::text[]`,
     ),
   ],
 );
@@ -850,14 +862,22 @@ export const adminUserAccountTemplateChoice = pgTable(
     socialMediaAccountId: integer("social_media_account_id")
       .notNull()
       .references(() => socialMediaAccounts.id, { onDelete: "cascade" }),
+    scope: text("scope")
+      .$type<"submission" | "category">()
+      .notNull()
+      .default("submission"),
     templateId: integer("template_id").references(() => socialMediaPostTemplates.id, {
       onDelete: "set null",
     }),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
-    primaryKey({ columns: [table.adminUserId, table.socialMediaAccountId] }),
+    primaryKey({ columns: [table.adminUserId, table.socialMediaAccountId, table.scope] }),
     index("idx_admin_user_account_template_choice_user").on(table.adminUserId),
+    check(
+      "admin_user_account_template_choice_scope_valid",
+      sql`${table.scope} IN ('submission', 'category')`,
+    ),
   ],
 );
 
