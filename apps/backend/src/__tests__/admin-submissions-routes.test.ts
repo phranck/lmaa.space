@@ -113,7 +113,7 @@ describe("submissionsRoutes", () => {
       expect(await res.json()).toEqual({ data: { id: 1, status: "approved" } });
     });
 
-    it("passes selected notification and Mastodon template ids to the service", async () => {
+    it("passes notification template id and templateAssignments to the service", async () => {
       serviceMocks.reviewAdminSubmission.mockResolvedValue({
         ok: true,
         submission: { id: 1, status: "approved" },
@@ -125,7 +125,10 @@ describe("submissionsRoutes", () => {
         body: JSON.stringify({
           status: "approved",
           notificationTemplateId: 7,
-          templateId: 9,
+          templateAssignments: [
+            { accountId: 1, templateId: 9 },
+            { accountId: 2, templateId: null },
+          ],
         }),
       });
 
@@ -133,7 +136,44 @@ describe("submissionsRoutes", () => {
       expect(serviceMocks.reviewAdminSubmission).toHaveBeenCalledWith(
         expect.objectContaining({
           notificationTemplateId: 7,
-          templateId: 9,
+          templateAssignments: [
+            { accountId: 1, templateId: 9 },
+            { accountId: 2, templateId: null },
+          ],
+        }),
+      );
+    });
+
+    it("zod rejects malformed templateAssignments entry", async () => {
+      const res = await app.request("/submissions/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "approved",
+          templateAssignments: [{ accountId: -1, templateId: 9 }],
+        }),
+      });
+      expect(res.status).toBe(400);
+      expect(serviceMocks.reviewAdminSubmission).not.toHaveBeenCalled();
+    });
+
+    it("approving without templateAssignments still works (no posts)", async () => {
+      serviceMocks.reviewAdminSubmission.mockResolvedValue({
+        ok: true,
+        submission: { id: 1, status: "approved" },
+      });
+
+      const res = await app.request("/submissions/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "approved" }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(serviceMocks.reviewAdminSubmission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "approved",
+          templateAssignments: undefined,
         }),
       );
     });
