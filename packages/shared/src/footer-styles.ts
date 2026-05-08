@@ -182,6 +182,13 @@ export const FOOTER_STYLES_CSS = `
   opacity: 0.2;
   margin: 0.25rem 0;
 }
+.footer-spacer {
+  flex: 1 1 0;
+  min-height: 0;
+}
+.footer-col {
+  height: 100%;
+}
 .footer-btn-filled  { background: var(--footer-btn, ${FOOTER_STYLE_DEFAULTS.buttonColor}); color: var(--footer-btn-text, ${FOOTER_STYLE_DEFAULTS.buttonTextColor}); border: 1px solid var(--footer-btn, ${FOOTER_STYLE_DEFAULTS.buttonColor}); }
 .footer-btn-outline { background: transparent; color: var(--footer-btn, ${FOOTER_STYLE_DEFAULTS.buttonColor}); border: 1px solid var(--footer-btn, ${FOOTER_STYLE_DEFAULTS.buttonColor}); }
 .footer-btn-ghost   { background: transparent; color: var(--footer-link, ${FOOTER_STYLE_DEFAULTS.linkColor}); border: none; padding-left: 0; }

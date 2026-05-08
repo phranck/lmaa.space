@@ -11,6 +11,7 @@ const BLOCK_ABBR: Record<FooterBlock["type"], string> = {
   button: "Btn",
   "footer-nav": "Nav",
   separator: "—",
+  spacer: "↕",
   "social-media": "SM",
 };
 
@@ -43,6 +44,7 @@ export function FooterBlockItem({ block, columnId, isSelected, onSelect, onDelet
     button: messages.content.footerBuilder.blockLabels.button,
     "footer-nav": messages.content.footerBuilder.blockLabels.footerNav,
     separator: messages.content.footerBuilder.blockLabels.separator,
+    spacer: messages.content.footerBuilder.blockLabels.spacer,
     "social-media": messages.content.footerBuilder.blockLabels.socialMedia,
   };
   const sortableId = `block:${columnId}:${block.id}`;

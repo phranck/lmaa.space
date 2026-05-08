@@ -87,6 +87,10 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
                 return <hr class="footer-separator" />;
               }
 
+              if (block.type === "spacer") {
+                return <div class="footer-spacer" aria-hidden="true" />;
+              }
+
               if (block.type === "footer-nav") {
                 const isHorizontal = block.direction === "horizontal";
                 return (

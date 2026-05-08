@@ -56,6 +56,7 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
     button: footerMessages.blockLabels.button,
     "footer-nav": footerMessages.blockLabels.footerNav,
     separator: footerMessages.blockLabels.separator,
+    spacer: footerMessages.blockLabels.spacer,
     "social-media": footerMessages.blockLabels.socialMedia,
   };
   const buttonStyleOptions = [
@@ -78,6 +79,10 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
 
       {block.type === "separator" && (
         <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.noSettings}</p>
+      )}
+
+      {block.type === "spacer" && (
+        <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.spacerHint}</p>
       )}
 
       {block.type === "headline" && (
