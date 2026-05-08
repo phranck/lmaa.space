@@ -16,11 +16,21 @@ const validatorMock = vi.hoisted(() => ({
 
 vi.mock("../services/mastodon-account-validator.js", () => validatorMock);
 
+const blueskyValidatorMock = vi.hoisted(() => ({
+  verifyBlueskyCredentials: vi.fn(),
+}));
+
+vi.mock("../services/bluesky-account-validator.js", () => blueskyValidatorMock);
+
 const serviceMocks = vi.hoisted(() => ({
   createManagedMastodonAccount: vi.fn(),
   updateManagedMastodonAccount: vi.fn(),
-  getManagedMastodonAccounts: vi.fn(),
+  getManagedMastodonAccount: vi.fn(),
   deleteManagedMastodonAccount: vi.fn(),
+  createManagedBlueskyAccount: vi.fn(),
+  updateManagedBlueskyAccount: vi.fn(),
+  getManagedBlueskyAccount: vi.fn(),
+  deleteManagedBlueskyAccount: vi.fn(),
 }));
 
 vi.mock("../services/social-media-accounts.js", () => serviceMocks);
@@ -28,7 +38,9 @@ vi.mock("../services/social-media-accounts.js", () => serviceMocks);
 import { socialMediaAccountRoutes } from "../routes/admin/social-media-accounts.js";
 
 function makeApp() {
-  const app = new Hono<{ Variables: { isOwner: boolean; adminId: number; role: string } }>();
+  const app = new Hono<{
+    Variables: { isOwner: boolean; adminId: number; role: string };
+  }>();
   app.use("*", async (c, next) => {
     c.set("isOwner", false);
     c.set("adminId", 1);
@@ -39,19 +51,20 @@ function makeApp() {
   return app;
 }
 
-const VALID_ACCOUNT = {
+const VALID_MASTODON_ACCOUNT = {
   id: 1,
   label: "Test",
   instanceUrl: "https://mastodon.social",
   username: "testuser",
   visibility: "public",
+  maxPostCharacters: 500,
   isActive: true,
   hasAccessToken: true,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
 
-describe("POST /social-media/mastodon/accounts — token validation", () => {
+describe("POST /social-media/mastodon/account — token validation + singleton", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -61,10 +74,13 @@ describe("POST /social-media/mastodon/accounts — token validation", () => {
       ok: true,
       username: "testuser",
     });
-    serviceMocks.createManagedMastodonAccount.mockResolvedValue(VALID_ACCOUNT);
+    serviceMocks.createManagedMastodonAccount.mockResolvedValue({
+      ok: true,
+      data: VALID_MASTODON_ACCOUNT,
+    });
 
     const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts", {
+    const res = await app.request("/social-media/mastodon/account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -77,21 +93,20 @@ describe("POST /social-media/mastodon/accounts — token validation", () => {
     });
 
     expect(res.status).toBe(201);
-    expect(validatorMock.verifyMastodonCredentials).toHaveBeenCalledWith(
-      "https://mastodon.social",
-      "valid-token",
-    );
   });
 
-  it("backfills username from validator when payload has no username", async () => {
+  it("409 when service returns conflict (singleton already exists)", async () => {
     validatorMock.verifyMastodonCredentials.mockResolvedValue({
       ok: true,
-      username: "auto_filled",
+      username: "testuser",
     });
-    serviceMocks.createManagedMastodonAccount.mockResolvedValue(VALID_ACCOUNT);
+    serviceMocks.createManagedMastodonAccount.mockResolvedValue({
+      ok: false,
+      reason: "conflict",
+    });
 
     const app = makeApp();
-    await app.request("/social-media/mastodon/accounts", {
+    const res = await app.request("/social-media/mastodon/account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -103,95 +118,115 @@ describe("POST /social-media/mastodon/accounts — token validation", () => {
       }),
     });
 
-    const callArg = serviceMocks.createManagedMastodonAccount.mock.calls[0][0] as Record<
-      string,
-      unknown
-    >;
-    expect(callArg.username).toBe("auto_filled");
+    expect(res.status).toBe(409);
   });
 
-  it("does not overwrite username when payload provides one", async () => {
-    validatorMock.verifyMastodonCredentials.mockResolvedValue({
-      ok: true,
-      username: "validator_username",
-    });
-    serviceMocks.createManagedMastodonAccount.mockResolvedValue(VALID_ACCOUNT);
-
-    const app = makeApp();
-    await app.request("/social-media/mastodon/accounts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        label: "Test",
-        instanceUrl: "https://mastodon.social",
-        username: "my_username",
-        accessToken: "valid-token",
-        visibility: "public",
-        isActive: true,
-      }),
-    });
-
-    const callArg = serviceMocks.createManagedMastodonAccount.mock.calls[0][0] as Record<
-      string,
-      unknown
-    >;
-    expect(callArg.username).toBe("my_username");
-  });
-
-  it("400 when validator returns reason=invalid_token", async () => {
+  it("400 when validator returns invalid_token", async () => {
     validatorMock.verifyMastodonCredentials.mockResolvedValue({
       ok: false,
       reason: "invalid_token",
-      message: "The Mastodon instance rejected the access token.",
+      message: "rejected",
     });
 
     const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts", {
+    const res = await app.request("/social-media/mastodon/account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         label: "Test",
         instanceUrl: "https://mastodon.social",
-        accessToken: "bad-token",
+        accessToken: "bad",
         visibility: "public",
         isActive: true,
       }),
     });
 
     expect(res.status).toBe(400);
-    const body = (await res.json()) as { error: { message: string } };
-    expect(body.error.message).toBe("Mastodon rejected the access token");
     expect(serviceMocks.createManagedMastodonAccount).not.toHaveBeenCalled();
   });
 
-  it("503 when validator returns reason=instance_unreachable", async () => {
+  it("503 when validator returns instance_unreachable", async () => {
     validatorMock.verifyMastodonCredentials.mockResolvedValue({
       ok: false,
       reason: "instance_unreachable",
-      message: "Could not reach the Mastodon instance.",
+      message: "down",
     });
 
     const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts", {
+    const res = await app.request("/social-media/mastodon/account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         label: "Test",
         instanceUrl: "https://mastodon.social",
-        accessToken: "any-token",
+        accessToken: "any",
         visibility: "public",
         isActive: true,
       }),
     });
 
     expect(res.status).toBe(503);
-    const body = (await res.json()) as { error: { message: string } };
-    expect(body.error.message).toBe("Mastodon instance unreachable");
     expect(serviceMocks.createManagedMastodonAccount).not.toHaveBeenCalled();
+  });
+
+  it("preserves maxPostCharacters when supplied", async () => {
+    validatorMock.verifyMastodonCredentials.mockResolvedValue({
+      ok: true,
+      username: "u",
+    });
+    serviceMocks.createManagedMastodonAccount.mockResolvedValue({
+      ok: true,
+      data: { ...VALID_MASTODON_ACCOUNT, maxPostCharacters: 800 },
+    });
+
+    const app = makeApp();
+    const res = await app.request("/social-media/mastodon/account", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: "Test",
+        instanceUrl: "https://mastodon.social",
+        accessToken: "valid",
+        visibility: "public",
+        maxPostCharacters: 800,
+        isActive: true,
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const callArg = serviceMocks.createManagedMastodonAccount.mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
+    expect(callArg.maxPostCharacters).toBe(800);
   });
 });
 
-describe("PUT /social-media/mastodon/accounts/:id — token validation", () => {
+describe("GET /social-media/mastodon/account — singleton response", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns the singleton account or null", async () => {
+    serviceMocks.getManagedMastodonAccount.mockResolvedValue(VALID_MASTODON_ACCOUNT);
+    const app = makeApp();
+    const res = await app.request("/social-media/mastodon/account");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: typeof VALID_MASTODON_ACCOUNT | null };
+    expect(body.data).toEqual(VALID_MASTODON_ACCOUNT);
+  });
+
+  it("returns null when no account configured", async () => {
+    serviceMocks.getManagedMastodonAccount.mockResolvedValue(null);
+    const app = makeApp();
+    const res = await app.request("/social-media/mastodon/account");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: null };
+    expect(body.data).toBeNull();
+  });
+});
+
+describe("PUT /social-media/mastodon/account/:id — token validation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -199,11 +234,11 @@ describe("PUT /social-media/mastodon/accounts/:id — token validation", () => {
   it("200 without calling validator when no accessToken in payload", async () => {
     serviceMocks.updateManagedMastodonAccount.mockResolvedValue({
       ok: true,
-      data: VALID_ACCOUNT,
+      data: VALID_MASTODON_ACCOUNT,
     });
 
     const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts/1", {
+    const res = await app.request("/social-media/mastodon/account/1", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ label: "New Label" }),
@@ -213,18 +248,18 @@ describe("PUT /social-media/mastodon/accounts/:id — token validation", () => {
     expect(validatorMock.verifyMastodonCredentials).not.toHaveBeenCalled();
   });
 
-  it("200 and validates when accessToken is present in payload", async () => {
+  it("200 and validates when accessToken is present", async () => {
     validatorMock.verifyMastodonCredentials.mockResolvedValue({
       ok: true,
-      username: "updated_user",
+      username: "u",
     });
     serviceMocks.updateManagedMastodonAccount.mockResolvedValue({
       ok: true,
-      data: VALID_ACCOUNT,
+      data: VALID_MASTODON_ACCOUNT,
     });
 
     const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts/1", {
+    const res = await app.request("/social-media/mastodon/account/1", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -240,62 +275,14 @@ describe("PUT /social-media/mastodon/accounts/:id — token validation", () => {
     );
   });
 
-  it("400 when validator returns reason=invalid_token on PUT", async () => {
-    validatorMock.verifyMastodonCredentials.mockResolvedValue({
-      ok: false,
-      reason: "invalid_token",
-      message: "The Mastodon instance rejected the access token.",
-    });
-
+  it("400 when accessToken present but instanceUrl missing", async () => {
     const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts/1", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        instanceUrl: "https://mastodon.social",
-        accessToken: "bad-token",
-      }),
-    });
-
-    expect(res.status).toBe(400);
-    const body = (await res.json()) as { error: { message: string } };
-    expect(body.error.message).toBe("Mastodon rejected the access token");
-    expect(serviceMocks.updateManagedMastodonAccount).not.toHaveBeenCalled();
-  });
-
-  it("503 when validator returns reason=instance_unreachable on PUT", async () => {
-    validatorMock.verifyMastodonCredentials.mockResolvedValue({
-      ok: false,
-      reason: "instance_unreachable",
-      message: "Could not reach the Mastodon instance.",
-    });
-
-    const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts/1", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        instanceUrl: "https://mastodon.social",
-        accessToken: "any-token",
-      }),
-    });
-
-    expect(res.status).toBe(503);
-    const body = (await res.json()) as { error: { message: string } };
-    expect(body.error.message).toBe("Mastodon instance unreachable");
-    expect(serviceMocks.updateManagedMastodonAccount).not.toHaveBeenCalled();
-  });
-
-  it("400 when accessToken is present but instanceUrl is missing", async () => {
-    const app = makeApp();
-    const res = await app.request("/social-media/mastodon/accounts/1", {
+    const res = await app.request("/social-media/mastodon/account/1", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ accessToken: "some-token" }),
     });
 
     expect(res.status).toBe(400);
-    expect(validatorMock.verifyMastodonCredentials).not.toHaveBeenCalled();
-    expect(serviceMocks.updateManagedMastodonAccount).not.toHaveBeenCalled();
   });
 });

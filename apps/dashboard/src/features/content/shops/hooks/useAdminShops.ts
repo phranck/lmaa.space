@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type {
   AdminShopListItem,
@@ -99,8 +99,7 @@ function getAdminShopQueryFn(id: number) {
 export function useAdminShop(id: number | null) {
   return useQuery({
     queryKey: getAdminShopQueryKey(id),
-    queryFn: id === null ? undefined : getAdminShopQueryFn(id),
-    enabled: id !== null,
+    queryFn: id === null ? skipToken : getAdminShopQueryFn(id),
     staleTime: 60 * 1000,
   });
 }

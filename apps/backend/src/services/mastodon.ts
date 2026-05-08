@@ -2,12 +2,9 @@ import { createHash } from "node:crypto";
 
 import { encodeShopToken } from "@lmaa/shared";
 
-import { recordBackgroundError } from "./background-errors.js";
 import { env } from "../config/env.js";
-import type { MastodonPostTemplate, SocialMediaAccount, Submission } from "../db/schema.js";
+import type { SocialMediaAccount, SocialMediaPostTemplate, Submission } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
-import { getMastodonPostTemplateById } from "../repositories/mastodon-post-templates.js";
-import { listActiveMastodonAccounts } from "../repositories/social-media-accounts.js";
 
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
 
@@ -39,7 +36,7 @@ function resetRateLimitBuckets(): void {
   accountBuckets.clear();
 }
 
-interface ApprovalPostContext {
+export interface ApprovalPostContext {
   submission: Submission;
   newShopId: number;
   adminNote: string;
@@ -50,7 +47,9 @@ function renderPlainTemplate(text: string, variables: Record<string, string>): s
   return text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) => variables[name] ?? "");
 }
 
-function buildApprovalPostVariables(context: ApprovalPostContext): Record<string, string> {
+export function buildApprovalPostVariables(
+  context: ApprovalPostContext,
+): Record<string, string> {
   const { submission, newShopId, adminNote, categoryNames } = context;
   return {
     shopName: submission.shopName,
@@ -70,7 +69,7 @@ function buildApprovalPostVariables(context: ApprovalPostContext): Record<string
 
 function idempotencyKey(
   account: SocialMediaAccount,
-  template: MastodonPostTemplate,
+  template: SocialMediaPostTemplate,
   submission: Submission,
 ): string {
   return createHash("sha256")
@@ -78,27 +77,51 @@ function idempotencyKey(
     .digest("hex");
 }
 
-async function postToMastodon(
+/**
+ * Posts a rendered template to a single Mastodon account. Returns void on success;
+ * thrown errors are caught by the caller (admin-submissions) and routed to
+ * `recordBackgroundError`.
+ */
+export async function postToMastodonAccount(
   account: SocialMediaAccount,
-  template: MastodonPostTemplate,
-  submission: Submission,
-  status: string,
+  template: SocialMediaPostTemplate,
+  context: ApprovalPostContext,
 ): Promise<void> {
+  if (account.platform !== "mastodon") {
+    throw new Error(`account ${account.id} is not a mastodon account`);
+  }
+  if (!template.bodyMastodon) {
+    throw new Error(`template ${template.id} missing bodyMastodon`);
+  }
   if (!consumeRateLimit(account.id)) {
     throw new Error(`Mastodon rate limit reached for account ${account.id}`);
+  }
+
+  const status = renderPlainTemplate(
+    template.bodyMastodon,
+    buildApprovalPostVariables(context),
+  ).trim();
+  if (!status) {
+    logger.warn({ templateId: template.id }, "mastodon body rendered empty, skipping");
+    return;
+  }
+  if (status.length > account.maxPostCharacters) {
+    throw new Error(
+      `mastodon body exceeds account ${account.id} maxPostCharacters (${status.length}/${account.maxPostCharacters})`,
+    );
   }
 
   const endpoint = new URL("/api/v1/statuses", account.instanceUrl);
   const body = new URLSearchParams();
   body.set("status", status);
-  body.set("visibility", account.visibility);
+  if (account.visibility) body.set("visibility", account.visibility);
 
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       "Content-Type": "application/x-www-form-urlencoded",
-      "Idempotency-Key": idempotencyKey(account, template, submission),
+      "Idempotency-Key": idempotencyKey(account, template, context.submission),
     },
     body,
   });
@@ -113,51 +136,9 @@ async function postToMastodon(
  * Exported solely for unit-testing private helpers.
  * Do NOT use outside of test files.
  */
-export const __test__ = { renderPlainTemplate, idempotencyKey, consumeRateLimit, resetRateLimitBuckets };
-
-/**
- * Sends an approval announcement to all active Mastodon accounts.
- */
-export function sendMastodonApprovalPost(templateId: number, context: ApprovalPostContext): void {
-  void (async () => {
-    try {
-      const template = await getMastodonPostTemplateById(templateId);
-      if (!template) {
-        logger.warn({ templateId }, "mastodon post template not found, skipping post");
-        return;
-      }
-
-      const accounts = await listActiveMastodonAccounts();
-      if (accounts.length === 0) {
-        logger.warn({ templateId }, "no active mastodon accounts configured, skipping post");
-        return;
-      }
-
-      const status = renderPlainTemplate(
-        template.bodyText,
-        buildApprovalPostVariables(context),
-      ).trim();
-      if (!status) {
-        logger.warn({ templateId }, "mastodon post template rendered empty, skipping post");
-        return;
-      }
-
-      const results = await Promise.allSettled(
-        accounts.map((account) => postToMastodon(account, template, context.submission, status)),
-      );
-
-      for (let index = 0; index < results.length; index++) {
-        const result = results[index];
-        if (result.status === "rejected") {
-          await recordBackgroundError("mastodon-post", result.reason, {
-            accountId: accounts[index]?.id,
-            templateId,
-            submissionId: context.submission.id,
-          });
-        }
-      }
-    } catch (err) {
-      await recordBackgroundError("mastodon-post", err, { templateId });
-    }
-  })();
-}
+export const __test__ = {
+  renderPlainTemplate,
+  idempotencyKey,
+  consumeRateLimit,
+  resetRateLimitBuckets,
+};

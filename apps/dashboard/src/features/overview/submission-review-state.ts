@@ -1,3 +1,5 @@
+export type TemplateAssignment = { accountId: number; templateId: number | null };
+
 export type ReviewState = {
   adminNote: string;
   editingRejection: boolean;
@@ -5,12 +7,12 @@ export type ReviewState = {
   rejectionToken: string | null;
   reviewMode: "approve" | "reject" | null;
   notificationTemplateId: number | undefined;
-  mastodonTemplateId: number | undefined;
+  templateAssignments: TemplateAssignment[];
 };
 
 export type ReviewAction =
   | { type: "close" }
-  | { type: "openApprove"; adminNote: string; mastodonTemplateId?: number }
+  | { type: "openApprove"; adminNote: string }
   | {
       type: "openReject";
       adminNote: string;
@@ -21,7 +23,7 @@ export type ReviewAction =
   | { type: "setAdminNote"; value: string }
   | { type: "setRejectionLongText"; value: string }
   | { type: "setNotificationTemplateId"; value: number | undefined }
-  | { type: "setMastodonTemplateId"; value: number | undefined };
+  | { type: "setTemplateAssignments"; value: TemplateAssignment[] };
 
 const STORAGE_KEY_APPROVED = "submissions:notification-template:approved";
 const STORAGE_KEY_REJECTED = "submissions:notification-template:rejected";
@@ -48,7 +50,7 @@ export const EMPTY_REVIEW_STATE: ReviewState = {
   rejectionToken: null,
   reviewMode: null,
   notificationTemplateId: undefined,
-  mastodonTemplateId: undefined,
+  templateAssignments: [],
 };
 
 export function reviewReducer(state: ReviewState, action: ReviewAction): ReviewState {
@@ -61,7 +63,6 @@ export function reviewReducer(state: ReviewState, action: ReviewAction): ReviewS
         reviewMode: "approve",
         adminNote: action.adminNote,
         notificationTemplateId: loadPersistedTemplateId(STORAGE_KEY_APPROVED),
-        mastodonTemplateId: action.mastodonTemplateId,
       };
     case "openReject":
       return {
@@ -71,7 +72,7 @@ export function reviewReducer(state: ReviewState, action: ReviewAction): ReviewS
         rejectionToken: action.rejectionToken,
         reviewMode: "reject",
         notificationTemplateId: loadPersistedTemplateId(STORAGE_KEY_REJECTED),
-        mastodonTemplateId: undefined,
+        templateAssignments: [],
       };
     case "setAdminNote":
       return { ...state, adminNote: action.value };
@@ -83,7 +84,7 @@ export function reviewReducer(state: ReviewState, action: ReviewAction): ReviewS
       persistTemplateId(storageKey, action.value);
       return { ...state, notificationTemplateId: action.value };
     }
-    case "setMastodonTemplateId":
-      return { ...state, mastodonTemplateId: action.value };
+    case "setTemplateAssignments":
+      return { ...state, templateAssignments: action.value };
   }
 }

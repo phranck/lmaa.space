@@ -2,7 +2,8 @@ import { FileTextIcon, PaperPlaneTiltIcon, PlusCircleIcon, TrashIcon } from "@ph
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
-import type { MastodonPostTemplate } from "@lmaa/contracts";
+import type { SocialMediaPostTemplate } from "@lmaa/contracts";
+import { PLATFORM_MAP } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -19,20 +20,20 @@ import { DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
-  useDeleteMastodonPostTemplate,
-  useMastodonPostTemplates,
-} from "@/features/templates/hooks/useMastodonPostTemplates.ts";
+  useDeleteSocialMediaPostTemplate,
+  useSocialMediaPostTemplates,
+} from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 
-export function MastodonPostTemplateListPage() {
+export function SocialMediaPostTemplateListPage() {
   const { messages, locale } = useI18n();
-  const m = messages.mastodonTemplates;
+  const m = messages.socialMediaTemplates;
   const common = messages.common;
   const navigate = useNavigate();
-  const { data: templates = [], isLoading } = useMastodonPostTemplates();
-  const deleteMutation = useDeleteMastodonPostTemplate();
-  const [deleteTarget, setDeleteTarget] = useState<MastodonPostTemplate | null>(null);
+  const { data: templates = [], isLoading } = useSocialMediaPostTemplates();
+  const deleteMutation = useDeleteSocialMediaPostTemplate();
+  const [deleteTarget, setDeleteTarget] = useState<SocialMediaPostTemplate | null>(null);
 
-  const columns = useMemo<ColumnDef<MastodonPostTemplate>[]>(
+  const columns = useMemo<ColumnDef<SocialMediaPostTemplate>[]>(
     () => [
       {
         id: "name",
@@ -42,12 +43,23 @@ export function MastodonPostTemplateListPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => navigate(`/mastodon-post-templates/${template.id}`)}
+              onClick={() => navigate(`/social-media-post-templates/${template.id}`)}
               className="truncate text-left font-mono font-medium text-[var(--ds-text)] hover:underline"
             >
               {template.name}
             </button>
             {template.isSystemTemplate && <SystemTemplateBadge label={m.systemBadge} />}
+          </div>
+        ),
+      },
+      {
+        id: "platforms",
+        header: m.platformsLabel,
+        cell: (template) => (
+          <div className="flex gap-1">
+            {template.platforms.map((platform) => (
+              <PlatformBadge key={platform} platform={platform} />
+            ))}
           </div>
         ),
       },
@@ -71,7 +83,7 @@ export function MastodonPostTemplateListPage() {
         cell: (template) => (
           <div className="flex justify-end gap-2">
             <TableActionButton
-              onClick={() => navigate(`/mastodon-post-templates/${template.id}`)}
+              onClick={() => navigate(`/social-media-post-templates/${template.id}`)}
               icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
               label={common.edit}
             />
@@ -94,7 +106,7 @@ export function MastodonPostTemplateListPage() {
       <PageHeader title={m.listTitle}>
         <button
           type="button"
-          onClick={() => navigate("/mastodon-post-templates/new")}
+          onClick={() => navigate("/social-media-post-templates/new")}
           className="flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-primary-border)] px-4 text-sm font-medium text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
           <PlusCircleIcon weight="duotone" className="h-3.5 w-3.5" />
@@ -166,5 +178,17 @@ export function MastodonPostTemplateListPage() {
         </Dialog>
       )}
     </PageLayout>
+  );
+}
+
+function PlatformBadge({ platform }: { platform: string }) {
+  const def = PLATFORM_MAP.get(platform);
+  if (!def) return null;
+  const Icon = def.icon;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs">
+      <Icon size={10} />
+      <span>{def.label}</span>
+    </span>
   );
 }

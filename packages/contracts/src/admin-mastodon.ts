@@ -21,12 +21,16 @@ export const MASTODON_POST_TEMPLATE_VARIABLES = [
 
 export type MastodonPostTemplateVariable = (typeof MASTODON_POST_TEMPLATE_VARIABLES)[number];
 
+export const MASTODON_DEFAULT_MAX_POST_CHARACTERS = 500;
+export const MASTODON_MAX_POST_CHARACTERS_LIMIT = 11000;
+
 export interface MastodonAccount {
   id: number;
   label: string;
   instanceUrl: string;
   username: string | null;
   visibility: MastodonVisibility;
+  maxPostCharacters: number;
   isActive: boolean;
   hasAccessToken: boolean;
   createdAt: string;
@@ -44,6 +48,12 @@ export const mastodonAccountCreateSchema = z.object({
     .transform((value) => value || undefined),
   accessToken: z.string().trim().min(1).max(4096),
   visibility: mastodonVisibilitySchema.default("public"),
+  maxPostCharacters: z
+    .number()
+    .int()
+    .min(1)
+    .max(MASTODON_MAX_POST_CHARACTERS_LIMIT)
+    .default(MASTODON_DEFAULT_MAX_POST_CHARACTERS),
   isActive: z.boolean().default(true),
 });
 
@@ -59,24 +69,3 @@ export const mastodonAccountUpdateSchema = mastodonAccountCreateSchema
       .transform((value) => value || undefined),
   });
 
-export interface MastodonPostTemplate {
-  id: number;
-  name: string;
-  bodyText: string;
-  isSystemTemplate: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type MastodonPostTemplateInput = Omit<
-  MastodonPostTemplate,
-  "id" | "createdAt" | "updatedAt" | "isSystemTemplate"
-> & { isSystemTemplate?: boolean };
-
-export const mastodonPostTemplateCreateSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  bodyText: z.string().max(50000),
-  isSystemTemplate: z.boolean().optional(),
-});
-
-export const mastodonPostTemplateUpdateSchema = mastodonPostTemplateCreateSchema.partial();
