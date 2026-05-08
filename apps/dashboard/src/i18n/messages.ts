@@ -119,6 +119,8 @@ export interface DashboardMessages {
       allTime: string;
       brokenLinks: string;
       shopsReported: string;
+      backgroundErrors: string;
+      backgroundErrorsUnresolved: string;
     };
     analytics: {
       title: string;
@@ -1209,6 +1211,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         allTime: "aller Zeiten",
         brokenLinks: "Defekte Links",
         shopsReported: "Shops gemeldet",
+        backgroundErrors: "Hintergrundfehler",
+        backgroundErrorsUnresolved: "Ungelöst",
       },
       analytics: {
         title: "Analytics",
@@ -2336,6 +2340,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         allTime: "all time",
         brokenLinks: "Broken links",
         shopsReported: "Shops reported",
+        backgroundErrors: "Background errors",
+        backgroundErrorsUnresolved: "Unresolved",
       },
       analytics: {
         title: "Analytics",

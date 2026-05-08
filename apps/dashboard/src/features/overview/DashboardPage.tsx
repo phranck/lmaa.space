@@ -18,8 +18,8 @@ export function DashboardPage() {
     return (
       <PageLayout>
         <PageHeader title={dashboardMessages.overviewTitle} />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((key) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {Array.from({ length: 6 }, (_, i) => `sk-${i}`).map((key) => (
             <div
               key={key}
               className="h-28 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse"
@@ -30,11 +30,13 @@ export function DashboardPage() {
     );
   }
 
+  const unresolvedBgErrors = stats?.unresolvedBackgroundErrors ?? 0;
+
   return (
     <PageLayout>
       <PageHeader title={dashboardMessages.overviewTitle} />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <DashboardInfoCard label={dashboardMessages.cards.shops} value={stats?.shops ?? 0} />
         <DashboardInfoCard
           label={dashboardMessages.cards.categories}
@@ -64,6 +66,13 @@ export function DashboardPage() {
             (stats?.deadLinkReports ?? 0) > 0 ? dashboardMessages.cards.shopsReported : undefined
           }
           href={(stats?.deadLinkReports ?? 0) > 0 ? "/reports/dead-links" : undefined}
+        />
+        <DashboardInfoCard
+          label={dashboardMessages.cards.backgroundErrors}
+          value={unresolvedBgErrors}
+          accent={unresolvedBgErrors > 0}
+          sub={unresolvedBgErrors > 0 ? dashboardMessages.cards.backgroundErrorsUnresolved : undefined}
+          href={unresolvedBgErrors > 0 ? "/system/background-errors" : undefined}
         />
       </div>
     </PageLayout>
