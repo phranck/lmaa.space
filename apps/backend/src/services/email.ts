@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 
+import { recordBackgroundError } from "./background-errors.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 
@@ -17,19 +18,21 @@ logger.info(
  * @param to - Recipient address.
  * @param subject - Email subject.
  * @param html - Rendered HTML body.
+ * @param options.errorSource - Tag used when persisting the failure to background errors. Defaults to `"email"`.
  * @returns `true` if the provider accepted the message, `false` on error or when mail is disabled.
  */
 export async function sendMail(
   to: string,
   subject: string,
   html: string,
-  options?: { replyTo?: string },
+  options?: { replyTo?: string; errorSource?: string },
 ): Promise<boolean> {
   if (!resend) {
     logger.warn("email skipped: RESEND_API_KEY not set");
     return false;
   }
 
+  const errorSource = options?.errorSource ?? "email";
   logger.info({ to, subject, from: FROM }, "sending email");
 
   try {
@@ -41,13 +44,13 @@ export async function sendMail(
       ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
     });
     if (error) {
-      logger.error({ err: error }, "resend API error");
+      void recordBackgroundError(errorSource, error, { to, subject });
       return false;
     }
     logger.info({ emailId: data?.id }, "email sent");
     return true;
   } catch (err) {
-    logger.error({ err }, "email send failed");
+    void recordBackgroundError(errorSource, err, { to, subject });
     return false;
   }
 }

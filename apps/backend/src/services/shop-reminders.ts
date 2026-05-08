@@ -1,3 +1,4 @@
+import { recordBackgroundError } from "./background-errors.js";
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
 import { sendPushNotification } from "./push-notifications.js";
@@ -112,12 +113,12 @@ async function sendReminderEmail(reminder: DueReminder): Promise<boolean> {
       shopUrl: `${env.DASHBOARD_URL}/shops/${reminder.shopId}`,
     };
     const { html, subject } = await renderEmailTemplate(reminder.emailTemplate, variables);
-    return sendMail(reminder.adminEmail, subject, html);
+    return sendMail(reminder.adminEmail, subject, html, { errorSource: "reminder-email" });
   }
 
   const subject = `Erinnerung: Shop \u201E${reminder.shopName}\u201C prüfen`;
   const html = buildReminderHtml(reminder);
-  return sendMail(reminder.adminEmail, subject, html);
+  return sendMail(reminder.adminEmail, subject, html, { errorSource: "reminder-email" });
 }
 
 async function processReminders(): Promise<void> {
@@ -161,7 +162,7 @@ export function startReminderScheduler(): NodeJS.Timeout {
     try {
       await processReminders();
     } catch (error) {
-      logger.error({ err: error }, "reminder scheduler error");
+      void recordBackgroundError("shop-reminders-scheduler", error);
     }
   }, intervalMs);
 

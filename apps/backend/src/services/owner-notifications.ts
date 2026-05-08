@@ -1,5 +1,6 @@
 import { SETTINGS_KEYS } from "@lmaa/shared";
 
+import { recordBackgroundError } from "./background-errors.js";
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
 import { env } from "../config/env.js";
@@ -55,9 +56,11 @@ export async function notifyOwnerOfNewShopSubmission(
 
     const variables = buildTemplateVariables(submissionId, data);
     const rendered = await renderEmailTemplate(template, variables);
-    await sendMail(ownerEmail, rendered.subject, rendered.html);
+    await sendMail(ownerEmail, rendered.subject, rendered.html, {
+      errorSource: "owner-notification",
+    });
   } catch (err) {
-    logger.error({ err }, "owner notification failed");
+    void recordBackgroundError("owner-notification", err, { submissionId });
   }
 }
 
