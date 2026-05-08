@@ -11,6 +11,7 @@ import { footerConfigRoutes } from "./footer-config.js";
 import { formConfigRoutes } from "./form-config.js";
 import { heroRoutes } from "./hero.js";
 import { markdownWidgetsRoutes } from "./markdown-widgets.js";
+import { meTemplateChoicesRoutes } from "./me-template-choices.js";
 import { mediaRoutes } from "./media.js";
 import { navAdminRoutes } from "./nav.js";
 import { pushRoutes } from "./push.js";
@@ -63,6 +64,7 @@ protectedRoutes.route("/", shopRemindersRoutes);
 protectedRoutes.route("/", pushRoutes);
 protectedRoutes.route("/", settingsRoutes);
 protectedRoutes.route("/", socialMediaAccountRoutes);
+protectedRoutes.route("/", meTemplateChoicesRoutes);
 protectedRoutes.route("/", billingRoutes);
 protectedRoutes.route("/", backgroundErrorsRoutes);
 
