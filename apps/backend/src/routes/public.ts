@@ -145,6 +145,15 @@ publicRoutes.post(
     const shopUrl = typeof parsed.data.shopUrl === "string" ? parsed.data.shopUrl : undefined;
     if (shopUrl) {
       const urlCheck = await validateShopUrl(shopUrl);
+      if (urlCheck.status === "invalid") {
+        c.status(400);
+        return c.json({
+          error: {
+            message: "Bitte eine gültige Shop-URL eingeben (z.B. example.de).",
+            status: "invalid",
+          },
+        });
+      }
       if (urlCheck.status === "published") {
         c.status(409);
         return c.json({

@@ -309,7 +309,7 @@ export async function validateShopUrl(urlRaw: string | undefined) {
 
   const domain = normalizeShopHostname(url);
   if (!domain) {
-    return { status: "available" as const };
+    return { status: "invalid" as const };
   }
 
   if (isAmazonStoreHostname(domain)) {
