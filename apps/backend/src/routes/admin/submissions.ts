@@ -22,7 +22,7 @@ import {
   setReadyForReview,
 } from "../../repositories/admin-submissions.js";
 import {
-  deleteModeratedAdminSubmission,
+  deleteAdminSubmission,
   reviewAdminSubmission,
 } from "../../services/admin-submissions.js";
 
@@ -121,17 +121,14 @@ submissionsRoutes.patch(
   },
 );
 
-// DELETE /api/admin/submissions/:id – permanently remove rejected or onhold submissions
+// DELETE /api/admin/submissions/:id – permanently remove a submission, regardless of status
 submissionsRoutes.delete("/submissions/:id", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
-  const result = await deleteModeratedAdminSubmission(id);
+  const result = await deleteAdminSubmission(id);
   if (!result.ok && result.reason === "not_found") {
     return fail(c, 404, "Submission not found");
-  }
-  if (!result.ok && result.reason === "invalid_status") {
-    return fail(c, 400, "Only rejected or onhold submissions can be deleted");
   }
 
   return ok(c, { message: "Submission deleted" });

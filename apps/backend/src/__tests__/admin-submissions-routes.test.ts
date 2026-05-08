@@ -17,7 +17,7 @@ const repoMocks = vi.hoisted(() => ({
 }));
 
 const serviceMocks = vi.hoisted(() => ({
-  deleteModeratedAdminSubmission: vi.fn(),
+  deleteAdminSubmission: vi.fn(),
   reviewAdminSubmission: vi.fn(),
 }));
 
@@ -172,7 +172,7 @@ describe("submissionsRoutes", () => {
 
   describe("DELETE /submissions/:id", () => {
     it("deletes submission successfully", async () => {
-      serviceMocks.deleteModeratedAdminSubmission.mockResolvedValue({ ok: true });
+      serviceMocks.deleteAdminSubmission.mockResolvedValue({ ok: true });
 
       const res = await app.request("/submissions/1", { method: "DELETE" });
 
@@ -181,7 +181,7 @@ describe("submissionsRoutes", () => {
     });
 
     it("returns 404 when not found", async () => {
-      serviceMocks.deleteModeratedAdminSubmission.mockResolvedValue({
+      serviceMocks.deleteAdminSubmission.mockResolvedValue({
         ok: false,
         reason: "not_found",
       });
@@ -189,17 +189,6 @@ describe("submissionsRoutes", () => {
       const res = await app.request("/submissions/99", { method: "DELETE" });
 
       expect(res.status).toBe(404);
-    });
-
-    it("returns 400 when status is invalid for deletion", async () => {
-      serviceMocks.deleteModeratedAdminSubmission.mockResolvedValue({
-        ok: false,
-        reason: "invalid_status",
-      });
-
-      const res = await app.request("/submissions/1", { method: "DELETE" });
-
-      expect(res.status).toBe(400);
     });
   });
 });

@@ -62,7 +62,7 @@ describe("admin-submissions service", () => {
     deleteSubmission.mockResolvedValue(undefined);
     const service = await loadServiceModule();
 
-    await expect(service.deleteModeratedAdminSubmission(42)).resolves.toEqual({ ok: true });
+    await expect(service.deleteAdminSubmission(42)).resolves.toEqual({ ok: true });
 
     expect(getSubmissionStatus).toHaveBeenCalledWith(42);
     expect(deleteSubmission).toHaveBeenCalledWith(42);
@@ -73,18 +73,28 @@ describe("admin-submissions service", () => {
     deleteSubmission.mockResolvedValue(undefined);
     const service = await loadServiceModule();
 
-    await expect(service.deleteModeratedAdminSubmission(7)).resolves.toEqual({ ok: true });
+    await expect(service.deleteAdminSubmission(7)).resolves.toEqual({ ok: true });
 
     expect(deleteSubmission).toHaveBeenCalledWith(7);
   });
 
-  it("rejects deleting non-moderated submissions", async () => {
+  it("allows deleting pending submissions", async () => {
     getSubmissionStatus.mockResolvedValue("pending");
+    deleteSubmission.mockResolvedValue(undefined);
     const service = await loadServiceModule();
 
-    await expect(service.deleteModeratedAdminSubmission(9)).resolves.toEqual({
+    await expect(service.deleteAdminSubmission(9)).resolves.toEqual({ ok: true });
+
+    expect(deleteSubmission).toHaveBeenCalledWith(9);
+  });
+
+  it("returns not_found when submission does not exist", async () => {
+    getSubmissionStatus.mockResolvedValue(null);
+    const service = await loadServiceModule();
+
+    await expect(service.deleteAdminSubmission(404)).resolves.toEqual({
       ok: false,
-      reason: "invalid_status",
+      reason: "not_found",
     });
 
     expect(deleteSubmission).not.toHaveBeenCalled();
