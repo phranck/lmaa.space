@@ -44,8 +44,13 @@ export async function postToBlueskyAccount(
   if (account.platform !== "bluesky") {
     throw new Error(`account ${account.id} is not a bluesky account`);
   }
-  if (!account.handle) {
-    throw new Error(`bluesky account ${account.id} missing handle`);
+  if (
+    !account.canPost ||
+    !account.handle ||
+    !account.accessToken ||
+    account.maxPostCharacters === null
+  ) {
+    throw new Error(`bluesky account ${account.id} is not configured for posting`);
   }
   if (!template.bodyBluesky) {
     throw new Error(`template ${template.id} missing bodyBluesky`);

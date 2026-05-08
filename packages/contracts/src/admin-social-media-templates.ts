@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { MASTODON_POST_TEMPLATE_VARIABLES, type MastodonPostTemplateVariable } from "./admin-mastodon.js";
+import { MASTODON_POST_TEMPLATE_VARIABLES, type MastodonPostTemplateVariable } from "./social-media-accounts.js";
 
 export const SOCIAL_MEDIA_PLATFORMS = ["mastodon", "bluesky"] as const;
 export type SocialMediaPlatform = (typeof SOCIAL_MEDIA_PLATFORMS)[number];

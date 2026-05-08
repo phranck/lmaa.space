@@ -90,6 +90,9 @@ export async function postToMastodonAccount(
   if (account.platform !== "mastodon") {
     throw new Error(`account ${account.id} is not a mastodon account`);
   }
+  if (!account.canPost || !account.accessToken || account.maxPostCharacters === null) {
+    throw new Error(`account ${account.id} is not configured for posting`);
+  }
   if (!template.bodyMastodon) {
     throw new Error(`template ${template.id} missing bodyMastodon`);
   }

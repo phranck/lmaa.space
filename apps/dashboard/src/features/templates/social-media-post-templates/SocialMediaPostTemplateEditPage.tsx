@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/SystemTemplateBadge.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
-import { useMastodonAccount } from "@/features/social/hooks/useMastodonAccount.ts";
+import { usePostingAccount } from "@/features/social/hooks/useSocialMediaAccounts.ts";
 import {
   useCreateSocialMediaPostTemplate,
   useSocialMediaPostTemplate,
@@ -76,7 +76,7 @@ export function SocialMediaPostTemplateEditPage() {
   const [syncedExistingId, setSyncedExistingId] = useState<number | undefined>();
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const mastoQuery = useMastodonAccount();
+  const mastoQuery = usePostingAccount("mastodon");
   const mastoMaxChars =
     mastoQuery.data?.maxPostCharacters ?? MASTODON_DEFAULT_MAX_POST_CHARACTERS;
 

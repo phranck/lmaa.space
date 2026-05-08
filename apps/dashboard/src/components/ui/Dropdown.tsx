@@ -1,5 +1,6 @@
 import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export interface DropdownOption<T extends string = string> {
   value: T;
@@ -21,6 +22,13 @@ interface DropdownProps<T extends string = string> {
   searchable?: boolean;
   /** Placeholder text for the search input (only used when searchable is true). */
   searchPlaceholder?: string;
+  /**
+   * When true, the listbox is rendered in a portal attached to document.body.
+   * Required when the dropdown lives inside a container with `overflow: hidden`
+   * (e.g. dialogs). Default false to preserve in-tree rendering for callers
+   * that rely on stacking context inheritance.
+   */
+  portal?: boolean;
 }
 
 /**
@@ -40,23 +48,46 @@ export function Dropdown<T extends string = string>({
   className,
   searchable,
   searchPlaceholder,
+  portal,
 }: DropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [portalRect, setPortalRect] = useState<{ top: number; left: number; width: number } | null>(
+    null,
+  );
   const ref = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (ref.current && ref.current.contains(target)) return;
+      if (listRef.current && listRef.current.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
+
+  useLayoutEffect(() => {
+    if (!open || !portal || !ref.current) {
+      setPortalRect(null);
+      return;
+    }
+    const updateRect = () => {
+      const rect = ref.current?.getBoundingClientRect();
+      if (rect) setPortalRect({ top: rect.bottom, left: rect.left, width: rect.width });
+    };
+    updateRect();
+    window.addEventListener("scroll", updateRect, true);
+    window.addEventListener("resize", updateRect);
+    return () => {
+      window.removeEventListener("scroll", updateRect, true);
+      window.removeEventListener("resize", updateRect);
+    };
+  }, [open, portal]);
 
   const filteredOptions = searchable && searchQuery
     ? options.filter((o) => o.label.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -172,15 +203,31 @@ export function Dropdown<T extends string = string>({
             />
           )}
         </button>
-        {open && (
-          // biome-ignore lint/a11y/useSemanticElements: custom dropdown, not a native select
-          <div
-            role="listbox"
-            ref={listRef}
-            tabIndex={-1}
-            id={listboxId}
-            className="absolute z-20 right-0 mt-1 min-w-full w-max bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden"
-          >
+        {open && (() => {
+          const listboxNode = (
+            // biome-ignore lint/a11y/useSemanticElements: custom dropdown, not a native select
+            <div
+              role="listbox"
+              ref={listRef}
+              tabIndex={-1}
+              id={listboxId}
+              style={
+                portal && portalRect
+                  ? {
+                      position: "fixed",
+                      top: portalRect.top + 4,
+                      left: portalRect.left,
+                      minWidth: portalRect.width,
+                      zIndex: 9999,
+                    }
+                  : undefined
+              }
+              className={
+                portal
+                  ? "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden w-max"
+                  : "absolute z-20 right-0 mt-1 min-w-full w-max bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden"
+              }
+            >
             {searchable && (
               <div className="px-2 pt-2 pb-1">
                 <input
@@ -226,8 +273,10 @@ export function Dropdown<T extends string = string>({
               </button>
             ))}
             </div>
-          </div>
-        )}
+            </div>
+          );
+          return portal ? createPortal(listboxNode, document.body) : listboxNode;
+        })()}
       </div>
     </div>
   );

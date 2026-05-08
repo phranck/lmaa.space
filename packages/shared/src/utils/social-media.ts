@@ -21,6 +21,9 @@ export const SOCIAL_PLATFORM_KEYS = [
   "spotify",
   "whatsapp",
   "signal",
+  "github",
+  "gitlab",
+  "codeberg",
   "website",
 ] as const;
 
@@ -480,6 +483,10 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "whatsapp.com": "whatsapp",
   "signal.me": "signal",
   "signal.group": "signal",
+  "github.com": "github",
+  "gist.github.com": "github",
+  "gitlab.com": "gitlab",
+  "codeberg.org": "codeberg",
 };
 
 /**
@@ -538,6 +545,9 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   spotify: normalizeSpotify,
   whatsapp: normalizeWhatsapp,
   signal: normalizeSignal,
+  github: normalizeWebsite,
+  gitlab: normalizeWebsite,
+  codeberg: normalizeWebsite,
   website: normalizeWebsite,
 };
 

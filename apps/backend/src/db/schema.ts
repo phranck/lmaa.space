@@ -575,41 +575,58 @@ export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type EmailTemplateInsert = typeof emailTemplates.$inferInsert;
 
 /**
- * Social media credentials managed from the dashboard. At most one row per platform
- * (UNIQUE(platform)) — singleton enforced by DB constraint, surfaced as 409 in the
- * create routes.
+ * Social media accounts managed from the dashboard. Stores profile URLs for all
+ * supported platforms; for Mastodon and Bluesky additionally stores posting
+ * credentials when `canPost = true`. Partial unique index enforces "at most one
+ * posting account per platform"; profile-only duplicates per platform are allowed.
  */
 export const socialMediaAccounts = pgTable(
   "social_media_accounts",
   {
     id: serial("id").primaryKey(),
-    platform: text("platform").$type<"mastodon" | "bluesky">().notNull(),
+    platform: text("platform").notNull(),
     label: text("label").notNull(),
+    profileUrl: text("profile_url").notNull(),
+    canPost: boolean("can_post").notNull().default(false),
+    showInFooter: boolean("show_in_footer").notNull().default(true),
     instanceUrl: text("instance_url").notNull().default(""),
     handle: text("handle"),
     username: text("username"),
-    accessToken: text("access_token").notNull(),
+    accessToken: text("access_token"),
     visibility: text("visibility").$type<"public" | "unlisted" | "private" | "direct">(),
-    maxPostCharacters: integer("max_post_characters").notNull(),
+    maxPostCharacters: integer("max_post_characters"),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex("social_media_accounts_platform_unique").on(table.platform),
+    uniqueIndex("social_media_accounts_post_unique")
+      .on(table.platform)
+      .where(sql`${table.canPost} = true`),
     index("idx_social_media_accounts_platform_active").on(table.platform, table.isActive),
-    check("social_media_accounts_platform_check", sql`${table.platform} IN ('mastodon', 'bluesky')`),
     check(
       "social_media_accounts_visibility_check",
       sql`${table.visibility} IS NULL OR ${table.visibility} IN ('public', 'unlisted', 'private', 'direct')`,
     ),
     check(
+      "social_media_accounts_can_post_platform",
+      sql`${table.canPost} = false OR ${table.platform} IN ('mastodon', 'bluesky')`,
+    ),
+    check(
+      "social_media_accounts_can_post_token",
+      sql`${table.canPost} = false OR ${table.accessToken} IS NOT NULL`,
+    ),
+    check(
+      "social_media_accounts_can_post_max_chars",
+      sql`${table.canPost} = false OR ${table.maxPostCharacters} IS NOT NULL`,
+    ),
+    check(
       "social_media_accounts_handle_required_for_bluesky",
-      sql`${table.platform} <> 'bluesky' OR ${table.handle} IS NOT NULL`,
+      sql`${table.canPost} = false OR ${table.platform} <> 'bluesky' OR ${table.handle} IS NOT NULL`,
     ),
     check(
       "social_media_accounts_instance_required_for_mastodon",
-      sql`${table.platform} <> 'mastodon' OR ${table.instanceUrl} <> ''`,
+      sql`${table.canPost} = false OR ${table.platform} <> 'mastodon' OR ${table.instanceUrl} <> ''`,
     ),
   ],
 );

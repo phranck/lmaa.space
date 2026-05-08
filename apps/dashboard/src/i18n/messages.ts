@@ -572,6 +572,10 @@ export interface DashboardMessages {
       styleLabel: string;
       externalLink: string;
       directionLabel: string;
+      alignLabel: string;
+      iconSizeLabel: string;
+      iconsLabel: string;
+      iconsEmpty: string;
       styleOptions: {
         filled: string;
         outline: string;
@@ -580,6 +584,16 @@ export interface DashboardMessages {
       directionOptions: {
         vertical: string;
         horizontal: string;
+      };
+      alignOptions: {
+        left: string;
+        center: string;
+        right: string;
+      };
+      iconSizeOptions: {
+        sm: string;
+        md: string;
+        lg: string;
       };
       colorFields: {
         background: string;
@@ -615,6 +629,7 @@ export interface DashboardMessages {
         button: string;
         footerNav: string;
         separator: string;
+        socialMedia: string;
       };
     };
     markdownWidgets: {
@@ -1007,11 +1022,16 @@ export interface DashboardMessages {
     accessTokenPlaceholder: string;
     keepTokenPlaceholder: string;
     addAccountTitle: string;
-    pickService: string;
-    changeService: string;
-    addMastodonAccount: string;
     mastodonMaxPostCharactersLabel: string;
-    alreadyConfigured: string;
+    profileUrlLabel: string;
+    profileUrlRequired: string;
+    labelRequired: string;
+    platformPickerLabel: string;
+    openLink: string;
+    showInFooter: string;
+    useForPosting: string;
+    postingPlatformOnly: string;
+    conflictForPlatform: string;
     fields: {
       label: string;
       instanceUrl: string;
@@ -1021,11 +1041,18 @@ export interface DashboardMessages {
       visibility: string;
       active: string;
     };
+    badges: {
+      yes: string;
+      no: string;
+    };
     visibility: Record<"public" | "unlisted" | "private" | "direct", string>;
     columns: {
       platform: string;
       account: string;
       identifier: string;
+      profileUrl: string;
+      posting: string;
+      footer: string;
       token: string;
       status: string;
     };
@@ -1676,6 +1703,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         styleLabel: "Stil",
         externalLink: "Externer Link (neuer Tab)",
         directionLabel: "Ausrichtung",
+        alignLabel: "Ausrichtung",
+        iconSizeLabel: "Icon-Größe",
+        iconsLabel: "Icons (Reihenfolge per Drag)",
+        iconsEmpty:
+          'Keine Footer-fähigen Accounts. Lege unter Social Media einen an und aktiviere „Im Footer anzeigen".',
         styleOptions: {
           filled: "Gefüllt",
           outline: "Outline",
@@ -1684,6 +1716,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         directionOptions: {
           vertical: "Vertikal",
           horizontal: "Horizontal",
+        },
+        alignOptions: {
+          left: "Links",
+          center: "Zentriert",
+          right: "Rechts",
+        },
+        iconSizeOptions: {
+          sm: "Klein",
+          md: "Mittel",
+          lg: "Groß",
         },
         colorFields: {
           background: "Hintergrund",
@@ -1719,6 +1761,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           button: "Button",
           footerNav: "Footer-Nav",
           separator: "Trennlinie",
+          socialMedia: "Social Media",
         },
       },
       markdownWidgets: {
@@ -2119,9 +2162,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     socialMedia: {
       title: "Social Media Accounts",
-      editAccount: "Mastodon Account bearbeiten",
+      editAccount: "Account bearbeiten",
       noAccounts: "Keine Accounts konfiguriert.",
-      noAccountsHint: "Hinterlege einen Social Media Account für automatische Postings.",
+      noAccountsHint: "Hinterlege einen Social Media Account für Footer-Links oder automatische Postings.",
       tokenStored: "Token hinterlegt",
       tokenMissing: "Kein Token",
       tokenRequired: "Bitte einen Access Token hinterlegen.",
@@ -2133,11 +2176,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       accessTokenPlaceholder: "Mastodon User Access Token",
       keepTokenPlaceholder: "Leer lassen, um den aktuellen Token zu behalten",
       addAccountTitle: "Account hinzufügen",
-      pickService: "Wähle einen Dienst",
-      changeService: "Anderen Dienst wählen",
-      addMastodonAccount: "Mastodon Account hinzufügen",
       mastodonMaxPostCharactersLabel: "Max. Zeichen pro Post",
-      alreadyConfigured: "Bereits konfiguriert",
+      profileUrlLabel: "Profil-URL",
+      profileUrlRequired: "Bitte eine Profil-URL angeben.",
+      labelRequired: "Bitte ein Label angeben.",
+      platformPickerLabel: "Plattform wählen",
+      openLink: "Link öffnen",
+      showInFooter: "Im Footer anzeigen",
+      useForPosting: "Für Posting verwenden",
+      postingPlatformOnly: "Posting ist nur für Mastodon und Bluesky verfügbar.",
+      conflictForPlatform: "Es existiert bereits ein Posting-Account für {platform}.",
       fields: {
         label: "Label",
         instanceUrl: "Instanz-URL",
@@ -2146,6 +2194,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         accessTokenOptional: "Access Token (optional)",
         visibility: "Sichtbarkeit",
         active: "Aktiv",
+      },
+      badges: {
+        yes: "Ja",
+        no: "Nein",
       },
       visibility: {
         public: "Public",
@@ -2157,6 +2209,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         platform: "Plattform",
         account: "Account",
         identifier: "Kennung",
+        profileUrl: "Profil-URL",
+        posting: "Posting",
+        footer: "Footer",
         token: "Token",
         status: "Status",
       },
@@ -2799,6 +2854,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         styleLabel: "Style",
         externalLink: "External link (new tab)",
         directionLabel: "Direction",
+        alignLabel: "Alignment",
+        iconSizeLabel: "Icon size",
+        iconsLabel: "Icons (drag to reorder)",
+        iconsEmpty:
+          'No footer-eligible accounts. Add one under Social Media and enable "Show in footer".',
         styleOptions: {
           filled: "Filled",
           outline: "Outline",
@@ -2807,6 +2867,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         directionOptions: {
           vertical: "Vertical",
           horizontal: "Horizontal",
+        },
+        alignOptions: {
+          left: "Left",
+          center: "Center",
+          right: "Right",
+        },
+        iconSizeOptions: {
+          sm: "Small",
+          md: "Medium",
+          lg: "Large",
         },
         colorFields: {
           background: "Background",
@@ -2842,6 +2912,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           button: "Button",
           footerNav: "Footer nav",
           separator: "Separator",
+          socialMedia: "Social media",
         },
       },
       markdownWidgets: {
@@ -3242,9 +3313,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
     },
     socialMedia: {
       title: "Social Media Accounts",
-      editAccount: "Edit Mastodon account",
+      editAccount: "Edit account",
       noAccounts: "No accounts configured.",
-      noAccountsHint: "Add a social media account for automated postings.",
+      noAccountsHint: "Add a social media account for footer links or automated postings.",
       tokenStored: "Token stored",
       tokenMissing: "No token",
       tokenRequired: "Please enter an access token.",
@@ -3256,11 +3327,16 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       accessTokenPlaceholder: "Mastodon user access token",
       keepTokenPlaceholder: "Leave empty to keep the current token",
       addAccountTitle: "Add account",
-      pickService: "Choose a service",
-      changeService: "Choose a different service",
-      addMastodonAccount: "Add Mastodon account",
       mastodonMaxPostCharactersLabel: "Max. characters per post",
-      alreadyConfigured: "Already configured",
+      profileUrlLabel: "Profile URL",
+      profileUrlRequired: "Please enter a profile URL.",
+      labelRequired: "Please enter a label.",
+      platformPickerLabel: "Pick platform",
+      openLink: "Open link",
+      showInFooter: "Show in footer",
+      useForPosting: "Use for posting",
+      postingPlatformOnly: "Posting is only available for Mastodon and Bluesky.",
+      conflictForPlatform: "A posting account already exists for {platform}.",
       fields: {
         label: "Label",
         instanceUrl: "Instance URL",
@@ -3269,6 +3345,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         accessTokenOptional: "Access token (optional)",
         visibility: "Visibility",
         active: "Active",
+      },
+      badges: {
+        yes: "Yes",
+        no: "No",
       },
       visibility: {
         public: "Public",
@@ -3280,6 +3360,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         platform: "Platform",
         account: "Account",
         identifier: "Identifier",
+        profileUrl: "Profile URL",
+        posting: "Posting",
+        footer: "Footer",
         token: "Token",
         status: "Status",
       },

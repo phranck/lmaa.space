@@ -186,6 +186,31 @@ export const FOOTER_STYLES_CSS = `
 .footer-btn-outline { background: transparent; color: var(--footer-btn, ${FOOTER_STYLE_DEFAULTS.buttonColor}); border: 1px solid var(--footer-btn, ${FOOTER_STYLE_DEFAULTS.buttonColor}); }
 .footer-btn-ghost   { background: transparent; color: var(--footer-link, ${FOOTER_STYLE_DEFAULTS.linkColor}); border: none; padding-left: 0; }
 .footer-btn-ghost:hover { color: var(--footer-link-hover, ${FOOTER_STYLE_DEFAULTS.linkHoverColor}); opacity: 1; }
+
+.footer-social {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  color: var(--footer-link, ${FOOTER_STYLE_DEFAULTS.linkColor});
+}
+.footer-social a {
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  transition: color 0.15s;
+}
+.footer-social a:hover { color: var(--footer-link-hover, ${FOOTER_STYLE_DEFAULTS.linkHoverColor}); }
+.footer-social a svg { display: block; }
+.footer-social-left   { justify-content: flex-start; }
+.footer-social-center { justify-content: center; }
+.footer-social-right  { justify-content: flex-end; }
+.footer-social-sm { font-size: 16px; gap: 0.5rem; }
+.footer-social-md { font-size: 20px; gap: 0.75rem; }
+.footer-social-lg { font-size: 24px; gap: 1rem; }
+.footer-social-sm a svg { width: 1em; height: 1em; }
+.footer-social-md a svg { width: 1em; height: 1em; }
+.footer-social-lg a svg { width: 1em; height: 1em; }
 `;
 
 /**

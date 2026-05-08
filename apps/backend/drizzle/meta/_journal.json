@@ -351,6 +351,13 @@
       "when": 1778256277583,
       "tag": "0049_mighty_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1778274482822,
+      "tag": "0050_social_media_accounts_generic",
+      "breakpoints": true
     }
   ]
 }

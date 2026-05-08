@@ -3,6 +3,7 @@ import type { FooterConfig } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
 
 import FooterComponent from "@/components/Footer.astro";
+import type { SocialMediaProfile } from "@/components/Footer.astro";
 import { apiGet } from "@/lib/api";
 
 import "@/styles/global.css";
@@ -13,6 +14,7 @@ const token = Astro.url.searchParams.get("token")?.trim() ?? "";
 
 let config: FooterConfig | null = null;
 let navItems: NavItem[] = [];
+let socialMediaProfiles: SocialMediaProfile[] = [];
 let errorMessage: string | null = null;
 
 if (!/^[0-9a-f]{32}$/.test(token)) {
@@ -20,9 +22,10 @@ if (!/^[0-9a-f]{32}$/.test(token)) {
   Astro.response.status = 400;
 } else {
   try {
-    [config, navItems] = await Promise.all([
+    [config, navItems, socialMediaProfiles] = await Promise.all([
       apiGet<FooterConfig>(`/footer-preview/${token}`),
       apiGet<NavItem[]>("/nav/footer"),
+      apiGet<SocialMediaProfile[]>("/social-media-accounts/footer"),
     ]);
     Astro.response.headers.set("Cache-Control", "no-store");
   } catch {
@@ -44,7 +47,7 @@ if (!/^[0-9a-f]{32}$/.test(token)) {
   <body class="m-0 bg-transparent text-[var(--ds-text)]">
     {
       config ? (
-        <FooterComponent config={config} navItems={navItems} />
+        <FooterComponent config={config} navItems={navItems} socialMediaProfiles={socialMediaProfiles} />
       ) : (
         <main class="min-h-32 flex items-center justify-center px-6 py-8 text-center">
           <p class="text-sm text-[var(--ds-text-muted)]">{errorMessage}</p>

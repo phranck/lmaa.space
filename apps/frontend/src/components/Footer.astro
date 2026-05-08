@@ -2,17 +2,24 @@
 import type { FooterConfig, FooterColumn } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
 import { FOOTER_STYLES_CSS, footerStyleVars } from "@lmaa/shared";
-import { getButtonIconComponent } from "@lmaa/ui";
+import { getButtonIconComponent, PLATFORM_MAP } from "@lmaa/ui";
 
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import { getSafeConfigHref, isExternalHref } from "@/lib/safe-url";
 
+export interface SocialMediaProfile {
+  platform: string;
+  profileUrl: string;
+  label: string;
+}
+
 interface Props {
   config: FooterConfig;
   navItems: NavItem[];
+  socialMediaProfiles?: SocialMediaProfile[];
 }
 
-const { config, navItems } = Astro.props;
+const { config, navItems, socialMediaProfiles = [] } = Astro.props;
 
 const textBlockHtmlMap = new Map<string, string>();
 for (const col of config.columns) {
@@ -112,6 +119,51 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
                       );
                     })}
                   </ul>
+                );
+              }
+
+              if (block.type === "social-media") {
+                if (socialMediaProfiles.length === 0) return null;
+                const align = block.align ?? "center";
+                const iconSize = block.iconSize ?? "md";
+                const iconPx = iconSize === "sm" ? 16 : iconSize === "lg" ? 24 : 20;
+                // block.order is an ordering hint: listed platforms appear in
+                // the saved order, then any unlisted profile follows in default
+                // order so newly-added accounts surface without re-saving the
+                // block.
+                const orderKeys = block.order ?? [];
+                const fromOrder = orderKeys
+                  .map((key) => socialMediaProfiles.find((p) => p.platform === key))
+                  .filter(Boolean) as SocialMediaProfile[];
+                const fromOrderKeys = fromOrder.map((p) => p.platform);
+                const fromRest = socialMediaProfiles.filter(
+                  (p) => !fromOrderKeys.includes(p.platform),
+                );
+                const ordered = [...fromOrder, ...fromRest];
+                if (ordered.length === 0) return null;
+                return (
+                  <div class={`footer-social footer-social-${align} footer-social-${iconSize}`}>
+                    {ordered.map((p) => {
+                      const def = PLATFORM_MAP.get(p.platform);
+                      const Icon = def?.icon;
+                      const ariaLabel = p.label || def?.label || p.platform;
+                      return (
+                        <a
+                          href={p.profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={ariaLabel}
+                          title={ariaLabel}
+                          data-analytics-event="site-link-click"
+                          data-analytics-kind="footer"
+                          data-analytics-placement="footer-social"
+                          data-analytics-platform={p.platform}
+                        >
+                          {Icon ? <Icon size={iconPx} /> : <span>{ariaLabel}</span>}
+                        </a>
+                      );
+                    })}
+                  </div>
                 );
               }
 

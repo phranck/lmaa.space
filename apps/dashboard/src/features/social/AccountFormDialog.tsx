@@ -1,53 +1,63 @@
-import { ArrowLeftIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, CaretDownIcon } from "@phosphor-icons/react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
-  type BlueskyAccount,
   MASTODON_DEFAULT_MAX_POST_CHARACTERS,
-  type MastodonAccount,
+  type MastodonVisibility,
+  POSTING_PLATFORM_KEYS,
+  type SocialMediaAccount,
+  type SocialMediaAccountCreateInput,
+  type SocialMediaAccountUpdateInput,
+  type SocialMediaPlatformKey,
 } from "@lmaa/contracts";
+import { detectPlatformFromUrl } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
-import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
+import { formInputClass, formLabelClass, PLATFORM_MAP, PLATFORMS, ToggleSwitch } from "@lmaa/ui";
 
-import {
-  Dialog,
-  dialogBtnPrimary,
-  dialogBtnSecondary,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogBtnPrimary, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   type BlueskyAccountFormInput,
   BlueskyAccountForm,
 } from "@/features/social/forms/BlueskyAccountForm.tsx";
-import { MastodonAccountForm } from "@/features/social/forms/MastodonAccountForm.tsx";
-import {
-  useCreateBlueskyAccount,
-  useUpdateBlueskyAccount,
-} from "@/features/social/hooks/useBlueskyAccount.ts";
 import {
   type MastodonAccountFormInput,
-  useCreateMastodonAccount,
-  useUpdateMastodonAccount,
-} from "@/features/social/hooks/useMastodonAccount.ts";
+  MastodonAccountForm,
+} from "@/features/social/forms/MastodonAccountForm.tsx";
 import {
-  type ServiceId,
-  SUPPORTED_PLATFORMS,
-} from "@/features/social/services.ts";
+  useCreateSocialMediaAccount,
+  useUpdateSocialMediaAccount,
+} from "@/features/social/hooks/useSocialMediaAccounts.ts";
 
 export type AccountFormDialogTarget =
   | { mode: "create" }
-  | { mode: "edit"; platform: "mastodon"; account: MastodonAccount }
-  | { mode: "edit"; platform: "bluesky"; account: BlueskyAccount };
+  | { mode: "edit"; account: SocialMediaAccount };
 
 interface AccountFormDialogProps {
   target: AccountFormDialogTarget;
-  existingMastodon: boolean;
-  existingBluesky: boolean;
   onClose: () => void;
 }
 
-function emptyMastodonForm(): MastodonAccountFormInput {
+interface AccountFormState {
+  platform: SocialMediaPlatformKey;
+  label: string;
+  profileUrl: string;
+  showInFooter: boolean;
+  canPost: boolean;
+  isActive: boolean;
+  mastodon: MastodonAccountFormInput;
+  bluesky: BlueskyAccountFormInput;
+}
+
+const POSTING_SET = new Set<SocialMediaPlatformKey>(POSTING_PLATFORM_KEYS);
+
+function isPostingCapable(platform: SocialMediaPlatformKey): boolean {
+  return POSTING_SET.has(platform);
+}
+
+function emptyMastodon(): MastodonAccountFormInput {
   return {
     label: "",
     instanceUrl: "",
@@ -59,280 +69,425 @@ function emptyMastodonForm(): MastodonAccountFormInput {
   };
 }
 
-function mastodonFormFromAccount(account: MastodonAccount): MastodonAccountFormInput {
-  return {
-    label: account.label,
-    instanceUrl: account.instanceUrl,
-    username: account.username ?? "",
-    accessToken: "",
-    visibility: account.visibility,
-    maxPostCharacters: account.maxPostCharacters,
-    isActive: account.isActive,
-  };
-}
-
-function emptyBlueskyForm(): BlueskyAccountFormInput {
+function emptyBluesky(): BlueskyAccountFormInput {
   return { label: "", handle: "", appPassword: "", isActive: true };
 }
 
-function blueskyFormFromAccount(account: BlueskyAccount): BlueskyAccountFormInput {
+function emptyState(): AccountFormState {
   return {
-    label: account.label,
-    handle: account.handle,
-    appPassword: "",
-    isActive: account.isActive,
+    platform: "website",
+    label: "",
+    profileUrl: "",
+    showInFooter: true,
+    canPost: false,
+    isActive: true,
+    mastodon: emptyMastodon(),
+    bluesky: emptyBluesky(),
   };
+}
+
+function stateFromAccount(account: SocialMediaAccount): AccountFormState {
+  return {
+    platform: account.platform,
+    label: account.label,
+    profileUrl: account.profileUrl,
+    showInFooter: account.showInFooter,
+    canPost: account.canPost,
+    isActive: account.isActive,
+    mastodon: {
+      label: account.label,
+      instanceUrl: account.instanceUrl ?? "",
+      username: account.username ?? "",
+      accessToken: "",
+      visibility: (account.visibility ?? "public") as MastodonVisibility,
+      maxPostCharacters: account.maxPostCharacters ?? MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+      isActive: account.isActive,
+    },
+    bluesky: {
+      label: account.label,
+      handle: account.handle ?? "",
+      appPassword: "",
+      isActive: account.isActive,
+    },
+  };
+}
+
+function buildCreateInput(state: AccountFormState): SocialMediaAccountCreateInput {
+  const base = {
+    platform: state.platform,
+    label: state.label.trim(),
+    profileUrl: state.profileUrl.trim(),
+    canPost: state.canPost,
+    showInFooter: state.showInFooter,
+    isActive: state.isActive,
+  } as SocialMediaAccountCreateInput;
+  if (!state.canPost) return base;
+  if (state.platform === "mastodon") {
+    return {
+      ...base,
+      instanceUrl: state.mastodon.instanceUrl.trim(),
+      username: state.mastodon.username?.trim() || undefined,
+      accessToken: state.mastodon.accessToken?.trim() || undefined,
+      visibility: state.mastodon.visibility,
+      maxPostCharacters: state.mastodon.maxPostCharacters,
+    };
+  }
+  if (state.platform === "bluesky") {
+    return {
+      ...base,
+      handle: state.bluesky.handle.trim(),
+      appPassword: state.bluesky.appPassword.trim() || undefined,
+    };
+  }
+  return base;
+}
+
+function buildUpdateInput(state: AccountFormState): SocialMediaAccountUpdateInput {
+  const base: SocialMediaAccountUpdateInput = {
+    platform: state.platform,
+    label: state.label.trim(),
+    profileUrl: state.profileUrl.trim(),
+    canPost: state.canPost,
+    showInFooter: state.showInFooter,
+    isActive: state.isActive,
+  };
+  if (!state.canPost) return base;
+  if (state.platform === "mastodon") {
+    return {
+      ...base,
+      instanceUrl: state.mastodon.instanceUrl.trim(),
+      username: state.mastodon.username?.trim() || undefined,
+      accessToken: state.mastodon.accessToken?.trim() || undefined,
+      visibility: state.mastodon.visibility,
+      maxPostCharacters: state.mastodon.maxPostCharacters,
+    };
+  }
+  if (state.platform === "bluesky") {
+    return {
+      ...base,
+      handle: state.bluesky.handle.trim(),
+      appPassword: state.bluesky.appPassword.trim() || undefined,
+    };
+  }
+  return base;
 }
 
 export function AccountFormDialog({
   target,
-  existingMastodon,
-  existingBluesky,
   onClose,
 }: AccountFormDialogProps): React.ReactElement {
   const { messages } = useI18n();
   const t = messages.socialMedia;
   const common = messages.common;
-
   const isCreate = target.mode === "create";
 
-  const [pickedService, setPickedService] = useState<ServiceId | null>(
-    target.mode === "edit" ? target.platform : null,
+  const [state, setState] = useState<AccountFormState>(() =>
+    target.mode === "edit" ? stateFromAccount(target.account) : emptyState(),
   );
-
-  const [mastodonForm, setMastodonForm] = useState<MastodonAccountFormInput>(() =>
-    target.mode === "edit" && target.platform === "mastodon"
-      ? mastodonFormFromAccount(target.account)
-      : emptyMastodonForm(),
-  );
-
-  const [blueskyForm, setBlueskyForm] = useState<BlueskyAccountFormInput>(() =>
-    target.mode === "edit" && target.platform === "bluesky"
-      ? blueskyFormFromAccount(target.account)
-      : emptyBlueskyForm(),
-  );
-
   const [error, setError] = useState<string | null>(null);
+  const [platformPickerOpen, setPlatformPickerOpen] = useState(false);
+  const [platformPickerRect, setPlatformPickerRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+  const platformPickerRef = useRef<HTMLDivElement | null>(null);
+  const platformPickerListRef = useRef<HTMLDivElement | null>(null);
 
-  const createMastodon = useCreateMastodonAccount();
-  const updateMastodon = useUpdateMastodonAccount();
-  const createBluesky = useCreateBlueskyAccount();
-  const updateBluesky = useUpdateBlueskyAccount();
-
-  const isSaving =
-    createMastodon.isPending ||
-    updateMastodon.isPending ||
-    createBluesky.isPending ||
-    updateBluesky.isPending;
-
-  function handleBack(): void {
-    setPickedService(null);
-    setError(null);
-    setMastodonForm(emptyMastodonForm());
-    setBlueskyForm(emptyBlueskyForm());
-  }
-
-  function mapMastodonError(err: unknown): string {
-    const apiErr = err as ApiRequestError;
-    if (apiErr.status === 409) return t.bluesky.conflictError;
-    if (apiErr.status === 400) return t.tokenInvalid;
-    if (apiErr.status === 503) return t.instanceUnreachable;
-    return t.saveError;
-  }
-
-  function mapBlueskyError(err: unknown): string {
-    const apiErr = err as ApiRequestError;
-    if (apiErr.status === 409) return t.bluesky.conflictError;
-    if (apiErr.status === 400) return t.bluesky.invalidCredentialsError;
-    if (apiErr.status === 503) return t.bluesky.serviceUnreachableError;
-    return t.saveError;
-  }
-
-  function handleSaveMastodon(): void {
-    setError(null);
-    if (isCreate) {
-      if (!mastodonForm.accessToken?.trim()) {
-        setError(t.tokenRequired);
-        return;
+  useLayoutEffect(() => {
+    if (!platformPickerOpen || !platformPickerRef.current) {
+      setPlatformPickerRect(null);
+      return;
+    }
+    const updateRect = () => {
+      const rect = platformPickerRef.current?.getBoundingClientRect();
+      if (rect) {
+        setPlatformPickerRect({ top: rect.bottom, left: rect.left, width: rect.width });
       }
-      createMastodon.mutate(
-        { ...mastodonForm, accessToken: mastodonForm.accessToken.trim() },
-        {
-          onSuccess: () => onClose(),
-          onError: (err) => setError(mapMastodonError(err)),
-        },
-      );
-    } else if (target.mode === "edit" && target.platform === "mastodon") {
-      updateMastodon.mutate(
-        {
-          id: target.account.id,
-          input: {
-            ...mastodonForm,
-            accessToken: mastodonForm.accessToken?.trim() || undefined,
-          },
-        },
-        {
-          onSuccess: () => onClose(),
-          onError: (err) => setError(mapMastodonError(err)),
-        },
-      );
+    };
+    updateRect();
+    window.addEventListener("scroll", updateRect, true);
+    window.addEventListener("resize", updateRect);
+    return () => {
+      window.removeEventListener("scroll", updateRect, true);
+      window.removeEventListener("resize", updateRect);
+    };
+  }, [platformPickerOpen]);
+
+  useEffect(() => {
+    if (!platformPickerOpen) return;
+    function handleOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      if (platformPickerRef.current?.contains(target)) return;
+      if (platformPickerListRef.current?.contains(target)) return;
+      setPlatformPickerOpen(false);
     }
-  }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [platformPickerOpen]);
 
-  function handleSaveBluesky(): void {
-    setError(null);
-    if (isCreate) {
-      if (!blueskyForm.appPassword.trim()) {
-        setError(t.bluesky.invalidCredentialsError);
-        return;
-      }
-      createBluesky.mutate(
-        { ...blueskyForm, appPassword: blueskyForm.appPassword.trim() },
-        {
-          onSuccess: () => onClose(),
-          onError: (err) => setError(mapBlueskyError(err)),
-        },
-      );
-    } else if (target.mode === "edit" && target.platform === "bluesky") {
-      updateBluesky.mutate(
-        {
-          id: target.account.id,
-          input: {
-            ...blueskyForm,
-            appPassword: blueskyForm.appPassword.trim() || undefined,
-          },
-        },
-        {
-          onSuccess: () => onClose(),
-          onError: (err) => setError(mapBlueskyError(err)),
-        },
-      );
-    }
-  }
+  const createMutation = useCreateSocialMediaAccount();
+  const updateMutation = useUpdateSocialMediaAccount();
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
-  function handleSave(): void {
-    if (pickedService === "mastodon") handleSaveMastodon();
-    else if (pickedService === "bluesky") handleSaveBluesky();
-  }
+  const platformDef = useMemo(
+    () => PLATFORM_MAP.get(state.platform),
+    [state.platform],
+  );
+  const PlatformIcon = platformDef?.icon;
 
-  const dialogTitle = (() => {
-    if (target.mode === "edit") {
-      return target.platform === "bluesky" ? t.bluesky.sectionTitle : t.editAccount;
-    }
-    if (!pickedService) return t.addAccountTitle;
-    return pickedService === "bluesky" ? t.bluesky.addAccount : t.addMastodonAccount;
-  })();
+  const canPostAvailable = isPostingCapable(state.platform);
 
-  const activePlatform = pickedService ? PLATFORM_MAP.get(pickedService) : undefined;
-  const dialogIcon = activePlatform ? (
+  const dialogTitle = isCreate ? t.addAccountTitle : t.editAccount;
+  const dialogIcon = PlatformIcon ? (
     <span className="shrink-0 text-[var(--ds-text-muted)]">
-      <activePlatform.icon size={24} />
+      <PlatformIcon size={24} />
     </span>
   ) : undefined;
 
-  if (isCreate && !pickedService) {
-    return (
-      <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="lg">
-        <div className="px-6 py-4 space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--ds-text-muted)]">
-            {t.pickService}
-          </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {SUPPORTED_PLATFORMS.map((platform) => {
-              const Icon = platform.icon;
-              const isTaken =
-                (platform.key === "mastodon" && existingMastodon) ||
-                (platform.key === "bluesky" && existingBluesky);
-              return (
-                <button
-                  key={platform.key}
-                  type="button"
-                  disabled={isTaken}
-                  onClick={() => setPickedService(platform.key as ServiceId)}
-                  className={`border rounded-card p-6 flex flex-col items-center gap-3 transition-colors ${
-                    isTaken
-                      ? "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] opacity-50 cursor-not-allowed"
-                      : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-hover)]"
-                  }`}
-                >
-                  <Icon size={32} />
-                  <span className="text-sm font-medium text-[var(--ds-text)]">
-                    {platform.label}
-                  </span>
-                  {isTaken && (
-                    <span className="text-xs text-[var(--ds-text-muted)]">
-                      {t.alreadyConfigured}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <Dialog.Footer>
-          <button type="button" onClick={onClose} className={dialogBtnSecondary}>
-            {common.cancel}
-          </button>
-        </Dialog.Footer>
-      </Dialog>
-    );
+  function applyUrlAutoDetect(url: string): void {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    const detected = detectPlatformFromUrl(trimmed);
+    if (!detected) return;
+    setState((prev) => {
+      if (prev.platform !== "website" && prev.platform === detected) return prev;
+      return { ...prev, platform: detected as SocialMediaPlatformKey };
+    });
   }
 
-  const editingBluesky =
-    pickedService === "bluesky" || (target.mode === "edit" && target.platform === "bluesky");
-  const activeIsActive = editingBluesky ? blueskyForm.isActive : mastodonForm.isActive;
-  const setActiveIsActive = (isActive: boolean) => {
-    if (editingBluesky) setBlueskyForm({ ...blueskyForm, isActive });
-    else setMastodonForm({ ...mastodonForm, isActive });
-  };
+  function handleProfileUrlBlur(): void {
+    if (!state.profileUrl) return;
+    applyUrlAutoDetect(state.profileUrl);
+  }
+
+  function handleProfileUrlPaste(event: React.ClipboardEvent<HTMLInputElement>): void {
+    const pasted = event.clipboardData.getData("text");
+    if (pasted) applyUrlAutoDetect(pasted);
+  }
+
+  function pickPlatform(key: SocialMediaPlatformKey): void {
+    setState((prev) => {
+      const next = { ...prev, platform: key };
+      if (!isPostingCapable(key)) {
+        next.canPost = false;
+      }
+      return next;
+    });
+    setPlatformPickerOpen(false);
+  }
+
+  function mapError(err: unknown): string {
+    const apiErr = err as ApiRequestError;
+    if (apiErr.status === 409) {
+      return t.conflictForPlatform.replace("{platform}", platformDef?.label ?? state.platform);
+    }
+    if (apiErr.status === 400) return apiErr.message ?? t.saveError;
+    if (apiErr.status === 503) return apiErr.message ?? t.instanceUnreachable;
+    return t.saveError;
+  }
+
+  function handleSave(): void {
+    setError(null);
+    if (!state.label.trim()) {
+      setError(t.labelRequired);
+      return;
+    }
+    if (!state.profileUrl.trim()) {
+      setError(t.profileUrlRequired);
+      return;
+    }
+    if (isCreate) {
+      createMutation.mutate(buildCreateInput(state), {
+        onSuccess: () => onClose(),
+        onError: (err) => setError(mapError(err)),
+      });
+    } else if (target.mode === "edit") {
+      updateMutation.mutate(
+        { id: target.account.id, input: buildUpdateInput(state) },
+        {
+          onSuccess: () => onClose(),
+          onError: (err) => setError(mapError(err)),
+        },
+      );
+    }
+  }
+
+  const headerExtra = (
+    <label className="inline-flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
+      <span className={state.canPost ? "" : "opacity-50"}>{t.fields.active}</span>
+      <ToggleSwitch
+        checked={state.isActive}
+        disabled={!state.canPost}
+        onChange={(value) => setState((prev) => ({ ...prev, isActive: value }))}
+      />
+    </label>
+  );
 
   return (
-    <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="lg">
-      <div className="flex items-center gap-3 px-6 pt-3">
-        {isCreate && (
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors"
-          >
-            <ArrowLeftIcon weight="bold" className="w-3 h-3" />
-            {t.changeService}
-          </button>
-        )}
-        <label className="ml-auto inline-flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
-          <span>{t.fields.active}</span>
-          <ToggleSwitch checked={activeIsActive} onChange={setActiveIsActive} />
+    <Dialog
+      open
+      title={dialogTitle}
+      titleIcon={dialogIcon}
+      headerExtra={headerExtra}
+      onClose={onClose}
+      maxWidth="lg"
+    >
+      <div className="space-y-5 px-6 py-4">
+        <label className="block">
+          <span className={formLabelClass}>{t.fields.label}</span>
+          <input
+            value={state.label}
+            onChange={(event) => setState((prev) => ({ ...prev, label: event.target.value }))}
+            className={formInputClass}
+            placeholder="lmaa.space"
+          />
         </label>
-      </div>
-      <div className="px-6 py-4">
-        {editingBluesky ? (
-          <BlueskyAccountForm
-            form={blueskyForm}
-            onChange={setBlueskyForm}
-            labels={{
-              label: t.fields.label,
-              handle: t.bluesky.handleLabel,
-              appPassword: t.bluesky.appPasswordLabel,
-              appPasswordKeepHint: t.bluesky.appPasswordKeepHint,
-              appPasswordRecommendation: t.bluesky.appPasswordRecommendation,
-              appPasswordSettingsLink: t.bluesky.appPasswordSettingsLink,
-            }}
-            requirePassword={isCreate}
-            hasStoredPassword={
-              target.mode === "edit" &&
-              target.platform === "bluesky" &&
-              target.account.hasAccessToken
-            }
-          />
-        ) : (
-          <MastodonAccountForm
-            form={mastodonForm}
-            onChange={setMastodonForm}
-            visibilityLabels={t.visibility}
-            labels={{ ...t.fields, maxPostCharacters: t.mastodonMaxPostCharactersLabel }}
-            tokenPlaceholder={isCreate ? t.accessTokenPlaceholder : t.keepTokenPlaceholder}
-            requireToken={isCreate}
-          />
+
+        <div>
+          <span className={formLabelClass}>{t.profileUrlLabel}</span>
+          <div className="flex items-stretch gap-2">
+            <div className="relative" ref={platformPickerRef}>
+              <button
+                type="button"
+                onClick={() => setPlatformPickerOpen((open) => !open)}
+                className="inline-flex h-9 items-center gap-1 rounded-control border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 hover:border-[var(--ds-border-strong)]"
+                aria-label={t.platformPickerLabel}
+              >
+                {PlatformIcon ? <PlatformIcon size={18} /> : null}
+                <CaretDownIcon weight="bold" className="h-3 w-3" />
+              </button>
+              {platformPickerOpen &&
+                platformPickerRect &&
+                createPortal(
+                  <div
+                    ref={platformPickerListRef}
+                    style={{
+                      position: "fixed",
+                      top: platformPickerRect.top + 4,
+                      left: platformPickerRect.left,
+                      zIndex: 9999,
+                    }}
+                    className="max-h-64 w-56 overflow-y-auto rounded-card border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-lg"
+                  >
+                    {PLATFORMS.map((p) => {
+                      const Icon = p.icon;
+                      return (
+                        <button
+                          key={p.key}
+                          type="button"
+                          onClick={() => pickPlatform(p.key as SocialMediaPlatformKey)}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-[var(--ds-surface-hover)]"
+                        >
+                          <Icon size={16} />
+                          <span>{p.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>,
+                  document.body,
+                )}
+            </div>
+            <input
+              value={state.profileUrl}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, profileUrl: event.target.value }))
+              }
+              onBlur={handleProfileUrlBlur}
+              onPaste={handleProfileUrlPaste}
+              className={`${formInputClass} flex-1`}
+              placeholder="https://..."
+            />
+            {state.profileUrl && (
+              <a
+                href={state.profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-[var(--ds-border-subtle)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
+                aria-label={t.openLink}
+              >
+                <ArrowSquareOutIcon weight="bold" className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-row flex-wrap items-center gap-6">
+          <label className="inline-flex items-center gap-2 text-sm text-[var(--ds-text)]">
+            <input
+              type="checkbox"
+              checked={state.showInFooter}
+              onChange={(event) =>
+                setState((prev) => ({ ...prev, showInFooter: event.target.checked }))
+              }
+              className="h-4 w-4"
+            />
+            {t.showInFooter}
+          </label>
+          <label
+            className={`inline-flex items-center gap-2 text-sm text-[var(--ds-text)] ${
+              canPostAvailable ? "" : "opacity-60"
+            }`}
+            title={canPostAvailable ? undefined : t.postingPlatformOnly}
+          >
+            <input
+              type="checkbox"
+              checked={state.canPost}
+              disabled={!canPostAvailable}
+              onChange={(event) =>
+                setState((prev) => ({
+                  ...prev,
+                  canPost: event.target.checked,
+                  isActive: event.target.checked ? prev.isActive : true,
+                }))
+              }
+              className="h-4 w-4"
+            />
+            {t.useForPosting}
+          </label>
+        </div>
+
+        {state.canPost && state.platform === "mastodon" && (
+          <div className="border-t border-[var(--ds-border-subtle)] pt-4">
+            <MastodonAccountForm
+              form={{ ...state.mastodon, label: state.label }}
+              onChange={(form) =>
+                setState((prev) => ({
+                  ...prev,
+                  mastodon: { ...form, label: prev.label },
+                }))
+              }
+              visibilityLabels={t.visibility}
+              labels={{ ...t.fields, maxPostCharacters: t.mastodonMaxPostCharactersLabel }}
+              tokenPlaceholder={isCreate ? t.accessTokenPlaceholder : t.keepTokenPlaceholder}
+              requireToken={isCreate}
+            />
+          </div>
+        )}
+
+        {state.canPost && state.platform === "bluesky" && (
+          <div className="border-t border-[var(--ds-border-subtle)] pt-4">
+            <BlueskyAccountForm
+              form={{ ...state.bluesky, label: state.label }}
+              onChange={(form) =>
+                setState((prev) => ({
+                  ...prev,
+                  bluesky: { ...form, label: prev.label },
+                }))
+              }
+              labels={{
+                handle: t.bluesky.handleLabel,
+                appPassword: t.bluesky.appPasswordLabel,
+                appPasswordKeepHint: t.bluesky.appPasswordKeepHint,
+                appPasswordRecommendation: t.bluesky.appPasswordRecommendation,
+                appPasswordSettingsLink: t.bluesky.appPasswordSettingsLink,
+              }}
+              requirePassword={isCreate}
+              hasStoredPassword={
+                target.mode === "edit" ? target.account.hasAccessToken : false
+              }
+            />
+          </div>
         )}
       </div>
       <Dialog.Footer>
