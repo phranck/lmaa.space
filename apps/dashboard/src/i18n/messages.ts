@@ -1157,7 +1157,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         navigations: "Navigationen",
         formBuilder: "Formular-Builder",
         formsOverview: "Übersicht",
-        emailTemplates: "E-Mail-Templates",
+        emailTemplates: "E-Mail Templates",
         emailTemplatesOverview: "Übersicht",
         socialMediaPostTemplates: "Social Media Templates",
         socialMediaPostTemplatesOverview: "Übersicht",
