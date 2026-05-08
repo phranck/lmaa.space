@@ -1,0 +1,7 @@
+ALTER TABLE "admin_user_account_template_choice" DROP CONSTRAINT "admin_user_account_template_choice_admin_user_id_social_media_account_id_pk";--> statement-breakpoint
+ALTER TABLE "admin_user_account_template_choice" ADD COLUMN "scope" text DEFAULT 'submission' NOT NULL;--> statement-breakpoint
+ALTER TABLE "admin_user_account_template_choice" ADD CONSTRAINT "admin_user_account_template_choice_admin_user_id_social_media_account_id_scope_pk" PRIMARY KEY("admin_user_id","social_media_account_id","scope");--> statement-breakpoint
+ALTER TABLE "social_media_post_templates" ADD COLUMN "scopes" text[] DEFAULT ARRAY['submission']::text[] NOT NULL;--> statement-breakpoint
+ALTER TABLE "admin_user_account_template_choice" ADD CONSTRAINT "admin_user_account_template_choice_scope_valid" CHECK ("admin_user_account_template_choice"."scope" IN ('submission', 'category'));--> statement-breakpoint
+ALTER TABLE "social_media_post_templates" ADD CONSTRAINT "social_media_post_templates_scopes_nonempty" CHECK (cardinality("social_media_post_templates"."scopes") >= 1);--> statement-breakpoint
+ALTER TABLE "social_media_post_templates" ADD CONSTRAINT "social_media_post_templates_scopes_valid" CHECK ("social_media_post_templates"."scopes" <@ ARRAY['submission', 'category']::text[]);

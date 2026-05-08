@@ -39,6 +39,7 @@ function makeTemplate(overrides: Partial<SocialMediaPostTemplate> = {}): SocialM
     id: 7,
     name: "Approval Post",
     platforms: ["mastodon"],
+    scopes: ["submission"],
     bodyMastodon: "New shop: {{shopName}} — {{shopUrl}}",
     bodyBluesky: null,
     isSystemTemplate: false,
