@@ -57,9 +57,11 @@ function makeAccount(
     platform: "mastodon",
     label: `Account ${id}`,
     instanceUrl: "https://mastodon.social",
+    handle: null,
     username: `user${id}`,
     accessToken: `token-${id}`,
     visibility: "public",
+    maxPostCharacters: 500,
     isActive: true,
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
@@ -71,34 +73,29 @@ function makeAccount(
 // __test__ helpers (renderPlainTemplate, idempotencyKey)
 // ---------------------------------------------------------------------------
 
+async function loadMastodonService() {
+  vi.resetModules();
+
+  vi.doMock("../config/env.js", () => ({
+    env: {
+      NODE_ENV: "test",
+      FRONTEND_URL: "https://example.com",
+      DASHBOARD_URL: "https://dashboard.example.com",
+    },
+  }));
+
+  vi.doMock("../lib/logger.js", () => ({
+    logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  }));
+
+  return import("../services/mastodon.js");
+}
+
 describe("renderPlainTemplate", () => {
-  // Import the module statically for the helper tests — no repo mocks needed.
   let renderPlainTemplate: (text: string, variables: Record<string, string>) => string;
 
   beforeEach(async () => {
-    vi.resetModules();
-
-    vi.doMock("../config/env.js", () => ({
-      env: {
-        NODE_ENV: "test",
-        FRONTEND_URL: "https://example.com",
-        DASHBOARD_URL: "https://dashboard.example.com",
-      },
-    }));
-
-    vi.doMock("../lib/logger.js", () => ({
-      logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-    }));
-
-    vi.doMock("../repositories/social-media-post-templates.js", () => ({
-      getSocialMediaPostTemplateById: vi.fn(),
-    }));
-
-    vi.doMock("../repositories/social-media-accounts.js", () => ({
-      listActiveMastodonAccounts: vi.fn(),
-    }));
-
-    const mod = await import("../services/mastodon.js");
+    const mod = await loadMastodonService();
     renderPlainTemplate = mod.__test__.renderPlainTemplate;
   });
 
@@ -130,29 +127,7 @@ describe("idempotencyKey", () => {
   ) => string;
 
   beforeEach(async () => {
-    vi.resetModules();
-
-    vi.doMock("../config/env.js", () => ({
-      env: {
-        NODE_ENV: "test",
-        FRONTEND_URL: "https://example.com",
-        DASHBOARD_URL: "https://dashboard.example.com",
-      },
-    }));
-
-    vi.doMock("../lib/logger.js", () => ({
-      logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-    }));
-
-    vi.doMock("../repositories/social-media-post-templates.js", () => ({
-      getSocialMediaPostTemplateById: vi.fn(),
-    }));
-
-    vi.doMock("../repositories/social-media-accounts.js", () => ({
-      listActiveMastodonAccounts: vi.fn(),
-    }));
-
-    const mod = await import("../services/mastodon.js");
+    const mod = await loadMastodonService();
     idempotencyKey = mod.__test__.idempotencyKey;
   });
 
@@ -165,7 +140,7 @@ describe("idempotencyKey", () => {
     const key2 = idempotencyKey(account, template, submission);
 
     expect(key1).toBe(key2);
-    expect(key1).toHaveLength(64); // sha256 hex
+    expect(key1).toHaveLength(64);
   });
 
   it("is unique: different submission id produces a different hash", () => {
@@ -174,10 +149,9 @@ describe("idempotencyKey", () => {
     const submission1 = makeSubmission({ id: 1 });
     const submission2 = makeSubmission({ id: 2 });
 
-    const key1 = idempotencyKey(account, template, submission1);
-    const key2 = idempotencyKey(account, template, submission2);
-
-    expect(key1).not.toBe(key2);
+    expect(idempotencyKey(account, template, submission1)).not.toBe(
+      idempotencyKey(account, template, submission2),
+    );
   });
 
   it("matches the expected sha256 of the canonical string", () => {
@@ -192,86 +166,56 @@ describe("idempotencyKey", () => {
 });
 
 // ---------------------------------------------------------------------------
-// postToMastodon (via sendMastodonApprovalPost, fetch-stubbed)
+// postToMastodonAccount
 // ---------------------------------------------------------------------------
 
-const getSocialMediaPostTemplateById = vi.fn();
-const listActiveMastodonAccounts = vi.fn();
-const loggerMock = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
-const recordBackgroundErrorMock = vi.fn();
+describe("postToMastodonAccount", () => {
+  let postToMastodonAccount: typeof import("../services/mastodon.js").postToMastodonAccount;
+  let resetRateLimitBuckets: () => void;
+  const loggerWarn = vi.fn();
 
-async function loadMastodonService() {
-  vi.resetModules();
+  beforeEach(async () => {
+    vi.resetModules();
+    loggerWarn.mockReset();
 
-  vi.doMock("../config/env.js", () => ({
-    env: {
-      NODE_ENV: "test",
-      FRONTEND_URL: "https://example.com",
-      DASHBOARD_URL: "https://dashboard.example.com",
-    },
-  }));
+    vi.doMock("../config/env.js", () => ({
+      env: {
+        NODE_ENV: "test",
+        FRONTEND_URL: "https://example.com",
+        DASHBOARD_URL: "https://dashboard.example.com",
+      },
+    }));
 
-  vi.doMock("../lib/logger.js", () => ({ logger: loggerMock }));
+    vi.doMock("../lib/logger.js", () => ({
+      logger: { debug: vi.fn(), info: vi.fn(), warn: loggerWarn, error: vi.fn() },
+    }));
 
-  vi.doMock("../repositories/social-media-post-templates.js", () => ({
-    getSocialMediaPostTemplateById,
-  }));
-
-  vi.doMock("../repositories/social-media-accounts.js", () => ({
-    listActiveMastodonAccounts,
-  }));
-
-  vi.doMock("../services/background-errors.js", () => ({
-    recordBackgroundError: recordBackgroundErrorMock,
-  }));
-
-  return import("../services/mastodon.js");
-}
-
-/** Wait for the fire-and-forget void IIFE inside sendMastodonApprovalPost to settle. */
-async function flushPromises(): Promise<void> {
-  await new Promise<void>((resolve) => setTimeout(resolve, 0));
-}
-
-describe("postToMastodon (via sendMastodonApprovalPost)", () => {
-  beforeEach(() => {
-    getSocialMediaPostTemplateById.mockReset();
-    listActiveMastodonAccounts.mockReset();
-    loggerMock.debug.mockReset();
-    loggerMock.info.mockReset();
-    loggerMock.warn.mockReset();
-    loggerMock.error.mockReset();
-    recordBackgroundErrorMock.mockReset();
-    recordBackgroundErrorMock.mockResolvedValue(undefined);
+    const mod = await import("../services/mastodon.js");
+    postToMastodonAccount = mod.postToMastodonAccount;
+    resetRateLimitBuckets = mod.__test__.resetRateLimitBuckets;
+    resetRateLimitBuckets();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("happy path: posts to ${instanceUrl}/api/v1/statuses with Bearer token, visibility, Idempotency-Key", async () => {
+  it("happy path: posts to ${instanceUrl}/api/v1/statuses with Bearer + visibility + Idempotency-Key", async () => {
     const account = makeAccount(1, { instanceUrl: "https://fosstodon.org", accessToken: "abc123" });
     const template = makeTemplate({ bodyMastodon: "New: {{shopName}}" });
     const submission = makeSubmission({ shopName: "Good Karma" });
 
-    getSocialMediaPostTemplateById.mockResolvedValue(template);
-    listActiveMastodonAccounts.mockResolvedValue([account]);
-
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
 
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(template.id, {
+    await postToMastodonAccount(account, template, {
       submission,
       newShopId: 99,
       adminNote: "",
       categoryNames: [],
     });
 
-    await flushPromises();
-
     expect(fetchMock).toHaveBeenCalledTimes(1);
-
     const [url, init] = fetchMock.mock.calls[0] as [URL, RequestInit];
     expect(url.toString()).toBe("https://fosstodon.org/api/v1/statuses");
     expect(init.method).toBe("POST");
@@ -286,13 +230,9 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
     expect(body.get("visibility")).toBe("public");
   });
 
-  it("HTTP 401 → throws (background error recorded)", async () => {
+  it("HTTP 401 → throws with status in message", async () => {
     const account = makeAccount(1);
     const template = makeTemplate({ bodyMastodon: "Post: {{shopName}}" });
-    const submission = makeSubmission();
-
-    getSocialMediaPostTemplateById.mockResolvedValue(template);
-    listActiveMastodonAccounts.mockResolvedValue([account]);
 
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
@@ -301,30 +241,19 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(template.id, {
-      submission,
-      newShopId: 5,
-      adminNote: "",
-      categoryNames: [],
-    });
-
-    await flushPromises();
-
-    expect(recordBackgroundErrorMock).toHaveBeenCalledWith(
-      "mastodon-post",
-      expect.any(Error),
-      expect.objectContaining({ accountId: account.id, templateId: template.id }),
-    );
+    await expect(
+      postToMastodonAccount(account, template, {
+        submission: makeSubmission(),
+        newShopId: 5,
+        adminNote: "",
+        categoryNames: [],
+      }),
+    ).rejects.toThrow(/401/);
   });
 
-  it("HTTP 503 → throws with truncated response body (≤300 chars) and records background error", async () => {
+  it("HTTP 503 → throws with truncated response body (≤300 chars)", async () => {
     const account = makeAccount(2);
     const template = makeTemplate({ bodyMastodon: "Hello {{shopName}}" });
-    const submission = makeSubmission();
-
-    getSocialMediaPostTemplateById.mockResolvedValue(template);
-    listActiveMastodonAccounts.mockResolvedValue([account]);
 
     const longBody = "x".repeat(500);
     const fetchMock = vi.fn().mockResolvedValue({
@@ -334,205 +263,78 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(template.id, {
-      submission,
-      newShopId: 5,
-      adminNote: "",
-      categoryNames: [],
-    });
-
-    await flushPromises();
-
-    expect(recordBackgroundErrorMock).toHaveBeenCalledTimes(1);
-    const [, errArg] = recordBackgroundErrorMock.mock.calls[0] as [string, Error];
-    expect(errArg.message).toContain("503");
-    // Body must be truncated to 300 chars
-    const truncated = longBody.slice(0, 300);
-    expect(errArg.message).toContain(truncated);
-    expect(errArg.message).not.toContain("x".repeat(301));
-  });
-});
-
-// ---------------------------------------------------------------------------
-// sendMastodonApprovalPost — guard rails
-// ---------------------------------------------------------------------------
-
-describe("sendMastodonApprovalPost — guard rails", () => {
-  beforeEach(() => {
-    getSocialMediaPostTemplateById.mockReset();
-    listActiveMastodonAccounts.mockReset();
-    loggerMock.debug.mockReset();
-    loggerMock.info.mockReset();
-    loggerMock.warn.mockReset();
-    loggerMock.error.mockReset();
-    recordBackgroundErrorMock.mockReset();
-    recordBackgroundErrorMock.mockResolvedValue(undefined);
+    await expect(
+      postToMastodonAccount(account, template, {
+        submission: makeSubmission(),
+        newShopId: 5,
+        adminNote: "",
+        categoryNames: [],
+      }),
+    ).rejects.toThrow(/503.*xxx/);
   });
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
+  it("rejects when account.platform is not mastodon", async () => {
+    const account = makeAccount(1, { platform: "bluesky" });
+    const template = makeTemplate();
+    await expect(
+      postToMastodonAccount(account, template, {
+        submission: makeSubmission(),
+        newShopId: 1,
+        adminNote: "",
+        categoryNames: [],
+      }),
+    ).rejects.toThrow(/not a mastodon/);
   });
 
-  it("no-template-found → logs warn, no fetch", async () => {
-    getSocialMediaPostTemplateById.mockResolvedValue(null);
+  it("rejects when template missing bodyMastodon", async () => {
+    const account = makeAccount(1);
+    const template = makeTemplate({ bodyMastodon: null });
+    await expect(
+      postToMastodonAccount(account, template, {
+        submission: makeSubmission(),
+        newShopId: 1,
+        adminNote: "",
+        categoryNames: [],
+      }),
+    ).rejects.toThrow(/missing bodyMastodon/);
+  });
+
+  it("rejects when status length exceeds account.maxPostCharacters", async () => {
+    const account = makeAccount(1, { maxPostCharacters: 10 });
+    const template = makeTemplate({ bodyMastodon: "x".repeat(50) });
 
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(99, {
-      submission: makeSubmission(),
-      newShopId: 1,
-      adminNote: "",
-      categoryNames: [],
-    });
-
-    await flushPromises();
-
-    expect(loggerMock.warn).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: 99 }),
-      "social-media post template not found, skipping post",
-    );
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("template missing mastodon body → logs warn, no fetch", async () => {
-    getSocialMediaPostTemplateById.mockResolvedValue(makeTemplate({ bodyMastodon: null }));
-
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(7, {
-      submission: makeSubmission(),
-      newShopId: 1,
-      adminNote: "",
-      categoryNames: [],
-    });
-
-    await flushPromises();
-
-    expect(loggerMock.warn).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: 7 }),
-      "social-media post template missing mastodon body, skipping post",
-    );
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("no-active-accounts → logs warn, no fetch", async () => {
-    getSocialMediaPostTemplateById.mockResolvedValue(makeTemplate());
-    listActiveMastodonAccounts.mockResolvedValue([]);
-
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(7, {
-      submission: makeSubmission(),
-      newShopId: 1,
-      adminNote: "",
-      categoryNames: [],
-    });
-
-    await flushPromises();
-
-    expect(loggerMock.warn).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: 7 }),
-      "no active mastodon accounts configured, skipping post",
-    );
+    await expect(
+      postToMastodonAccount(account, template, {
+        submission: makeSubmission(),
+        newShopId: 1,
+        adminNote: "",
+        categoryNames: [],
+      }),
+    ).rejects.toThrow(/maxPostCharacters/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("empty-rendered-status (all whitespace) → logs warn, no fetch", async () => {
-    getSocialMediaPostTemplateById.mockResolvedValue(makeTemplate({ bodyMastodon: "   " }));
-    listActiveMastodonAccounts.mockResolvedValue([makeAccount(1)]);
+    const account = makeAccount(1);
+    const template = makeTemplate({ bodyMastodon: "   " });
 
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(7, {
+    await postToMastodonAccount(account, template, {
       submission: makeSubmission(),
       newShopId: 1,
       adminNote: "",
       categoryNames: [],
     });
 
-    await flushPromises();
-
-    expect(loggerMock.warn).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: 7 }),
-      "social-media post template rendered empty, skipping post",
-    );
     expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("happy path with 2 accounts → 2 fetches, no errors logged", async () => {
-    const template = makeTemplate({ bodyMastodon: "Shop: {{shopName}}" });
-    const account1 = makeAccount(1);
-    const account2 = makeAccount(2);
-
-    getSocialMediaPostTemplateById.mockResolvedValue(template);
-    listActiveMastodonAccounts.mockResolvedValue([account1, account2]);
-
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const service = await loadMastodonService();
-    service.sendMastodonApprovalPost(template.id, {
-      submission: makeSubmission(),
-      newShopId: 10,
-      adminNote: "",
-      categoryNames: [],
-    });
-
-    await flushPromises();
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(loggerMock.error).not.toHaveBeenCalled();
-  });
-
-  it("partial failure (1 of 2 accounts rejected) → 2 fetches, error logged with accountId + templateId", async () => {
-    const template = makeTemplate({ bodyMastodon: "Shop: {{shopName}}" });
-    const account1 = makeAccount(10);
-    const account2 = makeAccount(20);
-
-    getSocialMediaPostTemplateById.mockResolvedValue(template);
-    listActiveMastodonAccounts.mockResolvedValue([account1, account2]);
-
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true })
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 422,
-        text: vi.fn().mockResolvedValue("Unprocessable entity"),
-      });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const service = await loadMastodonService();
-    const submission = makeSubmission();
-    service.sendMastodonApprovalPost(template.id, {
-      submission,
-      newShopId: 10,
-      adminNote: "",
-      categoryNames: [],
-    });
-
-    await flushPromises();
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-
-    expect(recordBackgroundErrorMock).toHaveBeenCalledTimes(1);
-    expect(recordBackgroundErrorMock).toHaveBeenCalledWith(
-      "mastodon-post",
-      expect.any(Error),
-      expect.objectContaining({
-        accountId: account2.id,
-        templateId: template.id,
-        submissionId: submission.id,
-      }),
+    expect(loggerWarn).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: 7 }),
+      "mastodon body rendered empty, skipping",
     );
   });
 });
@@ -547,33 +349,9 @@ describe("consumeRateLimit", () => {
 
   beforeEach(async () => {
     vi.useFakeTimers();
-    vi.resetModules();
-
-    vi.doMock("../config/env.js", () => ({
-      env: {
-        NODE_ENV: "test",
-        FRONTEND_URL: "https://example.com",
-        DASHBOARD_URL: "https://dashboard.example.com",
-      },
-    }));
-
-    vi.doMock("../lib/logger.js", () => ({
-      logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-    }));
-
-    vi.doMock("../repositories/social-media-post-templates.js", () => ({
-      getSocialMediaPostTemplateById: vi.fn(),
-    }));
-
-    vi.doMock("../repositories/social-media-accounts.js", () => ({
-      listActiveMastodonAccounts: vi.fn(),
-    }));
-
-    const mod = await import("../services/mastodon.js");
+    const mod = await loadMastodonService();
     consumeRateLimit = mod.__test__.consumeRateLimit;
     resetRateLimitBuckets = mod.__test__.resetRateLimitBuckets;
-
-    // Start each test with a clean bucket state
     resetRateLimitBuckets();
   });
 
@@ -583,13 +361,9 @@ describe("consumeRateLimit", () => {
 
   it("301st call in the same 5-minute window returns false (rate limit exceeded)", () => {
     const accountId = 42;
-
-    // First 300 calls must succeed
     for (let i = 0; i < 300; i++) {
       expect(consumeRateLimit(accountId)).toBe(true);
     }
-
-    // 301st call must be rejected
     expect(consumeRateLimit(accountId)).toBe(false);
   });
 
@@ -597,22 +371,17 @@ describe("consumeRateLimit", () => {
     const accountId = 99;
     const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
 
-    // Exhaust the bucket
     for (let i = 0; i < 300; i++) {
       consumeRateLimit(accountId);
     }
     expect(consumeRateLimit(accountId)).toBe(false);
 
-    // Advance time past the window — bucket should reset on next access
     vi.advanceTimersByTime(RATE_LIMIT_WINDOW_MS + 1);
 
-    // First call after window expiry starts a fresh bucket → allowed
     expect(consumeRateLimit(accountId)).toBe(true);
-    // And the 300th call in the new window is still allowed
     for (let i = 1; i < 300; i++) {
       expect(consumeRateLimit(accountId)).toBe(true);
     }
-    // 301st in new window is blocked again
     expect(consumeRateLimit(accountId)).toBe(false);
   });
 });

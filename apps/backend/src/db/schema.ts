@@ -575,31 +575,41 @@ export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type EmailTemplateInsert = typeof emailTemplates.$inferInsert;
 
 /**
- * Social media credentials managed from the dashboard.
+ * Social media credentials managed from the dashboard. At most one row per platform
+ * (UNIQUE(platform)) — singleton enforced by DB constraint, surfaced as 409 in the
+ * create routes.
  */
 export const socialMediaAccounts = pgTable(
   "social_media_accounts",
   {
     id: serial("id").primaryKey(),
-    platform: text("platform").$type<"mastodon">().notNull().default("mastodon"),
+    platform: text("platform").$type<"mastodon" | "bluesky">().notNull(),
     label: text("label").notNull(),
-    instanceUrl: text("instance_url").notNull(),
+    instanceUrl: text("instance_url").notNull().default(""),
+    handle: text("handle"),
     username: text("username"),
     accessToken: text("access_token").notNull(),
-    visibility: text("visibility")
-      .$type<"public" | "unlisted" | "private" | "direct">()
-      .notNull()
-      .default("public"),
+    visibility: text("visibility").$type<"public" | "unlisted" | "private" | "direct">(),
+    maxPostCharacters: integer("max_post_characters").notNull(),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex("social_media_accounts_platform_unique").on(table.platform),
     index("idx_social_media_accounts_platform_active").on(table.platform, table.isActive),
-    check("social_media_accounts_platform_check", sql`${table.platform} IN ('mastodon')`),
+    check("social_media_accounts_platform_check", sql`${table.platform} IN ('mastodon', 'bluesky')`),
     check(
       "social_media_accounts_visibility_check",
-      sql`${table.visibility} IN ('public', 'unlisted', 'private', 'direct')`,
+      sql`${table.visibility} IS NULL OR ${table.visibility} IN ('public', 'unlisted', 'private', 'direct')`,
+    ),
+    check(
+      "social_media_accounts_handle_required_for_bluesky",
+      sql`${table.platform} <> 'bluesky' OR ${table.handle} IS NOT NULL`,
+    ),
+    check(
+      "social_media_accounts_instance_required_for_mastodon",
+      sql`${table.platform} <> 'mastodon' OR ${table.instanceUrl} <> ''`,
     ),
   ],
 );
@@ -804,3 +814,36 @@ export const backgroundErrors = pgTable(
 );
 
 export type BackgroundError = typeof backgroundErrors.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// Per-Moderator Sticky Template Choice
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-moderator sticky template selection per social-media account. Used to pre-select
+ * the template dropdown on the Approve dialog. `templateId IS NULL` means the moderator
+ * has explicitly chosen "no post" for this account at last approve.
+ */
+export const adminUserAccountTemplateChoice = pgTable(
+  "admin_user_account_template_choice",
+  {
+    adminUserId: integer("admin_user_id")
+      .notNull()
+      .references(() => adminUsers.id, { onDelete: "cascade" }),
+    socialMediaAccountId: integer("social_media_account_id")
+      .notNull()
+      .references(() => socialMediaAccounts.id, { onDelete: "cascade" }),
+    templateId: integer("template_id").references(() => socialMediaPostTemplates.id, {
+      onDelete: "set null",
+    }),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.adminUserId, table.socialMediaAccountId] }),
+    index("idx_admin_user_account_template_choice_user").on(table.adminUserId),
+  ],
+);
+
+export type AdminUserAccountTemplateChoice = typeof adminUserAccountTemplateChoice.$inferSelect;
+export type AdminUserAccountTemplateChoiceInsert =
+  typeof adminUserAccountTemplateChoice.$inferInsert;

@@ -12,6 +12,8 @@ export * from "./form-builder";
 export * from "./admin-email-templates";
 /** Admin Mastodon account schemas. */
 export * from "./admin-mastodon";
+/** Admin BlueSky account schemas. */
+export * from "./admin-bluesky";
 /** Admin social-media post template schemas. */
 export * from "./admin-social-media-templates";
 /** Admin auth schemas. */
