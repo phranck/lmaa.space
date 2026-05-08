@@ -268,7 +268,7 @@ function LoadedSubmissionEditorPage({
         title={pageTitle}
         titleContent={
           <div className="pointer-events-none min-w-0 leading-tight">
-            <p className="truncate text-sm font-semibold leading-4 text-[var(--ds-text)]">
+            <p className="truncate text-lg font-semibold leading-tight text-[var(--ds-text)]">
               {pageTitle}
             </p>
             <p className="truncate text-[11px] leading-4 text-[var(--ds-text-muted)]">

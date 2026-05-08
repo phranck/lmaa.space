@@ -139,9 +139,9 @@ function AdminLayoutInner() {
             </button>
             <div ref={setLeadingEl} className="flex items-center shrink-0" />
             {hasCustomTitleContent ? (
-              <div className="min-w-0 overflow-hidden leading-tight">{titleContent}</div>
+              <div className="min-w-0 overflow-hidden leading-tight text-lg">{titleContent}</div>
             ) : (
-              <span className="font-semibold text-sm text-[var(--ds-text)] font-serif truncate">
+              <span className="font-semibold text-lg text-[var(--ds-text)] font-serif truncate">
                 {title || messages.layout.pageFallbackTitle}
               </span>
             )}
