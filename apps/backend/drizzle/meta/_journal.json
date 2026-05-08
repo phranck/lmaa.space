@@ -337,6 +337,13 @@
       "when": 1778179938898,
       "tag": "0047_early_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1778252218598,
+      "tag": "0048_social_media_post_templates",
+      "breakpoints": true
     }
   ]
 }

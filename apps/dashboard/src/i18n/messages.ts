@@ -49,8 +49,8 @@ export interface DashboardMessages {
       formsOverview: string;
       emailTemplates: string;
       emailTemplatesOverview: string;
-      mastodonPostTemplates: string;
-      mastodonPostTemplatesOverview: string;
+      socialMediaPostTemplates: string;
+      socialMediaPostTemplatesOverview: string;
       footerBuilder: string;
       markdownWidgets: string;
       billing: string;
@@ -980,7 +980,7 @@ export interface DashboardMessages {
     importSkip: string;
     importNewNameLabel: string;
   };
-  mastodonTemplates: {
+  socialMediaTemplates: {
     listTitle: string;
     newTemplate: string;
     templateName: string;
@@ -1003,6 +1003,11 @@ export interface DashboardMessages {
     systemBadge: string;
     systemHint: string;
     systemCheckbox: string;
+    platformsLabel: string;
+    platformMastodon: string;
+    platformBluesky: string;
+    bodyMastodonLabel: string;
+    bodyBlueskyLabel: string;
   };
   socialMedia: {
     title: string;
@@ -1130,8 +1135,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Übersicht",
         emailTemplates: "E-Mail-Templates",
         emailTemplatesOverview: "Übersicht",
-        mastodonPostTemplates: "Social Media Templates",
-        mastodonPostTemplatesOverview: "Übersicht",
+        socialMediaPostTemplates: "Social Media Templates",
+        socialMediaPostTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Kosten",
@@ -2082,7 +2087,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Überspringen",
       importNewNameLabel: "Neuer Name",
     },
-    mastodonTemplates: {
+    socialMediaTemplates: {
       listTitle: "Social Media Templates",
       newTemplate: "Neues Template",
       templateName: "Name",
@@ -2118,6 +2123,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       systemBadge: "System",
       systemHint: "System-Templates können nicht gelöscht werden.",
       systemCheckbox: "System-Template",
+      platformsLabel: "Verfügbar auf:",
+      platformMastodon: "Mastodon",
+      platformBluesky: "Bluesky",
+      bodyMastodonLabel: "Mastodon-Beitrag",
+      bodyBlueskyLabel: "Bluesky-Beitrag",
     },
     socialMedia: {
       title: "Social Media Accounts",
@@ -2246,8 +2256,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Overview",
         emailTemplates: "Email Templates",
         emailTemplatesOverview: "Overview",
-        mastodonPostTemplates: "Social Media Templates",
-        mastodonPostTemplatesOverview: "Overview",
+        socialMediaPostTemplates: "Social Media Templates",
+        socialMediaPostTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Billing",
@@ -3192,7 +3202,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Skip",
       importNewNameLabel: "New name",
     },
-    mastodonTemplates: {
+    socialMediaTemplates: {
       listTitle: "Social Media Templates",
       newTemplate: "New Template",
       templateName: "Name",
@@ -3228,6 +3238,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       systemBadge: "System",
       systemHint: "System templates cannot be deleted.",
       systemCheckbox: "System template",
+      platformsLabel: "Available on:",
+      platformMastodon: "Mastodon",
+      platformBluesky: "Bluesky",
+      bodyMastodonLabel: "Mastodon body",
+      bodyBlueskyLabel: "Bluesky body",
     },
     socialMedia: {
       title: "Social Media Accounts",

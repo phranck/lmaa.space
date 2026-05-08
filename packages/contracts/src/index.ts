@@ -10,8 +10,10 @@ export * from "./admin-submissions";
 export * from "./form-builder";
 /** Admin email template schemas. */
 export * from "./admin-email-templates";
-/** Admin Mastodon account and post template schemas. */
+/** Admin Mastodon account schemas. */
 export * from "./admin-mastodon";
+/** Admin social-media post template schemas. */
+export * from "./admin-social-media-templates";
 /** Admin auth schemas. */
 export * from "./admin-auth";
 /** Admin category schemas. */

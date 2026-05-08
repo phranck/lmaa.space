@@ -70,7 +70,7 @@ import {
   useEmailTemplates,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
-import { useMastodonPostTemplates } from "@/features/templates/hooks/useMastodonPostTemplates.ts";
+import { useSocialMediaPostTemplates } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 const SIDEBAR_GROUP_STORAGE_KEYS = [
@@ -78,7 +78,7 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-pages-open",
   "sidebar-forms-open",
   "sidebar-email-templates-open",
-  "sidebar-mastodon-post-templates-open",
+  "sidebar-social-media-post-templates-open",
 ] as const;
 
 const SIDEBAR_SECTION_IDS = [
@@ -337,7 +337,7 @@ function EmailTemplatesGroup({
   );
 }
 
-function MastodonPostTemplatesGroup({
+function SocialMediaPostTemplatesGroup({
   onItemClick,
   globalOpenState,
   globalOpenVersion,
@@ -350,31 +350,31 @@ function MastodonPostTemplatesGroup({
 }) {
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
-  const { data: templates } = useMastodonPostTemplates();
+  const { data: templates } = useSocialMediaPostTemplates();
 
   return (
     <CollapsibleSidebarGroup
-      routeMatch="/mastodon-post-templates/*"
-      storageKey="sidebar-mastodon-post-templates-open"
+      routeMatch="/social-media-post-templates/*"
+      storageKey="sidebar-social-media-post-templates-open"
       icon={<PaperPlaneTiltIcon weight="duotone" className="w-4 h-4" />}
-      label={s.mastodonPostTemplates}
+      label={s.socialMediaPostTemplates}
       badge={templates?.length ?? 0}
       globalOpenState={globalOpenState}
       globalOpenVersion={globalOpenVersion}
       onOpenChange={onOpenChange}
     >
       <NavLink
-        to="/mastodon-post-templates"
+        to="/social-media-post-templates"
         end
         onClick={onItemClick}
         className={sidebarGroupItemClass}
       >
-        {s.mastodonPostTemplatesOverview}
+        {s.socialMediaPostTemplatesOverview}
       </NavLink>
       {(templates ?? []).map((template) => (
         <NavLink
           key={template.id}
-          to={`/mastodon-post-templates/${template.id}`}
+          to={`/social-media-post-templates/${template.id}`}
           onClick={onItemClick}
           className={sidebarGroupItemClass}
         >
@@ -677,12 +677,12 @@ export function Sidebar({
                       handleGroupOpenChange("sidebar-email-templates-open", open)
                     }
                   />
-                  <MastodonPostTemplatesGroup
+                  <SocialMediaPostTemplatesGroup
                     onItemClick={onItemClick}
                     globalOpenState={groupOpenState}
                     globalOpenVersion={groupOpenVersion}
                     onOpenChange={(open) =>
-                      handleGroupOpenChange("sidebar-mastodon-post-templates-open", open)
+                      handleGroupOpenChange("sidebar-social-media-post-templates-open", open)
                     }
                   />
                   <NavLink to="/footer-builder" onClick={onItemClick} className="contents">

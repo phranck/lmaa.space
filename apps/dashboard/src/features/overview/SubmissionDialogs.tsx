@@ -34,14 +34,14 @@ interface SubmissionDialogsProps {
   reviewMutation: ReturnType<typeof useReviewSubmission>;
   deleteMutation: ReturnType<typeof useDeleteSubmission>;
   emailTemplates: Array<{ id: number; name: string }>;
-  mastodonTemplates: Array<{ id: number; name: string }>;
+  templates: Array<{ id: number; name: string }>;
   controller: ReturnType<typeof useShopEditorController>;
   combinedSavedPhase: ReturnType<typeof useSaveNotification>["phase"];
   showDeleteDialog: boolean;
   setShowDeleteDialog: (open: boolean) => void;
   handleApprove: (close?: boolean) => Promise<void>;
   handleReject: () => void;
-  handleMastodonTemplateChange: (value: number | undefined) => void;
+  handleTemplateChange: (value: number | undefined) => void;
   navigateBack: () => void;
   common: DashboardMessages["common"];
   submissionsMessages: DashboardMessages["submissions"];
@@ -55,14 +55,14 @@ export function SubmissionDialogs({
   reviewMutation,
   deleteMutation,
   emailTemplates,
-  mastodonTemplates,
+  templates,
   controller,
   combinedSavedPhase,
   showDeleteDialog,
   setShowDeleteDialog,
   handleApprove,
   handleReject,
-  handleMastodonTemplateChange,
+  handleTemplateChange,
   navigateBack,
   common,
   submissionsMessages,
@@ -101,9 +101,9 @@ export function SubmissionDialogs({
         notificationNoneLabel={submissionsMessages.suggestions.notificationNone}
         notificationHint={submissionsMessages.suggestions.notificationHint}
         hasSubmitterEmail={!!submitterEmail}
-        mastodonTemplates={mastodonTemplates}
-        mastodonTemplateId={reviewState.mastodonTemplateId}
-        onMastodonTemplateChange={handleMastodonTemplateChange}
+        templates={templates}
+        templateId={reviewState.templateId}
+        onTemplateChange={handleTemplateChange}
         mastodonNotificationLabel={submissionsMessages.suggestions.mastodonNotificationLabel}
         mastodonNotificationNoneLabel={submissionsMessages.suggestions.mastodonNotificationNone}
         mastodonNotificationHint={submissionsMessages.suggestions.mastodonNotificationHint}
@@ -283,9 +283,9 @@ interface ApproveSubmissionReviewCardProps {
   notificationNoneLabel: string;
   notificationHint: string;
   hasSubmitterEmail: boolean;
-  mastodonTemplates: Array<{ id: number; name: string }>;
-  mastodonTemplateId: number | undefined;
-  onMastodonTemplateChange: (value: number | undefined) => void;
+  templates: Array<{ id: number; name: string }>;
+  templateId: number | undefined;
+  onTemplateChange: (value: number | undefined) => void;
   mastodonNotificationLabel: string;
   mastodonNotificationNoneLabel: string;
   mastodonNotificationHint: string;
@@ -319,9 +319,9 @@ function ApproveSubmissionReviewCard({
   notificationNoneLabel,
   notificationHint,
   hasSubmitterEmail,
-  mastodonTemplates,
-  mastodonTemplateId,
-  onMastodonTemplateChange,
+  templates,
+  templateId,
+  onTemplateChange,
   mastodonNotificationLabel,
   mastodonNotificationNoneLabel,
   mastodonNotificationHint,
@@ -387,10 +387,10 @@ function ApproveSubmissionReviewCard({
           hasSubmitterEmail={hasSubmitterEmail}
         />
 
-        <MastodonTemplateSelect
-          mastodonTemplates={mastodonTemplates}
-          mastodonTemplateId={mastodonTemplateId}
-          onMastodonTemplateChange={onMastodonTemplateChange}
+        <SocialMediaTemplateSelect
+          templates={templates}
+          templateId={templateId}
+          onTemplateChange={onTemplateChange}
           label={mastodonNotificationLabel}
           noneLabel={mastodonNotificationNoneLabel}
           hint={mastodonNotificationHint}
@@ -431,23 +431,23 @@ function ApproveSubmissionReviewCard({
   );
 }
 
-interface MastodonTemplateSelectProps {
-  mastodonTemplates: Array<{ id: number; name: string }>;
-  mastodonTemplateId: number | undefined;
-  onMastodonTemplateChange: (value: number | undefined) => void;
+interface SocialMediaTemplateSelectProps {
+  templates: Array<{ id: number; name: string }>;
+  templateId: number | undefined;
+  onTemplateChange: (value: number | undefined) => void;
   label: string;
   noneLabel: string;
   hint: string;
 }
 
-function MastodonTemplateSelect({
-  mastodonTemplates,
-  mastodonTemplateId,
-  onMastodonTemplateChange,
+function SocialMediaTemplateSelect({
+  templates,
+  templateId,
+  onTemplateChange,
   label,
   noneLabel,
   hint,
-}: MastodonTemplateSelectProps) {
+}: SocialMediaTemplateSelectProps) {
   return (
     <div className="rounded-lg border border-[var(--ds-border)] p-3">
       <div className="mb-2 flex items-center gap-2">
@@ -455,15 +455,15 @@ function MastodonTemplateSelect({
         <span className="text-sm font-medium text-[var(--ds-text)]">{label}</span>
       </div>
       <select
-        value={mastodonTemplateId ?? ""}
+        value={templateId ?? ""}
         onChange={(event) => {
           const value = event.target.value;
-          onMastodonTemplateChange(value ? Number(value) : undefined);
+          onTemplateChange(value ? Number(value) : undefined);
         }}
         className="h-9 w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 text-sm text-[var(--ds-text)]"
       >
         <option value="">{noneLabel}</option>
-        {mastodonTemplates.map((template) => (
+        {templates.map((template) => (
           <option key={template.id} value={template.id}>
             {template.name}
           </option>

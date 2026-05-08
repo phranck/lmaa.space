@@ -178,7 +178,7 @@ describe("admin-submissions service", () => {
         status: "approved",
         adminId: 1,
         adminNote: "Looks good",
-        mastodonTemplateId: 12,
+        templateId: 12,
       }),
     ).resolves.toEqual({
       ok: true,

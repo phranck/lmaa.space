@@ -608,19 +608,41 @@ export type SocialMediaAccount = typeof socialMediaAccounts.$inferSelect;
 export type SocialMediaAccountInsert = typeof socialMediaAccounts.$inferInsert;
 
 /**
- * Plain-text templates used for automatic Mastodon posts.
+ * Plain-text templates used for automatic social-media posts.
+ * `platforms` lists the platforms a template can be sent to (currently only "mastodon"
+ * after the Plan 1 migration; "bluesky" is added by the BlueSky setup plan). Each
+ * platform has its own body column that must be non-null when the platform is selected.
  */
-export const mastodonPostTemplates = pgTable("mastodon_post_templates", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  bodyText: text("body_text").notNull().default(""),
-  isSystemTemplate: boolean("is_system_template").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const socialMediaPostTemplates = pgTable(
+  "social_media_post_templates",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull().unique(),
+    platforms: text("platforms").array().notNull(),
+    bodyMastodon: text("body_mastodon"),
+    bodyBluesky: text("body_bluesky"),
+    isSystemTemplate: boolean("is_system_template").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "social_media_post_templates_platforms_nonempty",
+      sql`cardinality(${table.platforms}) >= 1`,
+    ),
+    check(
+      "social_media_post_templates_body_mastodon_when_selected",
+      sql`array_position(${table.platforms}, 'mastodon') IS NULL OR ${table.bodyMastodon} IS NOT NULL`,
+    ),
+    check(
+      "social_media_post_templates_body_bluesky_when_selected",
+      sql`array_position(${table.platforms}, 'bluesky') IS NULL OR ${table.bodyBluesky} IS NOT NULL`,
+    ),
+  ],
+);
 
-export type MastodonPostTemplate = typeof mastodonPostTemplates.$inferSelect;
-export type MastodonPostTemplateInsert = typeof mastodonPostTemplates.$inferInsert;
+export type SocialMediaPostTemplate = typeof socialMediaPostTemplates.$inferSelect;
+export type SocialMediaPostTemplateInsert = typeof socialMediaPostTemplates.$inferInsert;
 
 // ---------------------------------------------------------------------------
 // App Settings (generic key/value store)

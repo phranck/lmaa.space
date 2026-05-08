@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { MastodonPostTemplate, SocialMediaAccount, Submission } from "../db/schema.js";
+import type { SocialMediaAccount, SocialMediaPostTemplate, Submission } from "../db/schema.js";
 
 // ---------------------------------------------------------------------------
 // Shared mock factories
@@ -34,11 +34,13 @@ function makeSubmission(overrides: Partial<Submission> = {}): Submission {
   };
 }
 
-function makeTemplate(overrides: Partial<MastodonPostTemplate> = {}): MastodonPostTemplate {
+function makeTemplate(overrides: Partial<SocialMediaPostTemplate> = {}): SocialMediaPostTemplate {
   return {
     id: 7,
     name: "Approval Post",
-    bodyText: "New shop: {{shopName}} — {{shopUrl}}",
+    platforms: ["mastodon"],
+    bodyMastodon: "New shop: {{shopName}} — {{shopUrl}}",
+    bodyBluesky: null,
     isSystemTemplate: false,
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
@@ -88,8 +90,8 @@ describe("renderPlainTemplate", () => {
       logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     }));
 
-    vi.doMock("../repositories/mastodon-post-templates.js", () => ({
-      getMastodonPostTemplateById: vi.fn(),
+    vi.doMock("../repositories/social-media-post-templates.js", () => ({
+      getSocialMediaPostTemplateById: vi.fn(),
     }));
 
     vi.doMock("../repositories/social-media-accounts.js", () => ({
@@ -123,7 +125,7 @@ describe("renderPlainTemplate", () => {
 describe("idempotencyKey", () => {
   let idempotencyKey: (
     account: SocialMediaAccount,
-    template: MastodonPostTemplate,
+    template: SocialMediaPostTemplate,
     submission: Submission,
   ) => string;
 
@@ -142,8 +144,8 @@ describe("idempotencyKey", () => {
       logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     }));
 
-    vi.doMock("../repositories/mastodon-post-templates.js", () => ({
-      getMastodonPostTemplateById: vi.fn(),
+    vi.doMock("../repositories/social-media-post-templates.js", () => ({
+      getSocialMediaPostTemplateById: vi.fn(),
     }));
 
     vi.doMock("../repositories/social-media-accounts.js", () => ({
@@ -193,7 +195,7 @@ describe("idempotencyKey", () => {
 // postToMastodon (via sendMastodonApprovalPost, fetch-stubbed)
 // ---------------------------------------------------------------------------
 
-const getMastodonPostTemplateById = vi.fn();
+const getSocialMediaPostTemplateById = vi.fn();
 const listActiveMastodonAccounts = vi.fn();
 const loggerMock = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
 const recordBackgroundErrorMock = vi.fn();
@@ -211,8 +213,8 @@ async function loadMastodonService() {
 
   vi.doMock("../lib/logger.js", () => ({ logger: loggerMock }));
 
-  vi.doMock("../repositories/mastodon-post-templates.js", () => ({
-    getMastodonPostTemplateById,
+  vi.doMock("../repositories/social-media-post-templates.js", () => ({
+    getSocialMediaPostTemplateById,
   }));
 
   vi.doMock("../repositories/social-media-accounts.js", () => ({
@@ -233,7 +235,7 @@ async function flushPromises(): Promise<void> {
 
 describe("postToMastodon (via sendMastodonApprovalPost)", () => {
   beforeEach(() => {
-    getMastodonPostTemplateById.mockReset();
+    getSocialMediaPostTemplateById.mockReset();
     listActiveMastodonAccounts.mockReset();
     loggerMock.debug.mockReset();
     loggerMock.info.mockReset();
@@ -249,10 +251,10 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
 
   it("happy path: posts to ${instanceUrl}/api/v1/statuses with Bearer token, visibility, Idempotency-Key", async () => {
     const account = makeAccount(1, { instanceUrl: "https://fosstodon.org", accessToken: "abc123" });
-    const template = makeTemplate({ bodyText: "New: {{shopName}}" });
+    const template = makeTemplate({ bodyMastodon: "New: {{shopName}}" });
     const submission = makeSubmission({ shopName: "Good Karma" });
 
-    getMastodonPostTemplateById.mockResolvedValue(template);
+    getSocialMediaPostTemplateById.mockResolvedValue(template);
     listActiveMastodonAccounts.mockResolvedValue([account]);
 
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
@@ -286,10 +288,10 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
 
   it("HTTP 401 → throws (background error recorded)", async () => {
     const account = makeAccount(1);
-    const template = makeTemplate({ bodyText: "Post: {{shopName}}" });
+    const template = makeTemplate({ bodyMastodon: "Post: {{shopName}}" });
     const submission = makeSubmission();
 
-    getMastodonPostTemplateById.mockResolvedValue(template);
+    getSocialMediaPostTemplateById.mockResolvedValue(template);
     listActiveMastodonAccounts.mockResolvedValue([account]);
 
     const fetchMock = vi.fn().mockResolvedValue({
@@ -318,10 +320,10 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
 
   it("HTTP 503 → throws with truncated response body (≤300 chars) and records background error", async () => {
     const account = makeAccount(2);
-    const template = makeTemplate({ bodyText: "Hello {{shopName}}" });
+    const template = makeTemplate({ bodyMastodon: "Hello {{shopName}}" });
     const submission = makeSubmission();
 
-    getMastodonPostTemplateById.mockResolvedValue(template);
+    getSocialMediaPostTemplateById.mockResolvedValue(template);
     listActiveMastodonAccounts.mockResolvedValue([account]);
 
     const longBody = "x".repeat(500);
@@ -358,7 +360,7 @@ describe("postToMastodon (via sendMastodonApprovalPost)", () => {
 
 describe("sendMastodonApprovalPost — guard rails", () => {
   beforeEach(() => {
-    getMastodonPostTemplateById.mockReset();
+    getSocialMediaPostTemplateById.mockReset();
     listActiveMastodonAccounts.mockReset();
     loggerMock.debug.mockReset();
     loggerMock.info.mockReset();
@@ -373,7 +375,7 @@ describe("sendMastodonApprovalPost — guard rails", () => {
   });
 
   it("no-template-found → logs warn, no fetch", async () => {
-    getMastodonPostTemplateById.mockResolvedValue(null);
+    getSocialMediaPostTemplateById.mockResolvedValue(null);
 
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -390,13 +392,36 @@ describe("sendMastodonApprovalPost — guard rails", () => {
 
     expect(loggerMock.warn).toHaveBeenCalledWith(
       expect.objectContaining({ templateId: 99 }),
-      "mastodon post template not found, skipping post",
+      "social-media post template not found, skipping post",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("template missing mastodon body → logs warn, no fetch", async () => {
+    getSocialMediaPostTemplateById.mockResolvedValue(makeTemplate({ bodyMastodon: null }));
+
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = await loadMastodonService();
+    service.sendMastodonApprovalPost(7, {
+      submission: makeSubmission(),
+      newShopId: 1,
+      adminNote: "",
+      categoryNames: [],
+    });
+
+    await flushPromises();
+
+    expect(loggerMock.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: 7 }),
+      "social-media post template missing mastodon body, skipping post",
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("no-active-accounts → logs warn, no fetch", async () => {
-    getMastodonPostTemplateById.mockResolvedValue(makeTemplate());
+    getSocialMediaPostTemplateById.mockResolvedValue(makeTemplate());
     listActiveMastodonAccounts.mockResolvedValue([]);
 
     const fetchMock = vi.fn();
@@ -420,7 +445,7 @@ describe("sendMastodonApprovalPost — guard rails", () => {
   });
 
   it("empty-rendered-status (all whitespace) → logs warn, no fetch", async () => {
-    getMastodonPostTemplateById.mockResolvedValue(makeTemplate({ bodyText: "   " }));
+    getSocialMediaPostTemplateById.mockResolvedValue(makeTemplate({ bodyMastodon: "   " }));
     listActiveMastodonAccounts.mockResolvedValue([makeAccount(1)]);
 
     const fetchMock = vi.fn();
@@ -438,17 +463,17 @@ describe("sendMastodonApprovalPost — guard rails", () => {
 
     expect(loggerMock.warn).toHaveBeenCalledWith(
       expect.objectContaining({ templateId: 7 }),
-      "mastodon post template rendered empty, skipping post",
+      "social-media post template rendered empty, skipping post",
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("happy path with 2 accounts → 2 fetches, no errors logged", async () => {
-    const template = makeTemplate({ bodyText: "Shop: {{shopName}}" });
+    const template = makeTemplate({ bodyMastodon: "Shop: {{shopName}}" });
     const account1 = makeAccount(1);
     const account2 = makeAccount(2);
 
-    getMastodonPostTemplateById.mockResolvedValue(template);
+    getSocialMediaPostTemplateById.mockResolvedValue(template);
     listActiveMastodonAccounts.mockResolvedValue([account1, account2]);
 
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
@@ -469,11 +494,11 @@ describe("sendMastodonApprovalPost — guard rails", () => {
   });
 
   it("partial failure (1 of 2 accounts rejected) → 2 fetches, error logged with accountId + templateId", async () => {
-    const template = makeTemplate({ bodyText: "Shop: {{shopName}}" });
+    const template = makeTemplate({ bodyMastodon: "Shop: {{shopName}}" });
     const account1 = makeAccount(10);
     const account2 = makeAccount(20);
 
-    getMastodonPostTemplateById.mockResolvedValue(template);
+    getSocialMediaPostTemplateById.mockResolvedValue(template);
     listActiveMastodonAccounts.mockResolvedValue([account1, account2]);
 
     const fetchMock = vi
@@ -536,8 +561,8 @@ describe("consumeRateLimit", () => {
       logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     }));
 
-    vi.doMock("../repositories/mastodon-post-templates.js", () => ({
-      getMastodonPostTemplateById: vi.fn(),
+    vi.doMock("../repositories/social-media-post-templates.js", () => ({
+      getSocialMediaPostTemplateById: vi.fn(),
     }));
 
     vi.doMock("../repositories/social-media-accounts.js", () => ({
