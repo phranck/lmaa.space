@@ -1,7 +1,7 @@
 import {
   CheckCircleIcon,
   DownloadIcon,
-  MastodonLogoIcon,
+  PaperPlaneTiltIcon,
   SealWarningIcon,
 } from "@phosphor-icons/react";
 import { Suspense, lazy, useMemo, useState } from "react";
@@ -208,7 +208,7 @@ export function MastodonPostTemplateEditPage() {
 
             <section className="mt-4 rounded-control border border-[var(--ds-border)] p-4">
               <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase text-[var(--ds-text-muted)]">
-                <MastodonLogoIcon weight="duotone" className="h-3.5 w-3.5" />
+                <PaperPlaneTiltIcon weight="duotone" className="h-3.5 w-3.5" />
                 {m.previewTitle}
               </h2>
               <pre className="whitespace-pre-wrap break-words rounded-control bg-[var(--ds-bg-elevated)] p-3 text-sm leading-relaxed text-[var(--ds-text)]">

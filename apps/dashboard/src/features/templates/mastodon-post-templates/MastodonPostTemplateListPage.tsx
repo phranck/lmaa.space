@@ -1,4 +1,4 @@
-import { FileTextIcon, MastodonLogoIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
+import { FileTextIcon, PaperPlaneTiltIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -113,7 +113,7 @@ export function MastodonPostTemplateListPage() {
           <ContentUnavailableView
             chromeless
             className="flex-1 min-h-0"
-            icon={<MastodonLogoIcon weight="duotone" aria-hidden />}
+            icon={<PaperPlaneTiltIcon weight="duotone" aria-hidden />}
             title={m.noTemplates}
             subtitle={m.noTemplatesHint}
           />
