@@ -6,9 +6,13 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 
-import type { SocialMediaPostTemplate } from "@lmaa/contracts";
+import {
+  BLUESKY_FIXED_MAX_POST_CHARACTERS,
+  MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+  type SocialMediaPostTemplate,
+} from "@lmaa/contracts";
 import type { Submission } from "@lmaa/shared";
 import { CharCounter, FormLabel, FormOptional, PLATFORM_MAP } from "@lmaa/ui";
 
@@ -19,11 +23,13 @@ import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { NotificationTemplateSelect, RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, type useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import type { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
 import type {
   useDeleteSubmission,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
+import { renderPostPreview } from "@/features/overview/post-preview.ts";
 import type {
   ReviewAction,
   ReviewState,
@@ -325,6 +331,9 @@ function ApproveSubmissionReviewCard({
   templateAssignments,
   onTemplateAssignmentsChange,
 }: ApproveSubmissionReviewCardProps) {
+  const { messages } = useI18n();
+  const a = messages.socialMedia.approve;
+  const [hasPostOverflow, setHasPostOverflow] = useState(false);
   return (
     <OverlayCard
       open={open}
@@ -391,6 +400,9 @@ function ApproveSubmissionReviewCard({
           assignments={templateAssignments}
           onChange={onTemplateAssignmentsChange}
           open={open}
+          submission={reviewing}
+          adminNote={adminNote}
+          onOverflowChange={setHasPostOverflow}
         />
 
         {(isError || formSaveErrorMessage) && (
@@ -400,7 +412,10 @@ function ApproveSubmissionReviewCard({
         )}
       </OverlayCard.Body>
 
-      <OverlayCard.Footer className="flex justify-end gap-3">
+      <OverlayCard.Footer className="flex items-center justify-end gap-3">
+        {hasPostOverflow && (
+          <span className="mr-auto text-xs text-red-500">{a.approveBlockedHint}</span>
+        )}
         <button
           type="button"
           onClick={onClose}
@@ -410,7 +425,7 @@ function ApproveSubmissionReviewCard({
         </button>
         <button
           type="button"
-          disabled={isPending}
+          disabled={isPending || hasPostOverflow}
           onClick={onSubmit}
           className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
@@ -435,6 +450,9 @@ interface TemplateAssignmentsSectionProps {
   assignments: TemplateAssignment[];
   onChange: (next: TemplateAssignment[]) => void;
   open: boolean;
+  submission: Submission;
+  adminNote: string;
+  onOverflowChange: (hasOverflow: boolean) => void;
 }
 
 function TemplateAssignmentsSection({
@@ -442,12 +460,17 @@ function TemplateAssignmentsSection({
   assignments,
   onChange,
   open,
+  submission,
+  adminNote,
+  onOverflowChange,
 }: TemplateAssignmentsSectionProps) {
   const { messages } = useI18n();
   const a = messages.socialMedia.approve;
   const masto = useMastodonAccount();
   const bsky = useBlueskyAccount();
   const choices = useTemplateChoices();
+  const categoriesQuery = useAdminCategories();
+  const categories = categoriesQuery.data ?? [];
 
   // Hydrate assignments once per dialog open from active accounts + sticky choices.
   useEffect(() => {
@@ -472,6 +495,38 @@ function TemplateAssignmentsSection({
     }
   }, [open, masto.data, bsky.data, choices.data, assignments.length, onChange]);
 
+  function previewFor(
+    platform: "mastodon" | "bluesky",
+    templateId: number | null,
+  ): { length: number; limit: number; overflow: boolean } | null {
+    if (templateId === null) return null;
+    const template = templates.find((t) => t.id === templateId);
+    if (!template) return null;
+    const body = platform === "mastodon" ? template.bodyMastodon : template.bodyBluesky;
+    if (!body) return null;
+    const text = renderPostPreview(body, { submission, adminNote, categories });
+    const limit =
+      platform === "bluesky"
+        ? BLUESKY_FIXED_MAX_POST_CHARACTERS
+        : (masto.data?.maxPostCharacters ?? MASTODON_DEFAULT_MAX_POST_CHARACTERS);
+    return { length: text.length, limit, overflow: text.length > limit };
+  }
+
+  const hasOverflow = assignments.some((row) => {
+    const platform =
+      row.accountId === masto.data?.id
+        ? "mastodon"
+        : row.accountId === bsky.data?.id
+          ? "bluesky"
+          : null;
+    if (!platform) return false;
+    return previewFor(platform, row.templateId)?.overflow ?? false;
+  });
+
+  useEffect(() => {
+    onOverflowChange(hasOverflow);
+  }, [hasOverflow, onOverflowChange]);
+
   if (assignments.length === 0) return null;
 
   return (
@@ -495,36 +550,53 @@ function TemplateAssignmentsSection({
             ? assignment.templateId
             : null;
         const stale = assignment.templateId !== null && selected === null;
+        const preview = previewFor(account.platform, selected);
 
         return (
-          <div key={assignment.accountId} className="flex items-center gap-3 text-sm">
-            <span className="flex w-32 shrink-0 items-center gap-1.5 text-[var(--ds-text)]">
-              {Icon && <Icon size={14} />}
-              <span>{account.label}</span>
-            </span>
-            <select
-              className="h-9 flex-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 text-sm text-[var(--ds-text)]"
-              value={selected ?? ""}
-              onChange={(event) => {
-                const value = event.target.value === "" ? null : Number(event.target.value);
-                onChange(
-                  assignments.map((row) =>
-                    row.accountId === assignment.accountId
-                      ? { ...row, templateId: value }
-                      : row,
-                  ),
-                );
-              }}
-            >
-              <option value="">{a.noPost}</option>
-              {pool.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
-            {stale && (
-              <span className="text-xs text-amber-500">{a.staleChoice}</span>
+          <div key={assignment.accountId} className="space-y-1">
+            <div className="flex items-center gap-3 text-sm">
+              <span className="flex w-32 shrink-0 items-center gap-1.5 text-[var(--ds-text)]">
+                {Icon && <Icon size={14} />}
+                <span>{account.label}</span>
+              </span>
+              <select
+                className="h-9 flex-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 text-sm text-[var(--ds-text)]"
+                value={selected ?? ""}
+                onChange={(event) => {
+                  const value = event.target.value === "" ? null : Number(event.target.value);
+                  onChange(
+                    assignments.map((row) =>
+                      row.accountId === assignment.accountId
+                        ? { ...row, templateId: value }
+                        : row,
+                    ),
+                  );
+                }}
+              >
+                <option value="">{a.noPost}</option>
+                {pool.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+              {preview && (
+                <span
+                  className={`shrink-0 text-xs tabular-nums ${
+                    preview.overflow ? "text-red-500" : "text-[var(--ds-text-muted)]"
+                  }`}
+                >
+                  {preview.length} / {preview.limit}
+                </span>
+              )}
+              {stale && (
+                <span className="text-xs text-amber-500">{a.staleChoice}</span>
+              )}
+            </div>
+            {preview?.overflow && (
+              <p className="ml-[8.5rem] text-xs text-red-500">
+                {a.postOverflowWarning}
+              </p>
             )}
           </div>
         );
