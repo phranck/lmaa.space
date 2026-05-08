@@ -15,16 +15,29 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DownloadIcon, ListIcon, PlusCircleIcon, XCircleIcon } from "@phosphor-icons/react";
-import { useEffect, useReducer } from "react";
+import {
+  BrowsersIcon,
+  DownloadIcon,
+  FileIcon,
+  ListIcon,
+  NotebookIcon,
+  PlusCircleIcon,
+  SquareHalfBottomIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
+import { forwardRef, useEffect, useImperativeHandle, useReducer, useRef, useState } from "react";
 
 import type { NavId } from "@lmaa/shared";
+import { DashboardSection } from "@lmaa/ui";
 
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 const NAV_TEXT = {
   de: {
@@ -167,7 +180,20 @@ function SortableNavItem({
   );
 }
 
-function NavColumn({ navId, label }: { navId: NavId; label: string }) {
+export interface NavColumnHandle {
+  save: () => Promise<boolean>;
+  hasDirty: () => boolean;
+}
+
+interface NavColumnProps {
+  navId: NavId;
+  onDirtyChange?: (dirty: boolean) => void;
+}
+
+const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn(
+  { navId, onDirtyChange },
+  ref,
+) {
   const { locale } = useI18n();
   const text = NAV_TEXT[locale];
   const staticRoutes = text.staticRoutes;
@@ -179,7 +205,6 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
   interface NavColumnState {
     items: NavItemState[];
     dirty: boolean;
-    saveError: string | null;
     addType: "page" | "url" | "form";
     addPageSlug: string;
     addUrl: string;
@@ -192,7 +217,6 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
     {
       items: [],
       dirty: false,
-      saveError: null,
       addType: "page",
       addPageSlug: "",
       addUrl: "",
@@ -200,7 +224,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
       addTarget: "_self",
     },
   );
-  const { items, dirty, saveError, addType, addPageSlug, addUrl, addLabel, addTarget } = state;
+  const { items, dirty, addType, addPageSlug, addUrl, addLabel, addTarget } = state;
 
   const setItems = (updater: NavItemState[] | ((prev: NavItemState[]) => NavItemState[])) => {
     dispatch({ items: typeof updater === "function" ? updater(items) : updater });
@@ -326,8 +350,8 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
     dispatch({ dirty: true });
   }
 
-  async function handleSave() {
-    dispatch({ saveError: null });
+  async function handleSave(): Promise<boolean> {
+    if (!dirty) return true;
     try {
       await saveNav.mutateAsync(
         items.map((i) => ({
@@ -338,10 +362,24 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
         })),
       );
       dispatch({ dirty: false });
-    } catch (err) {
-      dispatch({ saveError: err instanceof Error ? err.message : text.errorSaving });
+      return true;
+    } catch {
+      return false;
     }
   }
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      save: handleSave,
+      hasDirty: () => dirty,
+    }),
+    [dirty, items],
+  );
 
   const usedPageSlugs = new Set(items.filter((i) => i.pageSlug).map((i) => i.pageSlug));
   const usedUrls = new Set(items.filter((i) => i.url).map((i) => i.url));
@@ -351,21 +389,6 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[var(--ds-text)]">{label}</h3>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!dirty || saveNav.isPending}
-          className="flex items-center gap-1.5 h-7 px-3 text-xs border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
-        >
-          <DownloadIcon weight="duotone" className="w-3 h-3" />
-          {saveNav.isPending ? text.saving : text.save}
-        </button>
-      </div>
-
-      {saveError && <p className="text-xs text-red-500">{saveError}</p>}
-
       {isLoading ? (
         <div className="text-xs text-[var(--ds-text-muted)]">{text.load}</div>
       ) : (
@@ -410,7 +433,7 @@ function NavColumn({ navId, label }: { navId: NavId; label: string }) {
       />
     </div>
   );
-}
+});
 
 interface NavColumnAddSectionProps {
   addType: "page" | "url" | "form";
@@ -477,31 +500,31 @@ function NavColumnAddSection({
 
       {addType === "page" ? (
         <div className="flex items-center gap-2">
-          <select
-            value={addPageSlug}
-            onChange={(e) => onPageSlugChange(e.target.value)}
-            className="flex-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-          >
-            <option value="">{text.choosePageOrForm}</option>
-            {availablePages.length > 0 && (
-              <optgroup label={text.typePage}>
-                {availablePages.map((p) => (
-                  <option key={p.slug} value={p.slug}>
-                    {p.title} (/{p.slug})
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            {availableForms.length > 0 && (
-              <optgroup label={text.forms}>
-                {availableForms.map((f) => (
-                  <option key={f.name} value={`form:${f.slug}`}>
-                    {f.name} (/{f.slug})
-                  </option>
-                ))}
-              </optgroup>
-            )}
-          </select>
+          <div className="flex-1 min-w-0">
+            <Dropdown
+              value={addPageSlug}
+              onChange={onPageSlugChange}
+              searchable
+              searchPlaceholder={text.choosePageOrForm}
+              options={[
+                { value: "", label: text.choosePageOrForm },
+                ...availablePages.map(
+                  (p): DropdownOption => ({
+                    value: p.slug,
+                    label: `${p.title} (/${p.slug})`,
+                    icon: <FileIcon weight="duotone" className="w-3.5 h-3.5" />,
+                  }),
+                ),
+                ...availableForms.map(
+                  (f): DropdownOption => ({
+                    value: `form:${f.slug}`,
+                    label: `${f.name} (/${f.slug})`,
+                    icon: <NotebookIcon weight="duotone" className="w-3.5 h-3.5" />,
+                  }),
+                ),
+              ]}
+            />
+          </div>
           <button
             type="button"
             onClick={onAddPage}
@@ -566,19 +589,66 @@ function NavColumnAddSection({
  * @returns Nav manager route component.
  */
 export function NavManagerPage() {
-  const { locale } = useI18n();
+  const { locale, messages } = useI18n();
+  const common = messages.common;
   const text = NAV_TEXT[locale];
+
+  const headerRef = useRef<NavColumnHandle>(null);
+  const footerRef = useRef<NavColumnHandle>(null);
+  const [headerDirty, setHeaderDirty] = useState(false);
+  const [footerDirty, setFooterDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { phase: savedPhase, show: showSaved } = useSaveNotification();
+
+  const isDirty = headerDirty || footerDirty;
+
+  async function handleSave() {
+    if (!isDirty || isSaving) return;
+    setIsSaving(true);
+    const [headerOk, footerOk] = await Promise.all([
+      headerRef.current?.save() ?? Promise.resolve(true),
+      footerRef.current?.save() ?? Promise.resolve(true),
+    ]);
+    setIsSaving(false);
+    if (headerOk && footerOk) showSaved();
+  }
+
+  useKeyboardSave(handleSave, isDirty && !isSaving);
 
   return (
     <>
-      <PageHeader title={text.pageTitle} />
+      <PageHeader title={text.pageTitle}>
+        <SaveNotification phase={savedPhase} label={common.saved} />
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!isDirty || isSaving}
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
+        >
+          <DownloadIcon weight="duotone" className="w-4 h-4" />
+          {isSaving ? common.saving : common.save}
+        </button>
+      </PageHeader>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control p-5">
-          <NavColumn navId="header" label={text.headerNav} />
-        </div>
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control p-5">
-          <NavColumn navId="footer" label={text.footerNav} />
-        </div>
+        <DashboardSection>
+          <DashboardSection.Header
+            icon={<BrowsersIcon weight="duotone" className="w-4 h-4" />}
+            title={text.headerNav}
+          />
+          <DashboardSection.Body>
+            <NavColumn ref={headerRef} navId="header" onDirtyChange={setHeaderDirty} />
+          </DashboardSection.Body>
+        </DashboardSection>
+        <DashboardSection>
+          <DashboardSection.Header
+            icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
+            title={text.footerNav}
+          />
+          <DashboardSection.Body>
+            <NavColumn ref={footerRef} navId="footer" onDirtyChange={setFooterDirty} />
+          </DashboardSection.Body>
+        </DashboardSection>
       </div>
     </>
   );
