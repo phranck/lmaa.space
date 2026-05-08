@@ -17,12 +17,16 @@ interface BlueskyAccountFormProps {
     handle: string;
     appPassword: string;
     appPasswordKeepHint: string;
+    appPasswordRecommendation: string;
+    appPasswordSettingsLink: string;
   };
   /** When true the app-password field is required (create mode). */
   requirePassword: boolean;
   /** When true (edit mode with existing token) the keep-current hint is shown. */
   hasStoredPassword: boolean;
 }
+
+const BLUESKY_APP_PASSWORDS_URL = "https://bsky.app/settings/app-passwords";
 
 export function BlueskyAccountForm({
   form,
@@ -48,7 +52,7 @@ export function BlueskyAccountForm({
           value={form.handle}
           onChange={(event) => onChange({ ...form, handle: event.target.value })}
           className={`${formInputClass} font-mono`}
-          placeholder="lmaa.bsky.social"
+          placeholder="lmaa.bsky.social oder you@example.com"
           required={requirePassword}
         />
       </label>
@@ -70,6 +74,17 @@ export function BlueskyAccountForm({
           autoComplete="new-password"
           required={requirePassword}
         />
+        <span className="block text-xs text-[var(--ds-text-muted)]">
+          {labels.appPasswordRecommendation}{" "}
+          <a
+            href={BLUESKY_APP_PASSWORDS_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-[var(--ds-accent)] hover:underline"
+          >
+            {labels.appPasswordSettingsLink}
+          </a>
+        </span>
       </label>
     </div>
   );

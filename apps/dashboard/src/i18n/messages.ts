@@ -1029,6 +1029,7 @@ export interface DashboardMessages {
     changeService: string;
     addMastodonAccount: string;
     mastodonMaxPostCharactersLabel: string;
+    alreadyConfigured: string;
     fields: {
       label: string;
       instanceUrl: string;
@@ -1040,9 +1041,9 @@ export interface DashboardMessages {
     };
     visibility: Record<"public" | "unlisted" | "private" | "direct", string>;
     columns: {
+      platform: string;
       account: string;
-      instance: string;
-      visibility: string;
+      identifier: string;
       token: string;
       status: string;
     };
@@ -1054,6 +1055,8 @@ export interface DashboardMessages {
       handleLabel: string;
       appPasswordLabel: string;
       appPasswordKeepHint: string;
+      appPasswordRecommendation: string;
+      appPasswordSettingsLink: string;
       activeLabel: string;
       conflictError: string;
       invalidCredentialsError: string;
@@ -2168,6 +2171,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       changeService: "Anderen Dienst wählen",
       addMastodonAccount: "Mastodon Account hinzufügen",
       mastodonMaxPostCharactersLabel: "Max. Zeichen pro Post",
+      alreadyConfigured: "Bereits konfiguriert",
       fields: {
         label: "Label",
         instanceUrl: "Instanz-URL",
@@ -2184,9 +2188,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         direct: "Direct",
       },
       columns: {
+        platform: "Plattform",
         account: "Account",
-        instance: "Instanz",
-        visibility: "Sichtbarkeit",
+        identifier: "Kennung",
         token: "Token",
         status: "Status",
       },
@@ -2195,9 +2199,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         addAccount: "BlueSky Account hinzufügen",
         empty: "Noch kein BlueSky Account konfiguriert.",
         labelLabel: "Anzeigename",
-        handleLabel: "Handle",
-        appPasswordLabel: "App-Passwort",
+        handleLabel: "Handle oder Email",
+        appPasswordLabel: "Passwort",
         appPasswordKeepHint: "leer lassen, um das aktuelle Passwort zu behalten",
+        appPasswordRecommendation:
+          "App-Passwort empfohlen — sicherer und 2FA-kompatibel.",
+        appPasswordSettingsLink: "App-Passwort in BlueSky erstellen",
         activeLabel: "Aktiv",
         conflictError: "Ein BlueSky Account ist bereits konfiguriert.",
         invalidCredentialsError: "BlueSky hat die Zugangsdaten abgelehnt.",
@@ -3302,6 +3309,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       changeService: "Choose a different service",
       addMastodonAccount: "Add Mastodon account",
       mastodonMaxPostCharactersLabel: "Max. characters per post",
+      alreadyConfigured: "Already configured",
       fields: {
         label: "Label",
         instanceUrl: "Instance URL",
@@ -3318,9 +3326,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         direct: "Direct",
       },
       columns: {
+        platform: "Platform",
         account: "Account",
-        instance: "Instance",
-        visibility: "Visibility",
+        identifier: "Identifier",
         token: "Token",
         status: "Status",
       },
@@ -3329,9 +3337,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         addAccount: "Add BlueSky account",
         empty: "No BlueSky account configured yet.",
         labelLabel: "Display name",
-        handleLabel: "Handle",
-        appPasswordLabel: "App password",
+        handleLabel: "Handle or email",
+        appPasswordLabel: "Password",
         appPasswordKeepHint: "leave empty to keep the current password",
+        appPasswordRecommendation:
+          "App password recommended — safer and 2FA-compatible.",
+        appPasswordSettingsLink: "Create an app password on BlueSky",
         activeLabel: "Active",
         conflictError: "A BlueSky account is already configured.",
         invalidCredentialsError: "BlueSky rejected the credentials.",
