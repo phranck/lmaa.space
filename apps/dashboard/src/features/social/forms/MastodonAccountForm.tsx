@@ -1,9 +1,13 @@
 import type React from "react";
 
-import type { MastodonVisibility } from "@lmaa/contracts";
+import {
+  MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+  MASTODON_MAX_POST_CHARACTERS_LIMIT,
+  type MastodonVisibility,
+} from "@lmaa/contracts";
 import { formInputClass } from "@lmaa/ui";
 
-import type { MastodonAccountFormInput } from "@/features/social/hooks/useMastodonAccounts.ts";
+import type { MastodonAccountFormInput } from "@/features/social/hooks/useMastodonAccount.ts";
 
 const VISIBILITY_OPTIONS: MastodonVisibility[] = ["public", "unlisted", "private", "direct"];
 
@@ -18,6 +22,7 @@ interface MastodonAccountFormProps {
     accessToken: string;
     accessTokenOptional: string;
     visibility: string;
+    maxPostCharacters: string;
   };
   tokenPlaceholder: string;
   /** When true the access token field is required (create mode). */
@@ -91,6 +96,25 @@ export function MastodonAccountForm({
             </option>
           ))}
         </select>
+      </label>
+      <label className="space-y-1">
+        <span className="text-xs font-medium text-[var(--ds-text-muted)]">
+          {labels.maxPostCharacters}
+        </span>
+        <input
+          type="number"
+          min={1}
+          max={MASTODON_MAX_POST_CHARACTERS_LIMIT}
+          value={form.maxPostCharacters}
+          onChange={(event) =>
+            onChange({
+              ...form,
+              maxPostCharacters:
+                Number(event.target.value) || MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+            })
+          }
+          className={formInputClass}
+        />
       </label>
     </div>
   );

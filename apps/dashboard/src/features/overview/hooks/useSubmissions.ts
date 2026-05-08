@@ -48,7 +48,7 @@ export function useReviewSubmission() {
       rejectionLongText,
       rejectionToken,
       notificationTemplateId,
-      templateId,
+      templateAssignments,
     }: {
       id: number;
       status: "approved" | "rejected" | "onhold" | "pending";
@@ -56,7 +56,7 @@ export function useReviewSubmission() {
       rejectionLongText?: string;
       rejectionToken?: string;
       notificationTemplateId?: number;
-      templateId?: number;
+      templateAssignments?: Array<{ accountId: number; templateId: number | null }>;
     }) =>
       api.patch<Submission>(`/admin/submissions/${id}`, {
         status,
@@ -64,11 +64,12 @@ export function useReviewSubmission() {
         rejectionLongText: rejectionLongText || undefined,
         rejectionToken: rejectionToken || undefined,
         notificationTemplateId: notificationTemplateId || undefined,
-        templateId: templateId || undefined,
+        templateAssignments: templateAssignments?.length ? templateAssignments : undefined,
       }),
     onSuccess: (_submission, variables) => {
       qc.invalidateQueries({ queryKey: ["submissions"] });
       qc.invalidateQueries({ queryKey: ["submission", variables.id] });
+      qc.invalidateQueries({ queryKey: ["me-template-choices"] });
     },
   });
 }
