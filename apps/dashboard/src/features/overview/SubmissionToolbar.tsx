@@ -50,14 +50,6 @@ export function SubmissionToolbar({
       {isPending && (
         <>
           <EditorToolbarButton
-            onClick={onApprove}
-            disabled={isActionPending}
-            variant="success"
-            icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
-          >
-            {submissionsMessages.suggestions.approve}
-          </EditorToolbarButton>
-          <EditorToolbarButton
             onClick={() => onSetStatus("onhold")}
             disabled={isActionPending}
             variant="warning"
@@ -72,6 +64,23 @@ export function SubmissionToolbar({
             icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
           >
             {submissionsMessages.suggestions.reject}
+          </EditorToolbarButton>
+          <EditorToolbarButton
+            onClick={onDelete}
+            disabled={isActionPending}
+            variant="danger"
+            icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.delete}
+          </EditorToolbarButton>
+          <div className="w-4" aria-hidden />
+          <EditorToolbarButton
+            onClick={onApprove}
+            disabled={isActionPending}
+            variant="success"
+            icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+          >
+            {submissionsMessages.suggestions.approve}
           </EditorToolbarButton>
         </>
       )}

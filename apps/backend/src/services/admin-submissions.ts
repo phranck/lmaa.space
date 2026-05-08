@@ -100,20 +100,16 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
 }
 
 /**
- * Deletes a submission only when status is `rejected` or `onhold`.
+ * Permanently deletes a submission, regardless of its current status.
  *
  * @param id - Submission id.
- * @returns Result object describing not-found/invalid-status/success.
+ * @returns Result object describing not-found/success.
  */
-export async function deleteModeratedAdminSubmission(id: number) {
+export async function deleteAdminSubmission(id: number) {
   const status = await getSubmissionStatus(id);
 
   if (!status) {
     return failure("not_found");
-  }
-
-  if (status !== "rejected" && status !== "onhold") {
-    return failure("invalid_status");
   }
 
   await deleteSubmission(id);
