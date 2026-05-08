@@ -125,7 +125,7 @@ describe("submissionsRoutes", () => {
         body: JSON.stringify({
           status: "approved",
           notificationTemplateId: 7,
-          mastodonTemplateId: 9,
+          templateId: 9,
         }),
       });
 
@@ -133,7 +133,7 @@ describe("submissionsRoutes", () => {
       expect(serviceMocks.reviewAdminSubmission).toHaveBeenCalledWith(
         expect.objectContaining({
           notificationTemplateId: 7,
-          mastodonTemplateId: 9,
+          templateId: 9,
         }),
       );
     });

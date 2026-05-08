@@ -31,7 +31,7 @@ export const reviewSchema = z.object({
     .regex(/^[0-9a-f]{32}$/)
     .optional(),
   notificationTemplateId: z.number().int().positive().optional(),
-  mastodonTemplateId: z.number().int().positive().optional(),
+  templateId: z.number().int().positive().optional(),
 });
 
 /**

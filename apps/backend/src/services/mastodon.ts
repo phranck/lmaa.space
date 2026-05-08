@@ -4,10 +4,10 @@ import { encodeShopToken } from "@lmaa/shared";
 
 import { recordBackgroundError } from "./background-errors.js";
 import { env } from "../config/env.js";
-import type { MastodonPostTemplate, SocialMediaAccount, Submission } from "../db/schema.js";
+import type { SocialMediaAccount, SocialMediaPostTemplate, Submission } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
-import { getMastodonPostTemplateById } from "../repositories/mastodon-post-templates.js";
 import { listActiveMastodonAccounts } from "../repositories/social-media-accounts.js";
+import { getSocialMediaPostTemplateById } from "../repositories/social-media-post-templates.js";
 
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
 
@@ -70,7 +70,7 @@ function buildApprovalPostVariables(context: ApprovalPostContext): Record<string
 
 function idempotencyKey(
   account: SocialMediaAccount,
-  template: MastodonPostTemplate,
+  template: SocialMediaPostTemplate,
   submission: Submission,
 ): string {
   return createHash("sha256")
@@ -80,7 +80,7 @@ function idempotencyKey(
 
 async function postToMastodon(
   account: SocialMediaAccount,
-  template: MastodonPostTemplate,
+  template: SocialMediaPostTemplate,
   submission: Submission,
   status: string,
 ): Promise<void> {
@@ -121,9 +121,14 @@ export const __test__ = { renderPlainTemplate, idempotencyKey, consumeRateLimit,
 export function sendMastodonApprovalPost(templateId: number, context: ApprovalPostContext): void {
   void (async () => {
     try {
-      const template = await getMastodonPostTemplateById(templateId);
+      const template = await getSocialMediaPostTemplateById(templateId);
       if (!template) {
-        logger.warn({ templateId }, "mastodon post template not found, skipping post");
+        logger.warn({ templateId }, "social-media post template not found, skipping post");
+        return;
+      }
+
+      if (!template.bodyMastodon) {
+        logger.warn({ templateId }, "social-media post template missing mastodon body, skipping post");
         return;
       }
 
@@ -134,11 +139,11 @@ export function sendMastodonApprovalPost(templateId: number, context: ApprovalPo
       }
 
       const status = renderPlainTemplate(
-        template.bodyText,
+        template.bodyMastodon,
         buildApprovalPostVariables(context),
       ).trim();
       if (!status) {
-        logger.warn({ templateId }, "mastodon post template rendered empty, skipping post");
+        logger.warn({ templateId }, "social-media post template rendered empty, skipping post");
         return;
       }
 

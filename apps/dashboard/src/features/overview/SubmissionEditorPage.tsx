@@ -21,7 +21,7 @@ import {
   useSaveMastodonApprovalTemplateSetting,
 } from "@/features/social/hooks/useMastodonApprovalTemplateSetting.ts";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
-import { useMastodonPostTemplates } from "@/features/templates/hooks/useMastodonPostTemplates.ts";
+import { useSocialMediaPostTemplates } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
@@ -134,11 +134,11 @@ function LoadedSubmissionEditorPage({
   const deleteMutation = useDeleteSubmission();
   const emailTemplatesQuery = useEmailTemplates();
   const emailTemplates = emailTemplatesQuery.data ?? [];
-  const mastodonTemplatesQuery = useMastodonPostTemplates();
-  const mastodonTemplates = mastodonTemplatesQuery.data ?? [];
+  const templatesQuery = useSocialMediaPostTemplates();
+  const templates = templatesQuery.data ?? [];
   const mastodonApprovalSettingQuery = useMastodonApprovalTemplateSetting();
   const saveMastodonApprovalSetting = useSaveMastodonApprovalTemplateSetting();
-  const persistedMastodonTemplateId = (() => {
+  const persistedTemplateId = (() => {
     const raw = mastodonApprovalSettingQuery.data?.[SETTINGS_KEYS.MASTODON_APPROVAL_TEMPLATE_ID];
     if (!raw) return undefined;
     const parsed = Number(raw);
@@ -190,7 +190,7 @@ function LoadedSubmissionEditorPage({
     dispatchReview({
       type: "openApprove",
       adminNote: submission.adminNote ?? "",
-      mastodonTemplateId: persistedMastodonTemplateId,
+      templateId: persistedTemplateId,
     });
   }
 
@@ -217,7 +217,7 @@ function LoadedSubmissionEditorPage({
         status: "approved",
         adminNote: reviewState.adminNote,
         notificationTemplateId: reviewState.notificationTemplateId,
-        mastodonTemplateId: reviewState.mastodonTemplateId,
+        templateId: reviewState.templateId,
       });
 
       if (close) {
@@ -328,15 +328,15 @@ function LoadedSubmissionEditorPage({
         reviewMutation={reviewMutation}
         deleteMutation={deleteMutation}
         emailTemplates={emailTemplates}
-        mastodonTemplates={mastodonTemplates}
+        templates={templates}
         controller={controller}
         combinedSavedPhase={combinedSavedPhase}
         showDeleteDialog={showDeleteDialog}
         setShowDeleteDialog={setShowDeleteDialog}
         handleApprove={handleApprove}
         handleReject={handleReject}
-        handleMastodonTemplateChange={(value) => {
-          dispatchReview({ type: "setMastodonTemplateId", value });
+        handleTemplateChange={(value) => {
+          dispatchReview({ type: "setTemplateId", value });
           saveMastodonApprovalSetting.mutate(value);
         }}
         navigateBack={navigateBack}

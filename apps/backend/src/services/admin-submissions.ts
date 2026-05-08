@@ -27,7 +27,7 @@ interface ReviewAdminSubmissionInput {
   rejectionToken?: string;
   adminId: number;
   notificationTemplateId?: number;
-  mastodonTemplateId?: number;
+  templateId?: number;
 }
 
 /**
@@ -86,9 +86,9 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     });
   }
 
-  if (input.status === "approved" && input.mastodonTemplateId && newShop) {
+  if (input.status === "approved" && input.templateId && newShop) {
     const categoryNames = await getSubmissionCategoryNames(input.id);
-    sendMastodonApprovalPost(input.mastodonTemplateId, {
+    sendMastodonApprovalPost(input.templateId, {
       submission,
       newShopId: newShop.id,
       adminNote: input.adminNote ?? "",

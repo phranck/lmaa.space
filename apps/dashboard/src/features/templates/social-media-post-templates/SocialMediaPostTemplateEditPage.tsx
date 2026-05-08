@@ -7,7 +7,10 @@ import {
 import { Suspense, lazy, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
-import { MASTODON_POST_TEMPLATE_VARIABLES, type MastodonPostTemplateInput } from "@lmaa/contracts";
+import {
+  SOCIAL_MEDIA_POST_TEMPLATE_VARIABLES,
+  type SocialMediaPostTemplateInput,
+} from "@lmaa/contracts";
 
 const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
 
@@ -21,10 +24,10 @@ import {
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import {
-  useCreateMastodonPostTemplate,
-  useMastodonPostTemplate,
-  useUpdateMastodonPostTemplate,
-} from "@/features/templates/hooks/useMastodonPostTemplates.ts";
+  useCreateSocialMediaPostTemplate,
+  useSocialMediaPostTemplate,
+  useUpdateSocialMediaPostTemplate,
+} from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 function renderPreview(template: string) {
@@ -47,21 +50,23 @@ function renderPreview(template: string) {
   });
 }
 
-export function MastodonPostTemplateEditPage() {
+export function SocialMediaPostTemplateEditPage() {
   const { messages } = useI18n();
-  const m = messages.mastodonTemplates;
+  const m = messages.socialMediaTemplates;
   const navigate = useNavigate();
   const { user } = useAuth();
   const isOwner = Boolean(user?.isOwner);
   const { id: idParam } = useParams<{ id?: string }>();
   const isNew = !idParam || idParam === "new";
   const numId = isNew ? 0 : Number(idParam);
-  const { data: existing, isLoading } = useMastodonPostTemplate(numId);
-  const createMutation = useCreateMastodonPostTemplate();
-  const updateMutation = useUpdateMastodonPostTemplate(numId);
-  const [form, setForm] = useState<MastodonPostTemplateInput>({
+  const { data: existing, isLoading } = useSocialMediaPostTemplate(numId);
+  const createMutation = useCreateSocialMediaPostTemplate();
+  const updateMutation = useUpdateSocialMediaPostTemplate(numId);
+  const [form, setForm] = useState<SocialMediaPostTemplateInput>({
     name: "",
-    bodyText: "",
+    platforms: ["mastodon"],
+    bodyMastodon: "",
+    bodyBluesky: null,
     isSystemTemplate: false,
   });
   const [syncedExistingId, setSyncedExistingId] = useState<number | undefined>();
@@ -72,25 +77,29 @@ export function MastodonPostTemplateEditPage() {
     setSyncedExistingId(existing.id);
     setForm({
       name: existing.name,
-      bodyText: existing.bodyText,
+      platforms: existing.platforms,
+      bodyMastodon: existing.bodyMastodon,
+      bodyBluesky: existing.bodyBluesky,
       isSystemTemplate: existing.isSystemTemplate,
     });
   }
 
-  const preview = useMemo(() => renderPreview(form.bodyText), [form.bodyText]);
+  const preview = useMemo(() => renderPreview(form.bodyMastodon ?? ""), [form.bodyMastodon]);
 
   function handleSave() {
     setError(null);
-    const payload: MastodonPostTemplateInput = {
+    const payload: SocialMediaPostTemplateInput = {
       name: form.name.trim(),
-      bodyText: form.bodyText,
+      platforms: form.platforms,
+      bodyMastodon: form.bodyMastodon,
+      bodyBluesky: form.bodyBluesky,
       isSystemTemplate: isOwner ? form.isSystemTemplate : undefined,
     };
 
     if (isNew) {
       createMutation.mutate(payload, {
         onSuccess: (created) => {
-          void navigate(`/mastodon-post-templates/${created.id}`, { replace: true });
+          void navigate(`/social-media-post-templates/${created.id}`, { replace: true });
         },
         onError: (err: unknown) => {
           const status =
@@ -129,7 +138,7 @@ export function MastodonPostTemplateEditPage() {
         leading={
           <HeaderBackButton
             label={m.listTitle}
-            onClick={() => navigate("/mastodon-post-templates")}
+            onClick={() => navigate("/social-media-post-templates")}
           />
         }
       >
@@ -156,7 +165,7 @@ export function MastodonPostTemplateEditPage() {
       <div className="flex shrink-0 items-center gap-3 px-3 py-1.5">
         <button
           type="button"
-          onClick={() => navigate("/mastodon-post-templates")}
+          onClick={() => navigate("/social-media-post-templates")}
           className="shrink-0 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
         >
           {m.backToList}
@@ -183,9 +192,16 @@ export function MastodonPostTemplateEditPage() {
       <div className="flex-1 overflow-hidden">
         <Card className="grid h-full grid-cols-1 overflow-hidden xl:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="min-w-0 overflow-y-auto border-r border-[var(--ds-border)] p-3">
+            <div className="mb-4 flex items-center gap-3 rounded-control border border-[var(--ds-border)] p-3 text-sm">
+              <span className="text-[var(--ds-text-muted)]">{m.platformsLabel}</span>
+              <label className="flex items-center gap-1.5 opacity-60">
+                <input type="checkbox" checked disabled aria-label={m.platformMastodon} />
+                <span>{m.platformMastodon}</span>
+              </label>
+            </div>
             <label className="space-y-1">
               <span className="block text-xs font-medium text-[var(--ds-text-muted)]">
-                {m.bodyText}
+                {m.bodyMastodonLabel}
                 <SealWarningIcon
                   weight="duotone"
                   className="ml-1 inline-block h-3 w-3 align-middle text-red-500"
@@ -198,8 +214,10 @@ export function MastodonPostTemplateEditPage() {
               >
                 <MarkdownEditor
                   id="mastodon-post-body"
-                  value={form.bodyText}
-                  onChange={(bodyText) => setForm((current) => ({ ...current, bodyText }))}
+                  value={form.bodyMastodon ?? ""}
+                  onChange={(bodyMastodon) =>
+                    setForm((current) => ({ ...current, bodyMastodon }))
+                  }
                   rows={18}
                   resizable
                 />
@@ -223,7 +241,7 @@ export function MastodonPostTemplateEditPage() {
               {m.variablesHint}
             </p>
             <dl className="mt-4 space-y-3">
-              {MASTODON_POST_TEMPLATE_VARIABLES.map((variable) => (
+              {SOCIAL_MEDIA_POST_TEMPLATE_VARIABLES.map((variable) => (
                 <div
                   key={variable}
                   className="rounded-control border border-[var(--ds-border)] p-3"

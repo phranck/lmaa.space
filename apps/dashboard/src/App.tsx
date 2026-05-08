@@ -145,20 +145,20 @@ const EmailTemplateEditPage = lazy(() =>
   })),
 );
 
-const MastodonPostTemplateListPage = lazy(() =>
-  import("@/features/templates/mastodon-post-templates/MastodonPostTemplateListPage.tsx").then(
-    (m) => ({
-      default: m.MastodonPostTemplateListPage,
-    }),
-  ),
+const SocialMediaPostTemplateListPage = lazy(() =>
+  import(
+    "@/features/templates/social-media-post-templates/SocialMediaPostTemplateListPage.tsx"
+  ).then((m) => ({
+    default: m.SocialMediaPostTemplateListPage,
+  })),
 );
 
-const MastodonPostTemplateEditPage = lazy(() =>
-  import("@/features/templates/mastodon-post-templates/MastodonPostTemplateEditPage.tsx").then(
-    (m) => ({
-      default: m.MastodonPostTemplateEditPage,
-    }),
-  ),
+const SocialMediaPostTemplateEditPage = lazy(() =>
+  import(
+    "@/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx"
+  ).then((m) => ({
+    default: m.SocialMediaPostTemplateEditPage,
+  })),
 );
 
 const FooterBuilderPage = lazy(() =>
@@ -376,26 +376,26 @@ function AppRoutes() {
                 }
               />
               <Route
-                path="mastodon-post-templates"
+                path="social-media-post-templates"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <MastodonPostTemplateListPage />
+                    <SocialMediaPostTemplateListPage />
                   </Suspense>
                 }
               />
               <Route
-                path="mastodon-post-templates/new"
+                path="social-media-post-templates/new"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <MastodonPostTemplateEditPage />
+                    <SocialMediaPostTemplateEditPage />
                   </Suspense>
                 }
               />
               <Route
-                path="mastodon-post-templates/:id"
+                path="social-media-post-templates/:id"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <MastodonPostTemplateEditPage />
+                    <SocialMediaPostTemplateEditPage />
                   </Suspense>
                 }
               />

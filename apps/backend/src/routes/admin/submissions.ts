@@ -70,7 +70,7 @@ submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), as
     rejectionLongText,
     rejectionToken,
     notificationTemplateId,
-    mastodonTemplateId,
+    templateId,
   } = c.req.valid("json");
   const adminId = c.get("adminId");
 
@@ -82,7 +82,7 @@ submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), as
     rejectionToken,
     adminId,
     notificationTemplateId,
-    mastodonTemplateId,
+    templateId,
   });
 
   if (!result.ok) {
