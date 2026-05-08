@@ -49,8 +49,8 @@ export interface DashboardMessages {
       formsOverview: string;
       emailTemplates: string;
       emailTemplatesOverview: string;
-      mastodonPostTemplates: string;
-      mastodonPostTemplatesOverview: string;
+      socialMediaPostTemplates: string;
+      socialMediaPostTemplatesOverview: string;
       footerBuilder: string;
       markdownWidgets: string;
       billing: string;
@@ -980,7 +980,7 @@ export interface DashboardMessages {
     importSkip: string;
     importNewNameLabel: string;
   };
-  mastodonTemplates: {
+  socialMediaTemplates: {
     listTitle: string;
     newTemplate: string;
     templateName: string;
@@ -1003,6 +1003,11 @@ export interface DashboardMessages {
     systemBadge: string;
     systemHint: string;
     systemCheckbox: string;
+    platformsLabel: string;
+    platformMastodon: string;
+    platformBluesky: string;
+    bodyMastodonLabel: string;
+    bodyBlueskyLabel: string;
   };
   socialMedia: {
     title: string;
@@ -1023,6 +1028,7 @@ export interface DashboardMessages {
     pickService: string;
     changeService: string;
     addMastodonAccount: string;
+    mastodonMaxPostCharactersLabel: string;
     fields: {
       label: string;
       instanceUrl: string;
@@ -1039,6 +1045,24 @@ export interface DashboardMessages {
       visibility: string;
       token: string;
       status: string;
+    };
+    bluesky: {
+      sectionTitle: string;
+      addAccount: string;
+      empty: string;
+      labelLabel: string;
+      handleLabel: string;
+      appPasswordLabel: string;
+      appPasswordKeepHint: string;
+      activeLabel: string;
+      conflictError: string;
+      invalidCredentialsError: string;
+      serviceUnreachableError: string;
+    };
+    approve: {
+      postTo: string;
+      noPost: string;
+      staleChoice: string;
     };
   };
   system: {
@@ -1130,8 +1154,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Übersicht",
         emailTemplates: "E-Mail-Templates",
         emailTemplatesOverview: "Übersicht",
-        mastodonPostTemplates: "Social Media Templates",
-        mastodonPostTemplatesOverview: "Übersicht",
+        socialMediaPostTemplates: "Social Media Templates",
+        socialMediaPostTemplatesOverview: "Übersicht",
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Kosten",
@@ -2082,7 +2106,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Überspringen",
       importNewNameLabel: "Neuer Name",
     },
-    mastodonTemplates: {
+    socialMediaTemplates: {
       listTitle: "Social Media Templates",
       newTemplate: "Neues Template",
       templateName: "Name",
@@ -2118,6 +2142,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       systemBadge: "System",
       systemHint: "System-Templates können nicht gelöscht werden.",
       systemCheckbox: "System-Template",
+      platformsLabel: "Verfügbar auf:",
+      platformMastodon: "Mastodon",
+      platformBluesky: "Bluesky",
+      bodyMastodonLabel: "Mastodon-Beitrag",
+      bodyBlueskyLabel: "Bluesky-Beitrag",
     },
     socialMedia: {
       title: "Social Media Accounts",
@@ -2138,6 +2167,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       pickService: "Wähle einen Dienst",
       changeService: "Anderen Dienst wählen",
       addMastodonAccount: "Mastodon Account hinzufügen",
+      mastodonMaxPostCharactersLabel: "Max. Zeichen pro Post",
       fields: {
         label: "Label",
         instanceUrl: "Instanz-URL",
@@ -2159,6 +2189,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         visibility: "Sichtbarkeit",
         token: "Token",
         status: "Status",
+      },
+      bluesky: {
+        sectionTitle: "BlueSky Account",
+        addAccount: "BlueSky Account hinzufügen",
+        empty: "Noch kein BlueSky Account konfiguriert.",
+        labelLabel: "Anzeigename",
+        handleLabel: "Handle",
+        appPasswordLabel: "App-Passwort",
+        appPasswordKeepHint: "leer lassen, um das aktuelle Passwort zu behalten",
+        activeLabel: "Aktiv",
+        conflictError: "Ein BlueSky Account ist bereits konfiguriert.",
+        invalidCredentialsError: "BlueSky hat die Zugangsdaten abgelehnt.",
+        serviceUnreachableError: "BlueSky ist nicht erreichbar.",
+      },
+      approve: {
+        postTo: "Posten an",
+        noPost: "Kein Post",
+        staleChoice: "Vorauswahl gehört zu einem nicht mehr verfügbaren Template",
       },
     },
     system: {
@@ -2246,8 +2294,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         formsOverview: "Overview",
         emailTemplates: "Email Templates",
         emailTemplatesOverview: "Overview",
-        mastodonPostTemplates: "Social Media Templates",
-        mastodonPostTemplatesOverview: "Overview",
+        socialMediaPostTemplates: "Social Media Templates",
+        socialMediaPostTemplatesOverview: "Overview",
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
         billing: "Billing",
@@ -3192,7 +3240,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       importSkip: "Skip",
       importNewNameLabel: "New name",
     },
-    mastodonTemplates: {
+    socialMediaTemplates: {
       listTitle: "Social Media Templates",
       newTemplate: "New Template",
       templateName: "Name",
@@ -3228,6 +3276,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       systemBadge: "System",
       systemHint: "System templates cannot be deleted.",
       systemCheckbox: "System template",
+      platformsLabel: "Available on:",
+      platformMastodon: "Mastodon",
+      platformBluesky: "Bluesky",
+      bodyMastodonLabel: "Mastodon body",
+      bodyBlueskyLabel: "Bluesky body",
     },
     socialMedia: {
       title: "Social Media Accounts",
@@ -3248,6 +3301,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       pickService: "Choose a service",
       changeService: "Choose a different service",
       addMastodonAccount: "Add Mastodon account",
+      mastodonMaxPostCharactersLabel: "Max. characters per post",
       fields: {
         label: "Label",
         instanceUrl: "Instance URL",
@@ -3269,6 +3323,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         visibility: "Visibility",
         token: "Token",
         status: "Status",
+      },
+      bluesky: {
+        sectionTitle: "BlueSky account",
+        addAccount: "Add BlueSky account",
+        empty: "No BlueSky account configured yet.",
+        labelLabel: "Display name",
+        handleLabel: "Handle",
+        appPasswordLabel: "App password",
+        appPasswordKeepHint: "leave empty to keep the current password",
+        activeLabel: "Active",
+        conflictError: "A BlueSky account is already configured.",
+        invalidCredentialsError: "BlueSky rejected the credentials.",
+        serviceUnreachableError: "BlueSky is unreachable.",
+      },
+      approve: {
+        postTo: "Post to",
+        noPost: "No post",
+        staleChoice: "Saved choice points to a template that no longer exists",
       },
     },
     system: {

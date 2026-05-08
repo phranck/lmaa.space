@@ -6,7 +6,12 @@ const reviewSubmission = vi.fn();
 const getSubmissionCategoryNames = vi.fn();
 const hydrateShopOgImageInBackground = vi.fn();
 const setAdminShopOgImage = vi.fn();
-const sendMastodonApprovalPost = vi.fn();
+const postToMastodonAccount = vi.fn();
+const postToBlueskyAccount = vi.fn();
+const upsertChoice = vi.fn();
+const getAccountById = vi.fn();
+const getSocialMediaPostTemplateById = vi.fn();
+const recordBackgroundError = vi.fn();
 
 async function loadServiceModule() {
   vi.resetModules();
@@ -40,10 +45,35 @@ async function loadServiceModule() {
   }));
 
   vi.doMock("../services/mastodon.js", () => ({
-    sendMastodonApprovalPost,
+    postToMastodonAccount,
+    buildApprovalPostVariables: vi.fn(),
+  }));
+
+  vi.doMock("../services/bluesky.js", () => ({
+    postToBlueskyAccount,
+  }));
+
+  vi.doMock("../repositories/admin-user-account-template-choice.js", () => ({
+    upsertChoice,
+  }));
+
+  vi.doMock("../repositories/social-media-accounts.js", () => ({
+    getAccountById,
+  }));
+
+  vi.doMock("../repositories/social-media-post-templates.js", () => ({
+    getSocialMediaPostTemplateById,
+  }));
+
+  vi.doMock("../services/background-errors.js", () => ({
+    recordBackgroundError,
   }));
 
   return import("../services/admin-submissions.js");
+}
+
+async function flushPromises(): Promise<void> {
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
 describe("admin-submissions service", () => {
@@ -54,7 +84,14 @@ describe("admin-submissions service", () => {
     getSubmissionCategoryNames.mockReset();
     hydrateShopOgImageInBackground.mockReset();
     setAdminShopOgImage.mockReset();
-    sendMastodonApprovalPost.mockReset();
+    postToMastodonAccount.mockReset();
+    postToBlueskyAccount.mockReset();
+    upsertChoice.mockReset();
+    upsertChoice.mockResolvedValue(undefined);
+    getAccountById.mockReset();
+    getSocialMediaPostTemplateById.mockReset();
+    recordBackgroundError.mockReset();
+    recordBackgroundError.mockResolvedValue(undefined);
   });
 
   it("allows deleting onhold submissions", async () => {
@@ -154,22 +191,46 @@ describe("admin-submissions service", () => {
     expect(setAdminShopOgImage).not.toHaveBeenCalled();
   });
 
-  it("sends a Mastodon approval post when a template is selected", async () => {
+  it("dispatches templateAssignments to the matching active account", async () => {
     const submission = {
       id: 5,
       shopName: "Good Karma",
       shopUrl: "https://goodkarma.example",
       ogImage: "https://cdn.example.com/preview.png",
     };
+    const mastodonAccount = {
+      id: 50,
+      platform: "mastodon",
+      isActive: true,
+      maxPostCharacters: 500,
+      handle: null,
+      visibility: "public",
+      instanceUrl: "https://example.social",
+      accessToken: "tok",
+      label: "primary",
+      username: "u",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const template = {
+      id: 12,
+      name: "approval",
+      platforms: ["mastodon"],
+      bodyMastodon: "{{shopName}}",
+      bodyBluesky: null,
+      isSystemTemplate: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     reviewSubmission.mockResolvedValue({
       submission,
-      newShop: {
-        id: 17,
-        url: "https://goodkarma.example",
-      },
+      newShop: { id: 17, url: "https://goodkarma.example" },
       conflict: null,
     });
     getSubmissionCategoryNames.mockResolvedValue(["Coffee", "Food"]);
+    getAccountById.mockResolvedValue(mastodonAccount);
+    getSocialMediaPostTemplateById.mockResolvedValue(template);
+    postToMastodonAccount.mockResolvedValue(undefined);
     const service = await loadServiceModule();
 
     await expect(
@@ -178,19 +239,106 @@ describe("admin-submissions service", () => {
         status: "approved",
         adminId: 1,
         adminNote: "Looks good",
-        mastodonTemplateId: 12,
+        templateAssignments: [{ accountId: 50, templateId: 12 }],
       }),
-    ).resolves.toEqual({
-      ok: true,
-      submission,
-    });
+    ).resolves.toEqual({ ok: true, submission });
+
+    await flushPromises();
 
     expect(getSubmissionCategoryNames).toHaveBeenCalledWith(5);
-    expect(sendMastodonApprovalPost).toHaveBeenCalledWith(12, {
+    expect(upsertChoice).toHaveBeenCalledWith(1, 50, 12);
+    expect(postToMastodonAccount).toHaveBeenCalledTimes(1);
+    expect(postToBlueskyAccount).not.toHaveBeenCalled();
+  });
+
+  it("templateAssignments with templateId=null upserts the choice but skips posting", async () => {
+    const submission = {
+      id: 6,
+      shopName: "Other",
+      shopUrl: "https://other.example",
+      ogImage: "https://cdn.example.com/preview.png",
+    };
+    reviewSubmission.mockResolvedValue({
       submission,
-      newShopId: 17,
-      adminNote: "Looks good",
-      categoryNames: ["Coffee", "Food"],
+      newShop: { id: 18, url: "https://other.example" },
+      conflict: null,
     });
+    getSubmissionCategoryNames.mockResolvedValue([]);
+    const service = await loadServiceModule();
+
+    await expect(
+      service.reviewAdminSubmission({
+        id: 6,
+        status: "approved",
+        adminId: 2,
+        templateAssignments: [{ accountId: 60, templateId: null }],
+      }),
+    ).resolves.toEqual({ ok: true, submission });
+
+    await flushPromises();
+
+    expect(upsertChoice).toHaveBeenCalledWith(2, 60, null);
+    expect(getAccountById).not.toHaveBeenCalled();
+    expect(postToMastodonAccount).not.toHaveBeenCalled();
+    expect(postToBlueskyAccount).not.toHaveBeenCalled();
+  });
+
+  it("logs background error when template does not cover account platform", async () => {
+    const submission = {
+      id: 7,
+      shopName: "X",
+      shopUrl: "https://x.example",
+      ogImage: "https://cdn.example.com/preview.png",
+    };
+    const blueskyAccount = {
+      id: 70,
+      platform: "bluesky",
+      isActive: true,
+      maxPostCharacters: 300,
+      handle: "x.bsky.social",
+      visibility: null,
+      instanceUrl: "",
+      accessToken: "abcd-efgh-ijkl-mnop",
+      label: "bsky",
+      username: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const mastodonOnly = {
+      id: 13,
+      name: "mast-only",
+      platforms: ["mastodon"],
+      bodyMastodon: "x",
+      bodyBluesky: null,
+      isSystemTemplate: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    reviewSubmission.mockResolvedValue({
+      submission,
+      newShop: { id: 19, url: "https://x.example" },
+      conflict: null,
+    });
+    getSubmissionCategoryNames.mockResolvedValue([]);
+    getAccountById.mockResolvedValue(blueskyAccount);
+    getSocialMediaPostTemplateById.mockResolvedValue(mastodonOnly);
+    const service = await loadServiceModule();
+
+    await service.reviewAdminSubmission({
+      id: 7,
+      status: "approved",
+      adminId: 3,
+      templateAssignments: [{ accountId: 70, templateId: 13 }],
+    });
+
+    await flushPromises();
+
+    expect(postToMastodonAccount).not.toHaveBeenCalled();
+    expect(postToBlueskyAccount).not.toHaveBeenCalled();
+    expect(recordBackgroundError).toHaveBeenCalledWith(
+      "bluesky-post",
+      expect.any(Error),
+      expect.objectContaining({ accountId: 70, templateId: 13 }),
+    );
   });
 });

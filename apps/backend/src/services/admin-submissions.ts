@@ -1,8 +1,10 @@
 import type { SubmissionReviewStatus } from "@lmaa/shared";
 
+import { recordBackgroundError } from "./background-errors.js";
+import { postToBlueskyAccount } from "./bluesky.js";
 import { renderEmailTemplate } from "./email-renderer.js";
 import { sendMail } from "./email.js";
-import { sendMastodonApprovalPost } from "./mastodon.js";
+import { type ApprovalPostContext, postToMastodonAccount } from "./mastodon.js";
 import { hydrateShopOgImageInBackground } from "./preview-images.js";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
@@ -14,7 +16,10 @@ import {
   getSubmissionStatus,
   reviewSubmission,
 } from "../repositories/admin-submissions.js";
+import { upsertChoice } from "../repositories/admin-user-account-template-choice.js";
 import { getEmailTemplateById } from "../repositories/email-templates.js";
+import { getAccountById } from "../repositories/social-media-accounts.js";
+import { getSocialMediaPostTemplateById } from "../repositories/social-media-post-templates.js";
 
 /**
  * Input contract for submission moderation action.
@@ -27,7 +32,7 @@ interface ReviewAdminSubmissionInput {
   rejectionToken?: string;
   adminId: number;
   notificationTemplateId?: number;
-  mastodonTemplateId?: number;
+  templateAssignments?: Array<{ accountId: number; templateId: number | null }>;
 }
 
 /**
@@ -86,17 +91,82 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
     });
   }
 
-  if (input.status === "approved" && input.mastodonTemplateId && newShop) {
+  if (input.status === "approved" && newShop && input.templateAssignments?.length) {
     const categoryNames = await getSubmissionCategoryNames(input.id);
-    sendMastodonApprovalPost(input.mastodonTemplateId, {
+    const context: ApprovalPostContext = {
       submission,
       newShopId: newShop.id,
       adminNote: input.adminNote ?? "",
       categoryNames,
-    });
+    };
+    void dispatchTemplateAssignments(input.adminId, input.templateAssignments, context);
   }
 
   return success({ submission });
+}
+
+async function dispatchTemplateAssignments(
+  adminUserId: number,
+  assignments: Array<{ accountId: number; templateId: number | null }>,
+  context: ApprovalPostContext,
+): Promise<void> {
+  for (const assignment of assignments) {
+    try {
+      await upsertChoice(adminUserId, assignment.accountId, assignment.templateId);
+    } catch (err) {
+      await recordBackgroundError("template-choice-upsert", err, {
+        adminUserId,
+        accountId: assignment.accountId,
+      });
+    }
+
+    if (assignment.templateId === null) continue;
+
+    try {
+      const account = await getAccountById(assignment.accountId);
+      if (!account || !account.isActive) {
+        logger.warn(
+          { accountId: assignment.accountId },
+          "templateAssignments: account not found or inactive, skipping",
+        );
+        continue;
+      }
+      const template = await getSocialMediaPostTemplateById(assignment.templateId);
+      if (!template) {
+        await recordBackgroundError(
+          `${account.platform}-post`,
+          new Error(`templateId ${assignment.templateId} not found`),
+          { accountId: account.id, submissionId: context.submission.id },
+        );
+        continue;
+      }
+      if (!template.platforms.includes(account.platform)) {
+        await recordBackgroundError(
+          `${account.platform}-post`,
+          new Error(
+            `template ${template.id} does not cover platform ${account.platform}`,
+          ),
+          {
+            accountId: account.id,
+            templateId: template.id,
+            submissionId: context.submission.id,
+          },
+        );
+        continue;
+      }
+      if (account.platform === "mastodon") {
+        await postToMastodonAccount(account, template, context);
+      } else {
+        await postToBlueskyAccount(account, template, context);
+      }
+    } catch (err) {
+      await recordBackgroundError("social-media-post", err, {
+        accountId: assignment.accountId,
+        templateId: assignment.templateId,
+        submissionId: context.submission.id,
+      });
+    }
+  }
 }
 
 /**

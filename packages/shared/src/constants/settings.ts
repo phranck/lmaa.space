@@ -4,7 +4,6 @@
 export const SETTINGS_KEYS = {
   NOTIFY_SHOP_SUBMISSION_ENABLED: "notifications.newShopSubmission.enabled",
   NOTIFY_SHOP_SUBMISSION_TEMPLATE_ID: "notifications.newShopSubmission.templateId",
-  MASTODON_APPROVAL_TEMPLATE_ID: "social.mastodon.approvalTemplateId",
 } as const;
 
 export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];

@@ -3,14 +3,14 @@ import {
   CopyIcon,
   DownloadIcon,
   FileTextIcon,
-  MastodonLogoIcon,
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 
+import type { SocialMediaPostTemplate } from "@lmaa/contracts";
 import type { Submission } from "@lmaa/shared";
-import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
+import { CharCounter, FormLabel, FormOptional, PLATFORM_MAP } from "@lmaa/ui";
 
 const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
 
@@ -18,12 +18,20 @@ import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { NotificationTemplateSelect, RejectDialog } from "@/components/ui/RejectDialog.tsx";
 import { SaveNotification, type useSaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { useI18n } from "@/context/I18nContext.tsx";
 import type { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
 import type {
   useDeleteSubmission,
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
-import type { ReviewAction, ReviewState } from "@/features/overview/submission-review-state.ts";
+import type {
+  ReviewAction,
+  ReviewState,
+  TemplateAssignment,
+} from "@/features/overview/submission-review-state.ts";
+import { useBlueskyAccount } from "@/features/social/hooks/useBlueskyAccount.ts";
+import { useMastodonAccount } from "@/features/social/hooks/useMastodonAccount.ts";
+import { useTemplateChoices } from "@/features/social/hooks/useTemplateChoices.ts";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 
 interface SubmissionDialogsProps {
@@ -34,14 +42,13 @@ interface SubmissionDialogsProps {
   reviewMutation: ReturnType<typeof useReviewSubmission>;
   deleteMutation: ReturnType<typeof useDeleteSubmission>;
   emailTemplates: Array<{ id: number; name: string }>;
-  mastodonTemplates: Array<{ id: number; name: string }>;
+  templates: SocialMediaPostTemplate[];
   controller: ReturnType<typeof useShopEditorController>;
   combinedSavedPhase: ReturnType<typeof useSaveNotification>["phase"];
   showDeleteDialog: boolean;
   setShowDeleteDialog: (open: boolean) => void;
   handleApprove: (close?: boolean) => Promise<void>;
   handleReject: () => void;
-  handleMastodonTemplateChange: (value: number | undefined) => void;
   navigateBack: () => void;
   common: DashboardMessages["common"];
   submissionsMessages: DashboardMessages["submissions"];
@@ -55,14 +62,13 @@ export function SubmissionDialogs({
   reviewMutation,
   deleteMutation,
   emailTemplates,
-  mastodonTemplates,
+  templates,
   controller,
   combinedSavedPhase,
   showDeleteDialog,
   setShowDeleteDialog,
   handleApprove,
   handleReject,
-  handleMastodonTemplateChange,
   navigateBack,
   common,
   submissionsMessages,
@@ -101,12 +107,11 @@ export function SubmissionDialogs({
         notificationNoneLabel={submissionsMessages.suggestions.notificationNone}
         notificationHint={submissionsMessages.suggestions.notificationHint}
         hasSubmitterEmail={!!submitterEmail}
-        mastodonTemplates={mastodonTemplates}
-        mastodonTemplateId={reviewState.mastodonTemplateId}
-        onMastodonTemplateChange={handleMastodonTemplateChange}
-        mastodonNotificationLabel={submissionsMessages.suggestions.mastodonNotificationLabel}
-        mastodonNotificationNoneLabel={submissionsMessages.suggestions.mastodonNotificationNone}
-        mastodonNotificationHint={submissionsMessages.suggestions.mastodonNotificationHint}
+        templates={templates}
+        templateAssignments={reviewState.templateAssignments}
+        onTemplateAssignmentsChange={(value) =>
+          dispatchReview({ type: "setTemplateAssignments", value })
+        }
       />
 
       <RejectDialog
@@ -283,12 +288,9 @@ interface ApproveSubmissionReviewCardProps {
   notificationNoneLabel: string;
   notificationHint: string;
   hasSubmitterEmail: boolean;
-  mastodonTemplates: Array<{ id: number; name: string }>;
-  mastodonTemplateId: number | undefined;
-  onMastodonTemplateChange: (value: number | undefined) => void;
-  mastodonNotificationLabel: string;
-  mastodonNotificationNoneLabel: string;
-  mastodonNotificationHint: string;
+  templates: SocialMediaPostTemplate[];
+  templateAssignments: TemplateAssignment[];
+  onTemplateAssignmentsChange: (value: TemplateAssignment[]) => void;
 }
 
 function ApproveSubmissionReviewCard({
@@ -319,18 +321,15 @@ function ApproveSubmissionReviewCard({
   notificationNoneLabel,
   notificationHint,
   hasSubmitterEmail,
-  mastodonTemplates,
-  mastodonTemplateId,
-  onMastodonTemplateChange,
-  mastodonNotificationLabel,
-  mastodonNotificationNoneLabel,
-  mastodonNotificationHint,
+  templates,
+  templateAssignments,
+  onTemplateAssignmentsChange,
 }: ApproveSubmissionReviewCardProps) {
   return (
     <OverlayCard
       open={open}
       onClose={onClose}
-      size={{ storageKey: "submissions:review-approve-size", defaultWidth: 448 }}
+      size={{ storageKey: "submissions:review-approve-size", defaultWidth: 480 }}
       aria-label={reviewTitle}
     >
       <OverlayCard.Header>
@@ -387,13 +386,11 @@ function ApproveSubmissionReviewCard({
           hasSubmitterEmail={hasSubmitterEmail}
         />
 
-        <MastodonTemplateSelect
-          mastodonTemplates={mastodonTemplates}
-          mastodonTemplateId={mastodonTemplateId}
-          onMastodonTemplateChange={onMastodonTemplateChange}
-          label={mastodonNotificationLabel}
-          noneLabel={mastodonNotificationNoneLabel}
-          hint={mastodonNotificationHint}
+        <TemplateAssignmentsSection
+          templates={templates}
+          assignments={templateAssignments}
+          onChange={onTemplateAssignmentsChange}
+          open={open}
         />
 
         {(isError || formSaveErrorMessage) && (
@@ -431,45 +428,107 @@ function ApproveSubmissionReviewCard({
   );
 }
 
-interface MastodonTemplateSelectProps {
-  mastodonTemplates: Array<{ id: number; name: string }>;
-  mastodonTemplateId: number | undefined;
-  onMastodonTemplateChange: (value: number | undefined) => void;
-  label: string;
-  noneLabel: string;
-  hint: string;
+// ─── TemplateAssignmentsSection ──────────────────────────────────────────────
+
+interface TemplateAssignmentsSectionProps {
+  templates: SocialMediaPostTemplate[];
+  assignments: TemplateAssignment[];
+  onChange: (next: TemplateAssignment[]) => void;
+  open: boolean;
 }
 
-function MastodonTemplateSelect({
-  mastodonTemplates,
-  mastodonTemplateId,
-  onMastodonTemplateChange,
-  label,
-  noneLabel,
-  hint,
-}: MastodonTemplateSelectProps) {
+function TemplateAssignmentsSection({
+  templates,
+  assignments,
+  onChange,
+  open,
+}: TemplateAssignmentsSectionProps) {
+  const { messages } = useI18n();
+  const a = messages.socialMedia.approve;
+  const masto = useMastodonAccount();
+  const bsky = useBlueskyAccount();
+  const choices = useTemplateChoices();
+
+  // Hydrate assignments once per dialog open from active accounts + sticky choices.
+  useEffect(() => {
+    if (!open) return;
+    if (!choices.data) return;
+    if (masto.isLoading || bsky.isLoading) return;
+    const next: TemplateAssignment[] = [];
+    if (masto.data?.isActive) {
+      next.push({
+        accountId: masto.data.id,
+        templateId: choices.data[masto.data.id] ?? null,
+      });
+    }
+    if (bsky.data?.isActive) {
+      next.push({
+        accountId: bsky.data.id,
+        templateId: choices.data[bsky.data.id] ?? null,
+      });
+    }
+    if (next.length !== assignments.length) {
+      onChange(next);
+    }
+  }, [open, masto.data, bsky.data, choices.data, assignments.length, onChange]);
+
+  if (assignments.length === 0) return null;
+
   return (
-    <div className="rounded-lg border border-[var(--ds-border)] p-3">
-      <div className="mb-2 flex items-center gap-2">
-        <MastodonLogoIcon weight="duotone" className="h-4 w-4 text-[var(--ds-text-muted)]" />
-        <span className="text-sm font-medium text-[var(--ds-text)]">{label}</span>
-      </div>
-      <select
-        value={mastodonTemplateId ?? ""}
-        onChange={(event) => {
-          const value = event.target.value;
-          onMastodonTemplateChange(value ? Number(value) : undefined);
-        }}
-        className="h-9 w-full rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 text-sm text-[var(--ds-text)]"
-      >
-        <option value="">{noneLabel}</option>
-        {mastodonTemplates.map((template) => (
-          <option key={template.id} value={template.id}>
-            {template.name}
-          </option>
-        ))}
-      </select>
-      <p className="mt-1.5 text-xs text-[var(--ds-text-subtle)]">{hint}</p>
-    </div>
+    <section className="space-y-2 rounded-lg border border-[var(--ds-border)] p-3">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--ds-text-muted)]">
+        {a.postTo}
+      </h4>
+      {assignments.map((assignment) => {
+        const account =
+          assignment.accountId === masto.data?.id
+            ? { platform: "mastodon" as const, label: masto.data.label }
+            : assignment.accountId === bsky.data?.id
+              ? { platform: "bluesky" as const, label: bsky.data.label }
+              : null;
+        if (!account) return null;
+        const platformDef = PLATFORM_MAP.get(account.platform);
+        const Icon = platformDef?.icon;
+        const pool = templates.filter((t) => t.platforms.includes(account.platform));
+        const selected =
+          assignment.templateId !== null && pool.some((t) => t.id === assignment.templateId)
+            ? assignment.templateId
+            : null;
+        const stale = assignment.templateId !== null && selected === null;
+
+        return (
+          <div key={assignment.accountId} className="flex items-center gap-3 text-sm">
+            <span className="flex w-32 shrink-0 items-center gap-1.5 text-[var(--ds-text)]">
+              {Icon && <Icon size={14} />}
+              <span>{account.label}</span>
+            </span>
+            <select
+              className="h-9 flex-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 text-sm text-[var(--ds-text)]"
+              value={selected ?? ""}
+              onChange={(event) => {
+                const value = event.target.value === "" ? null : Number(event.target.value);
+                onChange(
+                  assignments.map((row) =>
+                    row.accountId === assignment.accountId
+                      ? { ...row, templateId: value }
+                      : row,
+                  ),
+                );
+              }}
+            >
+              <option value="">{a.noPost}</option>
+              {pool.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+            {stale && (
+              <span className="text-xs text-amber-500">{a.staleChoice}</span>
+            )}
+          </div>
+        );
+      })}
+    </section>
   );
 }
