@@ -164,17 +164,17 @@ function SortableNavItem({
         value={item.label}
         onChange={(e) => onLabelChange(item.id, e.target.value)}
         placeholder={item.pageTitle ?? item.url ?? ""}
-        className="w-32 px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+        className="w-44 px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
         title={text.labelOverrideTitle}
       />
 
       <button
         type="button"
         onClick={() => onRemove(item.id)}
-        className="p-1 text-[var(--ds-text-muted)] hover:text-red-500"
+        className="p-1.5 text-[var(--ds-text-muted)] hover:text-red-500"
         title={text.remove}
       >
-        <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+        <XCircleIcon weight="duotone" className="w-5 h-5" />
       </button>
     </div>
   );
