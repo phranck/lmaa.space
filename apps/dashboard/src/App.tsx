@@ -109,12 +109,6 @@ const MarkdownWidgetsPage = lazy(() =>
   })),
 );
 
-const BillingPage = lazy(() =>
-  import("@/features/system/billing/BillingPage.tsx").then((m) => ({
-    default: m.BillingPage,
-  })),
-);
-
 const AnalyticsPage = lazy(() =>
   import("@/features/analytics/AnalyticsPage.tsx").then((m) => ({
     default: m.AnalyticsPage,
@@ -420,14 +414,6 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <MarkdownWidgetsPage />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="billing"
-                element={
-                  <Suspense fallback={<ContentEditorLoadingFallback />}>
-                    <BillingPage />
                   </Suspense>
                 }
               />

@@ -15,7 +15,6 @@ import {
   ChartBarIcon,
   ChartLineUpIcon,
   CheckCircleIcon,
-  CreditCardIcon,
   CircleIcon,
   ClockIcon,
   CopyIcon,
@@ -761,15 +760,6 @@ export function Sidebar({
                         icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
                         label={s.media}
                         badge={media.length}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
-                  <NavLink to="/billing" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<CreditCardIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.billing}
                         active={isActive}
                       />
                     )}
