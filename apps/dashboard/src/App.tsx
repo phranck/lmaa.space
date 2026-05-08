@@ -408,7 +408,7 @@ function AppRoutes() {
                 }
               />
               <Route
-                path="pages/navigations"
+                path="navigations"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <NavManagerPage />

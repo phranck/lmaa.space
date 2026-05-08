@@ -652,6 +652,17 @@ export function Sidebar({
                       onOpenChange={(open) => handleGroupOpenChange("sidebar-pages-open", open)}
                     />
                   )}
+                  {isAdmin && (
+                    <NavLink to="/navigations" onClick={onItemClick} className="contents">
+                      {({ isActive }) => (
+                        <DashboardSection.Item
+                          icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
+                          label={s.navigations}
+                          active={isActive}
+                        />
+                      )}
+                    </NavLink>
+                  )}
                 </DashboardSection.Body>
               </DashboardSection>
             ),
@@ -685,6 +696,15 @@ export function Sidebar({
                       handleGroupOpenChange("sidebar-social-media-post-templates-open", open)
                     }
                   />
+                  <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
+                        label={s.markdownWidgets}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
                   <NavLink to="/footer-builder" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
@@ -741,24 +761,6 @@ export function Sidebar({
                         icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
                         label={s.media}
                         badge={media.length}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
-                  <NavLink to="/pages/navigations" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.navigations}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
-                  <NavLink to="/markdown-widgets" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.markdownWidgets}
                         active={isActive}
                       />
                     )}
