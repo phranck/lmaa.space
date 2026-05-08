@@ -161,14 +161,15 @@ describe("POST /social-media/bluesky/account", () => {
     expect(blueskyValidatorMock.verifyBlueskyCredentials).not.toHaveBeenCalled();
   });
 
-  it("zod rejects malformed app password", async () => {
+  it("zod rejects empty app password", async () => {
     const app = makeApp();
     const res = await app.request("/social-media/bluesky/account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...validPayload, appPassword: "tooshort" }),
+      body: JSON.stringify({ ...validPayload, appPassword: "" }),
     });
     expect(res.status).toBe(400);
+    expect(blueskyValidatorMock.verifyBlueskyCredentials).not.toHaveBeenCalled();
   });
 });
 

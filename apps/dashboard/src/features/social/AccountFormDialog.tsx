@@ -35,20 +35,17 @@ import {
   SUPPORTED_PLATFORMS,
 } from "@/features/social/services.ts";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 export type AccountFormDialogTarget =
   | { mode: "create" }
-  | { mode: "create"; platform: "mastodon" | "bluesky" }
   | { mode: "edit"; platform: "mastodon"; account: MastodonAccount }
   | { mode: "edit"; platform: "bluesky"; account: BlueskyAccount };
 
 interface AccountFormDialogProps {
   target: AccountFormDialogTarget;
+  existingMastodon: boolean;
+  existingBluesky: boolean;
   onClose: () => void;
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function emptyMastodonForm(): MastodonAccountFormInput {
   return {
@@ -87,22 +84,21 @@ function blueskyFormFromAccount(account: BlueskyAccount): BlueskyAccountFormInpu
   };
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): React.ReactElement {
+export function AccountFormDialog({
+  target,
+  existingMastodon,
+  existingBluesky,
+  onClose,
+}: AccountFormDialogProps): React.ReactElement {
   const { messages } = useI18n();
   const t = messages.socialMedia;
   const common = messages.common;
 
   const isCreate = target.mode === "create";
-  const initialPlatform: ServiceId | null =
-    target.mode === "edit"
-      ? target.platform
-      : "platform" in target
-        ? target.platform
-        : null;
 
-  const [pickedService, setPickedService] = useState<ServiceId | null>(initialPlatform);
+  const [pickedService, setPickedService] = useState<ServiceId | null>(
+    target.mode === "edit" ? target.platform : null,
+  );
 
   const [mastodonForm, setMastodonForm] = useState<MastodonAccountFormInput>(() =>
     target.mode === "edit" && target.platform === "mastodon"
@@ -138,7 +134,7 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
 
   function mapMastodonError(err: unknown): string {
     const apiErr = err as ApiRequestError;
-    if (apiErr.status === 409) return t.bluesky.conflictError; // generic conflict label
+    if (apiErr.status === 409) return t.bluesky.conflictError;
     if (apiErr.status === 400) return t.tokenInvalid;
     if (apiErr.status === 503) return t.instanceUnreachable;
     return t.saveError;
@@ -234,8 +230,6 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
     </span>
   ) : undefined;
 
-  // ─── Stage A — service picker ─────────────────────────────────────────────
-
   if (isCreate && !pickedService) {
     return (
       <Dialog open title={dialogTitle} titleIcon={dialogIcon} onClose={onClose} maxWidth="lg">
@@ -246,17 +240,30 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             {SUPPORTED_PLATFORMS.map((platform) => {
               const Icon = platform.icon;
+              const isTaken =
+                (platform.key === "mastodon" && existingMastodon) ||
+                (platform.key === "bluesky" && existingBluesky);
               return (
                 <button
                   key={platform.key}
                   type="button"
+                  disabled={isTaken}
                   onClick={() => setPickedService(platform.key as ServiceId)}
-                  className="border border-[var(--ds-border-subtle)] rounded-card bg-[var(--ds-surface)] p-6 flex flex-col items-center gap-3 hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-hover)] transition-colors"
+                  className={`border rounded-card p-6 flex flex-col items-center gap-3 transition-colors ${
+                    isTaken
+                      ? "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] opacity-50 cursor-not-allowed"
+                      : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] hover:border-[var(--ds-border-strong)] hover:bg-[var(--ds-surface-hover)]"
+                  }`}
                 >
                   <Icon size={32} />
                   <span className="text-sm font-medium text-[var(--ds-text)]">
                     {platform.label}
                   </span>
+                  {isTaken && (
+                    <span className="text-xs text-[var(--ds-text-muted)]">
+                      {t.alreadyConfigured}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -270,8 +277,6 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
       </Dialog>
     );
   }
-
-  // ─── Stage B — service form ───────────────────────────────────────────────
 
   const editingBluesky =
     pickedService === "bluesky" || (target.mode === "edit" && target.platform === "bluesky");
@@ -309,6 +314,8 @@ export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): 
               handle: t.bluesky.handleLabel,
               appPassword: t.bluesky.appPasswordLabel,
               appPasswordKeepHint: t.bluesky.appPasswordKeepHint,
+              appPasswordRecommendation: t.bluesky.appPasswordRecommendation,
+              appPasswordSettingsLink: t.bluesky.appPasswordSettingsLink,
             }}
             requirePassword={isCreate}
             hasStoredPassword={

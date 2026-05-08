@@ -1,9 +1,14 @@
-import { PencilSimpleIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
+import {
+  PencilSimpleIcon,
+  PlusCircleIcon,
+  ShareNetworkIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import type React from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { BlueskyAccount, MastodonAccount } from "@lmaa/contracts";
-import { type PlatformDef, PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
+import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -14,6 +19,8 @@ import {
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   AccountFormDialog,
@@ -29,6 +36,10 @@ import {
   useMastodonAccount,
   useUpdateMastodonAccount,
 } from "@/features/social/hooks/useMastodonAccount.ts";
+
+type AccountRow =
+  | { kind: "mastodon"; account: MastodonAccount }
+  | { kind: "bluesky"; account: BlueskyAccount };
 
 type DeleteTarget =
   | { platform: "mastodon"; id: number; label: string }
@@ -49,67 +60,170 @@ export function SocialMediaAccountsPage(): React.ReactElement {
   const [dialogTarget, setDialogTarget] = useState<AccountFormDialogTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
-  const mastoPlatform = PLATFORM_MAP.get("mastodon");
-  const bskyPlatform = PLATFORM_MAP.get("bluesky");
+  const isLoading = masto.isLoading || bsky.isLoading;
+  const isUpdating = updateMasto.isPending || updateBsky.isPending;
+  const isDeleting = deleteMasto.isPending || deleteBsky.isPending;
+
+  const rows = useMemo<AccountRow[]>(() => {
+    const list: AccountRow[] = [];
+    if (masto.data) list.push({ kind: "mastodon", account: masto.data });
+    if (bsky.data) list.push({ kind: "bluesky", account: bsky.data });
+    return list;
+  }, [masto.data, bsky.data]);
+
+  const columns: ColumnDef<AccountRow>[] = useMemo(
+    () => [
+      {
+        id: "platform",
+        header: t.columns.platform,
+        sortKey: (row) => row.kind,
+        cell: (row) => {
+          const platform = PLATFORM_MAP.get(row.kind);
+          if (!platform) return <span>{row.kind}</span>;
+          const Icon = platform.icon;
+          return (
+            <span className="inline-flex items-center gap-2 text-[var(--ds-text)]">
+              <Icon size={16} />
+              {platform.label}
+            </span>
+          );
+        },
+      },
+      {
+        id: "account",
+        header: t.columns.account,
+        sortKey: (row) => row.account.label,
+        cell: (row) => (
+          <span className="font-medium text-[var(--ds-text)]">{row.account.label}</span>
+        ),
+      },
+      {
+        id: "identifier",
+        header: t.columns.identifier,
+        sortKey: (row) =>
+          row.kind === "mastodon" ? row.account.instanceUrl : row.account.handle,
+        cell: (row) => (
+          <span className="text-[var(--ds-text-muted)]">
+            {row.kind === "mastodon" ? row.account.instanceUrl : `@${row.account.handle}`}
+          </span>
+        ),
+      },
+      {
+        id: "tokenStatus",
+        header: t.columns.token,
+        cell: (row) => (
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+              row.account.hasAccessToken
+                ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
+            }`}
+          >
+            {row.account.hasAccessToken ? t.tokenStored : t.tokenMissing}
+          </span>
+        ),
+      },
+      {
+        id: "active",
+        header: t.columns.status,
+        sortKey: (row) => Number(row.account.isActive),
+        cell: (row) => (
+          <ToggleSwitch
+            checked={row.account.isActive}
+            disabled={isUpdating}
+            onChange={(value) => {
+              if (row.kind === "mastodon") {
+                updateMasto.mutate({ id: row.account.id, input: { isActive: value } });
+              } else {
+                updateBsky.mutate({ id: row.account.id, input: { isActive: value } });
+              }
+            }}
+          />
+        ),
+      },
+      {
+        id: "actions",
+        header: "",
+        cellClassName: "text-right",
+        cell: (row) => (
+          <div className="flex items-center justify-end gap-2">
+            <TableActionButton
+              variant="neutral"
+              icon={<PencilSimpleIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={common.edit}
+              onClick={() => {
+                if (row.kind === "mastodon") {
+                  setDialogTarget({ mode: "edit", platform: "mastodon", account: row.account });
+                } else {
+                  setDialogTarget({ mode: "edit", platform: "bluesky", account: row.account });
+                }
+              }}
+            />
+            <TableActionButton
+              variant="danger"
+              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              label={common.delete}
+              onClick={() =>
+                setDeleteTarget({
+                  platform: row.kind,
+                  id: row.account.id,
+                  label: row.account.label,
+                })
+              }
+            />
+          </div>
+        ),
+      },
+    ],
+    [t, common, isUpdating, updateMasto, updateBsky],
+  );
 
   return (
     <PageLayout>
-      <PageHeader title={t.title} />
+      <PageHeader title={t.title}>
+        <button
+          type="button"
+          onClick={() => setDialogTarget({ mode: "create" })}
+          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
+        >
+          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          {t.addAccountTitle}
+        </button>
+      </PageHeader>
 
       <PageBody>
-        {mastoPlatform && (
-          <MastodonSection
-            platform={mastoPlatform}
-            account={masto.data ?? null}
-            isLoading={masto.isLoading}
-            t={t}
-            common={common}
-            isUpdating={updateMasto.isPending}
-            onAdd={() => setDialogTarget({ mode: "create", platform: "mastodon" })}
-            onEdit={(account) =>
-              setDialogTarget({ mode: "edit", platform: "mastodon", account })
-            }
-            onDelete={(account) =>
-              setDeleteTarget({
-                platform: "mastodon",
-                id: account.id,
-                label: account.label,
-              })
-            }
-            onToggleActive={(account, isActive) =>
-              updateMasto.mutate({ id: account.id, input: { isActive } })
-            }
+        {isLoading && (
+          <div className="flex h-32 items-center justify-center text-sm text-[var(--ds-text-muted)]">
+            {common.loading}
+          </div>
+        )}
+
+        {!isLoading && rows.length === 0 && (
+          <ContentUnavailableView
+            chromeless
+            icon={<ShareNetworkIcon weight="duotone" aria-hidden />}
+            title={t.noAccounts}
+            subtitle={t.noAccountsHint}
           />
         )}
 
-        {bskyPlatform && (
-          <BlueskySection
-            platform={bskyPlatform}
-            account={bsky.data ?? null}
-            isLoading={bsky.isLoading}
-            t={t}
-            common={common}
-            isUpdating={updateBsky.isPending}
-            onAdd={() => setDialogTarget({ mode: "create", platform: "bluesky" })}
-            onEdit={(account) =>
-              setDialogTarget({ mode: "edit", platform: "bluesky", account })
-            }
-            onDelete={(account) =>
-              setDeleteTarget({
-                platform: "bluesky",
-                id: account.id,
-                label: account.label,
-              })
-            }
-            onToggleActive={(account, isActive) =>
-              updateBsky.mutate({ id: account.id, input: { isActive } })
-            }
+        {!isLoading && rows.length > 0 && (
+          <DataTable
+            columns={columns}
+            data={rows}
+            getRowKey={(row) => `${row.kind}:${row.account.id}`}
+            stickyHeader
           />
         )}
       </PageBody>
 
       {dialogTarget && (
-        <AccountFormDialog target={dialogTarget} onClose={() => setDialogTarget(null)} />
+        <AccountFormDialog
+          target={dialogTarget}
+          existingMastodon={Boolean(masto.data)}
+          existingBluesky={Boolean(bsky.data)}
+          onClose={() => setDialogTarget(null)}
+        />
       )}
 
       {deleteTarget && (
@@ -132,261 +246,22 @@ export function SocialMediaAccountsPage(): React.ReactElement {
             </button>
             <button
               type="button"
-              disabled={deleteMasto.isPending || deleteBsky.isPending}
+              disabled={isDeleting}
               onClick={() => {
+                const onSuccess = () => setDeleteTarget(null);
                 if (deleteTarget.platform === "mastodon") {
-                  deleteMasto.mutate(deleteTarget.id, {
-                    onSuccess: () => setDeleteTarget(null),
-                  });
+                  deleteMasto.mutate(deleteTarget.id, { onSuccess });
                 } else {
-                  deleteBsky.mutate(deleteTarget.id, {
-                    onSuccess: () => setDeleteTarget(null),
-                  });
+                  deleteBsky.mutate(deleteTarget.id, { onSuccess });
                 }
               }}
               className={dialogBtnDestructive}
             >
-              {deleteMasto.isPending || deleteBsky.isPending ? "..." : common.delete}
+              {isDeleting ? "..." : common.delete}
             </button>
           </Dialog.Footer>
         </Dialog>
       )}
     </PageLayout>
-  );
-}
-
-// ─── Mastodon section ───────────────────────────────────────────────────────
-
-type MastodonProps = {
-  platform: PlatformDef;
-  account: MastodonAccount | null;
-  isLoading: boolean;
-  t: ReturnType<typeof useI18n>["messages"]["socialMedia"];
-  common: ReturnType<typeof useI18n>["messages"]["common"];
-  isUpdating: boolean;
-  onAdd: () => void;
-  onEdit: (account: MastodonAccount) => void;
-  onDelete: (account: MastodonAccount) => void;
-  onToggleActive: (account: MastodonAccount, isActive: boolean) => void;
-};
-
-function MastodonSection({
-  platform,
-  account,
-  isLoading,
-  t,
-  common,
-  isUpdating,
-  onAdd,
-  onEdit,
-  onDelete,
-  onToggleActive,
-}: MastodonProps): React.ReactElement {
-  const Icon = platform.icon;
-
-  return (
-    <section className="rounded-card border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
-      <header className="flex items-center justify-between gap-3 border-b border-[var(--ds-border-subtle)] px-4 py-3">
-        <h2 className="flex items-center gap-2 text-sm font-medium text-[var(--ds-text)]">
-          <Icon size={16} />
-          {platform.label}
-        </h2>
-        {!account && (
-          <button
-            type="button"
-            onClick={onAdd}
-            className="inline-flex items-center gap-1.5 h-9 px-3 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-          >
-            <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            {t.addMastodonAccount}
-          </button>
-        )}
-      </header>
-
-      {isLoading && (
-        <div className="px-4 py-6 text-sm text-[var(--ds-text-muted)]">{common.loading}</div>
-      )}
-
-      {!isLoading && !account && (
-        <div className="px-4 py-6">
-          <ContentUnavailableView
-            chromeless
-            icon={<Icon aria-hidden />}
-            title={t.noAccounts}
-            subtitle={t.noAccountsHint}
-          />
-        </div>
-      )}
-
-      {!isLoading && account && (
-        <AccountRow
-          label={account.label}
-          subtitle={account.instanceUrl}
-          tokenStored={account.hasAccessToken}
-          tokenStoredText={t.tokenStored}
-          tokenMissingText={t.tokenMissing}
-          isActive={account.isActive}
-          isUpdating={isUpdating}
-          onToggleActive={(value) => onToggleActive(account, value)}
-          onEdit={() => onEdit(account)}
-          onDelete={() => onDelete(account)}
-          editLabel={common.edit}
-          deleteLabel={common.delete}
-        />
-      )}
-    </section>
-  );
-}
-
-// ─── BlueSky section ───────────────────────────────────────────────────────
-
-type BlueskyProps = {
-  platform: PlatformDef;
-  account: BlueskyAccount | null;
-  isLoading: boolean;
-  t: ReturnType<typeof useI18n>["messages"]["socialMedia"];
-  common: ReturnType<typeof useI18n>["messages"]["common"];
-  isUpdating: boolean;
-  onAdd: () => void;
-  onEdit: (account: BlueskyAccount) => void;
-  onDelete: (account: BlueskyAccount) => void;
-  onToggleActive: (account: BlueskyAccount, isActive: boolean) => void;
-};
-
-function BlueskySection({
-  platform,
-  account,
-  isLoading,
-  t,
-  common,
-  isUpdating,
-  onAdd,
-  onEdit,
-  onDelete,
-  onToggleActive,
-}: BlueskyProps): React.ReactElement {
-  const Icon = platform.icon;
-
-  return (
-    <section className="rounded-card border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
-      <header className="flex items-center justify-between gap-3 border-b border-[var(--ds-border-subtle)] px-4 py-3">
-        <h2 className="flex items-center gap-2 text-sm font-medium text-[var(--ds-text)]">
-          <Icon size={16} />
-          {t.bluesky.sectionTitle}
-        </h2>
-        {!account && (
-          <button
-            type="button"
-            onClick={onAdd}
-            className="inline-flex items-center gap-1.5 h-9 px-3 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-          >
-            <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            {t.bluesky.addAccount}
-          </button>
-        )}
-      </header>
-
-      {isLoading && (
-        <div className="px-4 py-6 text-sm text-[var(--ds-text-muted)]">{common.loading}</div>
-      )}
-
-      {!isLoading && !account && (
-        <div className="px-4 py-6">
-          <ContentUnavailableView
-            chromeless
-            icon={<Icon aria-hidden />}
-            title={t.bluesky.empty}
-            subtitle={t.noAccountsHint}
-          />
-        </div>
-      )}
-
-      {!isLoading && account && (
-        <AccountRow
-          label={account.label}
-          subtitle={`@${account.handle}`}
-          tokenStored={account.hasAccessToken}
-          tokenStoredText={t.tokenStored}
-          tokenMissingText={t.tokenMissing}
-          isActive={account.isActive}
-          isUpdating={isUpdating}
-          onToggleActive={(value) => onToggleActive(account, value)}
-          onEdit={() => onEdit(account)}
-          onDelete={() => onDelete(account)}
-          editLabel={common.edit}
-          deleteLabel={common.delete}
-        />
-      )}
-    </section>
-  );
-}
-
-// ─── Reusable account row ───────────────────────────────────────────────────
-
-interface AccountRowProps {
-  label: string;
-  subtitle: string;
-  tokenStored: boolean;
-  tokenStoredText: string;
-  tokenMissingText: string;
-  isActive: boolean;
-  isUpdating: boolean;
-  onToggleActive: (value: boolean) => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  editLabel: string;
-  deleteLabel: string;
-}
-
-function AccountRow({
-  label,
-  subtitle,
-  tokenStored,
-  tokenStoredText,
-  tokenMissingText,
-  isActive,
-  isUpdating,
-  onToggleActive,
-  onEdit,
-  onDelete,
-  editLabel,
-  deleteLabel,
-}: AccountRowProps): React.ReactElement {
-  return (
-    <div className="flex items-center gap-4 px-4 py-3">
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-[var(--ds-text)]">{label}</div>
-        <div className="text-xs text-[var(--ds-text-muted)] truncate">{subtitle}</div>
-      </div>
-
-      <span
-        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-          tokenStored
-            ? "bg-green-500/10 text-green-600 dark:text-green-400"
-            : "bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)]"
-        }`}
-      >
-        {tokenStored ? tokenStoredText : tokenMissingText}
-      </span>
-
-      <ToggleSwitch checked={isActive} disabled={isUpdating} onChange={onToggleActive} />
-
-      <button
-        type="button"
-        onClick={onEdit}
-        className="inline-flex items-center gap-1.5 h-9 px-3 border border-[var(--ds-btn-neutral-border)] text-[var(--ds-text)] rounded-control text-sm hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]"
-      >
-        <PencilSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
-        {editLabel}
-      </button>
-      <button
-        type="button"
-        onClick={onDelete}
-        className="inline-flex items-center gap-1.5 h-9 px-3 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-      >
-        <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-        {deleteLabel}
-      </button>
-    </div>
   );
 }
