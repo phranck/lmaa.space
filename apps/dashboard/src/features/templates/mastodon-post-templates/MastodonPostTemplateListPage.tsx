@@ -52,15 +52,6 @@ export function MastodonPostTemplateListPage() {
         ),
       },
       {
-        id: "body",
-        header: m.bodyText,
-        cell: (template) => (
-          <span className="block max-w-lg truncate text-[var(--ds-text-muted)]">
-            {template.bodyText || "-"}
-          </span>
-        ),
-      },
-      {
         id: "createdAt",
         header: m.tableCreated,
         sortKey: (template) => template.createdAt,
