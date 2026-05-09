@@ -8,6 +8,8 @@ import { createApiRequestError } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
 import type { Category } from "@lmaa/shared";
 import { AlertDialog } from "@lmaa/ui";
+import { CharCounter } from "@lmaa/ui/char-counter";
+import { createDefaultRegionOptions } from "@lmaa/ui/region-select";
 
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
@@ -15,17 +17,14 @@ import { API_BASE } from "@/lib/client-api";
 import { expandFormConfigText } from "@/lib/expand-form-config";
 import { getSafeActionUrl, getSafeConfigHref } from "@/lib/safe-url";
 
-import { CharCounter } from "../../../../../packages/ui/src/CharCounter.tsx";
-
-
 const MarkdownEditor = lazy(() =>
-  import("../../../../../packages/ui/src/MarkdownEditor.tsx").then((module) => ({
+  import("@lmaa/ui/markdown-editor").then((module) => ({
     default: module.MarkdownEditor,
   })),
 );
 
 const RegionSelect = lazy(() =>
-  import("../../../../../packages/ui/src/RegionSelect.tsx").then((module) => ({
+  import("@lmaa/ui/region-select").then((module) => ({
     default: module.RegionSelect,
   })),
 );
@@ -49,13 +48,7 @@ type SimpleFields = Record<string, string>;
 // Constants
 // ---------------------------------------------------------------------------
 
-const REGION_OPTIONS = [
-  { code: "DE", flag: "🇩🇪", name: "Deutschland" },
-  { code: "AT", flag: "🇦🇹", name: "Österreich" },
-  { code: "CH", flag: "🇨🇭", name: "Schweiz" },
-  { code: "EU", flag: "🇪🇺", name: "Europa" },
-  { code: "WORLD", flag: "🌍", name: "Weltweit" },
-] as const;
+const REGION_OPTIONS = createDefaultRegionOptions("de");
 
 const inputClass =
   "w-full px-3 h-9 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent)]";
