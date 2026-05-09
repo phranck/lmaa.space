@@ -17,6 +17,16 @@ import {
 
 import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
+function quotedTextSql(values: readonly string[]) {
+  return sql.join(
+    values.map((value) => sql.raw(`'${value.replaceAll("'", "''")}'`)),
+    sql`, `,
+  );
+}
+
+const POSTING_PLATFORM_SQL = quotedTextSql(["mastodon", "bluesky"]);
+const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = quotedTextSql(["submission", "category"]);
+
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
  */
@@ -77,6 +87,24 @@ export const shops = pgTable(
       "shops_visibility_check",
       sql`${table.visibility} IN ('public', 'onhold', 'deleted', 'rejected')`,
     ),
+  ],
+);
+
+/**
+ * Idempotent public like state per shop and anonymous visitor key.
+ */
+export const shopLikes = pgTable(
+  "shop_likes",
+  {
+    shopId: integer("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    visitorKey: text("visitor_key").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.shopId, table.visitorKey] }),
+    index("idx_shop_likes_visitor").on(table.visitorKey),
   ],
 );
 
@@ -430,6 +458,10 @@ export type Shop = typeof shops.$inferSelect;
  */
 export type ShopInsert = typeof shops.$inferInsert;
 /**
+ * Inferred select type for `shop_likes`.
+ */
+export type ShopLike = typeof shopLikes.$inferSelect;
+/**
  * Inferred select type for `shop_categories`.
  */
 export type ShopCategory = typeof shopCategories.$inferSelect;
@@ -610,7 +642,7 @@ export const socialMediaAccounts = pgTable(
     ),
     check(
       "social_media_accounts_can_post_platform",
-      sql`${table.canPost} = false OR ${table.platform} IN ('mastodon', 'bluesky')`,
+      sql`${table.canPost} = false OR ${table.platform} IN (${POSTING_PLATFORM_SQL})`,
     ),
     check(
       "social_media_accounts_can_post_token",
@@ -676,7 +708,7 @@ export const socialMediaPostTemplates = pgTable(
     ),
     check(
       "social_media_post_templates_scopes_valid",
-      sql`${table.scopes} <@ ARRAY['submission', 'category']::text[]`,
+      sql`${table.scopes} <@ ARRAY[${SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL}]::text[]`,
     ),
   ],
 );

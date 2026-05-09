@@ -1,41 +1,17 @@
 import { z } from "zod";
 
-/**
- * All supported social media platform keys. Must stay in sync with PLATFORMS in
- * packages/ui/src/social-media-platforms.ts. The runtime sync test in
- * apps/backend/src/__tests__/social-media-platforms-sync.test.ts asserts equality.
- */
-export const SOCIAL_MEDIA_PLATFORM_KEYS = [
-  "applepodcasts",
-  "mastodon",
-  "bluesky",
-  "instagram",
-  "facebook",
-  "whatsapp",
-  "signal",
-  "threads",
-  "tiktok",
-  "x",
-  "youtube",
-  "twitch",
-  "tumblr",
-  "linkedin",
-  "pinterest",
-  "patreon",
-  "mixcloud",
-  "soundcloud",
-  "spotify",
-  "github",
-  "gitlab",
-  "codeberg",
-  "website",
-] as const;
+import { SOCIAL_PLATFORM_KEYS, type SocialPlatformKey } from "@lmaa/shared";
 
-export type SocialMediaPlatformKey = (typeof SOCIAL_MEDIA_PLATFORM_KEYS)[number];
+/**
+ * All supported social media platform keys, sourced from `@lmaa/shared`.
+ */
+export const SOCIAL_MEDIA_PLATFORM_KEYS = SOCIAL_PLATFORM_KEYS;
+
+export type SocialMediaPlatformKey = SocialPlatformKey;
 
 export const socialMediaPlatformSchema = z.enum(SOCIAL_MEDIA_PLATFORM_KEYS);
 
-export const POSTING_PLATFORM_KEYS = ["mastodon", "bluesky"] as const;
+export const POSTING_PLATFORM_KEYS = ["mastodon", "bluesky"] as const satisfies readonly SocialMediaPlatformKey[];
 
 export type PostingPlatformKey = (typeof POSTING_PLATFORM_KEYS)[number];
 

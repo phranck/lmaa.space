@@ -176,7 +176,7 @@ function PagesGroup({
   onOpenChange?: (open: boolean) => void;
 }) {
   const { messages } = useI18n();
-  const s = messages.layout.sidebar;
+  const sidebarMessages = messages.layout.sidebar;
   const { data: pages } = useContentPages();
 
   return (
@@ -184,14 +184,14 @@ function PagesGroup({
       routeMatch="/pages/*"
       storageKey="sidebar-pages-open"
       icon={<CopyIcon weight="duotone" className="w-4 h-4" />}
-      label={s.pages}
+      label={sidebarMessages.pages}
       badge={pages?.length ?? 0}
       globalOpenState={globalOpenState}
       globalOpenVersion={globalOpenVersion}
       onOpenChange={onOpenChange}
     >
       <NavLink to="/pages" end onClick={onItemClick} className={sidebarGroupItemClass}>
-        {s.pagesOverview}
+        {sidebarMessages.pagesOverview}
       </NavLink>
       {(pages ?? []).map((page) => (
         <NavLink
@@ -224,7 +224,7 @@ function FormsGroup({
   onOpenChange?: (open: boolean) => void;
 }) {
   const { messages } = useI18n();
-  const s = messages.layout.sidebar;
+  const sidebarMessages = messages.layout.sidebar;
   const { data: forms } = useFormConfigs();
 
   return (
@@ -232,14 +232,14 @@ function FormsGroup({
       routeMatch="/forms/*"
       storageKey="sidebar-forms-open"
       icon={<NotebookIcon weight="duotone" className="w-4 h-4" />}
-      label={s.formBuilder}
+      label={sidebarMessages.formBuilder}
       badge={forms?.length ?? 0}
       globalOpenState={globalOpenState}
       globalOpenVersion={globalOpenVersion}
       onOpenChange={onOpenChange}
     >
       <NavLink to="/forms" end onClick={onItemClick} className={sidebarGroupItemClass}>
-        {s.formsOverview}
+        {sidebarMessages.formsOverview}
       </NavLink>
       {(forms ?? []).map((form) => (
         <NavLink
@@ -272,7 +272,7 @@ function EmailTemplatesGroup({
 }) {
   const { messages } = useI18n();
   const common = messages.common;
-  const s = messages.layout.sidebar;
+  const sidebarMessages = messages.layout.sidebar;
   const { data: templates } = useEmailTemplates();
   const createTemplate = useCreateEmailTemplate();
   const navigate = useNavigate();
@@ -282,14 +282,14 @@ function EmailTemplatesGroup({
       routeMatch="/email-templates/*"
       storageKey="sidebar-email-templates-open"
       icon={<EnvelopeOpenIcon weight="duotone" className="w-4 h-4" />}
-      label={s.emailTemplates}
+      label={sidebarMessages.emailTemplates}
       badge={templates?.length ?? 0}
       globalOpenState={globalOpenState}
       globalOpenVersion={globalOpenVersion}
       onOpenChange={onOpenChange}
     >
       <NavLink to="/email-templates" end onClick={onItemClick} className={sidebarGroupItemClass}>
-        {s.emailTemplatesOverview}
+        {sidebarMessages.emailTemplatesOverview}
       </NavLink>
       {(templates ?? []).map((tpl) => (
         <div key={tpl.id} className="group/item flex items-center">
@@ -356,8 +356,8 @@ function SocialMediaPostTemplatesGroup({
   onOpenChange?: (open: boolean) => void;
 }) {
   const { messages } = useI18n();
-  const s = messages.layout.sidebar;
-  const m = messages.socialMediaTemplates;
+  const sidebarMessages = messages.layout.sidebar;
+  const templateMessages = messages.socialMediaTemplates;
   const common = messages.common;
   const navigate = useNavigate();
   const { data: templates } = useSocialMediaPostTemplates();
@@ -419,7 +419,7 @@ function SocialMediaPostTemplatesGroup({
         routeMatch="/social-media-post-templates/*"
         storageKey="sidebar-social-media-post-templates-open"
         icon={<PaperPlaneTiltIcon weight="duotone" className="w-4 h-4" />}
-        label={s.socialMediaPostTemplates}
+        label={sidebarMessages.socialMediaPostTemplates}
         badge={templates?.length ?? 0}
         globalOpenState={globalOpenState}
         globalOpenVersion={globalOpenVersion}
@@ -431,7 +431,7 @@ function SocialMediaPostTemplatesGroup({
           onClick={onItemClick}
           className={sidebarGroupItemClass}
         >
-          {s.socialMediaPostTemplatesOverview}
+          {sidebarMessages.socialMediaPostTemplatesOverview}
         </NavLink>
         {(templates ?? []).map((template) => (
           <NavLink
@@ -461,8 +461,8 @@ function SocialMediaPostTemplatesGroup({
 
       <DeleteConfirmDialog
         open={deleteTarget !== null}
-        title={m.deleteTemplate}
-        description={`${m.deleteTemplateConfirm} (${deleteTarget?.name ?? ""})`}
+        title={templateMessages.deleteTemplate}
+        description={`${templateMessages.deleteTemplateConfirm} (${deleteTarget?.name ?? ""})`}
         cancelLabel={common.cancel}
         deleteLabel={common.delete}
         isPending={deleteTemplate.isPending}
@@ -507,7 +507,7 @@ function ReportsGroup({
   shopReportsCount: number;
 }) {
   const { messages } = useI18n();
-  const s = messages.layout.sidebar;
+  const sidebarMessages = messages.layout.sidebar;
   const submissions = messages.submissions;
 
   return (
@@ -515,7 +515,7 @@ function ReportsGroup({
       routeMatch="/reports/*"
       storageKey="sidebar-reports-open"
       icon={<TrayIcon weight="duotone" className="w-4 h-4" />}
-      label={s.submissions}
+      label={sidebarMessages.submissions}
       badge={pendingCount + deadLinksCount + shopReportsCount}
       globalOpenState={globalOpenState}
       globalOpenVersion={globalOpenVersion}
@@ -558,7 +558,7 @@ export function Sidebar({
   bare,
 }: SidebarProps) {
   const { messages } = useI18n();
-  const s = messages.layout.sidebar;
+  const sidebarMessages = messages.layout.sidebar;
   const isAdmin = role !== undefined && ROLE_RANK[role] >= ROLE_RANK.admin;
   const { user } = useAuth();
   const updatePreferences = useUpdateUiPreferences();
@@ -621,8 +621,16 @@ export function Sidebar({
             type="button"
             onClick={() => handleToggleAllGroups(!areAllGroupsOpen)}
             className="flex w-full items-center justify-center gap-2 h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs font-medium text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-            aria-label={areAllGroupsOpen ? s.collapseAllAria : s.expandAllAria}
-            title={areAllGroupsOpen ? s.collapseAllAria : s.expandAllAria}
+            aria-label={
+              areAllGroupsOpen
+                ? sidebarMessages.collapseAllAria
+                : sidebarMessages.expandAllAria
+            }
+            title={
+              areAllGroupsOpen
+                ? sidebarMessages.collapseAllAria
+                : sidebarMessages.expandAllAria
+            }
           >
             <span className="relative h-3.5 w-3.5 shrink-0 overflow-hidden">
               <CaretCircleDoubleDownIcon
@@ -648,14 +656,14 @@ export function Sidebar({
                   areAllGroupsOpen ? "-translate-y-1 opacity-0" : "translate-y-0 opacity-100"
                 }`}
               >
-                {s.expandAll}
+                {sidebarMessages.expandAll}
               </span>
               <span
                 className={`col-start-1 row-start-1 transition-all duration-200 ease-out ${
                   areAllGroupsOpen ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
                 }`}
               >
-                {s.collapseAll}
+                {sidebarMessages.collapseAll}
               </span>
             </span>
           </button>
@@ -671,7 +679,7 @@ export function Sidebar({
               <DashboardSection>
                 <DashboardSection.Header
                   icon={<HouseSimpleIcon weight="duotone" className="w-4 h-4" />}
-                  title={s.sectionGeneral}
+                  title={sidebarMessages.sectionGeneral}
                   addOn={dragHandle}
                 />
                 <DashboardSection.Body className="!gap-0.5 !p-2">
@@ -679,7 +687,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<SquaresFourIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.overview}
+                        label={sidebarMessages.overview}
                         active={isActive}
                       />
                     )}
@@ -701,7 +709,7 @@ export function Sidebar({
               <DashboardSection>
                 <DashboardSection.Header
                   icon={<ArticleIcon weight="duotone" className="w-4 h-4" />}
-                  title={s.sectionContent}
+                  title={sidebarMessages.sectionContent}
                   addOn={dragHandle}
                 />
                 <DashboardSection.Body className="!gap-0.5 !p-2">
@@ -709,7 +717,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.shops}
+                        label={sidebarMessages.shops}
                         badge={shops.length}
                         active={isActive}
                       />
@@ -719,7 +727,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<TagIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.categories}
+                        label={sidebarMessages.categories}
                         badge={categories.length}
                         active={isActive}
                       />
@@ -730,7 +738,7 @@ export function Sidebar({
                       {({ isActive }) => (
                         <DashboardSection.Item
                           icon={<HouseSimpleIcon weight="duotone" className="w-4 h-4" />}
-                          label={s.landingPage}
+                          label={sidebarMessages.landingPage}
                           active={isActive}
                         />
                       )}
@@ -749,7 +757,7 @@ export function Sidebar({
                       {({ isActive }) => (
                         <DashboardSection.Item
                           icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
-                          label={s.navigations}
+                          label={sidebarMessages.navigations}
                           active={isActive}
                         />
                       )}
@@ -762,7 +770,7 @@ export function Sidebar({
               <DashboardSection>
                 <DashboardSection.Header
                   icon={<BlueprintIcon weight="duotone" className="w-4 h-4" />}
-                  title={s.sectionTemplates}
+                  title={sidebarMessages.sectionTemplates}
                   addOn={dragHandle}
                 />
                 <DashboardSection.Body className="!gap-0.5 !p-2">
@@ -792,7 +800,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.markdownWidgets}
+                        label={sidebarMessages.markdownWidgets}
                         active={isActive}
                       />
                     )}
@@ -801,7 +809,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.footerBuilder}
+                        label={sidebarMessages.footerBuilder}
                         active={isActive}
                       />
                     )}
@@ -813,7 +821,7 @@ export function Sidebar({
               <DashboardSection>
                 <DashboardSection.Header
                   icon={<ChartLineUpIcon weight="duotone" className="w-4 h-4" />}
-                  title={s.sectionAnalytics}
+                  title={sidebarMessages.sectionAnalytics}
                   addOn={dragHandle}
                 />
                 <DashboardSection.Body className="!gap-0.5 !p-2">
@@ -821,7 +829,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<ChartBarIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.analytics}
+                        label={sidebarMessages.analytics}
                         active={isActive}
                       />
                     )}
@@ -833,7 +841,7 @@ export function Sidebar({
               <DashboardSection>
                 <DashboardSection.Header
                   icon={<GearSixIcon weight="duotone" className="w-4 h-4" />}
-                  title={s.sectionSystem}
+                  title={sidebarMessages.sectionSystem}
                   addOn={dragHandle}
                 />
                 <DashboardSection.Body className="!gap-0.5 !p-2">
@@ -841,7 +849,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<UsersThreeIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.users}
+                        label={sidebarMessages.users}
                         badge={users.length}
                         active={isActive}
                       />
@@ -851,7 +859,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.media}
+                        label={sidebarMessages.media}
                         badge={media.length}
                         active={isActive}
                       />
@@ -861,7 +869,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<SlidersHorizontalIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.systemSettings}
+                        label={sidebarMessages.systemSettings}
                         active={isActive}
                       />
                     )}
@@ -870,7 +878,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.socialMediaAccounts}
+                        label={sidebarMessages.socialMediaAccounts}
                         active={isActive}
                       />
                     )}
@@ -879,7 +887,7 @@ export function Sidebar({
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<BugIcon weight="duotone" className="w-4 h-4" />}
-                        label={s.backgroundErrors}
+                        label={sidebarMessages.backgroundErrors}
                         active={isActive}
                       />
                     )}

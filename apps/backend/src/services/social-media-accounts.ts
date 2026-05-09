@@ -1,6 +1,7 @@
 import {
   BLUESKY_FIXED_MAX_POST_CHARACTERS,
   MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+  POSTING_PLATFORM_KEYS,
   type MastodonVisibility,
   type SocialMediaAccount,
   type SocialMediaAccountCreateInput,
@@ -24,7 +25,7 @@ import {
   updateAccount,
 } from "../repositories/social-media-accounts.js";
 
-const POSTING_PLATFORMS = new Set<SocialMediaPlatformKey>(["mastodon", "bluesky"]);
+const POSTING_PLATFORMS = new Set<SocialMediaPlatformKey>(POSTING_PLATFORM_KEYS);
 
 function normalizeInstanceUrl(raw: string): string {
   const url = new URL(raw);
