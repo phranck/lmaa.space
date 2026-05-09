@@ -153,6 +153,16 @@ publicRoutes.post(
           },
         });
       }
+      if (urlCheck.status === "blocked") {
+        c.status(409);
+        return c.json({
+          error: {
+            message: "Diese Shop-URL kann nicht eingereicht werden.",
+            status: "blocked",
+            messageMarkdown: urlCheck.messageMarkdown,
+          },
+        });
+      }
       if (urlCheck.status === "published") {
         c.status(409);
         return c.json({

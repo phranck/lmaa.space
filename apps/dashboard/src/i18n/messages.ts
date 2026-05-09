@@ -1092,6 +1092,7 @@ export interface DashboardMessages {
     settings: {
       title: string;
       notificationsTab: string;
+      domainAlertsTab: string;
       newShopSubmission: {
         title: string;
         recipientLabel: string;
@@ -1101,6 +1102,42 @@ export interface DashboardMessages {
         templateLoading: string;
         hint: string;
         requireTemplateHint: string;
+      };
+      domainAlerts: {
+        title: string;
+        hint: string;
+        newRule: string;
+        emptyTitle: string;
+        emptyHint: string;
+        active: string;
+        inactive: string;
+        defaultName: string;
+        nameLabel: string;
+        domainsLabel: string;
+        domainsHint: string;
+        messageLabel: string;
+        messageHint: string;
+        enabledLabel: string;
+        deleteRule: string;
+        editRule: string;
+        noSelection: string;
+        validationError: string;
+        nameRequired: string;
+        domainsRequired: string;
+        messageRequired: string;
+        domainCountLabel: string;
+        moveUp: string;
+        moveDown: string;
+        loadingEditor: string;
+        createRule: string;
+        saveRule: string;
+        saveError: string;
+        dialogCreateTitle: string;
+        dialogEditTitle: string;
+        tableColumnName: string;
+        tableColumnDomains: string;
+        tableColumnStatus: string;
+        tableColumnActions: string;
       };
     };
     backgroundErrors: {
@@ -1717,8 +1754,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         iconsLabel: "Icons (Reihenfolge per Drag)",
         iconsEmpty:
           'Keine Footer-fähigen Accounts. Lege unter Social Media einen an und aktiviere „Im Footer anzeigen".',
-        spacerHint:
-          "Schiebt nachfolgende Blöcke in der Spalte ans Ende — wie ein SwiftUI-Spacer.",
+        spacerHint: "Schiebt nachfolgende Blöcke in der Spalte ans Ende — wie ein SwiftUI-Spacer.",
         styleOptions: {
           filled: "Gefüllt",
           outline: "Outline",
@@ -2183,13 +2219,15 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Social Media Accounts",
       editAccount: "Account bearbeiten",
       noAccounts: "Keine Accounts konfiguriert.",
-      noAccountsHint: "Hinterlege einen Social Media Account für Footer-Links oder automatische Postings.",
+      noAccountsHint:
+        "Hinterlege einen Social Media Account für Footer-Links oder automatische Postings.",
       tokenStored: "Token hinterlegt",
       tokenMissing: "Kein Token",
       tokenRequired: "Bitte einen Access Token hinterlegen.",
       saveError: "Fehler beim Speichern.",
       tokenInvalid: "Der Access Token wurde von der Mastodon-Instanz abgelehnt.",
-      instanceUnreachable: "Die Mastodon-Instanz ist nicht erreichbar. Bitte die Instanz-URL prüfen.",
+      instanceUnreachable:
+        "Die Mastodon-Instanz ist nicht erreichbar. Bitte die Instanz-URL prüfen.",
       deleteAccount: "Account löschen?",
       deleteConfirm: "Diesen Account wirklich löschen?",
       accessTokenPlaceholder: "Mastodon User Access Token",
@@ -2242,8 +2280,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         handleLabel: "Handle oder Email",
         appPasswordLabel: "Passwort",
         appPasswordKeepHint: "leer lassen, um das aktuelle Passwort zu behalten",
-        appPasswordRecommendation:
-          "App-Passwort empfohlen — sicherer und 2FA-kompatibel.",
+        appPasswordRecommendation: "App-Passwort empfohlen — sicherer und 2FA-kompatibel.",
         appPasswordSettingsLink: "App-Passwort in BlueSky erstellen",
         activeLabel: "Aktiv",
         conflictError: "Ein BlueSky Account ist bereits konfiguriert.",
@@ -2263,6 +2300,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       settings: {
         title: "Einstellungen",
         notificationsTab: "Benachrichtigungen",
+        domainAlertsTab: "Domain-Alerts",
         newShopSubmission: {
           title: "Neuer Shop-Vorschlag",
           recipientLabel: "Empfänger",
@@ -2273,6 +2311,42 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           hint: "Wird verschickt, sobald ein neuer Shop-Vorschlag eingeht.",
           requireTemplateHint:
             "Bitte zuerst ein Template wählen, um die Benachrichtigung zu aktivieren.",
+        },
+        domainAlerts: {
+          title: "Submission Domain-Alerts",
+          hint: "Aktive Regeln werden vor der normalen Duplikatprüfung der Reihe nach gegen die eingereichte Shop-Domain geprüft.",
+          newRule: "Neuer Domain-Alert",
+          emptyTitle: "Noch keine Regeln.",
+          emptyHint: "Lege die erste Domainliste mit zugehöriger Markdown-Meldung an.",
+          active: "aktiv",
+          inactive: "aus",
+          defaultName: "Neue Domain-Regel",
+          nameLabel: "Name",
+          domainsLabel: "Domains",
+          domainsHint: "Kommagetrennt, z.B. amazon.de, amazon.com, amzn.to",
+          messageLabel: "Meldung",
+          messageHint: "Diese Markdown-Meldung erscheint im öffentlichen Formular als Alert.",
+          enabledLabel: "Aktiviert",
+          deleteRule: "Löschen",
+          editRule: "Bearbeiten",
+          noSelection: "Wähle links eine Regel oder lege eine neue an.",
+          validationError: "Bitte prüfe die markierten Angaben vor dem Speichern.",
+          nameRequired: "Bitte einen Namen angeben.",
+          domainsRequired: "Bitte mindestens eine gültige Domain angeben.",
+          messageRequired: "Bitte eine Markdown-Meldung angeben.",
+          domainCountLabel: "{count} Domains",
+          moveUp: "Nach oben",
+          moveDown: "Nach unten",
+          loadingEditor: "Editor lädt…",
+          createRule: "Anlegen",
+          saveRule: "Speichern",
+          saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
+          dialogCreateTitle: "{name} anlegen",
+          dialogEditTitle: "{name} bearbeiten",
+          tableColumnName: "Name",
+          tableColumnDomains: "Domains",
+          tableColumnStatus: "Status",
+          tableColumnActions: "",
         },
       },
       backgroundErrors: {
@@ -3402,8 +3476,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         handleLabel: "Handle or email",
         appPasswordLabel: "Password",
         appPasswordKeepHint: "leave empty to keep the current password",
-        appPasswordRecommendation:
-          "App password recommended — safer and 2FA-compatible.",
+        appPasswordRecommendation: "App password recommended — safer and 2FA-compatible.",
         appPasswordSettingsLink: "Create an app password on BlueSky",
         activeLabel: "Active",
         conflictError: "A BlueSky account is already configured.",
@@ -3423,6 +3496,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       settings: {
         title: "Settings",
         notificationsTab: "Notifications",
+        domainAlertsTab: "Domain Alerts",
         newShopSubmission: {
           title: "New shop suggestion",
           recipientLabel: "Recipient",
@@ -3432,6 +3506,42 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           templateLoading: "Loading templates…",
           hint: "Sent whenever a new shop suggestion arrives.",
           requireTemplateHint: "Pick a template first to enable the notification.",
+        },
+        domainAlerts: {
+          title: "Submission Domain Alerts",
+          hint: "Active rules are checked in order against the submitted shop domain before the normal duplicate lookup.",
+          newRule: "New Domain Alert",
+          emptyTitle: "No rules yet.",
+          emptyHint: "Create the first domain list with its markdown message.",
+          active: "active",
+          inactive: "off",
+          defaultName: "New domain rule",
+          nameLabel: "Name",
+          domainsLabel: "Domains",
+          domainsHint: "Comma-separated, e.g. amazon.de, amazon.com, amzn.to",
+          messageLabel: "Message",
+          messageHint: "This markdown message appears as an alert in the public form.",
+          enabledLabel: "Enabled",
+          deleteRule: "Delete",
+          editRule: "Edit",
+          noSelection: "Select a rule on the left or create a new one.",
+          validationError: "Please check the highlighted fields before saving.",
+          nameRequired: "Please enter a name.",
+          domainsRequired: "Please enter at least one valid domain.",
+          messageRequired: "Please enter a markdown message.",
+          domainCountLabel: "{count} domains",
+          moveUp: "Move up",
+          moveDown: "Move down",
+          loadingEditor: "Loading editor…",
+          createRule: "Create",
+          saveRule: "Save",
+          saveError: "Error saving. Please try again.",
+          dialogCreateTitle: "Create {name}",
+          dialogEditTitle: "Edit {name}",
+          tableColumnName: "Name",
+          tableColumnDomains: "Domains",
+          tableColumnStatus: "Status",
+          tableColumnActions: "",
         },
       },
       backgroundErrors: {

@@ -47,13 +47,19 @@ const envMock = vi.hoisted(() => ({
   env: { NODE_ENV: "development", IP_HASH_SALT: "test-salt-1234567890" },
 }));
 
+const appSettingsMocks = vi.hoisted(() => ({
+  getSetting: vi.fn(),
+}));
+
 vi.mock("../repositories/public.js", () => publicRepoMocks);
 vi.mock("../repositories/public-filtered.js", () => filteredRepoMocks);
 vi.mock("../repositories/headquarters.js", () => headquartersMocks);
+vi.mock("../repositories/app-settings.js", () => appSettingsMocks);
 vi.mock("../middleware/cache.js", () => cacheMocks);
 vi.mock("../config/env.js", () => envMock);
 vi.mock("../lib/result.js", async (importOriginal) => importOriginal());
 
+import { matchesDomainAlertRule } from "../services/domain-alert-rules.js";
 import {
   createManagedDeadLinkReport,
   createManagedShopConcernReport,
@@ -65,13 +71,31 @@ import {
   getManagedPublicStats,
   getPublicFilterOptions,
   hashIp,
-  isAmazonStoreHostname,
   normalizeShopHostname,
   searchFilteredPublicCatalog,
   searchManagedPublicCatalog,
   toggleShopLike,
   validateShopUrl,
 } from "../services/public.js";
+
+const DOMAIN_ALERT_MESSAGE =
+  "Da hatte wohl jemand bereits die gleiche Idee! Der Shop [Amazon](https://www.youtube.com/watch?v=dQw4w9WgXcQ) ist schon eingetragen.";
+
+function mockAmazonDomainAlertRule() {
+  appSettingsMocks.getSetting.mockResolvedValue(
+    JSON.stringify({
+      rules: [
+        {
+          id: "amazon-rickroll",
+          name: "Amazon URLs",
+          domainsText: "amazon.de, amazon.com, amazon.co.uk, amzn.to, amzn.eu",
+          messageMarkdown: DOMAIN_ALERT_MESSAGE,
+          isActive: true,
+        },
+      ],
+    }),
+  );
+}
 
 describe("normalizeShopHostname", () => {
   it("extracts root domain from full URL", () => {
@@ -289,38 +313,51 @@ describe("searchManagedPublicCatalog", () => {
   });
 });
 
-describe("isAmazonStoreHostname", () => {
-  it("matches plain Amazon storefront domains", () => {
-    expect(isAmazonStoreHostname("amazon.de")).toBe(true);
-    expect(isAmazonStoreHostname("amazon.com")).toBe(true);
-    expect(isAmazonStoreHostname("amazon.co.uk")).toBe(true);
-    expect(isAmazonStoreHostname("amazon.com.br")).toBe(true);
-    expect(isAmazonStoreHostname("amazon.co.jp")).toBe(true);
+describe("matchesDomainAlertRule", () => {
+  const rule = {
+    id: "amazon-rickroll",
+    name: "Amazon URLs",
+    domainsText: "amazon.de, amazon.com, amazon.co.uk, amzn.to, amzn.eu",
+    messageMarkdown: DOMAIN_ALERT_MESSAGE,
+    isActive: true,
+  };
+
+  it("matches configured domains and subdomains", () => {
+    expect(matchesDomainAlertRule("amazon.de", "amazon.de", rule)).toBe(true);
+    expect(matchesDomainAlertRule("kindle.amazon.de", "amazon.de", rule)).toBe(true);
+    expect(matchesDomainAlertRule("smile.amazon.com", "amazon.com", rule)).toBe(true);
   });
 
-  it("matches Amazon shorteners", () => {
-    expect(isAmazonStoreHostname("amzn.to")).toBe(true);
-    expect(isAmazonStoreHostname("amzn.eu")).toBe(true);
-  });
-
-  it("matches subdomains of Amazon storefronts", () => {
-    expect(isAmazonStoreHostname("kindle.amazon.de")).toBe(true);
-    expect(isAmazonStoreHostname("smile.amazon.com")).toBe(true);
+  it("matches configured shortener domains", () => {
+    expect(matchesDomainAlertRule("amzn.to", "amzn.to", rule)).toBe(true);
+    expect(matchesDomainAlertRule("www.amzn.eu", "amzn.eu", rule)).toBe(true);
   });
 
   it("is case-insensitive", () => {
-    expect(isAmazonStoreHostname("AMAZON.DE")).toBe(true);
+    expect(matchesDomainAlertRule("AMAZON.DE", "amazon.de", rule)).toBe(true);
   });
 
-  it("does not match unrelated domains containing the word amazon", () => {
-    expect(isAmazonStoreHostname("notamazon.com")).toBe(false);
-    expect(isAmazonStoreHostname("amazon.example.com")).toBe(false);
-    expect(isAmazonStoreHostname("example.com")).toBe(false);
+  it("does not match unrelated domains containing the configured label", () => {
+    expect(matchesDomainAlertRule("notamazon.com", "notamazon.com", rule)).toBe(false);
+    expect(matchesDomainAlertRule("amazon.example.com", "example.com", rule)).toBe(false);
+    expect(matchesDomainAlertRule("example.com", "example.com", rule)).toBe(false);
+  });
+
+  it("ignores disabled rules", () => {
+    expect(
+      matchesDomainAlertRule("amazon.de", "amazon.de", {
+        ...rule,
+        isActive: false,
+      }),
+    ).toBe(false);
   });
 });
 
 describe("validateShopUrl", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    appSettingsMocks.getSetting.mockResolvedValue(null);
+  });
 
   it("returns available for empty URL", async () => {
     const result = await validateShopUrl(undefined);
@@ -343,26 +380,28 @@ describe("validateShopUrl", () => {
     });
   });
 
-  it("returns published with RickRoll for Amazon URLs without DB lookup", async () => {
+  it("returns blocked with configured alert for matching domains without DB lookup", async () => {
+    mockAmazonDomainAlertRule();
+
     const result = await validateShopUrl("https://www.amazon.de/dp/B000123");
 
     expect(result).toEqual({
-      status: "published",
-      shopName: "Amazon",
-      shopUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      status: "blocked",
+      messageMarkdown: DOMAIN_ALERT_MESSAGE,
     });
     expect(publicRepoMocks.findShopByDomain).not.toHaveBeenCalled();
     expect(publicRepoMocks.findRejectedSubmissionByDomain).not.toHaveBeenCalled();
     expect(publicRepoMocks.findPendingSubmissionByDomain).not.toHaveBeenCalled();
   });
 
-  it("returns published with RickRoll for amzn.to short links", async () => {
+  it("returns blocked with configured alert for short links", async () => {
+    mockAmazonDomainAlertRule();
+
     const result = await validateShopUrl("https://amzn.to/3xyz");
 
     expect(result).toEqual({
-      status: "published",
-      shopName: "Amazon",
-      shopUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      status: "blocked",
+      messageMarkdown: DOMAIN_ALERT_MESSAGE,
     });
   });
 
