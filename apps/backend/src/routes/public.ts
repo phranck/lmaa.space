@@ -272,7 +272,7 @@ publicRoutes.post(
 const likeBodySchema = z.object({
   liked: z.boolean(),
   token: z.string().min(1),
-  fingerprint: z.string().min(1),
+  fingerprint: z.string().trim().min(16).max(256),
 });
 
 publicRoutes.post(
@@ -285,9 +285,10 @@ publicRoutes.post(
       return fail(c, 400, "Ungültige Shop-ID.");
     }
 
-    const { liked, token } = c.req.valid("json");
+    const { liked, token, fingerprint } = c.req.valid("json");
+    const ip = resolveClientIp(c.req.raw.headers);
 
-    const result = await toggleShopLike(id, liked, token);
+    const result = await toggleShopLike(id, liked, token, fingerprint, ip);
     if (!result.ok) {
       if (result.reason === "expired_token") {
         return fail(c, 403, "Der Token ist abgelaufen. Bitte lade die Seite neu.");

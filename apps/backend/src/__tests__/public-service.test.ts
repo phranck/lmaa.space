@@ -20,6 +20,7 @@ const publicRepoMocks = vi.hoisted(() => ({
   listPublishedContentPages: vi.fn(),
   searchPublicCategoriesByEscapedQuery: vi.fn(),
   searchPublicShops: vi.fn(),
+  setShopLikeState: vi.fn(),
 }));
 
 const filteredRepoMocks = vi.hoisted(() => ({
@@ -68,6 +69,7 @@ import {
   normalizeShopHostname,
   searchFilteredPublicCatalog,
   searchManagedPublicCatalog,
+  toggleShopLike,
   validateShopUrl,
 } from "../services/public.js";
 
@@ -164,6 +166,48 @@ describe("getManagedPublicShopById", () => {
       ok: true,
       data: { id: 2, name: "Shop", headquarters: null, likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/) },
     });
+  });
+});
+
+describe("toggleShopLike", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("rejects an invalid token before touching like state", async () => {
+    const result = await toggleShopLike(1, true, "invalid", "fingerprint-123456", "127.0.0.1");
+
+    expect(result).toEqual({ ok: false, reason: "invalid_token" });
+    expect(publicRepoMocks.setShopLikeState).not.toHaveBeenCalled();
+  });
+
+  it("sets idempotent like state using a server-derived visitor key", async () => {
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue({ id: 1, name: "Shop" });
+    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
+
+    const shop = await getManagedPublicShopById(1);
+    const token = shop.ok ? shop.data.likeToken : "";
+    publicRepoMocks.setShopLikeState.mockResolvedValue("liked");
+
+    const result = await toggleShopLike(1, true, token, "fingerprint-123456", "127.0.0.1");
+
+    expect(result).toEqual({ ok: true });
+    expect(publicRepoMocks.setShopLikeState).toHaveBeenCalledWith(
+      1,
+      expect.stringMatching(/^[0-9a-f]{64}$/),
+      true,
+    );
+  });
+
+  it("returns not_found when the repository cannot find a public shop", async () => {
+    publicRepoMocks.getFullPublicShopById.mockResolvedValue({ id: 1, name: "Shop" });
+    headquartersMocks.loadShopHeadquartersMap.mockResolvedValue(new Map());
+
+    const shop = await getManagedPublicShopById(1);
+    const token = shop.ok ? shop.data.likeToken : "";
+    publicRepoMocks.setShopLikeState.mockResolvedValue("not_found");
+
+    const result = await toggleShopLike(1, false, token, "fingerprint-123456", "127.0.0.1");
+
+    expect(result).toEqual({ ok: false, reason: "not_found" });
   });
 });
 

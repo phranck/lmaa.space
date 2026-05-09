@@ -15,13 +15,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import {
-  POSTING_PLATFORM_KEYS,
-  SOCIAL_MEDIA_POST_TEMPLATE_SCOPES,
-  type FooterConfig,
-  type FormConfigPayload,
-  type MarkdownWidgetsConfig,
-} from "@lmaa/contracts";
+import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
 function quotedTextSql(values: readonly string[]) {
   return sql.join(
@@ -30,8 +24,8 @@ function quotedTextSql(values: readonly string[]) {
   );
 }
 
-const POSTING_PLATFORM_SQL = quotedTextSql(POSTING_PLATFORM_KEYS);
-const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = quotedTextSql(SOCIAL_MEDIA_POST_TEMPLATE_SCOPES);
+const POSTING_PLATFORM_SQL = quotedTextSql(["mastodon", "bluesky"]);
+const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = quotedTextSql(["submission", "category"]);
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -93,6 +87,24 @@ export const shops = pgTable(
       "shops_visibility_check",
       sql`${table.visibility} IN ('public', 'onhold', 'deleted', 'rejected')`,
     ),
+  ],
+);
+
+/**
+ * Idempotent public like state per shop and anonymous visitor key.
+ */
+export const shopLikes = pgTable(
+  "shop_likes",
+  {
+    shopId: integer("shop_id")
+      .notNull()
+      .references(() => shops.id, { onDelete: "cascade" }),
+    visitorKey: text("visitor_key").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.shopId, table.visitorKey] }),
+    index("idx_shop_likes_visitor").on(table.visitorKey),
   ],
 );
 
@@ -445,6 +457,10 @@ export type Shop = typeof shops.$inferSelect;
  * Inferred insert type for `shops`.
  */
 export type ShopInsert = typeof shops.$inferInsert;
+/**
+ * Inferred select type for `shop_likes`.
+ */
+export type ShopLike = typeof shopLikes.$inferSelect;
 /**
  * Inferred select type for `shop_categories`.
  */

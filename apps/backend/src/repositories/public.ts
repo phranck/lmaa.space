@@ -10,6 +10,7 @@ import {
   navItems,
   shopCategories,
   shopConcernReports,
+  shopLikes,
   shops,
   submissionCategories,
   submissions,
@@ -605,32 +606,62 @@ export async function insertShopConcernReport(
   await db.insert(shopConcernReports).values({ shopId, reason, ipHash });
 }
 
-/**
- * Atomically increments the like counter for a public shop.
- *
- * @param shopId - Shop id.
- * @returns `true` if the shop was found and updated, `false` otherwise.
- */
-export async function incrementShopLikeCount(shopId: number): Promise<boolean> {
-  const result = await db
-    .update(shops)
-    .set({ likeCount: sql`like_count + 1` })
-    .where(and(eq(shops.id, shopId), eq(shops.visibility, "public")))
-    .returning({ id: shops.id });
-  return result.length > 0;
-}
+export type ShopLikeTransition = "liked" | "unliked" | "unchanged" | "not_found";
 
 /**
- * Atomically decrements the like counter for a public shop (floored at 0).
+ * Applies an idempotent like transition for one public shop and visitor.
+ *
+ * Counter changes are derived from inserting/deleting the `shop_likes` row so
+ * repeated requests with the same desired state do not inflate or deflate counts.
  *
  * @param shopId - Shop id.
- * @returns `true` if the shop was found and updated, `false` otherwise.
+ * @param visitorKey - Server-derived anonymous visitor key.
+ * @param liked - Desired like state.
+ * @returns Transition result.
  */
-export async function decrementShopLikeCount(shopId: number): Promise<boolean> {
-  const result = await db
-    .update(shops)
-    .set({ likeCount: sql`GREATEST(like_count - 1, 0)` })
-    .where(and(eq(shops.id, shopId), eq(shops.visibility, "public")))
-    .returning({ id: shops.id });
-  return result.length > 0;
+export async function setShopLikeState(
+  shopId: number,
+  visitorKey: string,
+  liked: boolean,
+): Promise<ShopLikeTransition> {
+  return db.transaction(async (tx) => {
+    const [shop] = await tx
+      .select({ id: shops.id })
+      .from(shops)
+      .where(and(eq(shops.id, shopId), eq(shops.visibility, "public")))
+      .limit(1);
+
+    if (!shop) return "not_found";
+
+    if (liked) {
+      const inserted = await tx
+        .insert(shopLikes)
+        .values({ shopId, visitorKey })
+        .onConflictDoNothing()
+        .returning({ shopId: shopLikes.shopId });
+
+      if (inserted.length === 0) return "unchanged";
+
+      await tx
+        .update(shops)
+        .set({ likeCount: sql`like_count + 1` })
+        .where(eq(shops.id, shopId));
+
+      return "liked";
+    }
+
+    const deleted = await tx
+      .delete(shopLikes)
+      .where(and(eq(shopLikes.shopId, shopId), eq(shopLikes.visitorKey, visitorKey)))
+      .returning({ shopId: shopLikes.shopId });
+
+    if (deleted.length === 0) return "unchanged";
+
+    await tx
+      .update(shops)
+      .set({ likeCount: sql`GREATEST(like_count - 1, 0)` })
+      .where(eq(shops.id, shopId));
+
+    return "unliked";
+  });
 }
