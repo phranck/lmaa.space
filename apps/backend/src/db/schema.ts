@@ -15,7 +15,23 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
+import {
+  POSTING_PLATFORM_KEYS,
+  SOCIAL_MEDIA_POST_TEMPLATE_SCOPES,
+  type FooterConfig,
+  type FormConfigPayload,
+  type MarkdownWidgetsConfig,
+} from "@lmaa/contracts";
+
+function quotedTextSql(values: readonly string[]) {
+  return sql.join(
+    values.map((value) => sql.raw(`'${value.replaceAll("'", "''")}'`)),
+    sql`, `,
+  );
+}
+
+const POSTING_PLATFORM_SQL = quotedTextSql(POSTING_PLATFORM_KEYS);
+const SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL = quotedTextSql(SOCIAL_MEDIA_POST_TEMPLATE_SCOPES);
 
 /**
  * Category taxonomy table used for catalog filtering and shop assignment.
@@ -610,7 +626,7 @@ export const socialMediaAccounts = pgTable(
     ),
     check(
       "social_media_accounts_can_post_platform",
-      sql`${table.canPost} = false OR ${table.platform} IN ('mastodon', 'bluesky')`,
+      sql`${table.canPost} = false OR ${table.platform} IN (${POSTING_PLATFORM_SQL})`,
     ),
     check(
       "social_media_accounts_can_post_token",
@@ -676,7 +692,7 @@ export const socialMediaPostTemplates = pgTable(
     ),
     check(
       "social_media_post_templates_scopes_valid",
-      sql`${table.scopes} <@ ARRAY['submission', 'category']::text[]`,
+      sql`${table.scopes} <@ ARRAY[${SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL}]::text[]`,
     ),
   ],
 );

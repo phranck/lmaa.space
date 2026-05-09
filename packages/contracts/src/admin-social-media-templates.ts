@@ -1,9 +1,14 @@
 import { z } from "zod";
 
-import { MASTODON_POST_TEMPLATE_VARIABLES, type MastodonPostTemplateVariable } from "./social-media-accounts.js";
+import {
+  MASTODON_POST_TEMPLATE_VARIABLES,
+  POSTING_PLATFORM_KEYS,
+  type MastodonPostTemplateVariable,
+  type PostingPlatformKey,
+} from "./social-media-accounts.js";
 
-export const SOCIAL_MEDIA_PLATFORMS = ["mastodon", "bluesky"] as const;
-export type SocialMediaPlatform = (typeof SOCIAL_MEDIA_PLATFORMS)[number];
+export const SOCIAL_MEDIA_PLATFORMS = POSTING_PLATFORM_KEYS;
+export type SocialMediaPlatform = PostingPlatformKey;
 
 export const SOCIAL_MEDIA_POST_TEMPLATE_SCOPES = ["submission", "category"] as const;
 export type SocialMediaPostTemplateScope = (typeof SOCIAL_MEDIA_POST_TEMPLATE_SCOPES)[number];
