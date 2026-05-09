@@ -2171,12 +2171,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       platformBluesky: "Bluesky",
       bodyMastodonLabel: "Mastodon-Beitrag",
       bodyBlueskyLabel: "Bluesky-Beitrag",
-      scopesLabel: "Scopes",
+      scopesLabel: "Bereiche",
       scopes: {
-        submission: "Submission",
+        submission: "Vorschlag",
         category: "Kategorie",
         helpText: "In welchen Dialogen darf dieses Template ausgewählt werden?",
-        validationMin: "Mindestens ein Scope erforderlich.",
+        validationMin: "Mindestens ein Bereich erforderlich.",
       },
     },
     socialMedia: {
