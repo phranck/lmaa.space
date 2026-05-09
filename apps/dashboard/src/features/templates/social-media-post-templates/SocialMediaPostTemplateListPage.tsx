@@ -64,6 +64,22 @@ export function SocialMediaPostTemplateListPage() {
         ),
       },
       {
+        id: "scopes",
+        header: m.scopesLabel,
+        cell: (template) => (
+          <div className="flex gap-1">
+            {template.scopes.map((scope) => (
+              <span
+                key={scope}
+                className="rounded-control bg-[var(--ds-bg-elevated)] px-2 py-0.5 text-xs text-[var(--ds-text-muted)]"
+              >
+                {m.scopes[scope]}
+              </span>
+            ))}
+          </div>
+        ),
+      },
+      {
         id: "createdAt",
         header: m.tableCreated,
         sortKey: (template) => template.createdAt,

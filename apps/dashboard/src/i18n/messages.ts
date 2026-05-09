@@ -1007,6 +1007,13 @@ export interface DashboardMessages {
     platformBluesky: string;
     bodyMastodonLabel: string;
     bodyBlueskyLabel: string;
+    scopesLabel: string;
+    scopes: {
+      submission: string;
+      category: string;
+      helpText: string;
+      validationMin: string;
+    };
   };
   socialMedia: {
     title: string;
@@ -2164,6 +2171,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       platformBluesky: "Bluesky",
       bodyMastodonLabel: "Mastodon-Beitrag",
       bodyBlueskyLabel: "Bluesky-Beitrag",
+      scopesLabel: "Scopes",
+      scopes: {
+        submission: "Submission",
+        category: "Kategorie",
+        helpText: "In welchen Dialogen darf dieses Template ausgewählt werden?",
+        validationMin: "Mindestens ein Scope erforderlich.",
+      },
     },
     socialMedia: {
       title: "Social Media Accounts",
@@ -3317,6 +3331,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       platformBluesky: "Bluesky",
       bodyMastodonLabel: "Mastodon body",
       bodyBlueskyLabel: "Bluesky body",
+      scopesLabel: "Scopes",
+      scopes: {
+        submission: "Submission",
+        category: "Category",
+        helpText: "In which dialogs can this template be selected?",
+        validationMin: "At least one scope is required.",
+      },
     },
     socialMedia: {
       title: "Social Media Accounts",
