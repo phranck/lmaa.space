@@ -36,8 +36,6 @@ import {
   getPublishedContentPageBySlug,
   getRejectionPageByToken,
   insertDeadLinkReport,
-  incrementShopLikeCount,
-  decrementShopLikeCount,
   insertShopConcernReport,
   listAllPublicShopsWithCategories,
   listPublicCategoriesWithShopCount,
@@ -46,6 +44,7 @@ import {
   listPublishedContentPages,
   searchPublicCategoriesByEscapedQuery,
   searchPublicShops,
+  setShopLikeState,
 } from "../repositories/public.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000;
@@ -118,6 +117,12 @@ export function hashIp(ip: string): string {
 
 const LIKE_TOKEN_MAX_AGE_S = 30 * 60;
 
+function deriveLikeVisitorKey(ip: string, fingerprint: string): string {
+  return createHmac("sha256", env.IP_HASH_SALT)
+    .update(`${hashIp(ip)}:${fingerprint.trim()}`)
+    .digest("hex");
+}
+
 /**
  * Generates a stateless HMAC challenge token for the like endpoint.
  *
@@ -174,17 +179,18 @@ export async function toggleShopLike(
   shopId: number,
   liked: boolean,
   token: string,
+  fingerprint: string,
+  ip: string,
 ): Promise<Result<Record<string, never>, "invalid_token" | "expired_token" | "not_found">> {
   const tokenResult = validateLikeToken(shopId, token);
   if (!tokenResult.valid) {
     return failure(tokenResult.reason === "expired" ? "expired_token" : "invalid_token");
   }
 
-  const updated = liked
-    ? await incrementShopLikeCount(shopId)
-    : await decrementShopLikeCount(shopId);
+  const visitorKey = deriveLikeVisitorKey(ip, fingerprint);
+  const transition = await setShopLikeState(shopId, visitorKey, liked);
 
-  if (!updated) return failure("not_found");
+  if (transition === "not_found") return failure("not_found");
   return success();
 }
 

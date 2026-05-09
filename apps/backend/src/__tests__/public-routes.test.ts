@@ -24,6 +24,7 @@ const publicServiceMocks = vi.hoisted(() => ({
   getPublicFilterOptions: vi.fn(),
   searchFilteredPublicCatalog: vi.fn(),
   searchManagedPublicCatalog: vi.fn(),
+  toggleShopLike: vi.fn(),
   validateShopUrl: vi.fn(),
 }));
 
@@ -267,6 +268,42 @@ describe("publicRoutes", () => {
       });
 
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe("POST /shops/:id/like", () => {
+    it("toggles likes with fingerprint and resolved client IP", async () => {
+      publicServiceMocks.toggleShopLike.mockResolvedValue({ ok: true, data: {} });
+
+      const res = await app.request("/shops/1/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          liked: true,
+          token: "token",
+          fingerprint: "fingerprint-123456",
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(publicServiceMocks.toggleShopLike).toHaveBeenCalledWith(
+        1,
+        true,
+        "token",
+        "fingerprint-123456",
+        "127.0.0.1",
+      );
+    });
+
+    it("rejects like requests without a usable fingerprint", async () => {
+      const res = await app.request("/shops/1/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: true, token: "token", fingerprint: "" }),
+      });
+
+      expect(res.status).toBe(400);
+      expect(publicServiceMocks.toggleShopLike).not.toHaveBeenCalled();
     });
   });
 

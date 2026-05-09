@@ -24,39 +24,46 @@ import {
   SiYoutube,
 } from "react-icons/si";
 
+import { SOCIAL_PLATFORM_KEYS, type SocialPlatformKey } from "@lmaa/shared";
+
 /** Definition of a social media platform including its display label and icon component. */
 export interface PlatformDef {
-  key: string;
+  key: SocialPlatformKey;
   label: string;
   icon: ComponentType<{ size?: number }>;
 }
 
+const PLATFORM_METADATA: Record<SocialPlatformKey, Omit<PlatformDef, "key">> = {
+  applepodcasts: { label: "Apple Podcasts", icon: SiApplepodcasts },
+  mastodon: { label: "Mastodon", icon: SiMastodon },
+  bluesky: { label: "Bluesky", icon: SiBluesky },
+  instagram: { label: "Instagram", icon: SiInstagram },
+  facebook: { label: "Facebook", icon: FaFacebook },
+  whatsapp: { label: "WhatsApp", icon: SiWhatsapp },
+  signal: { label: "Signal", icon: SiSignal },
+  threads: { label: "Threads", icon: SiThreads },
+  tiktok: { label: "TikTok", icon: SiTiktok },
+  x: { label: "Twitter", icon: FaTwitter },
+  youtube: { label: "YouTube", icon: SiYoutube },
+  twitch: { label: "Twitch", icon: SiTwitch },
+  tumblr: { label: "Tumblr", icon: SiTumblr },
+  linkedin: { label: "LinkedIn", icon: SiLinkedin },
+  pinterest: { label: "Pinterest", icon: SiPinterest },
+  patreon: { label: "Patreon", icon: SiPatreon },
+  mixcloud: { label: "Mixcloud", icon: SiMixcloud },
+  soundcloud: { label: "SoundCloud", icon: SiSoundcloud },
+  spotify: { label: "Spotify", icon: SiSpotify },
+  github: { label: "GitHub", icon: SiGithub },
+  gitlab: { label: "GitLab", icon: SiGitlab },
+  codeberg: { label: "Codeberg", icon: SiCodeberg },
+  website: { label: "Website", icon: GlobeIcon },
+};
+
 /** Ordered list of all supported social media platforms with their display metadata. */
-export const PLATFORMS: PlatformDef[] = [
-  { key: "applepodcasts", label: "Apple Podcasts", icon: SiApplepodcasts },
-  { key: "mastodon", label: "Mastodon", icon: SiMastodon },
-  { key: "bluesky", label: "Bluesky", icon: SiBluesky },
-  { key: "instagram", label: "Instagram", icon: SiInstagram },
-  { key: "facebook", label: "Facebook", icon: FaFacebook },
-  { key: "whatsapp", label: "WhatsApp", icon: SiWhatsapp },
-  { key: "signal", label: "Signal", icon: SiSignal },
-  { key: "threads", label: "Threads", icon: SiThreads },
-  { key: "tiktok", label: "TikTok", icon: SiTiktok },
-  { key: "x", label: "Twitter", icon: FaTwitter },
-  { key: "youtube", label: "YouTube", icon: SiYoutube },
-  { key: "twitch", label: "Twitch", icon: SiTwitch },
-  { key: "tumblr", label: "Tumblr", icon: SiTumblr },
-  { key: "linkedin", label: "LinkedIn", icon: SiLinkedin },
-  { key: "pinterest", label: "Pinterest", icon: SiPinterest },
-  { key: "patreon", label: "Patreon", icon: SiPatreon },
-  { key: "mixcloud", label: "Mixcloud", icon: SiMixcloud },
-  { key: "soundcloud", label: "SoundCloud", icon: SiSoundcloud },
-  { key: "spotify", label: "Spotify", icon: SiSpotify },
-  { key: "github", label: "GitHub", icon: SiGithub },
-  { key: "gitlab", label: "GitLab", icon: SiGitlab },
-  { key: "codeberg", label: "Codeberg", icon: SiCodeberg },
-  { key: "website", label: "Website", icon: GlobeIcon },
-];
+export const PLATFORMS: PlatformDef[] = SOCIAL_PLATFORM_KEYS.map((key) => ({
+  key,
+  ...PLATFORM_METADATA[key],
+}));
 
 /** Map from platform key to its `PlatformDef` for O(1) lookups. */
-export const PLATFORM_MAP = new Map(PLATFORMS.map((p) => [p.key, p]));
+export const PLATFORM_MAP: ReadonlyMap<string, PlatformDef> = new Map(PLATFORMS.map((p) => [p.key, p]));

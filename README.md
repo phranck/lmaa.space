@@ -35,6 +35,14 @@ Die Shop- und Kategorie-Daten stehen über ein öffentliches REST-API zur Verfü
 
 Das Projekt ist als npm-Monorepo aufgebaut: Astro SSR + React Islands für die öffentliche Seite, ein React-Dashboard für die Administration, ein Hono-Backend mit PostgreSQL/Drizzle ORM und geteilte Pakete für Typen, API-Schemas und UI-Komponenten.
 
+## Paketgrenzen
+
+- `@lmaa/shared` enthält app-übergreifende Domain-Typen, Konstanten und Utility-Funktionen ohne App-spezifische Abhängigkeiten.
+- `@lmaa/contracts` enthält Zod-Schemas und DTO-Verträge. Es darf auf `@lmaa/shared` aufbauen, aber nicht auf Apps oder UI-Code.
+- `@lmaa/ui` enthält wiederverwendbare React-Komponenten und exportiert nutzbare Unterpfade über `packages/ui/package.json`.
+- Apps importieren geteilte UI nur über Package-Exports wie `@lmaa/ui` oder `@lmaa/ui/region-select`, nicht über relative Pfade nach `packages/*/src`.
+- Jeder Workspace deklariert seine direkten Runtime-Imports im eigenen `package.json`.
+
 ## Fehler melden und Anregungen
 
 Fehler, Anregungen und Verbesserungsvorschläge sind willkommen. Bitte nutze dafür die [GitHub Issues](https://github.com/phranck/lmaa.space/issues).
