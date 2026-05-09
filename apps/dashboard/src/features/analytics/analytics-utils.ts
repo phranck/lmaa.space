@@ -246,9 +246,9 @@ export function formatDuration(
   units: { secondsShort: string; minutesShort: string },
 ): string {
   if (seconds < 60) return `${seconds}${units.secondsShort}`;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}${units.minutesShort} ${s}${units.secondsShort}`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}${units.minutesShort} ${remainingSeconds}${units.secondsShort}`;
 }
 
 export function formatLabel(x: string, period: UmamiPeriod, locale: DashboardLocale): string {
