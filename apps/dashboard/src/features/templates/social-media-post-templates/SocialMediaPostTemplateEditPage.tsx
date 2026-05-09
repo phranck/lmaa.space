@@ -10,9 +10,11 @@ import { useNavigate, useParams } from "react-router";
 import {
   BLUESKY_FIXED_MAX_POST_CHARACTERS,
   MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+  SOCIAL_MEDIA_POST_TEMPLATE_SCOPES,
   SOCIAL_MEDIA_POST_TEMPLATE_VARIABLES,
   type SocialMediaPlatform,
   type SocialMediaPostTemplateInput,
+  type SocialMediaPostTemplateScope,
 } from "@lmaa/contracts";
 
 const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
@@ -69,6 +71,7 @@ export function SocialMediaPostTemplateEditPage() {
   const [form, setForm] = useState<SocialMediaPostTemplateInput>({
     name: "",
     platforms: ["mastodon"],
+    scopes: ["submission"],
     bodyMastodon: "",
     bodyBluesky: null,
     isSystemTemplate: false,
@@ -96,11 +99,22 @@ export function SocialMediaPostTemplateEditPage() {
     });
   }
 
+  function toggleScope(s: SocialMediaPostTemplateScope, on: boolean) {
+    setForm((current) => {
+      const next = new Set(current.scopes);
+      if (on) next.add(s);
+      else next.delete(s);
+      if (next.size === 0) next.add(s);
+      return { ...current, scopes: Array.from(next) as SocialMediaPostTemplateScope[] };
+    });
+  }
+
   if (existing && existing.id !== syncedExistingId) {
     setSyncedExistingId(existing.id);
     setForm({
       name: existing.name,
       platforms: existing.platforms,
+      scopes: existing.scopes,
       bodyMastodon: existing.bodyMastodon,
       bodyBluesky: existing.bodyBluesky,
       isSystemTemplate: existing.isSystemTemplate,
@@ -111,9 +125,14 @@ export function SocialMediaPostTemplateEditPage() {
 
   function handleSave() {
     setError(null);
+    if (form.scopes.length === 0) {
+      setError(m.scopes.validationMin);
+      return;
+    }
     const payload: SocialMediaPostTemplateInput = {
       name: form.name.trim(),
       platforms: form.platforms,
+      scopes: form.scopes,
       bodyMastodon: form.bodyMastodon,
       bodyBluesky: form.bodyBluesky,
       isSystemTemplate: isOwner ? form.isSystemTemplate : undefined,
@@ -235,6 +254,23 @@ export function SocialMediaPostTemplateEditPage() {
                   <span>{m.platformBluesky}</span>
                 </label>
               </div>
+            </div>
+
+            <div className="mb-4 space-y-2 rounded-control border border-[var(--ds-border)] p-3 text-sm">
+              <span className="block text-[var(--ds-text-muted)]">{m.scopesLabel}</span>
+              <div className="flex items-center gap-4">
+                {SOCIAL_MEDIA_POST_TEMPLATE_SCOPES.map((scope) => (
+                  <label key={scope} className="flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={form.scopes.includes(scope)}
+                      onChange={(event) => toggleScope(scope, event.target.checked)}
+                    />
+                    <span>{m.scopes[scope]}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-[var(--ds-text-subtle)]">{m.scopes.helpText}</p>
             </div>
 
             {form.platforms.includes("mastodon") && (
