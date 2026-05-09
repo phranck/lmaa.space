@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import type { TemplateAssignment } from "@lmaa/contracts";
 import type { Category } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
@@ -80,11 +81,20 @@ export function useSaveCategory(categoryId: number | "new") {
   const isNew = categoryId === "new";
 
   return useMutation({
-    mutationFn: async ({ form, image }: { form: CategoryFormData; image: CategoryImageState }) => {
+    mutationFn: async ({
+      form,
+      image,
+      templateAssignments,
+    }: {
+      form: CategoryFormData;
+      image: CategoryImageState;
+      templateAssignments?: TemplateAssignment[];
+    }) => {
       let saved: Category;
 
       if (isNew) {
-        saved = await api.post<Category>("/admin/categories", form);
+        const body = templateAssignments?.length ? { ...form, templateAssignments } : form;
+        saved = await api.post<Category>("/admin/categories", body);
       } else {
         saved = await api.patch<Category>(`/admin/categories/${categoryId}`, form);
       }
