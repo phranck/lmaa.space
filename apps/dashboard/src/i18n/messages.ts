@@ -2173,7 +2173,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       bodyBlueskyLabel: "Bluesky-Beitrag",
       scopesLabel: "Bereiche",
       scopes: {
-        submission: "Vorschlag",
+        submission: "Shop Vorschlag",
         category: "Kategorie",
         helpText: "In welchen Dialogen darf dieses Template ausgewählt werden?",
         validationMin: "Mindestens ein Bereich erforderlich.",
@@ -3333,7 +3333,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       bodyBlueskyLabel: "Bluesky body",
       scopesLabel: "Scopes",
       scopes: {
-        submission: "Submission",
+        submission: "Shop submission",
         category: "Category",
         helpText: "In which dialogs can this template be selected?",
         validationMin: "At least one scope is required.",
