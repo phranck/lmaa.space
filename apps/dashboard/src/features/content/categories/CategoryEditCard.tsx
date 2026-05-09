@@ -7,6 +7,7 @@ import {
 } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { TemplateAssignment } from "@lmaa/contracts";
 import { FocalPointOverlay, FormLabel, formInputClass, useFocalPointDrag } from "@lmaa/ui";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
@@ -15,6 +16,7 @@ import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { renderCategoryPostPreview } from "@/features/content/categories/category-post-preview.ts";
 import {
   useAdminCategories,
   useSaveCategory,
@@ -24,6 +26,8 @@ import type {
   CategoryFormData,
   CategoryImageState,
 } from "@/features/content/hooks/useAdminCategories.ts";
+import { TemplateAssignmentsSection } from "@/features/social/components/TemplateAssignmentsSection.tsx";
+import { useSocialMediaPostTemplates } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
@@ -102,6 +106,11 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     deleted: false,
     loadError: false,
   });
+  const [templateAssignments, setTemplateAssignments] = useState<TemplateAssignment[]>([]);
+  const [hasPostOverflow, setHasPostOverflow] = useState(false);
+  const { data: categoryTemplates = [] } = useSocialMediaPostTemplates(
+    isNew ? "category" : undefined,
+  );
 
   // Populate form when editing existing category
   // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used -- sync only when category changes, not on every property update
@@ -135,7 +144,10 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   usePersistedTextareaHeight("cat-description", "categories:textarea:description");
 
   function handleSave(close = true) {
-    saveMutation.mutate({ form, image }, { onSuccess: close ? onSaved : showSaved });
+    saveMutation.mutate(
+      { form, image, templateAssignments: isNew ? templateAssignments : undefined },
+      { onSuccess: close ? onSaved : showSaved },
+    );
   }
 
   useKeyboardSave(() => {
@@ -211,7 +223,8 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         ? null
         : (category?.imageUrl ?? (category ? `/images/${category.slug}.jpg` : null))));
 
-  const canSave = form.name.trim() && form.slug.trim() && !saveMutation.isPending;
+  const canSave =
+    form.name.trim() && form.slug.trim() && !saveMutation.isPending && !hasPostOverflow;
 
   return (
     <>
@@ -335,6 +348,30 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 className={`${formInputClass} resize-y`}
               />
             </div>
+
+            {isNew && categoryTemplates.length > 0 && (
+              <TemplateAssignmentsSection
+                templates={categoryTemplates}
+                scope="category"
+                assignments={templateAssignments}
+                onChange={setTemplateAssignments}
+                open
+                previewBody={(template, platform) =>
+                  renderCategoryPostPreview(
+                    platform === "mastodon" ? template.bodyMastodon : template.bodyBluesky,
+                    {
+                      category: {
+                        name: form.name,
+                        slug: form.slug,
+                        description: form.description,
+                        imageUrl: image.previewUrl,
+                      },
+                    },
+                  )
+                }
+                onOverflowChange={setHasPostOverflow}
+              />
+            )}
           </div>
 
           <AlertDialog
@@ -348,7 +385,12 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
           </AlertDialog>
 
           {/* Footer buttons */}
-          <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
+          <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
+            {hasPostOverflow && (
+              <span className="mr-auto text-xs text-red-500">
+                {messages.socialMedia.approve.approveBlockedHint}
+              </span>
+            )}
             <button
               type="button"
               onClick={onClose}
