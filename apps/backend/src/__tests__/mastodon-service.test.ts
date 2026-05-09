@@ -124,24 +124,26 @@ describe("renderPlainTemplate", () => {
 // ---------------------------------------------------------------------------
 
 describe("idempotencyKey", () => {
-  let idempotencyKey: (
-    account: SocialMediaAccount,
-    template: SocialMediaPostTemplate,
-    submission: Submission,
-  ) => string;
+  let idempotencyKey: typeof import("../services/mastodon.js").__test__.idempotencyKey;
 
   beforeEach(async () => {
     const mod = await loadMastodonService();
     idempotencyKey = mod.__test__.idempotencyKey;
   });
 
+  function submissionContext(
+    submission: Submission,
+  ): import("../services/post-context.js").PostContext {
+    return { kind: "submission", submission, newShopId: 0, adminNote: "", categoryNames: [] };
+  }
+
   it("is stable: same account/template/submission produces the same hash", () => {
     const account = makeAccount(1);
     const template = makeTemplate();
     const submission = makeSubmission();
 
-    const key1 = idempotencyKey(account, template, submission);
-    const key2 = idempotencyKey(account, template, submission);
+    const key1 = idempotencyKey(account, template, submissionContext(submission));
+    const key2 = idempotencyKey(account, template, submissionContext(submission));
 
     expect(key1).toBe(key2);
     expect(key1).toHaveLength(64);
@@ -153,8 +155,8 @@ describe("idempotencyKey", () => {
     const submission1 = makeSubmission({ id: 1 });
     const submission2 = makeSubmission({ id: 2 });
 
-    expect(idempotencyKey(account, template, submission1)).not.toBe(
-      idempotencyKey(account, template, submission2),
+    expect(idempotencyKey(account, template, submissionContext(submission1))).not.toBe(
+      idempotencyKey(account, template, submissionContext(submission2)),
     );
   });
 
@@ -163,7 +165,7 @@ describe("idempotencyKey", () => {
     const template = makeTemplate({ id: 7 });
     const submission = makeSubmission({ id: 42 });
 
-    expect(idempotencyKey(account, template, submission)).toBe(
+    expect(idempotencyKey(account, template, submissionContext(submission))).toBe(
       "9dd284992fa598ed356c4f8a55cab4af5f492da78bd32b3097f3ee26182a5d27",
     );
   });
@@ -213,6 +215,7 @@ describe("postToMastodonAccount", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await postToMastodonAccount(account, template, {
+      kind: "submission",
       submission,
       newShopId: 99,
       adminNote: "",
@@ -247,6 +250,7 @@ describe("postToMastodonAccount", () => {
 
     await expect(
       postToMastodonAccount(account, template, {
+        kind: "submission",
         submission: makeSubmission(),
         newShopId: 5,
         adminNote: "",
@@ -269,6 +273,7 @@ describe("postToMastodonAccount", () => {
 
     await expect(
       postToMastodonAccount(account, template, {
+        kind: "submission",
         submission: makeSubmission(),
         newShopId: 5,
         adminNote: "",
@@ -282,6 +287,7 @@ describe("postToMastodonAccount", () => {
     const template = makeTemplate();
     await expect(
       postToMastodonAccount(account, template, {
+        kind: "submission",
         submission: makeSubmission(),
         newShopId: 1,
         adminNote: "",
@@ -295,6 +301,7 @@ describe("postToMastodonAccount", () => {
     const template = makeTemplate({ bodyMastodon: null });
     await expect(
       postToMastodonAccount(account, template, {
+        kind: "submission",
         submission: makeSubmission(),
         newShopId: 1,
         adminNote: "",
@@ -312,6 +319,7 @@ describe("postToMastodonAccount", () => {
 
     await expect(
       postToMastodonAccount(account, template, {
+        kind: "submission",
         submission: makeSubmission(),
         newShopId: 1,
         adminNote: "",
@@ -329,6 +337,7 @@ describe("postToMastodonAccount", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await postToMastodonAccount(account, template, {
+      kind: "submission",
       submission: makeSubmission(),
       newShopId: 1,
       adminNote: "",

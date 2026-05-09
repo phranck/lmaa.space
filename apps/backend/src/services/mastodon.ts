@@ -1,9 +1,7 @@
 import { createHash } from "node:crypto";
 
-import { encodeShopToken } from "@lmaa/shared";
-
-import { env } from "../config/env.js";
-import type { SocialMediaAccount, SocialMediaPostTemplate, Submission } from "../db/schema.js";
+import { type PostContext, buildPostVariables, idempotencyEntityKey } from "./post-context.js";
+import type { SocialMediaAccount, SocialMediaPostTemplate } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
 
 const VAR_REGEX = /\{\{(\w+)\}\}/g;
@@ -36,44 +34,27 @@ function resetRateLimitBuckets(): void {
   accountBuckets.clear();
 }
 
-export interface ApprovalPostContext {
-  submission: Submission;
-  newShopId: number;
-  adminNote: string;
-  categoryNames: string[];
-}
+/**
+ * @deprecated Use PostContext directly. Kept as alias during migration.
+ */
+export type ApprovalPostContext = Extract<PostContext, { kind: "submission" }>;
 
 function renderPlainTemplate(text: string, variables: Record<string, string>): string {
   return text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) => variables[name] ?? "");
 }
 
-export function buildApprovalPostVariables(
-  context: ApprovalPostContext,
-): Record<string, string> {
-  const { submission, newShopId, adminNote, categoryNames } = context;
-  return {
-    shopName: submission.shopName,
-    shopUrl: submission.shopUrl,
-    shopDescription: submission.description ?? "",
-    shopRegion: Array.isArray(submission.region) ? submission.region.join(", ") : "",
-    shopShipping: submission.shipping ?? "",
-    shopPickup: submission.pickup ?? "",
-    shopContactEmail: submission.contactEmail ?? "",
-    shopCategories: categoryNames.join(", "),
-    shopPageUrl: `${env.FRONTEND_URL}/shop/${encodeShopToken(newShopId)}`,
-    adminNote,
-    frontendUrl: env.FRONTEND_URL,
-    dashboardUrl: env.DASHBOARD_URL,
-  };
-}
+/**
+ * @deprecated Use buildPostVariables directly.
+ */
+export const buildApprovalPostVariables = buildPostVariables;
 
 function idempotencyKey(
   account: SocialMediaAccount,
   template: SocialMediaPostTemplate,
-  submission: Submission,
+  context: PostContext,
 ): string {
   return createHash("sha256")
-    .update(`submission:${submission.id}:template:${template.id}:account:${account.id}`)
+    .update(`${idempotencyEntityKey(context)}:template:${template.id}:account:${account.id}`)
     .digest("hex");
 }
 
@@ -85,7 +66,7 @@ function idempotencyKey(
 export async function postToMastodonAccount(
   account: SocialMediaAccount,
   template: SocialMediaPostTemplate,
-  context: ApprovalPostContext,
+  context: PostContext,
 ): Promise<void> {
   if (account.platform !== "mastodon") {
     throw new Error(`account ${account.id} is not a mastodon account`);
@@ -102,7 +83,7 @@ export async function postToMastodonAccount(
 
   const status = renderPlainTemplate(
     template.bodyMastodon,
-    buildApprovalPostVariables(context),
+    buildPostVariables(context),
   ).trim();
   if (!status) {
     logger.warn({ templateId: template.id }, "mastodon body rendered empty, skipping");
@@ -124,7 +105,7 @@ export async function postToMastodonAccount(
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       "Content-Type": "application/x-www-form-urlencoded",
-      "Idempotency-Key": idempotencyKey(account, template, context.submission),
+      "Idempotency-Key": idempotencyKey(account, template, context),
     },
     body,
   });

@@ -94,6 +94,7 @@ export async function reviewAdminSubmission(input: ReviewAdminSubmissionInput) {
   if (input.status === "approved" && newShop && input.templateAssignments?.length) {
     const categoryNames = await getSubmissionCategoryNames(input.id);
     const context: ApprovalPostContext = {
+      kind: "submission",
       submission,
       newShopId: newShop.id,
       adminNote: input.adminNote ?? "",

@@ -2,7 +2,7 @@ import { AtpAgent, RichText } from "@atproto/api";
 
 import { BLUESKY_PDS_URL } from "@lmaa/contracts";
 
-import { type ApprovalPostContext, buildApprovalPostVariables } from "./mastodon.js";
+import { type PostContext, buildPostVariables } from "./post-context.js";
 import type { SocialMediaAccount, SocialMediaPostTemplate } from "../db/schema.js";
 import { logger } from "../lib/logger.js";
 
@@ -39,7 +39,7 @@ function resetRateLimitBuckets(): void {
 export async function postToBlueskyAccount(
   account: SocialMediaAccount,
   template: SocialMediaPostTemplate,
-  context: ApprovalPostContext,
+  context: PostContext,
 ): Promise<void> {
   if (account.platform !== "bluesky") {
     throw new Error(`account ${account.id} is not a bluesky account`);
@@ -61,7 +61,7 @@ export async function postToBlueskyAccount(
 
   const text = renderPlainTemplate(
     template.bodyBluesky,
-    buildApprovalPostVariables(context),
+    buildPostVariables(context),
   ).trim();
   if (!text) {
     logger.warn({ templateId: template.id }, "bluesky body rendered empty, skipping");
