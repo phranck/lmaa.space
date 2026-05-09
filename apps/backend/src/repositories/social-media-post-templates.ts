@@ -1,4 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+
+import type { SocialMediaPostTemplateScope } from "@lmaa/contracts";
 
 import { db } from "../db/index.js";
 import {
@@ -7,8 +9,16 @@ import {
   socialMediaPostTemplates,
 } from "../db/schema.js";
 
-export async function listSocialMediaPostTemplates(): Promise<SocialMediaPostTemplate[]> {
-  return db.select().from(socialMediaPostTemplates).orderBy(socialMediaPostTemplates.name);
+export async function listSocialMediaPostTemplates(
+  scope?: SocialMediaPostTemplateScope,
+): Promise<SocialMediaPostTemplate[]> {
+  const query = db.select().from(socialMediaPostTemplates);
+  if (scope) {
+    return query
+      .where(sql`${scope} = ANY(${socialMediaPostTemplates.scopes})`)
+      .orderBy(socialMediaPostTemplates.name);
+  }
+  return query.orderBy(socialMediaPostTemplates.name);
 }
 
 export async function getSocialMediaPostTemplateById(
