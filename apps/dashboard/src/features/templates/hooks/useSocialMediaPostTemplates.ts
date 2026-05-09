@@ -31,34 +31,34 @@ export function useSocialMediaPostTemplate(id: number) {
 }
 
 export function useCreateSocialMediaPostTemplate() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: SocialMediaPostTemplateInput) =>
       api.post<SocialMediaPostTemplate>("/admin/social-media-post-templates", input),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: SOCIAL_MEDIA_POST_TEMPLATES_KEY });
+      void queryClient.invalidateQueries({ queryKey: SOCIAL_MEDIA_POST_TEMPLATES_KEY });
     },
   });
 }
 
 export function useUpdateSocialMediaPostTemplate(id: number) {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: Partial<SocialMediaPostTemplateInput>) =>
       api.put<SocialMediaPostTemplate>(`/admin/social-media-post-templates/${id}`, input),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: SOCIAL_MEDIA_POST_TEMPLATES_KEY });
-      void qc.invalidateQueries({ queryKey: ["social-media-post-template", id] });
+      void queryClient.invalidateQueries({ queryKey: SOCIAL_MEDIA_POST_TEMPLATES_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["social-media-post-template", id] });
     },
   });
 }
 
 export function useDeleteSocialMediaPostTemplate() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/admin/social-media-post-templates/${id}`),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: SOCIAL_MEDIA_POST_TEMPLATES_KEY });
+      void queryClient.invalidateQueries({ queryKey: SOCIAL_MEDIA_POST_TEMPLATES_KEY });
     },
   });
 }
