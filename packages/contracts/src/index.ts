@@ -32,3 +32,5 @@ export * from "./admin-form-config";
 export * from "./footer-config";
 /** Admin markdown widget schemas. */
 export * from "./admin-markdown-widgets";
+/** Submission domain alert rule schemas. */
+export * from "./domain-alert-rules";

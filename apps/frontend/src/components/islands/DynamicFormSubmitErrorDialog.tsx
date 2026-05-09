@@ -1,11 +1,14 @@
 import { AlertDialog } from "@lmaa/ui";
 
+import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
+
 export interface SubmitErrorState {
   message: string;
-  status?: "published" | "rejected" | "pending" | "available" | "invalid";
+  status?: "published" | "rejected" | "pending" | "available" | "invalid" | "blocked";
   shopName?: string;
   shopUrl?: string;
   rejectionUrl?: string;
+  messageMarkdown?: string;
 }
 
 function PublishedShopName({ name, url }: { name: string | undefined; url: string | undefined }) {
@@ -20,6 +23,21 @@ function PublishedShopName({ name, url }: { name: string | undefined; url: strin
     >
       {name}
     </a>
+  );
+}
+
+function BlockedMessage({ messageMarkdown, fallback }: { messageMarkdown?: string; fallback: string }) {
+  const messageRef = useMarkdownHtml(messageMarkdown);
+
+  if (!messageMarkdown) {
+    return <p>{fallback}</p>;
+  }
+
+  return (
+    <div
+      ref={messageRef}
+      className="prose prose-sm max-w-none text-[var(--ds-text)] [&_p]:m-0 [&_p+p]:mt-3 prose-a:text-[var(--ds-accent)] prose-a:underline hover:prose-a:no-underline"
+    />
   );
 }
 
@@ -40,6 +58,8 @@ export function SubmitErrorDialog({ submitError, onClose }: SubmitErrorDialogPro
           ? "Shop abgelehnt"
           : submitError?.status === "pending"
             ? "Shop wird bereits geprüft"
+            : submitError?.status === "blocked"
+              ? "Hinweis"
             : submitError?.status === "available"
               ? "Shop ist verfügbar"
               : submitError?.status === "invalid"
@@ -49,6 +69,8 @@ export function SubmitErrorDialog({ submitError, onClose }: SubmitErrorDialogPro
       variant={
         submitError?.status === "rejected"
           ? "warning"
+          : submitError?.status === "blocked"
+            ? "warning"
           : submitError?.status === "available"
             ? "info"
             : "error"
@@ -56,7 +78,12 @@ export function SubmitErrorDialog({ submitError, onClose }: SubmitErrorDialogPro
       buttonLabel="Verstanden"
       onClose={onClose}
     >
-      {submitError?.status === "invalid" ? (
+      {submitError?.status === "blocked" ? (
+        <BlockedMessage
+          messageMarkdown={submitError.messageMarkdown}
+          fallback={submitError.message}
+        />
+      ) : submitError?.status === "invalid" ? (
         <p>
           Bitte eine gültige Shop-URL eingeben (z.B. <code>example.de</code>).
         </p>
