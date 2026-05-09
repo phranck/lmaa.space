@@ -1,0 +1,91 @@
+import type { SocialMediaPostTemplateScope, TemplateAssignment } from "@lmaa/contracts";
+
+import { recordBackgroundError } from "./background-errors.js";
+import { postToBlueskyAccount } from "./bluesky.js";
+import { postToMastodonAccount } from "./mastodon.js";
+import type { PostContext } from "./post-context.js";
+import { logger } from "../lib/logger.js";
+import { upsertChoice } from "../repositories/admin-user-account-template-choice.js";
+import { getAccountById } from "../repositories/social-media-accounts.js";
+import { getSocialMediaPostTemplateById } from "../repositories/social-media-post-templates.js";
+
+/**
+ * Persists the sticky template choice per (admin, account, scope) and, when
+ * a non-null `templateId` is supplied, fires a social-media post for the
+ * given context. Each assignment is processed independently — failures are
+ * recorded via `recordBackgroundError` and never abort the loop.
+ *
+ * @param adminUserId - Admin who triggered the dispatch (for sticky choice).
+ * @param scope - Origin of the dispatch (`submission` or `category`); must
+ *   be present in the template's `scopes` array for the post to fire.
+ * @param assignments - Per-account template selections from the UI.
+ * @param context - Discriminated union describing the post subject, used by
+ *   `postToMastodonAccount` / `postToBlueskyAccount` to render variables.
+ */
+export async function dispatchTemplateAssignments(
+  adminUserId: number,
+  scope: SocialMediaPostTemplateScope,
+  assignments: TemplateAssignment[],
+  context: PostContext,
+): Promise<void> {
+  for (const assignment of assignments) {
+    try {
+      await upsertChoice(adminUserId, assignment.accountId, assignment.templateId, scope);
+    } catch (err) {
+      await recordBackgroundError("template-choice-upsert", err, {
+        adminUserId,
+        accountId: assignment.accountId,
+        scope,
+      });
+    }
+
+    if (assignment.templateId === null) continue;
+
+    try {
+      const account = await getAccountById(assignment.accountId);
+      if (!account || !account.isActive) {
+        logger.warn(
+          { accountId: assignment.accountId, scope },
+          "templateAssignments: account not found or inactive, skipping",
+        );
+        continue;
+      }
+      const template = await getSocialMediaPostTemplateById(assignment.templateId);
+      if (!template) {
+        await recordBackgroundError(
+          `${account.platform}-post`,
+          new Error(`templateId ${assignment.templateId} not found`),
+          { accountId: account.id, scope },
+        );
+        continue;
+      }
+      if (!template.scopes.includes(scope)) {
+        await recordBackgroundError(
+          `${account.platform}-post`,
+          new Error(`template ${template.id} does not cover scope ${scope}`),
+          { accountId: account.id, templateId: template.id, scope },
+        );
+        continue;
+      }
+      if (!template.platforms.includes(account.platform)) {
+        await recordBackgroundError(
+          `${account.platform}-post`,
+          new Error(`template ${template.id} does not cover platform ${account.platform}`),
+          { accountId: account.id, templateId: template.id, scope },
+        );
+        continue;
+      }
+      if (account.platform === "mastodon") {
+        await postToMastodonAccount(account, template, context);
+      } else {
+        await postToBlueskyAccount(account, template, context);
+      }
+    } catch (err) {
+      await recordBackgroundError("social-media-post", err, {
+        accountId: assignment.accountId,
+        templateId: assignment.templateId,
+        scope,
+      });
+    }
+  }
+}

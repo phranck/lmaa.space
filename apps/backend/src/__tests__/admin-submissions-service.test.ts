@@ -6,11 +6,7 @@ const reviewSubmission = vi.fn();
 const getSubmissionCategoryNames = vi.fn();
 const hydrateShopOgImageInBackground = vi.fn();
 const setAdminShopOgImage = vi.fn();
-const postToMastodonAccount = vi.fn();
-const postToBlueskyAccount = vi.fn();
-const upsertChoice = vi.fn();
-const getAccountById = vi.fn();
-const getSocialMediaPostTemplateById = vi.fn();
+const dispatchTemplateAssignments = vi.fn();
 const recordBackgroundError = vi.fn();
 
 async function loadServiceModule() {
@@ -44,25 +40,8 @@ async function loadServiceModule() {
     setAdminShopOgImage,
   }));
 
-  vi.doMock("../services/mastodon.js", () => ({
-    postToMastodonAccount,
-    buildApprovalPostVariables: vi.fn(),
-  }));
-
-  vi.doMock("../services/bluesky.js", () => ({
-    postToBlueskyAccount,
-  }));
-
-  vi.doMock("../repositories/admin-user-account-template-choice.js", () => ({
-    upsertChoice,
-  }));
-
-  vi.doMock("../repositories/social-media-accounts.js", () => ({
-    getAccountById,
-  }));
-
-  vi.doMock("../repositories/social-media-post-templates.js", () => ({
-    getSocialMediaPostTemplateById,
+  vi.doMock("../services/dispatch-template-assignments.js", () => ({
+    dispatchTemplateAssignments,
   }));
 
   vi.doMock("../services/background-errors.js", () => ({
@@ -84,12 +63,7 @@ describe("admin-submissions service", () => {
     getSubmissionCategoryNames.mockReset();
     hydrateShopOgImageInBackground.mockReset();
     setAdminShopOgImage.mockReset();
-    postToMastodonAccount.mockReset();
-    postToBlueskyAccount.mockReset();
-    upsertChoice.mockReset();
-    upsertChoice.mockResolvedValue(undefined);
-    getAccountById.mockReset();
-    getSocialMediaPostTemplateById.mockReset();
+    dispatchTemplateAssignments.mockReset();
     recordBackgroundError.mockReset();
     recordBackgroundError.mockResolvedValue(undefined);
   });
@@ -191,36 +165,12 @@ describe("admin-submissions service", () => {
     expect(setAdminShopOgImage).not.toHaveBeenCalled();
   });
 
-  it("dispatches templateAssignments to the matching active account", async () => {
+  it("forwards templateAssignments to the dispatcher with submission context", async () => {
     const submission = {
       id: 5,
       shopName: "Good Karma",
       shopUrl: "https://goodkarma.example",
       ogImage: "https://cdn.example.com/preview.png",
-    };
-    const mastodonAccount = {
-      id: 50,
-      platform: "mastodon",
-      isActive: true,
-      maxPostCharacters: 500,
-      handle: null,
-      visibility: "public",
-      instanceUrl: "https://example.social",
-      accessToken: "tok",
-      label: "primary",
-      username: "u",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const template = {
-      id: 12,
-      name: "approval",
-      platforms: ["mastodon"],
-      bodyMastodon: "{{shopName}}",
-      bodyBluesky: null,
-      isSystemTemplate: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
     reviewSubmission.mockResolvedValue({
       submission,
@@ -228,9 +178,7 @@ describe("admin-submissions service", () => {
       conflict: null,
     });
     getSubmissionCategoryNames.mockResolvedValue(["Coffee", "Food"]);
-    getAccountById.mockResolvedValue(mastodonAccount);
-    getSocialMediaPostTemplateById.mockResolvedValue(template);
-    postToMastodonAccount.mockResolvedValue(undefined);
+    dispatchTemplateAssignments.mockResolvedValue(undefined);
     const service = await loadServiceModule();
 
     await expect(
@@ -246,99 +194,71 @@ describe("admin-submissions service", () => {
     await flushPromises();
 
     expect(getSubmissionCategoryNames).toHaveBeenCalledWith(5);
-    expect(upsertChoice).toHaveBeenCalledWith(1, 50, 12);
-    expect(postToMastodonAccount).toHaveBeenCalledTimes(1);
-    expect(postToBlueskyAccount).not.toHaveBeenCalled();
-  });
-
-  it("templateAssignments with templateId=null upserts the choice but skips posting", async () => {
-    const submission = {
-      id: 6,
-      shopName: "Other",
-      shopUrl: "https://other.example",
-      ogImage: "https://cdn.example.com/preview.png",
-    };
-    reviewSubmission.mockResolvedValue({
-      submission,
-      newShop: { id: 18, url: "https://other.example" },
-      conflict: null,
-    });
-    getSubmissionCategoryNames.mockResolvedValue([]);
-    const service = await loadServiceModule();
-
-    await expect(
-      service.reviewAdminSubmission({
-        id: 6,
-        status: "approved",
-        adminId: 2,
-        templateAssignments: [{ accountId: 60, templateId: null }],
+    expect(dispatchTemplateAssignments).toHaveBeenCalledTimes(1);
+    expect(dispatchTemplateAssignments).toHaveBeenCalledWith(
+      1,
+      "submission",
+      [{ accountId: 50, templateId: 12 }],
+      expect.objectContaining({
+        kind: "submission",
+        submission,
+        newShopId: 17,
+        adminNote: "Looks good",
+        categoryNames: ["Coffee", "Food"],
       }),
-    ).resolves.toEqual({ ok: true, submission });
-
-    await flushPromises();
-
-    expect(upsertChoice).toHaveBeenCalledWith(2, 60, null);
-    expect(getAccountById).not.toHaveBeenCalled();
-    expect(postToMastodonAccount).not.toHaveBeenCalled();
-    expect(postToBlueskyAccount).not.toHaveBeenCalled();
+    );
   });
 
-  it("logs background error when template does not cover account platform", async () => {
+  it("does not dispatch when status is not approved", async () => {
     const submission = {
-      id: 7,
+      id: 8,
       shopName: "X",
       shopUrl: "https://x.example",
       ogImage: "https://cdn.example.com/preview.png",
     };
-    const blueskyAccount = {
-      id: 70,
-      platform: "bluesky",
-      isActive: true,
-      maxPostCharacters: 300,
-      handle: "x.bsky.social",
-      visibility: null,
-      instanceUrl: "",
-      accessToken: "abcd-efgh-ijkl-mnop",
-      label: "bsky",
-      username: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const mastodonOnly = {
-      id: 13,
-      name: "mast-only",
-      platforms: ["mastodon"],
-      bodyMastodon: "x",
-      bodyBluesky: null,
-      isSystemTemplate: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    reviewSubmission.mockResolvedValue({
+      submission,
+      newShop: null,
+      conflict: null,
+    });
+    const service = await loadServiceModule();
+
+    await service.reviewAdminSubmission({
+      id: 8,
+      status: "rejected",
+      adminId: 1,
+      templateAssignments: [{ accountId: 50, templateId: 12 }],
+    });
+
+    await flushPromises();
+
+    expect(dispatchTemplateAssignments).not.toHaveBeenCalled();
+  });
+
+  it("does not dispatch when templateAssignments is empty", async () => {
+    const submission = {
+      id: 9,
+      shopName: "X",
+      shopUrl: "https://x.example",
+      ogImage: "https://cdn.example.com/preview.png",
     };
     reviewSubmission.mockResolvedValue({
       submission,
       newShop: { id: 19, url: "https://x.example" },
       conflict: null,
     });
-    getSubmissionCategoryNames.mockResolvedValue([]);
-    getAccountById.mockResolvedValue(blueskyAccount);
-    getSocialMediaPostTemplateById.mockResolvedValue(mastodonOnly);
     const service = await loadServiceModule();
 
     await service.reviewAdminSubmission({
-      id: 7,
+      id: 9,
       status: "approved",
-      adminId: 3,
-      templateAssignments: [{ accountId: 70, templateId: 13 }],
+      adminId: 1,
+      templateAssignments: [],
     });
 
     await flushPromises();
 
-    expect(postToMastodonAccount).not.toHaveBeenCalled();
-    expect(postToBlueskyAccount).not.toHaveBeenCalled();
-    expect(recordBackgroundError).toHaveBeenCalledWith(
-      "bluesky-post",
-      expect.any(Error),
-      expect.objectContaining({ accountId: 70, templateId: 13 }),
-    );
+    expect(dispatchTemplateAssignments).not.toHaveBeenCalled();
+    expect(getSubmissionCategoryNames).not.toHaveBeenCalled();
   });
 });

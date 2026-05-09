@@ -1,9 +1,14 @@
+import type { TemplateAssignment } from "@lmaa/contracts";
+
+import { dispatchTemplateAssignments } from "./dispatch-template-assignments.js";
+import type { PostContext } from "./post-context.js";
 import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 import { processImageUpload } from "../lib/image-upload.js";
 import { failure, success } from "../lib/result.js";
 import {
   categoryExists,
   clearAdminCategoryImage,
+  createAdminCategory,
   setAdminCategoryImage,
   setAdminCategoryUnsplashImage,
 } from "../repositories/admin-categories.js";
@@ -126,4 +131,41 @@ export async function removeManagedAdminCategoryImage(id: number) {
   }
 
   return success({ category });
+}
+
+/**
+ * Input contract for the create-category-with-posts service.
+ */
+export interface CreateCategoryWithPostsInput {
+  name: string;
+  slug: string;
+  icon?: string;
+  description?: string;
+  sortOrder?: number;
+  imageUrl?: string | null;
+  imagePhotographer?: string | null;
+  imagePhotographerUrl?: string | null;
+  templateAssignments?: TemplateAssignment[];
+  adminId: number;
+}
+
+/**
+ * Creates a new category and, when assignments are supplied, fires
+ * social-media posts for the new category in the background. Posts are
+ * fire-and-forget; failures land in `background-errors`.
+ *
+ * @param input - Validated category attributes plus admin id and optional
+ *   template assignments from the create-dialog.
+ * @returns The newly created category row.
+ */
+export async function createCategoryWithPosts(input: CreateCategoryWithPostsInput) {
+  const { adminId, templateAssignments, ...data } = input;
+  const category = await createAdminCategory(data);
+
+  if (templateAssignments?.length) {
+    const context: PostContext = { kind: "category", category };
+    void dispatchTemplateAssignments(adminId, "category", templateAssignments, context);
+  }
+
+  return category;
 }
