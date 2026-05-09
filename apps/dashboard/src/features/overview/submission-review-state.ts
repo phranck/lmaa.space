@@ -1,4 +1,4 @@
-export type TemplateAssignment = { accountId: number; templateId: number | null };
+import type { TemplateAssignment } from "@lmaa/contracts";
 
 export type ReviewState = {
   adminNote: string;

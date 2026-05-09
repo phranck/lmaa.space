@@ -1,15 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { SocialMediaPostTemplate, SocialMediaPostTemplateInput } from "@lmaa/contracts";
+import type {
+  SocialMediaPostTemplate,
+  SocialMediaPostTemplateInput,
+  SocialMediaPostTemplateScope,
+} from "@lmaa/contracts";
 
 import { api } from "@/lib/api.ts";
 
 const SOCIAL_MEDIA_POST_TEMPLATES_KEY = ["social-media-post-templates"] as const;
 
-export function useSocialMediaPostTemplates() {
+export function useSocialMediaPostTemplates(scope?: SocialMediaPostTemplateScope) {
   return useQuery({
-    queryKey: SOCIAL_MEDIA_POST_TEMPLATES_KEY,
-    queryFn: () => api.get<SocialMediaPostTemplate[]>("/admin/social-media-post-templates"),
+    queryKey: [...SOCIAL_MEDIA_POST_TEMPLATES_KEY, scope ?? "all"] as const,
+    queryFn: () =>
+      api.get<SocialMediaPostTemplate[]>(
+        scope
+          ? `/admin/social-media-post-templates?scope=${scope}`
+          : "/admin/social-media-post-templates",
+      ),
   });
 }
 
