@@ -2,19 +2,19 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { categoryBodySchema, categoryUpdateSchema } from "@lmaa/contracts";
+import { categoryCreateSchema, categoryUpdateSchema } from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
-  createAdminCategory,
   deleteAdminCategory,
   listAdminCategories,
   setAdminCategoryFocalPoint,
   updateAdminCategory,
 } from "../../repositories/admin-categories.js";
 import {
+  createCategoryWithPosts,
   removeManagedAdminCategoryImage,
   setManagedAdminCategoryUnsplashImage,
   uploadManagedAdminCategoryImage,
@@ -36,10 +36,11 @@ categoriesRoutes.get("/categories", async (c) => {
   return ok(c, rows);
 });
 
-categoriesRoutes.post("/categories", zValidator("json", categoryBodySchema), async (c) => {
+categoriesRoutes.post("/categories", zValidator("json", categoryCreateSchema), async (c) => {
   const body = c.req.valid("json");
+  const adminId = c.get("adminId");
   try {
-    const category = await createAdminCategory(body);
+    const category = await createCategoryWithPosts({ ...body, adminId });
     return ok(c, category, 201);
   } catch (e: unknown) {
     if (isDuplicateSlug(e)) {
