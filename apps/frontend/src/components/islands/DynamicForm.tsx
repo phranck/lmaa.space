@@ -129,7 +129,10 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
           const errorObj = error && typeof error === "object" ? (error as Record<string, unknown>) : null;
           const rawStatus = errorObj?.status;
           const status =
-            rawStatus === "published" || rawStatus === "rejected" || rawStatus === "pending"
+            rawStatus === "published" ||
+            rawStatus === "rejected" ||
+            rawStatus === "pending" ||
+            rawStatus === "blocked"
               ? rawStatus
               : undefined;
           dispatch({
@@ -143,6 +146,10 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
               shopUrl: typeof errorObj?.shopUrl === "string" ? errorObj.shopUrl : undefined,
               rejectionUrl:
                 typeof errorObj?.rejectionUrl === "string" ? errorObj.rejectionUrl : undefined,
+              messageMarkdown:
+                typeof errorObj?.messageMarkdown === "string"
+                  ? errorObj.messageMarkdown
+                  : undefined,
             },
           });
           return;
@@ -218,6 +225,7 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
                 shopName: result.shopName,
                 shopUrl: result.shopUrl,
                 rejectionUrl: result.rejectionUrl,
+                messageMarkdown: result.messageMarkdown,
               },
             })
           }

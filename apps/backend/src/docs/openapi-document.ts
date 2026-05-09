@@ -369,6 +369,14 @@ const schemas: Record<string, SchemaObject> = {
       {
         type: "object",
         properties: {
+          status: { type: "string", const: "blocked" },
+          messageMarkdown: { type: "string" },
+        },
+        required: ["status", "messageMarkdown"],
+      },
+      {
+        type: "object",
+        properties: {
           status: { type: "string", const: "published" },
           shopName: { type: "string" },
           shopUrl: { type: "string" },
@@ -533,7 +541,7 @@ export const publicOpenApiOperations: OpenApiOperation[] = [
     tags: ["Submission Checks"],
     summary: "Check shop URL availability",
     description:
-      "Checks whether a shop domain is unknown, already listed, previously rejected, queued for review, or invalid. Domain extraction uses the Public Suffix List via `tldts`.",
+      "Checks whether a shop domain is unknown, blocked by a managed domain alert, already listed, previously rejected, queued for review, or invalid. Domain extraction uses the Public Suffix List via `tldts`.",
     operationId: "checkShopUrl",
     parameters: [
       {
