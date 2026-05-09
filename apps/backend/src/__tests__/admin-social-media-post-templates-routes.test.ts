@@ -49,6 +49,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         id: 1,
         name: "sys",
         platforms: ["mastodon"],
+        scopes: ["submission"],
         bodyMastodon: "hello",
         bodyBluesky: null,
         isSystemTemplate: true,
@@ -64,6 +65,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         body: JSON.stringify({
           name: "sys",
           platforms: ["mastodon"],
+          scopes: ["submission"],
           bodyMastodon: "hello",
           isSystemTemplate: true,
         }),
@@ -80,6 +82,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         id: 2,
         name: "regular",
         platforms: ["mastodon"],
+        scopes: ["submission"],
         bodyMastodon: "world",
         bodyBluesky: null,
         isSystemTemplate: false,
@@ -95,6 +98,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         body: JSON.stringify({
           name: "regular",
           platforms: ["mastodon"],
+          scopes: ["submission"],
           bodyMastodon: "world",
           isSystemTemplate: true,
         }),
@@ -131,6 +135,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         body: JSON.stringify({
           name: "missing-mastodon-body",
           platforms: ["mastodon"],
+          scopes: ["submission"],
         }),
       });
       expect(res.status).toBe(400);
@@ -141,6 +146,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         id: 3,
         name: "multi",
         platforms: ["mastodon", "bluesky"],
+        scopes: ["submission"],
         bodyMastodon: "Mastodon body",
         bodyBluesky: "Bluesky body",
         isSystemTemplate: false,
@@ -156,6 +162,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         body: JSON.stringify({
           name: "multi",
           platforms: ["mastodon", "bluesky"],
+          scopes: ["submission"],
           bodyMastodon: "Mastodon body",
           bodyBluesky: "Bluesky body",
         }),
@@ -170,6 +177,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         id: 5,
         name: "sys",
         platforms: ["mastodon"],
+        scopes: ["submission"],
         bodyMastodon: "body",
         bodyBluesky: null,
         isSystemTemplate: true,
@@ -185,6 +193,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         body: JSON.stringify({
           name: "sys",
           platforms: ["mastodon"],
+          scopes: ["submission"],
           bodyMastodon: "body",
           isSystemTemplate: true,
         }),
@@ -202,6 +211,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         id: 6,
         name: "t",
         platforms: ["mastodon"],
+        scopes: ["submission"],
         bodyMastodon: "b",
         bodyBluesky: null,
         isSystemTemplate: false,
@@ -217,6 +227,7 @@ describe("social-media-post-templates routes — owner gate", () => {
         body: JSON.stringify({
           name: "t",
           platforms: ["mastodon"],
+          scopes: ["submission"],
           bodyMastodon: "new body",
           isSystemTemplate: true,
         }),
