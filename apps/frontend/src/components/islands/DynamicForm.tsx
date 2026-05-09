@@ -11,6 +11,12 @@ import { AlertDialog } from "@lmaa/ui";
 import { CharCounter } from "@lmaa/ui/char-counter";
 import { createDefaultRegionOptions } from "@lmaa/ui/region-select";
 
+import {
+  buildDynamicFormPayload,
+  fieldKey,
+  getRequiredMultiSelectErrors,
+  type SimpleFields,
+} from "@/components/islands/dynamic-form-utils";
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
 import { API_BASE } from "@/lib/client-api";
@@ -37,12 +43,6 @@ interface Props {
   formConfig: FormConfig;
   categories: Category[];
 }
-
-/**
- * Plain text values managed by react-hook-form.
- * Multi-select fields (categoryIds, region) are handled separately via useState.
- */
-type SimpleFields = Record<string, string>;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -99,19 +99,6 @@ function getSubmissionErrorMessage(error: unknown): string {
   if (status) return `Absenden fehlgeschlagen (HTTP ${status}). Bitte später erneut versuchen.`;
 
   return "Fehler beim Absenden. Bitte versuche es erneut.";
-}
-
-/**
- * Returns the backend submission key for a field.
- *
- * Uses `field.name` when set (configured in the form builder), otherwise falls
- * back to `field.id` so every field always has a stable payload key.
- *
- * @param field - The form field to derive a key for.
- * @returns The submission key string.
- */
-function fieldKey(field: FormField): string {
-  return field.name ?? field.id;
 }
 
 /**
@@ -1276,29 +1263,7 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
    * @returns `true` when all required multi-select fields are satisfied, `false` otherwise.
    */
   function validateMultiSelects(): boolean {
-    const newErrors: Record<string, string> = {};
-
-    for (const row of formConfig.rows) {
-      for (const field of row.fields) {
-        if (field.type !== "multi-select" || !field.required) continue;
-
-        if (field.optionsSource === "categories") {
-          if (state.categoryIds.length === 0) {
-            newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
-          }
-        } else if (field.optionsSource === "regions") {
-          if (state.regionCodes.length === 0) {
-            newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
-          }
-        } else {
-          const selected = getStaticMultiSelected(fieldKey(field));
-          if (selected.length === 0) {
-            newErrors[fieldKey(field)] = `${field.label} ist ein Pflichtfeld`;
-          }
-        }
-      }
-    }
-
+    const newErrors = getRequiredMultiSelectErrors(formConfig, state);
     dispatch({ multiSelectErrors: newErrors });
     return Object.keys(newErrors).length === 0;
   }
@@ -1319,28 +1284,7 @@ export default function DynamicForm({ formConfig: rawFormConfig, categories }: P
     dispatch({ submitError: null, submitting: true });
 
     try {
-      const payload: Record<string, unknown> = {};
-
-      for (const row of formConfig.rows) {
-        for (const field of row.fields) {
-          if (["richtext", "button", "headline", "separator", "paragraph"].includes(field.type)) {
-            continue;
-          }
-          const key = fieldKey(field);
-          if (field.type === "multi-select") {
-            if (field.optionsSource === "categories") {
-              payload[key] = state.categoryIds;
-            } else if (field.optionsSource === "regions") {
-              payload[key] = state.regionCodes;
-            } else {
-              payload[key] = state.staticMultiSelects[key] ?? [];
-            }
-          } else {
-            const val = data[key];
-            if (val !== undefined && val !== "") payload[key] = val;
-          }
-        }
-      }
+      const payload = buildDynamicFormPayload(formConfig, data, state);
 
       const slug = formConfig.slug ?? formConfig.name;
       const res = await fetch(`${API_BASE}/form/${slug}/submit`, {
