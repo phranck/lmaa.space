@@ -22,6 +22,7 @@ import {
   EnvelopeOpenIcon,
   EyeSlashIcon,
   FileIcon,
+  FileTextIcon,
   GearSixIcon,
   HouseSimpleIcon,
   ImageIcon,
@@ -37,6 +38,7 @@ import {
   SquaresFourIcon,
   StorefrontIcon,
   TagIcon,
+  TrashIcon,
   TrayIcon,
   UsersThreeIcon,
   XCircleIcon,
@@ -53,6 +55,8 @@ import {
 } from "@/components/layout/CollapsibleSidebarGroup.tsx";
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
+import { ContextMenu, type ContextMenuEntry } from "@/components/ui/ContextMenu.tsx";
+import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useUpdateUiPreferences } from "@/features/auth/useUpdateUiPreferences.ts";
@@ -69,7 +73,11 @@ import {
   useEmailTemplates,
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
-import { useSocialMediaPostTemplates } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
+import {
+  useCreateSocialMediaPostTemplate,
+  useDeleteSocialMediaPostTemplate,
+  useSocialMediaPostTemplates,
+} from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 
 const ROLE_RANK: Record<AdminRole, number> = { owner: 2, admin: 1, moderator: 0 };
 const SIDEBAR_GROUP_STORAGE_KEYS = [
@@ -349,39 +357,124 @@ function SocialMediaPostTemplatesGroup({
 }) {
   const { messages } = useI18n();
   const s = messages.layout.sidebar;
+  const m = messages.socialMediaTemplates;
+  const common = messages.common;
+  const navigate = useNavigate();
   const { data: templates } = useSocialMediaPostTemplates();
+  const createTemplate = useCreateSocialMediaPostTemplate();
+  const deleteTemplate = useDeleteSocialMediaPostTemplate();
+
+  type Template = NonNullable<typeof templates>[number];
+  const [contextMenu, setContextMenu] = useState<{
+    origin: { x: number; y: number };
+    template: Template;
+  } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Template | null>(null);
+
+  function buildMenuItems(template: Template): ContextMenuEntry[] {
+    return [
+      {
+        label: common.edit,
+        icon: <FileTextIcon weight="duotone" className="h-3.5 w-3.5" />,
+        onClick: () => {
+          void navigate(`/social-media-post-templates/${template.id}`);
+        },
+      },
+      {
+        label: common.duplicate,
+        icon: <CopyIcon weight="duotone" className="h-3.5 w-3.5" />,
+        onClick: () => {
+          void (async () => {
+            try {
+              const created = await createTemplate.mutateAsync({
+                name: `${template.name} (Copy)`,
+                platforms: template.platforms,
+                scopes: template.scopes,
+                bodyMastodon: template.bodyMastodon,
+                bodyBluesky: template.bodyBluesky,
+              });
+              void navigate(`/social-media-post-templates/${created.id}`);
+            } catch (err) {
+              console.error("[duplicate template]", err);
+            }
+          })();
+        },
+      },
+      { separator: true },
+      {
+        label: common.delete,
+        icon: <TrashIcon weight="duotone" className="h-3.5 w-3.5" />,
+        danger: true,
+        disabled: template.isSystemTemplate,
+        onClick: () => {
+          setDeleteTarget(template);
+        },
+      },
+    ];
+  }
 
   return (
-    <CollapsibleSidebarGroup
-      routeMatch="/social-media-post-templates/*"
-      storageKey="sidebar-social-media-post-templates-open"
-      icon={<PaperPlaneTiltIcon weight="duotone" className="w-4 h-4" />}
-      label={s.socialMediaPostTemplates}
-      badge={templates?.length ?? 0}
-      globalOpenState={globalOpenState}
-      globalOpenVersion={globalOpenVersion}
-      onOpenChange={onOpenChange}
-    >
-      <NavLink
-        to="/social-media-post-templates"
-        end
-        onClick={onItemClick}
-        className={sidebarGroupItemClass}
+    <>
+      <CollapsibleSidebarGroup
+        routeMatch="/social-media-post-templates/*"
+        storageKey="sidebar-social-media-post-templates-open"
+        icon={<PaperPlaneTiltIcon weight="duotone" className="w-4 h-4" />}
+        label={s.socialMediaPostTemplates}
+        badge={templates?.length ?? 0}
+        globalOpenState={globalOpenState}
+        globalOpenVersion={globalOpenVersion}
+        onOpenChange={onOpenChange}
       >
-        {s.socialMediaPostTemplatesOverview}
-      </NavLink>
-      {(templates ?? []).map((template) => (
         <NavLink
-          key={template.id}
-          to={`/social-media-post-templates/${template.id}`}
+          to="/social-media-post-templates"
+          end
           onClick={onItemClick}
           className={sidebarGroupItemClass}
         >
-          <PaperPlaneTiltIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
-          <span className="truncate">{template.name}</span>
+          {s.socialMediaPostTemplatesOverview}
         </NavLink>
-      ))}
-    </CollapsibleSidebarGroup>
+        {(templates ?? []).map((template) => (
+          <NavLink
+            key={template.id}
+            to={`/social-media-post-templates/${template.id}`}
+            onClick={onItemClick}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              setContextMenu({
+                origin: { x: event.clientX, y: event.clientY },
+                template,
+              });
+            }}
+            className={sidebarGroupItemClass}
+          >
+            <PaperPlaneTiltIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+            <span className="truncate">{template.name}</span>
+          </NavLink>
+        ))}
+      </CollapsibleSidebarGroup>
+
+      <ContextMenu
+        origin={contextMenu?.origin ?? null}
+        onClose={() => setContextMenu(null)}
+        items={contextMenu ? buildMenuItems(contextMenu.template) : []}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteTarget !== null}
+        title={m.deleteTemplate}
+        description={`${m.deleteTemplateConfirm} (${deleteTarget?.name ?? ""})`}
+        cancelLabel={common.cancel}
+        deleteLabel={common.delete}
+        isPending={deleteTemplate.isPending}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteTemplate.mutate(deleteTarget.id, {
+            onSuccess: () => setDeleteTarget(null),
+          });
+        }}
+      />
+    </>
   );
 }
 
