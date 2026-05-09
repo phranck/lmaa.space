@@ -638,10 +638,11 @@ function RichTextBlock({ field }: { field: FormField }) {
 }
 
 export interface CheckShopResult {
-  status: "available" | "published" | "rejected" | "pending" | "invalid";
+  status: "available" | "published" | "rejected" | "pending" | "invalid" | "blocked";
   shopName?: string;
   shopUrl?: string;
   rejectionUrl?: string;
+  messageMarkdown?: string;
 }
 
 interface ButtonFieldProps {
@@ -713,7 +714,8 @@ function ButtonField({
             status !== "published" &&
             status !== "pending" &&
             status !== "rejected" &&
-            status !== "invalid"
+            status !== "invalid" &&
+            status !== "blocked"
           ) {
             return;
           }
@@ -722,6 +724,8 @@ function ButtonField({
             shopName: typeof data?.shopName === "string" ? data.shopName : undefined,
             shopUrl: typeof data?.shopUrl === "string" ? data.shopUrl : undefined,
             rejectionUrl: typeof data?.rejectionUrl === "string" ? data.rejectionUrl : undefined,
+            messageMarkdown:
+              typeof data?.messageMarkdown === "string" ? data.messageMarkdown : undefined,
           });
         } catch {
           // Users can retry the explicit availability check after transient network failures.

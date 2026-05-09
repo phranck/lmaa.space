@@ -47,7 +47,7 @@ interface DeleteAdminShopData {
  * - `{ ok: false, reason: "domain_conflict", conflictStatus, conflictShopName }`
  *   when another shop or submission already claims the same registered domain.
  *   `conflictStatus` mirrors the `validateShopUrl` status (`"published"`,
- *   `"rejected"`, or `"pending"`).
+ *   `"rejected"`, `"pending"`, `"blocked"` or `"invalid"`).
  *
  * @remarks
  * Side effects on success:
@@ -61,7 +61,7 @@ export async function createManagedAdminShop(data: CreateAdminShopData) {
       ok: false as const,
       reason: "domain_conflict" as const,
       conflictStatus: urlCheck.status,
-      conflictShopName: urlCheck.shopName,
+      conflictShopName: "shopName" in urlCheck ? urlCheck.shopName : undefined,
     };
   }
 

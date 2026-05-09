@@ -6,18 +6,44 @@ const repoMocks = vi.hoisted(() => ({
   findPendingSubmissionByDomain: vi.fn(),
 }));
 
+const appSettingsMocks = vi.hoisted(() => ({
+  getSetting: vi.fn(),
+}));
+
 vi.mock("../repositories/public.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../repositories/public.js")>();
   return { ...actual, ...repoMocks };
 });
+vi.mock("../repositories/app-settings.js", () => appSettingsMocks);
 
 import { validateShopUrl } from "../services/public.js";
+
+const DOMAIN_ALERT_MESSAGE =
+  "Da hatte wohl jemand bereits die gleiche Idee! Der Shop [Amazon](https://www.youtube.com/watch?v=dQw4w9WgXcQ) ist schon eingetragen.";
+
+function mockDomainAlertRules(isActive = true) {
+  appSettingsMocks.getSetting.mockResolvedValue(
+    JSON.stringify({
+      rules: [
+        {
+          id: "amazon-rickroll",
+          name: "Amazon URLs",
+          domainsText: "amazon.de, amazon.com, amzn.to",
+          messageMarkdown: DOMAIN_ALERT_MESSAGE,
+          isActive,
+        },
+      ],
+    }),
+  );
+}
 
 describe("validateShopUrl", () => {
   beforeEach(() => {
     repoMocks.findShopByDomain.mockReset();
     repoMocks.findRejectedSubmissionByDomain.mockReset();
     repoMocks.findPendingSubmissionByDomain.mockReset();
+    appSettingsMocks.getSetting.mockReset();
+    appSettingsMocks.getSetting.mockResolvedValue(null);
   });
 
   it("returns available for undefined input", async () => {
@@ -85,16 +111,28 @@ describe("validateShopUrl", () => {
     });
   });
 
-  it("returns published with RickRoll for Amazon URLs without DB lookup", async () => {
+  it("returns blocked with configured alert for matching domains without DB lookup", async () => {
+    mockDomainAlertRules();
+
     const result = await validateShopUrl("https://www.amazon.de/dp/B000123");
     expect(result).toEqual({
-      status: "published",
-      shopName: "Amazon",
-      shopUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      status: "blocked",
+      messageMarkdown: DOMAIN_ALERT_MESSAGE,
     });
     expect(repoMocks.findShopByDomain).not.toHaveBeenCalled();
     expect(repoMocks.findRejectedSubmissionByDomain).not.toHaveBeenCalled();
     expect(repoMocks.findPendingSubmissionByDomain).not.toHaveBeenCalled();
+  });
+
+  it("ignores disabled domain alert rules", async () => {
+    mockDomainAlertRules(false);
+    repoMocks.findShopByDomain.mockResolvedValue(null);
+    repoMocks.findRejectedSubmissionByDomain.mockResolvedValue(null);
+    repoMocks.findPendingSubmissionByDomain.mockResolvedValue(null);
+
+    const result = await validateShopUrl("https://www.amazon.de/dp/B000123");
+    expect(result).toEqual({ status: "available" });
+    expect(repoMocks.findShopByDomain).toHaveBeenCalledWith("amazon.de");
   });
 
   it("returns rejected with rejectionUrl when shop was rejected", async () => {

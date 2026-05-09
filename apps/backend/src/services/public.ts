@@ -4,6 +4,7 @@ import { getDomain } from "tldts";
 
 import { encodeShopToken } from "@lmaa/shared";
 
+import { findMatchingDomainAlertRule } from "./domain-alert-rules.js";
 import { env } from "../config/env.js";
 import { extractEuropeanPostalCodePrefix } from "../lib/postal-code.js";
 import { type Result, failure, success } from "../lib/result.js";
@@ -58,49 +59,6 @@ const SHOPS_CACHE_TTL_MS = 60 * 1000;
 export function normalizeShopHostname(url: string): string | null {
   const input = url.includes("://") ? url : `https://${url}`;
   return getDomain(input) ?? null;
-}
-
-const AMAZON_STORE_DOMAINS = [
-  "amazon.com",
-  "amazon.ca",
-  "amazon.com.mx",
-  "amazon.com.br",
-  "amazon.co.uk",
-  "amazon.de",
-  "amazon.fr",
-  "amazon.it",
-  "amazon.es",
-  "amazon.nl",
-  "amazon.se",
-  "amazon.pl",
-  "amazon.com.tr",
-  "amazon.com.be",
-  "amazon.eg",
-  "amazon.sa",
-  "amazon.ae",
-  "amazon.in",
-  "amazon.com.au",
-  "amazon.co.jp",
-  "amazon.sg",
-  "amazon.cn",
-  "amazon.ie",
-  "amzn.to",
-  "amzn.eu",
-  "amzn.com",
-  "amzn.in",
-  "amzn.de",
-  "amzn.es",
-  "amzn.fr",
-  "amzn.it",
-  "amzn.uk",
-  "amzn.asia",
-] as const;
-
-const AMAZON_RICKROLL_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-
-export function isAmazonStoreHostname(hostname: string): boolean {
-  const lower = hostname.toLowerCase();
-  return AMAZON_STORE_DOMAINS.some((d) => lower === d || lower.endsWith(`.${d}`));
 }
 
 /**
@@ -318,11 +276,11 @@ export async function validateShopUrl(urlRaw: string | undefined) {
     return { status: "invalid" as const };
   }
 
-  if (isAmazonStoreHostname(domain)) {
+  const domainAlertRule = await findMatchingDomainAlertRule(url, domain);
+  if (domainAlertRule) {
     return {
-      status: "published" as const,
-      shopName: "Amazon",
-      shopUrl: AMAZON_RICKROLL_URL,
+      status: "blocked" as const,
+      messageMarkdown: domainAlertRule.messageMarkdown,
     };
   }
 

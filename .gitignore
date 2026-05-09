@@ -10,6 +10,10 @@ dist/
 *.db-wal
 .DS_Store
 *.tmp
+/.app/
+/app
+/app.config
+/test-results/
 .agents/
 .claude/
 .codex/
