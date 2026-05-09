@@ -95,6 +95,7 @@ describe("postToBlueskyAccount", () => {
     detectFacetsMock.mockResolvedValue(undefined);
     postMock.mockResolvedValue({});
     await postToBlueskyAccount(account, template, {
+      kind: "submission",
       submission,
       newShopId: 100,
       adminNote: "",
@@ -114,6 +115,7 @@ describe("postToBlueskyAccount", () => {
     const longTemplate = { ...template, bodyBluesky: "x".repeat(301) };
     await expect(
       postToBlueskyAccount(account, longTemplate, {
+        kind: "submission",
         submission,
         newShopId: 100,
         adminNote: "",
@@ -127,6 +129,7 @@ describe("postToBlueskyAccount", () => {
     const wrongAccount: SocialMediaAccount = { ...account, platform: "mastodon" };
     await expect(
       postToBlueskyAccount(wrongAccount, template, {
+        kind: "submission",
         submission,
         newShopId: 100,
         adminNote: "",
@@ -141,6 +144,7 @@ describe("postToBlueskyAccount", () => {
     }
     await expect(
       postToBlueskyAccount(account, template, {
+        kind: "submission",
         submission,
         newShopId: 100,
         adminNote: "",
