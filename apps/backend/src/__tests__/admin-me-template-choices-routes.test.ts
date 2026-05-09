@@ -39,11 +39,11 @@ describe("GET /me/template-choices", () => {
   it("empty initial state returns {}", async () => {
     repoMock.listChoicesForAdminUser.mockResolvedValue([]);
     const app = makeApp();
-    const res = await app.request("/me/template-choices");
+    const res = await app.request("/me/template-choices?scope=submission");
     expect(res.status).toBe(200);
     const body = (await res.json()) as { data: Record<string, unknown> };
     expect(body.data).toEqual({});
-    expect(repoMock.listChoicesForAdminUser).toHaveBeenCalledWith(1);
+    expect(repoMock.listChoicesForAdminUser).toHaveBeenCalledWith(1, "submission");
   });
 
   it("returns map keyed by socialMediaAccountId", async () => {
@@ -52,7 +52,7 @@ describe("GET /me/template-choices", () => {
       { adminUserId: 1, socialMediaAccountId: 11, templateId: null, updatedAt: new Date() },
     ]);
     const app = makeApp();
-    const res = await app.request("/me/template-choices");
+    const res = await app.request("/me/template-choices?scope=submission");
     expect(res.status).toBe(200);
     const body = (await res.json()) as { data: Record<string, number | null> };
     expect(body.data).toEqual({ "10": 7, "11": null });
@@ -61,7 +61,28 @@ describe("GET /me/template-choices", () => {
   it("scopes to the authenticated admin user", async () => {
     repoMock.listChoicesForAdminUser.mockResolvedValue([]);
     const app = makeApp(42);
-    await app.request("/me/template-choices");
-    expect(repoMock.listChoicesForAdminUser).toHaveBeenCalledWith(42);
+    await app.request("/me/template-choices?scope=submission");
+    expect(repoMock.listChoicesForAdminUser).toHaveBeenCalledWith(42, "submission");
+  });
+
+  it("forwards the category scope to the repository", async () => {
+    repoMock.listChoicesForAdminUser.mockResolvedValue([]);
+    const app = makeApp(7);
+    await app.request("/me/template-choices?scope=category");
+    expect(repoMock.listChoicesForAdminUser).toHaveBeenCalledWith(7, "category");
+  });
+
+  it("returns 400 when scope query param is missing", async () => {
+    const app = makeApp();
+    const res = await app.request("/me/template-choices");
+    expect(res.status).toBe(400);
+    expect(repoMock.listChoicesForAdminUser).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when scope query param is unknown", async () => {
+    const app = makeApp();
+    const res = await app.request("/me/template-choices?scope=bogus");
+    expect(res.status).toBe(400);
+    expect(repoMock.listChoicesForAdminUser).not.toHaveBeenCalled();
   });
 });

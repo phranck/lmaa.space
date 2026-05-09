@@ -1,7 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { z } from "zod";
 
 import {
+  SOCIAL_MEDIA_POST_TEMPLATE_SCOPES,
   socialMediaPostTemplateCreateSchema,
   socialMediaPostTemplateUpdateSchema,
 } from "@lmaa/contracts";
@@ -17,14 +19,23 @@ import {
   updateManagedSocialMediaPostTemplate,
 } from "../../services/social-media-post-templates.js";
 
+const listQuerySchema = z.object({
+  scope: z.enum(SOCIAL_MEDIA_POST_TEMPLATE_SCOPES).optional(),
+});
+
 export const socialMediaPostTemplateRoutes = new Hono<{ Variables: AuthVariables }>();
 
 socialMediaPostTemplateRoutes.use("*", requireAdmin);
 
-socialMediaPostTemplateRoutes.get("/social-media-post-templates", async (c) => {
-  const templates = await getManagedSocialMediaPostTemplates();
-  return ok(c, templates);
-});
+socialMediaPostTemplateRoutes.get(
+  "/social-media-post-templates",
+  zValidator("query", listQuerySchema),
+  async (c) => {
+    const { scope } = c.req.valid("query");
+    const templates = await getManagedSocialMediaPostTemplates(scope);
+    return ok(c, templates);
+  },
+);
 
 socialMediaPostTemplateRoutes.get("/social-media-post-templates/:id", async (c) => {
   const id = parseId(c.req.param("id"));

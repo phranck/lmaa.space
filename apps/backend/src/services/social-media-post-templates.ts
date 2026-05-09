@@ -1,4 +1,4 @@
-import type { SocialMediaPostTemplate } from "@lmaa/contracts";
+import type { SocialMediaPostTemplate, SocialMediaPostTemplateScope } from "@lmaa/contracts";
 
 import type { SocialMediaPostTemplateInsert } from "../db/schema.js";
 import {
@@ -34,8 +34,10 @@ function rowToSocialMediaPostTemplate(row: {
   };
 }
 
-export async function getManagedSocialMediaPostTemplates(): Promise<SocialMediaPostTemplate[]> {
-  const rows = await listSocialMediaPostTemplates();
+export async function getManagedSocialMediaPostTemplates(
+  scope?: SocialMediaPostTemplateScope,
+): Promise<SocialMediaPostTemplate[]> {
+  const rows = await listSocialMediaPostTemplates(scope);
   return rows.map(rowToSocialMediaPostTemplate);
 }
 
