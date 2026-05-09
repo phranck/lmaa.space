@@ -91,11 +91,13 @@ export function ContextMenu({ origin, onClose, items }: ContextMenuProps) {
               entry.onClick();
               onClose();
             }}
-            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left disabled:opacity-50 disabled:pointer-events-none ${
-              entry.danger
-                ? "text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-                : "text-[var(--ds-text)] hover:bg-[var(--ds-nav-hover-bg)]"
-            }`}
+            // The danger color is applied via `style` rather than a
+            // `text-[var(--ds-btn-danger-text)]` utility on purpose: a global
+            // design-system rule centers any element whose className contains
+            // `var(--ds-btn-`, which would shift this menu item away from the
+            // left-aligned layout the rest of the menu uses.
+            style={entry.danger ? { color: "var(--ds-btn-danger-text)" } : undefined}
+            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[var(--ds-text)] hover:bg-[var(--ds-nav-hover-bg)] disabled:opacity-50 disabled:pointer-events-none"
             role="menuitem"
           >
             {entry.icon && <span className="shrink-0 opacity-70">{entry.icon}</span>}
