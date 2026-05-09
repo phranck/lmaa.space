@@ -9,6 +9,15 @@
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeInternal": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "invalidPath": true,
+    "rewrittenLink": true,
+    "notDocumented": true
+  },
+  "requiredToBeDocumented": ["Function", "Interface", "TypeAlias", "Variable"],
+  "treatValidationWarningsAsErrors": true,
   "sort": ["source-order"],
   "hideGenerator": true,
   "readme": "none",
