@@ -64,7 +64,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `ButtonPrimitive` und `IconButtonPrimitive` anlegen.
 - [x] `FieldShell`, `InputPrimitive` und `TextareaPrimitive` anlegen.
 - [x] `ControlTrigger`, `ListboxPopover` und `ListboxOption` anlegen.
-- [ ] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
+- [x] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
 - [ ] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
 - [ ] `SegmentedControlPrimitive` anlegen.
 - [ ] `SwitchPrimitive` und `CheckboxPrimitive` anlegen.
@@ -345,6 +345,22 @@ Teilfortschritt 2026-05-10, Listbox-Primitives:
 - `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
 
 Verifiziert fuer den Listbox-Primitive-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, Menu-Primitives:
+
+- `packages/ui/src/MenuPrimitives.tsx` stellt `MenuPrimitive` und `MenuItemPrimitive` bereit.
+- `MenuPrimitive` unterstuetzt Portal-Rendering, Contextmenu-Origin oder Trigger-Positionierung, Viewport-Clamping, Escape-/Outside-Click-Handling und Arrow-/Home-/End-Tastaturfokus.
+- `MenuItemPrimitive` nutzt `h-[var(--ds-control-h-menu-item)]` als Default-Hoehe und `compact` als expliziten `h-7` Modus.
+- `MenuItemPrimitive` stellt Leading-/Trailing-Slots, `danger`-Variante, Disabled-State und optionales Auto-Close nach Auswahl bereit.
+- `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
+
+Verifiziert fuer den Menu-Primitive-Task:
 
 - `npm run lint`
 - `npm run typecheck`
