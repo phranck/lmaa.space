@@ -16,6 +16,7 @@ import {
   CancelActionButton,
   DeleteActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import {
   Dialog,
   dialogHeaderIconClass,
@@ -216,25 +217,28 @@ export function MediaPage() {
           }}
         />
 
-        <button
-          type="button"
+        <DashboardButton
           onClick={() => syncMedia.mutate()}
           disabled={syncMedia.isPending}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] disabled:opacity-60"
+          leadingIcon={
+            <ArrowsClockwiseIcon
+              weight="duotone"
+              className={`size-3.5 ${syncMedia.isPending ? "animate-spin" : ""}`}
+            />
+          }
+          variant="neutral"
         >
-          <ArrowsClockwiseIcon weight="duotone" className={`size-3.5 ${syncMedia.isPending ? "animate-spin" : ""}`} />
           Sync
-        </button>
+        </DashboardButton>
 
-        <button
-          type="button"
+        <DashboardButton
           onClick={() => inputRef.current?.click()}
           disabled={uploadMedia.isPending}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
+          leadingIcon={<PlusCircleIcon weight="duotone" className="size-3.5" />}
+          variant="primary"
         >
-          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {uploadMedia.isPending ? mediaMessages.uploading : mediaMessages.upload}
-        </button>
+        </DashboardButton>
       </PageHeader>
 
       {actionError && <p className="text-sm text-red-500 mb-3">{actionError}</p>}

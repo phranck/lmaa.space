@@ -33,10 +33,10 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
         }`}
       >
         {imageAsset ? (
-          <img src={asset.url} alt="" loading="lazy" className="w-full h-full object-cover" />
+          <img src={asset.url} alt="" loading="lazy" className="size-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-[var(--ds-bg-elevated)] flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
-            <FileIcon weight="duotone" className="w-10 h-10" />
+          <div className="size-full bg-[var(--ds-bg-elevated)] flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
+            <FileIcon weight="duotone" className="size-10" />
             <span className="text-[10px] font-semibold tracking-wide">{getMediaTypeLabel(asset)}</span>
           </div>
         )}
