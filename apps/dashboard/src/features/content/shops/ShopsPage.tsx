@@ -14,6 +14,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { ExportButton } from "@/components/ui/ExportButton.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
@@ -114,31 +115,31 @@ export function ShopsPage() {
       {
         value: "all",
         label: shopsMessages.filters.all,
-        icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <SquaresFourIcon weight="duotone" className="size-3.5" />,
         count: counts?.all,
       },
       {
         value: "public",
         label: shopsMessages.filters.public,
-        icon: <EyeIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <EyeIcon weight="duotone" className="size-3.5" />,
         count: counts?.public,
       },
       {
         value: "onhold",
         label: shopsMessages.filters.onhold,
-        icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <PauseCircleIcon weight="duotone" className="size-3.5" />,
         count: counts?.onhold,
       },
       {
         value: "deleted",
         label: shopsMessages.filters.deleted,
-        icon: <TrashIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <TrashIcon weight="duotone" className="size-3.5" />,
         count: counts?.deleted,
       },
       {
         value: "rejected",
         label: shopsMessages.filters.rejected,
-        icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <XCircleIcon weight="duotone" className="size-3.5" />,
         count: counts?.rejected,
       },
     ],
@@ -158,24 +159,24 @@ export function ShopsPage() {
         {
           value: "all",
           label: shopsMessages.geoFilter.all,
-          icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
+          icon: <SquaresFourIcon weight="duotone" className="size-3.5" />,
         },
         {
           value: "with",
           label: shopsMessages.geoFilter.withGeo,
-          icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
+          icon: <MapPinIcon weight="duotone" className="size-3.5" />,
           count: withGeo,
         },
         {
           value: "without",
           label: shopsMessages.geoFilter.withoutGeo,
-          icon: <MapPinIcon weight="duotone" className="w-3.5 h-3.5" />,
+          icon: <MapPinIcon weight="duotone" className="size-3.5" />,
           count: withoutGeo,
         },
         {
           value: "needsReview",
           label: shopsMessages.geoFilter.needsReview,
-          icon: <SealWarningIcon weight="duotone" className="w-3.5 h-3.5" />,
+          icon: <SealWarningIcon weight="duotone" className="size-3.5" />,
           count: needsReviewCount,
         },
       ];
@@ -188,7 +189,7 @@ export function ShopsPage() {
       {
         value: "all",
         label: shopsMessages.categoryFilter.all,
-        icon: <SquaresFourIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <SquaresFourIcon weight="duotone" className="size-3.5" />,
       },
       ...categories.map((cat) => ({
         value: cat.slug,
@@ -284,16 +285,22 @@ export function ShopsPage() {
           tooltip={shopsMessages.exportTooltip}
           label={shopsMessages.exportLabel}
         >
-          <select
-            value={exportLimit}
-            onChange={(e) => dispatch({ type: "setExportLimit", value: Number(e.target.value) as ExportLimit })}
-            className="py-1.5 pl-3 pr-1 text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none border-r border-[var(--ds-btn-primary-border)]"
+          <DashboardCombobox
             aria-label="Anzahl zu exportierender Shops"
-          >
-            {EXPORT_LIMITS.map((n) => (
-              <option key={n} value={n}>{n}</option>
-            ))}
-          </select>
+            value={String(exportLimit)}
+            onValueChange={(value) =>
+              dispatch({
+                type: "setExportLimit",
+                value: Number(value) as ExportLimit,
+              })
+            }
+            className="w-20 rounded-none border-y-0 border-l-0 border-r border-[var(--ds-btn-primary-border)] bg-[var(--ds-surface)]"
+            matchTriggerWidth={false}
+            options={EXPORT_LIMITS.map((limit) => ({
+              value: String(limit),
+              label: String(limit),
+            }))}
+          />
         </ExportButton>
 
       </PageHeader>
@@ -372,7 +379,7 @@ export function ShopsPage() {
               onClick={() => setSearch("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
             >
-              <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+              <XCircleIcon weight="duotone" className="size-3.5" />
             </button>
           ) : (
             <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">

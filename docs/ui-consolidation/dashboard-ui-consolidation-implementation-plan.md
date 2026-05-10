@@ -106,8 +106,8 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 - [x] `Dropdown.tsx` auf `DashboardCombobox`/`DashboardListbox` umbauen.
 - [x] `FilterDropdown.tsx` anbinden.
-- [ ] sichtbare native Selects in `RejectDialog`, `NotificationsTab`, `UserProfileFields`, `UserCreateCard` und weiteren Fundstellen ersetzen.
-- [ ] `MultiSelect`, `CountryCodeSelect` und `RegionSelect` auf gemeinsame Popover-/Listbox-Basis bringen.
+- [x] sichtbare native Selects in `RejectDialog`, `NotificationsTab`, `UserProfileFields`, `UserCreateCard` und weiteren Fundstellen ersetzen.
+- [x] `MultiSelect`, `CountryCodeSelect` und `RegionSelect` auf gemeinsame Popover-/Listbox-Basis bringen.
 - [ ] Inputs in High-Drift-Dateien auf `DashboardInput` migrieren.
 - [ ] Textareas auf `DashboardTextarea` migrieren.
 - [ ] Number-Inputs und Stepper auf `DashboardNumberInput`/`DashboardStepper` migrieren.
@@ -791,6 +791,25 @@ Verifiziert fuer den Content-System-Social-Selects-Task:
 - `npm run lint -w @lmaa/dashboard`
 - `npm run typecheck -w @lmaa/dashboard`
 - `npx -y react-doctor@latest apps/dashboard --verbose --diff` (Exit 0; verbleibende Hinweise sind bestehende Strukturhinweise ausserhalb dieser Select-Migration.)
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `rg -n "<select|</select>" apps/dashboard/src packages/ui/src -g '*.tsx'`
+
+Teilfortschritt 2026-05-10, Shops- und Form-Builder-Selects:
+
+- Native Selects in `ShopsPage`, `ReminderForm`, `FieldConfigPanel` und `SubmissionConfigPanel` wurden auf `DashboardCombobox` umgestellt.
+- Der Export-Limit-Chooser, Reminder-Wiederholungen, Reminder-Email-Templates, Button-Action-Source-Felder, Submission-Email-Felder, Submission-Email-Templates und der Step-Typ-Chooser nutzen jetzt die gemeinsame Listbox-/Popover-Basis.
+- `rg -n "<select|</select>" apps/dashboard/src packages/ui/src -g '*.tsx'` findet nur noch den nativen Select im zentralen `DashboardSelect`-Wrapper.
+- Mechanische React-Doctor-Hinweise in den beruehrten Dateien wurden bereinigt; verbleibend sind bestehende Giant-Component-Hinweise fuer `ShopsPage` und `FieldConfigPanel`.
+
+Verifiziert fuer den Shops-Form-Builder-Selects-Task:
+
+- `rg -n "<select|</select>" apps/dashboard/src/features/content/shops/ShopsPage.tsx apps/dashboard/src/features/content/shops/ReminderForm.tsx apps/dashboard/src/features/templates/form-builder/FieldConfigPanel.tsx apps/dashboard/src/features/templates/form-builder/SubmissionConfigPanel.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` (Exit 0; verbleibende Hinweise sind bestehende Giant-Component-Hinweise.)
 - `npm run lint`
 - `npm run typecheck`
 - `npm run test --workspaces --if-present`

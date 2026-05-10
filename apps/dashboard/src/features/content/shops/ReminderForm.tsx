@@ -4,6 +4,7 @@ import { useReducer } from "react";
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
 import { AlertDialog, FormLabel, ToggleSwitch, formBtnBaseClass, formInputClass } from "@lmaa/ui";
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
@@ -58,7 +59,12 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
     customInterval: initial?.recurrenceCustomDays != null ? String(initial.recurrenceCustomDays) : "1",
     customUnit: (initial?.recurrenceUnit as "days" | "weeks" | "months" | "years") ?? "weeks",
     customDaysOfWeek: initial?.recurrenceDaysOfWeek
-      ? new Set(initial.recurrenceDaysOfWeek.split(",").map(Number).filter(Boolean))
+      ? new Set(
+          initial.recurrenceDaysOfWeek.split(",").flatMap((day) => {
+            const parsedDay = Number(day);
+            return parsedDay ? [parsedDay] : [];
+          }),
+        )
       : new Set<number>(),
     sendEmail: initial?.sendEmail ?? false,
     emailTemplateId: initial?.emailTemplateId ?? null,
@@ -77,6 +83,42 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
     dispatch({ customDaysOfWeek: next });
   };
 
+  function saveReminder() {
+    const errors: string[] = [];
+    if (!remindAt) errors.push("Datum & Uhrzeit muss gesetzt werden.");
+    if (remindAt && new Date(remindAt) < new Date()) {
+      errors.push("Der Zeitpunkt liegt in der Vergangenheit.");
+    }
+    if (
+      recurrence === "custom" &&
+      (!Number(customInterval) || Number(customInterval) < 1)
+    ) {
+      errors.push("Das Wiederholungs-Intervall muss mindestens 1 sein.");
+    }
+    if (errors.length > 0) {
+      dispatch({ validationError: errors.join("\n") });
+      return;
+    }
+    const interval = Number(customInterval) || 1;
+    const sortedCustomDaysOfWeek = Array.from(customDaysOfWeek);
+    sortedCustomDaysOfWeek.sort((a, b) => a - b);
+    const daysOfWeek =
+      recurrence === "custom" && customUnit === "weeks" && customDaysOfWeek.size > 0
+        ? sortedCustomDaysOfWeek.join(",")
+        : null;
+    onSave({
+      remindAt: new Date(remindAt).toISOString(),
+      note: note.trim() || null,
+      isActive,
+      recurrence,
+      recurrenceCustomDays: recurrence === "custom" ? interval : null,
+      recurrenceUnit: recurrence === "custom" ? customUnit : null,
+      recurrenceDaysOfWeek: daysOfWeek,
+      sendEmail,
+      emailTemplateId: sendEmail ? emailTemplateId : null,
+    });
+  }
+
   return (
     <div className="space-y-3">
       {/* Date + time */}
@@ -88,18 +130,17 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
       {/* Recurrence */}
       <div>
         <FormLabel htmlFor="reminder-recurrence">Wiederholung</FormLabel>
-        <select
+        <DashboardCombobox
           id="reminder-recurrence"
           value={recurrence}
-          onChange={(e) => dispatch({ recurrence: e.target.value as ReminderRecurrence })}
-          className={formInputClass}
-        >
-          {RECURRENCE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onValueChange={(value) =>
+            dispatch({ recurrence: value as ReminderRecurrence })
+          }
+          options={RECURRENCE_OPTIONS.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+        />
       </div>
 
       {/* Custom recurrence sub-form */}
@@ -107,22 +148,20 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
         <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 space-y-3">
           <div className="flex items-center gap-2">
             <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Häufigkeit</span>
-            <select
+            <DashboardCombobox
               value={customUnit}
-              onChange={(e) => {
+              onValueChange={(value) => {
                 dispatch({
-                  customUnit: e.target.value as "days" | "weeks" | "months" | "years",
+                  customUnit: value as "days" | "weeks" | "months" | "years",
                   customDaysOfWeek: new Set(),
                 });
               }}
-              className={`${formInputClass} flex-1`}
-            >
-              {UNIT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              className="flex-1"
+              options={UNIT_OPTIONS.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -149,7 +188,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
                     key={iso}
                     type="button"
                     onClick={() => toggleDay(iso)}
-                    className={`h-7 w-7 rounded text-xs font-medium ${
+                    className={`size-7 rounded text-xs font-medium ${
                       customDaysOfWeek.has(iso)
                         ? "bg-[var(--ds-text-subtle)] text-[var(--ds-bg)]"
                         : "bg-[var(--ds-bg)] border border-[var(--ds-border)] text-[var(--ds-text-subtle)] hover:border-[var(--ds-border-strong)]"
@@ -184,7 +223,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
       <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 space-y-3">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 px-[5px] text-xs font-medium text-[var(--ds-text-muted)]">
-            <EnvelopeSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
+            <EnvelopeSimpleIcon weight="duotone" className="size-3.5" />
             E-Mail senden
           </span>
           <ToggleSwitch checked={sendEmail} onChange={(v) => dispatch({ sendEmail: v })} />
@@ -195,19 +234,20 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
             <FormLabel htmlFor="reminder-email-template">
               E-Mail-Template <span className="font-normal">(optional)</span>
             </FormLabel>
-            <select
+            <DashboardCombobox
               id="reminder-email-template"
-              value={emailTemplateId ?? ""}
-              onChange={(e) => dispatch({ emailTemplateId: e.target.value ? Number(e.target.value) : null })}
-              className={formInputClass}
-            >
-              <option value="">Standard (ohne Template)</option>
-              {emailTemplates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+              value={String(emailTemplateId ?? "")}
+              onValueChange={(value) =>
+                dispatch({ emailTemplateId: value ? Number(value) : null })
+              }
+              options={[
+                { value: "", label: "Standard (ohne Template)" },
+                ...emailTemplates.map((template) => ({
+                  value: String(template.id),
+                  label: template.name,
+                })),
+              ]}
+            />
             <div className="mt-2 px-[5px]">
               <p className="text-[10px] text-[var(--ds-text-subtle)] mb-1">Verfügbare Variablen:</p>
               <div className="flex flex-wrap gap-1">
@@ -242,35 +282,10 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
         <button
           type="button"
           disabled={isPending}
-          onClick={() => {
-            const errors: string[] = [];
-            if (!remindAt) errors.push("Datum & Uhrzeit muss gesetzt werden.");
-            if (remindAt && new Date(remindAt) < new Date()) errors.push("Der Zeitpunkt liegt in der Vergangenheit.");
-            if (recurrence === "custom" && (!Number(customInterval) || Number(customInterval) < 1)) errors.push("Das Wiederholungs-Intervall muss mindestens 1 sein.");
-            if (errors.length > 0) {
-              dispatch({ validationError: errors.join("\n") });
-              return;
-            }
-            const interval = Number(customInterval) || 1;
-            const daysOfWeek =
-              recurrence === "custom" && customUnit === "weeks" && customDaysOfWeek.size > 0
-                ? [...customDaysOfWeek].sort((a, b) => a - b).join(",")
-                : null;
-            onSave({
-              remindAt: new Date(remindAt).toISOString(),
-              note: note.trim() || null,
-              isActive,
-              recurrence,
-              recurrenceCustomDays: recurrence === "custom" ? interval : null,
-              recurrenceUnit: recurrence === "custom" ? customUnit : null,
-              recurrenceDaysOfWeek: daysOfWeek,
-              sendEmail,
-              emailTemplateId: sendEmail ? emailTemplateId : null,
-            });
-          }}
+          onClick={saveReminder}
           className={`${formBtnBaseClass} flex-1 justify-center border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]`}
         >
-          <ClockIcon weight="duotone" className="w-3.5 h-3.5" />
+          <ClockIcon weight="duotone" className="size-3.5" />
           {isPending ? "Wird gespeichert\u2026" : "Erinnerung setzen"}
         </button>
         {onDelete && (
@@ -280,7 +295,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
             onClick={onDelete}
             className={`${formBtnBaseClass} border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]`}
           >
-            <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+            <TrashIcon weight="duotone" className="size-3.5" />
             {isDeleting ? "Wird gelöscht\u2026" : "Löschen"}
           </button>
         )}

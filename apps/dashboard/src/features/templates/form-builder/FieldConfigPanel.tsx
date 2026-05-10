@@ -22,6 +22,7 @@ const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -255,7 +256,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
             type="checkbox"
             checked={field.required}
             onChange={(e) => set("required", e.target.checked)}
-            className="w-4 h-4 accent-[var(--color-primary)]"
+            className="size-4 accent-[var(--color-primary)]"
           />
           <span className="text-sm text-[var(--ds-text)]">{m.required}</span>
         </label>
@@ -268,7 +269,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
             type="checkbox"
             checked={field.allowMarkdown ?? false}
             onChange={(e) => set("allowMarkdown", e.target.checked || undefined)}
-            className="w-4 h-4 accent-[var(--color-primary)]"
+            className="size-4 accent-[var(--color-primary)]"
           />
           <span className="text-sm text-[var(--ds-text)]">{m.allowMarkdown}</span>
         </label>
@@ -664,30 +665,29 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
             ))}
           </div>
           {field.buttonAction && (
-            <label className="flex flex-col gap-1 mt-1">
+            <div className="flex flex-col gap-1 mt-1">
               <span className="text-xs text-[var(--ds-text-subtle)]">
                 {m.buttonActionSourceField}
               </span>
-              <select
+              <DashboardCombobox
                 value={field.buttonAction.sourceFieldId}
-                onChange={(e) => {
+                onValueChange={(value) => {
                   if (field.buttonAction) {
                     set("buttonAction", {
                       ...field.buttonAction,
-                      sourceFieldId: e.target.value,
+                      sourceFieldId: value,
                     });
                   }
                 }}
-                className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
-              >
-                <option value="">---</option>
-                {allFields.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={[
+                  { value: "", label: "---" },
+                  ...allFields.map((fieldOption) => ({
+                    value: fieldOption.id,
+                    label: fieldOption.label,
+                  })),
+                ]}
+              />
+            </div>
           )}
         </div>
       )}
