@@ -22,7 +22,12 @@ const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  DashboardCombobox,
+  DashboardInput,
+  DashboardNumberInput,
+  DashboardTextarea,
+} from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -115,11 +120,11 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.content}
           </FormLabelText>
-          <textarea
+          <DashboardTextarea
             rows={4}
             value={field.content ?? ""}
             onChange={(e) => set("content", e.target.value || undefined)}
-            className="px-3 py-1.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
+            className="resize-none"
           />
         </label>
       )}
@@ -130,11 +135,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.label}
           </FormLabelText>
-          <input
-            type="text"
+          <DashboardInput
             value={field.label}
             onChange={(e) => set("label", e.target.value)}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
           />
         </label>
       )}
@@ -186,12 +189,10 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.fieldName}
           </FormLabelText>
-          <input
-            type="text"
+          <DashboardInput
             value={field.name ?? ""}
             onChange={(e) => set("name", e.target.value || undefined)}
             placeholder={field.id}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] placeholder:opacity-40 focus:outline-none focus:border-[var(--color-primary)]"
           />
         </label>
       )}
@@ -205,11 +206,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.placeholder}
           </FormLabelText>
-          <input
-            type="text"
+          <DashboardInput
             value={field.placeholder ?? ""}
             onChange={(e) => set("placeholder", e.target.value || undefined)}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
           />
         </label>
       )}
@@ -220,8 +219,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.maxChars}
           </FormLabelText>
-          <input
-            type="number"
+          <DashboardNumberInput
             min={1}
             value={field.validation?.max ?? ""}
             onChange={(e) => {
@@ -229,7 +227,6 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
               set("validation", { ...field.validation, max: val });
             }}
             placeholder="–"
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] placeholder:opacity-40 focus:outline-none focus:border-[var(--color-primary)]"
           />
         </label>
       )}
@@ -240,11 +237,9 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.subtext}
           </FormLabelText>
-          <input
-            type="text"
+          <DashboardInput
             value={field.subtext ?? ""}
             onChange={(e) => set("subtext", e.target.value || undefined)}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
           />
         </label>
       )}
@@ -310,7 +305,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.options}
           </FormLabelText>
-          <textarea
+          <DashboardTextarea
             rows={4}
             value={(field.options ?? []).join("\n")}
             onChange={(e) => {
@@ -318,7 +313,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
               set("options", lines.length > 0 ? lines : undefined);
             }}
             placeholder={m.optionsHint}
-            className="px-3 py-1.5 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)] resize-none"
+            className="resize-none"
           />
           <span className="text-xs text-[var(--ds-text-subtle)]">{m.optionsHint}</span>
         </label>
@@ -330,8 +325,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <FormLabelText>
             {m.rows}
           </FormLabelText>
-          <input
-            type="number"
+          <DashboardNumberInput
             min={1}
             max={30}
             value={field.rows ?? ""}
@@ -340,7 +334,6 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
               set("rows", val);
             }}
             placeholder={isRichText ? "8" : "4"}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] placeholder:opacity-40 focus:outline-none focus:border-[var(--color-primary)]"
           />
         </label>
       )}
@@ -359,26 +352,22 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
           <div className="flex gap-2">
             <label className="flex-1 min-w-0 flex flex-col gap-1">
               <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMin}</span>
-              <input
-                type="number"
+              <DashboardNumberInput
                 value={field.validation?.min ?? ""}
                 onChange={(e) => {
                   const val = e.target.value !== "" ? Number(e.target.value) : undefined;
                   set("validation", { ...field.validation, min: val });
                 }}
-                className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
               />
             </label>
             <label className="flex-1 min-w-0 flex flex-col gap-1">
               <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMax}</span>
-              <input
-                type="number"
+              <DashboardNumberInput
                 value={field.validation?.max ?? ""}
                 onChange={(e) => {
                   const val = e.target.value !== "" ? Number(e.target.value) : undefined;
                   set("validation", { ...field.validation, max: val });
                 }}
-                className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
               />
             </label>
           </div>
