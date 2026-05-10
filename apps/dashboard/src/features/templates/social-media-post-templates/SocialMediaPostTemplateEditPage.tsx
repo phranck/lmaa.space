@@ -2,13 +2,14 @@ import {
   BracketsCurlyIcon,
   CheckCircleIcon,
   ChatTextIcon,
+  CopyIcon,
   DownloadIcon,
   EyeIcon,
   ListChecksIcon,
   PaperPlaneTiltIcon,
   SealWarningIcon,
 } from "@phosphor-icons/react";
-import { Suspense, lazy, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import {
@@ -20,14 +21,12 @@ import {
   type SocialMediaPostTemplateInput,
   type SocialMediaPostTemplateScope,
 } from "@lmaa/contracts";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection, FormLabel, formInputClass } from "@lmaa/ui";
 
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import {
-  SystemTemplateBadge,
-  SystemTemplateCheckbox,
-} from "@/components/ui/SystemTemplateBadge.tsx";
+import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
+import { SystemTemplateCheckbox } from "@/components/ui/SystemTemplateCheckbox.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { usePostingAccount } from "@/features/social/hooks/useSocialMediaAccounts.ts";
@@ -232,37 +231,35 @@ export function SocialMediaPostTemplateEditPage() {
         </div>
       </PageHeader>
 
-      <div className="flex shrink-0 items-center gap-3 px-3 py-1.5">
-        <button
-          type="button"
-          onClick={() => navigate("/social-media-post-templates")}
-          className="shrink-0 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-        >
-          {m.backToList}
-        </button>
-        <span className="text-[var(--ds-border)]">·</span>
-        <input
-          type="text"
-          value={form.name}
-          onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-          placeholder={m.newTemplate}
-          className="w-64 rounded border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 py-1 font-mono text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-        />
-        {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
-        {isOwner && (
-          <SystemTemplateCheckbox
-            checked={form.isSystemTemplate ?? false}
-            onChange={(value) => setForm((current) => ({ ...current, isSystemTemplate: value }))}
-            label={m.systemCheckbox}
-            hint={m.systemHint}
+      <div className="flex shrink-0 items-end gap-3 px-3 py-2">
+        <div className="w-64">
+          <FormLabel htmlFor="social-media-template-name">{m.templateName}</FormLabel>
+          <input
+            id="social-media-template-name"
+            type="text"
+            value={form.name}
+            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+            placeholder={m.newTemplate}
+            className={`${formInputClass} font-mono`}
           />
-        )}
+        </div>
+        <div className="ml-auto flex items-center">
+          {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
+          {isOwner && (
+            <SystemTemplateCheckbox
+              checked={form.isSystemTemplate ?? false}
+              onChange={(value) => setForm((current) => ({ ...current, isSystemTemplate: value }))}
+              label={m.systemCheckbox}
+              hint={m.systemHint}
+            />
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
         <div className="grid h-full grid-cols-1 gap-3 overflow-hidden xl:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="min-w-0 overflow-y-auto">
-            <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="mb-4">
               <DashboardSection className="h-full">
                 <DashboardSection.Header
                   icon={<PaperPlaneTiltIcon weight="duotone" className="size-4" />}
@@ -287,28 +284,6 @@ export function SocialMediaPostTemplateEditPage() {
                       <span>{m.platformBluesky}</span>
                     </label>
                   </div>
-                </DashboardSection.Body>
-              </DashboardSection>
-
-              <DashboardSection className="h-full">
-                <DashboardSection.Header
-                  icon={<ListChecksIcon weight="duotone" className="size-4" />}
-                  title={m.scopesLabel}
-                />
-                <DashboardSection.Body className="!gap-2">
-                  <div className="flex flex-wrap items-center gap-4 text-sm">
-                    {SOCIAL_MEDIA_POST_TEMPLATE_SCOPES.map((scope) => (
-                      <label key={scope} className="flex items-center gap-1.5">
-                        <input
-                          type="checkbox"
-                          checked={form.scopes.includes(scope)}
-                          onChange={(event) => toggleScope(scope, event.target.checked)}
-                        />
-                        <span>{m.scopes[scope]}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <p className="text-xs text-[var(--ds-text-subtle)]">{m.scopes.helpText}</p>
                 </DashboardSection.Body>
               </DashboardSection>
             </div>
@@ -349,7 +324,7 @@ export function SocialMediaPostTemplateEditPage() {
             </div>
           </div>
 
-          <TemplateVariablesSidebar messages={m} scopes={form.scopes} />
+          <TemplateVariablesSidebar messages={m} scopes={form.scopes} onScopeToggle={toggleScope} />
         </div>
       </div>
     </div>
@@ -359,18 +334,72 @@ export function SocialMediaPostTemplateEditPage() {
 function TemplateVariablesSidebar({
   messages,
   scopes,
+  onScopeToggle,
 }: {
   messages: SocialMediaTemplateMessages;
   scopes: SocialMediaPostTemplateScope[];
+  onScopeToggle: (scope: SocialMediaPostTemplateScope, on: boolean) => void;
 }) {
   const selectedScopes = new Set(scopes);
   const visibleVariableSections = TEMPLATE_VARIABLE_SECTIONS.filter(({ scope }) =>
     selectedScopes.has(scope),
   );
+  const [copiedVariable, setCopiedVariable] = useState<string | null>(null);
+  const copyResetTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimeoutRef.current) {
+        window.clearTimeout(copyResetTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  async function handleCopyVariable(variable: string) {
+    const token = `{{${variable}}}`;
+
+    try {
+      await navigator.clipboard.writeText(token);
+    } catch {
+      return;
+    }
+
+    if (copyResetTimeoutRef.current) {
+      window.clearTimeout(copyResetTimeoutRef.current);
+    }
+
+    setCopiedVariable(variable);
+    copyResetTimeoutRef.current = window.setTimeout(() => {
+      setCopiedVariable(null);
+      copyResetTimeoutRef.current = null;
+    }, 1500);
+  }
 
   return (
     <aside className="overflow-y-auto">
       <div className="space-y-4">
+        <DashboardSection>
+          <DashboardSection.Header
+            icon={<ListChecksIcon weight="duotone" className="size-4" />}
+            title={messages.scopesLabel}
+          />
+          <DashboardSection.Body className="!gap-2">
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              {SOCIAL_MEDIA_POST_TEMPLATE_SCOPES.map((scope) => (
+                <label key={scope} className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={scopes.includes(scope)}
+                    onChange={(event) => onScopeToggle(scope, event.target.checked)}
+                  />
+                  <span>{messages.scopes[scope]}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-[var(--ds-text-subtle)]">{messages.scopes.helpText}</p>
+          </DashboardSection.Body>
+        </DashboardSection>
+
         {visibleVariableSections.map(({ scope, variables }) => (
           <DashboardSection
             key={scope}
@@ -383,21 +412,17 @@ function TemplateVariablesSidebar({
               subtitle={messages.variablesTitle}
             />
             <DashboardSection.Body className="!gap-2">
-              <dl className="space-y-2">
+              <dl className="overflow-hidden rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)]">
                 {variables.map((variable) => (
-                  <div
+                  <TemplateVariableItem
                     key={variable}
-                    className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3"
-                  >
-                    <dt className="font-mono text-xs font-semibold text-[var(--ds-text)]">
-                      {"{{"}
-                      {variable}
-                      {"}}"}
-                    </dt>
-                    <dd className="mt-1 text-xs leading-relaxed text-[var(--ds-text-muted)]">
-                      {messages.variables[variable]}
-                    </dd>
-                  </div>
+                    variable={variable}
+                    description={messages.variables[variable]}
+                    copied={copiedVariable === variable}
+                    copyLabel={messages.copyVariable}
+                    copiedLabel={messages.copiedVariable}
+                    onCopy={handleCopyVariable}
+                  />
                 ))}
               </dl>
             </DashboardSection.Body>
@@ -405,6 +430,48 @@ function TemplateVariablesSidebar({
         ))}
       </div>
     </aside>
+  );
+}
+
+function TemplateVariableItem({
+  variable,
+  description,
+  copied,
+  copyLabel,
+  copiedLabel,
+  onCopy,
+}: {
+  variable: string;
+  description: string;
+  copied: boolean;
+  copyLabel: string;
+  copiedLabel: string;
+  onCopy: (variable: string) => void;
+}) {
+  const token = `{{${variable}}}`;
+
+  return (
+    <div className="flex items-start gap-2 border-b border-[var(--ds-border-subtle)] px-2.5 py-2 last:border-b-0">
+      <div className="min-w-0 flex-1">
+        <dt className="font-mono text-[11px] font-semibold leading-5 text-[var(--ds-text)]">
+          {token}
+        </dt>
+        <dd className="text-xs leading-snug text-[var(--ds-text-muted)]">{description}</dd>
+      </div>
+      <button
+        type="button"
+        onClick={() => onCopy(variable)}
+        aria-label={`${copied ? copiedLabel : copyLabel}: ${token}`}
+        title={copied ? copiedLabel : copyLabel}
+        className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-control text-[var(--ds-text-muted)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+      >
+        {copied ? (
+          <CheckCircleIcon weight="duotone" className="size-3.5 text-green-600 dark:text-green-400" />
+        ) : (
+          <CopyIcon weight="duotone" className="size-3.5" />
+        )}
+      </button>
+    </div>
   );
 }
 
