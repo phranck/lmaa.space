@@ -12,7 +12,11 @@ import { useCallback, useEffect, useState } from "react";
 import { DashboardSection, FocalPointOverlay, ToggleSwitch, useFocalPointDrag } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { Dialog, dialogBtnDestructive, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import {
+  CancelActionButton,
+  RemoveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -72,13 +76,13 @@ function HeroImageCard({
       {/* Active badge */}
       {image.isSelected && (
         <div className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--color-primary)] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full z-10">
-          <CheckCircleIcon weight="fill" className="w-3 h-3" />
+          <CheckCircleIcon weight="fill" className="size-3" />
           {m.selectedBadge}
         </div>
       )}
 
       {/* Photographer credit */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-2 z-10">
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 z-10">
         <p className="text-white text-[10px] truncate">
           {m.photographerCredit} {image.photographer}
         </p>
@@ -94,9 +98,9 @@ function HeroImageCard({
           title={image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
         >
           {image.isSelected ? (
-            <CircleIcon weight="regular" className="w-3.5 h-3.5" />
+            <CircleIcon weight="regular" className="size-3.5" />
           ) : (
-            <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+            <CheckCircleIcon weight="duotone" className="size-3.5" />
           )}
           {image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
         </button>
@@ -107,7 +111,7 @@ function HeroImageCard({
           className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-white text-[var(--ds-btn-danger-text,#ef4444)] rounded-control hover:bg-red-50 disabled:opacity-50"
           title={m.removeImage}
         >
-          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+          <TrashIcon weight="duotone" className="size-3.5" />
           {m.removeImage}
         </button>
       </div>
@@ -155,7 +159,7 @@ export function HeroBannerTab() {
           {/* Rotation Section */}
           <DashboardSection expanded={rotation.enabled}>
             <DashboardSection.Header
-              icon={<ArrowsClockwiseIcon weight="duotone" className="w-4 h-4" />}
+              icon={<ArrowsClockwiseIcon weight="duotone" className="size-4" />}
               title={m.rotationLabel}
               addOn={
                 <ToggleSwitch
@@ -197,7 +201,7 @@ export function HeroBannerTab() {
           {/* Image Pool Section */}
           <DashboardSection>
             <DashboardSection.Header
-              icon={<ImagesIcon weight="duotone" className="w-4 h-4" />}
+              icon={<ImagesIcon weight="duotone" className="size-4" />}
               title={m.imagePool}
             />
             <DashboardSection.Body>
@@ -249,7 +253,7 @@ export function HeroBannerTab() {
           onClick={() => setShowBrowser(true)}
           className="flex items-center gap-1.5 h-9 px-3 text-sm border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:bg-[var(--ds-btn-primary-hover-bg)] hover:border-[var(--ds-btn-primary-hover-border)]"
         >
-          <PlusIcon weight="bold" className="w-3.5 h-3.5" />
+          <PlusIcon weight="bold" className="size-3.5" />
           {m.addImages}
         </button>
       </PageFooter>
@@ -282,24 +286,18 @@ export function HeroBannerTab() {
           <p className="text-sm text-[var(--ds-text-muted)]">{m.removeConfirmDescription}</p>
         </div>
         <Dialog.Footer>
-          <button
-            type="button"
+          <CancelActionButton
+            label={messages.common.cancel}
             onClick={() => setDeleteTarget(null)}
-            className={dialogBtnSecondary}
-          >
-            {messages.common.cancel}
-          </button>
-          <button
-            type="button"
+          />
+          <RemoveActionButton
             disabled={deleteMutation.isPending}
+            label={m.removeImage}
             onClick={() => {
               if (deleteTarget === null) return;
               deleteMutation.mutate(deleteTarget, { onSuccess: () => setDeleteTarget(null) });
             }}
-            className={dialogBtnDestructive}
-          >
-            {m.removeImage}
-          </button>
+          />
         </Dialog.Footer>
       </Dialog>
     </>

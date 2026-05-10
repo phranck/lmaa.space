@@ -13,9 +13,11 @@ import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
+  CancelActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
   Dialog,
-  dialogBtnDestructive,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -96,10 +98,10 @@ export function SocialMediaAccountsPage(): React.ReactElement {
               title={row.profileUrl}
             >
               <span className="truncate">{row.profileUrl}</span>
-              <ArrowSquareOutIcon weight="bold" className="h-3 w-3 shrink-0" />
+              <ArrowSquareOutIcon weight="bold" className="size-3 shrink-0" />
             </a>
           ) : (
-            <span className="text-[var(--ds-text-muted)]">—</span>
+            <span className="text-[var(--ds-text-muted)]">-</span>
           ),
       },
       {
@@ -156,13 +158,13 @@ export function SocialMediaAccountsPage(): React.ReactElement {
           <div className="flex items-center justify-end gap-2">
             <TableActionButton
               variant="neutral"
-              icon={<PencilSimpleIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<PencilSimpleIcon weight="duotone" className="size-3.5" />}
               label={common.edit}
               onClick={() => setDialogTarget({ mode: "edit", account: row })}
             />
             <TableActionButton
               variant="danger"
-              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
               label={common.delete}
               onClick={() => setDeleteTarget({ id: row.id, label: row.label })}
             />
@@ -181,7 +183,7 @@ export function SocialMediaAccountsPage(): React.ReactElement {
           onClick={() => setDialogTarget({ mode: "create" })}
           className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {t.addAccountTitle}
         </button>
       </PageHeader>
@@ -227,25 +229,16 @@ export function SocialMediaAccountsPage(): React.ReactElement {
             {t.deleteConfirm} <span className="font-medium">{deleteTarget.label}</span>
           </div>
           <Dialog.Footer>
-            <button
-              type="button"
-              onClick={() => setDeleteTarget(null)}
-              className={dialogBtnSecondary}
-            >
-              {common.cancel}
-            </button>
-            <button
-              type="button"
+            <CancelActionButton label={common.cancel} onClick={() => setDeleteTarget(null)} />
+            <DeleteActionButton
               disabled={isDeleting}
+              label={isDeleting ? "..." : common.delete}
               onClick={() => {
                 deleteMutation.mutate(deleteTarget.id, {
                   onSuccess: () => setDeleteTarget(null),
                 });
               }}
-              className={dialogBtnDestructive}
-            >
-              {isDeleting ? "..." : common.delete}
-            </button>
+            />
           </Dialog.Footer>
         </Dialog>
       )}

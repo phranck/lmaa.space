@@ -16,7 +16,11 @@ import { detectPlatformFromUrl } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
 import { formInputClass, formLabelClass, PLATFORM_MAP, PLATFORMS, ToggleSwitch } from "@lmaa/ui";
 
-import { Dialog, dialogBtnPrimary, dialogBtnSecondary } from "@/components/ui/Dialog.tsx";
+import {
+  CancelActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { Dialog } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   type BlueskyAccountFormInput,
@@ -355,7 +359,7 @@ export function AccountFormDialog({
                 aria-label={t.platformPickerLabel}
               >
                 {PlatformIcon ? <PlatformIcon size={18} /> : null}
-                <CaretDownIcon weight="bold" className="h-3 w-3" />
+                <CaretDownIcon weight="bold" className="size-3" />
               </button>
               {platformPickerOpen &&
                 platformPickerRect &&
@@ -366,7 +370,7 @@ export function AccountFormDialog({
                       position: "fixed",
                       top: platformPickerRect.top + 4,
                       left: platformPickerRect.left,
-                      zIndex: 9999,
+                      zIndex: 50,
                     }}
                     className="max-h-64 w-56 overflow-y-auto rounded-card border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-lg"
                   >
@@ -403,10 +407,10 @@ export function AccountFormDialog({
                 href={state.profileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-[var(--ds-border-subtle)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
+                className="inline-flex size-9 items-center justify-center rounded-control border border-[var(--ds-border-subtle)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
                 aria-label={t.openLink}
               >
-                <ArrowSquareOutIcon weight="bold" className="h-4 w-4" />
+                <ArrowSquareOutIcon weight="bold" className="size-4" />
               </a>
             )}
           </div>
@@ -420,7 +424,7 @@ export function AccountFormDialog({
               onChange={(event) =>
                 setState((prev) => ({ ...prev, showInFooter: event.target.checked }))
               }
-              className="h-4 w-4"
+              className="size-4"
             />
             {t.showInFooter}
           </label>
@@ -441,7 +445,7 @@ export function AccountFormDialog({
                   isActive: event.target.checked ? prev.isActive : true,
                 }))
               }
-              className="h-4 w-4"
+              className="size-4"
             />
             {t.useForPosting}
           </label>
@@ -492,17 +496,12 @@ export function AccountFormDialog({
       </div>
       <Dialog.Footer>
         {error && <p className="mr-auto text-xs text-red-500">{error}</p>}
-        <button type="button" onClick={onClose} className={dialogBtnSecondary}>
-          {common.cancel}
-        </button>
-        <button
-          type="button"
-          onClick={handleSave}
+        <CancelActionButton label={common.cancel} onClick={onClose} />
+        <SaveActionButton
           disabled={isSaving}
-          className={dialogBtnPrimary}
-        >
-          {isSaving ? common.saving : common.save}
-        </button>
+          label={isSaving ? common.saving : common.save}
+          onClick={handleSave}
+        />
       </Dialog.Footer>
     </Dialog>
   );

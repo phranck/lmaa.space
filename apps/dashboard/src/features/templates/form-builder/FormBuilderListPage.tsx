@@ -14,11 +14,14 @@ import { useNavigate } from "react-router";
 import type { FormConfig } from "@lmaa/contracts";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import {
+  CancelActionButton,
+  CloseActionButton,
+  CreateActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import {
   Dialog,
-  dialogBtnPrimary,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -73,14 +76,14 @@ function ActiveBadge({
   if (isActive) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-        <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+        <CheckCircleIcon weight="duotone" className="size-3.5" />
         {activeLabel}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
-      <CircleIcon weight="duotone" className="w-3.5 h-3.5" />
+      <CircleIcon weight="duotone" className="size-3.5" />
       {inactiveLabel}
     </span>
   );
@@ -104,7 +107,7 @@ function NewFormDialog({
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [slugEdited, setSlugEdited] = useState(false);
+  const slugEditedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -115,13 +118,13 @@ function NewFormDialog({
 
   // Auto-derive slug from name unless user has manually edited it
   useEffect(() => {
-    if (!slugEdited) {
+    if (!slugEditedRef.current) {
       setSlug(deriveSlug(name));
     }
-  }, [name, slugEdited]);
+  }, [name]);
 
   function handleSlugChange(value: string) {
-    setSlugEdited(true);
+    slugEditedRef.current = true;
     setSlug(value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
   }
 
@@ -209,16 +212,12 @@ function NewFormDialog({
           {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
         <Dialog.Footer>
-          <button type="button" onClick={onClose} className={dialogBtnSecondary}>
-            {messages.common.cancel}
-          </button>
-          <button
-            type="submit"
+          <CancelActionButton label={messages.common.cancel} onClick={onClose} />
+          <CreateActionButton
             disabled={createMutation.isPending || !slug || !name}
-            className={dialogBtnPrimary}
-          >
-            {createMutation.isPending ? messages.common.saving : m.create}
-          </button>
+            label={createMutation.isPending ? messages.common.saving : m.create}
+            type="submit"
+          />
         </Dialog.Footer>
       </form>
     </Dialog>
@@ -325,7 +324,7 @@ export function FormBuilderListPage() {
         header: m.slugLabel,
         cell: (form) => (
           <span className="font-mono text-xs text-[var(--ds-text-muted)]">
-            {form.slug ? `/${form.slug}` : "—"}
+            {form.slug ? `/${form.slug}` : "-"}
           </span>
         ),
       },
@@ -355,19 +354,19 @@ export function FormBuilderListPage() {
           <div className="flex items-center justify-end gap-2">
             <TableActionButton
               onClick={() => handleExportSingle(form)}
-              icon={<UploadIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<UploadIcon weight="duotone" className="size-3.5" />}
               label={m.exportForm}
             />
             <TableActionButton
               onClick={() => navigate(`/forms/${form.name}`)}
-              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
               label={m.editButton}
             />
             <TableActionButton
               variant="danger"
               onClick={() => setDeleteTarget(form.name)}
               disabled={deleteForm.isPending}
-              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
               label={common.delete}
             />
           </div>
@@ -385,7 +384,7 @@ export function FormBuilderListPage() {
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
         >
-          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="size-3.5" />
           {m.importForm}
         </button>
         <button
@@ -394,7 +393,7 @@ export function FormBuilderListPage() {
           disabled={forms.length === 0}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
         >
-          <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
+          <UploadIcon weight="duotone" className="size-3.5" />
           {m.exportAll}
         </button>
         <button
@@ -402,7 +401,7 @@ export function FormBuilderListPage() {
           onClick={() => setShowDialog(true)}
           className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {m.newForm}
         </button>
       </PageHeader>
@@ -479,13 +478,12 @@ export function FormBuilderListPage() {
         onClose={() => importQueue.setAlertMessage(null)}
       >
         <Dialog.Footer>
-          <button
-            type="button"
+          <CloseActionButton
+            iconOnly={false}
+            label={common.close}
             onClick={() => importQueue.setAlertMessage(null)}
-            className={dialogBtnSecondary}
-          >
-            {common.close}
-          </button>
+            variant="neutral"
+          />
         </Dialog.Footer>
       </Dialog>
     </PageLayout>

@@ -13,9 +13,11 @@ import type { MediaAsset } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
+  CancelActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
   Dialog,
-  dialogBtnDestructive,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
@@ -197,8 +199,8 @@ export function MediaPage() {
           onChange={(value) => setViewMode(value as ViewMode)}
           storageKey={getSegmentedStorageKey(user?.id, "media:view")}
           options={[
-            { value: "list", icon: <ListBulletsIcon weight="duotone" className="w-4 h-4" /> },
-            { value: "grid", icon: <SquaresFourIcon weight="duotone" className="w-4 h-4" /> },
+            { value: "list", icon: <ListBulletsIcon weight="duotone" className="size-4" /> },
+            { value: "grid", icon: <SquaresFourIcon weight="duotone" className="size-4" /> },
           ]}
         />
 
@@ -220,7 +222,7 @@ export function MediaPage() {
           disabled={syncMedia.isPending}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] disabled:opacity-60"
         >
-          <ArrowsClockwiseIcon weight="duotone" className={`w-3.5 h-3.5 ${syncMedia.isPending ? "animate-spin" : ""}`} />
+          <ArrowsClockwiseIcon weight="duotone" className={`size-3.5 ${syncMedia.isPending ? "animate-spin" : ""}`} />
           Sync
         </button>
 
@@ -230,7 +232,7 @@ export function MediaPage() {
           disabled={uploadMedia.isPending}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
         >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {uploadMedia.isPending ? mediaMessages.uploading : mediaMessages.upload}
         </button>
       </PageHeader>
@@ -321,7 +323,7 @@ export function MediaPage() {
           }`}
         >
           <div className="rounded-2xl border border-[var(--ds-border)] bg-[var(--ds-surface)]/95 px-6 py-5 text-center shadow-lg backdrop-blur-sm">
-            <PlusCircleIcon weight="duotone" className="mx-auto mb-3 h-8 w-8 text-[var(--color-primary)]" />
+            <PlusCircleIcon weight="duotone" className="mx-auto mb-3 size-8 text-[var(--color-primary)]" />
             <p className="text-sm font-medium text-[var(--ds-text)]">{mediaMessages.upload}</p>
             <p className="mt-1 text-xs text-[var(--ds-text-subtle)]">{mediaMessages.uploadHint}</p>
           </div>
@@ -345,16 +347,13 @@ export function MediaPage() {
           </p>
         </div>
         <Dialog.Footer>
-          <button
-            type="button"
+          <CancelActionButton
+            label={common.cancel}
             onClick={() => dispatch({ deleteTarget: null })}
-            className={dialogBtnSecondary}
-          >
-            {common.cancel}
-          </button>
-          <button
-            type="button"
+          />
+          <DeleteActionButton
             disabled={deleteMedia.isPending || !deleteTarget}
+            label={deleteMedia.isPending ? "…" : common.delete}
             onClick={() => {
               if (!deleteTarget) return;
               deleteMedia.mutate(deleteTarget.id, {
@@ -369,10 +368,7 @@ export function MediaPage() {
                 },
               });
             }}
-            className={dialogBtnDestructive}
-          >
-            {deleteMedia.isPending ? "…" : common.delete}
-          </button>
+          />
         </Dialog.Footer>
       </Dialog>
     </PageLayout>

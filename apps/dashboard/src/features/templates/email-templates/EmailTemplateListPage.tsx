@@ -13,9 +13,12 @@ import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
+  CancelActionButton,
+  CloseActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
   Dialog,
-  dialogBtnDestructive,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -124,7 +127,7 @@ export function EmailTemplateListPage() {
         id: "subject",
         header: m.templateSubject,
         cell: (tpl) => (
-          <span className="text-[var(--ds-text-muted)] truncate max-w-xs">{tpl.subject || "—"}</span>
+          <span className="text-[var(--ds-text-muted)] truncate max-w-xs">{tpl.subject || "-"}</span>
         ),
       },
       {
@@ -132,7 +135,7 @@ export function EmailTemplateListPage() {
         header: m.tableCreated,
         sortKey: (tpl) => tpl.createdAt,
         cell: (tpl) => (
-          <span className="text-xs text-[var(--ds-text-muted)]">
+          <span suppressHydrationWarning className="text-xs text-[var(--ds-text-muted)]">
             {new Date(tpl.createdAt).toLocaleDateString(locale, {
               day: "2-digit",
               month: "2-digit",
@@ -148,19 +151,19 @@ export function EmailTemplateListPage() {
           <div className="flex items-center justify-end gap-2">
             <TableActionButton
               onClick={() => exportEmailTemplateSingle(tpl)}
-              icon={<UploadIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<UploadIcon weight="duotone" className="size-3.5" />}
               label={m.exportTemplate}
             />
             <TableActionButton
               onClick={() => navigate(`/email-templates/${tpl.id}`)}
-              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
               label={common.edit}
             />
             <TableActionButton
               variant="danger"
               onClick={() => setDeleteTarget({ id: tpl.id, name: tpl.name })}
               disabled={deleteMutation.isPending || tpl.isSystemTemplate}
-              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
               label={m.deleteTemplate}
             />
           </div>
@@ -178,7 +181,7 @@ export function EmailTemplateListPage() {
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
         >
-          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="size-3.5" />
           {m.importTemplate}
         </button>
         <button
@@ -187,7 +190,7 @@ export function EmailTemplateListPage() {
           disabled={templates.length === 0}
           className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
         >
-          <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
+          <UploadIcon weight="duotone" className="size-3.5" />
           {m.exportAll}
         </button>
         <button
@@ -195,7 +198,7 @@ export function EmailTemplateListPage() {
           onClick={() => navigate("/email-templates/new")}
           className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {m.newTemplate}
         </button>
       </PageHeader>
@@ -252,22 +255,12 @@ export function EmailTemplateListPage() {
             <span className="font-medium">({deleteTarget.name})</span>
           </div>
           <Dialog.Footer>
-            <button
-              type="button"
-              onClick={() => setDeleteTarget(null)}
-              className={dialogBtnSecondary}
-            >
-              {common.cancel}
-            </button>
-            <button
-              type="button"
+            <CancelActionButton label={common.cancel} onClick={() => setDeleteTarget(null)} />
+            <DeleteActionButton
               disabled={deleteMutation.isPending}
+              label={deleteMutation.isPending ? "…" : common.delete}
               onClick={handleDeleteConfirm}
-              className={`${dialogBtnDestructive} flex items-center gap-2`}
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {deleteMutation.isPending ? "…" : common.delete}
-            </button>
+            />
           </Dialog.Footer>
         </Dialog>
       )}
@@ -280,13 +273,12 @@ export function EmailTemplateListPage() {
         onClose={() => importQueue.setAlertMessage(null)}
       >
         <Dialog.Footer>
-          <button
-            type="button"
+          <CloseActionButton
+            iconOnly={false}
+            label={common.close}
             onClick={() => importQueue.setAlertMessage(null)}
-            className={dialogBtnSecondary}
-          >
-            {common.close}
-          </button>
+            variant="neutral"
+          />
         </Dialog.Footer>
       </Dialog>
 

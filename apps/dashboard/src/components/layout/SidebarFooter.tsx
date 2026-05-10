@@ -3,10 +3,10 @@ import { useState } from "react";
 
 import type { AdminRole } from "@lmaa/shared";
 
+import { CancelActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import {
   Dialog,
-  dialogBtnPrimary,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -61,7 +61,7 @@ export function FooterUserInfo({
   }
 
   const btnClass =
-    "w-7 h-7 flex items-center justify-center rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] shrink-0";
+    "size-7 flex items-center justify-center rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] shrink-0";
 
   return (
     <>
@@ -82,7 +82,7 @@ export function FooterUserInfo({
             aria-label={s.editProfile}
             className={btnClass}
           >
-            <UserCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+            <UserCircleIcon weight="duotone" className="size-3.5" />
           </button>
         )}
         <button
@@ -91,7 +91,7 @@ export function FooterUserInfo({
           aria-label={s.logout}
           className={btnClass}
         >
-          <SignOutIcon weight="duotone" className="w-3.5 h-3.5" />
+          <SignOutIcon weight="duotone" className="size-3.5" />
         </button>
       </div>
 
@@ -108,22 +108,24 @@ export function FooterUserInfo({
               type="checkbox"
               checked={skipNext}
               onChange={(e) => setSkipNext(e.target.checked)}
-              className="w-4 h-4 rounded accent-[var(--color-primary)]"
+              className="size-4 rounded accent-[var(--color-primary)]"
             />
             <span className="text-xs text-[var(--ds-text-muted)]">{s.logoutSkipConfirm}</span>
           </label>
         </div>
         <Dialog.Footer>
-          <button
-            type="button"
+          <CancelActionButton
+            label={messages.common.cancel}
             onClick={() => setConfirmOpen(false)}
-            className={dialogBtnSecondary}
+          />
+          <DashboardButton
+            leadingIcon={<SignOutIcon weight="duotone" className="size-3.5" />}
+            onClick={handleConfirm}
+            size="action"
+            variant="primary"
           >
-            {messages.common.cancel}
-          </button>
-          <button type="button" onClick={handleConfirm} className={dialogBtnPrimary}>
             {s.logoutConfirmAction}
-          </button>
+          </DashboardButton>
         </Dialog.Footer>
       </Dialog>
     </>
