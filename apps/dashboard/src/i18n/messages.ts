@@ -15,10 +15,20 @@ export interface DashboardMessages {
     saving: string;
     saved: string;
     edit: string;
+    create: string;
     delete: string;
     remove: string;
     duplicate: string;
+    copy: string;
     copyUrl: string;
+    import: string;
+    export: string;
+    approve: string;
+    reject: string;
+    restore: string;
+    putOnHold: string;
+    overwrite: string;
+    skip: string;
     close: string;
     loading: string;
     unknownError: string;
@@ -1182,10 +1192,20 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saving: "Wird gespeichert…",
       saved: "Gespeichert",
       edit: "Bearbeiten",
+      create: "Erstellen",
       delete: "Löschen",
       remove: "Entfernen",
       duplicate: "Duplizieren",
+      copy: "Kopieren",
       copyUrl: "URL kopieren",
+      import: "Importieren",
+      export: "Exportieren",
+      approve: "Freischalten",
+      reject: "Ablehnen",
+      restore: "Wiederherstellen",
+      putOnHold: "Zurückstellen",
+      overwrite: "Überschreiben",
+      skip: "Überspringen",
       close: "Schließen",
       loading: "Lade…",
       unknownError: "Unbekannter Fehler",
@@ -2393,10 +2413,20 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saving: "Saving…",
       saved: "Saved",
       edit: "Edit",
+      create: "Create",
       delete: "Delete",
       remove: "Remove",
       duplicate: "Duplicate",
+      copy: "Copy",
       copyUrl: "Copy URL",
+      import: "Import",
+      export: "Export",
+      approve: "Approve",
+      reject: "Reject",
+      restore: "Restore",
+      putOnHold: "Put on hold",
+      overwrite: "Overwrite",
+      skip: "Skip",
       close: "Close",
       loading: "Loading…",
       unknownError: "Unknown error",

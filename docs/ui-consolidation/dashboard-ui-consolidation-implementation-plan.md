@@ -78,12 +78,12 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 ### Stufe 3: Dashboard Wrapper und Action-Katalog
 
-- [ ] `DashboardButton` anlegen.
-- [ ] `DashboardIconButton` anlegen.
-- [ ] `DashboardActionButton` anlegen.
-- [ ] Action-Katalog mit Label-Key, Icon, Farbrolle, Size, Status und ARIA-Verhalten anlegen.
-- [ ] Wiederverwendbare Action-Komponenten fuer Save, Delete, Remove, Edit, Create, Import, Export, Copy, Cancel, Close, Reject, Approve, Restore, Hold, Overwrite und Skip anlegen.
-- [ ] Generische i18n Keys in `DashboardMessages`, `de` und `en` ergaenzen.
+- [x] `DashboardButton` anlegen.
+- [x] `DashboardIconButton` anlegen.
+- [x] `DashboardActionButton` anlegen.
+- [x] Action-Katalog mit Label-Key, Icon, Farbrolle, Size, Status und ARIA-Verhalten anlegen.
+- [x] Wiederverwendbare Action-Komponenten fuer Save, Delete, Remove, Edit, Create, Import, Export, Copy, Cancel, Close, Reject, Approve, Restore, Hold, Overwrite und Skip anlegen.
+- [x] Generische i18n Keys in `DashboardMessages`, `de` und `en` ergaenzen.
 - [ ] `DashboardField`, `DashboardInput`, `DashboardTextarea`, `DashboardSelect`, `DashboardCombobox` und `DashboardMultiSelect` anlegen.
 - [ ] `DashboardNumberInput` und `DashboardStepper` anlegen.
 - [ ] `DashboardCheckboxField` und `DashboardSwitchField` anlegen.
@@ -581,6 +581,23 @@ Gate:
 - `npm run typecheck -w @lmaa/dashboard`
 - keine toten i18n Keys in dieser Stufe entfernen
 - keine Feature-Massenmigration ohne vorhandene Wrapper
+
+Teilfortschritt 2026-05-10, Dashboard-Action-Foundation:
+
+- `DashboardButton` und `DashboardIconButton` kapseln die Shared-Button-Primitives fuer den Dashboard-Layer inklusive `review`-Variante.
+- `DashboardActionButton` nutzt einen Action-Katalog mit Label-Key, Icon, Farbrolle, Size, Busy-Status und ARIA-Verhalten.
+- Spezifische Action-Komponenten fuer Save, Delete, Remove, Edit, Create, Import, Export, Copy, Cancel, Close, Reject, Approve, Restore, Hold, Overwrite und Skip sind verfuegbar.
+- `DashboardMessages.common` enthaelt die generischen Action-Keys fuer `de` und `en`.
+
+Verifiziert fuer den Dashboard-Action-Foundation-Task:
+
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
 
 ## Stufe 4: Bestehende Action-Buttons intern umstellen
 
