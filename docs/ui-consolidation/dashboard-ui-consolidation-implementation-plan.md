@@ -100,7 +100,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `HeaderBackButton` als dokumentierte Navigationsausnahme auf zentrale Basis legen.
 - [x] Dialog-Footer-Buttons auf neue Button-Basis migrieren.
 - [x] rohe Action-Buttons in `ErrorBoundary` migrieren.
-- [ ] Screenshot-Vergleich fuer Tabellen, Toolbars und Dialoge pruefen.
+- [x] Screenshot-Vergleich fuer Tabellen, Toolbars und Dialoge pruefen.
 
 ### Stufe 5: Control-Primitives migrieren
 
@@ -696,6 +696,21 @@ Verifiziert fuer den Feature-Dialog-Footer-Task:
 - `npx -y react-doctor@latest apps/dashboard --verbose --diff`
 
 Hinweis: React Doctor meldet weiterhin bestehende Strukturhinweise fuer `AccountFormDialog`, `MediaPage` und den sequentiellen Media-Upload-Loop. Diese Scheibe aendert die Upload-Semantik und grosse Komponentenstruktur bewusst nicht.
+
+Teilfortschritt 2026-05-10, Stufe-4-Visual-Smoke:
+
+- Dashboard Production-Preview mit gemockter API gegen `http://127.0.0.1:5174` geprueft.
+- Playwright-Screenshots fuer Formular-Liste, Formular-Erstellen-Dialog, Email-Template-Liste und Email-Template-Loeschen-Dialog erzeugt.
+- Sichtpruefung: Tabellen-Actions, Header-Toolbars und Dialog-Footer zeigen keine offensichtlichen Ueberlappungen oder kaputten Button-Abstaende.
+
+Verifiziert fuer den Stufe-4-Visual-Smoke:
+
+- `BACKEND_URL=http://127.0.0.1:3999 VITE_API_URL=/api/v1 npm run preview -w @lmaa/dashboard -- --host 127.0.0.1`
+- `cd /tmp/lmaa-pw && npx playwright test --browser=chromium --reporter=line`
+- Screenshots: `/tmp/lmaa-dashboard-ui-consolidation/forms-list.png`
+- Screenshots: `/tmp/lmaa-dashboard-ui-consolidation/forms-create-dialog.png`
+- Screenshots: `/tmp/lmaa-dashboard-ui-consolidation/email-templates-list.png`
+- Screenshots: `/tmp/lmaa-dashboard-ui-consolidation/email-template-delete-dialog.png`
 
 ## Stufe 5: Control-Primitives migrieren
 
