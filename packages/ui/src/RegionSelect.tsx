@@ -1,8 +1,10 @@
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useId, useRef, useState } from "react";
 
 import { REGION_CODES, type RegionCode } from "@lmaa/shared";
+
+import { formLabelClass } from "./FormPrimitives.tsx";
+import { ControlTrigger, ListboxOption, ListboxPopover } from "./ListboxPrimitives.tsx";
 
 /**
  * Display option used by region select inputs.
@@ -98,40 +100,9 @@ export function RegionSelect({
   variant = "dashboard",
 }: RegionSelectProps) {
   const [open, setOpen] = useState(false);
-  const [dropdownRect, setDropdownRect] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const portalRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      const target = e.target as Node;
-      const insideButton = buttonRef.current?.contains(target) ?? false;
-      const insidePortal = portalRef.current?.contains(target) ?? false;
-      if (!insideButton && !insidePortal) setOpen(false);
-    }
-    if (open) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [open]);
-
-  // ESC closes dropdown before ShopEditCard ESC handler
-  useEffect(() => {
-    function onEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        setOpen(false);
-      }
-    }
-    if (open) window.addEventListener("keydown", onEsc, true);
-    return () => window.removeEventListener("keydown", onEsc, true);
-  }, [open]);
-
-  function handleToggle() {
-    if (!open && buttonRef.current) {
-      setDropdownRect(buttonRef.current.getBoundingClientRect());
-    }
-    setOpen((o) => !o);
-  }
+  const listboxId = useId();
+  const optionValues = options.map((option) => option.code);
 
   function toggle(code: RegionCode) {
     if (value.includes(code)) {
@@ -161,55 +132,6 @@ export function RegionSelect({
           })()
         : value.map((code) => options.find((o) => o.code === code)?.flag ?? code).join("  ");
 
-  const dropdown =
-    open && dropdownRect
-      ? createPortal(
-          <div
-            ref={portalRef}
-            style={{
-              position: "fixed",
-              top: dropdownRect.bottom + 4,
-              left: dropdownRect.left,
-              minWidth: dropdownRect.width,
-              zIndex: 9999,
-              backgroundColor: "var(--ds-surface)",
-            }}
-            className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
-          >
-            <div className="max-h-[360px] overflow-y-auto">
-              {options.map(({ code, flag, name }) => {
-                const checked = value.includes(code);
-                return (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => toggle(code)}
-                    className={`w-full flex items-center px-3 py-1.5 text-sm text-left transition-colors hover:bg-[var(--ds-bg-elevated)] ${
-                      checked
-                        ? "bg-[var(--color-primary)]/5 text-[var(--ds-text)]"
-                        : "text-[var(--ds-text-muted)]"
-                    }`}
-                  >
-                    <span
-                      className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors mr-3 ${
-                        checked
-                          ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                          : "border-[var(--ds-border-strong)]"
-                      }`}
-                    >
-                      {checked && <CheckIcon weight="duotone" className="w-2.5 h-2.5 text-white" />}
-                    </span>
-                    <span className="mr-1.5">{flag}</span>
-                    <span>{name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>,
-          document.body,
-        )
-      : null;
-
   const labelClass =
     variant === "frontend"
       ? "block text-sm font-medium text-[var(--ds-text-muted)] mb-1.5"
@@ -219,41 +141,68 @@ export function RegionSelect({
     <div>
       <span className={labelClass}>{messages.label}</span>
 
-      {/* Trigger button */}
-      <button
+      <ControlTrigger
+        className={buttonClassName}
+        controls={listboxId}
+        invalid={Boolean(error)}
+        onClick={() => setOpen((current) => !current)}
+        open={open}
         ref={buttonRef}
-        type="button"
-        onClick={handleToggle}
-        className={`w-full flex items-center justify-between px-3 py-1.5 border rounded-control text-sm text-left bg-[var(--ds-form-control-bg,var(--ds-input-bg))] transition-colors ${buttonClassName ?? ""} ${
-          open
-            ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
-            : error
-              ? "border-[var(--ds-btn-danger-border)]"
-              : "border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]"
-        }`}
+        trailingIcon={
+          open ? (
+            <CaretUpIcon weight="duotone" className="size-4" />
+          ) : (
+            <CaretDownIcon weight="duotone" className="size-4" />
+          )
+        }
       >
         <span
           className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
         >
           {label ?? messages.placeholder}
         </span>
-        {open ? (
-          <CaretUpIcon
-            weight="duotone"
-            className="shrink-0 ml-2 w-4 h-4 text-[var(--ds-text-subtle)]"
-          />
-        ) : (
-          <CaretDownIcon
-            weight="duotone"
-            className="shrink-0 ml-2 w-4 h-4 text-[var(--ds-text-subtle)]"
-          />
-        )}
-      </button>
+      </ControlTrigger>
 
-      {dropdown}
+      <ListboxPopover
+        className="max-h-[360px] overflow-y-auto py-1"
+        closeOnSelect={false}
+        listboxId={listboxId}
+        onOpenChange={setOpen}
+        onSelect={(code) => toggle(code as RegionCode)}
+        open={open}
+        optionValues={optionValues}
+        selectedValue={value[0]}
+        triggerRef={buttonRef}
+      >
+        {options.map(({ code, flag, name }) => {
+          const checked = value.includes(code);
+          return (
+            <ListboxOption
+              key={code}
+              value={code}
+              selected={checked}
+              leadingIcon={
+                <span
+                  className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                    checked
+                      ? "border-[var(--color-primary)] bg-[var(--color-primary)]"
+                      : "border-[var(--ds-border-strong)]"
+                  }`}
+                >
+                  {checked && <CheckIcon weight="duotone" className="size-2.5 text-white" />}
+                </span>
+              }
+            >
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                <span>{flag}</span>
+                <span className="truncate">{name}</span>
+              </span>
+            </ListboxOption>
+          );
+        })}
+      </ListboxPopover>
 
       {error && <p className="text-[var(--ds-danger-text)] text-xs mt-1.5">{error}</p>}
     </div>
   );
 }
-import { formLabelClass } from "./FormPrimitives.tsx";

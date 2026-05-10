@@ -72,9 +72,9 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `packages/ui/src/FormPrimitives.tsx` auf Foundation umbauen.
 - [x] `packages/ui/src/Tabs.tsx` auf `TabsPrimitive` umbauen.
 - [x] `packages/ui/src/ToggleSwitch.tsx` auf `SwitchPrimitive` umbauen.
-- [ ] `packages/ui/src/MultiSelect.tsx`, `CountryCodeSelect.tsx` und `RegionSelect.tsx` auf Listbox-/Popover-Foundation vorbereiten.
-- [ ] `npm run typecheck -w @lmaa/ui` ausfuehren.
-- [ ] `npm run lint -w @lmaa/ui` ausfuehren.
+- [x] `packages/ui/src/MultiSelect.tsx`, `CountryCodeSelect.tsx` und `RegionSelect.tsx` auf Listbox-/Popover-Foundation vorbereiten.
+- [x] `npm run typecheck -w @lmaa/ui` ausfuehren.
+- [x] `npm run lint -w @lmaa/ui` ausfuehren.
 
 ### Stufe 3: Dashboard Wrapper und Action-Katalog
 
@@ -468,6 +468,24 @@ Teilfortschritt 2026-05-10, ToggleSwitch-Wrapper:
 
 Verifiziert fuer den ToggleSwitch-Wrapper-Task:
 
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, Listbox-Foundation-Selects:
+
+- `ControlTrigger` unterstuetzt einen `contentClassName`-Slot und kann per Ref als Trigger fuer Popover-Positionierung dienen.
+- `ListboxPopover` unterstuetzt `closeOnSelect={false}`, damit Multi-Selects per Tastatur toggeln koennen, ohne das Popover zu schliessen.
+- `CountryCodeSelect.tsx` nutzt `ControlTrigger`, `ListboxPopover` und `ListboxOption` fuer Portal, Outside-Click, Escape und Option-Keyboard-Verhalten.
+- `RegionSelect.tsx` nutzt dieselbe Popover-/Option-Foundation und bleibt als Multi-Select nach Auswahl offen.
+- `MultiSelect.tsx` nutzt `ControlTrigger`, `ListboxPopover` und `ListboxOption`; Suche und Clear-Badges bleiben API-kompatibel.
+
+Verifiziert fuer den Listbox-Foundation-Selects-Task:
+
+- `npm run lint -w @lmaa/ui`
+- `npm run typecheck -w @lmaa/ui`
 - `npm run lint`
 - `npm run typecheck`
 - `npm run test --workspaces --if-present`
