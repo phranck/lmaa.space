@@ -18,7 +18,10 @@ import {
   CancelActionButton,
   CloseActionButton,
   CreateActionButton,
+  ExportActionButton,
+  ImportActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import {
   Dialog,
@@ -110,10 +113,8 @@ function NewFormDialog({
   const slugEditedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    nameInputRef.current?.focus();
+    document.getElementById("new-form-name")?.focus();
   }, []);
 
   // Auto-derive slug from name unless user has manually edited it
@@ -179,14 +180,13 @@ function NewFormDialog({
             >
               {m.formNameLabel}
             </label>
-            <input
+            <DashboardInput
               id="new-form-name"
-              ref={nameInputRef}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
               placeholder="suggestion-form"
-              className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
+              className="font-mono"
             />
           </div>
           <div>
@@ -198,13 +198,13 @@ function NewFormDialog({
             </label>
             <div className="flex items-center gap-2">
               <span className="text-xs text-[var(--ds-text-muted)] shrink-0">/</span>
-              <input
+              <DashboardInput
                 id="new-form-slug"
                 type="text"
                 value={slug}
                 onChange={(e) => handleSlugChange(e.target.value)}
                 placeholder={m.slugPlaceholder}
-                className="flex-1 px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
+                className="min-w-0 flex-1 font-mono"
               />
             </div>
             <p className="text-xs text-[var(--ds-text-muted)] mt-1">{m.formSlugHint}</p>
@@ -379,31 +379,21 @@ export function FormBuilderListPage() {
   return (
     <PageLayout>
       <PageHeader title={m.listTitle}>
-        <button
-          type="button"
+        <ImportActionButton
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-        >
-          <DownloadIcon weight="duotone" className="size-3.5" />
-          {m.importForm}
-        </button>
-        <button
-          type="button"
+          label={m.importForm}
+          variant="neutral"
+        />
+        <ExportActionButton
           onClick={handleExportAll}
           disabled={forms.length === 0}
-          className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
-        >
-          <UploadIcon weight="duotone" className="size-3.5" />
-          {m.exportAll}
-        </button>
-        <button
-          type="button"
+          label={m.exportAll}
+          variant="neutral"
+        />
+        <CreateActionButton
           onClick={() => setShowDialog(true)}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          <PlusCircleIcon weight="duotone" className="size-3.5" />
-          {m.newForm}
-        </button>
+          label={m.newForm}
+        />
       </PageHeader>
 
       <PageBody>

@@ -6,6 +6,7 @@ import {
   SkipActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -53,12 +54,11 @@ export function ImportConflictDialog({
             >
               {fb.importNewNameLabel}
             </label>
-            <input
+            <DashboardInput
               id="import-new-name"
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)]"
             />
           </div>
         )}

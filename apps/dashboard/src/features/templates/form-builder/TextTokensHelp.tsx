@@ -1,5 +1,6 @@
 import { QuestionIcon } from "@phosphor-icons/react";
 
+import { CloseActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -35,7 +36,7 @@ export function TextTokensHelp({ open, onClose }: TextTokensHelpProps) {
       <OverlayCard.Header>
         <div className="flex items-center gap-3">
           <QuestionIcon weight="duotone" className={dialogHeaderIconClass} />
-          <h3 className="font-bold text-[var(--ds-text)]">{t.title}</h3>
+          <h3 className="font-semibold text-[var(--ds-text)]">{t.title}</h3>
         </div>
       </OverlayCard.Header>
 
@@ -114,13 +115,12 @@ export function TextTokensHelp({ open, onClose }: TextTokensHelpProps) {
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end">
-        <button
-          type="button"
+        <CloseActionButton
+          iconOnly={false}
+          label={t.close}
           onClick={onClose}
-          className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] rounded-control text-sm text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]"
-        >
-          {t.close}
-        </button>
+          variant="neutral"
+        />
       </OverlayCard.Footer>
     </OverlayCard>
   );

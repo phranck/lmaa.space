@@ -23,6 +23,7 @@ const MarkdownEditor = lazy(() =>
 );
 
 import {
+  DashboardCheckboxField,
   DashboardCombobox,
   DashboardInput,
   DashboardNumberInput,
@@ -246,28 +247,22 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
 
       {/* Required — hidden for richtext, button, headline, separator, paragraph */}
       {!isRichText && !isButton && !isHeadline && !isSeparator && !isParagraph && (
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={field.required}
-            onChange={(e) => set("required", e.target.checked)}
-            className="size-4 accent-[var(--color-primary)]"
-          />
-          <span className="text-sm text-[var(--ds-text)]">{m.required}</span>
-        </label>
+        <DashboardCheckboxField
+          checked={field.required}
+          className="items-center gap-2"
+          label={m.required}
+          onCheckedChange={(checked) => set("required", checked)}
+        />
       )}
 
       {/* Allow Markdown — only for textarea */}
       {field.type === "textarea" && (
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={field.allowMarkdown ?? false}
-            onChange={(e) => set("allowMarkdown", e.target.checked || undefined)}
-            className="size-4 accent-[var(--color-primary)]"
-          />
-          <span className="text-sm text-[var(--ds-text)]">{m.allowMarkdown}</span>
-        </label>
+        <DashboardCheckboxField
+          checked={field.allowMarkdown ?? false}
+          className="items-center gap-2"
+          label={m.allowMarkdown}
+          onCheckedChange={(checked) => set("allowMarkdown", checked || undefined)}
+        />
       )}
 
       {/* Span — hidden for richtext, button and separator */}
