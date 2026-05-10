@@ -65,7 +65,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `FieldShell`, `InputPrimitive` und `TextareaPrimitive` anlegen.
 - [x] `ControlTrigger`, `ListboxPopover` und `ListboxOption` anlegen.
 - [x] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
-- [ ] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
+- [x] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
 - [ ] `SegmentedControlPrimitive` anlegen.
 - [ ] `SwitchPrimitive` und `CheckboxPrimitive` anlegen.
 - [ ] `DialogFooterPrimitive` und `SurfacePrimitive` anlegen.
@@ -361,6 +361,22 @@ Teilfortschritt 2026-05-10, Menu-Primitives:
 - `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
 
 Verifiziert fuer den Menu-Primitive-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, Tabs-Primitives:
+
+- `packages/ui/src/TabsPrimitives.tsx` stellt `TabsPrimitive`, `TabListPrimitive`, `TabTriggerPrimitive` und `TabPanelPrimitive` bereit.
+- `TabListPrimitive` implementiert roving Tastaturverhalten fuer Arrow-Keys, Home und End mit horizontaler oder vertikaler Orientierung.
+- `TabTriggerPrimitive` setzt `role="tab"`, `aria-selected`, `aria-controls`, stabile Trigger-/Panel-IDs und `tabIndex` fuer den selektierten Tab.
+- `TabPanelPrimitive` setzt `role="tabpanel"`, `aria-labelledby`, stabile Panel-IDs und optionales `forceMount`.
+- `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
+
+Verifiziert fuer den Tabs-Primitive-Task:
 
 - `npm run lint`
 - `npm run typecheck`
