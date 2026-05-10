@@ -1,5 +1,5 @@
 import { CheckCircleIcon, DownloadIcon, SealWarningIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
@@ -11,10 +11,8 @@ const MarkdownEditor = lazy(() =>
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import {
-  SystemTemplateBadge,
-  SystemTemplateCheckbox,
-} from "@/components/ui/SystemTemplateBadge.tsx";
+import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
+import { SystemTemplateCheckbox } from "@/components/ui/SystemTemplateCheckbox.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { EmailPreview } from "@/features/templates/email-templates/EmailPreview.tsx";
@@ -41,7 +39,7 @@ function Field({ label, htmlFor, required, hint, children }: FieldProps) {
         {required && (
           <SealWarningIcon
             weight="duotone"
-            className="inline-block ml-1 w-3 h-3 text-red-500 align-middle"
+            className="inline-block ml-1 size-3 text-red-500 align-middle"
           />
         )}
       </label>
@@ -123,9 +121,9 @@ export function EmailTemplateEditPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Populate form when existing template data arrives (adjust-state-during-render pattern)
-  const [syncedExistingId, setSyncedExistingId] = useState<number | undefined>();
-  if (existing && existing.id !== syncedExistingId) {
-    setSyncedExistingId(existing.id);
+  const syncedExistingIdRef = useRef<number | undefined>(undefined);
+  if (existing && existing.id !== syncedExistingIdRef.current) {
+    syncedExistingIdRef.current = existing.id;
     setForm({
       name: existing.name,
       subject: existing.subject,
@@ -202,7 +200,7 @@ export function EmailTemplateEditPage() {
         <div className="flex items-center gap-3">
           {savedIndicator && (
             <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-              <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+              <CheckCircleIcon weight="duotone" className="size-3.5" />
               {m.saved}
             </span>
           )}
@@ -213,7 +211,7 @@ export function EmailTemplateEditPage() {
             disabled={isPending}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
           >
-            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+            <DownloadIcon weight="duotone" className="size-3.5" />
             {isPending ? messages.common.saving : m.save}
           </button>
         </div>

@@ -998,6 +998,8 @@ export interface DashboardMessages {
     emptyPreview: string;
     variablesTitle: string;
     variablesHint: string;
+    copyVariable: string;
+    copiedVariable: string;
     variables: Record<string, string>;
     systemBadge: string;
     systemHint: string;
@@ -2185,6 +2187,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       emptyPreview: "Die Vorschau erscheint, sobald Inhalt vorhanden ist.",
       variablesTitle: "Globale Variablen",
       variablesHint: "Diese Platzhalter kannst du im Template verwenden.",
+      copyVariable: "Variable kopieren",
+      copiedVariable: "Variable kopiert",
       variables: {
         shopName: "Name des freigeschalteten Shops",
         shopUrl: "Originale Shop-URL",
@@ -3388,6 +3392,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       emptyPreview: "The preview appears once content is available.",
       variablesTitle: "Global variables",
       variablesHint: "You can use these placeholders in the template.",
+      copyVariable: "Copy variable",
+      copiedVariable: "Variable copied",
       variables: {
         shopName: "Name of the approved shop",
         shopUrl: "Original shop URL",
