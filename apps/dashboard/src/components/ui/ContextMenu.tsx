@@ -1,5 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import type { ReactNode } from "react";
+
+import {
+  DashboardMenu,
+  DashboardMenuItem,
+} from "@/components/ui/DashboardControls.tsx";
 
 export interface ContextMenuItem {
   /** Visible label. */
@@ -7,7 +11,7 @@ export interface ContextMenuItem {
   /** Click handler. The menu auto-closes after the handler runs. */
   onClick: () => void;
   /** Optional left-aligned icon. */
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   /** Renders the item with destructive styling. */
   danger?: boolean;
   /** Disables the item. */
@@ -33,79 +37,56 @@ interface ContextMenuProps {
  * and Escape close the menu; clicking an item runs its handler then closes.
  */
 export function ContextMenu({ origin, onClose, items }: ContextMenuProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
-
-  useLayoutEffect(() => {
-    if (!origin || !ref.current) {
-      setPosition(null);
-      return;
-    }
-    const rect = ref.current.getBoundingClientRect();
-    const padding = 8;
-    const left = Math.min(origin.x, window.innerWidth - rect.width - padding);
-    const top = Math.min(origin.y, window.innerHeight - rect.height - padding);
-    setPosition({ top: Math.max(padding, top), left: Math.max(padding, left) });
-  }, [origin]);
-
-  useEffect(() => {
-    if (!origin) return;
-    function handleOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) onClose();
-    }
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-    document.addEventListener("mousedown", handleOutside);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handleOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [origin, onClose]);
-
-  if (!origin) return null;
-
-  return createPortal(
-    <div
-      ref={ref}
-      role="menu"
-      style={{
-        position: "fixed",
-        top: position?.top ?? origin.y,
-        left: position?.left ?? origin.x,
-        visibility: position ? "visible" : "hidden",
+  return (
+    <DashboardMenu
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
       }}
-      className="z-[1000] min-w-[12rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] py-1 text-sm shadow-lg"
+      open={origin !== null}
+      origin={origin}
     >
       {items.map((entry, index) =>
         "separator" in entry ? (
-          // biome-ignore lint/suspicious/noArrayIndexKey: separators have no stable id, position-based key is fine
-          <div key={`sep-${index}`} className="my-1 h-px bg-[var(--ds-border)]" />
+          <div
+            className="my-1 h-px bg-[var(--ds-border)]"
+            key={getContextMenuEntryKey(entry, items, index)}
+            role="separator"
+          />
         ) : (
-          <button
-            key={entry.label}
-            type="button"
+          <DashboardMenuItem
             disabled={entry.disabled}
-            onClick={() => {
-              entry.onClick();
-              onClose();
-            }}
-            // The danger color is applied via `style` rather than a
-            // `text-[var(--ds-btn-danger-text)]` utility on purpose: a global
-            // design-system rule centers any element whose className contains
-            // `var(--ds-btn-`, which would shift this menu item away from the
-            // left-aligned layout the rest of the menu uses.
-            style={entry.danger ? { color: "var(--ds-btn-danger-text)" } : undefined}
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[var(--ds-text)] hover:bg-[var(--ds-nav-hover-bg)] disabled:opacity-50 disabled:pointer-events-none"
-            role="menuitem"
+            key={entry.label}
+            leadingIcon={entry.icon}
+            onSelect={entry.onClick}
+            variant={entry.danger ? "danger" : "default"}
           >
-            {entry.icon && <span className="shrink-0 opacity-70">{entry.icon}</span>}
-            <span className="truncate">{entry.label}</span>
-          </button>
+            {entry.label}
+          </DashboardMenuItem>
         ),
       )}
-    </div>,
-    document.body,
+    </DashboardMenu>
   );
+}
+
+function getContextMenuEntryKey(
+  entry: ContextMenuEntry,
+  entries: readonly ContextMenuEntry[],
+  index: number,
+) {
+  if (!("separator" in entry)) {
+    return `item-${entry.label}`;
+  }
+
+  const previousLabel = getContextMenuItemLabel(entries[index - 1]);
+  const nextLabel = getContextMenuItemLabel(entries[index + 1]);
+  return `separator-${previousLabel}-${nextLabel}`;
+}
+
+function getContextMenuItemLabel(entry: ContextMenuEntry | undefined) {
+  if (!entry || "separator" in entry) {
+    return "edge";
+  }
+  return entry.label;
 }

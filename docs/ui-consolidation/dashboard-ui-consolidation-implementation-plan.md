@@ -113,7 +113,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] Number-Inputs und Stepper auf `DashboardNumberInput`/`DashboardStepper` migrieren.
 - [x] `Tabs.tsx` und Dashboard-Tabs auf `DashboardTabs` migrieren.
 - [x] `SegmentedControl` und `SegmentSwitch` konsolidieren.
-- [ ] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
+- [x] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
 - [ ] `TableSortHeader` extrahieren und in Tabellen verwenden.
 - [ ] `DashboardDragHandle` einfuehren und DND-Fundstellen migrieren.
 - [ ] Static Gates fuer rohe Selects, `h-9`, direkte Fokusklassen und direkte `--ds-btn-*` Klassen pruefen.
@@ -1009,6 +1009,26 @@ Gate:
 
 - ContextMenu bleibt portalfaehig.
 - Danger-Item-Farbe wird nicht von Button-Styles ueberschrieben.
+
+Teilfortschritt 2026-05-10, Dashboard-Menues:
+
+- `ContextMenu` delegiert an `DashboardMenu` und `DashboardMenuItem`; eigene Portal-, Outside-Click-, Escape- und Positionierungslogik wurde entfernt.
+- Separatoren bleiben als `role="separator"` erhalten und nutzen stabile Kontext-Keys statt Array-Index-Keys.
+- `MenuItemPrimitive` nutzt fuer `danger` den semantischen `--ds-danger-text` Token statt `--ds-btn-danger-text`, damit die globale Button-Ausrichtungsregel keine Menueitems zentriert.
+- Direkte Dashboard-`role="menuitem"`-Fundstellen ausserhalb des zentralen Primitive sind entfernt.
+
+Verifiziert fuer den Dashboard-Menue-Task:
+
+- `rg -n --glob '*.{ts,tsx}' -- "role=\"menuitem\"|text-\\[var\\(--ds-btn-danger-text\\)\\]|py-1\\.5 text-left|ContextMenu" apps/dashboard/src/components/ui/ContextMenu.tsx packages/ui/src/MenuPrimitives.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/ui`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
 
 ### 5E: Table-Sort-Header
 
