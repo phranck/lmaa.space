@@ -32,9 +32,10 @@ import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lma
 import { DashboardSection, FormLabel } from "@lmaa/ui";
 
 const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -120,7 +121,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
           className="shrink-0 text-[var(--ds-text-muted)] hover:text-[var(--ds-danger-text)]"
           aria-label={m.stepRemoveAria}
         >
-          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+          <TrashIcon weight="duotone" className="size-3.5" />
         </button>
       </div>
 
@@ -147,21 +148,20 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
               ]}
             />
             {(step as SubmissionStepEmail).toFieldId ? (
-              <select
+              <DashboardCombobox
                 id={`step-${index}-email-to-field`}
                 value={(step as SubmissionStepEmail).toFieldId}
-                onChange={(e) =>
-                  onUpdate({ ...step, toFieldId: e.target.value } as SubmissionStepEmail)
+                onValueChange={(value) =>
+                  onUpdate({ ...step, toFieldId: value } as SubmissionStepEmail)
                 }
-                className="h-9 w-full px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
-              >
-                <option value="">—</option>
-                {fields.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "—" },
+                  ...fields.map((field) => ({
+                    value: field.id,
+                    label: field.label,
+                  })),
+                ]}
+              />
             ) : (
               <input
                 id={`step-${index}-email-to`}
@@ -180,24 +180,23 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
             >
               {m.emailTemplate}
             </label>
-            <select
+            <DashboardCombobox
               id={`step-${index}-email-template`}
-              value={(step as SubmissionStepEmail).templateId ?? ""}
-              onChange={(e) =>
+              value={String((step as SubmissionStepEmail).templateId ?? "")}
+              onValueChange={(value) =>
                 onUpdate({
                   ...step,
-                  templateId: e.target.value ? Number(e.target.value) : undefined,
+                  templateId: value ? Number(value) : undefined,
                 } as SubmissionStepEmail)
               }
-              className="h-9 w-full px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]"
-            >
-              <option value="">{m.emailTemplateNone}</option>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: m.emailTemplateNone },
+                ...templates.map((template) => ({
+                  value: String(template.id),
+                  label: template.name,
+                })),
+              ]}
+            />
           </div>
           {!(step as SubmissionStepEmail).templateId && (
             <div>
@@ -349,41 +348,34 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
       icon: <StorefrontIcon weight="duotone" width={13} height={13} aria-hidden />,
     },
   ];
-  const selectedStepIcon = stepOptions.find((o) => o.type === pendingStepType)?.icon ?? (
-    <DownloadIcon weight="duotone" width={13} height={13} aria-hidden />
-  );
-
   return (
     <div>
       {/* ── Übermittlung ── */}
       <DashboardSection>
         <DashboardSection.Header
-          icon={<PaperPlaneTiltIcon weight="duotone" className="w-4 h-4" />}
+          icon={<PaperPlaneTiltIcon weight="duotone" className="size-4" />}
           title={m.title}
           addOn={
             <div className="flex items-center gap-1.5">
-              <div className="flex items-center gap-1.5 h-7 px-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-form-control-bg)]">
-                <span className="shrink-0 text-[var(--ds-color-neutral-400)]">
-                  {selectedStepIcon}
-                </span>
-                <select
-                  value={pendingStepType}
-                  onChange={(e) => setPendingStepType(e.target.value as SubmissionStep["type"])}
-                  className="text-xs text-[var(--ds-text)] bg-transparent focus:outline-none cursor-pointer"
-                >
-                  {stepOptions.map(({ type, label }) => (
-                    <option key={type} value={type}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <DashboardCombobox
+                value={pendingStepType}
+                onValueChange={(value) =>
+                  setPendingStepType(value as SubmissionStep["type"])
+                }
+                className="w-52"
+                matchTriggerWidth={false}
+                options={stepOptions.map(({ type, label, icon }) => ({
+                  value: type,
+                  label,
+                  leadingIcon: icon,
+                }))}
+              />
               <button
                 type="button"
                 onClick={() => addStep(pendingStepType)}
                 className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
               >
-                <PlusCircleIcon weight="duotone" className="w-3 h-3" />
+                <PlusCircleIcon weight="duotone" className="size-3" />
                 {m.addStepButton}
               </button>
             </div>
@@ -441,7 +433,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
       {/* ── Nach dem Absenden ── */}
       <DashboardSection>
         <DashboardSection.Header
-          icon={<CheckCircleIcon weight="duotone" className="w-4 h-4" />}
+          icon={<CheckCircleIcon weight="duotone" className="size-4" />}
           title={m.successBehaviourLabel}
           addOn={
             <SegmentSwitch
