@@ -16,6 +16,7 @@ import {
   CancelActionButton,
   RemoveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
@@ -174,14 +175,13 @@ export function HeroBannerTab() {
                 <label htmlFor="rotation-interval" className="text-sm text-[var(--ds-text)] shrink-0">
                   {m.rotationInterval}
                 </label>
-                <input
+                <DashboardNumberInput
                   id="rotation-interval"
-                  type="number"
                   min={1}
                   max={99}
                   value={localInterval}
                   onChange={(e) => setLocalInterval(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
-                  className="w-14 text-sm text-center border border-[var(--ds-border)] rounded-control px-2 py-1 bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  className="w-14 text-center"
                 />
                 <span className="text-sm text-[var(--ds-text-muted)]">{m.rotationIntervalSuffix}</span>
                 {intervalDirty && (
