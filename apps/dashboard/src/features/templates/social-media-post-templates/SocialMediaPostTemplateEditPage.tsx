@@ -1,7 +1,6 @@
 import {
   BracketsCurlyIcon,
   CheckCircleIcon,
-  ChatTextIcon,
   CopyIcon,
   DownloadIcon,
   EyeIcon,
@@ -21,7 +20,7 @@ import {
   type SocialMediaPostTemplateInput,
   type SocialMediaPostTemplateScope,
 } from "@lmaa/contracts";
-import { DashboardSection, FormLabel, formInputClass } from "@lmaa/ui";
+import { DashboardSection, FormLabel, PLATFORM_MAP, formInputClass } from "@lmaa/ui";
 
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -290,8 +289,8 @@ export function SocialMediaPostTemplateEditPage() {
 
             <div className="space-y-4">
               {form.platforms.includes("mastodon") && (
-                <BodyEditor
-                  idBase="mastodon-post-body"
+                <PostBodySection
+                  platform="mastodon"
                   label={m.bodyMastodonLabel}
                   value={form.bodyMastodon ?? ""}
                   onChange={(bodyMastodon) => setForm((current) => ({ ...current, bodyMastodon }))}
@@ -301,8 +300,8 @@ export function SocialMediaPostTemplateEditPage() {
               )}
 
               {form.platforms.includes("bluesky") && (
-                <BodyEditor
-                  idBase="bluesky-post-body"
+                <PostBodySection
+                  platform="bluesky"
                   label={m.bodyBlueskyLabel}
                   value={form.bodyBluesky ?? ""}
                   onChange={(bodyBluesky) => setForm((current) => ({ ...current, bodyBluesky }))}
@@ -310,13 +309,13 @@ export function SocialMediaPostTemplateEditPage() {
                 />
               )}
 
-              <DashboardSection>
+              <DashboardSection className="overflow-hidden">
                 <DashboardSection.Header
                   icon={<EyeIcon weight="duotone" className="size-4" />}
                   title={m.previewTitle}
                 />
-                <DashboardSection.Body>
-                  <pre className="whitespace-pre-wrap break-words rounded-control bg-[var(--ds-bg-elevated)] p-3 text-sm leading-relaxed text-[var(--ds-text)]">
+                <DashboardSection.Body className="!gap-0 !p-0">
+                  <pre className="whitespace-pre-wrap break-words p-3 text-sm leading-relaxed text-[var(--ds-text)]">
                     {preview || m.emptyPreview}
                   </pre>
                 </DashboardSection.Body>
@@ -475,27 +474,35 @@ function TemplateVariableItem({
   );
 }
 
-function BodyEditor({
-  idBase,
+function PostBodySection({
+  platform,
   label,
   value,
   onChange,
   counterMax,
   hint,
 }: {
-  idBase: string;
+  platform: SocialMediaPlatform;
   label: string;
   value: string;
   onChange: (next: string) => void;
   counterMax: number;
   hint?: string;
 }) {
+  const idBase = `${platform}-post-body`;
+  const PlatformIcon = PLATFORM_MAP.get(platform)?.icon;
   const remaining = counterMax - value.length;
   const overLimit = remaining < 0;
   return (
-    <DashboardSection>
+    <DashboardSection className="overflow-hidden">
       <DashboardSection.Header
-        icon={<ChatTextIcon weight="duotone" className="size-4" />}
+        icon={
+          PlatformIcon ? (
+            <PlatformIcon size={16} />
+          ) : (
+            <PaperPlaneTiltIcon weight="duotone" className="size-4" />
+          )
+        }
         title={label}
         addOn={
           <span
@@ -505,9 +512,9 @@ function BodyEditor({
           </span>
         }
       />
-      <DashboardSection.Body className="!gap-2">
+      <DashboardSection.Body className="!gap-0 !p-0">
         {hint && (
-          <p className="flex items-center gap-1.5 text-xs italic text-[var(--ds-text-muted)]">
+          <p className="flex items-center gap-1.5 px-3 pt-3 text-xs italic text-[var(--ds-text-muted)]">
             <SealWarningIcon weight="duotone" className="size-3 text-red-500" />
             {hint}
           </p>
@@ -517,7 +524,14 @@ function BodyEditor({
             <div className="h-[18rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
           }
         >
-          <MarkdownEditor id={idBase} value={value} onChange={onChange} rows={12} resizable />
+          <MarkdownEditor
+            id={idBase}
+            value={value}
+            onChange={onChange}
+            rows={12}
+            resizable
+            className="rounded-none border-0"
+          />
         </Suspense>
       </DashboardSection.Body>
     </DashboardSection>
