@@ -2,6 +2,7 @@ import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { DataTable, type ColumnDef } from "@/components/ui/Table.tsx";
@@ -52,7 +53,10 @@ export function BackgroundErrorsPage() {
       id: "occurredAt",
       header: t.columnOccurredAt,
       cell: (row) => (
-        <span className="text-sm text-[var(--ds-text-muted)] whitespace-nowrap">
+        <span
+          className="text-sm text-[var(--ds-text-muted)] whitespace-nowrap"
+          suppressHydrationWarning
+        >
           {new Date(row.occurredAt).toLocaleString(locale)}
         </span>
       ),
@@ -64,12 +68,12 @@ export function BackgroundErrorsPage() {
       cell: (row) =>
         row.resolvedAt ? (
           <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-success,var(--ds-text-muted))]">
-            <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+            <CheckCircleIcon weight="duotone" className="size-3.5" />
             {t.statusResolved}
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 text-xs text-amber-500">
-            <WarningCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+            <WarningCircleIcon weight="duotone" className="size-3.5" />
             {t.statusOpen}
           </span>
         ),
@@ -83,7 +87,7 @@ export function BackgroundErrorsPage() {
           <div className="flex justify-end">
             <TableActionButton
               variant="success"
-              icon={<CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<CheckCircleIcon weight="duotone" className="size-3.5" />}
               label={t.resolveAction}
               disabled={resolve.isPending}
               onClick={() => resolve.mutate(row.id)}
@@ -106,22 +110,25 @@ export function BackgroundErrorsPage() {
             onChange={(e) => setSourceFilter(e.target.value)}
             className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:border-[var(--ds-border-focus)]"
           />
-          <select
+          <DashboardCombobox
             value={resolvedFilter}
-            onChange={(e) => setResolvedFilter(e.target.value as typeof resolvedFilter)}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-focus)]"
-          >
-            <option value="all">{t.filterAll}</option>
-            <option value="unresolved">{t.filterUnresolved}</option>
-            <option value="resolved">{t.filterResolved}</option>
-          </select>
+            onValueChange={(value) =>
+              setResolvedFilter(value as typeof resolvedFilter)
+            }
+            className="w-40"
+            options={[
+              { value: "all", label: t.filterAll },
+              { value: "unresolved", label: t.filterUnresolved },
+              { value: "resolved", label: t.filterResolved },
+            ]}
+          />
         </div>
 
         {isLoading ? (
           <p className="text-sm text-[var(--ds-text-muted)]">{messages.common.loading}</p>
         ) : rows.length === 0 ? (
           <ContentUnavailableView
-            icon={<CheckCircleIcon weight="duotone" className="w-8 h-8" />}
+            icon={<CheckCircleIcon weight="duotone" className="size-8" />}
             title={t.noErrors}
             subtitle={t.noErrorsSubtitle}
           />

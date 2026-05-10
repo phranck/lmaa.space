@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { MarkdownWidget } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   checkboxRowClass,
@@ -84,7 +85,7 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
             onClick={() => onDelete(widget.key)}
             className="inline-flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-danger-border)] px-3 text-sm font-medium text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
           >
-            <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+            <TrashIcon weight="duotone" className="size-3.5" />
             {widgetMessages.deleteWidget}
           </button>
         </div>
@@ -113,24 +114,21 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
             />
           </Field>
 
-          <Field label={widgetMessages.typeLabel} hint={widgetMessages.typeHint}>
-            <select
-              value={widget.type}
-              onChange={(event) =>
-                onUpdate(widget.key, (w) => ({
-                  ...w,
-                  type: event.target.value as MarkdownWidget["type"],
-                }))
-              }
-              className={textInputClass}
-            >
-              {widgetTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <DashboardCombobox
+            label={widgetMessages.typeLabel}
+            hint={widgetMessages.typeHint}
+            value={widget.type}
+            onValueChange={(value) =>
+              onUpdate(widget.key, (w) => ({
+                ...w,
+                type: value as MarkdownWidget["type"],
+              }))
+            }
+            options={widgetTypeOptions.map((option) => ({
+              value: option.value,
+              label: option.label,
+            }))}
+          />
 
           <Field label={widgetMessages.defaultHeightLabel} hint={widgetMessages.defaultHeightHint}>
             <input
