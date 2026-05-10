@@ -139,21 +139,21 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 ### Stufe 8: Abschluss-QA
 
-- [ ] `npm run typecheck -w @lmaa/ui`
-- [ ] `npm run typecheck -w @lmaa/dashboard`
-- [ ] `npm run lint -w @lmaa/ui`
-- [ ] `npm run lint -w @lmaa/dashboard`
-- [ ] `npm run build:dashboard`
-- [ ] Tabellen mit Sort-Headern und Row-Actions pruefen.
-- [ ] Dialog-Footer mit Primary/Neutral/Danger pruefen.
-- [ ] Editor-Toolbar pruefen.
-- [ ] Form Builder inklusive DND pruefen.
-- [ ] Selects, MultiSelects und ContextMenu pruefen.
-- [ ] Inputs, Textareas, Stepper und DateTimePicker pruefen.
-- [ ] Tabs und Segments im Content pruefen.
-- [ ] HeaderBackButton und Sidebar-Controls pruefen.
-- [ ] Light/Dark Mode pruefen.
-- [ ] schmale Viewports fuer dichte Controls pruefen.
+- [x] `npm run typecheck -w @lmaa/ui`
+- [x] `npm run typecheck -w @lmaa/dashboard`
+- [x] `npm run lint -w @lmaa/ui`
+- [x] `npm run lint -w @lmaa/dashboard`
+- [x] `npm run build:dashboard`
+- [x] Tabellen mit Sort-Headern und Row-Actions pruefen.
+- [x] Dialog-Footer mit Primary/Neutral/Danger pruefen.
+- [x] Editor-Toolbar pruefen.
+- [x] Form Builder inklusive DND pruefen.
+- [x] Selects, MultiSelects und ContextMenu pruefen.
+- [x] Inputs, Textareas, Stepper und DateTimePicker pruefen.
+- [x] Tabs und Segments im Content pruefen.
+- [x] HeaderBackButton und Sidebar-Controls pruefen.
+- [x] Light/Dark Mode pruefen.
+- [x] schmale Viewports fuer dichte Controls pruefen.
 
 ## Stufe 0: Baseline und Schutzrails
 
@@ -1347,6 +1347,16 @@ Abschlussbedingungen:
 - Button-Plan und UI-Plan beschreiben den aktuellen Zielzustand.
 - Das Inventar zeigt keine unerwarteten alten Hoehen- oder Farbrollen.
 - Alle sichtbaren Controls haben eine zentrale Komponente oder eine dokumentierte Ausnahme.
+
+Teilfortschritt 2026-05-10, Abschluss-QA:
+
+- Pflicht-Gates `npm run typecheck -w @lmaa/ui`, `npm run typecheck -w @lmaa/dashboard`, `npm run lint -w @lmaa/ui`, `npm run lint -w @lmaa/dashboard` und `npm run build:dashboard` sind gruen. Die bekannte Vite-Warnung zu grossen Dashboard-Chunks bleibt unveraendert.
+- Playwright wurde verwendet, weil der Browser-Plugin-Pfad in dieser Session nicht verfuegbar war. Der lokale Dashboard-Dev-Server lief unter `http://127.0.0.1:5174/` mit Mock-API-Routen.
+- Die serielle Smoke-Suite `cd /tmp/lmaa-pw && npx playwright test lmaa-dashboard-ui-visual.spec.js lmaa-dropdown.spec.js lmaa-submissions-smoke.spec.js lmaa-system-users-smoke.spec.js lmaa-content-smoke.spec.js lmaa-media-smoke.spec.js lmaa-landing-widgets-smoke.spec.js lmaa-cleanup-smoke.spec.js --browser=chromium --reporter=line --workers=1` lief mit 11/11 Tests gruen.
+- Die UI-Pruefung deckte Tabellen-Header und Row-Actions, Dialog-Footer, Editor-/Form-Builder-Controls inklusive DND, Dropdown-/Select-/Listbox-Keyboard, Content-Tabs, Segments, DateTimePicker, Media- und Unsplash-Controls, Sidebar-/HeaderBackButton-Flows, Light/Dark-Controls und schmale Control-Anordnungen ab.
+- Beim Abschluss-Smoke wurde ein echter Keyboard-Flake in offenen Listbox-Popovern gefunden: Pfeiltasten konnten vom Popover-Capture-Listener und vom fokussierten Trigger doppelt verarbeitet werden. `ListboxPopover` konsumiert behandelte Navigationskeys jetzt vollstaendig, sodass die aktive Option stabil bleibt.
+- Der Footer-Builder-Smoke filtert in der temporaeren Playwright-Umgebung bekannten Preview-Iframe-Laerm von `localhost:3003` zu CSP/400. Dieser stammt aus dem isolierten Preview-Frame und nicht aus den konsolidierten Dashboard-Controls.
+- `npx -y react-doctor@latest packages/ui --verbose --diff` lief fuer den Listbox-Fix mit 100/100. Ein zusaetzlicher Dashboard-Full-Scan ohne Dashboard-Diff meldete bestehende Strukturhinweise ausserhalb dieser Konsolidierungs-Scheibe.
 
 ## Stop-Kriterien
 

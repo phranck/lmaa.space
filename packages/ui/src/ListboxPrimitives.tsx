@@ -491,20 +491,24 @@ function useListboxKeyboardNavigation({
       switch (event.key) {
         case "ArrowDown":
           event.preventDefault();
+          event.stopPropagation();
           moveActiveValue(1);
           break;
         case "ArrowUp":
           event.preventDefault();
+          event.stopPropagation();
           moveActiveValue(-1);
           break;
         case "Home":
           event.preventDefault();
+          event.stopPropagation();
           if (firstEnabledValue) {
             setActiveValue(firstEnabledValue);
           }
           break;
         case "End": {
           event.preventDefault();
+          event.stopPropagation();
           const lastEnabledValue =
             enabledOptionValues[enabledOptionValues.length - 1];
           if (lastEnabledValue) {
@@ -518,6 +522,7 @@ function useListboxKeyboardNavigation({
             return;
           }
           event.preventDefault();
+          event.stopPropagation();
           selectValue(currentActiveValue);
           break;
         default:
