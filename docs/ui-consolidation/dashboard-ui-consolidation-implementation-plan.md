@@ -108,9 +108,9 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `FilterDropdown.tsx` anbinden.
 - [x] sichtbare native Selects in `RejectDialog`, `NotificationsTab`, `UserProfileFields`, `UserCreateCard` und weiteren Fundstellen ersetzen.
 - [x] `MultiSelect`, `CountryCodeSelect` und `RegionSelect` auf gemeinsame Popover-/Listbox-Basis bringen.
-- [ ] Inputs in High-Drift-Dateien auf `DashboardInput` migrieren.
-- [ ] Textareas auf `DashboardTextarea` migrieren.
-- [ ] Number-Inputs und Stepper auf `DashboardNumberInput`/`DashboardStepper` migrieren.
+- [x] Inputs in High-Drift-Dateien auf `DashboardInput` migrieren.
+- [x] Textareas auf `DashboardTextarea` migrieren.
+- [x] Number-Inputs und Stepper auf `DashboardNumberInput`/`DashboardStepper` migrieren.
 - [ ] `Tabs.tsx` und Dashboard-Tabs auf `DashboardTabs` migrieren.
 - [ ] `SegmentedControl` und `SegmentSwitch` konsolidieren.
 - [ ] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
@@ -918,6 +918,22 @@ Verifiziert fuer den Shared-Shop-Edit-Inputs-Task:
 - `npm run lint -w @lmaa/ui`
 - `npm run typecheck -w @lmaa/ui`
 - `npx -y react-doctor@latest packages/ui --verbose --diff` (Exit 0; verbleibender Hinweis ist der bestehende Giant-Component-Hinweis.)
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+
+Teilfortschritt 2026-05-10, Hero-Banner-Number-Control:
+
+- `HeroBannerTab` nutzt fuer das Rotationsintervall `DashboardNumberInput`.
+- Der lokale Number-Input mit direkter Fokus-/Border-Klasse wurde entfernt.
+
+Verifiziert fuer den Hero-Banner-Number-Control-Task:
+
+- `rg -n "<input|type=\\\"number\\\"|focus:ring-2" apps/dashboard/src/features/content/landing-page/HeroBannerTab.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
 - `npm run lint`
 - `npm run typecheck`
 - `npm run test --workspaces --if-present`
