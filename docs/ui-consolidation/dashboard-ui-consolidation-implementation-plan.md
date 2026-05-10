@@ -63,7 +63,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 - [x] `ButtonPrimitive` und `IconButtonPrimitive` anlegen.
 - [x] `FieldShell`, `InputPrimitive` und `TextareaPrimitive` anlegen.
-- [ ] `ControlTrigger`, `ListboxPopover` und `ListboxOption` anlegen.
+- [x] `ControlTrigger`, `ListboxPopover` und `ListboxOption` anlegen.
 - [ ] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
 - [ ] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
 - [ ] `SegmentedControlPrimitive` anlegen.
@@ -335,6 +335,22 @@ Verifiziert fuer den Field-Primitive-Task:
 
 - `npm run typecheck -w @lmaa/ui`
 - `npm run lint -w @lmaa/ui`
+
+Teilfortschritt 2026-05-10, Listbox-Primitives:
+
+- `packages/ui/src/ListboxPrimitives.tsx` stellt `ControlTrigger`, `ListboxPopover` und `ListboxOption` bereit.
+- `ControlTrigger` buendelt Trigger-Hoehen, Fokus, Disabled-State, Invalid-State und ARIA-Anbindung fuer Listbox-/Combobox-Trigger.
+- `ListboxPopover` stellt stabile Listbox-/Option-IDs, optionale Portal-Positionierung, Escape-/Outside-Click-Handling und Arrow-/Home-/End-/Enter-/Space-Navigation bereit.
+- `ListboxOption` setzt `role="option"`, `aria-selected`, Active-/Selected-State und gemeinsame Option-Hoehen auf Foundation-Tokens.
+- `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
+
+Verifiziert fuer den Listbox-Primitive-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
 
 Gate:
 
