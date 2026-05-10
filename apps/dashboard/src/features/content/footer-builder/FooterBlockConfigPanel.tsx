@@ -21,6 +21,10 @@ const MarkdownEditor = lazy(() =>
 );
 
 import { Card } from "@/components/ui/Card.tsx";
+import {
+  DashboardCheckboxField,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -32,8 +36,6 @@ const IconPicker = lazy(() =>
 );
 
 const labelClass = "text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider";
-const inputClass =
-  "h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:border-[var(--color-primary)]";
 
 interface Props {
   block: FooterBlock;
@@ -86,9 +88,8 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
       {block.type === "headline" && (
         <label className="flex flex-col gap-1">
           <span className={labelClass}>{footerMessages.headlineTextLabel}</span>
-          <input
+          <DashboardInput
             type="text"
-            className={inputClass}
             value={block.text}
             onChange={(e) => onChange({ ...block, text: e.target.value })}
           />
@@ -113,9 +114,8 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
         <>
           <label className="flex flex-col gap-1">
             <span className={labelClass}>{footerMessages.buttonLabelField}</span>
-            <input
+            <DashboardInput
               type="text"
-              className={inputClass}
               value={block.label ?? ""}
               onChange={(e) => onChange({ ...block, label: e.target.value || undefined })}
               placeholder={footerMessages.buttonLabelPlaceholder}
@@ -137,10 +137,9 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
 
           <label className="flex flex-col gap-1">
             <span className={labelClass}>{footerMessages.urlLabel}</span>
-            <input
+            <DashboardInput
               type="text"
               autoComplete="off"
-              className={inputClass}
               value={block.href}
               onChange={(e) => onChange({ ...block, href: e.target.value })}
               placeholder={footerMessages.urlPlaceholder}
@@ -149,33 +148,20 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
 
           <div className="flex flex-col gap-1">
             <span className={labelClass}>{footerMessages.styleLabel}</span>
-            <div className="flex gap-1.5">
-              {buttonStyleOptions.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => onChange({ ...block, style: value })}
-                  className={`flex-1 h-8 rounded-control border text-xs font-medium ${
-                    block.style === value
-                      ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                      : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <SegmentSwitch
+              value={block.style ?? "filled"}
+              onChange={(value) => onChange({ ...block, style: value })}
+              options={buttonStyleOptions}
+            />
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={block.external}
-              onChange={(e) => onChange({ ...block, external: e.target.checked })}
-              className="w-4 h-4 accent-[var(--color-primary)]"
-            />
-            <span className="text-sm text-[var(--ds-text)]">{footerMessages.externalLink}</span>
-          </label>
+          <DashboardCheckboxField
+            checked={block.external}
+            onCheckedChange={(checked) => onChange({ ...block, external: checked })}
+            label={footerMessages.externalLink}
+            className="items-center"
+            boxClassName="mt-0"
+          />
         </>
       )}
 
@@ -309,7 +295,7 @@ function SocialMediaOrderItem({ platform, label }: { platform: string; label: st
       {...listeners}
       className="flex cursor-grab items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 py-1.5 text-sm text-[var(--ds-text)] hover:border-[var(--color-primary)] active:cursor-grabbing"
     >
-      <DotsSixVerticalIcon className="h-4 w-4 shrink-0 text-[var(--ds-text-subtle)]" />
+      <DotsSixVerticalIcon className="size-4 shrink-0 text-[var(--ds-text-subtle)]" />
       {Icon ? <Icon size={16} /> : null}
       <span className="flex-1 truncate">{def?.label ?? platform}</span>
       <span className="shrink-0 text-xs text-[var(--ds-text-subtle)]">{label}</span>

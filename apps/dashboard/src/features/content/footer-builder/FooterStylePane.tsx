@@ -2,6 +2,7 @@ import type { FooterStyle } from "@lmaa/contracts";
 import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -48,13 +49,13 @@ export function FooterStylePane({ style, onChange }: Props) {
               type="color"
               value={s[key] as string}
               onChange={(e) => onChange({ ...s, [key]: e.target.value })}
-              className="w-8 h-8 rounded-control border border-[var(--ds-border)] cursor-pointer bg-transparent"
+              className="size-8 cursor-pointer rounded-control border border-[var(--ds-border)] bg-transparent"
             />
-            <input
+            <DashboardInput
               type="text"
               value={s[key] as string}
               onChange={(e) => onChange({ ...s, [key]: e.target.value })}
-              className="h-8 w-24 px-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-xs text-[var(--ds-text)] font-mono focus:outline-none focus:border-[var(--color-primary)]"
+              className="w-24 font-mono text-xs"
               spellCheck={false}
             />
           </div>

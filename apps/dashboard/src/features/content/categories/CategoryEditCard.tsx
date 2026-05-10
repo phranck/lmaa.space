@@ -1,5 +1,4 @@
 import {
-  DownloadIcon,
   MagnifyingGlassIcon,
   TagIcon,
   TrashIcon,
@@ -8,9 +7,18 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { TemplateAssignment } from "@lmaa/contracts";
-import { FocalPointOverlay, FormLabel, formInputClass, useFocalPointDrag } from "@lmaa/ui";
+import { FocalPointOverlay, FormLabel, useFocalPointDrag } from "@lmaa/ui";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
+import {
+  CancelActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import {
+  DashboardInput,
+  DashboardTextarea,
+} from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -245,7 +253,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               <img
                 src={displayImageUrl}
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 size-full object-cover"
                 draggable={false}
                 onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
               />
@@ -255,38 +263,38 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
-              <MagnifyingGlassIcon weight="duotone" className="w-10 h-10" />
+              <MagnifyingGlassIcon weight="duotone" className="size-10" />
             </div>
           )}
 
           {/* Image action buttons */}
           <div className="absolute bottom-0 inset-x-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/50 to-transparent">
             {displayImageUrl && !image.loadError && (
-              <button
-                type="button"
+              <DashboardButton
                 onClick={handleDeleteImage}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-btn-danger-text)] text-xs font-medium w-full"
+                className="w-full"
+                leadingIcon={<TrashIcon weight="duotone" className="size-3" />}
+                variant="danger"
               >
-                <TrashIcon weight="duotone" className="w-3 h-3" />
                 {categoriesMessages.editCard.deleteImage}
-              </button>
+              </DashboardButton>
             )}
-            <button
-              type="button"
+            <DashboardButton
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium w-full"
+              className="w-full"
+              leadingIcon={<TrayArrowUpIcon weight="duotone" className="size-3" />}
+              variant="neutral"
             >
-              <TrayArrowUpIcon weight="duotone" className="w-3 h-3" />
               {categoriesMessages.editCard.upload}
-            </button>
-            <button
-              type="button"
+            </DashboardButton>
+            <DashboardButton
               onClick={() => setShowUnsplash(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-control bg-[var(--ds-input-bg)]/90 hover:bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-xs font-medium w-full"
+              className="w-full"
+              leadingIcon={<span className="text-[10px] font-semibold leading-none">U</span>}
+              variant="neutral"
             >
-              <span className="text-[10px] font-bold leading-none">U</span>
               {categoriesMessages.editCard.unsplash}
-            </button>
+            </DashboardButton>
           </div>
 
           <input
@@ -315,24 +323,22 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
           <div className="flex flex-col gap-3 flex-1">
             <div>
               <FormLabel htmlFor="cat-name">{categoriesMessages.editCard.name}</FormLabel>
-              <input
+              <DashboardInput
                 id="cat-name"
                 type="text"
                 value={form.name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                className={formInputClass}
               />
             </div>
 
             <div>
               <FormLabel htmlFor="cat-slug">{categoriesMessages.editCard.slug}</FormLabel>
-              <input
+              <DashboardInput
                 id="cat-slug"
                 type="text"
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: slugifyInput(e.target.value) }))}
                 onBlur={(e) => setForm((f) => ({ ...f, slug: slugify(e.target.value) }))}
-                className={formInputClass}
               />
             </div>
 
@@ -340,12 +346,12 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
               <FormLabel htmlFor="cat-description">
                 {categoriesMessages.editCard.description}
               </FormLabel>
-              <textarea
+              <DashboardTextarea
                 id="cat-description"
                 rows={4}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className={`${formInputClass} resize-y`}
+                className="resize-y"
               />
             </div>
 
@@ -391,22 +397,16 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 {messages.socialMedia.approve.approveBlockedHint}
               </span>
             )}
-            <button
-              type="button"
+            <CancelActionButton
+              label={common.cancel}
               onClick={onClose}
-              className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
-            >
-              {common.cancel}
-            </button>
-            <button
-              type="button"
+            />
+            <SaveActionButton
               onClick={() => handleSave()}
               disabled={!canSave}
-              className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
-            >
-              <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-              {saveMutation.isPending ? common.saving : common.save}
-            </button>
+              busy={saveMutation.isPending}
+              label={saveMutation.isPending ? common.saving : common.save}
+            />
           </div>
         </div>
       </OverlayCard>

@@ -7,7 +7,7 @@ import {
   closestCenter,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
-import { ArrowClockwiseIcon, DownloadIcon, PlusCircleIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { nanoid } from "nanoid";
 import { useEffect, useReducer, useRef } from "react";
 
@@ -16,6 +16,8 @@ import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
 import { resolveFooterHeightPx } from "@lmaa/shared";
 
 import { Card } from "@/components/ui/Card.tsx";
+import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -348,7 +350,7 @@ export function FooterBuilderPage() {
   if (isLoading || config === null) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+        <div className="size-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -366,15 +368,12 @@ export function FooterBuilderPage() {
         <div className="flex items-center gap-2">
           {save.isError && <span className="text-xs text-red-500">{footerMessages.saveError}</span>}
           {savedOk && <span className="text-xs text-green-500">{common.saved}</span>}
-          <button
-            type="button"
+          <SaveActionButton
             onClick={handleSave}
             disabled={save.isPending}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
-          >
-            <DownloadIcon weight="duotone" className="w-4 h-4" />
-            {save.isPending ? common.saving : common.save}
-          </button>
+            busy={save.isPending}
+            label={save.isPending ? common.saving : common.save}
+          />
         </div>
       </PageHeader>
 
@@ -415,14 +414,14 @@ export function FooterBuilderPage() {
               ))}
             </SortableContext>
 
-            <button
-              type="button"
+            <DashboardButton
               onClick={handleAddColumn}
-              className="flex items-center gap-1.5 shrink-0 self-start px-3 py-2 rounded-control border border-dashed border-[var(--ds-border)] text-sm text-[var(--ds-text-secondary)] hover:text-[var(--ds-text)] hover:border-[var(--color-primary)] whitespace-nowrap"
+              className="shrink-0 self-start whitespace-nowrap border-dashed"
+              leadingIcon={<PlusCircleIcon weight="duotone" className="size-4" />}
+              variant="neutral"
             >
-              <PlusCircleIcon weight="duotone" className="w-4 h-4" />
               Spalte
-            </button>
+            </DashboardButton>
           </div>
 
           {/* Config panel — always visible: block props when selected, style otherwise */}
@@ -494,18 +493,20 @@ function FooterPreviewCard({
         >
           Vorschau
         </button>
-        <button
-          type="button"
+        <DashboardButton
           onClick={onReload}
           disabled={isPreviewPending}
-          className="flex items-center justify-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] rounded-control hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-50"
+          className="shrink-0"
+          leadingIcon={
+            <ArrowClockwiseIcon
+              weight="duotone"
+              className={`size-3.5 ${isPreviewPending ? "animate-spin" : ""}`}
+            />
+          }
+          variant="neutral"
         >
-          <ArrowClockwiseIcon
-            weight="duotone"
-            className={`w-3.5 h-3.5 ${isPreviewPending ? "animate-spin" : ""}`}
-          />
           Reload
-        </button>
+        </DashboardButton>
       </div>
       <FooterPreview src={previewUrl} heightPx={previewHeightPx} isLoading={isPreviewPending} />
     </Card>

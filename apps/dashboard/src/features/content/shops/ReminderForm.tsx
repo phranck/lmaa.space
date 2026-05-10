@@ -2,8 +2,10 @@ import { ClockIcon, EnvelopeSimpleIcon, TrashIcon } from "@phosphor-icons/react"
 import { useReducer } from "react";
 
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
-import { AlertDialog, FormLabel, ToggleSwitch, formBtnBaseClass } from "@lmaa/ui";
+import { AlertDialog, FormLabel, ToggleSwitch } from "@lmaa/ui";
 
+import { DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import {
   DashboardCombobox,
   DashboardNumberInput,
@@ -282,25 +284,22 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
 
       {/* Actions */}
       <div className="flex items-center gap-2 w-full">
-        <button
-          type="button"
+        <DashboardButton
           disabled={isPending}
           onClick={saveReminder}
-          className={`${formBtnBaseClass} flex-1 justify-center border border-[var(--ds-btn-neutral-border)] text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]`}
+          className="flex-1"
+          leadingIcon={<ClockIcon weight="duotone" className="size-3.5" />}
+          variant="neutral"
         >
-          <ClockIcon weight="duotone" className="size-3.5" />
           {isPending ? "Wird gespeichert\u2026" : "Erinnerung setzen"}
-        </button>
+        </DashboardButton>
         {onDelete && (
-          <button
-            type="button"
+          <DeleteActionButton
             disabled={isDeleting}
             onClick={onDelete}
-            className={`${formBtnBaseClass} border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]`}
-          >
-            <TrashIcon weight="duotone" className="size-3.5" />
-            {isDeleting ? "Wird gelöscht\u2026" : "Löschen"}
-          </button>
+            icon={<TrashIcon weight="duotone" className="size-3.5" />}
+            label={isDeleting ? "Wird gelöscht\u2026" : "Löschen"}
+          />
         )}
       </div>
     </div>

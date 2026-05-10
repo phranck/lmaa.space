@@ -49,7 +49,7 @@ export function ShopEditorRejectOverlay({ controller }: { controller: ShopEditor
       submitVariant={rejectState.editingRejection ? "primary" : "danger"}
       submitIcon={
         rejectState.editingRejection ? (
-          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+          <DownloadIcon weight="duotone" className="size-3.5" />
         ) : undefined
       }
       headerIcon={

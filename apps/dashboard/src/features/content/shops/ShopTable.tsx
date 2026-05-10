@@ -35,7 +35,7 @@ const VisibilityBadge = memo(function VisibilityBadge({ visibility }: { visibili
   if (visibility === "onhold") {
     return (
       <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400">
-        <PauseCircleIcon weight="duotone" className="w-3 h-3" />
+        <PauseCircleIcon weight="duotone" className="size-3" />
         {shopsMessages.table.statusOnhold}
       </span>
     );
@@ -43,7 +43,7 @@ const VisibilityBadge = memo(function VisibilityBadge({ visibility }: { visibili
   if (visibility === "deleted") {
     return (
       <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400">
-        <TrashIcon weight="duotone" className="w-3 h-3" />
+        <TrashIcon weight="duotone" className="size-3" />
         {shopsMessages.table.statusDeleted}
       </span>
     );
@@ -51,13 +51,18 @@ const VisibilityBadge = memo(function VisibilityBadge({ visibility }: { visibili
   if (visibility === "rejected") {
     return (
       <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-orange-500/10 text-orange-400">
-        <XCircleIcon weight="duotone" className="w-3 h-3" />
+        <XCircleIcon weight="duotone" className="size-3" />
         {shopsMessages.table.statusRejected}
       </span>
     );
   }
   return null;
 });
+
+function formatReminderTitle(reminder: NonNullable<AdminShopListItem["reminder"]>) {
+  const formattedDate = new Date(reminder.remindAt).toLocaleString("de-DE");
+  return `Erinnerung: ${formattedDate}${reminder.note ? ` - ${reminder.note}` : ""}`;
+}
 
 /**
  * Table presentation of shop rows with moderation actions.
@@ -79,7 +84,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               {shop.visibility === "public" && (
-                <EyeIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                <EyeIcon weight="duotone" className="size-3.5 shrink-0 text-emerald-500" />
               )}
               <p
                 className={`font-medium truncate ${
@@ -93,20 +98,20 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
                 {shop.name}
               </p>
               {shop.headquarters?.latitude != null && shop.headquarters?.longitude != null && (
-                <MapPinIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 text-[var(--color-primary)]" />
+                <MapPinIcon weight="duotone" className="size-3.5 shrink-0 text-[var(--color-primary)]" />
               )}
               {shop.needsReview && (
                 <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
-                  <SealWarningIcon weight="duotone" className="w-3 h-3" />
+                  <SealWarningIcon weight="duotone" className="size-3" />
                   {shopsMessages.table.needsReview}
                 </span>
               )}
               {shop.reminder && (
                 <span
-                  title={`Erinnerung: ${new Date(shop.reminder.remindAt).toLocaleString("de-DE")}${shop.reminder.note ? ` – ${shop.reminder.note}` : ""}`}
+                  title={formatReminderTitle(shop.reminder)}
                   className="shrink-0 text-amber-400"
                 >
-                  <ClockIcon weight="duotone" className="w-3.5 h-3.5" />
+                  <ClockIcon weight="duotone" className="size-3.5" />
                 </span>
               )}
               <VisibilityBadge visibility={shop.visibility} />
@@ -172,7 +177,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         cell: (shop) =>
           shop.likeCount > 0 ? (
             <span className="inline-flex items-center gap-1 text-sm text-red-400">
-              <HeartIcon weight="duotone" className="w-3.5 h-3.5" />
+              <HeartIcon weight="duotone" className="size-3.5" />
               {shop.likeCount}
             </span>
           ) : (
@@ -194,13 +199,13 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
                     "_blank",
                   );
                 }}
-                icon={<InfoIcon weight="duotone" className="w-3.5 h-3.5" />}
+                icon={<InfoIcon weight="duotone" className="size-3.5" />}
                 label={shopsMessages.table.rejectionInfo}
               />
             )}
             <TableActionButton
               onClick={() => onEdit(shop)}
-              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
               label={shopsMessages.table.edit}
             />
           </div>

@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { ShopReminder } from "@lmaa/shared";
 import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
 
+import { EditActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { usePushNotifications } from "@/lib/hooks/usePushNotifications.ts";
 
@@ -46,7 +48,7 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
   return (
     <DashboardSection expanded={expanded}>
       <DashboardSection.Header
-        icon={<ClockIcon weight="duotone" className="w-4 h-4" />}
+        icon={<ClockIcon weight="duotone" className="size-4" />}
         title="Erinnerung"
         addOn={
           <ToggleSwitch
@@ -62,18 +64,18 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
       {expanded && (
         <DashboardSection.Body>
           {showPushPrompt && (
-            <button
-              type="button"
+            <DashboardButton
               onClick={() => push.subscribe()}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
+              className="w-full justify-start"
+              leadingIcon={<BellIcon weight="duotone" className="size-3.5 text-amber-400" />}
+              variant="neutral"
             >
-              <BellIcon weight="duotone" className="w-3.5 h-3.5 text-amber-400" />
               Push-Benachrichtigungen aktivieren
-            </button>
+            </DashboardButton>
           )}
           {push.state === "denied" && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-control border border-[var(--ds-btn-danger-border)] text-xs text-[var(--ds-btn-danger-text)]">
-              <BellSlashIcon weight="duotone" className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-control border border-[var(--ds-danger-border)] bg-[var(--ds-danger-bg)] text-xs text-[var(--ds-danger-text)]">
+              <BellSlashIcon weight="duotone" className="size-3.5" />
               Push-Benachrichtigungen blockiert
             </div>
           )}
@@ -96,13 +98,11 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
                   <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5 break-words">{reminder.note}</p>
                 )}
               </div>
-              <button
-                type="button"
+              <EditActionButton
                 onClick={() => setEditing(true)}
-                className="shrink-0 text-xs text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] underline"
-              >
-                Bearbeiten
-              </button>
+                className="shrink-0"
+                label="Bearbeiten"
+              />
             </div>
           ) : (
             <ReminderForm

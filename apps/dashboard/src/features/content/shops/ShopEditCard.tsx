@@ -1,5 +1,10 @@
-import { StorefrontIcon, XCircleIcon } from "@phosphor-icons/react";
+import { StorefrontIcon } from "@phosphor-icons/react";
 
+import {
+  CancelActionButton,
+  RejectActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -85,25 +90,17 @@ function ShopEditCardLayout({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <button
-          type="button"
+        <CancelActionButton
           onClick={onClose}
-          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
-        >
-          {controller.common.cancel}
-        </button>
+          label={controller.common.cancel}
+        />
         {controller.canReject && (
-          <button
-            type="button"
+          <RejectActionButton
             onClick={() => controller.handleOpenRejectCard(false)}
-            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-          >
-            <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            {controller.shopsMessages.editCard.rejectSubmit}
-          </button>
+            label={controller.shopsMessages.editCard.rejectSubmit}
+          />
         )}
-        <button
-          type="button"
+        <SaveActionButton
           onClick={() =>
             void controller.handleSave({
               onSuccess: () => {
@@ -112,10 +109,9 @@ function ShopEditCardLayout({
             })
           }
           disabled={!controller.canSave}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
-        >
-          {controller.isPending ? controller.common.saving : controller.common.save}
-        </button>
+          busy={controller.isPending}
+          label={controller.isPending ? controller.common.saving : controller.common.save}
+        />
       </OverlayCard.Footer>
 
       <ShopEditorRejectOverlay controller={controller} />

@@ -1,10 +1,8 @@
 import {
-  DownloadIcon,
   EyeIcon,
   MarkdownLogoIcon,
   MinusCircleIcon,
   PlusCircleIcon,
-  TrashIcon,
 } from "@phosphor-icons/react";
 import { Suspense, lazy, useCallback, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -16,7 +14,20 @@ const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  CancelActionButton,
+  DeleteActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
+  DashboardButton,
+  DashboardIconButton,
+} from "@/components/ui/DashboardButton.tsx";
+import {
+  DashboardCheckboxField,
+  DashboardCombobox,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
@@ -137,8 +148,6 @@ interface EditorHeaderActionsProps {
   saved: boolean;
   common: {
     cancel: string;
-    save: string;
-    saving: string;
   };
   editorMessages: {
     decreaseFontSize: string;
@@ -180,75 +189,70 @@ function EditorHeaderActions({
     <div className="flex items-center gap-3">
       <div className="flex items-center gap-1 border border-[var(--ds-border)] rounded-control px-2 py-1.5 text-[var(--ds-text-muted)]">
         <span className="text-xs font-medium mr-1 select-none">Aa</span>
-        <button
-          type="button"
+        <DashboardIconButton
           onClick={onDecreaseFont}
           disabled={!canDecreaseFont}
-          className="flex size-5 items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
+          className="size-5"
+          size="action"
           title={editorMessages.decreaseFontSize}
+          aria-label={editorMessages.decreaseFontSize}
+          variant="ghost"
         >
           <MinusCircleIcon weight="duotone" className="size-3.5" />
-        </button>
+        </DashboardIconButton>
         <span className="w-8 text-center text-xs tabular-nums select-none">{sourceFontSize}px</span>
-        <button
-          type="button"
+        <DashboardIconButton
           onClick={onIncreaseFont}
           disabled={!canIncreaseFont}
-          className="flex size-5 items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
+          className="size-5"
+          size="action"
           title={editorMessages.increaseFontSize}
+          aria-label={editorMessages.increaseFontSize}
+          variant="ghost"
         >
           <PlusCircleIcon weight="duotone" className="size-3.5" />
-        </button>
+        </DashboardIconButton>
       </div>
 
-      <button
-        type="button"
+      <DashboardButton
         onClick={onPreview}
-        className="flex items-center gap-2 px-3 h-8 min-w-8 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
+        leadingIcon={<EyeIcon weight="duotone" className="size-3.5" />}
+        size="control"
+        variant="neutral"
       >
-        <EyeIcon weight="duotone" className="size-3.5" />
         {editorMessages.preview}
-      </button>
+      </DashboardButton>
 
-      <button
-        type="button"
+      <SaveActionButton
         onClick={onSave}
         disabled={isSaving}
-        className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-      >
-        <DownloadIcon weight="duotone" className="size-3.5" />
-        {saved ? editorMessages.saved : common.save}
-      </button>
+        busy={isSaving}
+        label={saved ? editorMessages.saved : undefined}
+        size="control"
+      />
 
       {!confirmDelete ? (
-        <button
-          type="button"
+        <DeleteActionButton
           onClick={onOpenDelete}
-          className="flex size-8 items-center justify-center border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)]"
           title={editorMessages.deletePage}
-        >
-          <TrashIcon weight="duotone" className="size-3.5" />
-        </button>
+          label={editorMessages.deletePage}
+          iconOnly
+          size="control"
+        />
       ) : (
-        <div className="flex items-center gap-2 px-3 h-8 border border-[var(--ds-btn-danger-border)] rounded-control bg-[var(--ds-btn-danger-hover-bg)]">
-          <span className="text-xs text-[var(--ds-btn-danger-text)] font-medium">
+        <div className="flex min-h-8 items-center gap-2 rounded-control border border-[var(--ds-danger-border)] bg-[var(--ds-danger-bg)] px-2 py-1">
+          <span className="text-xs font-medium text-[var(--ds-danger-text)]">
             {editorMessages.confirmDelete}
           </span>
-          <button
-            type="button"
+          <DeleteActionButton
             onClick={onConfirmDelete}
             disabled={isDeleting}
-            className="text-xs font-semibold text-[var(--ds-btn-danger-text)] hover:underline disabled:opacity-60"
-          >
-            {editorMessages.confirmDeleteAction}
-          </button>
-          <button
-            type="button"
+            label={editorMessages.confirmDeleteAction}
+          />
+          <CancelActionButton
             onClick={onCancelDelete}
-            className="text-xs text-[var(--ds-text-muted)] hover:underline"
-          >
-            {common.cancel}
-          </button>
+            label={common.cancel}
+          />
         </div>
       )}
     </div>
@@ -317,25 +321,25 @@ function EditorMetadataBar({
         <span className="font-medium">{editorMessages.titleLabel}:</span>
         {editingTitle ? (
           <div className="flex items-center gap-1">
-            <input
+            <DashboardInput
               type="text"
               value={editTitleValue}
               onChange={(e) => onTitleValueChange(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") onSaveTitle();
               }}
-              className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none w-48"
+              className="w-48 text-xs"
             />
-            <button
-              type="button"
+            <DashboardButton
               onClick={onSaveTitle}
-              className="text-[var(--color-primary)] hover:underline"
+              className="px-2"
+              variant="ghost"
             >
               {editorMessages.ok}
-            </button>
-            <button type="button" onClick={onCancelTitle} className="hover:underline">
+            </DashboardButton>
+            <DashboardButton onClick={onCancelTitle} className="px-2" variant="ghost">
               {common.cancel}
-            </button>
+            </DashboardButton>
           </div>
         ) : (
           <button
@@ -353,7 +357,7 @@ function EditorMetadataBar({
         {editingSlug ? (
           <div className="flex items-center gap-1">
             <span className="text-[var(--ds-text-muted)]">/</span>
-            <input
+            <DashboardInput
               type="text"
               value={editSlugValue}
               onChange={(e) => onSlugValueChange(e.target.value)}
@@ -362,18 +366,18 @@ function EditorMetadataBar({
                 if (e.key === "Enter") onSaveSlug();
               }}
               pattern="[a-z0-9-]+"
-              className="px-2 py-0.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--color-primary)] rounded text-[var(--ds-text)] focus:outline-none font-mono w-40"
+              className="w-40 font-mono text-xs"
             />
-            <button
-              type="button"
+            <DashboardButton
               onClick={onSaveSlug}
-              className="text-[var(--color-primary)] hover:underline"
+              className="px-2"
+              variant="ghost"
             >
               {editorMessages.ok}
-            </button>
-            <button type="button" onClick={onCancelSlug} className="hover:underline">
+            </DashboardButton>
+            <DashboardButton onClick={onCancelSlug} className="px-2" variant="ghost">
               {common.cancel}
-            </button>
+            </DashboardButton>
           </div>
         ) : (
           <button
@@ -400,15 +404,13 @@ function EditorMetadataBar({
         />
       </div>
 
-      <label className="flex items-center gap-1.5 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={page.showTitle}
-          onChange={(e) => onShowTitleChange(e.target.checked)}
-          className="accent-[var(--color-primary)] cursor-pointer"
-        />
-        <span className="font-medium">{editorMessages.showTitleLabel}</span>
-      </label>
+      <DashboardCheckboxField
+        checked={page.showTitle}
+        onCheckedChange={onShowTitleChange}
+        label={<span className="text-xs font-medium text-[var(--ds-text-muted)]">{editorMessages.showTitleLabel}</span>}
+        className="items-center gap-1.5"
+        boxClassName="mt-0"
+      />
 
       {page.createdByUsername && (
         <div className="ml-auto">

@@ -4,13 +4,18 @@ import {
   EyeSlashIcon,
   FileIcon,
   FileTextIcon,
-  PlusCircleIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
 import { useMemo, useReducer } from "react";
 import { useNavigate } from "react-router";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import {
+  CancelActionButton,
+  CreateActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -50,7 +55,7 @@ function StatusBadge({ status }: { status: string }) {
   if (status === "published") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-        <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+        <CheckCircleIcon weight="duotone" className="size-3.5" />
         {s.published}
       </span>
     );
@@ -58,14 +63,14 @@ function StatusBadge({ status }: { status: string }) {
   if (status === "hidden") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-text-muted)]">
-        <EyeSlashIcon weight="duotone" className="w-3.5 h-3.5" />
+        <EyeSlashIcon weight="duotone" className="size-3.5" />
         {s.hidden}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-      <CircleIcon weight="duotone" className="w-3.5 h-3.5" />
+      <CircleIcon weight="duotone" className="size-3.5" />
       {s.draft}
     </span>
   );
@@ -196,14 +201,14 @@ export function PagesListPage() {
           <div className="flex gap-2 justify-end">
             <TableActionButton
               onClick={() => navigate(`/pages/${page.slug}`)}
-              icon={<FileTextIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
               label={common.edit}
             />
             <TableActionButton
               variant="danger"
               onClick={() => dispatch({ deleteTarget: { slug: page.slug, title: page.title } })}
               disabled={deletePage.isPending}
-              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
               label={common.delete}
             />
           </div>
@@ -217,14 +222,10 @@ export function PagesListPage() {
     <PageLayout>
       <PageHeader title={text.title}>
         {!showCreate && (
-          <button
-            type="button"
+          <CreateActionButton
             onClick={() => dispatch({ showCreate: true })}
-            className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-          >
-            <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            {text.newPage}
-          </button>
+            label={text.newPage}
+          />
         )}
       </PageHeader>
 
@@ -243,14 +244,13 @@ export function PagesListPage() {
                 >
                   {text.fieldTitle}
                 </label>
-                <input
+                <DashboardInput
                   id="content-page-title"
                   type="text"
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   required
                   placeholder={text.titlePlaceholder}
-                  className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
               <div>
@@ -262,7 +262,7 @@ export function PagesListPage() {
                 </label>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-[var(--ds-text-muted)] shrink-0">/</span>
-                  <input
+                  <DashboardInput
                     id="content-page-slug"
                     type="text"
                     value={slug}
@@ -270,28 +270,23 @@ export function PagesListPage() {
                     required
                     pattern="[a-z0-9-]+"
                     placeholder={text.slugPlaceholder}
-                    className="flex-1 px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent font-mono"
+                    className="min-w-0 flex-1 font-mono"
                   />
                 </div>
               </div>
             </div>
             {createError && <p className="text-xs text-red-500">{createError}</p>}
             <div className="flex items-center gap-3">
-              <button
+              <CreateActionButton
                 type="submit"
                 disabled={createPage.isPending || !slug || !title}
-                className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-              >
-                <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                {createPage.isPending ? text.creating : text.create}
-              </button>
-              <button
-                type="button"
+                busy={createPage.isPending}
+                label={createPage.isPending ? text.creating : text.create}
+              />
+              <CancelActionButton
                 onClick={handleCancelCreate}
-                className="px-4 py-1.5 text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-              >
-                {common.cancel}
-              </button>
+                label={common.cancel}
+              />
             </div>
           </form>
         )}
@@ -334,7 +329,7 @@ export function PagesListPage() {
           <OverlayCard.Header>
             <div className="flex items-center gap-3">
               <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
-              <h3 className="font-bold text-[var(--ds-text)]">{text.deletePageTitle}</h3>
+              <h3 className="font-semibold text-[var(--ds-text)]">{text.deletePageTitle}</h3>
             </div>
           </OverlayCard.Header>
 
@@ -346,22 +341,15 @@ export function PagesListPage() {
           </OverlayCard.Body>
 
           <OverlayCard.Footer className="flex justify-end gap-3">
-            <button
-              type="button"
+            <CancelActionButton
               onClick={() => dispatch({ deleteTarget: null })}
-              className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
-            >
-              {common.cancel}
-            </button>
-            <button
-              type="button"
+              label={common.cancel}
+            />
+            <DeleteActionButton
               disabled={deletePage.isPending}
               onClick={handleDeleteConfirm}
-              className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60"
-            >
-              <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-              {deletePage.isPending ? "…" : common.delete}
-            </button>
+              label={deletePage.isPending ? "…" : common.delete}
+            />
           </OverlayCard.Footer>
         </OverlayCard>
       )}

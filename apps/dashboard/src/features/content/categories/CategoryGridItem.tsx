@@ -2,6 +2,7 @@ import { FileTextIcon, TrashIcon } from "@phosphor-icons/react";
 
 import type { Category } from "@lmaa/shared";
 
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 interface CategoryGridItemProps {
@@ -22,18 +23,22 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
 
   return (
     <div className="relative bg-[var(--ds-surface)] rounded-2xl overflow-hidden border border-[var(--ds-border)] flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-      <div className="aspect-video overflow-hidden cursor-pointer" onClick={() => onEdit(category.id)}>
+      <button
+        type="button"
+        className="block aspect-video cursor-pointer overflow-hidden text-left"
+        onClick={() => onEdit(category.id)}
+      >
         <img
           src={category.imageUrl ?? `/images/${category.slug}.jpg`}
           alt=""
           loading="lazy"
-          className="w-full h-full object-cover bg-[var(--ds-bg-elevated)]"
+          className="size-full object-cover bg-[var(--ds-bg-elevated)]"
           style={{ objectPosition: `50% ${category.imageFocalPointY ?? 50}%` }}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).src = "/images/allgemein.jpg";
           }}
         />
-      </div>
+      </button>
       <div className="px-4 py-3 flex flex-col">
         <div>
           <p className="font-semibold font-serif text-[var(--ds-text)] text-lg leading-snug truncate">{category.name}</p>
@@ -47,23 +52,23 @@ export function CategoryGridItem({ category, onEdit, onDelete }: CategoryGridIte
           )}
         </div>
         <div className="flex gap-1.5 mt-2">
-          <button
-            type="button"
+          <DashboardButton
             onClick={() => onEdit(category.id)}
-            className="btn-edit flex-1 py-1.5 text-xs border border-[var(--ds-btn-neutral-border)] rounded-control text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] flex items-center gap-1 justify-center"
+            className="btn-edit flex-1"
+            leadingIcon={<FileTextIcon weight="duotone" className="size-3" />}
+            variant="neutral"
           >
-            <FileTextIcon weight="duotone" className="w-3 h-3" />
             {categoriesMessages.card.edit}
-          </button>
+          </DashboardButton>
           {onDelete && (
-            <button
-              type="button"
+            <DashboardButton
               onClick={() => onDelete(category.id)}
-              className="btn-delete flex-1 py-1.5 text-xs border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] flex items-center gap-1 justify-center"
+              className="btn-delete flex-1"
+              leadingIcon={<TrashIcon weight="duotone" className="size-3" />}
+              variant="danger"
             >
-              <TrashIcon weight="duotone" className="w-3 h-3" />
               {categoriesMessages.card.delete}
-            </button>
+            </DashboardButton>
           )}
         </div>
       </div>
