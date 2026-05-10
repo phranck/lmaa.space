@@ -1,0 +1,635 @@
+import {
+  CaretDownIcon,
+  CaretRightIcon,
+  CaretUpDownIcon,
+  DotsSixVerticalIcon,
+  MinusIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
+import type {
+  ButtonHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+} from "react";
+import { useId, useRef, useState } from "react";
+
+import {
+  CheckboxPrimitive,
+  ControlTrigger,
+  FieldShell,
+  InputPrimitive,
+  ListboxOption,
+  ListboxPopover,
+  MenuItemPrimitive,
+  MenuPrimitive,
+  MultiSelect,
+  SegmentedControlPrimitive,
+  SwitchPrimitive,
+  TabListPrimitive,
+  TabPanelPrimitive,
+  TabTriggerPrimitive,
+  TabsPrimitive,
+  TextareaPrimitive,
+  type CheckboxPrimitiveProps,
+  type FieldControlSize,
+  type FieldShellProps,
+  type InputPrimitiveProps,
+  type MenuItemPrimitiveProps,
+  type MenuPrimitiveProps,
+  type MultiSelectProps,
+  type SegmentedControlPrimitiveProps,
+  type SwitchPrimitiveProps,
+  type TabListPrimitiveProps,
+  type TabPanelPrimitiveProps,
+  type TabsPrimitiveProps,
+  type TabTriggerPrimitiveProps,
+  type TextareaPrimitiveProps,
+} from "@lmaa/ui";
+
+import {
+  DashboardButton,
+  DashboardIconButton,
+  type DashboardButtonProps,
+  type DashboardIconButtonProps,
+} from "./DashboardButton.tsx";
+
+export type DashboardFieldProps = FieldShellProps;
+
+export function DashboardField(props: DashboardFieldProps) {
+  return <FieldShell {...props} />;
+}
+
+export interface DashboardInputProps extends InputPrimitiveProps {
+  error?: ReactNode;
+  fieldClassName?: string;
+  hint?: ReactNode;
+  label?: ReactNode;
+  optionalLabel?: ReactNode;
+}
+
+export function DashboardInput({
+  error,
+  fieldClassName,
+  hint,
+  id,
+  invalid,
+  label,
+  optionalLabel,
+  required,
+  ...inputProps
+}: DashboardInputProps) {
+  if (!hasFieldShell(label, hint, error, optionalLabel)) {
+    return (
+      <InputPrimitive
+        {...inputProps}
+        id={id}
+        invalid={invalid ?? Boolean(error)}
+        required={required}
+      />
+    );
+  }
+
+  return (
+    <DashboardField
+      className={fieldClassName}
+      controlId={id}
+      error={error}
+      hint={hint}
+      label={label}
+      optionalLabel={optionalLabel}
+      required={required}
+    >
+      {(controlProps) => (
+        <InputPrimitive
+          {...inputProps}
+          {...controlProps}
+          invalid={invalid ?? Boolean(error)}
+          required={required}
+        />
+      )}
+    </DashboardField>
+  );
+}
+
+export interface DashboardTextareaProps extends TextareaPrimitiveProps {
+  error?: ReactNode;
+  fieldClassName?: string;
+  hint?: ReactNode;
+  label?: ReactNode;
+  optionalLabel?: ReactNode;
+}
+
+export function DashboardTextarea({
+  error,
+  fieldClassName,
+  hint,
+  id,
+  invalid,
+  label,
+  optionalLabel,
+  required,
+  ...textareaProps
+}: DashboardTextareaProps) {
+  if (!hasFieldShell(label, hint, error, optionalLabel)) {
+    return (
+      <TextareaPrimitive
+        {...textareaProps}
+        id={id}
+        invalid={invalid ?? Boolean(error)}
+        required={required}
+      />
+    );
+  }
+
+  return (
+    <DashboardField
+      className={fieldClassName}
+      controlId={id}
+      error={error}
+      hint={hint}
+      label={label}
+      optionalLabel={optionalLabel}
+      required={required}
+    >
+      {(controlProps) => (
+        <TextareaPrimitive
+          {...textareaProps}
+          {...controlProps}
+          invalid={invalid ?? Boolean(error)}
+          required={required}
+        />
+      )}
+    </DashboardField>
+  );
+}
+
+export interface DashboardSelectOption {
+  disabled?: boolean;
+  label: ReactNode;
+  value: string;
+}
+
+export interface DashboardSelectProps
+  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> {
+  controlSize?: FieldControlSize;
+  error?: ReactNode;
+  fieldClassName?: string;
+  hint?: ReactNode;
+  label?: ReactNode;
+  options?: readonly DashboardSelectOption[];
+  optionalLabel?: ReactNode;
+  placeholder?: ReactNode;
+}
+
+const controlBaseClass =
+  "w-full box-border rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors focus:outline-none focus:border-[var(--ds-border-focus)] focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]";
+
+const selectSizeClass: Record<FieldControlSize, string> = {
+  field: "h-[var(--ds-control-h-field)] px-3",
+  large: "h-[var(--ds-control-h-field-large)] px-4",
+};
+
+export function DashboardSelect({
+  className,
+  controlSize = "field",
+  error,
+  fieldClassName,
+  hint,
+  id,
+  label,
+  optionalLabel,
+  options,
+  placeholder,
+  required,
+  ...selectProps
+}: DashboardSelectProps) {
+  const select = (
+    controlProps?: {
+      "aria-describedby"?: string;
+      "aria-invalid"?: true;
+      "aria-required"?: true;
+      id: string;
+    },
+  ) => (
+    <select
+      {...selectProps}
+      {...controlProps}
+      className={cx(controlBaseClass, selectSizeClass[controlSize], className)}
+      required={required}
+    >
+      {placeholder && <option value="">{placeholder}</option>}
+      {options?.map((option) => (
+        <option
+          disabled={option.disabled}
+          key={option.value}
+          value={option.value}
+        >
+          {option.label}
+        </option>
+      ))}
+      {selectProps.children}
+    </select>
+  );
+
+  if (!hasFieldShell(label, hint, error, optionalLabel)) {
+    return select(id ? { id } : undefined);
+  }
+
+  return (
+    <DashboardField
+      className={fieldClassName}
+      controlId={id}
+      error={error}
+      hint={hint}
+      label={label}
+      optionalLabel={optionalLabel}
+      required={required}
+    >
+      {(controlProps) => select(controlProps)}
+    </DashboardField>
+  );
+}
+
+export interface DashboardComboboxOption {
+  addOn?: ReactNode;
+  disabled?: boolean;
+  label: ReactNode;
+  leadingIcon?: ReactNode;
+  value: string;
+}
+
+export interface DashboardComboboxProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChange" | "value"> {
+  error?: ReactNode;
+  fieldClassName?: string;
+  hint?: ReactNode;
+  label?: ReactNode;
+  matchTriggerWidth?: boolean;
+  onValueChange: (value: string) => void;
+  optionalLabel?: ReactNode;
+  options: readonly DashboardComboboxOption[];
+  placeholder?: ReactNode;
+  required?: boolean;
+  value?: string;
+}
+
+export function DashboardCombobox({
+  className,
+  disabled,
+  error,
+  fieldClassName,
+  hint,
+  id,
+  label,
+  matchTriggerWidth = true,
+  onClick,
+  onValueChange,
+  optionalLabel,
+  options,
+  placeholder,
+  required,
+  value,
+  ...buttonProps
+}: DashboardComboboxProps) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const generatedListboxId = useId();
+  const selectedOption = options.find((option) => option.value === value);
+  const optionValues = options.map((option) => option.value);
+  const disabledValues = options.reduce<string[]>((values, option) => {
+    if (option.disabled) {
+      values.push(option.value);
+    }
+    return values;
+  }, []);
+
+  const content = (
+    controlProps?: {
+      "aria-describedby"?: string;
+      "aria-invalid"?: true;
+      "aria-required"?: true;
+      id: string;
+    },
+  ) => (
+    <>
+      <ControlTrigger
+        {...buttonProps}
+        {...controlProps}
+        className={className}
+        controls={generatedListboxId}
+        disabled={disabled}
+        invalid={Boolean(error)}
+        aria-required={controlProps?.["aria-required"] ?? (required || undefined)}
+        onClick={(event) => {
+          onClick?.(event);
+          if (!event.defaultPrevented && !disabled) {
+            setOpen((current) => !current);
+          }
+        }}
+        open={open}
+        placeholder={placeholder}
+        ref={triggerRef}
+        trailingIcon={<CaretDownIcon className="size-4" weight="duotone" />}
+      >
+        {selectedOption?.label ?? null}
+      </ControlTrigger>
+      <ListboxPopover
+        disabledValues={disabledValues}
+        listboxId={generatedListboxId}
+        matchTriggerWidth={matchTriggerWidth}
+        onOpenChange={setOpen}
+        onSelect={onValueChange}
+        open={open}
+        optionValues={optionValues}
+        selectedValue={value}
+        triggerRef={triggerRef}
+      >
+        {options.map((option) => (
+          <ListboxOption
+            addOn={option.addOn}
+            key={option.value}
+            leadingIcon={option.leadingIcon}
+            selected={option.value === value}
+            value={option.value}
+          >
+            {option.label}
+          </ListboxOption>
+        ))}
+      </ListboxPopover>
+    </>
+  );
+
+  if (!hasFieldShell(label, hint, error, optionalLabel)) {
+    return content(id ? { id } : undefined);
+  }
+
+  return (
+    <DashboardField
+      className={fieldClassName}
+      controlId={id}
+      error={error}
+      hint={hint}
+      label={label}
+      optionalLabel={optionalLabel}
+      required={required}
+    >
+      {(controlProps) => content(controlProps)}
+    </DashboardField>
+  );
+}
+
+export type DashboardMultiSelectProps = MultiSelectProps;
+
+export function DashboardMultiSelect(props: DashboardMultiSelectProps) {
+  return <MultiSelect {...props} />;
+}
+
+export interface DashboardNumberInputProps
+  extends Omit<DashboardInputProps, "type"> {}
+
+export function DashboardNumberInput(props: DashboardNumberInputProps) {
+  return <DashboardInput {...props} type="number" />;
+}
+
+export interface DashboardStepperProps
+  extends Omit<DashboardNumberInputProps, "onChange" | "value"> {
+  decrementLabel?: string;
+  incrementLabel?: string;
+  onValueChange: (value: number) => void;
+  step?: number;
+  value: number;
+}
+
+export function DashboardStepper({
+  className,
+  decrementLabel = "Decrease",
+  incrementLabel = "Increase",
+  max,
+  min,
+  onValueChange,
+  step = 1,
+  value,
+  ...inputProps
+}: DashboardStepperProps) {
+  function commit(nextValue: number) {
+    const minNumber = toOptionalNumber(min);
+    const maxNumber = toOptionalNumber(max);
+    const clampedToMin =
+      minNumber === undefined ? nextValue : Math.max(minNumber, nextValue);
+    const clamped =
+      maxNumber === undefined ? clampedToMin : Math.min(maxNumber, clampedToMin);
+    onValueChange(clamped);
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <DashboardIconButton
+        aria-label={decrementLabel}
+        disabled={inputProps.disabled || value <= (toOptionalNumber(min) ?? -Infinity)}
+        onClick={() => commit(value - step)}
+        variant="neutral"
+      >
+        <MinusIcon className="size-3.5" weight="duotone" />
+      </DashboardIconButton>
+      <DashboardNumberInput
+        {...inputProps}
+        className={cx("w-24 text-center", className)}
+        max={max}
+        min={min}
+        onChange={(event) => {
+          const nextValue = event.currentTarget.valueAsNumber;
+          if (!Number.isNaN(nextValue)) {
+            commit(nextValue);
+          }
+        }}
+        step={step}
+        value={value}
+      />
+      <DashboardIconButton
+        aria-label={incrementLabel}
+        disabled={inputProps.disabled || value >= (toOptionalNumber(max) ?? Infinity)}
+        onClick={() => commit(value + step)}
+        variant="neutral"
+      >
+        <PlusIcon className="size-3.5" weight="duotone" />
+      </DashboardIconButton>
+    </div>
+  );
+}
+
+export type DashboardCheckboxFieldProps = CheckboxPrimitiveProps;
+
+export function DashboardCheckboxField(props: DashboardCheckboxFieldProps) {
+  return <CheckboxPrimitive {...props} />;
+}
+
+export interface DashboardSwitchFieldProps extends SwitchPrimitiveProps {
+  description?: ReactNode;
+  label?: ReactNode;
+}
+
+export function DashboardSwitchField({
+  description,
+  label,
+  ...switchProps
+}: DashboardSwitchFieldProps) {
+  return (
+    <label className="flex items-start gap-3">
+      <SwitchPrimitive {...switchProps} />
+      {(label || description) && (
+        <span className="min-w-0">
+          {label && <span className="block text-sm text-[var(--ds-text)]">{label}</span>}
+          {description && (
+            <span className="block text-xs text-[var(--ds-text-muted)]">
+              {description}
+            </span>
+          )}
+        </span>
+      )}
+    </label>
+  );
+}
+
+export function DashboardTabs(props: TabsPrimitiveProps) {
+  return <TabsPrimitive {...props} />;
+}
+
+export function DashboardTabList(props: TabListPrimitiveProps) {
+  return <TabListPrimitive {...props} />;
+}
+
+export function DashboardTabTrigger(props: TabTriggerPrimitiveProps) {
+  return <TabTriggerPrimitive {...props} />;
+}
+
+export function DashboardTabPanel(props: TabPanelPrimitiveProps) {
+  return <TabPanelPrimitive {...props} />;
+}
+
+export function DashboardSegmentedControl<T extends string = string>(
+  props: SegmentedControlPrimitiveProps<T>,
+) {
+  return <SegmentedControlPrimitive {...props} />;
+}
+
+export function DashboardMenu(props: MenuPrimitiveProps) {
+  return <MenuPrimitive {...props} />;
+}
+
+export function DashboardMenuItem(props: MenuItemPrimitiveProps) {
+  return <MenuItemPrimitive {...props} />;
+}
+
+export type TableSortDirection = "asc" | "desc" | null;
+
+export interface TableSortHeaderProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+  direction?: TableSortDirection;
+  label: ReactNode;
+}
+
+export function TableSortHeader({
+  className,
+  direction = null,
+  label,
+  type = "button",
+  ...buttonProps
+}: TableSortHeaderProps) {
+  return (
+    <button
+      {...buttonProps}
+      aria-sort={toAriaSort(direction)}
+      className={cx(
+        "inline-flex items-center gap-1.5 text-left text-xs font-medium uppercase tracking-[0.04em] text-[var(--ds-text-subtle)] transition-colors hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
+        className,
+      )}
+      type={type}
+    >
+      <span>{label}</span>
+      <CaretUpDownIcon
+        aria-hidden="true"
+        className={cx(
+          "size-3.5",
+          direction && "text-[var(--color-primary)]",
+        )}
+        weight="duotone"
+      />
+    </button>
+  );
+}
+
+export interface DashboardDragHandleProps
+  extends Omit<DashboardIconButtonProps, "children"> {}
+
+export function DashboardDragHandle(props: DashboardDragHandleProps) {
+  return (
+    <DashboardIconButton {...props} variant={props.variant ?? "ghost"}>
+      <DotsSixVerticalIcon className="size-4" weight="duotone" />
+    </DashboardIconButton>
+  );
+}
+
+export interface DisclosureButtonProps
+  extends Omit<DashboardButtonProps, "leadingIcon"> {
+  open: boolean;
+}
+
+export function DisclosureButton({
+  children,
+  open,
+  trailingIcon,
+  variant = "ghost",
+  ...buttonProps
+}: DisclosureButtonProps) {
+  return (
+    <DashboardButton
+      {...buttonProps}
+      aria-expanded={open}
+      leadingIcon={
+        open ? (
+          <CaretDownIcon className="size-3.5" weight="duotone" />
+        ) : (
+          <CaretRightIcon className="size-3.5" weight="duotone" />
+        )
+      }
+      trailingIcon={trailingIcon}
+      variant={variant}
+    >
+      {children}
+    </DashboardButton>
+  );
+}
+
+function hasFieldShell(
+  label: ReactNode,
+  hint: ReactNode,
+  error: ReactNode,
+  optionalLabel: ReactNode,
+) {
+  return Boolean(label || hint || error || optionalLabel);
+}
+
+function toOptionalNumber(value: string | number | readonly string[] | undefined) {
+  if (typeof value === "number") {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  return undefined;
+}
+
+function toAriaSort(direction: TableSortDirection) {
+  if (direction === "asc") {
+    return "ascending";
+  }
+  if (direction === "desc") {
+    return "descending";
+  }
+  return "none";
+}
+
+function cx(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
