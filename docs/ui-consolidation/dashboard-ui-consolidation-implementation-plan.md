@@ -890,6 +890,22 @@ Verifiziert fuer den Field-Config-Controls-Task:
 - `npm run test --workspaces --if-present`
 - `npm run build`
 
+Teilfortschritt 2026-05-10, Submission-Config-Controls:
+
+- `SubmissionConfigPanel` nutzt fuer statische Email-Empfaenger, Email-Betreff, Success-Redirect-URL und Success-Headline `DashboardInput`.
+- Lokale `inputClass`-Definitionen und rohe Text-/Email-/URL-Inputs wurden aus der Datei entfernt.
+
+Verifiziert fuer den Submission-Config-Controls-Task:
+
+- `rg -n "<input|inputClass|focus:ring-1|focus:border-\\[var\\(--color-primary\\)\\]" apps/dashboard/src/features/templates/form-builder/SubmissionConfigPanel.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+
 ### 5C: Tabs und Segments
 
 Betroffene Dateien:
