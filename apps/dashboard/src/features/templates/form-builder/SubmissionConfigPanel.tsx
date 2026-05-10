@@ -32,10 +32,13 @@ import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lma
 import { DashboardSection, FormLabel } from "@lmaa/ui";
 
 const MarkdownEditor = lazy(() =>
-import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  DashboardCombobox,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -87,9 +90,6 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
     transition,
     opacity: isDragging ? 0 : 1,
   };
-
-  const inputClass =
-    "w-full px-2 py-1 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]";
 
   return (
     <div
@@ -163,12 +163,11 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
                 ]}
               />
             ) : (
-              <input
+              <DashboardInput
                 id={`step-${index}-email-to`}
                 type="email"
                 value={(step as SubmissionStepEmail).to}
                 onChange={(e) => onUpdate({ ...step, to: e.target.value } as SubmissionStepEmail)}
-                className={inputClass}
                 placeholder="admin@example.com"
               />
             )}
@@ -206,9 +205,8 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
               >
                 {m.emailSubject}
               </label>
-              <input
+              <DashboardInput
                 id={`step-${index}-email-subject`}
-                type="text"
                 value={(step as SubmissionStepEmail).subject ?? ""}
                 onChange={(e) =>
                   onUpdate({
@@ -216,7 +214,6 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
                     subject: e.target.value || undefined,
                   } as SubmissionStepEmail)
                 }
-                className={inputClass}
                 placeholder={m.emailSubjectPlaceholder}
               />
             </div>
@@ -327,9 +324,6 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
       onChange(next);
     }
   }
-
-  const inputClass =
-    "w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]";
 
   const stepOptions = [
     {
@@ -473,12 +467,11 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
         />
         {cfg.successRedirectUrl !== undefined ? (
           <DashboardSection.Body>
-            <input
+            <DashboardInput
               id="submission-success-redirect"
               type="url"
               value={cfg.successRedirectUrl}
               onChange={(e) => updateField("successRedirectUrl", e.target.value)}
-              className={inputClass}
               placeholder="https://example.com/danke"
             />
           </DashboardSection.Body>
@@ -489,12 +482,10 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                 <FormLabel htmlFor="submission-success-headline">
                   {m.successHeadline}
                 </FormLabel>
-                <input
+                <DashboardInput
                   id="submission-success-headline"
-                  type="text"
                   value={cfg.successHeadline ?? ""}
                   onChange={(e) => updateField("successHeadline", e.target.value)}
-                  className={inputClass}
                   placeholder={m.successHeadlinePlaceholder}
                 />
               </div>
