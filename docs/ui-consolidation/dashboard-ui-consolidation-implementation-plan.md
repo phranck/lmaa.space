@@ -873,6 +873,23 @@ Verifiziert fuer den Widget-Editor-Controls-Task:
 - `npm run test --workspaces --if-present`
 - `npm run build`
 
+Teilfortschritt 2026-05-10, Field-Config-Controls:
+
+- `FieldConfigPanel` nutzt fuer Label-, Field-Name-, Placeholder- und Subtext-Felder `DashboardInput`.
+- Paragraph-/Options-Textareas nutzen `DashboardTextarea`; Max-Chars-, Rows- und Validation-Min/Max-Felder nutzen `DashboardNumberInput`.
+- Rohe Inputs in dieser Datei sind nur noch die bestehenden Checkboxen fuer den spaeteren Choice-Slice.
+
+Verifiziert fuer den Field-Config-Controls-Task:
+
+- `rg -n "<input|<textarea|h-9 px-3|focus:border-\\[var\\(--color-primary\\)\\]" apps/dashboard/src/features/templates/form-builder/FieldConfigPanel.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` (Exit 0; verbleibender Hinweis ist der bestehende Giant-Component-Hinweis.)
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+
 ### 5C: Tabs und Segments
 
 Betroffene Dateien:
