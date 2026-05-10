@@ -4,10 +4,7 @@ import {
   type DragOverEvent,
   type DragStartEvent,
   DragOverlay,
-  PointerSensor,
   closestCenter,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { ArrowClockwiseIcon, DownloadIcon, PlusCircleIcon } from "@phosphor-icons/react";
@@ -20,6 +17,7 @@ import { resolveFooterHeightPx } from "@lmaa/shared";
 
 import { Card } from "@/components/ui/Card.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FRONTEND_URL } from "@/lib/env.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
@@ -134,7 +132,7 @@ export function FooterBuilderPage() {
     }
   }, [loaded, config, createPreviewSession]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useDashboardSortableSensors({ activationDistance: 6 });
 
   function handleChange(updated: FooterConfig) {
     dispatch({ config: updated });

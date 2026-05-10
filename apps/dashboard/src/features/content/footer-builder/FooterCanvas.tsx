@@ -1,10 +1,11 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ListIcon, XCircleIcon } from "@phosphor-icons/react";
+import { XCircleIcon } from "@phosphor-icons/react";
 
 import type { FooterColumn } from "@lmaa/contracts";
 
+import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
 import { Dropdown } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -67,15 +68,12 @@ export function FooterCanvas({
     >
       {/* Column header */}
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        <DashboardDragHandle
           {...attributes}
           {...listeners}
-          className="shrink-0 cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] touch-none"
+          aria-label={footerMessages.moveColumn}
           title={footerMessages.moveColumn}
-        >
-          <ListIcon weight="duotone" className="w-3.5 h-3.5" />
-        </button>
+        />
         <div className="flex-1">
           <Dropdown
             value={String(column.span)}

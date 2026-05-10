@@ -3,10 +3,7 @@ import {
   type DragEndEvent,
   DragOverlay,
   type DragStartEvent,
-  PointerSensor,
   closestCenter,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -37,10 +34,12 @@ const MarkdownEditor = lazy(() =>
 
 import {
   DashboardCombobox,
+  DashboardDragHandle,
   DashboardInput,
 } from "@/components/ui/DashboardControls.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
+import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
@@ -99,14 +98,11 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span
+          <DashboardDragHandle
             {...attributes}
             {...listeners}
-            className="shrink-0 text-[var(--ds-text-muted)] cursor-grab active:cursor-grabbing touch-none"
             aria-label={m.stepMoveAria}
-          >
-            ⠿
-          </span>
+          />
           <span className="text-sm font-medium text-[var(--ds-text)] truncate">
             {step.type === "store"
               ? m.stepStore
@@ -301,7 +297,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
   const [activeUid, setActiveUid] = useState<string | null>(null);
   const activeStep = activeUid !== null ? (cfg.steps[uids.indexOf(activeUid)] ?? null) : null;
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useDashboardSortableSensors({ activationDistance: 6 });
   const sortableIds = uids.slice(0, cfg.steps.length);
 
   function handleDragStart(event: DragStartEvent) {

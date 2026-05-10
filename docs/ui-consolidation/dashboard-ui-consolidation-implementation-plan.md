@@ -115,7 +115,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `SegmentedControl` und `SegmentSwitch` konsolidieren.
 - [x] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
 - [x] `TableSortHeader` extrahieren und in Tabellen verwenden.
-- [ ] `DashboardDragHandle` einfuehren und DND-Fundstellen migrieren.
+- [x] `DashboardDragHandle` einfuehren und DND-Fundstellen migrieren.
 - [ ] Static Gates fuer rohe Selects, `h-9`, direkte Fokusklassen und direkte `--ds-btn-*` Klassen pruefen.
 
 ### Stufe 6: Feature-Slices migrieren
@@ -1087,6 +1087,24 @@ Gate:
 
 - Pointer-DND und Keyboard-DND funktionieren.
 - Handle ist fokussierbar, wo es eine eigenstaendige Bedienflaeche ist.
+
+Teilfortschritt 2026-05-10, Drag-Handles und Sortable-Sensors:
+
+- `DashboardDragHandle` setzt den zentralen `size-7` Icon-Button, zentriert das Drag-Icon und kapselt Cursor-/Touch-Styles.
+- Eigenstaendige Drag-Handles in Sidebar, Form Builder, Submission-Step-Flow, Footer Builder und Navigation Manager nutzen `DashboardDragHandle`.
+- `useDashboardSortableSensors` zentralisiert Pointer- und Keyboard-Sensoren mit `sortableKeyboardCoordinates`; Distanz-Constraints bleiben pro DND-Kontext konfigurierbar.
+- Drag-Overlays bleiben objektabhaengig und wurden nicht an Handle-Hoehen gekoppelt.
+
+Verifiziert fuer den Drag-Handle-DND-Task:
+
+- `rg -n "PointerSensor|KeyboardSensor|useSensors|useSensor|sortableKeyboardCoordinates|DotsSixVerticalIcon|ListIcon|moveRow|stepMoveAria|moveColumn|dragTitle|DashboardDragHandle" apps/dashboard/src/components/layout/Sidebar.tsx apps/dashboard/src/features/templates/form-builder apps/dashboard/src/features/content/footer-builder apps/dashboard/src/features/system/NavManagerPage.tsx apps/dashboard/src/components/ui --glob '*.{ts,tsx}'`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch; verbleibende Warnungen betreffen vorhandene Giant-Components, Tailwind-Size-Shorthands, Combine-Iteration-Hinweise und `forwardRef` in großen beruehrten Dateien.
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
 
 ## Stufe 6: Feature-Slices migrieren
 

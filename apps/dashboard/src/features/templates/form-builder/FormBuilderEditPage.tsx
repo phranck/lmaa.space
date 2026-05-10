@@ -3,10 +3,7 @@ import {
   type DragEndEvent,
   DragOverlay,
   type DragStartEvent,
-  PointerSensor,
   closestCenter,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import {
@@ -32,6 +29,7 @@ import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.t
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
+import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
 import { FieldConfigPanel, fieldTypeLabel } from "@/features/templates/form-builder/FieldConfigPanel.tsx";
@@ -220,7 +218,7 @@ export function FormBuilderEditPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useDashboardSortableSensors({ activationDistance: 6 });
 
   const selectedField =
     selectedFieldId !== null
