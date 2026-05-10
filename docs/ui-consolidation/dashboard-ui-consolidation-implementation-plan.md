@@ -69,7 +69,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `SegmentedControlPrimitive` anlegen.
 - [x] `SwitchPrimitive` und `CheckboxPrimitive` anlegen.
 - [x] `DialogFooterPrimitive` und `SurfacePrimitive` anlegen.
-- [ ] `packages/ui/src/FormPrimitives.tsx` auf Foundation umbauen.
+- [x] `packages/ui/src/FormPrimitives.tsx` auf Foundation umbauen.
 - [ ] `packages/ui/src/Tabs.tsx` auf `TabsPrimitive` umbauen.
 - [ ] `packages/ui/src/ToggleSwitch.tsx` auf `SwitchPrimitive` umbauen.
 - [ ] `packages/ui/src/MultiSelect.tsx`, `CountryCodeSelect.tsx` und `RegionSelect.tsx` auf Listbox-/Popover-Foundation vorbereiten.
@@ -425,6 +425,20 @@ Teilfortschritt 2026-05-10, Surface-Primitives:
 - `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
 
 Verifiziert fuer den Surface-Primitive-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, FormPrimitives-Foundation:
+
+- `packages/ui/src/FieldPrimitives.tsx` exportiert die Foundation-Klassen fuer Shell, Label, Help, Error, Control-Basis und Control-Groessen intern nutzbar.
+- `packages/ui/src/FormPrimitives.tsx` leitet `formLabelClass`, `formOptionalClass`, `formInputClass`, `formTextareaClass`, `formHelpClass` und `formErrorClass` aus dieser Foundation ab.
+- Die bestehenden Legacy-Exports bleiben stabil, damit Dashboard-Callsites in spaeteren Stufen kontrolliert migriert werden koennen.
+
+Verifiziert fuer den FormPrimitives-Foundation-Task:
 
 - `npm run lint`
 - `npm run typecheck`
