@@ -1,8 +1,6 @@
 import type { HTMLAttributes, LabelHTMLAttributes, ReactNode } from "react";
 
-function cx(...parts: Array<string | undefined>) {
-  return parts.filter(Boolean).join(" ");
-}
+import { cx } from "./classNames.ts";
 
 export const formLabelClass = "block px-[5px] text-xs font-medium text-[var(--ds-text-subtle)] mb-1";
 export const formOptionalClass = "text-[var(--ds-text-subtle)] font-normal";

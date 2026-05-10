@@ -14,6 +14,15 @@ export type { CharCounterProps } from "./CharCounter.tsx";
 export { BUTTON_ICON_COMPONENTS, BUTTON_ICON_LIST, getButtonIconComponent } from "./ButtonIcons.tsx";
 /** Re-exported button icon types. */
 export type { ButtonIconComponent, ButtonIconEntry, ButtonIconName } from "./ButtonIcons.tsx";
+/** Shared low-level button primitives. */
+export { ButtonPrimitive, IconButtonPrimitive } from "./ButtonPrimitive.tsx";
+/** Re-exported contracts for button primitives. */
+export type {
+  ButtonPrimitiveProps,
+  ButtonPrimitiveSize,
+  ButtonPrimitiveVariant,
+  IconButtonPrimitiveProps,
+} from "./ButtonPrimitive.tsx";
 /** Shared checkbox component and props. */
 export { Checkbox } from "./Checkbox.tsx";
 /** Shared dashboard form primitives and class tokens. */
