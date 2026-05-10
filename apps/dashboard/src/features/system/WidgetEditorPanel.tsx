@@ -4,7 +4,12 @@ import { useMemo } from "react";
 import type { MarkdownWidget } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  DashboardCombobox,
+  DashboardInput,
+  DashboardNumberInput,
+  DashboardTextarea,
+} from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   checkboxRowClass,
@@ -13,9 +18,6 @@ import {
   insetCardClass,
   joinOrigins,
   parseOriginsInput,
-  readOnlyTextAreaClass,
-  textAreaClass,
-  textInputClass,
 } from "@/features/system/widget-utils.ts";
 
 function Field({
@@ -92,7 +94,7 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
 
         <div className="grid gap-4 md:grid-cols-2">
           <Field label={widgetMessages.keyLabel} hint={widgetMessages.keyHint}>
-            <input
+            <DashboardInput
               value={widget.key}
               onChange={(event) => {
                 const nextKey = event.target.value.toLowerCase();
@@ -100,17 +102,15 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
                 onUpdate(previousKey, (w) => ({ ...w, key: nextKey }));
                 onKeyChange(nextKey);
               }}
-              className={textInputClass}
             />
           </Field>
 
           <Field label={widgetMessages.nameLabel}>
-            <input
+            <DashboardInput
               value={widget.label}
               onChange={(event) =>
                 onUpdate(widget.key, (w) => ({ ...w, label: event.target.value }))
               }
-              className={textInputClass}
             />
           </Field>
 
@@ -131,8 +131,7 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
           />
 
           <Field label={widgetMessages.defaultHeightLabel} hint={widgetMessages.defaultHeightHint}>
-            <input
-              type="number"
+            <DashboardNumberInput
               min={80}
               max={2400}
               value={widget.defaultHeight}
@@ -142,7 +141,6 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
                   defaultHeight: Number(event.target.value) || 320,
                 }))
               }
-              className={textInputClass}
             />
           </Field>
         </div>
@@ -159,13 +157,12 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
         </label>
 
         <Field label={widgetMessages.descriptionLabel} hint={widgetMessages.descriptionHint}>
-          <textarea
+          <DashboardTextarea
             rows={3}
             value={widget.description}
             onChange={(event) =>
               onUpdate(widget.key, (w) => ({ ...w, description: event.target.value }))
             }
-            className={textAreaClass}
           />
         </Field>
 
@@ -182,13 +179,13 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
               label={widgetMessages.types.html.snippetLabel}
               hint={widgetMessages.types.html.snippetHint}
             >
-              <textarea
+              <DashboardTextarea
                 rows={14}
                 value={widget.snippetHtml}
                 onChange={(event) =>
                   onUpdate(widget.key, (w) => ({ ...w, snippetHtml: event.target.value }))
                 }
-                className={`${textAreaClass} font-mono text-xs`}
+                className="font-mono text-xs"
               />
             </Field>
           ) : (
@@ -196,13 +193,12 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
               label={widgetMessages.types.iframe.urlLabel}
               hint={widgetMessages.types.iframe.urlHint}
             >
-              <input
+              <DashboardInput
                 type="url"
                 value={widget.iframeUrl}
                 onChange={(event) =>
                   onUpdate(widget.key, (w) => ({ ...w, iframeUrl: event.target.value }))
                 }
-                className={textInputClass}
               />
             </Field>
           )}
@@ -219,7 +215,7 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
 
         <div className="grid gap-3 md:grid-cols-2">
           <Field label={widgetMessages.detectedScriptStyleImageOrigins}>
-            <textarea
+            <DashboardTextarea
               rows={4}
               readOnly
               value={joinOrigins([
@@ -227,11 +223,11 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
                 ...autoOrigins.styleSrc,
                 ...autoOrigins.imgSrc,
               ])}
-              className={readOnlyTextAreaClass}
+              className="font-mono text-xs"
             />
           </Field>
           <Field label={widgetMessages.detectedFrameConnectFormOrigins}>
-            <textarea
+            <DashboardTextarea
               rows={4}
               readOnly
               value={joinOrigins([
@@ -239,7 +235,7 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
                 ...autoOrigins.connectSrc,
                 ...autoOrigins.formAction,
               ])}
-              className={readOnlyTextAreaClass}
+              className="font-mono text-xs"
             />
           </Field>
         </div>
@@ -301,7 +297,7 @@ function CspExpertSection({
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         {cspFields.map(({ field, label }) => (
           <Field key={field} label={label}>
-            <textarea
+            <DashboardTextarea
               rows={4}
               value={joinOrigins(widget.csp[field])}
               onChange={(event) =>
@@ -313,7 +309,7 @@ function CspExpertSection({
                   },
                 }))
               }
-              className={`${textAreaClass} font-mono text-xs`}
+              className="font-mono text-xs"
             />
           </Field>
         ))}

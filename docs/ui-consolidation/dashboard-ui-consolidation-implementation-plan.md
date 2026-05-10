@@ -856,6 +856,23 @@ Verifiziert fuer den Reminder-Controls-Task:
 - `npm run test --workspaces --if-present`
 - `npm run build`
 
+Teilfortschritt 2026-05-10, Widget-Editor-Controls:
+
+- `WidgetEditorPanel` nutzt fuer Text-, URL- und Hoehenfelder `DashboardInput`/`DashboardNumberInput`.
+- Widget-Beschreibung, HTML-Snippet, Auto-Origin-Anzeigen und CSP-Expert-Felder nutzen `DashboardTextarea`.
+- Die alten Widget-Utility-Klassen fuer Text-/Textarea-Controls werden in dieser Datei nicht mehr verwendet; die Checkbox bleibt fuer den Choice-Slice bewusst unveraendert.
+
+Verifiziert fuer den Widget-Editor-Controls-Task:
+
+- `rg -n "<input|<textarea|textInputClass|textAreaClass|readOnlyTextAreaClass" apps/dashboard/src/features/system/WidgetEditorPanel.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+
 ### 5C: Tabs und Segments
 
 Betroffene Dateien:
