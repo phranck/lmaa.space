@@ -84,12 +84,12 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] Action-Katalog mit Label-Key, Icon, Farbrolle, Size, Status und ARIA-Verhalten anlegen.
 - [x] Wiederverwendbare Action-Komponenten fuer Save, Delete, Remove, Edit, Create, Import, Export, Copy, Cancel, Close, Reject, Approve, Restore, Hold, Overwrite und Skip anlegen.
 - [x] Generische i18n Keys in `DashboardMessages`, `de` und `en` ergaenzen.
-- [ ] `DashboardField`, `DashboardInput`, `DashboardTextarea`, `DashboardSelect`, `DashboardCombobox` und `DashboardMultiSelect` anlegen.
-- [ ] `DashboardNumberInput` und `DashboardStepper` anlegen.
-- [ ] `DashboardCheckboxField` und `DashboardSwitchField` anlegen.
-- [ ] `DashboardTabs` und `DashboardSegmentedControl` anlegen.
-- [ ] `DashboardMenu`, `DashboardMenuItem`, `TableSortHeader`, `DashboardDragHandle` und `DisclosureButton` anlegen.
-- [ ] `npm run typecheck -w @lmaa/dashboard` ausfuehren.
+- [x] `DashboardField`, `DashboardInput`, `DashboardTextarea`, `DashboardSelect`, `DashboardCombobox` und `DashboardMultiSelect` anlegen.
+- [x] `DashboardNumberInput` und `DashboardStepper` anlegen.
+- [x] `DashboardCheckboxField` und `DashboardSwitchField` anlegen.
+- [x] `DashboardTabs` und `DashboardSegmentedControl` anlegen.
+- [x] `DashboardMenu`, `DashboardMenuItem`, `TableSortHeader`, `DashboardDragHandle` und `DisclosureButton` anlegen.
+- [x] `npm run typecheck -w @lmaa/dashboard` ausfuehren.
 
 ### Stufe 4: Bestehende Action-Buttons intern umstellen
 
@@ -590,6 +590,23 @@ Teilfortschritt 2026-05-10, Dashboard-Action-Foundation:
 - `DashboardMessages.common` enthaelt die generischen Action-Keys fuer `de` und `en`.
 
 Verifiziert fuer den Dashboard-Action-Foundation-Task:
+
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+
+Teilfortschritt 2026-05-10, Dashboard-Control-Foundation:
+
+- `DashboardControls.tsx` buendelt Dashboard-Wrapper fuer Field/Input/Textarea/Select/Combobox/MultiSelect.
+- NumberInput, Stepper, CheckboxField und SwitchField sind als app-spezifische Control-Schicht verfuegbar.
+- Tabs, SegmentedControl, Menu/MenuItem, TableSortHeader, DashboardDragHandle und DisclosureButton sind als zentrale Dashboard-Wrapper angelegt.
+- Bestehende Feature-Dateien wurden in dieser Scheibe noch nicht migriert.
+
+Verifiziert fuer den Dashboard-Control-Foundation-Task:
 
 - `npm run lint -w @lmaa/dashboard`
 - `npm run typecheck -w @lmaa/dashboard`
