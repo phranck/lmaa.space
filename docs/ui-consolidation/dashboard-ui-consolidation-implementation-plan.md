@@ -116,7 +116,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
 - [x] `TableSortHeader` extrahieren und in Tabellen verwenden.
 - [x] `DashboardDragHandle` einfuehren und DND-Fundstellen migrieren.
-- [ ] Static Gates fuer rohe Selects, `h-9`, direkte Fokusklassen und direkte `--ds-btn-*` Klassen pruefen.
+- [x] Static Gates fuer rohe Selects, `h-9`, direkte Fokusklassen und direkte `--ds-btn-*` Klassen pruefen.
 
 ### Stufe 6: Feature-Slices migrieren
 
@@ -1105,6 +1105,24 @@ Verifiziert fuer den Drag-Handle-DND-Task:
 - `npm run typecheck`
 - `npm run test --workspaces --if-present`
 - `npm run build`
+
+Teilfortschritt 2026-05-10, Static-Gates-Review:
+
+- Rohe Selects sind fuer Stufe 5 bereinigt: `rg -n --glob '*.{ts,tsx}' -- '<select|</select>' apps/dashboard/src packages/ui/src` findet nur noch den nativen Select im zentralen `DashboardSelect`-Wrapper.
+- `h-9` bleibt mit 50 Treffern als Stufe-6-/Stufe-7-Arbeitsliste uebrig. Betroffen sind vor allem Auth-Seiten, Media, Content, Template-Editoren, System-Settings und einzelne technische Ausnahmen wie Kalender-Tageszellen, Avatare oder Drag-Row-Min-Hoehen.
+- Direkte `focus:ring-*`/`focus:border-*` Klassen bleiben mit 92 Treffern uebrig. Zentrale Primitive sind erlaubt; Feature-Control-Reste wandern in die Stufe-6-Slices.
+- Direkte `--ds-btn-*` Referenzen bleiben mit 291 Treffern uebrig. Token-Definitionen, `ButtonPrimitive`, zentrale Button-Wrapper und bewusst globale CSS-Regeln sind erlaubt; Feature-Actions und alte Dialog-/Form-Button-Klassen werden in Stufe 6 und Cleanup abgebaut.
+
+Verifiziert fuer den Static-Gates-Review:
+
+- `rg -n --glob '*.{ts,tsx}' -- '<select|</select>' apps/dashboard/src packages/ui/src`
+- `rg -n --glob '*.{ts,tsx}' -- '\\bh-9\\b' apps/dashboard/src packages/ui/src`
+- `rg -n --glob '*.{ts,tsx}' -- 'focus:(ring|border)-' apps/dashboard/src packages/ui/src`
+- `rg -n --glob '*.{ts,tsx,css}' -- '--ds-btn-' apps/dashboard/src packages/ui/src packages/shared/styles/tokens.css`
+- `rg -o --glob '*.{ts,tsx}' -- '<select|</select>' apps/dashboard/src packages/ui/src | wc -l`
+- `rg -o --glob '*.{ts,tsx}' -- '\\bh-9\\b' apps/dashboard/src packages/ui/src | wc -l`
+- `rg -o --glob '*.{ts,tsx}' -- 'focus:(ring|border)-' apps/dashboard/src packages/ui/src | wc -l`
+- `rg -o --glob '*.{ts,tsx,css}' -- '--ds-btn-' apps/dashboard/src packages/ui/src packages/shared/styles/tokens.css | wc -l`
 
 ## Stufe 6: Feature-Slices migrieren
 
