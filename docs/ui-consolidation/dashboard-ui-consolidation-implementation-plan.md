@@ -67,7 +67,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
 - [x] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
 - [x] `SegmentedControlPrimitive` anlegen.
-- [ ] `SwitchPrimitive` und `CheckboxPrimitive` anlegen.
+- [x] `SwitchPrimitive` und `CheckboxPrimitive` anlegen.
 - [ ] `DialogFooterPrimitive` und `SurfacePrimitive` anlegen.
 - [ ] `packages/ui/src/FormPrimitives.tsx` auf Foundation umbauen.
 - [ ] `packages/ui/src/Tabs.tsx` auf `TabsPrimitive` umbauen.
@@ -393,6 +393,22 @@ Teilfortschritt 2026-05-10, Segmented-Control-Primitive:
 - `packages/ui/src/index.ts` exportiert die neue Komponente und Props.
 
 Verifiziert fuer den Segmented-Control-Primitive-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, Choice-Primitives:
+
+- `packages/ui/src/ChoicePrimitives.tsx` stellt `SwitchPrimitive` und `CheckboxPrimitive` bereit.
+- `SwitchPrimitive` setzt `role="switch"`, `aria-checked`, gemeinsame Fokus-/Disabled-Tokens und `sm`/`md` Track-/Thumb-Groessen.
+- `CheckboxPrimitive` nutzt einen echten Checkbox-Input, visuelle Box, optionale Label-/Description-Slots und `indeterminate`-Darstellung.
+- Beide Primitives verwenden `onCheckedChange`, damit bestehende Wrapper ihr bisheriges API kontrolliert darauf abbilden koennen.
+- `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
+
+Verifiziert fuer den Choice-Primitive-Task:
 
 - `npm run lint`
 - `npm run typecheck`
