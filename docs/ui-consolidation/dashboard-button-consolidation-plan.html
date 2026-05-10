@@ -1,0 +1,3049 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard Button Konsolidierungsplan</title>
+    <style>
+      @font-face {
+        font-family: Inter;
+        src: url("../../apps/dashboard/dist/fonts/inter.woff2") format("woff2");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Barlow Condensed";
+        src: url("../../apps/dashboard/dist/fonts/barlow-condensed-600.woff2") format("woff2");
+        font-weight: 600;
+        font-display: swap;
+      }
+      :root {
+        --bg: #f4f7fb;
+        --surface: #fff;
+        --surface-2: #f8fafd;
+        --ink: #1b1f24;
+        --muted: #57606a;
+        --subtle: #7d8590;
+        --border: #d0d7de;
+        --border-soft: #e6eaf0;
+        --primary: #008ec2;
+        --primary-border: hsl(195 55% 75%);
+        --primary-bg: hsl(195 80% 96%);
+        --danger: #d1242f;
+        --danger-border: hsl(355 55% 75%);
+        --danger-bg: hsl(0 80% 96%);
+        --success: #1a7f37;
+        --success-border: hsl(140 40% 72%);
+        --success-bg: hsl(135 60% 94%);
+        --warning: #9a6700;
+        --warning-border: hsl(40 55% 68%);
+        --warning-bg: hsl(48 90% 92%);
+        --neutral: #57606a;
+        --neutral-bg: #f6f8fa;
+        --radius: 0.5rem;
+        --sticky-table-top: 0px;
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 18px;
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.76rem;
+        color: var(--ink);
+      }
+      .shell {
+        min-height: 100vh;
+      }
+      .hero {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg) 90%, white);
+        backdrop-filter: blur(18px);
+      }
+      .hero-inner {
+        max-width: 1720px;
+        margin: 0 auto;
+        padding: 24px 28px 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 28px;
+        align-items: end;
+      }
+      .eyebrow {
+        margin: 0 0 7px;
+        color: var(--primary);
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      h1 {
+        margin: 0;
+        font-family: "Barlow Condensed", Inter, sans-serif;
+        font-size: 2.55rem;
+        line-height: 0.94;
+        font-weight: 600;
+        letter-spacing: 0;
+      }
+      .subtitle {
+        margin: 0.55rem 0 0;
+        max-width: 860px;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.55;
+      }
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+        max-width: 760px;
+      }
+      .stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 28px;
+        padding: 0 10px;
+        border: 1px solid var(--border-soft);
+        border-radius: 999px;
+        background: var(--surface);
+        font-size: 0.72rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .stat strong {
+        font-weight: 800;
+        color: var(--ink);
+      }
+      .toolbar {
+        max-width: 1720px;
+        margin: 0 auto;
+        padding: 0 28px 18px;
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) 220px 220px auto;
+        gap: 10px;
+        align-items: center;
+      }
+      .control {
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--ink);
+        padding: 0 12px;
+        font-size: 0.78rem;
+        outline: none;
+      }
+      .control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+      }
+      .result-count {
+        font-size: 0.76rem;
+        color: var(--muted);
+        white-space: nowrap;
+        justify-self: end;
+      }
+      .content {
+        max-width: 1720px;
+        margin: 0 auto;
+        padding: 24px 28px 46px;
+      }
+      .grid {
+        display: grid;
+        gap: 18px;
+      }
+      .summary-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-bottom: 18px;
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 18px 45px rgb(27 31 36 / 0.065);
+        overflow: visible;
+      }
+      .panel.pad {
+        padding: 18px;
+      }
+      .panel-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border-soft);
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface-2);
+      }
+      .panel-header h2 {
+        margin: 0;
+        font-size: 0.92rem;
+        line-height: 1.2;
+      }
+      .panel-header p {
+        margin: 0.25rem 0 0;
+        color: var(--muted);
+        font-size: 0.76rem;
+        line-height: 1.45;
+      }
+      .metric {
+        padding: 18px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+      }
+      .metric strong {
+        display: block;
+        font-family: "Barlow Condensed", Inter, sans-serif;
+        font-size: 2.25rem;
+        line-height: 0.9;
+        font-weight: 600;
+      }
+      .metric span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 0.75rem;
+        line-height: 1.35;
+      }
+      .notice {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 18px;
+        padding: 16px 18px;
+        border: 1px solid var(--primary-border);
+        background: var(--primary-bg);
+        border-radius: 18px;
+      }
+      .notice h2 {
+        margin: 0;
+        font-size: 1rem;
+      }
+      .notice p {
+        margin: 0.35rem 0 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.5;
+      }
+      .demo-button {
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid;
+        border-radius: var(--radius);
+        background: transparent;
+        padding: 0 10px;
+        font-size: 12px;
+        line-height: 16px;
+        font-weight: 500;
+        white-space: nowrap;
+        max-width: 210px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .demo-button svg {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 auto;
+      }
+      .demo-button.primary {
+        border-color: var(--primary-border);
+        color: var(--primary);
+      }
+      .demo-button.neutral {
+        border-color: var(--border);
+        color: var(--neutral);
+      }
+      .demo-button.danger {
+        border-color: var(--danger-border);
+        color: var(--danger);
+      }
+      .demo-button.success {
+        border-color: var(--success-border);
+        color: var(--success);
+      }
+      .demo-button.warning {
+        border-color: var(--warning-border);
+        color: var(--warning);
+      }
+      .fallback-icon {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        border: 1px solid currentColor;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        font-weight: 800;
+      }
+      .table-wrap {
+        overflow: visible;
+      }
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 1180px;
+      }
+      th {
+        position: sticky;
+        top: var(--sticky-table-top);
+        z-index: 14;
+        background: #edeff5;
+        box-shadow:
+          0 1px 0 var(--border),
+          0 8px 18px rgb(27 31 36 / 0.08);
+        color: var(--muted);
+        font-size: 0.66rem;
+        line-height: 1.15;
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-soft);
+        vertical-align: middle;
+        font-size: 0.75rem;
+        line-height: 1.42;
+      }
+      tr:nth-child(even) td {
+        background: color-mix(in srgb, var(--bg) 42%, white);
+      }
+      tr:hover td {
+        background: #f9fbff;
+      }
+      .mini-pill {
+        display: inline-flex;
+        align-items: center;
+        margin: 2px 4px 2px 0;
+        min-height: 23px;
+        padding: 2px 8px;
+        border: 1px solid var(--border-soft);
+        border-radius: 999px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 0.67rem;
+        white-space: nowrap;
+      }
+      .color-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .color-role {
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        background: var(--surface);
+        padding: 12px;
+      }
+      .color-role h3 {
+        margin: 8px 0 6px;
+        font-size: 0.78rem;
+      }
+      .color-role p {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 0.7rem;
+        line-height: 1.4;
+      }
+      .swatch {
+        display: block;
+        width: 32px;
+        height: 18px;
+        border-radius: 999px;
+        border: 1px solid currentColor;
+      }
+      .swatch.primary {
+        color: var(--primary);
+        background: var(--primary-bg);
+      }
+      .swatch.neutral {
+        color: var(--neutral);
+        background: var(--neutral-bg);
+      }
+      .swatch.danger {
+        color: var(--danger);
+        background: var(--danger-bg);
+      }
+      .swatch.success {
+        color: var(--success);
+        background: var(--success-bg);
+      }
+      .swatch.warning {
+        color: var(--warning);
+        background: var(--warning-bg);
+      }
+      .muted,
+      .muted-pill {
+        color: var(--subtle);
+      }
+      .phase-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .phase-card {
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        background: var(--surface);
+        padding: 14px;
+      }
+      .phase-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: white;
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+      .phase-card h3 {
+        margin: 10px 0 6px;
+        font-size: 0.86rem;
+      }
+      .phase-card p {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        line-height: 1.45;
+      }
+      .risk {
+        font-size: 0.68rem;
+        color: var(--subtle);
+      }
+      .empty {
+        display: none;
+        padding: 34px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .empty.visible {
+        display: block;
+      }
+      @media (max-width: 1000px) {
+        .hero-inner {
+          grid-template-columns: 1fr;
+        }
+        .stats {
+          justify-content: flex-start;
+        }
+        .toolbar {
+          grid-template-columns: 1fr 1fr;
+        }
+        .result-count {
+          justify-self: start;
+        }
+        .summary-grid,
+        .phase-grid,
+        .color-grid {
+          grid-template-columns: 1fr;
+        }
+        .content,
+        .hero-inner,
+        .toolbar {
+          padding-inline: 14px;
+        }
+        h1 {
+          font-size: 2rem;
+        }
+        .notice {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js" defer></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <div class="hero-inner">
+          <div>
+            <p class="eyebrow">Konsolidierungsplan</p>
+            <h1>Dashboard Button Consolidation</h1>
+            <p class="subtitle">
+              Plan zur Reduzierung redundanter Labels, Icons, Farben und i18n Keys. Ziel:
+              <code>h-7</code> ist die Default-Hoehe fuer alle Text-Action-Buttons,
+              <code>size-7</code> fuer icon-only. Abweichungen werden spaeter explizite
+              Komponenten-Ausnahmen.
+            </p>
+          </div>
+          <div class="stats" aria-label="Zusammenfassung">
+            <div class="theme-slot" data-dashboard-theme-slot></div>
+            <a class="stat stat-link" href="index.html"><strong>UI</strong> Übersicht</a>
+            <span class="stat"><strong>155</strong> Button-Zeilen</span>
+            <span class="stat"><strong>152</strong> werden h-7 / size-7</span>
+            <span class="stat"><strong>50</strong> Label-Gruppen</span>
+            <span class="stat"><strong>24</strong> Icon-Gruppen</span>
+            <span class="stat"><strong>5</strong> Farbrollen</span>
+            <span class="stat"><strong>5</strong> Ausnahmen</span>
+            <span class="stat"><strong>115</strong> rohe button</span>
+            <span class="stat"><strong>16</strong> Ziel-Actions</span>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input
+            id="search"
+            class="control"
+            type="search"
+            placeholder="Suchen: Label, Key, Icon, Komponente..."
+            autocomplete="off"
+          />
+          <select
+            id="view"
+            class="control native-control-hidden"
+            aria-label="Tabellenansicht"
+            data-custom-select-height="36px"
+          >
+            <option value="all">Alle Tabellen</option>
+            <option value="actions">Ziel-Komponenten</option>
+            <option value="labels">Label-Redundanzen</option>
+            <option value="icons">Icon-Redundanzen</option>
+          </select>
+          <select
+            id="priority"
+            class="control native-control-hidden"
+            aria-label="Prioritaet"
+            data-custom-select-height="36px"
+          >
+            <option value="">Alle Prioritaeten</option>
+            <option value="high">Hohe Prioritaet</option>
+            <option value="medium">Mittlere Prioritaet</option>
+          </select>
+          <div id="resultCount" class="result-count"></div>
+        </div>
+      </header>
+      <main class="content">
+        <section class="summary-grid grid" aria-label="Kennzahlen">
+          <div class="metric">
+            <strong>152</strong
+            ><span
+              >Button-Zeilen muessen fuer das Zielbild auf die Default-Hoehe <code>h-7</code> oder
+              bei icon-only auf <code>size-7</code> gebracht werden.</span
+            >
+          </div>
+          <div class="metric">
+            <strong>50</strong
+            ><span
+              >Label-Gruppen zeigen wiederholte gleiche oder sehr aehnliche Texte, oft mit
+              verschiedenen Keys.</span
+            >
+          </div>
+          <div class="metric">
+            <strong>24</strong
+            ><span
+              >Icon-Gruppen zeigen wiederholte Symbol-Semantik ueber verschiedene Komponenten und
+              Hoehen.</span
+            >
+          </div>
+          <div class="metric">
+            <strong>115</strong
+            ><span
+              >Rohe <code>button</code>-Zeilen sollten schrittweise durch den zentralen Primitive
+              ersetzt werden.</span
+            >
+          </div>
+        </section>
+
+        <section class="notice">
+          <div>
+            <h2>Zielentscheidung: <code>h-7</code> als Default</h2>
+            <p>
+              Der Plan konsolidiert nicht blind alle gleichen Woerter. Semantische Unterschiede
+              bleiben erhalten: <strong>Löschen</strong> ist destruktive Objektloeschung,
+              <strong>Entfernen</strong> ist Entfernen aus einer Beziehung oder einem Slot. Beide
+              teilen aber die Default-Hoehe <code>h-7</code>, den Primitive, Variantenlogik und
+              Icon-Konvention.
+            </p>
+          </div>
+          <button class="demo-button primary" type="button">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1em"
+              height="1em"
+              fill="currentColor"
+              viewBox="0 0 256 256"
+              class="button-icon"
+              aria-hidden="true"
+            >
+              <path
+                d="M216,83.31V208a8,8,0,0,1-8,8H176V152a8,8,0,0,0-8-8H88a8,8,0,0,0-8,8v64H48a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8H172.69a8,8,0,0,1,5.65,2.34l35.32,35.32A8,8,0,0,1,216,83.31Z"
+                opacity="0.2"
+              ></path>
+              <path
+                d="M219.31,72,184,36.69A15.86,15.86,0,0,0,172.69,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V83.31A15.86,15.86,0,0,0,219.31,72ZM168,208H88V152h80Zm40,0H184V152a16,16,0,0,0-16-16H88a16,16,0,0,0-16,16v56H48V48H172.69L208,83.31ZM160,72a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h56A8,8,0,0,1,160,72Z"
+              ></path></svg
+            ><span>Speichern</span>
+          </button>
+        </section>
+
+        <section class="panel pad" style="margin-bottom: 18px">
+          <div class="panel-header" style="margin: -18px -18px 16px">
+            <div>
+              <h2>Explizite Komponenten-Ausnahmen</h2>
+              <p>
+                Ausnahmen sind erlaubt, aber nur als benannter Modus im zentralen Button-API.
+                Feature-Dateien sollen keine eigenen Hoehen-, Farb- oder Icon-Regeln mehr setzen.
+              </p>
+            </div>
+          </div>
+          <div class="phase-grid" aria-label="Explizite Komponenten-Ausnahmen">
+            <article class="phase-card">
+              <span class="phase-num">1</span>
+              <h3>Icon-only Aktionen</h3>
+              <p>
+                <code>DashboardIconButton</code> oder <code>display=&quot;icon&quot;</code>. Default
+                <code>size-7</code>, kein sichtbares Label.
+              </p>
+              <div class="risk">Pflicht: i18n-basiertes aria-label oder Tooltip.</div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">2</span>
+              <h3>File-Input Trigger</h3>
+              <p>
+                <code>ImportFileButton</code> bleibt Behavior-Wrapper fuer hidden file inputs,
+                rendert aber innen denselben <code>DashboardActionButton</code>.
+              </p>
+              <div class="risk">Keine eigenen Hoehen- oder Farbklassen am sichtbaren Button.</div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">3</span>
+              <h3>Status-Buttons</h3>
+              <p>
+                <code>status=&quot;idle|pending|success|error&quot;</code> darf Label, Icon und
+                Disabled-State wechseln.
+              </p>
+              <div class="risk">Hoehe und Farbrolle bleiben zentral.</div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">4</span>
+              <h3>Header-/Navigation</h3>
+              <p>
+                Wrapper wie <code>HeaderBackButton</code> duerfen sich an Header-Typografie
+                ausrichten.
+              </p>
+              <div class="risk">
+                Hit-Zone bleibt mindestens <code>h-7</code>, keine freie Auto-Hoehe.
+              </div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">5</span>
+              <h3>Toggle-/Auswahlaktionen</h3>
+              <p><code>pressed</code>-Zustand darf Icon, ARIA und Tone ergaenzen.</p>
+              <div class="risk">Pflicht: <code>aria-pressed</code> oder aequivalenter Zustand.</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel pad" style="margin-bottom: 18px">
+          <div class="panel-header" style="margin: -18px -18px 16px">
+            <div>
+              <h2>Farb-Konsolidierung</h2>
+              <p>
+                Farben werden als semantische Rollen im Button-Primitive modelliert. Feature-Dateien
+                sollen keine eigenen Button-Farbklassen mehr setzen.
+              </p>
+            </div>
+          </div>
+          <div class="color-grid" aria-label="Geplante Farbrollen">
+            <article class="color-role">
+              <span class="swatch primary"></span>
+              <h3>primary</h3>
+              <p>Primaere Commit- oder Create-Aktion.</p>
+              <span class="mini-pill">save</span><span class="mini-pill">create</span>
+            </article>
+            <article class="color-role">
+              <span class="swatch neutral"></span>
+              <h3>neutral</h3>
+              <p>Sekundaer, navigierend oder nicht-destruktiv.</p>
+              <span class="mini-pill">edit</span><span class="mini-pill">import</span
+              ><span class="mini-pill">export</span><span class="mini-pill">copy</span>
+            </article>
+            <article class="color-role">
+              <span class="swatch danger"></span>
+              <h3>danger</h3>
+              <p>Destruktiv, ablehnend oder verwirft Arbeit.</p>
+              <span class="mini-pill">delete</span><span class="mini-pill">remove</span
+              ><span class="mini-pill">reject</span><span class="mini-pill">skip</span>
+            </article>
+            <article class="color-role">
+              <span class="swatch success"></span>
+              <h3>success</h3>
+              <p>Positiver Workflow-Abschluss.</p>
+              <span class="mini-pill">approve</span><span class="mini-pill">restore</span>
+            </article>
+            <article class="color-role">
+              <span class="swatch warning"></span>
+              <h3>warning</h3>
+              <p>Risiko-, Konflikt- oder Halteaktion.</p>
+              <span class="mini-pill">hold</span><span class="mini-pill">overwrite</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" data-section="actions">
+          <div class="panel-header">
+            <div>
+              <h2>Ziel-Komponenten</h2>
+              <p>
+                Vorgeschlagene wiederverwendbare Action-Buttons. Jede Preview zeigt die geplante
+                Default-Hoehe <code>h-7</code>.
+              </p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ziel-Button</th>
+                  <th>Preview Default h-7</th>
+                  <th>Action</th>
+                  <th>Ziel-Key</th>
+                  <th>Ersetzt aktuelle Keys</th>
+                  <th>Vorkommen</th>
+                  <th>Entscheidung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search='save saveactionbutton speichern common.save floppydiskicon common.save common.saving common.saved emailtemplates.save formbuilder.save socialmediatemplates.save media.savename ein button mit status="idle|pending|saved". lokale save-keys werden nur behalten, wenn der fachtext wirklich abweicht.'
+                >
+                  <td><code>SaveActionButton</code></td>
+                  <td>
+                    <button class="demo-button primary" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,83.31V208a8,8,0,0,1-8,8H176V152a8,8,0,0,0-8-8H88a8,8,0,0,0-8,8v64H48a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8H172.69a8,8,0,0,1,5.65,2.34l35.32,35.32A8,8,0,0,1,216,83.31Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M219.31,72,184,36.69A15.86,15.86,0,0,0,172.69,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V83.31A15.86,15.86,0,0,0,219.31,72ZM168,208H88V152h80Zm40,0H184V152a16,16,0,0,0-16-16H88a16,16,0,0,0-16,16v56H48V48H172.69L208,83.31ZM160,72a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h56A8,8,0,0,1,160,72Z"
+                        ></path></svg
+                      ><span>Speichern</span>
+                    </button>
+                  </td>
+                  <td><span class="mini-pill">save</span><span class="mini-pill">primary</span></td>
+                  <td><code>common.save</code></td>
+                  <td>
+                    <code>common.save</code><br /><code>common.saving</code><br /><code
+                      >common.saved</code
+                    ><br /><code>emailTemplates.save</code><br /><code>formBuilder.save</code
+                    ><br /><code>socialMediaTemplates.save</code><br /><span class="muted"
+                      >+1 weitere</span
+                    >
+                  </td>
+                  <td>13</td>
+                  <td>
+                    Ein Button mit status=&quot;idle|pending|saved&quot;. Lokale Save-Keys werden
+                    nur behalten, wenn der Fachtext wirklich abweicht.
+                  </td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search="delete deleteactionbutton löschen common.delete trashicon common.delete shops.table.delete submissions.*.delete categories.*.delete content.markdownwidgets.deletewidget destruktive objektlöschung. bestätigungsdialoge verwenden denselben action-button im footer."
+                >
+                  <td><code>DeleteActionButton</code></td>
+                  <td>
+                    <button class="demo-button danger" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"
+                        ></path></svg
+                      ><span>Löschen</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">delete</span><span class="mini-pill">danger</span>
+                  </td>
+                  <td><code>common.delete</code></td>
+                  <td>
+                    <code>common.delete</code><br /><code>shops.table.delete</code><br /><code
+                      >submissions.*.delete</code
+                    ><br /><code>categories.*.delete</code><br /><code
+                      >content.markdownWidgets.deleteWidget</code
+                    >
+                  </td>
+                  <td>14</td>
+                  <td>
+                    Destruktive Objektlöschung. Bestätigungsdialoge verwenden denselben
+                    Action-Button im Footer.
+                  </td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search="remove removeactionbutton entfernen common.remove trashicon common.remove landingpage.herobanner.removeimage users.editcard.removeavatar users.remove semantisch getrennt von delete, aber gleicher h-7-button und gleiche icon-konvention."
+                >
+                  <td><code>RemoveActionButton</code></td>
+                  <td>
+                    <button class="demo-button danger" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"
+                        ></path></svg
+                      ><span>Entfernen</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">remove</span><span class="mini-pill">danger</span>
+                  </td>
+                  <td><code>common.remove</code></td>
+                  <td>
+                    <code>common.remove</code><br /><code>landingPage.heroBanner.removeImage</code
+                    ><br /><code>users.editCard.removeAvatar</code><br /><code>users.remove</code>
+                  </td>
+                  <td>5</td>
+                  <td>
+                    Semantisch getrennt von Delete, aber gleicher h-7-Button und gleiche
+                    Icon-Konvention.
+                  </td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search="edit editactionbutton bearbeiten common.edit pencilsimpleicon common.edit categories.card.edit submissions.*.edit system.settings.domainalerts.editrule users.editcard.edittooltip formbuilder.editbutton einheitlich pencilsimpleicon. filetexticon nur behalten, wenn damit „dokument öffnen“ statt „bearbeiten“ gemeint ist."
+                >
+                  <td><code>EditActionButton</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M221.66,90.34,192,120,136,64l29.66-29.66a8,8,0,0,1,11.31,0L221.66,79A8,8,0,0,1,221.66,90.34Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"
+                        ></path></svg
+                      ><span>Bearbeiten</span>
+                    </button>
+                  </td>
+                  <td><span class="mini-pill">edit</span><span class="mini-pill">neutral</span></td>
+                  <td><code>common.edit</code></td>
+                  <td>
+                    <code>common.edit</code><br /><code>categories.card.edit</code><br /><code
+                      >submissions.*.edit</code
+                    ><br /><code>system.settings.domainAlerts.editRule</code><br /><code
+                      >users.editCard.editTooltip</code
+                    ><br /><code>formBuilder.editButton</code>
+                  </td>
+                  <td>9</td>
+                  <td>
+                    Einheitlich PencilSimpleIcon. FileTextIcon nur behalten, wenn damit „Dokument
+                    öffnen“ statt „Bearbeiten“ gemeint ist.
+                  </td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search="cancel cancelactionbutton abbrechen common.cancel xicon common.cancel nur komponente konsolidieren, key ist bereits zentral."
+                >
+                  <td><code>CancelActionButton</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                        ></path></svg
+                      ><span>Abbrechen</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">cancel</span><span class="mini-pill">neutral</span>
+                  </td>
+                  <td><code>common.cancel</code></td>
+                  <td><code>common.cancel</code></td>
+                  <td>4</td>
+                  <td>Nur Komponente konsolidieren, Key ist bereits zentral.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search="close closeactionbutton schließen common.close xicon common.close formbuilder.texttokenshelp.close lokalen help-key entfernen, wenn kein anderer wortlaut benötigt wird."
+                >
+                  <td><code>CloseActionButton</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                        ></path></svg
+                      ><span>Schließen</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">close</span><span class="mini-pill">neutral</span>
+                  </td>
+                  <td><code>common.close</code></td>
+                  <td>
+                    <code>common.close</code><br /><code>formBuilder.textTokensHelp.close</code>
+                  </td>
+                  <td>2</td>
+                  <td>Lokalen Help-Key entfernen, wenn kein anderer Wortlaut benötigt wird.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search="import importactionbutton importieren common.import downloadsimpleicon shops.importlabel submissions.suggestions.importlabel formbuilder.importform importfilebutton behält file-input-verhalten, rendert innen denselben h-7-actionbutton."
+                >
+                  <td><code>ImportActionButton</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,48V208H40V48A16,16,0,0,1,56,32H200A16,16,0,0,1,216,48Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"
+                        ></path></svg
+                      ><span>Importieren</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">import</span><span class="mini-pill">neutral</span>
+                  </td>
+                  <td><code>common.import</code></td>
+                  <td>
+                    <code>shops.importLabel</code><br /><code
+                      >submissions.suggestions.importLabel</code
+                    ><br /><code>formBuilder.importForm</code>
+                  </td>
+                  <td>3</td>
+                  <td>
+                    ImportFileButton behält File-Input-Verhalten, rendert innen denselben
+                    h-7-ActionButton.
+                  </td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="high"
+                  data-search="export exportactionbutton exportieren common.export uploadsimpleicon shops.exportlabel submissions.suggestions.exportlabel emailtemplates.exporttemplate formbuilder.exportform exportbutton und tableactionbutton teilen dieselbe action-konfiguration."
+                >
+                  <td><code>ExportActionButton</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,48V208H40V48A16,16,0,0,1,56,32H200A16,16,0,0,1,216,48Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0ZM93.66,77.66,120,51.31V144a8,8,0,0,0,16,0V51.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,77.66Z"
+                        ></path></svg
+                      ><span>Exportieren</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">export</span><span class="mini-pill">neutral</span>
+                  </td>
+                  <td><code>common.export</code></td>
+                  <td>
+                    <code>shops.exportLabel</code><br /><code
+                      >submissions.suggestions.exportLabel</code
+                    ><br /><code>emailTemplates.exportTemplate</code><br /><code
+                      >formBuilder.exportForm</code
+                    >
+                  </td>
+                  <td>5</td>
+                  <td>ExportButton und TableActionButton teilen dieselbe Action-Konfiguration.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="create createactionbutton neu / erstellen common.create pluscircleicon content.pages.create users.createcard.create emailtemplates.newtemplate formbuilder.newform socialmedia.addaccounttitle parametrisierter subjectkey: „neue seite“, „neues template“, „benutzer erstellen“. generischer button stellt icon, höhe und status."
+                >
+                  <td><code>CreateActionButton</code></td>
+                  <td>
+                    <button class="demo-button primary" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"
+                        ></path></svg
+                      ><span>Neu / Erstellen</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">create</span><span class="mini-pill">primary</span>
+                  </td>
+                  <td><code>common.create</code></td>
+                  <td>
+                    <code>content.pages.create</code><br /><code>users.createCard.create</code
+                    ><br /><code>emailTemplates.newTemplate</code><br /><code
+                      >formBuilder.newForm</code
+                    ><br /><code>socialMedia.addAccountTitle</code>
+                  </td>
+                  <td>19</td>
+                  <td>
+                    Parametrisierter subjectKey: „Neue Seite“, „Neues Template“, „Benutzer
+                    erstellen“. Generischer Button stellt Icon, Höhe und Status.
+                  </td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="reject rejectactionbutton ablehnen common.reject xcircleicon shops.editcard.rejectsubmit submissions.shopreports.reject submissions.suggestions.reject workflow-action mit einheitlichem icon und variantenfarbe."
+                >
+                  <td><code>RejectActionButton</code></td>
+                  <td>
+                    <button class="demo-button danger" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M165.66,101.66,139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
+                        ></path></svg
+                      ><span>Ablehnen</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">reject</span><span class="mini-pill">danger</span>
+                  </td>
+                  <td><code>common.reject</code></td>
+                  <td>
+                    <code>shops.editCard.rejectSubmit</code><br /><code
+                      >submissions.shopReports.reject</code
+                    ><br /><code>submissions.suggestions.reject</code>
+                  </td>
+                  <td>4</td>
+                  <td>Workflow-Action mit einheitlichem Icon und Variantenfarbe.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="approve approveactionbutton freischalten / akzeptieren common.approve checkcircleicon submissions.suggestions.approve system.backgrounderrors.resolveaction shops.editcard.acceptreview semantik prüfen: resolve kann eigene action bleiben, aber gleicher button-primitive."
+                >
+                  <td><code>ApproveActionButton</code></td>
+                  <td>
+                    <button class="demo-button success" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
+                        ></path></svg
+                      ><span>Freischalten / Akzeptieren</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">approve</span><span class="mini-pill">success</span>
+                  </td>
+                  <td><code>common.approve</code></td>
+                  <td>
+                    <code>submissions.suggestions.approve</code><br /><code
+                      >system.backgroundErrors.resolveAction</code
+                    ><br /><code>shops.editCard.acceptReview</code>
+                  </td>
+                  <td>3</td>
+                  <td>
+                    Semantik prüfen: Resolve kann eigene action bleiben, aber gleicher
+                    Button-Primitive.
+                  </td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="restore restoreactionbutton wiederherstellen common.restore arrowcounterclockwiseicon shops.table.restore submissions.suggestions.restore lokale keys durch einen zentralen workflow-key ersetzen."
+                >
+                  <td><code>RestoreActionButton</code></td>
+                  <td>
+                    <button class="demo-button success" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,128a88,88,0,1,1-88-88A88,88,0,0,1,216,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"
+                        ></path></svg
+                      ><span>Wiederherstellen</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">restore</span><span class="mini-pill">success</span>
+                  </td>
+                  <td><code>common.restore</code></td>
+                  <td>
+                    <code>shops.table.restore</code><br /><code
+                      >submissions.suggestions.restore</code
+                    >
+                  </td>
+                  <td>2</td>
+                  <td>Lokale Keys durch einen zentralen Workflow-Key ersetzen.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="hold holdactionbutton zurückstellen common.putonhold pausecircleicon shops.table.putonhold submissions.suggestions.onhold einheitliche benennung und icon-verwendung."
+                >
+                  <td><code>HoldActionButton</code></td>
+                  <td>
+                    <button class="demo-button warning" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216ZM112,96v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Z"
+                        ></path></svg
+                      ><span>Zurückstellen</span>
+                    </button>
+                  </td>
+                  <td><span class="mini-pill">hold</span><span class="mini-pill">warning</span></td>
+                  <td><code>common.putOnHold</code></td>
+                  <td>
+                    <code>shops.table.putOnHold</code><br /><code
+                      >submissions.suggestions.onhold</code
+                    >
+                  </td>
+                  <td>2</td>
+                  <td>Einheitliche Benennung und Icon-Verwendung.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="overwrite overwriteactionbutton überschreiben common.overwrite arrowsclockwiseicon emailtemplates.importoverwrite formbuilder.importoverwrite konfliktdialoge teilen denselben button-satz."
+                >
+                  <td><code>OverwriteActionButton</code></td>
+                  <td>
+                    <button class="demo-button warning" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M216,56v48H168" opacity="0.2"></path>
+                        <path
+                          d="M224,56v48a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69A80,80,0,1,0,208,136a8,8,0,0,1,16,0A96,96,0,1,1,195.88,68.12L208,80.24V56a8,8,0,0,1,16,0Z"
+                        ></path></svg
+                      ><span>Überschreiben</span>
+                    </button>
+                  </td>
+                  <td>
+                    <span class="mini-pill">overwrite</span><span class="mini-pill">warning</span>
+                  </td>
+                  <td><code>common.overwrite</code></td>
+                  <td>
+                    <code>emailTemplates.importOverwrite</code><br /><code
+                      >formBuilder.importOverwrite</code
+                    >
+                  </td>
+                  <td>2</td>
+                  <td>Konfliktdialoge teilen denselben Button-Satz.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="skip skipactionbutton überspringen common.skip skipforwardicon emailtemplates.importskip formbuilder.importskip konfliktdialoge teilen denselben button-satz."
+                >
+                  <td><code>SkipActionButton</code></td>
+                  <td>
+                    <button class="demo-button danger" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M48,48l80,80L48,208Z" opacity="0.2"></path>
+                        <path
+                          d="M200,40a8,8,0,0,0-8,8v65.38L61.66,42.34A16,16,0,0,0,40,56V200a16,16,0,0,0,21.66,13.66L192,142.62V208a8,8,0,0,0,16,0V48A8,8,0,0,0,200,40ZM56,200V56l132.92,72Z"
+                        ></path></svg
+                      ><span>Überspringen</span>
+                    </button>
+                  </td>
+                  <td><span class="mini-pill">skip</span><span class="mini-pill">danger</span></td>
+                  <td><code>common.skip</code></td>
+                  <td>
+                    <code>emailTemplates.importSkip</code><br /><code>formBuilder.importSkip</code>
+                  </td>
+                  <td>2</td>
+                  <td>Konfliktdialoge teilen denselben Button-Satz.</td>
+                </tr>
+                <tr
+                  data-kind="actions"
+                  data-priority="medium"
+                  data-search="copy copyactionbutton kopieren common.copy copyicon media.copyurl users.createcard.copyinvite common.duplicate copy vs duplicate semantisch getrennt halten; status copied als prop abbilden."
+                >
+                  <td><code>CopyActionButton</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M216,40V168H168V88H88V40Z" opacity="0.2"></path>
+                        <path
+                          d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"
+                        ></path></svg
+                      ><span>Kopieren</span>
+                    </button>
+                  </td>
+                  <td><span class="mini-pill">copy</span><span class="mini-pill">neutral</span></td>
+                  <td><code>common.copy</code></td>
+                  <td>
+                    <code>media.copyUrl</code><br /><code>users.createCard.copyInvite</code
+                    ><br /><code>common.duplicate</code>
+                  </td>
+                  <td>8</td>
+                  <td>
+                    Copy vs Duplicate semantisch getrennt halten; Status copied als Prop abbilden.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" data-section="labels" style="margin-top: 18px">
+          <div class="panel-header">
+            <div>
+              <h2>Label-Redundanzen</h2>
+              <p>
+                Gruppen nach deutschem Label. Relevant sind besonders Gruppen mit vielen
+                unterschiedlichen Keys und unterschiedlichen Hoehen.
+              </p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>Vorkommen</th>
+                  <th>Keys</th>
+                  <th>Icons</th>
+                  <th>Komponenten</th>
+                  <th>Aktuelle Hoehen</th>
+                  <th>Prioritaet</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="löschen common.delete categories.editcard.deleteimage categories.card.delete shops.deletecard.deleting shops.deletecard.deletepermanently shops.deletecard.markdeleted shops.table.delete submissions.deadlinks.delete submissions.shopreports.delete submissions.suggestions.delete common.saving system.settings.domainalerts.deleterule content.markdownwidgets.deletewidget trashicon button tableactionbutton editortoolbarbutton h-9 (36px) auto via py-1.5 h-9 auto / content-based h-8 (32px)"
+                >
+                  <td><strong>Löschen</strong></td>
+                  <td>14</td>
+                  <td>
+                    <code>common.delete</code><br /><code>categories.editCard.deleteImage</code
+                    ><br /><code>categories.card.delete</code><br /><code
+                      >shops.deleteCard.deleting</code
+                    ><br /><code>shops.deleteCard.deletePermanently</code><br /><code
+                      >shops.deleteCard.markDeleted</code
+                    ><br /><code>shops.table.delete</code><br /><code
+                      >submissions.deadLinks.delete</code
+                    ><br /><span class="muted">+5 weitere</span>
+                  </td>
+                  <td><span class="mini-pill">TrashIcon</span></td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">TableActionButton</span
+                    ><span class="mini-pill">EditorToolbarButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto via py-1.5</span><span class="mini-pill">h-9</span
+                    ><span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">h-8 (32px)</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="speichern common.saving common.save landingpage.herobanner.rotationintervalsave content.editor.saved common.saved system.settings.domainalerts.createrule system.settings.domainalerts.saverule emailtemplates.save formbuilder.save socialmediatemplates.save downloadicon floppydiskicon button editortoolbarbutton auto via py-1.5 h-9 h-8 h-8 (32px) h-9 (36px)"
+                >
+                  <td><strong>Speichern</strong></td>
+                  <td>13</td>
+                  <td>
+                    <code>common.saving</code><br /><code>common.save</code><br /><code
+                      >landingPage.heroBanner.rotationIntervalSave</code
+                    ><br /><code>content.editor.saved</code><br /><code>common.saved</code
+                    ><br /><code>system.settings.domainAlerts.createRule</code><br /><code
+                      >system.settings.domainAlerts.saveRule</code
+                    ><br /><code>emailTemplates.save</code><br /><span class="muted"
+                      >+2 weitere</span
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">DownloadIcon</span
+                    ><span class="mini-pill">FloppyDiskIcon</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">EditorToolbarButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span><span class="mini-pill">h-9</span
+                    ><span class="mini-pill">h-8</span><span class="mini-pill">h-8 (32px)</span
+                    ><span class="mini-pill">h-9 (36px)</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="wird gespeichert… common.saving common.save common.saved media.savename system.settings.domainalerts.createrule system.settings.domainalerts.saverule system.settings.domainalerts.deleterule emailtemplates.save formbuilder.create socialmediatemplates.save downloadicon clockicon trashicon floppydiskicon button tableactionbutton auto via py-1.5 h-9 auto / content-based h-9 (36px) h-8"
+                >
+                  <td><strong>Wird gespeichert…</strong></td>
+                  <td>13</td>
+                  <td>
+                    <code>common.saving</code><br /><code>common.save</code><br /><code
+                      >common.saved</code
+                    ><br /><code>media.saveName</code><br /><code
+                      >system.settings.domainAlerts.createRule</code
+                    ><br /><code>system.settings.domainAlerts.saveRule</code><br /><code
+                      >system.settings.domainAlerts.deleteRule</code
+                    ><br /><code>emailTemplates.save</code><br /><span class="muted"
+                      >+2 weitere</span
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">DownloadIcon</span
+                    ><span class="mini-pill">ClockIcon</span><span class="mini-pill">TrashIcon</span
+                    ><span class="mini-pill">FloppyDiskIcon</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">TableActionButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span><span class="mini-pill">h-9</span
+                    ><span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">h-9 (36px)</span><span class="mini-pill">h-8</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="bearbeiten categories.card.edit common.edit submissions.shopreports.edit submissions.suggestions.edit system.settings.domainalerts.editrule users.editcard.edittooltip formbuilder.editbutton filetexticon pencilsimpleicon button tableactionbutton auto via py-1.5 h-9 (36px) auto / content-based"
+                >
+                  <td><strong>Bearbeiten</strong></td>
+                  <td>9</td>
+                  <td>
+                    <code>categories.card.edit</code><br /><code>common.edit</code><br /><code
+                      >submissions.shopReports.edit</code
+                    ><br /><code>submissions.suggestions.edit</code><br /><code
+                      >system.settings.domainAlerts.editRule</code
+                    ><br /><code>users.editCard.editTooltip</code><br /><code
+                      >formBuilder.editButton</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">FileTextIcon</span
+                    ><span class="mini-pill">PencilSimpleIcon</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">TableActionButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span
+                    ><span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto / content-based</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="entfernen landingpage.herobanner.removeimage users.editcard.removeavatar users.remove common.remove trashicon button h-8 h-9 (36px) auto via py-1.5"
+                >
+                  <td><strong>Entfernen</strong></td>
+                  <td>5</td>
+                  <td>
+                    <code>landingPage.heroBanner.removeImage</code><br /><code
+                      >users.editCard.removeAvatar</code
+                    ><br /><code>users.remove</code><br /><code>common.remove</code>
+                  </td>
+                  <td><span class="mini-pill">TrashIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">h-8</span><span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto via py-1.5</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="exportieren shops.exportlabel submissions.suggestions.exportlabel emailtemplates.exporttemplate formbuilder.exportform uploadsimpleicon uploadicon exportbutton tableactionbutton button h-9 (36px) auto via py-1.5"
+                >
+                  <td><strong>Exportieren</strong></td>
+                  <td>5</td>
+                  <td>
+                    <code>shops.exportLabel</code><br /><code
+                      >submissions.suggestions.exportLabel</code
+                    ><br /><code>emailTemplates.exportTemplate</code><br /><code
+                      >formBuilder.exportForm</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">UploadSimpleIcon</span
+                    ><span class="mini-pill">UploadIcon</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">ExportButton</span
+                    ><span class="mini-pill">TableActionButton</span
+                    ><span class="mini-pill">button</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto via py-1.5</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="ablehnen shops.editcard.rejectsubmit submissions.shopreports.reject submissions.suggestions.reject xcircleicon button editortoolbarbutton tableactionbutton auto via py-1.5 h-8 (32px) h-9 (36px)"
+                >
+                  <td><strong>Ablehnen</strong></td>
+                  <td>4</td>
+                  <td>
+                    <code>shops.editCard.rejectSubmit</code><br /><code
+                      >submissions.shopReports.reject</code
+                    ><br /><code>submissions.suggestions.reject</code>
+                  </td>
+                  <td><span class="mini-pill">XCircleIcon</span></td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">EditorToolbarButton</span
+                    ><span class="mini-pill">TableActionButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span
+                    ><span class="mini-pill">h-8 (32px)</span
+                    ><span class="mini-pill">h-9 (36px)</span>
+                  </td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="abbrechen common.cancel  button h-9 (36px) auto via py-1.5 auto / content-based h-9"
+                >
+                  <td><strong>Abbrechen</strong></td>
+                  <td>4</td>
+                  <td><code>common.cancel</code></td>
+                  <td><span class="mini-pill">none</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto via py-1.5</span
+                    ><span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">h-9</span>
+                  </td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="importieren shops.importlabel submissions.suggestions.importlabel formbuilder.importform downloadsimpleicon downloadicon importbutton button h-9 (36px) auto via py-1.5"
+                >
+                  <td><strong>Importieren</strong></td>
+                  <td>3</td>
+                  <td>
+                    <code>shops.importLabel</code><br /><code
+                      >submissions.suggestions.importLabel</code
+                    ><br /><code>formBuilder.importForm</code>
+                  </td>
+                  <td>
+                    <span class="mini-pill">DownloadSimpleIcon</span
+                    ><span class="mini-pill">DownloadIcon</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">ImportButton</span><span class="mini-pill">button</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto via py-1.5</span>
+                  </td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="erstellen content.pages.creating content.pages.create common.saving formbuilder.create pluscircleicon button auto via py-1.5 h-9 (36px)"
+                >
+                  <td><strong>Erstellen</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>content.pages.creating</code><br /><code>content.pages.create</code
+                    ><br /><code>common.saving</code><br /><code>formBuilder.create</code>
+                  </td>
+                  <td><span class="mini-pill">PlusCircleIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span
+                    ><span class="mini-pill">h-9 (36px)</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="gespeichert content.editor.saved common.save common.saved common.saving downloadicon button h-8"
+                >
+                  <td><strong>Gespeichert</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>content.editor.saved</code><br /><code>common.save</code><br /><code
+                      >common.saved</code
+                    ><br /><code>common.saving</code>
+                  </td>
+                  <td><span class="mini-pill">DownloadIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="wird erstellt… content.pages.creating content.pages.create users.createcard.creating users.createcard.create pluscircleicon button auto via py-1.5 h-9"
+                >
+                  <td><strong>Wird erstellt…</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>content.pages.creating</code><br /><code>content.pages.create</code
+                    ><br /><code>users.createCard.creating</code><br /><code
+                      >users.createCard.create</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">PlusCircleIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span><span class="mini-pill">h-9</span>
+                  </td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="wird gelöscht… shops.deletecard.deleting shops.deletecard.deletepermanently shops.deletecard.markdeleted trashicon button auto / content-based auto via py-1.5"
+                >
+                  <td><strong>Wird gelöscht…</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>shops.deleteCard.deleting</code><br /><code
+                      >shops.deleteCard.deletePermanently</code
+                    ><br /><code>shops.deleteCard.markDeleted</code>
+                  </td>
+                  <td><span class="mini-pill">TrashIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">auto via py-1.5</span>
+                  </td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="abmelden layout.sidebar.logoutconfirmaction layout.sidebar.logout signouticon button h-9 (36px) auto / content-based"
+                >
+                  <td><strong>Abmelden</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>layout.sidebar.logoutConfirmAction</code><br /><code
+                      >layout.sidebar.logout</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">SignOutIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto / content-based</span>
+                  </td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="alle exportieren emailtemplates.exportall formbuilder.exportall uploadicon button auto via py-1.5"
+                >
+                  <td><strong>Alle exportieren</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>emailTemplates.exportAll</code><br /><code>formBuilder.exportAll</code>
+                  </td>
+                  <td><span class="mini-pill">UploadIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">auto via py-1.5</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="neues template emailtemplates.newtemplate socialmediatemplates.newtemplate pluscircleicon button h-9"
+                >
+                  <td><strong>Neues Template</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>emailTemplates.newTemplate</code><br /><code
+                      >socialMediaTemplates.newTemplate</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">PlusCircleIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-9</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="schließen common.close formbuilder.texttokenshelp.close  button h-9 (36px) auto via py-1.5"
+                >
+                  <td><strong>Schließen</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>common.close</code><br /><code>formBuilder.textTokensHelp.close</code>
+                  </td>
+                  <td><span class="mini-pill">none</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto via py-1.5</span>
+                  </td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="template löschen emailtemplates.deletetemplate socialmediatemplates.deletetemplate trashicon tableactionbutton h-9 (36px)"
+                >
+                  <td><strong>Template löschen</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>emailTemplates.deleteTemplate</code><br /><code
+                      >socialMediaTemplates.deleteTemplate</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">TrashIcon</span></td>
+                  <td><span class="mini-pill">TableActionButton</span></td>
+                  <td><span class="mini-pill">h-9 (36px)</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="überschreiben emailtemplates.importoverwrite formbuilder.importoverwrite  button h-9"
+                >
+                  <td><strong>Überschreiben</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>emailTemplates.importOverwrite</code><br /><code
+                      >formBuilder.importOverwrite</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">none</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-9</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="überspringen emailtemplates.importskip formbuilder.importskip  button h-9 (36px)"
+                >
+                  <td><strong>Überspringen</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>emailTemplates.importSkip</code><br /><code>formBuilder.importSkip</code>
+                  </td>
+                  <td><span class="mini-pill">none</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-9 (36px)</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="wiederherstellen shops.table.restore submissions.suggestions.restore arrowcounterclockwiseicon editortoolbarbutton h-8 (32px)"
+                >
+                  <td><strong>Wiederherstellen</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>shops.table.restore</code><br /><code
+                      >submissions.suggestions.restore</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">ArrowCounterClockwiseIcon</span></td>
+                  <td><span class="mini-pill">EditorToolbarButton</span></td>
+                  <td><span class="mini-pill">h-8 (32px)</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="zurückstellen shops.table.putonhold submissions.suggestions.onhold pausecircleicon editortoolbarbutton h-8 (32px)"
+                >
+                  <td><strong>Zurückstellen</strong></td>
+                  <td>2</td>
+                  <td>
+                    <code>shops.table.putOnHold</code><br /><code
+                      >submissions.suggestions.onhold</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">PauseCircleIcon</span></td>
+                  <td><span class="mini-pill">EditorToolbarButton</span></td>
+                  <td><span class="mini-pill">h-8 (32px)</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="vorschau content.editor.preview eyeicon button auto / content-based h-8"
+                >
+                  <td><strong>Vorschau</strong></td>
+                  <td>2</td>
+                  <td><code>content.editor.preview</code></td>
+                  <td><span class="mini-pill">EyeIcon</span></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">h-8</span>
+                  </td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="alle gruppen aufklappen layout.sidebar.expandall layout.sidebar.collapseall layout.sidebar.collapseallaria layout.sidebar.expandallaria caretcircledoubledownicon caretcircledoubleupicon button h-8"
+                >
+                  <td><strong>Alle Gruppen aufklappen</strong></td>
+                  <td>1</td>
+                  <td>
+                    <code>layout.sidebar.expandAll</code><br /><code
+                      >layout.sidebar.collapseAll</code
+                    ><br /><code>layout.sidebar.collapseAllAria</code><br /><code
+                      >layout.sidebar.expandAllAria</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">CaretCircleDoubleDownIcon</span
+                    ><span class="mini-pill">CaretCircleDoubleUpIcon</span>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="alle gruppen zuklappen layout.sidebar.expandall layout.sidebar.collapseall layout.sidebar.collapseallaria layout.sidebar.expandallaria caretcircledoubledownicon caretcircledoubleupicon button h-8"
+                >
+                  <td><strong>Alle Gruppen zuklappen</strong></td>
+                  <td>1</td>
+                  <td>
+                    <code>layout.sidebar.expandAll</code><br /><code
+                      >layout.sidebar.collapseAll</code
+                    ><br /><code>layout.sidebar.collapseAllAria</code><br /><code
+                      >layout.sidebar.expandAllAria</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">CaretCircleDoubleDownIcon</span
+                    ><span class="mini-pill">CaretCircleDoubleUpIcon</span>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="alles aufklappen layout.sidebar.expandall layout.sidebar.collapseall layout.sidebar.collapseallaria layout.sidebar.expandallaria caretcircledoubledownicon caretcircledoubleupicon button h-8"
+                >
+                  <td><strong>Alles aufklappen</strong></td>
+                  <td>1</td>
+                  <td>
+                    <code>layout.sidebar.expandAll</code><br /><code
+                      >layout.sidebar.collapseAll</code
+                    ><br /><code>layout.sidebar.collapseAllAria</code><br /><code
+                      >layout.sidebar.expandAllAria</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">CaretCircleDoubleDownIcon</span
+                    ><span class="mini-pill">CaretCircleDoubleUpIcon</span>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="high"
+                  data-search="alles zuklappen layout.sidebar.expandall layout.sidebar.collapseall layout.sidebar.collapseallaria layout.sidebar.expandallaria caretcircledoubledownicon caretcircledoubleupicon button h-8"
+                >
+                  <td><strong>Alles zuklappen</strong></td>
+                  <td>1</td>
+                  <td>
+                    <code>layout.sidebar.expandAll</code><br /><code
+                      >layout.sidebar.collapseAll</code
+                    ><br /><code>layout.sidebar.collapseAllAria</code><br /><code
+                      >layout.sidebar.expandAllAria</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">CaretCircleDoubleDownIcon</span
+                    ><span class="mini-pill">CaretCircleDoubleUpIcon</span>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                  <td><span class="mini-pill">hoch</span></td>
+                </tr>
+                <tr
+                  data-kind="labels"
+                  data-priority="medium"
+                  data-search="als aktives bild setzen landingpage.herobanner.markdeselected landingpage.herobanner.markselected landingpage.herobanner.markactive circleicon checkcircleicon button h-8"
+                >
+                  <td><strong>Als aktives Bild setzen</strong></td>
+                  <td>1</td>
+                  <td>
+                    <code>landingPage.heroBanner.markDeselected</code><br /><code
+                      >landingPage.heroBanner.markSelected</code
+                    ><br /><code>landingPage.heroBanner.markActive</code>
+                  </td>
+                  <td>
+                    <span class="mini-pill">CircleIcon</span
+                    ><span class="mini-pill">CheckCircleIcon</span>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                  <td><span class="mini-pill muted-pill">mittel</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" data-section="icons" style="margin-top: 18px">
+          <div class="panel-header">
+            <div>
+              <h2>Icon-Redundanzen</h2>
+              <p>
+                Gruppen nach Icon. Diese Tabelle zeigt, wo gleiche Icons unterschiedliche Labels,
+                Keys, Komponenten und Hoehen haben.
+              </p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Icon</th>
+                  <th>Preview</th>
+                  <th>Vorkommen</th>
+                  <th>Labels</th>
+                  <th>Keys</th>
+                  <th>Komponenten</th>
+                  <th>Aktuelle Hoehen</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="trashicon löschen entfernen seite löschen wird gelöscht… wird gespeichert… template löschen schritt entfernen categories.editcard.deleteimage categories.card.delete landingpage.herobanner.removeimage content.editor.deletepage common.delete shops.table.delete submissions.deadlinks.delete submissions.shopreports.delete submissions.suggestions.delete common.saving system.settings.domainalerts.deleterule users.editcard.removeavatar users.remove content.markdownwidgets.deletewidget emailtemplates.deletetemplate formbuilder.submission.stepremovearia socialmediatemplates.deletetemplate button tableactionbutton editortoolbarbutton auto via py-1.5 h-8 h-9 (36px) h-9 auto / content-based h-8 (32px)"
+                >
+                  <td><code>TrashIcon</code></td>
+                  <td>
+                    <button class="demo-button danger" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"
+                        ></path></svg
+                      ><span>Trash</span>
+                    </button>
+                  </td>
+                  <td>22</td>
+                  <td>
+                    <span class="mini-pill">Löschen</span><span class="mini-pill">Entfernen</span
+                    ><span class="mini-pill">Seite löschen</span
+                    ><span class="mini-pill">Wird gelöscht…</span
+                    ><span class="mini-pill">Wird gespeichert…</span
+                    ><span class="mini-pill">Template löschen</span
+                    ><span class="mini-pill">Schritt entfernen</span>
+                  </td>
+                  <td>
+                    <code>categories.editCard.deleteImage</code><br /><code
+                      >categories.card.delete</code
+                    ><br /><code>landingPage.heroBanner.removeImage</code><br /><code
+                      >content.editor.deletePage</code
+                    ><br /><code>common.delete</code><br /><code>shops.table.delete</code
+                    ><br /><code>submissions.deadLinks.delete</code><br /><code
+                      >submissions.shopReports.delete</code
+                    ><br /><span class="muted">+9 weitere</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">TableActionButton</span
+                    ><span class="mini-pill">EditorToolbarButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span><span class="mini-pill">h-8</span
+                    ><span class="mini-pill">h-9 (36px)</span><span class="mini-pill">h-9</span
+                    ><span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">h-8 (32px)</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="pluscircleicon neue kategorie spalte schriftgröße vergrößern neue seite wird erstellt… erstellen account hinzufügen neu lade hoch… dateien hochladen neuer domain-alert benutzer erstellen + benutzer einladen neues template neues formular hinzufügen categories.newcategory content.editor.increasefontsize content.pages.newpage content.pages.creating content.pages.create socialmedia.addaccounttitle content.markdownwidgets.newwidget media.uploading media.upload system.settings.domainalerts.newrule users.createcard.creating users.createcard.create users.inviteuser emailtemplates.newtemplate formbuilder.newform formbuilder.submission.addstepbutton socialmediatemplates.newtemplate button auto via py-1.5 auto via py-2 h-5 h-9 h-8 auto / content-based h-7"
+                >
+                  <td><code>PlusCircleIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"
+                        ></path></svg
+                      ><span>PlusCircle</span>
+                    </button>
+                  </td>
+                  <td>19</td>
+                  <td>
+                    <span class="mini-pill">Neue Kategorie</span
+                    ><span class="mini-pill">Spalte</span
+                    ><span class="mini-pill">Schriftgröße vergrößern</span
+                    ><span class="mini-pill">Neue Seite</span
+                    ><span class="mini-pill">Wird erstellt…</span
+                    ><span class="mini-pill">Erstellen</span
+                    ><span class="mini-pill">Account hinzufügen</span
+                    ><span class="mini-pill">Neu</span><span class="mini-pill">Lade hoch…</span
+                    ><span class="mini-pill">Dateien hochladen</span
+                    ><span class="mini-pill muted-pill">+6</span>
+                  </td>
+                  <td>
+                    <code>categories.newCategory</code><br /><code
+                      >content.editor.increaseFontSize</code
+                    ><br /><code>content.pages.newPage</code><br /><code
+                      >content.pages.creating</code
+                    ><br /><code>content.pages.create</code><br /><code
+                      >socialMedia.addAccountTitle</code
+                    ><br /><code>content.markdownWidgets.newWidget</code><br /><code
+                      >media.uploading</code
+                    ><br /><span class="muted">+9 weitere</span>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span
+                    ><span class="mini-pill">auto via py-2</span><span class="mini-pill">h-5</span
+                    ><span class="mini-pill">h-9</span><span class="mini-pill">h-8</span
+                    ><span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill muted-pill">+1</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="downloadicon wird gespeichert… speichern gespeichert template importieren importieren common.saving common.save content.editor.saved common.saved emailtemplates.save emailtemplates.importtemplate formbuilder.save formbuilder.importform socialmediatemplates.save button editortoolbarbutton auto via py-1.5 h-9 h-8 h-8 (32px)"
+                >
+                  <td><code>DownloadIcon</code></td>
+                  <td>
+                    <button class="demo-button primary" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M232,136v64a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V136a8,8,0,0,1,8-8H224A8,8,0,0,1,232,136Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M240,136v64a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V136a16,16,0,0,1,16-16H72a8,8,0,0,1,0,16H32v64H224V136H184a8,8,0,0,1,0-16h40A16,16,0,0,1,240,136Zm-117.66-2.34a8,8,0,0,0,11.32,0l48-48a8,8,0,0,0-11.32-11.32L136,108.69V24a8,8,0,0,0-16,0v84.69L85.66,74.34A8,8,0,0,0,74.34,85.66ZM200,168a12,12,0,1,0-12,12A12,12,0,0,0,200,168Z"
+                        ></path></svg
+                      ><span>Download</span>
+                    </button>
+                  </td>
+                  <td>17</td>
+                  <td>
+                    <span class="mini-pill">Wird gespeichert…</span
+                    ><span class="mini-pill">Speichern</span
+                    ><span class="mini-pill">Gespeichert</span
+                    ><span class="mini-pill">Template importieren</span
+                    ><span class="mini-pill">Importieren</span>
+                  </td>
+                  <td>
+                    <code>common.saving</code><br /><code>common.save</code><br /><code
+                      >content.editor.saved</code
+                    ><br /><code>common.saved</code><br /><code>emailTemplates.save</code
+                    ><br /><code>emailTemplates.importTemplate</code><br /><code
+                      >formBuilder.save</code
+                    ><br /><code>formBuilder.importForm</code><br /><span class="muted"
+                      >+1 weitere</span
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">EditorToolbarButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span><span class="mini-pill">h-9</span
+                    ><span class="mini-pill">h-8</span><span class="mini-pill">h-8 (32px)</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="checkcircleicon aus rotation entfernen für rotation aktivieren als aktives bild setzen … freischalten lösen landingpage.herobanner.markdeselected landingpage.herobanner.markselected landingpage.herobanner.markactive submissions.suggestions.approve system.backgrounderrors.resolveaction button editortoolbarbutton tableactionbutton h-8 h-9 h-8 (32px) h-9 (36px) size-7"
+                >
+                  <td><code>CheckCircleIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
+                        ></path></svg
+                      ><span>CheckCircle</span>
+                    </button>
+                  </td>
+                  <td>10</td>
+                  <td>
+                    <span class="mini-pill">Aus Rotation entfernen</span
+                    ><span class="mini-pill">Für Rotation aktivieren</span
+                    ><span class="mini-pill">Als aktives Bild setzen</span
+                    ><span class="mini-pill">…</span><span class="mini-pill">Freischalten</span
+                    ><span class="mini-pill">Lösen</span>
+                  </td>
+                  <td>
+                    <code>landingPage.heroBanner.markDeselected</code><br /><code
+                      >landingPage.heroBanner.markSelected</code
+                    ><br /><code>landingPage.heroBanner.markActive</code><br /><code
+                      >submissions.suggestions.approve</code
+                    ><br /><code>system.backgroundErrors.resolveAction</code>
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">EditorToolbarButton</span
+                    ><span class="mini-pill">TableActionButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">h-8</span><span class="mini-pill">h-9</span
+                    ><span class="mini-pill">h-8 (32px)</span
+                    ><span class="mini-pill">h-9 (36px)</span><span class="mini-pill">size-7</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="copyicon duplizieren übernehmen kopiert url kopieren link kopiert link kopieren common.duplicate shops.editcard.setimage media.copied media.copyurl users.createcard.invitecopied users.createcard.copyinvite button auto / content-based h-9 size-7"
+                >
+                  <td><code>CopyIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M216,40V168H168V88H88V40Z" opacity="0.2"></path>
+                        <path
+                          d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"
+                        ></path></svg
+                      ><span>Copy</span>
+                    </button>
+                  </td>
+                  <td>8</td>
+                  <td>
+                    <span class="mini-pill">Duplizieren</span
+                    ><span class="mini-pill">Übernehmen</span><span class="mini-pill">Kopiert</span
+                    ><span class="mini-pill">URL kopieren</span
+                    ><span class="mini-pill">Link kopiert</span
+                    ><span class="mini-pill">Link kopieren</span>
+                  </td>
+                  <td>
+                    <code>common.duplicate</code><br /><code>shops.editCard.setImage</code
+                    ><br /><code>media.copied</code><br /><code>media.copyUrl</code><br /><code
+                      >users.createCard.inviteCopied</code
+                    ><br /><code>users.createCard.copyInvite</code>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">h-9</span><span class="mini-pill">size-7</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="filetexticon bearbeiten ablehnung bearbeiten categories.card.edit common.edit submissions.suggestions.editrejectioninfo submissions.shopreports.edit submissions.suggestions.edit users.editcard.edittooltip formbuilder.editbutton button tableactionbutton editortoolbarbutton auto via py-1.5 h-9 (36px) h-8 (32px)"
+                >
+                  <td><code>FileTextIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M208,88H152V32Z" opacity="0.2"></path>
+                        <path
+                          d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"
+                        ></path></svg
+                      ><span>FileText</span>
+                    </button>
+                  </td>
+                  <td>7</td>
+                  <td>
+                    <span class="mini-pill">Bearbeiten</span
+                    ><span class="mini-pill">Ablehnung bearbeiten</span>
+                  </td>
+                  <td>
+                    <code>categories.card.edit</code><br /><code>common.edit</code><br /><code
+                      >submissions.suggestions.editRejectionInfo</code
+                    ><br /><code>submissions.shopReports.edit</code><br /><code
+                      >submissions.suggestions.edit</code
+                    ><br /><code>users.editCard.editTooltip</code><br /><code
+                      >formBuilder.editButton</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">TableActionButton</span
+                    ><span class="mini-pill">EditorToolbarButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto via py-1.5</span
+                    ><span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">h-8 (32px)</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="xcircleicon spalte entfernen ablehnen content.footerbuilder.removecolumn shops.editcard.rejectsubmit submissions.shopreports.reject submissions.suggestions.reject button editortoolbarbutton tableactionbutton auto / content-based auto via py-1.5 h-8 (32px) h-9 (36px)"
+                >
+                  <td><code>XCircleIcon</code></td>
+                  <td>
+                    <button class="demo-button danger" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M165.66,101.66,139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"
+                        ></path></svg
+                      ><span>XCircle</span>
+                    </button>
+                  </td>
+                  <td>6</td>
+                  <td>
+                    <span class="mini-pill">Spalte entfernen</span
+                    ><span class="mini-pill">Ablehnen</span>
+                  </td>
+                  <td>
+                    <code>content.footerBuilder.removeColumn</code><br /><code
+                      >shops.editCard.rejectSubmit</code
+                    ><br /><code>submissions.shopReports.reject</code><br /><code
+                      >submissions.suggestions.reject</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span
+                    ><span class="mini-pill">EditorToolbarButton</span
+                    ><span class="mini-pill">TableActionButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">auto via py-1.5</span
+                    ><span class="mini-pill">h-8 (32px)</span
+                    ><span class="mini-pill">h-9 (36px)</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="high"
+                  data-search="uploadicon exportieren alle exportieren emailtemplates.exporttemplate emailtemplates.exportall formbuilder.exportform formbuilder.exportall tableactionbutton button h-9 (36px) auto via py-1.5"
+                >
+                  <td><code>UploadIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M232,136v64a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V136a8,8,0,0,1,8-8H224A8,8,0,0,1,232,136Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M240,136v64a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V136a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H32v64H224V136H176a8,8,0,0,1,0-16h48A16,16,0,0,1,240,136ZM85.66,77.66,120,43.31V128a8,8,0,0,0,16,0V43.31l34.34,34.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,77.66ZM200,168a12,12,0,1,0-12,12A12,12,0,0,0,200,168Z"
+                        ></path></svg
+                      ><span>Upload</span>
+                    </button>
+                  </td>
+                  <td>5</td>
+                  <td>
+                    <span class="mini-pill">Exportieren</span
+                    ><span class="mini-pill">Alle exportieren</span>
+                  </td>
+                  <td>
+                    <code>emailTemplates.exportTemplate</code><br /><code
+                      >emailTemplates.exportAll</code
+                    ><br /><code>formBuilder.exportForm</code><br /><code
+                      >formBuilder.exportAll</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">TableActionButton</span
+                    ><span class="mini-pill">button</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">h-9 (36px)</span
+                    ><span class="mini-pill">auto via py-1.5</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="arrowcounterclockwiseicon wiederherstellen behalten auf neu setzen shops.table.restore submissions.shopreports.done submissions.suggestions.settoopen submissions.suggestions.restore editortoolbarbutton tableactionbutton h-8 (32px) h-9 (36px)"
+                >
+                  <td><code>ArrowCounterClockwiseIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,128a88,88,0,1,1-88-88A88,88,0,0,1,216,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"
+                        ></path></svg
+                      ><span>ArrowCounterClockwise</span>
+                    </button>
+                  </td>
+                  <td>4</td>
+                  <td>
+                    <span class="mini-pill">Wiederherstellen</span
+                    ><span class="mini-pill">Behalten</span
+                    ><span class="mini-pill">Auf Neu setzen</span>
+                  </td>
+                  <td>
+                    <code>shops.table.restore</code><br /><code>submissions.shopReports.done</code
+                    ><br /><code>submissions.suggestions.setToOpen</code><br /><code
+                      >submissions.suggestions.restore</code
+                    >
+                  </td>
+                  <td>
+                    <span class="mini-pill">EditorToolbarButton</span
+                    ><span class="mini-pill">TableActionButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">h-8 (32px)</span
+                    ><span class="mini-pill">h-9 (36px)</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="caretcircledoubledownicon alles aufklappen alles zuklappen alle gruppen zuklappen alle gruppen aufklappen layout.sidebar.expandall layout.sidebar.collapseall layout.sidebar.collapseallaria layout.sidebar.expandallaria button h-8"
+                >
+                  <td><code>CaretCircleDoubleDownIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M195.88,195.88a96,96,0,1,1,0-135.76A96,96,0,0,1,195.88,195.88Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M201.54,54.46A104,104,0,0,0,54.46,201.54,104,104,0,0,0,201.54,54.46ZM190.23,190.23a88,88,0,1,1,0-124.46A88.11,88.11,0,0,1,190.23,190.23ZM165.66,82.34a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L128,108.69l26.34-26.35A8,8,0,0,1,165.66,82.34Zm0,56a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L128,164.69l26.34-26.35A8,8,0,0,1,165.66,138.34Z"
+                        ></path></svg
+                      ><span>CaretCircleDoubleDown</span>
+                    </button>
+                  </td>
+                  <td>4</td>
+                  <td>
+                    <span class="mini-pill">Alles aufklappen</span
+                    ><span class="mini-pill">Alles zuklappen</span
+                    ><span class="mini-pill">Alle Gruppen zuklappen</span
+                    ><span class="mini-pill">Alle Gruppen aufklappen</span>
+                  </td>
+                  <td>
+                    <code>layout.sidebar.expandAll</code><br /><code
+                      >layout.sidebar.collapseAll</code
+                    ><br /><code>layout.sidebar.collapseAllAria</code><br /><code
+                      >layout.sidebar.expandAllAria</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="caretcircledoubleupicon alles aufklappen alles zuklappen alle gruppen zuklappen alle gruppen aufklappen layout.sidebar.expandall layout.sidebar.collapseall layout.sidebar.collapseallaria layout.sidebar.expandallaria button h-8"
+                >
+                  <td><code>CaretCircleDoubleUpIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M195.88,195.88a96,96,0,1,1,0-135.76A96,96,0,0,1,195.88,195.88Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M201.54,54.46A104,104,0,0,0,54.46,201.54,104,104,0,0,0,201.54,54.46ZM190.23,190.23a88,88,0,1,1,0-124.46A88.11,88.11,0,0,1,190.23,190.23Zm-24.57-27.89a8,8,0,0,1-11.32,11.32L128,147.31l-26.34,26.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Zm0-56a8,8,0,0,1-11.32,11.32L128,91.31l-26.34,26.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z"
+                        ></path></svg
+                      ><span>CaretCircleDoubleUp</span>
+                    </button>
+                  </td>
+                  <td>4</td>
+                  <td>
+                    <span class="mini-pill">Alles aufklappen</span
+                    ><span class="mini-pill">Alles zuklappen</span
+                    ><span class="mini-pill">Alle Gruppen zuklappen</span
+                    ><span class="mini-pill">Alle Gruppen aufklappen</span>
+                  </td>
+                  <td>
+                    <code>layout.sidebar.expandAll</code><br /><code
+                      >layout.sidebar.collapseAll</code
+                    ><br /><code>layout.sidebar.collapseAllAria</code><br /><code
+                      >layout.sidebar.expandAllAria</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="caretlefticon seiten e-mail-templates formulare social media templates content.pages.title emailtemplates.listtitle formbuilder.listtitle socialmediatemplates.listtitle headerbackbutton auto, no fixed height"
+                >
+                  <td><code>CaretLeftIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M160,48V208L80,128Z" opacity="0.2"></path>
+                        <path
+                          d="M163.06,40.61a8,8,0,0,0-8.72,1.73l-80,80a8,8,0,0,0,0,11.32l80,80A8,8,0,0,0,168,208V48A8,8,0,0,0,163.06,40.61ZM152,188.69,91.31,128,152,67.31Z"
+                        ></path></svg
+                      ><span>CaretLeft</span>
+                    </button>
+                  </td>
+                  <td>4</td>
+                  <td>
+                    <span class="mini-pill">Seiten</span
+                    ><span class="mini-pill">E-Mail-Templates</span
+                    ><span class="mini-pill">Formulare</span
+                    ><span class="mini-pill">Social Media Templates</span>
+                  </td>
+                  <td>
+                    <code>content.pages.title</code><br /><code>emailTemplates.listTitle</code
+                    ><br /><code>formBuilder.listTitle</code><br /><code
+                      >socialMediaTemplates.listTitle</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">HeaderBackButton</span></td>
+                  <td><span class="mini-pill">auto, no fixed height</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="caretdownicon weniger anzeigen alle anzeigen plattform wählen dashboard.analytics.showlessrows dashboard.analytics.showallrows socialmedia.platformpickerlabel button auto / content-based h-9"
+                >
+                  <td><code>CaretDownIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M208,96l-80,80L48,96Z" opacity="0.2"></path>
+                        <path
+                          d="M215.39,92.94A8,8,0,0,0,208,88H48a8,8,0,0,0-5.66,13.66l80,80a8,8,0,0,0,11.32,0l80-80A8,8,0,0,0,215.39,92.94ZM128,164.69,67.31,104H188.69Z"
+                        ></path></svg
+                      ><span>CaretDown</span>
+                    </button>
+                  </td>
+                  <td>3</td>
+                  <td>
+                    <span class="mini-pill">Weniger anzeigen</span
+                    ><span class="mini-pill">Alle anzeigen</span
+                    ><span class="mini-pill">Plattform wählen</span>
+                  </td>
+                  <td>
+                    <code>dashboard.analytics.showLessRows</code><br /><code
+                      >dashboard.analytics.showAllRows</code
+                    ><br /><code>socialMedia.platformPickerLabel</code>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td>
+                    <span class="mini-pill">auto / content-based</span
+                    ><span class="mini-pill">h-9</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="circleicon aus rotation entfernen für rotation aktivieren als aktives bild setzen landingpage.herobanner.markdeselected landingpage.herobanner.markselected landingpage.herobanner.markactive button h-8"
+                >
+                  <td><code>CircleIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"
+                        ></path></svg
+                      ><span>Circle</span>
+                    </button>
+                  </td>
+                  <td>3</td>
+                  <td>
+                    <span class="mini-pill">Aus Rotation entfernen</span
+                    ><span class="mini-pill">Für Rotation aktivieren</span
+                    ><span class="mini-pill">Als aktives Bild setzen</span>
+                  </td>
+                  <td>
+                    <code>landingPage.heroBanner.markDeselected</code><br /><code
+                      >landingPage.heroBanner.markSelected</code
+                    ><br /><code>landingPage.heroBanner.markActive</code>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-8</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="uploadsimpleicon json importieren exportieren shopformi18n.messages.jsonimportfilelabel shops.exportlabel submissions.suggestions.exportlabel button exportbutton h-9 h-9 (36px)"
+                >
+                  <td><code>UploadSimpleIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,48V208H40V48A16,16,0,0,1,56,32H200A16,16,0,0,1,216,48Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0ZM93.66,77.66,120,51.31V144a8,8,0,0,0,16,0V51.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,77.66Z"
+                        ></path></svg
+                      ><span>UploadSimple</span>
+                    </button>
+                  </td>
+                  <td>3</td>
+                  <td>
+                    <span class="mini-pill">JSON importieren</span
+                    ><span class="mini-pill">Exportieren</span>
+                  </td>
+                  <td>
+                    <code>shopFormI18n.messages.jsonImportFileLabel</code><br /><code
+                      >shops.exportLabel</code
+                    ><br /><code>submissions.suggestions.exportLabel</code>
+                  </td>
+                  <td>
+                    <span class="mini-pill">button</span><span class="mini-pill">ExportButton</span>
+                  </td>
+                  <td>
+                    <span class="mini-pill">h-9</span><span class="mini-pill">h-9 (36px)</span>
+                  </td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="activebadge deaktivieren aktivieren formbuilder.status.deactivate formbuilder.status.activate button auto / content-based"
+                >
+                  <td><code>ActiveBadge</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <span class="fallback-icon">Ac</span><span>ActiveBadge</span>
+                    </button>
+                  </td>
+                  <td>2</td>
+                  <td>
+                    <span class="mini-pill">Deaktivieren</span
+                    ><span class="mini-pill">Aktivieren</span>
+                  </td>
+                  <td>
+                    <code>formBuilder.status.deactivate</code><br /><code
+                      >formBuilder.status.activate</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">auto / content-based</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="downloadsimpleicon importieren shops.importlabel submissions.suggestions.importlabel importbutton h-9 (36px)"
+                >
+                  <td><code>DownloadSimpleIcon</code></td>
+                  <td>
+                    <button class="demo-button primary" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,48V208H40V48A16,16,0,0,1,56,32H200A16,16,0,0,1,216,48Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"
+                        ></path></svg
+                      ><span>DownloadSimple</span>
+                    </button>
+                  </td>
+                  <td>2</td>
+                  <td><span class="mini-pill">Importieren</span></td>
+                  <td>
+                    <code>shops.importLabel</code><br /><code
+                      >submissions.suggestions.importLabel</code
+                    >
+                  </td>
+                  <td><span class="mini-pill">ImportButton</span></td>
+                  <td><span class="mini-pill">h-9 (36px)</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="floppydiskicon wird gespeichert… speichern common.saving common.save button h-9"
+                >
+                  <td><code>FloppyDiskIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M216,83.31V208a8,8,0,0,1-8,8H176V152a8,8,0,0,0-8-8H88a8,8,0,0,0-8,8v64H48a8,8,0,0,1-8-8V48a8,8,0,0,1,8-8H172.69a8,8,0,0,1,5.65,2.34l35.32,35.32A8,8,0,0,1,216,83.31Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M219.31,72,184,36.69A15.86,15.86,0,0,0,172.69,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V83.31A15.86,15.86,0,0,0,219.31,72ZM168,208H88V152h80Zm40,0H184V152a16,16,0,0,0-16-16H88a16,16,0,0,0-16,16v56H48V48H172.69L208,83.31ZM160,72a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h56A8,8,0,0,1,160,72Z"
+                        ></path></svg
+                      ><span>FloppyDisk</span>
+                    </button>
+                  </td>
+                  <td>2</td>
+                  <td>
+                    <span class="mini-pill">Wird gespeichert…</span
+                    ><span class="mini-pill">Speichern</span>
+                  </td>
+                  <td><code>common.saving</code><br /><code>common.save</code></td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">h-9</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="listicon menü öffnen spalte verschieben layout.menuopen content.footerbuilder.movecolumn button auto / content-based"
+                >
+                  <td><code>ListIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path d="M216,64V192H40V64Z" opacity="0.2"></path>
+                        <path
+                          d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"
+                        ></path></svg
+                      ><span>List</span>
+                    </button>
+                  </td>
+                  <td>2</td>
+                  <td>
+                    <span class="mini-pill">Menü öffnen</span
+                    ><span class="mini-pill">Spalte verschieben</span>
+                  </td>
+                  <td>
+                    <code>layout.menuOpen</code><br /><code>content.footerBuilder.moveColumn</code>
+                  </td>
+                  <td><span class="mini-pill">button</span></td>
+                  <td><span class="mini-pill">auto / content-based</span></td>
+                </tr>
+                <tr
+                  data-kind="icons"
+                  data-priority="medium"
+                  data-search="pencilsimpleicon bearbeiten common.edit system.settings.domainalerts.editrule tableactionbutton h-9 (36px)"
+                >
+                  <td><code>PencilSimpleIcon</code></td>
+                  <td>
+                    <button class="demo-button neutral" type="button">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="1em"
+                        height="1em"
+                        fill="currentColor"
+                        viewBox="0 0 256 256"
+                        class="button-icon"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M221.66,90.34,192,120,136,64l29.66-29.66a8,8,0,0,1,11.31,0L221.66,79A8,8,0,0,1,221.66,90.34Z"
+                          opacity="0.2"
+                        ></path>
+                        <path
+                          d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"
+                        ></path></svg
+                      ><span>PencilSimple</span>
+                    </button>
+                  </td>
+                  <td>2</td>
+                  <td><span class="mini-pill">Bearbeiten</span></td>
+                  <td>
+                    <code>common.edit</code><br /><code>system.settings.domainAlerts.editRule</code>
+                  </td>
+                  <td><span class="mini-pill">TableActionButton</span></td>
+                  <td><span class="mini-pill">h-9 (36px)</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel pad" style="margin-top: 18px">
+          <div class="panel-header" style="margin: -18px -18px 16px">
+            <div>
+              <h2>Migrationsplan</h2>
+              <p>
+                Reihenfolge mit minimalem Risiko: erst Primitive, Hoehe und Farben, dann Semantik,
+                dann Key-Aufraeumen.
+              </p>
+            </div>
+          </div>
+          <div class="phase-grid">
+            <article class="phase-card">
+              <span class="phase-num">1</span>
+              <h3>Button-Primitive mit h-7 Default einführen</h3>
+              <p>
+                Neuer `DashboardButton` plus `DashboardIconButton` als einzige visuelle Basis fuer
+                Action-Buttons. Default ist `h-7`; icon-only Default ist `size-7`; Farben kommen aus
+                zentralen Variant-Tokens.
+              </p>
+              <p><code>apps/dashboard/src/components/ui/DashboardButton.tsx</code></p>
+              <div class="risk">
+                Niedrig, wenn zuerst bestehende TableActionButton/EditorToolbarButton intern
+                umgestellt werden.
+              </div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">2</span>
+              <h3>Bestehende Buttons auf Default-Hoehe und Ausnahmen mappen</h3>
+              <p>
+                `TableActionButton`, `ImportButton`, `ExportButton`, `HeaderBackButton` und rohe
+                Action-Buttons auf den neuen Default `h-7` bzw. `size-7` normalisieren; echte
+                Sonderfaelle einer dokumentierten Ausnahme zuordnen.
+              </p>
+              <p><code>components/ui/*Button.tsx und danach Feature-Dateien</code></p>
+              <div class="risk">
+                Mittel: Dialogfooter und enge Toolbar-Bereiche muessen visuell geprueft werden.
+              </div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">3</span>
+              <h3>Action- und Farb-Katalog aufbauen</h3>
+              <p>
+                `ACTION_BUTTONS` mappt generische Actions auf Label-Key, Icon, Farbrolle,
+                Default-Hoehe, Default-Aria und erlaubte Ausnahme.
+              </p>
+              <p><code>components/ui/action-buttons.tsx, i18n/messages.ts</code></p>
+              <div class="risk">Mittel: i18n-Vertrag muss DE/EN vollstaendig bleiben.</div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">4</span>
+              <h3>High-duplication Migration</h3>
+              <p>
+                Zuerst Save/Delete/Edit/Import/Export/Create, danach Workflow- und Konfliktbuttons.
+              </p>
+              <p>
+                <code
+                  >features/content, features/overview, features/system, features/templates</code
+                >
+              </p>
+              <div class="risk">Mittel bis hoch wegen grossem Beruehrungsumfang.</div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">5</span>
+              <h3>Dead keys entfernen</h3>
+              <p>
+                Nicht mehr referenzierte Label-Keys aus `DashboardMessages`, `de` und `en`
+                entfernen.
+              </p>
+              <p><code>apps/dashboard/src/i18n/messages.ts</code></p>
+              <div class="risk">Mittel: Typecheck muss fehlende Keys sofort sichtbar machen.</div>
+            </article>
+            <article class="phase-card">
+              <span class="phase-num">6</span>
+              <h3>QA und Regression</h3>
+              <p>
+                Typecheck, Lint, relevante UI-Screens, Screenshot-Vergleich fuer Dialoge, Tabellen,
+                Toolbar, Header und Farbrollen.
+              </p>
+              <p><code>npm/pnpm scripts plus Browser/Playwright</code></p>
+              <div class="risk">Niedrig, wenn jede Migrationsscheibe separat verifiziert wird.</div>
+            </article>
+          </div>
+        </section>
+        <div id="empty" class="empty">Keine Eintraege passen zu den aktuellen Filtern.</div>
+      </main>
+    </div>
+    <script>
+      const search = document.querySelector("#search");
+      const view = document.querySelector("#view");
+      const priority = document.querySelector("#priority");
+      const rows = Array.from(document.querySelectorAll("tbody tr"));
+      const sections = Array.from(document.querySelectorAll("[data-section]"));
+      const count = document.querySelector("#resultCount");
+      const empty = document.querySelector("#empty");
+      const hero = document.querySelector(".hero");
+      function updateStickyOffset() {
+        document.documentElement.style.setProperty(
+          "--sticky-table-top",
+          `${hero.getBoundingClientRect().height - 1}px`,
+        );
+      }
+      function scheduleStickyOffsetUpdate() {
+        requestAnimationFrame(updateStickyOffset);
+      }
+      function applyFilters() {
+        const q = search.value.trim().toLowerCase();
+        const selectedView = view.value;
+        const selectedPriority = priority.value;
+        let visible = 0;
+        for (const row of rows) {
+          const matchesKind = selectedView === "all" || row.dataset.kind === selectedView;
+          const matchesPriority = !selectedPriority || row.dataset.priority === selectedPriority;
+          const matchesSearch = !q || row.dataset.search.includes(q);
+          const show = matchesKind && matchesPriority && matchesSearch;
+          row.hidden = !show;
+          if (show) visible += 1;
+        }
+        for (const section of sections) {
+          section.hidden = selectedView !== "all" && section.dataset.section !== selectedView;
+        }
+        count.textContent = visible + " / " + rows.length + " sichtbar";
+        empty.classList.toggle("visible", visible === 0);
+      }
+      search.addEventListener("input", applyFilters);
+      view.addEventListener("change", applyFilters);
+      priority.addEventListener("change", applyFilters);
+      window.addEventListener("resize", scheduleStickyOffsetUpdate);
+      if ("ResizeObserver" in window) {
+        new ResizeObserver(scheduleStickyOffsetUpdate).observe(hero);
+      }
+      if (document.fonts) {
+        document.fonts.ready.then(scheduleStickyOffsetUpdate);
+      }
+      updateStickyOffset();
+      applyFilters();
+      scheduleStickyOffsetUpdate();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1709 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard UI Konsolidierungsplan</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --surface: #ffffff;
+        --surface-2: #f9fbfe;
+        --surface-3: #eef3f8;
+        --text: #161a1f;
+        --muted: #58616d;
+        --subtle: #7b8491;
+        --border: #d8dee8;
+        --border-soft: #e8edf3;
+        --primary: #007c9d;
+        --primary-soft: #e5f7fb;
+        --success: #287a3e;
+        --success-soft: #e8f6ed;
+        --danger: #c5323c;
+        --danger-soft: #fdecef;
+        --warning: #a15f00;
+        --warning-soft: #fff2d2;
+        --violet: #6653c7;
+        --violet-soft: #f0edff;
+        --radius: 8px;
+        --shadow: 0 18px 46px rgb(22 26 31 / 0.08);
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #ffffff 0, var(--bg) 320px), var(--bg);
+        color: var(--text);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        font-size: 16px;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      code {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.86em;
+        color: #25303b;
+      }
+
+      .page {
+        width: min(1540px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 34px 0 52px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+        gap: 28px;
+        align-items: end;
+        padding: 12px 0 22px;
+      }
+
+      .kicker {
+        margin: 0 0 10px;
+        color: var(--primary);
+        font-size: 12px;
+        line-height: 1;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 920px;
+        font-size: clamp(42px, 6vw, 86px);
+        line-height: 0.92;
+        letter-spacing: 0;
+        font-weight: 780;
+      }
+
+      .lead {
+        margin: 18px 0 0;
+        max-width: 900px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.55;
+      }
+
+      .hero-card {
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--surface) 92%, var(--primary-soft));
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+      }
+
+      .hero-card h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+        line-height: 1.25;
+      }
+
+      .hero-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin: 18px 0 20px;
+      }
+
+      .metric {
+        min-height: 108px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 16px;
+        box-shadow: 0 8px 28px rgb(22 26 31 / 0.045);
+        padding: 16px;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 34px;
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 9px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.38;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: minmax(280px, 1fr) 240px 210px auto;
+        gap: 10px;
+        align-items: center;
+        margin: 0 0 18px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--surface) 90%, var(--surface-2));
+        box-shadow: 0 8px 24px rgb(22 26 31 / 0.045);
+      }
+
+      .control {
+        height: 32px;
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--text);
+        padding: 0 10px;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+      }
+
+      .result-count {
+        color: var(--muted);
+        font-size: 13px;
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .two-col {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        align-items: start;
+      }
+
+      .panel {
+        overflow: visible;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        margin: 0 0 18px;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border-soft);
+        background: var(--surface-2);
+        border-radius: 18px 18px 0 0;
+      }
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+
+      .panel-header p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .panel-body {
+        padding: 18px;
+      }
+
+      .decision-list {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .decision-list li {
+        display: grid;
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-weight: 800;
+        font-size: 13px;
+      }
+
+      .preview-board {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .preview {
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        background: linear-gradient(180deg, #fff, var(--surface-2));
+        padding: 13px;
+        min-height: 106px;
+      }
+
+      .preview h3 {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.2;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .demo-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        flex-wrap: wrap;
+      }
+
+      .glyph {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        border-radius: 4px;
+        font-size: 10px;
+        line-height: 1;
+        font-weight: 800;
+      }
+
+      .demo-button {
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--muted);
+        padding: 0 10px;
+        font-size: 12px;
+        line-height: 16px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .demo-button.primary {
+        border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+        color: var(--primary);
+        background: var(--primary-soft);
+      }
+
+      .field-demo,
+      .select-demo,
+      .stepper-demo {
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 190px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--text);
+        padding: 0 10px;
+        font-size: 13px;
+      }
+
+      .field-demo:focus-within,
+      .select-demo:focus-within,
+      .stepper-demo:focus-within,
+      .segment-demo button:focus-visible,
+      .tab-demo button:focus-visible,
+      .toggle-field:focus-visible,
+      .sort-demo:focus-visible,
+      .drag-demo:focus-visible,
+      .menu-item:focus-visible,
+      .demo-button:focus-visible {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+      }
+
+      .field-demo input {
+        width: 138px;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+      }
+
+      .field-demo .glyph,
+      .select-demo .glyph {
+        color: var(--subtle);
+      }
+
+      .select-demo {
+        position: relative;
+        justify-content: space-between;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .select-demo .glyph {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .select-demo select {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        outline: 0;
+        appearance: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        padding: 0 30px 0 32px;
+      }
+
+      .select-demo .chevron {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: var(--muted);
+      }
+
+      .segment-demo {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px;
+        border-radius: var(--radius);
+        background: var(--surface-3);
+        border: 1px solid var(--border-soft);
+      }
+
+      .segment-demo button {
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        border: 0;
+        border-radius: 6px;
+        padding: 0 10px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .tab-demo button {
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 0;
+        border-radius: 7px 7px 0 0;
+        padding: 0 14px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .segment-demo .active {
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: 0 1px 4px rgb(22 26 31 / 0.1);
+      }
+
+      .tab-demo {
+        display: inline-flex;
+        align-items: end;
+        min-height: 36px;
+        border-bottom: 1px solid var(--border);
+        gap: 4px;
+      }
+
+      .tab-demo .active {
+        color: var(--primary);
+        background: color-mix(in srgb, var(--primary-soft) 52%, white);
+        box-shadow: inset 0 -3px 0 var(--primary);
+      }
+
+      .toggle-field {
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 0;
+        border-radius: var(--radius);
+        background: transparent;
+        color: var(--text);
+        padding: 0;
+        font-size: 13px;
+        font-weight: 620;
+        cursor: pointer;
+      }
+
+      .switch {
+        width: 36px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--primary);
+        padding: 2px;
+        display: inline-flex;
+        justify-content: flex-end;
+      }
+
+      .toggle-field:not(.is-on) .switch {
+        justify-content: flex-start;
+        background: var(--border);
+      }
+
+      .switch span {
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgb(22 26 31 / 0.22);
+      }
+
+      .sort-demo {
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        padding: 0;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+      }
+
+      .drag-demo {
+        width: 28px;
+        height: 28px;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--muted);
+        background: var(--surface);
+        padding: 0;
+        line-height: 0;
+        cursor: grab;
+      }
+
+      .drag-demo.is-active {
+        border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .drag-icon {
+        width: 14px;
+        height: 14px;
+        display: block;
+        overflow: visible;
+      }
+
+      .drag-icon circle {
+        fill: currentColor;
+      }
+
+      .menu-item {
+        height: 32px;
+        min-width: 190px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        border-radius: 6px;
+        border: 0;
+        color: var(--text);
+        background: var(--surface-2);
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .menu-item.is-active {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .stepper-demo {
+        min-width: 134px;
+        justify-content: space-between;
+        padding-inline: 4px;
+      }
+
+      .stepper-demo button {
+        width: 24px;
+        height: 24px;
+        display: inline-grid;
+        place-items: center;
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 23px;
+        margin: 2px 4px 2px 0;
+        padding: 2px 8px;
+        border: 1px solid var(--border-soft);
+        border-radius: 999px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+        white-space: nowrap;
+      }
+
+      .pill.high {
+        background: var(--danger-soft);
+        color: var(--danger);
+        border-color: color-mix(in srgb, var(--danger) 24%, var(--border));
+      }
+      .pill.medium {
+        background: var(--warning-soft);
+        color: var(--warning);
+        border-color: color-mix(in srgb, var(--warning) 24%, var(--border));
+      }
+      .pill.low {
+        background: var(--success-soft);
+        color: var(--success);
+        border-color: color-mix(in srgb, var(--success) 24%, var(--border));
+      }
+      .pill.foundation {
+        background: var(--violet-soft);
+        color: var(--violet);
+        border-color: color-mix(in srgb, var(--violet) 24%, var(--border));
+      }
+
+      .table-wrap {
+        overflow: visible;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: #eef2f7;
+        box-shadow:
+          0 1px 0 var(--border),
+          0 10px 18px rgb(22 26 31 / 0.08);
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.2;
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-soft);
+        vertical-align: top;
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      tbody tr:nth-child(even) td {
+        background: color-mix(in srgb, var(--surface-2) 62%, white);
+      }
+
+      tbody tr:hover td {
+        background: #fbfdff;
+      }
+
+      .ref {
+        display: inline-block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .phase-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .phase-card {
+        border: 1px solid var(--border-soft);
+        background: var(--surface);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .phase-card strong {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        margin-bottom: 10px;
+        border-radius: 999px;
+        background: var(--text);
+        color: white;
+        font-size: 12px;
+      }
+
+      .phase-card h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        line-height: 1.25;
+      }
+
+      .phase-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .empty {
+        display: none;
+        padding: 34px;
+        text-align: center;
+        color: var(--muted);
+        border: 1px dashed var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+      }
+
+      .empty.visible {
+        display: block;
+      }
+
+      @media (max-width: 1100px) {
+        .hero,
+        .two-col,
+        .metrics,
+        .phase-grid,
+        .preview-board {
+          grid-template-columns: 1fr;
+        }
+        .toolbar {
+          grid-template-columns: 1fr 1fr;
+        }
+        .result-count {
+          text-align: left;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          width: min(100vw - 24px, 1540px);
+          padding-top: 22px;
+        }
+        .toolbar {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 42px;
+        }
+        .lead {
+          font-size: 16px;
+        }
+        .panel-header {
+          align-items: start;
+          flex-direction: column;
+        }
+        .table-wrap {
+          overflow-x: auto;
+        }
+        table {
+          min-width: 920px;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div>
+          <p class="kicker">Konsolidierungsplan</p>
+          <h1>Dashboard UI Component Consolidation</h1>
+          <p class="lead">
+            Gesamtplan fuer Select-Optionen, Tabs, Toggles, Table-Sort-Header, Drag-Handles,
+            Dropdown-Items, Eingabefelder, Stepper und shared Primitive-Internals. Der Button-Plan
+            bleibt Action-spezifisch:
+            <code>h-7</code> fuer Actions, <code>h-8</code> fuer Standard-Controls.
+          </p>
+        </div>
+        <aside class="hero-card">
+          <h2>Orchestrator-Entscheid</h2>
+          <p>
+            <code>h-9</code> ist im Code ein aktueller Ist-Zustand, aber kein neuer Standard.
+            Abweichungen werden spaeter explizite Komponenten-Ausnahmen.
+          </p>
+          <div class="theme-slot" data-dashboard-theme-slot></div>
+          <p class="overview-link">
+            <a href="index.html">Zur UI-Konsolidierungsübersicht</a>
+          </p>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="Inventar">
+        <div class="metric">
+          <strong>107</strong><span>rohe Input-Fundstellen in Dashboard und `@lmaa/ui`.</span>
+        </div>
+        <div class="metric">
+          <strong>17</strong><span>sichtbare native Selects mit lokalen Klassen.</span>
+        </div>
+        <div class="metric">
+          <strong>64</strong><span>Dropdown/Menu/Select-artige Referenzen.</span>
+        </div>
+        <div class="metric">
+          <strong>190</strong><span>DND/Drag-Referenzen inklusive Handles und Sortables.</span>
+        </div>
+      </section>
+
+      <section class="toolbar" aria-label="Filter">
+        <input
+          id="search"
+          class="control"
+          type="search"
+          placeholder="Suchen: Primitive, Datei, Drift, Hoehe..."
+          autocomplete="off"
+        />
+        <select
+          id="area"
+          class="control native-control-hidden"
+          aria-label="Bereich"
+          data-custom-select-height="32px"
+        >
+          <option value="">Alle Bereiche</option>
+          <option value="forms">Formulare</option>
+          <option value="selection">Auswahl & Navigation</option>
+          <option value="lists">Listen & Tabellen</option>
+          <option value="foundation">Shared Foundation</option>
+        </select>
+        <select
+          id="priority"
+          class="control native-control-hidden"
+          aria-label="Prioritaet"
+          data-custom-select-height="32px"
+        >
+          <option value="">Alle Prioritaeten</option>
+          <option value="high">Hoch</option>
+          <option value="medium">Mittel</option>
+          <option value="low">Niedrig</option>
+        </select>
+        <div id="resultCount" class="result-count"></div>
+      </section>
+
+      <section class="grid two-col">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Gemeinsame Regeln</h2>
+              <p>Eine UI-Sprache statt lokaler Feature-Klassen.</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <ul class="decision-list">
+              <li>
+                <span class="check">1</span
+                ><span
+                  >Action-Buttons bleiben im Button-Plan: <code>h-7</code> oder
+                  <code>size-7</code>.</span
+                >
+              </li>
+              <li>
+                <span class="check">2</span
+                ><span
+                  >Standard-Felder, Select-Trigger und Combobox-Trigger werden <code>h-8</code>;
+                  sichtbare Auswahlfelder sind immer Custom-Listboxen mit Dashboard-Caret.</span
+                >
+              </li>
+              <li>
+                <span class="check">3</span
+                ><span
+                  >Dropdown-, Select- und Menu-Items werden <code>h-8</code>; kompakte
+                  Table-/Toolbar-Ausnahmen <code>h-7</code>.</span
+                >
+              </li>
+              <li>
+                <span class="check">4</span
+                ><span
+                  >Fokus, Radius, Farben, Disabled, Hover und Overlay-Z-Index kommen aus
+                  Tokens.</span
+                >
+              </li>
+              <li>
+                <span class="check">5</span
+                ><span
+                  >Tabs, Sort-Header, Drag-Handles, Menueitems und Toggles sind keine
+                  `DashboardActionButton`-Varianten.</span
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Ziel-Controls gerendert</h2>
+              <p>Pixelgenaue Ziel-Hoehen fuer die wichtigsten Primitives.</p>
+            </div>
+          </div>
+          <div class="panel-body preview-board">
+            <div class="preview">
+              <h3>Action Button, h-7</h3>
+              <div class="demo-row">
+                <button class="demo-button primary" type="button" data-demo-action>
+                  <span class="glyph">S</span><span data-action-label>Speichern</span></button
+                ><span class="pill">28px</span>
+              </div>
+            </div>
+            <div class="preview">
+              <h3>Input Field, h-8</h3>
+              <div class="demo-row">
+                <label class="field-demo">
+                  <span class="glyph" aria-hidden="true">T</span>
+                  <input type="text" value="Titel bearbeiten" aria-label="Titel bearbeiten Demo" />
+                </label>
+                <span class="pill">32px</span>
+              </div>
+            </div>
+            <div class="preview">
+              <h3>Select Trigger, h-8</h3>
+              <div class="demo-row">
+                <div
+                  class="dashboard-custom-select"
+                  data-custom-select
+                  data-size="h8"
+                  data-value="visibility"
+                >
+                  <button
+                    class="dashboard-custom-select-trigger"
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="visibility-demo-listbox"
+                    aria-label="Sichtbarkeit Demo"
+                  >
+                    <span class="dashboard-custom-select-option-icon" aria-hidden="true">F</span>
+                    <span class="dashboard-custom-select-label" data-custom-select-label
+                      >Sichtbarkeit</span
+                    >
+                    <span data-custom-select-caret aria-hidden="true"></span>
+                  </button>
+                  <div
+                    class="dashboard-custom-select-panel"
+                    id="visibility-demo-listbox"
+                    role="listbox"
+                    hidden
+                  >
+                    <div class="dashboard-custom-select-options">
+                      <button
+                        class="dashboard-custom-select-option"
+                        type="button"
+                        role="option"
+                        data-select-option
+                        data-value="visibility"
+                        aria-selected="true"
+                      >
+                        <span class="dashboard-custom-select-option-label">Sichtbarkeit</span>
+                      </button>
+                      <button
+                        class="dashboard-custom-select-option"
+                        type="button"
+                        role="option"
+                        data-select-option
+                        data-value="published"
+                        aria-selected="false"
+                      >
+                        <span class="dashboard-custom-select-option-label">Veröffentlicht</span>
+                      </button>
+                      <button
+                        class="dashboard-custom-select-option"
+                        type="button"
+                        role="option"
+                        data-select-option
+                        data-value="draft"
+                        aria-selected="false"
+                      >
+                        <span class="dashboard-custom-select-option-label">Entwurf</span>
+                      </button>
+                      <button
+                        class="dashboard-custom-select-option"
+                        type="button"
+                        role="option"
+                        data-select-option
+                        data-value="archived"
+                        aria-selected="false"
+                      >
+                        <span class="dashboard-custom-select-option-label">Archiviert</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="preview">
+              <h3>Segment, compact</h3>
+              <div class="segment-demo" role="group" aria-label="Demo Segment">
+                <button class="active" type="button" aria-pressed="true" data-demo-segment>
+                  <span class="glyph">D</span>DE</button
+                ><button type="button" aria-pressed="false" data-demo-segment>
+                  <span class="glyph">E</span>EN
+                </button>
+              </div>
+            </div>
+            <div class="preview">
+              <h3>Tabs, default h-8</h3>
+              <div class="tab-demo" role="tablist">
+                <button
+                  class="active"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  tabindex="0"
+                  data-demo-tab
+                >
+                  <span class="glyph">A</span>Allgemein</button
+                ><button type="button" role="tab" aria-selected="false" tabindex="-1" data-demo-tab>
+                  <span class="glyph">S</span>System
+                </button>
+              </div>
+            </div>
+            <div class="preview">
+              <h3>Switch Row, h-8</h3>
+              <button class="toggle-field is-on" type="button" role="switch" aria-checked="true">
+                <span class="switch" aria-hidden="true"><span></span></span
+                ><span data-toggle-label>Aktiv</span>
+              </button>
+            </div>
+            <div class="preview">
+              <h3>Sort Header, h-7</h3>
+              <button
+                class="sort-demo"
+                type="button"
+                data-sort-state="none"
+                aria-label="Nach Name sortieren"
+              >
+                Name <span data-sort-icon>↕</span>
+              </button>
+            </div>
+            <div class="preview">
+              <h3>Drag Handle, size-7</h3>
+              <button class="drag-demo" type="button" aria-label="Verschieben" aria-pressed="false">
+                <svg class="drag-icon" viewBox="0 0 14 14" aria-hidden="true">
+                  <circle cx="4" cy="2.5" r="1.25"></circle>
+                  <circle cx="10" cy="2.5" r="1.25"></circle>
+                  <circle cx="4" cy="7" r="1.25"></circle>
+                  <circle cx="10" cy="7" r="1.25"></circle>
+                  <circle cx="4" cy="11.5" r="1.25"></circle>
+                  <circle cx="10" cy="11.5" r="1.25"></circle>
+                </svg>
+              </button>
+            </div>
+            <div class="preview">
+              <h3>Menu Item, h-8</h3>
+              <button class="menu-item" type="button" data-menu-item>
+                <span class="glyph">K</span><span data-menu-label>Kopieren</span>
+              </button>
+            </div>
+            <div class="preview">
+              <h3>Stepper, h-8</h3>
+              <div class="stepper-demo">
+                <button type="button" data-step="-1" aria-label="Wert verringern">−</button
+                ><span data-stepper-value>12</span
+                ><button type="button" data-step="1" aria-label="Wert erhoehen">+</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel" data-table="components">
+        <div class="panel-header">
+          <div>
+            <h2>Komponenten-Matrix</h2>
+            <p>Welche redundanten Bereiche auf welche Ziel-Komponente gehen.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Bereich</th>
+                <th>Aktueller Drift</th>
+                <th>Ziel-Primitive</th>
+                <th>Default</th>
+                <th>Ausnahmen</th>
+                <th>Referenzen</th>
+                <th>Prio</th>
+              </tr>
+            </thead>
+            <tbody id="componentRows">
+              <tr
+                data-area="forms"
+                data-priority="high"
+                data-search="eingabefelder inputs forminputclass h-9 h-8 dashboardfield dashboardinput fieldconfigpanel reminderform"
+              >
+                <td><strong>Eingabefelder</strong></td>
+                <td>
+                  <code>formInputClass</code> ist <code>h-9</code>; Features setzen eigene
+                  Input-Klassen.
+                </td>
+                <td><code>DashboardField</code><br /><code>DashboardInput</code></td>
+                <td><span class="pill">h-8</span></td>
+                <td><span class="pill">h-7 compact</span><span class="pill">h-9 large</span></td>
+                <td>
+                  <span class="ref">packages/ui/src/FormPrimitives.tsx:9</span><br /><span
+                    class="ref"
+                    >apps/dashboard/src/features/system/BackgroundErrorsPage.tsx:102</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="forms"
+                data-priority="high"
+                data-search="textarea textareas dashboardtextarea forminputclass reminderform widgeteditorpanel markdowneditor jsoneditor"
+              >
+                <td><strong>Textareas</strong></td>
+                <td>
+                  <code>formInputClass</code> wird fuer Textareas genutzt, obwohl fixe Hoehe dort
+                  falsch ist.
+                </td>
+                <td><code>DashboardTextarea</code></td>
+                <td><span class="pill">rows/min-h</span></td>
+                <td><span class="pill">Editor-Primitives</span></td>
+                <td>
+                  <span class="ref"
+                    >apps/dashboard/src/features/content/shops/ReminderForm.tsx:172</span
+                  ><br /><span class="ref"
+                    >apps/dashboard/src/features/system/WidgetEditorPanel.tsx:164</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="forms"
+                data-priority="high"
+                data-search="native select custom listbox dashboardselect rejectdialog reminderform notificationstab submissionconfigpanel h-9 h-8"
+              >
+                <td><strong>Native Selects</strong></td>
+                <td>
+                  17 sichtbare native Selects mit lokalen
+                  <code>h-9</code>/<code>focus</code>-Klassen und Abweichung vom
+                  Custom-Caret/Listbox-Verhalten.
+                </td>
+                <td><code>DashboardSelect</code><br /><code>DashboardListbox</code></td>
+                <td><span class="pill">h-8</span></td>
+                <td><span class="pill">keine sichtbaren nativen Selects</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/ui/RejectDialog.tsx:242</span
+                  ><br /><span class="ref"
+                    >apps/dashboard/src/features/system/settings/NotificationsTab.tsx:131</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="forms"
+                data-priority="high"
+                data-search="dropdown combobox filterdropdown listbox popover static id dashboardcombobox dashboardlistbox"
+              >
+                <td><strong>Combobox/Dropdown</strong></td>
+                <td>
+                  <code>Dropdown</code> hat Trigger <code>h-9</code>, Optionen <code>h-8</code> und
+                  statische IDs.
+                </td>
+                <td>
+                  <code>DashboardCombobox</code><br /><code>DashboardListbox</code><br /><code
+                    >DashboardPopover</code
+                  >
+                </td>
+                <td><span class="pill">trigger h-8</span><span class="pill">option h-8</span></td>
+                <td><span class="pill">auto-height chips</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/ui/Dropdown.tsx:164</span
+                  ><br /><span class="ref"
+                    >apps/dashboard/src/components/ui/FilterDropdown.tsx:56</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="forms"
+                data-priority="medium"
+                data-search="multiselect regionselect countrycodeselect socialmediaeditor dashboardmultiselect chips"
+              >
+                <td><strong>MultiSelect/RegionSelect</strong></td>
+                <td>Portal, Trigger, Checkbox-Mark und Optionen sind mehrfach implementiert.</td>
+                <td><code>DashboardMultiSelect</code></td>
+                <td><span class="pill">h-8</span></td>
+                <td><span class="pill">Chip-Hoehe</span></td>
+                <td>
+                  <span class="ref">packages/ui/src/MultiSelect.tsx:172</span><br /><span
+                    class="ref"
+                    >packages/ui/src/RegionSelect.tsx:164</span
+                  >
+                </td>
+                <td><span class="pill medium">mittel</span></td>
+              </tr>
+              <tr
+                data-area="selection"
+                data-priority="high"
+                data-search="tabs dashboardtabs roving tabindex aria-controls systemsettingspage"
+              >
+                <td><strong>Tabs</strong></td>
+                <td>
+                  <code>@lmaa/ui/Tabs</code> hat kein roving tabindex, keine Arrow-Keys, kein
+                  sauberes Panel-Linking.
+                </td>
+                <td><code>DashboardTabs</code></td>
+                <td><span class="pill">h-8</span></td>
+                <td><span class="pill">h-7 compact</span></td>
+                <td>
+                  <span class="ref">packages/ui/src/Tabs.tsx:60</span><br /><span class="ref"
+                    >packages/ui/src/Tabs.tsx:76</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="selection"
+                data-priority="high"
+                data-search="segmentedcontrol segments segmentswitch dashboardsegmentedcontrol h-7 h-6 h-8 navmanager footerbuilder"
+              >
+                <td><strong>Segment-Auswahl</strong></td>
+                <td>
+                  <code>SegmentedControl</code> ist <code>h-7</code>;
+                  <code>SegmentSwitch</code> mischt <code>h-6</code>/<code>h-8</code>.
+                </td>
+                <td><code>DashboardSegmentedControl</code></td>
+                <td><span class="pill">compact h-7</span><span class="pill">default h-8</span></td>
+                <td><span class="pill">icon-only size-7</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/ui/SegmentedControl.tsx:124</span
+                  ><br /><span class="ref"
+                    >apps/dashboard/src/components/ui/SegmentSwitch.tsx:16</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="selection"
+                data-priority="medium"
+                data-search="toggle switch checkbox checkboxfield switchfield toggleswitch subtextcheckbox"
+              >
+                <td><strong>Toggles/Checkboxes</strong></td>
+                <td>Custom Checkbox, native Checkbox und Switch-Labels sind uneinheitlich.</td>
+                <td><code>DashboardSwitchField</code><br /><code>DashboardCheckboxField</code></td>
+                <td><span class="pill">row h-8</span></td>
+                <td><span class="pill">mark/switch kleiner</span></td>
+                <td>
+                  <span class="ref">packages/ui/src/ToggleSwitch.tsx:25</span><br /><span
+                    class="ref"
+                    >apps/dashboard/src/components/ui/SubtextCheckbox.tsx:26</span
+                  >
+                </td>
+                <td><span class="pill medium">mittel</span></td>
+              </tr>
+              <tr
+                data-area="lists"
+                data-priority="high"
+                data-search="table sort header tablesortheader datatable aria-sort locale de"
+              >
+                <td><strong>Table-Sort-Header</strong></td>
+                <td>
+                  Sort-Button ist inline, Sort-Ansage nicht lokalisiert, String-Sortierung fest auf
+                  <code>de</code>.
+                </td>
+                <td><code>TableSortHeader</code></td>
+                <td><span class="pill">h-7</span></td>
+                <td><span class="pill">nicht-sortierbar = Text</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/ui/Table.tsx:155</span><br /><span
+                    class="ref"
+                    >apps/dashboard/src/components/ui/Table.tsx:197</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="lists"
+                data-priority="high"
+                data-search="drag handle dnd dashboarddraghandle useSortable keyboard sensor sidebar submissionconfigpanel builderfield"
+              >
+                <td><strong>Drag-Handles</strong></td>
+                <td>
+                  Sidebar-Handle ist <code>tabIndex=-1</code>, Submission-Step nutzt ein
+                  <code>span</code>, Labels teils hart deutsch.
+                </td>
+                <td><code>DashboardDragHandle</code><br /><code>useDashboardDndSensors</code></td>
+                <td><span class="pill">size-7</span></td>
+                <td><span class="pill">Overlay objektabhaengig</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/layout/Sidebar.tsx:121</span
+                  ><br /><span class="ref"
+                    >apps/dashboard/src/features/templates/form-builder/SubmissionConfigPanel.tsx:101</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="lists"
+                data-priority="high"
+                data-search="dropdown items menu contextmenu dashboardmenu dashboardmenuitem inline danger style"
+              >
+                <td><strong>Dropdown-Items/ContextMenu</strong></td>
+                <td>
+                  <code>ContextMenu</code> ist separat und braucht Inline-Danger-Style wegen
+                  globaler Button-CSS.
+                </td>
+                <td><code>DashboardMenu</code><br /><code>DashboardMenuItem</code></td>
+                <td><span class="pill">h-8</span></td>
+                <td><span class="pill">h-7 compact</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/ui/ContextMenu.tsx:94</span
+                  ><br /><span class="ref">packages/shared/styles/tokens.css:386</span>
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+              <tr
+                data-area="forms"
+                data-priority="medium"
+                data-search="stepper number input dashboardnumberinput dashboardstepper reminderform fieldconfigpanel herobannertab"
+              >
+                <td><strong>Stepper/Number</strong></td>
+                <td>Number-Inputs, Einheiten und Step-Regeln sind lokal verstreut.</td>
+                <td><code>DashboardNumberInput</code><br /><code>DashboardStepper</code></td>
+                <td><span class="pill">h-8</span></td>
+                <td><span class="pill">h-7 compact</span></td>
+                <td>
+                  <span class="ref"
+                    >apps/dashboard/src/features/content/shops/ReminderForm.tsx:130</span
+                  ><br /><span class="ref"
+                    >apps/dashboard/src/features/content/landing-page/HeroBannerTab.tsx:173</span
+                  >
+                </td>
+                <td><span class="pill medium">mittel</span></td>
+              </tr>
+              <tr
+                data-area="forms"
+                data-priority="medium"
+                data-search="datetimepicker date time picker calendar h-9 dashboarddatetimepicker"
+              >
+                <td><strong>DateTimePicker</strong></td>
+                <td>Trigger ohne Zielhoehe, lokale Time-Inputs, hardcodierte Texte.</td>
+                <td><code>DashboardDateTimePicker</code></td>
+                <td><span class="pill">trigger h-8</span></td>
+                <td><span class="pill">calendar w-9 h-9</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/ui/DateTimePicker.tsx:135</span
+                  ><br /><span class="ref"
+                    >apps/dashboard/src/components/ui/DateTimePicker.tsx:190</span
+                  >
+                </td>
+                <td><span class="pill medium">mittel</span></td>
+              </tr>
+              <tr
+                data-area="forms"
+                data-priority="low"
+                data-search="iconpicker dashboardiconpicker search icon grid size-8 size-9"
+              >
+                <td><strong>IconPicker</strong></td>
+                <td>
+                  Search ist <code>py-1</code>, None-Button <code>h-8</code>, Icon-Buttons
+                  <code>h-9</code>.
+                </td>
+                <td><code>DashboardIconPicker</code></td>
+                <td><span class="pill">search h-8</span></td>
+                <td><span class="pill">grid size-8/9</span></td>
+                <td>
+                  <span class="ref">apps/dashboard/src/components/ui/IconPicker.tsx:34</span
+                  ><br /><span class="ref">apps/dashboard/src/components/ui/IconPicker.tsx:74</span>
+                </td>
+                <td><span class="pill low">niedrig</span></td>
+              </tr>
+              <tr
+                data-area="selection"
+                data-priority="medium"
+                data-search="collapsible disclosure dashboardsection sidebar collapse expand disclosurebutton collapsibleregion"
+              >
+                <td><strong>Collapsible/Disclosure</strong></td>
+                <td>
+                  DashboardSection, Sidebar-Gruppen und Analytics-Listen haben eigene Toggle-Optik.
+                </td>
+                <td><code>DisclosureButton</code><br /><code>CollapsibleRegion</code></td>
+                <td><span class="pill">size-7</span></td>
+                <td><span class="pill">Sidebar min-h-8</span></td>
+                <td>
+                  <span class="ref">packages/ui/src/DashboardSection.tsx:150</span><br /><span
+                    class="ref"
+                    >apps/dashboard/src/components/layout/Sidebar.tsx:620</span
+                  >
+                </td>
+                <td><span class="pill medium">mittel</span></td>
+              </tr>
+              <tr
+                data-area="foundation"
+                data-priority="high"
+                data-search="shared primitive internals tokens foundation radius focus overlay packages ui tokens css"
+              >
+                <td><strong>Shared Primitive-Internals</strong></td>
+                <td>
+                  Token-Namen, Radius, Fokus, Overlay und Icon-Familien driften zwischen App und
+                  `@lmaa/ui`.
+                </td>
+                <td>
+                  <code>controlFoundation</code><br /><code>surfaceFoundation</code><br /><code
+                    >overlayFoundation</code
+                  >
+                </td>
+                <td><span class="pill foundation">token-gesteuert</span></td>
+                <td><span class="pill">Frontend Wrapper</span></td>
+                <td>
+                  <span class="ref">packages/shared/styles/tokens.css</span><br /><span class="ref"
+                    >packages/ui/src/FormPrimitives.tsx:9</span
+                  >
+                </td>
+                <td><span class="pill high">hoch</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Explizite Ausnahmen</h2>
+            <p>Abweichungen sind erlaubt, aber nur als benannter Modus oder dedizierter Wrapper.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ausnahme</th>
+                <th>Erlaubte Abweichung</th>
+                <th>Bedingung</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Action-Buttons</td>
+                <td><code>h-7</code> / <code>size-7</code></td>
+                <td>Nur echte Dashboard-Actions aus dem Action-Katalog.</td>
+              </tr>
+              <tr>
+                <td>Compact Controls</td>
+                <td><code>h-7</code></td>
+                <td>
+                  Table Header, Toolbar, kleine Header-AddOns, explizit per
+                  <code>size="compact"</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>Large Controls</td>
+                <td><code>h-9</code></td>
+                <td>
+                  Auth-/Setup-Submit oder grosse Entry-Forms, explizit per
+                  <code>size="large"</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>Textareas/Editoren</td>
+                <td>keine fixe <code>h-8</code></td>
+                <td>
+                  <code>rows</code>, <code>minRows</code> oder Editor-Height bestimmen die Flaeche.
+                </td>
+              </tr>
+              <tr>
+                <td>Kalender-Tage</td>
+                <td><code>w-9 h-9</code></td>
+                <td>Date-Picker Grid, wegen Trefferflaeche.</td>
+              </tr>
+              <tr>
+                <td>IconPicker Grid</td>
+                <td><code>size-8</code> oder <code>size-9</code></td>
+                <td>Explizite Icon-Erkennbarkeit, kein allgemeiner Button-Default.</td>
+              </tr>
+              <tr>
+                <td>Drag-Overlay</td>
+                <td>objektabhaengig</td>
+                <td>Overlay kopiert Karten-/Listenhoehe, nicht Handle-Hoehe.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Migrationsplan</h2>
+            <p>Vom Fundament aus migrieren, damit neue Drift nicht sofort wieder entsteht.</p>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="phase-grid">
+            <article class="phase-card">
+              <strong>1</strong>
+              <h3>Foundation und Tokens</h3>
+              <p>
+                Control-Hoehen, Fokus, Radius, Overlay-Z-Index, Menu-/Table-Tokens und undefinierte
+                Token-Namen bereinigen.
+              </p>
+            </article>
+            <article class="phase-card">
+              <strong>2</strong>
+              <h3>Shared UI Primitives</h3>
+              <p>
+                `@lmaa/ui` bekommt Button-, Control-, Listbox-, Menu-, Tabs-, Segment-, Dialog- und
+                Surface-Primitives.
+              </p>
+            </article>
+            <article class="phase-card">
+              <strong>3</strong>
+              <h3>Dashboard Wrapper</h3>
+              <p>
+                App-spezifische Wrapper fuer i18n, Phosphor-Icons, ARIA-Labels und Fachsemantik
+                einfuehren.
+              </p>
+            </article>
+            <article class="phase-card">
+              <strong>4</strong>
+              <h3>High-Drift Migration</h3>
+              <p>
+                FormPrimitives, Dropdown, FilterDropdown, Tabs, Segments, Table, ContextMenu und
+                ToggleSwitch zuerst.
+              </p>
+            </article>
+            <article class="phase-card">
+              <strong>5</strong>
+              <h3>Feature Cleanup</h3>
+              <p>
+                Lokale `inputClass`, `selectClass`, `formBtnBaseClass`, direkte `--ds-btn-*` Klassen
+                und tote Keys entfernen.
+              </p>
+            </article>
+            <article class="phase-card">
+              <strong>6</strong>
+              <h3>Gates und UI QA</h3>
+              <p>
+                Typecheck, Lint, Build, statische `rg`-Gates und Screenshots fuer Header, Tabellen,
+                Dialoge, Menues und Builder-DND.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <div id="empty" class="empty">Keine Eintraege passen zu den aktuellen Filtern.</div>
+    </main>
+
+    <script>
+      const search = document.querySelector("#search");
+      const area = document.querySelector("#area");
+      const priority = document.querySelector("#priority");
+      const rows = Array.from(document.querySelectorAll("#componentRows tr"));
+      const resultCount = document.querySelector("#resultCount");
+      const empty = document.querySelector("#empty");
+
+      function applyFilters() {
+        const q = search.value.trim().toLowerCase();
+        const selectedArea = area.value;
+        const selectedPriority = priority.value;
+        let visible = 0;
+
+        for (const row of rows) {
+          const areaMatches = !selectedArea || row.dataset.area === selectedArea;
+          const priorityMatches = !selectedPriority || row.dataset.priority === selectedPriority;
+          const searchMatches =
+            !q || row.dataset.search.includes(q) || row.textContent.toLowerCase().includes(q);
+          const show = areaMatches && priorityMatches && searchMatches;
+          row.hidden = !show;
+          if (show) visible += 1;
+        }
+
+        resultCount.textContent = `${visible} / ${rows.length} Komponenten sichtbar`;
+        empty.classList.toggle("visible", visible === 0);
+      }
+
+      function setActiveButton(buttons, activeButton, activeClass = "active") {
+        for (const button of buttons) {
+          const active = button === activeButton;
+          button.classList.toggle(activeClass, active);
+          if (button.hasAttribute("aria-pressed")) {
+            button.setAttribute("aria-pressed", String(active));
+          }
+          if (button.getAttribute("role") === "tab") {
+            button.setAttribute("aria-selected", String(active));
+            button.tabIndex = active ? 0 : -1;
+          }
+        }
+      }
+
+      document.querySelector("[data-demo-action]")?.addEventListener("click", (event) => {
+        const button = event.currentTarget;
+        const label = button.querySelector("[data-action-label]");
+        if (!label) return;
+        label.textContent = "Gespeichert";
+        window.setTimeout(() => {
+          label.textContent = "Speichern";
+        }, 1100);
+      });
+
+      for (const button of document.querySelectorAll("[data-demo-segment]")) {
+        button.addEventListener("click", () => {
+          setActiveButton(
+            Array.from(button.parentElement.querySelectorAll("[data-demo-segment]")),
+            button,
+          );
+        });
+      }
+
+      for (const tab of document.querySelectorAll("[data-demo-tab]")) {
+        tab.addEventListener("click", () => {
+          setActiveButton(Array.from(tab.parentElement.querySelectorAll("[data-demo-tab]")), tab);
+        });
+      }
+
+      document.querySelector(".toggle-field")?.addEventListener("click", (event) => {
+        const button = event.currentTarget;
+        const label = button.querySelector("[data-toggle-label]");
+        const next = button.getAttribute("aria-checked") !== "true";
+        button.setAttribute("aria-checked", String(next));
+        button.classList.toggle("is-on", next);
+        if (label) label.textContent = next ? "Aktiv" : "Inaktiv";
+      });
+
+      document.querySelector(".sort-demo")?.addEventListener("click", (event) => {
+        const button = event.currentTarget;
+        const icon = button.querySelector("[data-sort-icon]");
+        const state = button.dataset.sortState;
+        const next = state === "none" ? "asc" : state === "asc" ? "desc" : "none";
+        button.dataset.sortState = next;
+        icon.textContent = next === "asc" ? "↑" : next === "desc" ? "↓" : "↕";
+        button.setAttribute(
+          "aria-label",
+          next === "asc"
+            ? "Name aufsteigend sortiert"
+            : next === "desc"
+              ? "Name absteigend sortiert"
+              : "Nach Name sortieren",
+        );
+      });
+
+      document.querySelector(".drag-demo")?.addEventListener("click", (event) => {
+        const button = event.currentTarget;
+        const next = button.getAttribute("aria-pressed") !== "true";
+        button.setAttribute("aria-pressed", String(next));
+        button.classList.toggle("is-active", next);
+      });
+
+      document.querySelector("[data-menu-item]")?.addEventListener("click", (event) => {
+        const button = event.currentTarget;
+        const label = button.querySelector("[data-menu-label]");
+        button.classList.add("is-active");
+        label.textContent = "Kopiert";
+        window.setTimeout(() => {
+          button.classList.remove("is-active");
+          label.textContent = "Kopieren";
+        }, 1100);
+      });
+
+      const stepperValue = document.querySelector("[data-stepper-value]");
+      for (const button of document.querySelectorAll("[data-step]")) {
+        button.addEventListener("click", () => {
+          const current = Number(stepperValue.textContent);
+          const delta = Number(button.dataset.step);
+          stepperValue.textContent = String(Math.max(0, Math.min(99, current + delta)));
+        });
+      }
+
+      search.addEventListener("input", applyFilters);
+      area.addEventListener("change", applyFilters);
+      priority.addEventListener("change", applyFilters);
+      applyFilters();
+    </script>
+  </body>
+</html>
