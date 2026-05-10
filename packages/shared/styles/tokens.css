@@ -168,6 +168,13 @@
   --ds-radius-3xl: 1.25rem; /* 20px */
   --ds-radius-pill: 9999px;
 
+  /* Control geometry */
+  --ds-control-h-action: 1.75rem; /* 28px */
+  --ds-control-h-icon: 1.75rem; /* 28px */
+  --ds-control-h-field: 2rem; /* 32px */
+  --ds-control-h-field-large: 2.25rem; /* 36px */
+  --ds-control-h-menu-item: 2rem; /* 32px */
+
   /* Shadows */
   --ds-shadow-xs: 0 1px 2px oklch(0 0 0 / 0.04);
   --ds-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
@@ -189,6 +196,22 @@
   --ds-space-lg: 2.25rem; /* 1.5 rhythm */
   --ds-space-xl: 3rem; /* 2 rhythm */
   --ds-space-2xl: 4.5rem; /* 3 rhythm */
+
+  /* Focus and interaction */
+  --ds-focus-ring: var(--color-primary);
+  --ds-focus-ring-offset: var(--ds-surface);
+  --ds-border-focus: var(--color-primary);
+  --ds-control-hover-bg: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.06);
+  --ds-control-active-bg: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  --ds-control-disabled-opacity: 0.4;
+  --ds-bg-hover: var(--ds-control-hover-bg);
+  --ds-surface-hover: var(--ds-control-hover-bg);
+  --ds-nav-text: var(--ds-text-muted);
+  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --ds-nav-active-text: var(--ds-text);
+  --ds-nav-active-border: var(--ds-border-focus);
+  --ds-nav-hover-bg: var(--ds-nav-active-bg);
+  --ds-nav-hover-text: var(--ds-text);
 
   /* Motion */
   --ds-duration-fast: 120ms;
@@ -235,6 +258,16 @@
   /* Accent */
   --ds-accent-subtle: hsl(215 30% 20%);
 
+  /* Focus and interaction */
+  --ds-focus-ring-offset: var(--ds-bg);
+  --ds-control-hover-bg: oklch(var(--ds-L-text) var(--ds-neutral-c) var(--ds-neutral-h) / 0.08);
+  --ds-control-active-bg: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  --ds-bg-hover: var(--ds-control-hover-bg);
+  --ds-surface-hover: var(--ds-control-hover-bg);
+  --ds-nav-active-bg: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --ds-nav-active-border: var(--ds-border-focus);
+  --ds-nav-hover-bg: var(--ds-nav-active-bg);
+
   /* Status */
   --ds-success-bg: hsl(135 25% 18%);
   --ds-success-border: hsl(130 35% 35%);
@@ -264,6 +297,10 @@
 :root {
   /* Overlay / modal backdrop */
   --ds-overlay-bg: oklch(0 0 0 / 0.5);
+  --ds-overlay-z-dropdown: 50;
+  --ds-overlay-z-menu: 60;
+  --ds-overlay-z-dialog: 100;
+  --ds-overlay-shadow: var(--ds-shadow-xl);
 
   /* Filled button (dark primary action — not CTA green) */
   --ds-btn-filled-bg: var(--ds-color-neutral-900);
@@ -396,4 +433,12 @@
   justify-content: center;
   text-align: center;
   white-space: nowrap;
+}
+
+/* Transitional textarea guard for legacy formInputClass consumers.
+   Dedicated textarea primitives should replace this during control migration. */
+:where(textarea)[class*="--ds-control-h-field"] {
+  height: auto;
+  min-height: calc(var(--ds-control-h-field) * 3);
+  padding-block: 0.375rem;
 }
