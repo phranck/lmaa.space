@@ -125,7 +125,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] System Settings und Users Slice migrieren.
 - [x] Content Slice migrieren.
 - [x] Media Slice migrieren.
-- [ ] Landing Page und Widgets Slice migrieren.
+- [x] Landing Page und Widgets Slice migrieren.
 - [ ] Pro Slice Typecheck, Lint und relevanten Browser-Flow pruefen.
 
 ### Stufe 7: Cleanup
@@ -1248,6 +1248,21 @@ Verifiziert fuer den Media-Slice:
 - `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch mit 99/100; verbleibende Hinweise betreffen die bestehende `MediaPage`-Groesse und den bewusst sequentiellen Upload-Loop.
 - `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
 - `cd /tmp/lmaa-pw && npx playwright test lmaa-media-smoke.spec.js --browser=chromium --reporter=line`
+
+Teilfortschritt 2026-05-10, Landing-Page-und-Widgets-Slice:
+
+- `HeroBannerTab`, `LandingPagePage`, `MarkdownWidgetsPage`, `WidgetEditorPanel` und `NavManagerPage` nutzen zentrale Dashboard-Inputs, Checkboxen, Segments und Action-Buttons fuer sichtbare Standard-Controls.
+- Alte Widget-Utility-Klassen fuer lokale Inputs/Textareas/Checkbox-Rows wurden entfernt.
+- Direkte `h-9`, Fokusklassen, `--ds-btn-*` Feature-Control-Klassen und alte Icon-Size-Shorthands wurden aus diesem Slice entfernt.
+
+Verifiziert fuer den Landing-Page-und-Widgets-Slice:
+
+- `rg -n --glob '*.{ts,tsx}' -- '<input|<textarea|\\bh-9\\b|focus:(ring|border)-|--ds-btn-|formBtnBaseClass|formInputClass|inputClass|w-3\\.5 h-3\\.5|w-4 h-4|w-full h-full|font-bold|textInputClass|textAreaClass|readOnlyTextAreaClass|checkboxRowClass' apps/dashboard/src/features/content/landing-page apps/dashboard/src/features/system/MarkdownWidgetsPage.tsx apps/dashboard/src/features/system/WidgetEditorPanel.tsx apps/dashboard/src/features/system/widget-utils.ts apps/dashboard/src/features/system/NavManagerPage.tsx` findet keine Treffer.
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch mit 99/100; verbleibender Hinweis betrifft `forwardRef` in `NavManagerPage`.
+- `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
+- `cd /tmp/lmaa-pw && npx playwright test lmaa-landing-widgets-smoke.spec.js --browser=chromium --reporter=line`
 
 ## Stufe 7: Cleanup
 

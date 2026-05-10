@@ -12,19 +12,25 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   BrowsersIcon,
-  DownloadIcon,
   FileIcon,
   NotebookIcon,
-  PlusCircleIcon,
   SquareHalfBottomIcon,
-  XCircleIcon,
 } from "@phosphor-icons/react";
 import { forwardRef, useEffect, useImperativeHandle, useReducer, useRef, useState } from "react";
 
 import type { NavId } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui";
 
-import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
+import {
+  CreateActionButton,
+  RemoveActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
+  DashboardDragHandle,
+  DashboardInput,
+  DashboardSegmentedControl,
+} from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -152,23 +158,21 @@ function SortableNavItem({
         <div className="text-xs text-[var(--ds-text-muted)] font-mono">{displayUrl}</div>
       </div>
 
-      <input
+      <DashboardInput
         type="text"
         value={item.label}
         onChange={(e) => onLabelChange(item.id, e.target.value)}
         placeholder={item.pageTitle ?? item.url ?? ""}
-        className="w-44 px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+        className="w-44 text-xs"
         title={text.labelOverrideTitle}
       />
 
-      <button
-        type="button"
+      <RemoveActionButton
         onClick={() => onRemove(item.id)}
-        className="p-1.5 text-[var(--ds-text-muted)] hover:text-red-500"
         title={text.remove}
-      >
-        <XCircleIcon weight="duotone" className="w-5 h-5" />
-      </button>
+        label={text.remove}
+        iconOnly
+      />
     </div>
   );
 }
@@ -371,8 +375,16 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
     [dirty, items],
   );
 
-  const usedPageSlugs = new Set(items.filter((i) => i.pageSlug).map((i) => i.pageSlug));
-  const usedUrls = new Set(items.filter((i) => i.url).map((i) => i.url));
+  const usedPageSlugs = new Set<string>();
+  const usedUrls = new Set<string>();
+  for (const item of items) {
+    if (item.pageSlug) {
+      usedPageSlugs.add(item.pageSlug);
+    }
+    if (item.url) {
+      usedUrls.add(item.url);
+    }
+  }
   const availablePages = allPages.filter((p) => !usedPageSlugs.has(p.slug));
   const availableStatics = staticRoutes.filter((r) => !usedUrls.has(r.url));
   const availableForms = allForms.filter((f) => f.slug && !usedUrls.has(`/${f.slug}`));
@@ -463,30 +475,16 @@ function NavColumnAddSection({
   return (
     <div className="border-t border-[var(--ds-border)] pt-3 space-y-3">
       {/* Type toggle */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => onTypeChange("page")}
-          className={`px-3 py-1 text-xs rounded-control border ${
-            addType === "page"
-              ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-              : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
-          }`}
-        >
-          {text.typePage}
-        </button>
-        <button
-          type="button"
-          onClick={() => onTypeChange("url")}
-          className={`px-3 py-1 text-xs rounded-control border ${
-            addType === "url"
-              ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] border-[var(--ds-nav-active-border)]"
-              : "text-[var(--ds-text-muted)] border-[var(--ds-border)] hover:text-[var(--ds-text)]"
-          }`}
-        >
-          {text.typeUrl}
-        </button>
-      </div>
+      <DashboardSegmentedControl
+        value={addType === "form" ? "page" : addType}
+        onValueChange={(value) => onTypeChange(value)}
+        options={[
+          { value: "page", label: text.typePage },
+          { value: "url", label: text.typeUrl },
+        ]}
+        size="compact"
+        variant="outline"
+      />
 
       {addType === "page" ? (
         <div className="flex items-center gap-2">
@@ -502,28 +500,26 @@ function NavColumnAddSection({
                   (p): DropdownOption => ({
                     value: p.slug,
                     label: `${p.title} (/${p.slug})`,
-                    icon: <FileIcon weight="duotone" className="w-3.5 h-3.5" />,
+                    icon: <FileIcon weight="duotone" className="size-3.5" />,
                   }),
                 ),
                 ...availableForms.map(
                   (f): DropdownOption => ({
                     value: `form:${f.slug}`,
                     label: `${f.name} (/${f.slug})`,
-                    icon: <NotebookIcon weight="duotone" className="w-3.5 h-3.5" />,
+                    icon: <NotebookIcon weight="duotone" className="size-3.5" />,
                   }),
                 ),
               ]}
             />
           </div>
-          <button
-            type="button"
+          <CreateActionButton
             onClick={onAddPage}
             disabled={!addPageSlug}
-            className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
             title={text.add}
-          >
-            <PlusCircleIcon weight="duotone" className="w-5 h-5" />
-          </button>
+            label={text.add}
+            iconOnly
+          />
         </div>
       ) : (
         <div className="space-y-2">
@@ -543,29 +539,27 @@ function NavColumnAddSection({
             </div>
           )}
           <div className="flex items-center gap-2">
-            <input
+            <DashboardInput
               type="text"
               value={addUrl}
               onChange={(e) => onUrlChange(e.target.value)}
               placeholder={text.urlPlaceholder}
-              className="flex-1 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] font-mono"
+              className="min-w-0 flex-1 font-mono text-xs"
             />
-            <input
+            <DashboardInput
               type="text"
               value={addLabel}
               onChange={(e) => onLabelChange(e.target.value)}
               placeholder={text.labelPlaceholder}
-              className="w-24 px-2 py-1.5 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+              className="w-24 text-xs"
             />
-            <button
-              type="button"
+            <CreateActionButton
               onClick={onAddUrl}
               disabled={!addUrl.trim()}
-              className="p-1.5 text-[var(--color-primary)] hover:opacity-80 disabled:opacity-40 transition-opacity"
               title={text.add}
-            >
-              <PlusCircleIcon weight="duotone" className="w-5 h-5" />
-            </button>
+              label={text.add}
+              iconOnly
+            />
           </div>
         </div>
       )}
@@ -609,21 +603,18 @@ export function NavManagerPage() {
     <>
       <PageHeader title={text.pageTitle}>
         <SaveNotification phase={savedPhase} label={common.saved} />
-        <button
-          type="button"
+        <SaveActionButton
           onClick={handleSave}
           disabled={!isDirty || isSaving}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
-        >
-          <DownloadIcon weight="duotone" className="w-4 h-4" />
-          {isSaving ? common.saving : common.save}
-        </button>
+          busy={isSaving}
+          label={isSaving ? common.saving : common.save}
+        />
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <DashboardSection>
           <DashboardSection.Header
-            icon={<BrowsersIcon weight="duotone" className="w-4 h-4" />}
+            icon={<BrowsersIcon weight="duotone" className="size-4" />}
             title={text.headerNav}
           />
           <DashboardSection.Body>
@@ -632,7 +623,7 @@ export function NavManagerPage() {
         </DashboardSection>
         <DashboardSection>
           <DashboardSection.Header
-            icon={<SquareHalfBottomIcon weight="duotone" className="w-4 h-4" />}
+            icon={<SquareHalfBottomIcon weight="duotone" className="size-4" />}
             title={text.footerNav}
           />
           <DashboardSection.Body>

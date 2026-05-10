@@ -1,10 +1,11 @@
-import { TrashIcon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 
 import type { MarkdownWidget } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
+import { DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import {
+  DashboardCheckboxField,
   DashboardCombobox,
   DashboardInput,
   DashboardNumberInput,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
-  checkboxRowClass,
   fieldHintClass,
   getAutoOrigins,
   insetCardClass,
@@ -82,14 +82,10 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
               </span>
             </p>
           </div>
-          <button
-            type="button"
+          <DeleteActionButton
             onClick={() => onDelete(widget.key)}
-            className="inline-flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-danger-border)] px-3 text-sm font-medium text-[var(--ds-btn-danger-text)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-          >
-            <TrashIcon weight="duotone" className="size-3.5" />
-            {widgetMessages.deleteWidget}
-          </button>
+            label={widgetMessages.deleteWidget}
+          />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -145,16 +141,15 @@ export function WidgetEditorPanel({ widget, onUpdate, onDelete, onKeyChange }: W
           </Field>
         </div>
 
-        <label className={checkboxRowClass}>
-          <input
-            type="checkbox"
-            checked={widget.enabled}
-            onChange={(event) =>
-              onUpdate(widget.key, (w) => ({ ...w, enabled: event.target.checked }))
-            }
-          />
-          <span className="text-sm text-[var(--ds-text)]">{widgetMessages.enabledLabel}</span>
-        </label>
+        <DashboardCheckboxField
+          checked={widget.enabled}
+          onCheckedChange={(checked) =>
+            onUpdate(widget.key, (w) => ({ ...w, enabled: checked }))
+          }
+          label={widgetMessages.enabledLabel}
+          className="items-center rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2"
+          boxClassName="mt-0"
+        />
 
         <Field label={widgetMessages.descriptionLabel} hint={widgetMessages.descriptionHint}>
           <DashboardTextarea
