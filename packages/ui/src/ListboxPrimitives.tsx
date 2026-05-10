@@ -1,8 +1,9 @@
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
   useEffect,
+  useEffectEvent,
   useId,
   useLayoutEffect,
   useMemo,
@@ -16,6 +17,7 @@ import type {
   KeyboardEvent,
   MouseEvent,
   ReactNode,
+  Ref,
   RefObject,
 } from "react";
 import { createPortal } from "react-dom";
@@ -29,10 +31,12 @@ export interface ControlTriggerProps
   activeDescendant?: string;
   controls?: string;
   controlSize?: ControlTriggerSize;
+  contentClassName?: string;
   invalid?: boolean;
   leadingIcon?: ReactNode;
   open?: boolean;
   placeholder?: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
   trailingIcon?: ReactNode;
 }
 
@@ -40,6 +44,7 @@ export function ControlTrigger({
   activeDescendant,
   children,
   className,
+  contentClassName,
   controlSize = "field",
   controls,
   disabled,
@@ -47,6 +52,7 @@ export function ControlTrigger({
   leadingIcon,
   open,
   placeholder,
+  ref,
   trailingIcon,
   type = "button",
   ...buttonProps
@@ -81,6 +87,7 @@ export function ControlTrigger({
         className,
       )}
       disabled={disabled}
+      ref={ref}
       type={type}
       {...restButtonProps}
     >
@@ -93,6 +100,7 @@ export function ControlTrigger({
         className={cx(
           "min-w-0 flex-1 truncate text-left",
           !hasContent && "text-[var(--ds-text-muted)]",
+          contentClassName,
         )}
       >
         {hasContent ? children : placeholder}
@@ -117,6 +125,7 @@ interface ListboxContextValue {
 }
 
 const ListboxContext = createContext<ListboxContextValue | null>(null);
+const EMPTY_DISABLED_VALUES: readonly string[] = [];
 
 interface ListboxPopoverPosition {
   left: number;
@@ -134,6 +143,7 @@ export interface ListboxPopoverProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect"> {
   activeValue?: string;
   children: ReactNode | ((state: ListboxPopoverRenderState) => ReactNode);
+  closeOnSelect?: boolean;
   defaultActiveValue?: string;
   disabledValues?: readonly string[];
   labelledBy?: string;
@@ -155,8 +165,9 @@ export function ListboxPopover({
   activeValue,
   children,
   className,
+  closeOnSelect = true,
   defaultActiveValue,
-  disabledValues = [],
+  disabledValues = EMPTY_DISABLED_VALUES,
   labelledBy,
   listboxId,
   matchTriggerWidth = true,
@@ -176,8 +187,12 @@ export function ListboxPopover({
   const generatedId = useId();
   const resolvedListboxId = listboxId ?? `${generatedId}-listbox`;
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [portalPosition, setPortalPosition] =
-    useState<ListboxPopoverPosition | null>(null);
+  const portalPosition = useListboxPortalPosition({
+    open,
+    placementOffset,
+    portal,
+    triggerRef,
+  });
   const disabledValueSet = useMemo(
     () => new Set(disabledValues),
     [disabledValues],
@@ -221,11 +236,31 @@ export function ListboxPopover({
         return;
       }
       onSelect?.(value);
-      onOpenChange(false);
-      triggerRef.current?.focus();
+      if (closeOnSelect) {
+        onOpenChange(false);
+        triggerRef.current?.focus();
+      }
     },
-    [disabledValueSet, onOpenChange, onSelect, triggerRef],
+    [closeOnSelect, disabledValueSet, onOpenChange, onSelect, triggerRef],
   );
+
+  useListboxDismissal({
+    onOpenChange,
+    open,
+    popoverRef,
+    triggerRef,
+  });
+
+  useListboxKeyboardNavigation({
+    currentActiveValue,
+    enabledOptionValues,
+    firstEnabledValue,
+    onOpenChange,
+    open,
+    selectValue,
+    setActiveValue,
+    triggerRef,
+  });
 
   useEffect(() => {
     if (!open || enabledOptionValues.length === 0) {
@@ -248,149 +283,6 @@ export function ListboxPopover({
     open,
     selectedValue,
     setActiveValue,
-  ]);
-
-  useLayoutEffect(() => {
-    if (!open || !portal) {
-      return;
-    }
-
-    const updatePosition = () => {
-      const trigger = triggerRef.current;
-      if (!trigger) {
-        return;
-      }
-
-      const rect = trigger.getBoundingClientRect();
-      setPortalPosition({
-        left: rect.left,
-        top: rect.bottom + placementOffset,
-        width: rect.width,
-      });
-    };
-
-    updatePosition();
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
-
-    return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
-    };
-  }, [open, placementOffset, portal, triggerRef]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const handleMouseDown = (event: globalThis.MouseEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) {
-        return;
-      }
-      if (triggerRef.current?.contains(target)) {
-        return;
-      }
-      if (popoverRef.current?.contains(target)) {
-        return;
-      }
-      onOpenChange(false);
-    };
-
-    document.addEventListener("mousedown", handleMouseDown);
-    return () => document.removeEventListener("mousedown", handleMouseDown);
-  }, [onOpenChange, open, triggerRef]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const moveActiveValue = (direction: 1 | -1) => {
-      if (enabledOptionValues.length === 0) {
-        return;
-      }
-
-      const currentIndex = currentActiveValue
-        ? enabledOptionValues.indexOf(currentActiveValue)
-        : -1;
-      const nextIndex =
-        currentIndex >= 0
-          ? (currentIndex + direction + enabledOptionValues.length) %
-            enabledOptionValues.length
-          : direction > 0
-            ? 0
-            : enabledOptionValues.length - 1;
-
-      setActiveValue(enabledOptionValues[nextIndex]);
-    };
-
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.defaultPrevented) {
-        return;
-      }
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        onOpenChange(false);
-        triggerRef.current?.focus();
-        return;
-      }
-
-      if (isTextEntryTarget(event.target)) {
-        return;
-      }
-
-      switch (event.key) {
-        case "ArrowDown":
-          event.preventDefault();
-          moveActiveValue(1);
-          break;
-        case "ArrowUp":
-          event.preventDefault();
-          moveActiveValue(-1);
-          break;
-        case "Home":
-          event.preventDefault();
-          if (firstEnabledValue) {
-            setActiveValue(firstEnabledValue);
-          }
-          break;
-        case "End": {
-          event.preventDefault();
-          const lastEnabledValue =
-            enabledOptionValues[enabledOptionValues.length - 1];
-          if (lastEnabledValue) {
-            setActiveValue(lastEnabledValue);
-          }
-          break;
-        }
-        case "Enter":
-        case " ":
-          if (!currentActiveValue) {
-            return;
-          }
-          event.preventDefault();
-          selectValue(currentActiveValue);
-          break;
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown, true);
-    return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [
-    currentActiveValue,
-    enabledOptionValues,
-    firstEnabledValue,
-    onOpenChange,
-    open,
-    selectValue,
-    setActiveValue,
-    triggerRef,
   ]);
 
   if (!open) {
@@ -428,6 +320,246 @@ export function ListboxPopover({
   const content =
     typeof children === "function" ? children(renderState) : children;
   const popover = (
+    <ListboxPopoverContent
+      activeDescendantId={activeDescendantId}
+      className={className}
+      contextValue={contextValue}
+      labelledBy={labelledBy}
+      portal={portal}
+      popoverRef={popoverRef}
+      resolvedListboxId={resolvedListboxId}
+      style={portalStyle}
+      {...popoverProps}
+    >
+      {content}
+    </ListboxPopoverContent>
+  );
+
+  const portalTarget =
+    portalContainer ??
+    (typeof document !== "undefined" ? document.body : undefined);
+
+  return portal && portalTarget ? createPortal(popover, portalTarget) : popover;
+}
+
+interface ListboxPortalPositionParams {
+  open: boolean;
+  placementOffset: number;
+  portal: boolean;
+  triggerRef: RefObject<HTMLElement | null>;
+}
+
+function useListboxPortalPosition({
+  open,
+  placementOffset,
+  portal,
+  triggerRef,
+}: ListboxPortalPositionParams) {
+  const [portalPosition, setPortalPosition] =
+    useState<ListboxPopoverPosition | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open || !portal) {
+      return;
+    }
+
+    const updatePosition = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) {
+        return;
+      }
+
+      const rect = trigger.getBoundingClientRect();
+      setPortalPosition({
+        left: rect.left,
+        top: rect.bottom + placementOffset,
+        width: rect.width,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, placementOffset, portal, triggerRef]);
+
+  return portalPosition;
+}
+
+interface ListboxDismissalParams {
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  triggerRef: RefObject<HTMLElement | null>;
+}
+
+function useListboxDismissal({
+  onOpenChange,
+  open,
+  popoverRef,
+  triggerRef,
+}: ListboxDismissalParams) {
+  const handleDocumentMouseDown = useEffectEvent(
+    (event: globalThis.MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+      if (triggerRef.current?.contains(target)) {
+        return;
+      }
+      if (popoverRef.current?.contains(target)) {
+        return;
+      }
+      onOpenChange(false);
+    },
+  );
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    document.addEventListener("mousedown", handleDocumentMouseDown);
+    return () =>
+      document.removeEventListener("mousedown", handleDocumentMouseDown);
+  }, [open]);
+}
+
+interface ListboxKeyboardNavigationParams {
+  currentActiveValue?: string;
+  enabledOptionValues: readonly string[];
+  firstEnabledValue?: string;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  selectValue: (value: string) => void;
+  setActiveValue: (value: string) => void;
+  triggerRef: RefObject<HTMLElement | null>;
+}
+
+function useListboxKeyboardNavigation({
+  currentActiveValue,
+  enabledOptionValues,
+  firstEnabledValue,
+  onOpenChange,
+  open,
+  selectValue,
+  setActiveValue,
+  triggerRef,
+}: ListboxKeyboardNavigationParams) {
+  const handleDocumentKeyDown = useEffectEvent(
+    (event: globalThis.KeyboardEvent) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onOpenChange(false);
+        triggerRef.current?.focus();
+        return;
+      }
+
+      if (isTextEntryTarget(event.target)) {
+        return;
+      }
+
+      const moveActiveValue = (direction: 1 | -1) => {
+        if (enabledOptionValues.length === 0) {
+          return;
+        }
+
+        const currentIndex = currentActiveValue
+          ? enabledOptionValues.indexOf(currentActiveValue)
+          : -1;
+        const nextIndex =
+          currentIndex >= 0
+            ? (currentIndex + direction + enabledOptionValues.length) %
+              enabledOptionValues.length
+            : direction > 0
+              ? 0
+              : enabledOptionValues.length - 1;
+
+        setActiveValue(enabledOptionValues[nextIndex]);
+      };
+
+      switch (event.key) {
+        case "ArrowDown":
+          event.preventDefault();
+          moveActiveValue(1);
+          break;
+        case "ArrowUp":
+          event.preventDefault();
+          moveActiveValue(-1);
+          break;
+        case "Home":
+          event.preventDefault();
+          if (firstEnabledValue) {
+            setActiveValue(firstEnabledValue);
+          }
+          break;
+        case "End": {
+          event.preventDefault();
+          const lastEnabledValue =
+            enabledOptionValues[enabledOptionValues.length - 1];
+          if (lastEnabledValue) {
+            setActiveValue(lastEnabledValue);
+          }
+          break;
+        }
+        case "Enter":
+        case " ":
+          if (!currentActiveValue) {
+            return;
+          }
+          event.preventDefault();
+          selectValue(currentActiveValue);
+          break;
+        default:
+          break;
+      }
+    },
+  );
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    document.addEventListener("keydown", handleDocumentKeyDown, true);
+    return () =>
+      document.removeEventListener("keydown", handleDocumentKeyDown, true);
+  }, [open]);
+}
+
+interface ListboxPopoverContentProps
+  extends HTMLAttributes<HTMLDivElement> {
+  activeDescendantId?: string;
+  contextValue: ListboxContextValue;
+  labelledBy?: string;
+  portal: boolean;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  resolvedListboxId: string;
+}
+
+function ListboxPopoverContent({
+  activeDescendantId,
+  children,
+  className,
+  contextValue,
+  labelledBy,
+  portal,
+  popoverRef,
+  resolvedListboxId,
+  style,
+  ...popoverProps
+}: ListboxPopoverContentProps) {
+  return (
     <ListboxContext.Provider value={contextValue}>
       <div
         aria-activedescendant={activeDescendantId}
@@ -441,20 +573,14 @@ export function ListboxPopover({
         id={resolvedListboxId}
         ref={popoverRef}
         role="listbox"
-        style={portalStyle}
+        style={style}
         tabIndex={-1}
         {...popoverProps}
       >
-        {content}
+        {children}
       </div>
     </ListboxContext.Provider>
   );
-
-  const portalTarget =
-    portalContainer ??
-    (typeof document !== "undefined" ? document.body : undefined);
-
-  return portal && portalTarget ? createPortal(popover, portalTarget) : popover;
 }
 
 export interface ListboxOptionProps
@@ -483,7 +609,7 @@ export function ListboxOption({
   value,
   ...buttonProps
 }: ListboxOptionProps) {
-  const context = useContext(ListboxContext);
+  const context = use(ListboxContext);
   const disabledState = disabled ?? context?.disabledValues.has(value) ?? false;
   const selectedState = selected ?? context?.selectedValue === value;
   const activeState = active ?? context?.activeValue === value;
@@ -494,7 +620,7 @@ export function ListboxOption({
     context?.selectValue(value);
   }, [context, onSelect, value]);
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+  const selectOptionFromClick = (event: MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
     if (event.defaultPrevented || disabledState) {
       return;
@@ -535,7 +661,7 @@ export function ListboxOption({
       )}
       disabled={disabledState}
       id={optionId}
-      onClick={handleClick}
+      onClick={selectOptionFromClick}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       role="option"
