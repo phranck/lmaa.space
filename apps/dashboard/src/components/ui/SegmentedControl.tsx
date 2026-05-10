@@ -1,65 +1,62 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
+
+import { DashboardSegmentedControl } from "@/components/ui/DashboardControls.tsx";
 
 interface SegmentOption<T extends string> {
+  badge?: ReactNode;
+  icon?: ReactNode;
+  label?: ReactNode;
   value: T;
-  label?: string;
-  icon?: React.ReactNode;
-  badge?: React.ReactNode;
 }
 
 interface SegmentedControlProps<T extends string> {
-  value: T;
   onChange: (value: T) => void;
   options: readonly SegmentOption<T>[];
   storageKey?: string;
+  value: T;
 }
 
 /**
- * Animated segmented control with keyboard/mouse interaction.
- *
- * Hidden behavior: uses a sliding highlight element and supports value
- * persistence via parent-controlled state.
+ * Dashboard segmented control wrapper with optional localStorage restore.
  *
  * @typeParam T - Literal union of option values.
- * @param props - Options, current value and selection callback.
+ * @param props - Options, current value, storage key and selection callback.
  * @returns Segmented toggle component.
  */
 export function SegmentedControl<T extends string>({
-  value,
   onChange,
   options,
   storageKey,
+  value,
 }: SegmentedControlProps<T>) {
-  const activeIndex = options.findIndex((o) => o.value === value);
-
-  // Detect display mode
-  const hasIcons = options.some((o) => o.icon);
-  const hasLabels = options.some((o) => o.label);
-  const iconOnly = hasIcons && !hasLabels;
-
-  // Pill position tracking
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [pill, setPill] = useState<{ left: number; width: number; height: number } | null>(null);
-  const didMount = useRef(false);
   const restoredRef = useRef(false);
 
   useEffect(() => {
-    if (restoredRef.current || !storageKey || typeof window === "undefined") return;
+    if (restoredRef.current || !storageKey || typeof window === "undefined") {
+      return;
+    }
     restoredRef.current = true;
     try {
       const stored = window.localStorage.getItem(storageKey);
-      if (!stored) return;
+      if (!stored) {
+        return;
+      }
       const hasStoredValue = options.some((option) => option.value === stored);
       if (!hasStoredValue) {
         window.localStorage.removeItem(storageKey);
         return;
       }
-      if (stored !== value) onChange(stored as T);
+      if (stored !== value) {
+        onChange(stored as T);
+      }
     } catch {}
   }, [onChange, options, storageKey, value]);
 
   useEffect(() => {
-    if (!storageKey || typeof window === "undefined") return;
+    if (!storageKey || typeof window === "undefined") {
+      return;
+    }
     try {
       const hasValue = options.some((option) => option.value === value);
       if (!hasValue) {
@@ -70,111 +67,11 @@ export function SegmentedControl<T extends string>({
     } catch {}
   }, [options, storageKey, value]);
 
-  const measurePill = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const buttons = container.querySelectorAll<HTMLButtonElement>("button");
-    const btn = buttons[activeIndex];
-    if (!btn) {
-      setPill((prev) => (prev === null ? prev : null));
-      return;
-    }
-    const cRect = container.getBoundingClientRect();
-    const bRect = btn.getBoundingClientRect();
-    const next = { left: bRect.left - cRect.left, width: bRect.width, height: bRect.height };
-    setPill((prev) => {
-      if (
-        prev &&
-        prev.left === next.left &&
-        prev.width === next.width &&
-        prev.height === next.height
-      ) {
-        return prev;
-      }
-      return next;
-    });
-    didMount.current = true;
-  }, [activeIndex]);
-
-  // Re-measure when selected segment changes
-  useLayoutEffect(() => {
-    measurePill();
-  }, [measurePill]);
-
-  // Re-measure when container/button sizes change (e.g. async badges, viewport resize)
-  useLayoutEffect(() => {
-    const observer = new ResizeObserver(() => measurePill());
-    const container = containerRef.current;
-    if (container) {
-      observer.observe(container);
-      for (const button of container.querySelectorAll<HTMLButtonElement>("button")) {
-        observer.observe(button);
-      }
-    }
-
-    const handleResize = () => measurePill();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      observer.disconnect();
-    };
-  }, [measurePill]);
-
-  const h = "h-7";
-  const w = iconOnly ? "w-7" : "";
-  const px = iconOnly ? "" : "px-3.5";
-
   return (
-    // biome-ignore lint/a11y/useSemanticElements: not a fieldset, role="group" is correct for segmented control
-    <div
-      role="group"
-      ref={containerRef}
-      className="relative flex items-center bg-[var(--ds-segment-bg)] rounded-control p-1"
-    >
-      {/* Sliding pill indicator */}
-      {pill && (
-        <div
-          aria-hidden="true"
-          className="absolute rounded-[4px] bg-[var(--ds-segment-active-bg)] shadow-sm pointer-events-none"
-          style={{
-            left: pill.left,
-            width: pill.width,
-            height: pill.height,
-            top: "50%",
-            transform: "translateY(-50%)",
-            transition: didMount.current
-              ? "left 200ms cubic-bezier(0.4, 0, 0.2, 1), width 200ms cubic-bezier(0.4, 0, 0.2, 1)"
-              : "none",
-          }}
-        />
-      )}
-
-      {options.map((opt) => {
-        const isActive = opt.value === value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            aria-pressed={isActive}
-            aria-label={iconOnly ? (opt.label ?? String(opt.value)) : undefined}
-            className={[
-              "relative z-10 flex items-center justify-center gap-1.5 rounded-[4px] text-sm font-medium",
-              h,
-              w,
-              px,
-              isActive
-                ? "text-[var(--ds-text)]"
-                : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]",
-            ].join(" ")}
-          >
-            {opt.icon}
-            {hasLabels && opt.label && <span>{opt.label}</span>}
-            {opt.badge}
-          </button>
-        );
-      })}
-    </div>
+    <DashboardSegmentedControl
+      onValueChange={onChange}
+      options={options}
+      value={value}
+    />
   );
 }

@@ -112,7 +112,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] Textareas auf `DashboardTextarea` migrieren.
 - [x] Number-Inputs und Stepper auf `DashboardNumberInput`/`DashboardStepper` migrieren.
 - [ ] `Tabs.tsx` und Dashboard-Tabs auf `DashboardTabs` migrieren.
-- [ ] `SegmentedControl` und `SegmentSwitch` konsolidieren.
+- [x] `SegmentedControl` und `SegmentSwitch` konsolidieren.
 - [ ] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
 - [ ] `TableSortHeader` extrahieren und in Tabellen verwenden.
 - [ ] `DashboardDragHandle` einfuehren und DND-Fundstellen migrieren.
@@ -957,6 +957,22 @@ Gate:
 
 - Roving tabindex und Arrow-Key-Verhalten fuer Tabs.
 - Keine Content-Tabs, die optisch wie winzige Toolbar-Chips wirken.
+
+Teilfortschritt 2026-05-10, Dashboard-Segment-Wrapper:
+
+- `SegmentedControl` delegiert an `DashboardSegmentedControl` und behaelt nur den bisherigen `storageKey`-Restore-/Persist-Kompatibilitaetslayer.
+- `SegmentSwitch` ist ein kompatibler Alias auf `DashboardSegmentedControl` mit `sm` -> `compact` und `md` -> `large`.
+- Lokale Pill-/Resize-/Keyboard- und Button-Style-Logik in beiden Wrappern wurde entfernt.
+
+Verifiziert fuer den Dashboard-Segment-Wrapper-Task:
+
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
 
 ### 5D: Menues, Dropdown-Items und ContextMenu
 

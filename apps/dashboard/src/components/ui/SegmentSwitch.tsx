@@ -1,63 +1,42 @@
+import type { ReactNode } from "react";
+
+import { DashboardSegmentedControl } from "@/components/ui/DashboardControls.tsx";
+
 interface SegmentSwitchOption<T extends string> {
-  value: T;
-  label: string;
-  icon?: React.ReactNode;
   disabled?: boolean;
+  icon?: ReactNode;
+  label: ReactNode;
+  value: T;
 }
 
 interface SegmentSwitchProps<T extends string> {
-  value: T;
+  className?: string;
   onChange: (value: T) => void;
   options: readonly SegmentSwitchOption<T>[];
   size?: "sm" | "md";
-  className?: string;
+  value: T;
 }
 
-const sizeStyles = {
-  sm: {
-    container: "gap-0.5 p-0.5",
-    button: "px-2.5 h-6 text-xs",
-  },
-  md: {
-    container: "gap-1 p-1",
-    button: "px-3.5 h-8 text-sm",
-  },
+const sizeMap = {
+  sm: "compact",
+  md: "large",
 } as const;
 
 export function SegmentSwitch<T extends string>({
-  value,
+  className,
   onChange,
   options,
   size = "sm",
-  className,
+  value,
 }: SegmentSwitchProps<T>) {
-  const s = sizeStyles[size];
   return (
-    // biome-ignore lint/a11y/useSemanticElements: not a fieldset, role="group" is correct for segment switch
-    <div
-      role="group"
-      className={`flex ${s.container} bg-[var(--ds-form-control-bg)] rounded-control border border-[var(--ds-border)] w-fit ${className ?? ""}`}
-    >
-      {options.map((opt) => {
-        const active = opt.value === value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            disabled={opt.disabled}
-            onClick={() => onChange(opt.value)}
-            aria-pressed={active}
-            className={`inline-flex items-center gap-1 ${s.button} rounded-[calc(var(--radius-control)-2px)] font-medium disabled:opacity-40 disabled:cursor-not-allowed ${
-              active
-                ? "bg-[var(--ds-surface)] text-[var(--ds-text)] shadow-sm"
-                : "text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
-            }`}
-          >
-            {opt.icon}
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
+    <DashboardSegmentedControl
+      className={className}
+      onValueChange={onChange}
+      options={options}
+      size={sizeMap[size]}
+      value={value}
+      variant="outline"
+    />
   );
 }
