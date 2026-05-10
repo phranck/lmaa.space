@@ -1,6 +1,7 @@
 import type { AdminLocale, AdminUser } from "@lmaa/shared";
 import { FormLabel, formInputClass } from "@lmaa/ui";
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import type { EditableRole, UserEditDraftState, UserEditField } from "@/features/system/users/user-edit-state.ts";
 import type { DashboardMessages } from "@/i18n/messages.ts";
@@ -79,15 +80,15 @@ export function UserProfileFields({
       {canChangeRole && (
         <div>
           <FormLabel htmlFor="user-edit-role">{usersMessages.editCard.role}</FormLabel>
-          <select
+          <DashboardCombobox
             id="user-edit-role"
             value={draft.role}
-            onChange={(e) => onRoleChange(e.target.value as EditableRole)}
-            className={formInputClass}
-          >
-            <option value="admin">{usersMessages.editCard.roleAdmin}</option>
-            <option value="moderator">{usersMessages.editCard.roleModerator}</option>
-          </select>
+            onValueChange={(value) => onRoleChange(value as EditableRole)}
+            options={[
+              { value: "admin", label: usersMessages.editCard.roleAdmin },
+              { value: "moderator", label: usersMessages.editCard.roleModerator },
+            ]}
+          />
         </div>
       )}
 
@@ -117,7 +118,7 @@ export function UserProfileFields({
               type="checkbox"
               checked={draft.logoutConfirm}
               onChange={(e) => onLogoutConfirmChange(e.target.checked)}
-              className="w-4 h-4 rounded accent-[var(--color-primary)]"
+              className="size-4 rounded accent-[var(--color-primary)]"
             />
             <span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>
           </label>

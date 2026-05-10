@@ -4,14 +4,13 @@ import { memo, useCallback, useMemo, useState } from "react";
 import { SETTINGS_KEYS } from "@lmaa/shared";
 import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
 import { useSaveSystemSetting, useSystemSettings } from "./hooks/useSystemSettings.ts";
 
 const rowLabelClass = "text-sm font-medium text-[var(--ds-text)]";
-const selectClass =
-  "h-9 px-3 pr-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
 interface NotificationDraftState {
   baselineEnabled: boolean;
@@ -128,22 +127,23 @@ export const NotificationsTab = memo(function NotificationsTab() {
             <label htmlFor="shop-submission-template" className={rowLabelClass}>
               {t.templateLabel}
             </label>
-            <select
+            <DashboardCombobox
               id="shop-submission-template"
               value={templateId}
-              onChange={(e) => handleTemplateChange(e.target.value)}
+              onValueChange={handleTemplateChange}
               disabled={templatesLoading || saving}
-              className={selectClass}
-            >
-              <option value="">
-                {templatesLoading ? t.templateLoading : t.templatePlaceholder}
-              </option>
-              {templates?.map((tmpl) => (
-                <option key={tmpl.id} value={String(tmpl.id)}>
-                  {tmpl.name}
-                </option>
-              ))}
-            </select>
+              className="w-72"
+              options={[
+                {
+                  value: "",
+                  label: templatesLoading ? t.templateLoading : t.templatePlaceholder,
+                },
+                ...(templates?.map((template) => ({
+                  value: String(template.id),
+                  label: template.name,
+                })) ?? []),
+              ]}
+            />
           </div>
           {saveError ? (
             <p className="mt-3 text-xs text-[var(--ds-danger-text)]">{saveError}</p>

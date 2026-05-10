@@ -761,6 +761,23 @@ Verifiziert fuer den Dropdown-/FilterDropdown-Basis-Task:
 - `npm run test --workspaces --if-present`
 - `npm run build`
 
+Teilfortschritt 2026-05-10, benannte native Dashboard-Selects:
+
+- Native Selects in `RejectDialog`, `NotificationsTab`, `UserProfileFields` und `UserCreateCard` wurden auf `DashboardCombobox` umgestellt.
+- Die betroffenen Notification-/Role-/Welcome-Template-Controls nutzen damit die gemeinsame Popover-/Listbox-Basis.
+- Der globale Select-Checklistpunkt bleibt offen, weil weitere `<select>`-Fundstellen in anderen Feature-Dateien bestehen.
+
+Verifiziert fuer den benannte-native-Selects-Task:
+
+- `rg -n "<select|</select>" apps/dashboard/src/components/ui/RejectDialog.tsx apps/dashboard/src/features/system/settings/NotificationsTab.tsx apps/dashboard/src/features/system/users/UserProfileFields.tsx apps/dashboard/src/features/system/users/UserCreateCard.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+
 ### 5B: Inputs, Textareas, Number und Stepper
 
 Betroffene Dateien:

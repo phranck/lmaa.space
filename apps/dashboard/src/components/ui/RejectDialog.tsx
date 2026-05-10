@@ -12,6 +12,7 @@ import {
   CopyActionButton,
   DashboardActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
@@ -231,22 +232,20 @@ export function NotificationTemplateSelect({
         <EnvelopeSimpleIcon weight="duotone" className="size-4 text-[var(--ds-text-muted)]" />
         <span className="text-sm font-medium text-[var(--ds-text)]">{notificationLabel}</span>
       </div>
-      <select
-        value={notificationTemplateId ?? ""}
-        onChange={(e) => {
-          const val = e.target.value;
-          onNotificationTemplateChange(val ? Number(val) : undefined);
-        }}
+      <DashboardCombobox
+        value={String(notificationTemplateId ?? "")}
+        onValueChange={(value) =>
+          onNotificationTemplateChange(value ? Number(value) : undefined)
+        }
         disabled={!hasSubmitterEmail}
-        className="w-full h-9 px-3 border border-[var(--ds-border)] rounded-control bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] disabled:opacity-50"
-      >
-        <option value="">{notificationNoneLabel}</option>
-        {emailTemplates.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.name}
-          </option>
-        ))}
-      </select>
+        options={[
+          { value: "", label: notificationNoneLabel },
+          ...emailTemplates.map((template) => ({
+            value: String(template.id),
+            label: template.name,
+          })),
+        ]}
+      />
       {!hasSubmitterEmail && (
         <p className="text-xs text-[var(--ds-text-subtle)] mt-1.5">{notificationHint}</p>
       )}
