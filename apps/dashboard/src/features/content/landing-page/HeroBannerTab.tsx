@@ -15,7 +15,9 @@ import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.t
 import {
   CancelActionButton,
   RemoveActionButton,
+  SaveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
@@ -91,30 +93,34 @@ function HeroImageCard({
 
       {/* Action overlay */}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 z-10">
-        <button
-          type="button"
+        <DashboardButton
           onClick={onToggleSelect}
           disabled={togglePending}
-          className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-white text-stone-900 rounded-control hover:bg-stone-100 disabled:opacity-50"
+          className="bg-white text-stone-900 hover:bg-stone-100"
+          size="control"
           title={image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
+          variant="neutral"
+          leadingIcon={
+            image.isSelected ? (
+              <CircleIcon weight="regular" className="size-3.5" />
+            ) : (
+              <CheckCircleIcon weight="duotone" className="size-3.5" />
+            )
+          }
         >
-          {image.isSelected ? (
-            <CircleIcon weight="regular" className="size-3.5" />
-          ) : (
-            <CheckCircleIcon weight="duotone" className="size-3.5" />
-          )}
           {image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
-        </button>
-        <button
-          type="button"
+        </DashboardButton>
+        <DashboardButton
           onClick={onDelete}
           disabled={deletePending}
-          className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-white text-[var(--ds-btn-danger-text,#ef4444)] rounded-control hover:bg-red-50 disabled:opacity-50"
+          className="bg-white hover:bg-red-50"
           title={m.removeImage}
+          size="control"
+          variant="danger"
+          leadingIcon={<TrashIcon weight="duotone" className="size-3.5" />}
         >
-          <TrashIcon weight="duotone" className="size-3.5" />
           {m.removeImage}
-        </button>
+        </DashboardButton>
       </div>
     </div>
   );
@@ -185,14 +191,13 @@ export function HeroBannerTab() {
                 />
                 <span className="text-sm text-[var(--ds-text-muted)]">{m.rotationIntervalSuffix}</span>
                 {intervalDirty && (
-                  <button
-                    type="button"
+                  <SaveActionButton
                     disabled={intervalConfig.isSaving}
                     onClick={() => intervalConfig.save(localInterval)}
-                    className="ml-auto flex items-center gap-1.5 h-8 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:bg-[var(--ds-btn-primary-hover-bg)] hover:border-[var(--ds-btn-primary-hover-border)] disabled:opacity-50"
-                  >
-                    {m.rotationIntervalSave}
-                  </button>
+                    className="ml-auto"
+                    busy={intervalConfig.isSaving}
+                    label={m.rotationIntervalSave}
+                  />
                 )}
               </div>
             </DashboardSection.Body>
@@ -248,14 +253,14 @@ export function HeroBannerTab() {
 
       {/* Footer: "Bilder hinzufügen" button */}
       <PageFooter>
-        <button
-          type="button"
+        <DashboardButton
           onClick={() => setShowBrowser(true)}
-          className="flex items-center gap-1.5 h-9 px-3 text-sm border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:bg-[var(--ds-btn-primary-hover-bg)] hover:border-[var(--ds-btn-primary-hover-border)]"
+          leadingIcon={<PlusIcon weight="bold" className="size-3.5" />}
+          size="control"
+          variant="primary"
         >
-          <PlusIcon weight="bold" className="size-3.5" />
           {m.addImages}
-        </button>
+        </DashboardButton>
       </PageFooter>
 
       {/* Unsplash Browser */}

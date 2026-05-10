@@ -24,7 +24,7 @@ export function LandingPagePage() {
   };
 
   const tabIcon: Record<TabId, React.ReactNode> = {
-    heroBanner: <ImageIcon weight="duotone" className="w-4 h-4" />,
+    heroBanner: <ImageIcon weight="duotone" className="size-4" />,
   };
 
   // Single tab for now -- no useState needed, always "heroBanner"

@@ -1,9 +1,12 @@
-import { DownloadIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 
 import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
+import {
+  CreateActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import {
   PageBody,
@@ -96,21 +99,19 @@ export function MarkdownWidgetsPage() {
   return (
     <PageLayout>
       <PageHeader title={widgetMessages.title}>
-        <button
-          type="button"
+        <SaveActionButton
           onClick={handleSave}
           disabled={!config || save.isPending}
-          className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-        >
-          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-          {savedOk ? common.saved : save.isPending ? common.saving : common.save}
-        </button>
+          busy={save.isPending}
+          label={savedOk ? common.saved : save.isPending ? common.saving : common.save}
+          size="control"
+        />
       </PageHeader>
 
       <PageBody>
         {isLoading || !config ? (
           <div className="flex flex-1 items-center justify-center">
-            <div className="w-6 h-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+            <div className="size-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
           </div>
         ) : (
           <PageSplitLayout columnsClassName="xl:grid-cols-[30rem_minmax(0,1fr)]">
@@ -125,14 +126,10 @@ export function MarkdownWidgetsPage() {
                       {widgetMessages.widgetsHint}
                     </p>
                   </div>
-                  <button
-                    type="button"
+                  <CreateActionButton
                     onClick={handleAddWidget}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-control border border-[var(--ds-border)] px-3 text-xs font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
-                  >
-                    <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-                    {widgetMessages.newWidget}
-                  </button>
+                    label={widgetMessages.newWidget}
+                  />
                 </div>
 
                 <div className="space-y-2">
