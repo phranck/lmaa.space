@@ -25,6 +25,15 @@ export type {
 } from "./ButtonPrimitive.tsx";
 /** Shared checkbox component and props. */
 export { Checkbox } from "./Checkbox.tsx";
+/** Shared low-level switch and checkbox primitives. */
+export { CheckboxPrimitive, SwitchPrimitive } from "./ChoicePrimitives.tsx";
+/** Re-exported contracts for choice primitives. */
+export type {
+  CheckboxPrimitiveProps,
+  CheckboxPrimitiveSize,
+  SwitchPrimitiveProps,
+  SwitchPrimitiveSize,
+} from "./ChoicePrimitives.tsx";
 /** Shared dashboard form primitives and class tokens. */
 export {
   FormErrorText,
