@@ -79,6 +79,18 @@ export type {
   MenuPrimitiveProps,
   MenuPrimitiveRenderState,
 } from "./MenuPrimitives.tsx";
+/** Shared low-level surface and dialog footer primitives. */
+export { DialogFooterPrimitive, SurfacePrimitive } from "./SurfacePrimitives.tsx";
+/** Re-exported contracts for surface primitives. */
+export type {
+  DialogFooterPrimitiveAlign,
+  DialogFooterPrimitiveDensity,
+  DialogFooterPrimitiveProps,
+  SurfacePrimitivePadding,
+  SurfacePrimitiveProps,
+  SurfacePrimitiveRadius,
+  SurfacePrimitiveVariant,
+} from "./SurfacePrimitives.tsx";
 /** Shared form field wrapper composing label, error, hint and optional/required indicators. */
 export { FormField } from "./FormField.tsx";
 /** Re-exported props for `FormField`. */

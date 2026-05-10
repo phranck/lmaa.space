@@ -68,7 +68,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
 - [x] `SegmentedControlPrimitive` anlegen.
 - [x] `SwitchPrimitive` und `CheckboxPrimitive` anlegen.
-- [ ] `DialogFooterPrimitive` und `SurfacePrimitive` anlegen.
+- [x] `DialogFooterPrimitive` und `SurfacePrimitive` anlegen.
 - [ ] `packages/ui/src/FormPrimitives.tsx` auf Foundation umbauen.
 - [ ] `packages/ui/src/Tabs.tsx` auf `TabsPrimitive` umbauen.
 - [ ] `packages/ui/src/ToggleSwitch.tsx` auf `SwitchPrimitive` umbauen.
@@ -409,6 +409,22 @@ Teilfortschritt 2026-05-10, Choice-Primitives:
 - `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
 
 Verifiziert fuer den Choice-Primitive-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, Surface-Primitives:
+
+- `packages/ui/src/SurfacePrimitives.tsx` stellt `SurfacePrimitive` und `DialogFooterPrimitive` bereit.
+- `SurfacePrimitive` buendelt wiederkehrende Panel-, Section-, Inset- und Elevated-Surface-Klassen mit kontrollierten Padding-/Radius-Optionen.
+- `DialogFooterPrimitive` buendelt Dialog-Footer-Border, Inset-Hintergrund, Dichte und Start-/End-/Between-Ausrichtung.
+- Die Primitives sind bewusst layoutnah und enthalten keine Dashboard-i18n-Keys oder fachlichen Actions.
+- `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
+
+Verifiziert fuer den Surface-Primitive-Task:
 
 - `npm run lint`
 - `npm run typecheck`
