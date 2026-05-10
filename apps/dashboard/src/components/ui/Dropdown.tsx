@@ -1,12 +1,15 @@
-import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import type { ReactNode } from "react";
+
+import {
+  DashboardCombobox,
+  type DashboardComboboxOption,
+} from "@/components/ui/DashboardControls.tsx";
 
 export interface DropdownOption<T extends string = string> {
   value: T;
   label: string;
   /** Optional ReactNode rendered left of the label in trigger and list items. */
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   /** Optional numeric badge rendered right-aligned when > 0. */
   count?: number;
 }
@@ -25,8 +28,7 @@ interface DropdownProps<T extends string = string> {
   /**
    * When true, the listbox is rendered in a portal attached to document.body.
    * Required when the dropdown lives inside a container with `overflow: hidden`
-   * (e.g. dialogs). Default false to preserve in-tree rendering for callers
-   * that rely on stacking context inheritance.
+   * (e.g. dialogs). Default false to preserve legacy in-tree rendering.
    */
   portal?: boolean;
 }
@@ -34,8 +36,7 @@ interface DropdownProps<T extends string = string> {
 /**
  * Generic single-select dropdown with optional icons per option.
  *
- * Renders a styled trigger button showing the current selection and an
- * absolute-positioned list panel that closes on outside click.
+ * Thin compatibility wrapper around the shared dashboard combobox primitive.
  *
  * @param props - Value, options, change handler and optional label.
  * @returns Accessible dropdown control.
@@ -50,234 +51,62 @@ export function Dropdown<T extends string = string>({
   searchPlaceholder,
   portal,
 }: DropdownProps<T>) {
-  const [open, setOpen] = useState(false);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [portalRect, setPortalRect] = useState<{ top: number; left: number; width: number } | null>(
-    null,
-  );
-  const ref = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    function handleOutside(e: MouseEvent) {
-      const target = e.target as Node;
-      if (ref.current && ref.current.contains(target)) return;
-      if (listRef.current && listRef.current.contains(target)) return;
-      setOpen(false);
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!open || !portal || !ref.current) {
-      setPortalRect(null);
-      return;
-    }
-    const updateRect = () => {
-      const rect = ref.current?.getBoundingClientRect();
-      if (rect) setPortalRect({ top: rect.bottom, left: rect.left, width: rect.width });
-    };
-    updateRect();
-    window.addEventListener("scroll", updateRect, true);
-    window.addEventListener("resize", updateRect);
-    return () => {
-      window.removeEventListener("scroll", updateRect, true);
-      window.removeEventListener("resize", updateRect);
-    };
-  }, [open, portal]);
-
-  const filteredOptions = searchable && searchQuery
-    ? options.filter((o) => o.label.toLowerCase().includes(searchQuery.toLowerCase()))
-    : options;
-
-  const openDropdown = useCallback(() => {
-    setOpen(true);
-    setSearchQuery("");
-    setHighlightIndex(options.findIndex((o) => o.value === value));
-    if (searchable) {
-      requestAnimationFrame(() => searchInputRef.current?.focus());
-    }
-  }, [options, value, searchable]);
-
-  const selectOption = useCallback(
-    (v: T) => {
-      onChange(v);
-      setOpen(false);
-    },
-    [onChange],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (!open) {
-        if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openDropdown();
-        }
-        return;
-      }
-
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault();
-          setHighlightIndex((i) => (i + 1) % filteredOptions.length);
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          setHighlightIndex((i) => (i - 1 + filteredOptions.length) % filteredOptions.length);
-          break;
-        case "Enter":
-          e.preventDefault();
-          if (highlightIndex >= 0 && highlightIndex < filteredOptions.length) {
-            selectOption(filteredOptions[highlightIndex].value);
-          }
-          break;
-        case " ":
-          if (!searchable) {
-            e.preventDefault();
-            if (highlightIndex >= 0 && highlightIndex < filteredOptions.length) {
-              selectOption(filteredOptions[highlightIndex].value);
-            }
-          }
-          break;
-        case "Escape":
-          e.preventDefault();
-          setOpen(false);
-          break;
-        case "Home":
-          e.preventDefault();
-          setHighlightIndex(0);
-          break;
-        case "End":
-          e.preventDefault();
-          setHighlightIndex(filteredOptions.length - 1);
-          break;
-      }
-    },
-    [open, filteredOptions, highlightIndex, selectOption, searchable, openDropdown],
-  );
-
-  const current = options.find((o) => o.value === value);
-  const listboxId = "dropdown-listbox";
-
   return (
-    <div className={`flex flex-col gap-1${className ? ` ${className}` : ""}`}>
-      {label && (
-        <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
-          {label}
-        </span>
-      )}
-      <div ref={ref} className="relative">
-        <button
-          type="button"
-          onClick={() => (open ? setOpen(false) : openDropdown())}
-          onKeyDown={handleKeyDown}
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-label={label}
-          className="w-full h-9 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] whitespace-nowrap"
-        >
-          {current?.icon && <span className="shrink-0">{current.icon}</span>}
-          <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
-            {current?.label}
-          </span>
-          {typeof current?.count === "number" && current.count > 0 && (
-            <span className="shrink-0 rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-text-muted)]">
-              {current.count}
-            </span>
-          )}
-          {open ? (
-            <CaretUpIcon
-              weight="duotone"
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 text-[var(--ds-text-muted)]"
-            />
-          ) : (
-            <CaretDownIcon
-              weight="duotone"
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 text-[var(--ds-text-muted)]"
-            />
-          )}
-        </button>
-        {open && (() => {
-          const listboxNode = (
-            // biome-ignore lint/a11y/useSemanticElements: custom dropdown, not a native select
-            <div
-              role="listbox"
-              ref={listRef}
-              tabIndex={-1}
-              id={listboxId}
-              style={
-                portal && portalRect
-                  ? {
-                      position: "fixed",
-                      top: portalRect.top + 4,
-                      left: portalRect.left,
-                      minWidth: portalRect.width,
-                      zIndex: 9999,
-                    }
-                  : undefined
-              }
-              className={
-                portal
-                  ? "bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden w-max"
-                  : "absolute z-20 right-0 mt-1 min-w-full w-max bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-xl shadow-lg overflow-hidden"
-              }
-            >
-            {searchable && (
-              <div className="px-2 pt-2 pb-1">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setHighlightIndex(0);
-                  }}
-                  onKeyDown={handleKeyDown}
-                  placeholder={searchPlaceholder}
-                  className="w-full py-1.5 px-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                />
-              </div>
-            )}
-            <div className="py-1 max-h-64 overflow-y-auto">
-            {filteredOptions.map(({ value: v, label: l, icon, count }, index) => (
-              // biome-ignore lint/a11y/useSemanticElements: option role on button is intentional
-              <button
-                role="option"
-                key={v}
-                id={`dropdown-option-${index}`}
-                aria-selected={value === v}
-                type="button"
-                onClick={() => selectOption(v)}
-                onMouseEnter={() => setHighlightIndex(index)}
-                className={`w-full h-8 flex items-center gap-2 px-3 text-sm whitespace-nowrap ${
-                  value === v
-                    ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)] font-medium"
-                    : index === highlightIndex
-                      ? "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]"
-                      : "text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)]"
-                }`}
-              >
-                {icon && <span className="shrink-0">{icon}</span>}
-                <span className="whitespace-nowrap">{l}</span>
-                {typeof count === "number" && count > 0 && (
-                  <span className="ml-auto shrink-0 rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-text-muted)]">
-                    {count}
-                  </span>
-                )}
-              </button>
-            ))}
-            </div>
-            </div>
-          );
-          return portal ? createPortal(listboxNode, document.body) : listboxNode;
-        })()}
-      </div>
-    </div>
+    <DashboardCombobox
+      className={label ? undefined : className}
+      fieldClassName={label ? className : undefined}
+      label={label}
+      onValueChange={(nextValue) => onChange(nextValue as T)}
+      options={options.map(toComboboxOption)}
+      portal={portal ?? false}
+      searchable={searchable}
+      searchPlaceholder={searchPlaceholder}
+      value={value}
+    />
   );
+}
+
+function toComboboxOption<T extends string>(
+  option: DropdownOption<T>,
+): DashboardComboboxOption {
+  return {
+    addOn: hasPositiveCount(option.count) ? (
+      <DropdownCountBadge count={option.count} />
+    ) : undefined,
+    label: option.label,
+    leadingIcon: option.icon,
+    triggerLabel: hasPositiveCount(option.count) ? (
+      <DropdownTriggerLabel count={option.count} label={option.label} />
+    ) : (
+      option.label
+    ),
+    value: option.value,
+  };
+}
+
+function DropdownTriggerLabel({
+  count,
+  label,
+}: {
+  count: number;
+  label: string;
+}) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <span className="min-w-0 truncate">{label}</span>
+      <DropdownCountBadge count={count} />
+    </span>
+  );
+}
+
+function DropdownCountBadge({ count }: { count: number }) {
+  return (
+    <span className="rounded-full bg-[var(--ds-surface-hover)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-text-muted)]">
+      {count}
+    </span>
+  );
+}
+
+function hasPositiveCount(count: number | undefined): count is number {
+  return typeof count === "number" && count > 0;
 }
