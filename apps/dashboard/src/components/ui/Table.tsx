@@ -1,6 +1,11 @@
-import { CaretDownIcon, CaretUpIcon, CaretUpDownIcon } from "@phosphor-icons/react";
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useReducer, useRef } from "react";
+
+import {
+  getTableSortAriaSort,
+  TableSortHeader,
+  type TableSortDirection,
+} from "@/components/ui/DashboardControls.tsx";
 
 // ─── Group type ───────────────────────────────────────────────────────────────
 
@@ -77,6 +82,16 @@ export interface SortState {
   dir: SortDir;
 }
 
+const tableSortCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+const EMPTY_TABLE_ROWS: never[] = [];
+
+function updateSortState(_: SortState | null, nextSort: SortState | null) {
+  return nextSort;
+}
+
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data?: T[];
@@ -107,7 +122,7 @@ interface DataTableProps<T> {
  */
 export function DataTable<T>({
   columns,
-  data = [],
+  data,
   groups,
   getRowKey,
   getRowClassName,
@@ -117,10 +132,13 @@ export function DataTable<T>({
   onSortChange,
   allowUnsorted = true,
 }: DataTableProps<T>) {
-  const [uncontrolledSort, setUncontrolledSort] = useState<SortState | null>(initialSort);
-  const [prevInitialSort, setPrevInitialSort] = useState(initialSort);
-  if (initialSort !== prevInitialSort) {
-    setPrevInitialSort(initialSort);
+  const [uncontrolledSort, setUncontrolledSort] = useReducer(
+    updateSortState,
+    initialSort,
+  );
+  const prevInitialSortRef = useRef(initialSort);
+  if (initialSort !== prevInitialSortRef.current) {
+    prevInitialSortRef.current = initialSort;
     setUncontrolledSort(initialSort);
   }
   const sort = controlledSort ?? uncontrolledSort;
@@ -147,7 +165,7 @@ export function DataTable<T>({
     if (!sort) return rows;
     const col = columns.find((c) => c.id === sort.id);
     if (!col?.sortKey) return rows;
-    return [...rows].sort((a, b) => {
+    return Array.from(rows).sort((a, b) => {
       // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
       const av = col.sortKey!(a);
       // biome-ignore lint/style/noNonNullAssertion: col is confirmed to have sortKey above
@@ -155,16 +173,13 @@ export function DataTable<T>({
       const cmp =
         typeof av === "number" && typeof bv === "number"
           ? av - bv
-          : String(av).localeCompare(String(bv), "de", {
-              numeric: true,
-              sensitivity: "base",
-            });
+          : tableSortCollator.compare(String(av), String(bv));
       return sort.dir === "asc" ? cmp : -cmp;
     });
   }
 
   const sorted = useMemo(
-    () => sortRows(data),
+    () => sortRows(data ?? EMPTY_TABLE_ROWS),
     [allowUnsorted, data, sort, columns],
   );
 
@@ -179,42 +194,30 @@ export function DataTable<T>({
         className={stickyHeader ? "sticky -top-3 z-10 shadow-[0_1px_0_var(--ds-border)]" : ""}
       >
         <TableRow className="hover:bg-transparent">
-          {columns.map((col) => (
-            <Th
-              key={col.id}
-              aria-sort={
-                col.sortKey
-                  ? sort?.id === col.id
-                    ? sort.dir === "asc"
-                      ? "ascending"
-                      : "descending"
-                    : "none"
-                  : undefined
-              }
-              className={`${col.headerClassName ?? col.className ?? ""} ${col.sortKey ? "select-none" : ""}`}
-            >
-              {col.sortKey ? (
-                <button
-                  type="button"
-                  onClick={() => handleSort(col)}
-                  className="inline-flex items-center gap-1.5 hover:text-[var(--ds-text)]"
-                >
-                  {col.header}
-                  {sort?.id === col.id ? (
-                    sort.dir === "asc" ? (
-                      <CaretUpIcon weight="duotone" className="w-3 h-3 shrink-0" />
-                    ) : (
-                      <CaretDownIcon weight="duotone" className="w-3 h-3 shrink-0" />
-                    )
-                  ) : (
-                    <CaretUpDownIcon weight="duotone" className="w-3 h-3 shrink-0 opacity-40" />
-                  )}
-                </button>
-              ) : (
-                col.header
-              )}
-            </Th>
-          ))}
+          {columns.map((col) => {
+            const sortDirection: TableSortDirection =
+              sort?.id === col.id ? sort.dir : null;
+
+            return (
+              <Th
+                key={col.id}
+                aria-sort={
+                  col.sortKey ? getTableSortAriaSort(sortDirection) : undefined
+                }
+                className={`${col.headerClassName ?? col.className ?? ""} ${col.sortKey ? "select-none" : ""}`}
+              >
+                {col.sortKey ? (
+                  <TableSortHeader
+                    direction={sortDirection}
+                    label={col.header}
+                    onClick={() => handleSort(col)}
+                  />
+                ) : (
+                  col.header
+                )}
+              </Th>
+            );
+          })}
         </TableRow>
       </TableHead>
       <TableBody>

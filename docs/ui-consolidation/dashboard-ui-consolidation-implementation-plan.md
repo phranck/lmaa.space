@@ -114,7 +114,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `Tabs.tsx` und Dashboard-Tabs auf `DashboardTabs` migrieren.
 - [x] `SegmentedControl` und `SegmentSwitch` konsolidieren.
 - [x] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
-- [ ] `TableSortHeader` extrahieren und in Tabellen verwenden.
+- [x] `TableSortHeader` extrahieren und in Tabellen verwenden.
 - [ ] `DashboardDragHandle` einfuehren und DND-Fundstellen migrieren.
 - [ ] Static Gates fuer rohe Selects, `h-9`, direkte Fokusklassen und direkte `--ds-btn-*` Klassen pruefen.
 
@@ -1048,6 +1048,24 @@ Gate:
 
 - Sortierung bleibt funktional.
 - Sticky Header bleiben stabil.
+
+Teilfortschritt 2026-05-10, Table-Sort-Header:
+
+- `DataTable` nutzt fuer sortierbare Spalten den zentralen `TableSortHeader` statt inline Header-Buttons und Icon-Logik.
+- `DashboardControls` zentralisiert Sort-Icon-Zustaende und `getTableSortAriaSort`; `aria-sort` bleibt auf der Header-Zelle.
+- Die String-Sortierung nutzt `Intl.Collator(undefined, ...)` statt einer hart verdrahteten `"de"`-Locale.
+- Die Tabellen-Sortierung bleibt immutable ueber `Array.from(rows).sort(...)`; React-Doctor-Hinweise zu default Arrays und abgeleitetem State wurden bereinigt.
+
+Verifiziert fuer den Table-Sort-Header-Task:
+
+- `rg -n "CaretUpIcon|CaretDownIcon|CaretUpDownIcon|localeCompare\\(|aria-sort|TableSortHeader|getTableSortAriaSort" apps/dashboard/src/components/ui/Table.tsx apps/dashboard/src/components/ui/DashboardControls.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
 
 ### 5F: Drag-Handles und DND
 
