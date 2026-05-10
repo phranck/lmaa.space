@@ -139,6 +139,15 @@ export type {
   TabsPrimitiveProps,
   TabTriggerPrimitiveProps,
 } from "./TabsPrimitives.tsx";
+/** Shared low-level segmented control primitive. */
+export { SegmentedControlPrimitive } from "./SegmentedControlPrimitive.tsx";
+/** Re-exported contracts for segmented control primitive. */
+export type {
+  SegmentedControlPrimitiveOption,
+  SegmentedControlPrimitiveProps,
+  SegmentedControlPrimitiveSize,
+  SegmentedControlPrimitiveVariant,
+} from "./SegmentedControlPrimitive.tsx";
 /** Focal point overlay and drag hook for image cropping control. */
 export { FocalPointOverlay, useFocalPointDrag } from "./FocalPointOverlay.tsx";
 /** Shared shop edit form and value contracts. */
