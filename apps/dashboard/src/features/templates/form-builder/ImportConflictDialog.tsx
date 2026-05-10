@@ -1,7 +1,12 @@
-import { DownloadIcon } from "@phosphor-icons/react";
+import { DownloadIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
-import { Dialog, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import {
+  OverwriteActionButton,
+  SkipActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 interface ImportConflictDialogProps {
@@ -60,34 +65,28 @@ export function ImportConflictDialog({
       </div>
 
       <Dialog.Footer className="flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={onOverwrite}
-          className="h-9 px-4 bg-[var(--ds-accent)] text-white rounded-control text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          {fb.importOverwrite}
-        </button>
+        <OverwriteActionButton label={fb.importOverwrite} onClick={onOverwrite} />
         {showRename ? (
-          <button
-            type="button"
+          <DashboardButton
             disabled={!newName.trim()}
+            leadingIcon={<PencilSimpleIcon weight="duotone" className="size-3.5" />}
             onClick={() => onRename(newName.trim())}
-            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] disabled:opacity-50"
+            size="action"
+            variant="neutral"
           >
             {fb.importRename}
-          </button>
+          </DashboardButton>
         ) : (
-          <button
-            type="button"
+          <DashboardButton
+            leadingIcon={<PencilSimpleIcon weight="duotone" className="size-3.5" />}
             onClick={() => setShowRename(true)}
-            className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text)] hover:border-[var(--ds-border-strong)]"
+            size="action"
+            variant="neutral"
           >
             {fb.importRename}
-          </button>
+          </DashboardButton>
         )}
-        <button type="button" onClick={onCancel} className={dialogBtnSecondary}>
-          {fb.importSkip}
-        </button>
+        <SkipActionButton label={fb.importSkip} onClick={onCancel} />
       </Dialog.Footer>
     </Dialog>
   );

@@ -3,9 +3,11 @@ import { useState } from "react";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import {
+  CancelActionButton,
+  RemoveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
   Dialog,
-  dialogBtnDestructive,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -45,7 +47,7 @@ export function UsersPage() {
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {usersMessages.inviteUser}
         </button>
       </PageHeader>
@@ -96,7 +98,7 @@ export function UsersPage() {
                     onClick={() => setEditingUserId(user.id)}
                     className="py-1.5 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
                   >
-                    <FileTextIcon weight="duotone" className="w-3.5 h-3.5" />
+                    <FileTextIcon weight="duotone" className="size-3.5" />
                     {usersMessages.editCard.editTooltip}
                   </button>
                 )}
@@ -106,7 +108,7 @@ export function UsersPage() {
                     onClick={() => setDeleteId(user.id)}
                     className="py-1.5 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
                   >
-                    <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+                    <TrashIcon weight="duotone" className="size-3.5" />
                     {usersMessages.remove}
                   </button>
                 )}
@@ -129,20 +131,15 @@ export function UsersPage() {
           </p>
         </div>
         <Dialog.Footer>
-          <button type="button" onClick={() => setDeleteId(null)} className={dialogBtnSecondary}>
-            {common.cancel}
-          </button>
-          <button
-            type="button"
+          <CancelActionButton label={common.cancel} onClick={() => setDeleteId(null)} />
+          <RemoveActionButton
             disabled={deleteMutation.isPending}
+            label={deleteMutation.isPending ? "…" : common.remove}
             onClick={() => {
               if (deleteId !== null)
                 deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
             }}
-            className={dialogBtnDestructive}
-          >
-            {deleteMutation.isPending ? "…" : common.remove}
-          </button>
+          />
         </Dialog.Footer>
       </Dialog>
 

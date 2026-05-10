@@ -7,9 +7,11 @@ import { useState } from "react";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
+  CancelActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
   Dialog,
-  dialogBtnDestructive,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -49,7 +51,7 @@ export function CategoriesPage() {
           onClick={() => setEditTarget("new")}
           className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {categoriesMessages.newCategory}
         </button>
       </PageHeader>
@@ -112,20 +114,15 @@ export function CategoriesPage() {
           </p>
         </div>
         <Dialog.Footer>
-          <button type="button" onClick={() => setDeleteId(null)} className={dialogBtnSecondary}>
-            {common.cancel}
-          </button>
-          <button
-            type="button"
+          <CancelActionButton label={common.cancel} onClick={() => setDeleteId(null)} />
+          <DeleteActionButton
             disabled={deleteMutation.isPending}
+            label={deleteMutation.isPending ? "…" : common.delete}
             onClick={() => {
               if (deleteId !== null)
                 deleteMutation.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
             }}
-            className={dialogBtnDestructive}
-          >
-            {deleteMutation.isPending ? "…" : common.delete}
-          </button>
+          />
         </Dialog.Footer>
       </Dialog>
     </PageLayout>

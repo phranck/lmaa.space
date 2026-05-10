@@ -7,9 +7,11 @@ import { PLATFORM_MAP } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
+  CancelActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
   Dialog,
-  dialogBtnDestructive,
-  dialogBtnSecondary,
   dialogHeaderIconClass,
 } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -84,7 +86,7 @@ export function SocialMediaPostTemplateListPage() {
         header: m.tableCreated,
         sortKey: (template) => template.createdAt,
         cell: (template) => (
-          <span className="text-xs text-[var(--ds-text-muted)]">
+          <span suppressHydrationWarning className="text-xs text-[var(--ds-text-muted)]">
             {new Date(template.createdAt).toLocaleDateString(locale, {
               day: "2-digit",
               month: "2-digit",
@@ -100,14 +102,14 @@ export function SocialMediaPostTemplateListPage() {
           <div className="flex justify-end gap-2">
             <TableActionButton
               onClick={() => navigate(`/social-media-post-templates/${template.id}`)}
-              icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
               label={common.edit}
             />
             <TableActionButton
               variant="danger"
               onClick={() => setDeleteTarget(template)}
               disabled={deleteMutation.isPending || template.isSystemTemplate}
-              icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
               label={m.deleteTemplate}
             />
           </div>
@@ -125,7 +127,7 @@ export function SocialMediaPostTemplateListPage() {
           onClick={() => navigate("/social-media-post-templates/new")}
           className="flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-primary-border)] px-4 text-sm font-medium text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
         >
-          <PlusCircleIcon weight="duotone" className="h-3.5 w-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
           {m.newTemplate}
         </button>
       </PageHeader>
@@ -170,26 +172,16 @@ export function SocialMediaPostTemplateListPage() {
             {m.deleteTemplateConfirm} <span className="font-medium">({deleteTarget.name})</span>
           </div>
           <Dialog.Footer>
-            <button
-              type="button"
-              onClick={() => setDeleteTarget(null)}
-              className={dialogBtnSecondary}
-            >
-              {common.cancel}
-            </button>
-            <button
-              type="button"
+            <CancelActionButton label={common.cancel} onClick={() => setDeleteTarget(null)} />
+            <DeleteActionButton
               disabled={deleteMutation.isPending}
+              label={deleteMutation.isPending ? "..." : common.delete}
               onClick={() =>
                 deleteMutation.mutate(deleteTarget.id, {
                   onSuccess: () => setDeleteTarget(null),
                 })
               }
-              className={`${dialogBtnDestructive} flex items-center gap-2`}
-            >
-              <TrashIcon weight="duotone" className="h-3.5 w-3.5" />
-              {deleteMutation.isPending ? "..." : common.delete}
-            </button>
+            />
           </Dialog.Footer>
         </Dialog>
       )}

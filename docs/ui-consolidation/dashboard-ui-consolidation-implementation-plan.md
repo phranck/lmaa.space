@@ -98,7 +98,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `ImportButton` intern auf `DashboardActionButton`/File-Wrapper legen.
 - [x] `ExportButton` intern auf `DashboardActionButton` legen.
 - [x] `HeaderBackButton` als dokumentierte Navigationsausnahme auf zentrale Basis legen.
-- [ ] Dialog-Footer-Buttons auf neue Button-Basis migrieren.
+- [x] Dialog-Footer-Buttons auf neue Button-Basis migrieren.
 - [x] rohe Action-Buttons in `ErrorBoundary` migrieren.
 - [ ] Screenshot-Vergleich fuer Tabellen, Toolbars und Dialoge pruefen.
 
@@ -677,6 +677,25 @@ Verifiziert fuer den Shared-Dialog- und Error-Actions-Task:
 - `npm run test --workspaces --if-present`
 - `npm run build`
 - `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+
+Teilfortschritt 2026-05-10, Feature-Dialog-Footer:
+
+- Feature-Dialog-Footer in Layout, Media, Kategorien, Social Media, Users, Form Builder und Email/Social-Template-Listen nutzen `DashboardActionButton`-Wrapper oder `DashboardButton`.
+- `dialogBtnPrimary`, `dialogBtnSecondary` und `dialogBtnDestructive` werden im Dashboard nicht mehr re-exportiert.
+- Mechanische React-Doctor-Hinweise in den beruehrten Dateien wurden bereinigt (`size-*`, Padding-Kurzform, Date-Hydration-Suppression, lokale Ref statt Render-State fuer `slugEdited`).
+
+Verifiziert fuer den Feature-Dialog-Footer-Task:
+
+- `rg -n "dialogBtn(Primary|Secondary|Destructive)" apps/dashboard/src -g '*.tsx'`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+
+Hinweis: React Doctor meldet weiterhin bestehende Strukturhinweise fuer `AccountFormDialog`, `MediaPage` und den sequentiellen Media-Upload-Loop. Diese Scheibe aendert die Upload-Semantik und grosse Komponentenstruktur bewusst nicht.
 
 ## Stufe 5: Control-Primitives migrieren
 
