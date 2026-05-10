@@ -1,6 +1,7 @@
 import { TrashIcon, TrayArrowUpIcon, UserCircleIcon } from "@phosphor-icons/react";
 import type { ChangeEvent, RefObject } from "react";
 
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 
 interface UserAvatarEditorProps {
@@ -24,46 +25,43 @@ export function UserAvatarEditor({
 }: UserAvatarEditorProps) {
   return (
     <div className="flex flex-col items-center gap-3 shrink-0">
-      <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
+      <div className="size-24 rounded-full overflow-hidden ring-2 ring-[var(--ds-border)] bg-[var(--ds-bg-elevated)] flex items-center justify-center">
         {currentAvatarUrl ? (
           <img
             src={currentAvatarUrl}
             alt={displayUsername}
-            className="w-full h-full object-cover"
+            className="size-full object-cover"
           />
         ) : (
-          <span className="text-3xl font-bold text-[var(--ds-text-subtle)] select-none">
+          <span className="text-3xl font-semibold text-[var(--ds-text-subtle)] select-none">
             {displayUsername[0]?.toUpperCase()}
           </span>
         )}
       </div>
 
       <div className="flex flex-col gap-1.5 w-full">
-        <button
-          type="button"
+        <DashboardButton
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
+          leadingIcon={<TrayArrowUpIcon weight="duotone" className="size-3.5 shrink-0" />}
+          variant="neutral"
         >
-          <TrayArrowUpIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           {usersMessages.editCard.uploadImage}
-        </button>
-        <button
-          type="button"
+        </DashboardButton>
+        <DashboardButton
           onClick={onUseGravatar}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
+          leadingIcon={<UserCircleIcon weight="duotone" className="size-3.5 shrink-0" />}
+          variant="neutral"
         >
-          <UserCircleIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
           {usersMessages.editCard.useGravatar}
-        </button>
+        </DashboardButton>
         {currentAvatarUrl && (
-          <button
-            type="button"
+          <DashboardButton
             onClick={onRemoveAvatar}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-control border border-[var(--ds-border)] text-xs text-[var(--ds-text-muted)] hover:text-red-500 hover:border-red-300 dark:hover:border-red-700"
+            leadingIcon={<TrashIcon weight="duotone" className="size-3.5 shrink-0" />}
+            variant="danger"
           >
-            <TrashIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
             {usersMessages.editCard.removeAvatar}
-          </button>
+          </DashboardButton>
         )}
       </div>
 

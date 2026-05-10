@@ -1,7 +1,11 @@
 import type { AdminLocale, AdminUser } from "@lmaa/shared";
-import { FormLabel, formInputClass } from "@lmaa/ui";
+import { FormLabel } from "@lmaa/ui";
 
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  DashboardCheckboxField,
+  DashboardCombobox,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
 import type { EditableRole, UserEditDraftState, UserEditField } from "@/features/system/users/user-edit-state.ts";
 import type { DashboardMessages } from "@/i18n/messages.ts";
@@ -35,45 +39,41 @@ export function UserProfileFields({
     <div className="flex-1 space-y-3 min-w-0">
       <div>
         <FormLabel htmlFor="user-edit-username">{usersMessages.editCard.username}</FormLabel>
-        <input
+        <DashboardInput
           id="user-edit-username"
           type="text"
           value={draft.username}
           onChange={(e) => onFieldChange("username", e.target.value)}
-          className={formInputClass}
         />
       </div>
 
       <div>
         <FormLabel htmlFor="user-edit-email">{usersMessages.editCard.email}</FormLabel>
-        <input
+        <DashboardInput
           id="user-edit-email"
           type="email"
           value={draft.email}
           onChange={(e) => onFieldChange("email", e.target.value)}
-          className={formInputClass}
         />
       </div>
 
       <div>
         <FormLabel htmlFor="user-edit-first-name">{usersMessages.editCard.firstName}</FormLabel>
-        <input
+        <DashboardInput
           id="user-edit-first-name"
           type="text"
           value={draft.firstName}
           onChange={(e) => onFieldChange("firstName", e.target.value)}
-          className={formInputClass}
         />
       </div>
 
       <div>
         <FormLabel htmlFor="user-edit-last-name">{usersMessages.editCard.lastName}</FormLabel>
-        <input
+        <DashboardInput
           id="user-edit-last-name"
           type="text"
           value={draft.lastName}
           onChange={(e) => onFieldChange("lastName", e.target.value)}
-          className={formInputClass}
         />
       </div>
 
@@ -94,13 +94,12 @@ export function UserProfileFields({
 
       <div>
         <FormLabel htmlFor="user-edit-password">{usersMessages.editCard.password}</FormLabel>
-        <input
+        <DashboardInput
           id="user-edit-password"
           type="password"
           value={draft.password}
           onChange={(e) => onFieldChange("password", e.target.value)}
           placeholder={usersMessages.editCard.passwordPlaceholder}
-          className={formInputClass}
         />
       </div>
 
@@ -113,15 +112,12 @@ export function UserProfileFields({
             </div>
           </div>
 
-          <label className="flex items-center gap-2 cursor-pointer select-none px-[5px] pt-1">
-            <input
-              type="checkbox"
-              checked={draft.logoutConfirm}
-              onChange={(e) => onLogoutConfirmChange(e.target.checked)}
-              className="size-4 rounded accent-[var(--color-primary)]"
-            />
-            <span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>
-          </label>
+          <DashboardCheckboxField
+            checked={draft.logoutConfirm}
+            className="items-center gap-2 px-[5px] pt-1"
+            label={<span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>}
+            onCheckedChange={onLogoutConfirmChange}
+          />
         </>
       )}
     </div>

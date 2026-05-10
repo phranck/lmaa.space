@@ -1,10 +1,14 @@
-import { DownloadIcon, UserCircleIcon } from "@phosphor-icons/react";
+import { UserCircleIcon } from "@phosphor-icons/react";
 import md5 from "blueimp-md5";
 import { type ChangeEvent, useEffect, useReducer, useRef } from "react";
 
 import type { AdminLocale, AdminUser } from "@lmaa/shared";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
+import {
+  CancelActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -241,22 +245,16 @@ function UserEditCardForm({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <button
-          type="button"
+        <CancelActionButton
+          label={common.cancel}
           onClick={onClose}
-          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
-        >
-          {common.cancel}
-        </button>
-        <button
-          type="button"
+        />
+        <SaveActionButton
           onClick={() => void handleSave()}
           disabled={!canSave}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
-        >
-          <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-          {isPending ? common.saving : common.save}
-        </button>
+          busy={isPending}
+          label={isPending ? common.saving : common.save}
+        />
       </OverlayCard.Footer>
 
       <AlertDialog
