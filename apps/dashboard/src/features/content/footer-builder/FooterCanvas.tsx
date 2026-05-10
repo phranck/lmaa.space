@@ -1,10 +1,10 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { XCircleIcon } from "@phosphor-icons/react";
 
 import type { FooterColumn } from "@lmaa/contracts";
 
+import { RemoveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
 import { Dropdown } from "@/components/ui/Dropdown.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -81,14 +81,12 @@ export function FooterCanvas({
             options={SPAN_OPTIONS}
           />
         </div>
-        <button
-          type="button"
+        <RemoveActionButton
           onClick={onRemoveColumn}
-          className="shrink-0 text-[var(--ds-text-muted)] hover:text-red-500"
           title={footerMessages.removeColumn}
-        >
-          <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-        </button>
+          label={footerMessages.removeColumn}
+          iconOnly
+        />
       </div>
 
       {/* Droppable area */}

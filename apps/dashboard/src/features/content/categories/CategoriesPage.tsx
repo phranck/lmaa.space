@@ -1,5 +1,4 @@
 import {
-  PlusCircleIcon,
   TagIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
@@ -8,6 +7,7 @@ import { useState } from "react";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
+  CreateActionButton,
   DeleteActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import {
@@ -46,14 +46,10 @@ export function CategoriesPage() {
   return (
     <PageLayout>
       <PageHeader title={categoriesMessages.title}>
-        <button
-          type="button"
+        <CreateActionButton
           onClick={() => setEditTarget("new")}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          <PlusCircleIcon weight="duotone" className="size-3.5" />
-          {categoriesMessages.newCategory}
-        </button>
+          label={categoriesMessages.newCategory}
+        />
       </PageHeader>
 
       <PageBody>

@@ -11,6 +11,7 @@ import {
 import { useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -88,7 +89,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
         titleContent={
           !controller.isNew && controller.activeShop?.likeCount != null ? (
             <span className="inline-flex items-center gap-1 text-sm text-red-400 font-normal">
-              <HeartIcon weight="duotone" className="w-4 h-4" />
+              <HeartIcon weight="duotone" className="size-4" />
               {controller.activeShop.likeCount}
             </span>
           ) : undefined
@@ -98,15 +99,14 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
         headerContent={
           <div className="flex items-center gap-3">
             <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
-            <button
-              type="button"
+            <DashboardButton
               onClick={() => jsonFileInputRef.current?.click()}
               disabled={isActionPending}
-              className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-50"
+              leadingIcon={<UploadSimpleIcon weight="duotone" className="size-3.5" />}
+              variant="success"
             >
-              <UploadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
               {controller.shopFormI18n.messages.jsonImportFileLabel}
-            </button>
+            </DashboardButton>
             <input
               ref={jsonFileInputRef}
               type="file"
@@ -137,7 +137,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 }
                 disabled={isActionPending}
                 variant="success"
-                icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
+                icon={<ArrowCounterClockwiseIcon weight="duotone" className="size-3.5" />}
               >
                 {controller.shopsMessages.table.restore}
               </EditorToolbarButton>
@@ -163,7 +163,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 onClick={() => controller.handleOpenRejectCard(false)}
                 disabled={isActionPending}
                 variant="danger"
-                icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+                icon={<XCircleIcon weight="duotone" className="size-3.5" />}
               >
                 {controller.shopsMessages.editCard.rejectSubmit}
               </EditorToolbarButton>
@@ -174,7 +174,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 onClick={() => controller.handleOpenRejectCard(true)}
                 disabled={isActionPending}
                 variant="neutral"
-                icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
+                icon={<FileTextIcon weight="duotone" className="size-3.5" />}
               >
                 {messages.submissions.suggestions.editRejectionInfo}
               </EditorToolbarButton>
@@ -185,7 +185,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 onClick={() => setShowDeleteDialog(true)}
                 disabled={isActionPending}
                 variant="danger"
-                icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
+                icon={<TrashIcon weight="duotone" className="size-3.5" />}
               >
                 {controller.shopsMessages.table.delete}
               </EditorToolbarButton>
@@ -200,7 +200,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
                 }
                 disabled={isActionPending}
                 variant="review"
-                icon={<SealCheckIcon weight="duotone" className="h-3.5 w-3.5" />}
+                icon={<SealCheckIcon weight="duotone" className="size-3.5" />}
               >
                 {controller.shopsMessages.editCard.acceptReview}
               </EditorToolbarButton>
@@ -223,7 +223,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               }
               disabled={!controller.canSave || isActionPending}
               variant="primary"
-              icon={<DownloadIcon weight="duotone" className="h-3.5 w-3.5" />}
+              icon={<DownloadIcon weight="duotone" className="size-3.5" />}
             >
               {saveLabel}
             </EditorToolbarButton>

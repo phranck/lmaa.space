@@ -1,13 +1,20 @@
 import { TrashIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useState } from "react";
 
-import { Checkbox, FormLabel, FormOptional } from "@lmaa/ui";
+import { FormLabel, FormOptional } from "@lmaa/ui";
 
 const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  CancelActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
+  DashboardCheckboxField,
+  DashboardCombobox,
+} from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -88,10 +95,12 @@ export function ShopDeleteReasonCard({
           </Suspense>
         </div>
 
-        <Checkbox
+        <DashboardCheckboxField
           checked={wasReported}
-          onChange={setWasReported}
+          onCheckedChange={setWasReported}
           label={shopsMessages.deleteCard.reportedLabel}
+          className="items-center"
+          boxClassName="mt-0"
         />
 
         <div>
@@ -115,26 +124,20 @@ export function ShopDeleteReasonCard({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <button
-          type="button"
+        <CancelActionButton
           onClick={onCancel}
           disabled={isPending}
-          className="py-1.5 px-4 border border-[var(--ds-btn-neutral-border)] rounded-control text-sm text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)]"
-        >
-          {common.cancel}
-        </button>
-        <button
-          type="button"
+          label={common.cancel}
+        />
+        <DeleteActionButton
           onClick={() => onConfirm(reason.trim(), wasReported, deleteMode)}
           disabled={isPending}
-          className="py-1.5 px-4 bg-red-600 text-white rounded-control text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-        >
-          {isPending
+          label={isPending
             ? shopsMessages.deleteCard.deleting
             : deleteMode === "delete"
               ? shopsMessages.deleteCard.deletePermanently
               : shopsMessages.deleteCard.markDeleted}
-        </button>
+        />
       </OverlayCard.Footer>
     </OverlayCard>
   );

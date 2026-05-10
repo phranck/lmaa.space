@@ -9,12 +9,16 @@ import {
   TrashIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useMemo, useReducer, useRef } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import { DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
+import {
+  DashboardCombobox,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { ExportButton } from "@/components/ui/ExportButton.tsx";
 import { FilterDropdown } from "@/components/ui/FilterDropdown.tsx";
@@ -58,13 +62,12 @@ export function ShopsPage() {
   const [filterState, dispatch] = useReducer(shopsFilterReducer, INITIAL_FILTER_STATE);
   const { categoryFilter, visibilityFilter, geoFilter, exportLimit, importError } = filterState;
   const importMutation = useImportShopReviewResults();
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "k" && e.metaKey) {
         e.preventDefault();
-        searchInputRef.current?.focus();
+        document.getElementById("shops-search")?.focus();
       }
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -294,7 +297,7 @@ export function ShopsPage() {
                 value: Number(value) as ExportLimit,
               })
             }
-            className="w-20 rounded-none border-y-0 border-l-0 border-r border-[var(--ds-btn-primary-border)] bg-[var(--ds-surface)]"
+            className="w-20 rounded-none border-y-0 border-l-0 border-r border-[var(--ds-border)] bg-[var(--ds-surface)]"
             matchTriggerWidth={false}
             options={EXPORT_LIMITS.map((limit) => ({
               value: String(limit),
@@ -364,30 +367,31 @@ export function ShopsPage() {
 
       <PageFooter>
         <div className="flex-1 flex justify-center">
-        <div className="relative">
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={shopsMessages.searchPlaceholder}
-            className="py-1.5 w-104 px-3 border border-[var(--ds-border)] rounded-control text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] pr-7"
-          />
-          {search ? (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
-            >
-              <XCircleIcon weight="duotone" className="size-3.5" />
-            </button>
-          ) : (
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">
-              <kbd className="inline-flex items-center justify-center h-4.5 min-w-4.5 px-1 rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] font-sans leading-none">&#8984;</kbd>
-              <kbd className="inline-flex items-center justify-center h-4.5 min-w-4.5 px-1 rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] font-sans leading-none">K</kbd>
-            </span>
-          )}
-        </div>
+          <div className="relative">
+            <DashboardInput
+              id="shops-search"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={shopsMessages.searchPlaceholder}
+              className="w-104 pr-8"
+            />
+            {search ? (
+              <DashboardIconButton
+                aria-label="Suche leeren"
+                onClick={() => setSearch("")}
+                className="absolute right-1 top-1/2 -translate-y-1/2 border-transparent"
+                variant="ghost"
+              >
+                <XCircleIcon weight="duotone" className="size-3.5" />
+              </DashboardIconButton>
+            ) : (
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">
+                <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">&#8984;</kbd>
+                <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">K</kbd>
+              </span>
+            )}
+          </div>
         </div>
       </PageFooter>
     </PageLayout>

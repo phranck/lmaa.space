@@ -148,7 +148,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
           topAside={
             <DashboardSection>
               <DashboardSection.Header
-                icon={<BracketsCurlyIcon weight="duotone" className="w-4 h-4" />}
+                icon={<BracketsCurlyIcon weight="duotone" className="size-4" />}
                 title={shopFormI18n.messages.jsonToolTitle ?? ""}
               />
               <DashboardSection.Body className="!p-0">
@@ -184,7 +184,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
       )}
 
       {saveErrorMessage && (
-        <div className="mt-4 rounded-control border border-[var(--ds-btn-danger-border)] bg-[var(--ds-btn-danger-hover-bg)] px-3 py-2 text-sm text-[var(--ds-btn-danger-text)]">
+        <div className="mt-4 rounded-control border border-[var(--ds-danger-border)] bg-[var(--ds-danger-bg)] px-3 py-2 text-sm text-[var(--ds-danger-text)]">
           {saveErrorMessage}
         </div>
       )}

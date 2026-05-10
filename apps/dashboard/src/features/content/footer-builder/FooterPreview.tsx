@@ -17,7 +17,7 @@ export function FooterPreview({ src, heightPx, isLoading }: Props) {
     <div className="relative">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-[var(--ds-surface)]/60 z-10">
-          <div className="w-5 h-5 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+          <div className="size-5 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
         </div>
       )}
       {src === null ? (
@@ -32,7 +32,7 @@ export function FooterPreview({ src, heightPx, isLoading }: Props) {
           <iframe
             src={src}
             title={footerMessages.previewTitle}
-            className="w-full h-full border-none bg-transparent"
+            className="size-full border-none bg-transparent"
             sandbox="allow-same-origin"
           />
         </div>

@@ -123,7 +123,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] Form Builder Slice migrieren.
 - [x] Submissions Slice migrieren.
 - [x] System Settings und Users Slice migrieren.
-- [ ] Content Slice migrieren.
+- [x] Content Slice migrieren.
 - [ ] Media Slice migrieren.
 - [ ] Landing Page und Widgets Slice migrieren.
 - [ ] Pro Slice Typecheck, Lint und relevanten Browser-Flow pruefen.
@@ -1217,6 +1217,22 @@ Verifiziert fuer den System-Settings-und-Users-Slice:
 - `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch; verbleibende Hinweise betreffen bestehende `DomainAlertsTab`-State-Effects und einen nicht-blockierenden Avatar-Hinweis.
 - `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
 - `cd /tmp/lmaa-pw && npx playwright test lmaa-system-users-smoke.spec.js --browser=chromium --reporter=line`
+
+Teilfortschritt 2026-05-10, Content-Slice:
+
+- Kategorien, Pages, Footer Builder und Shops nutzen fuer sichtbare Standard-Felder und Actions zentrale Dashboard-Inputs, Checkboxen, Buttons und Action-Buttons.
+- Lokale `formBtnBaseClass`, `formInputClass`, `inputClass`, `h-9`, direkte Fokusklassen und direkte `--ds-btn-*` Feature-Control-Klassen wurden aus dem Content-Slice entfernt.
+- Uebrig sind bewusst technische native Inputs: Datei-Uploads in Kategorie-/Shop-Import-Flows und der native Color-Picker im Footer-Style-Panel.
+- Shops- und Footer-Icons wurden auf `size-*` normalisiert; Danger-Hinweise nutzen semantische `--ds-danger-*` Tokens statt Button-Farbrollen.
+
+Verifiziert fuer den Content-Slice:
+
+- `rg -n --glob '*.{ts,tsx}' -- '<input|<textarea|\\bh-9\\b|focus:(ring|border)-|--ds-btn-|formBtnBaseClass|formInputClass|inputClass|w-3\\.5 h-3\\.5|w-4 h-4|w-full h-full|font-bold' apps/dashboard/src/features/content/categories apps/dashboard/src/features/content/pages apps/dashboard/src/features/content/footer-builder apps/dashboard/src/features/content/shops` findet nur technische Inputs fuer Datei-Upload und Color-Picker.
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch mit 96/100; verbleibende Hinweise betreffen bestehende Giant-Components, bewusst aus Props initialisierte Dialog-State-Werte, den wegen `ES2022`-Lib nicht uebernommenen `toSorted`-Hinweis und Header-Boolean-Props.
+- `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
+- `cd /tmp/lmaa-pw && npx playwright test lmaa-content-smoke.spec.js --browser=chromium --reporter=line`
 
 ## Stufe 7: Cleanup
 

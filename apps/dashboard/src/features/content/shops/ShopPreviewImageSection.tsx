@@ -7,6 +7,9 @@ import {
 
 import { DashboardSection } from "@lmaa/ui";
 
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
+
 interface ShopPreviewImageSectionProps {
   displayImage: string | null;
   isLoading: boolean;
@@ -22,9 +25,6 @@ interface ShopPreviewImageSectionProps {
   reloadImageLabel: string;
   setImageLabel: string;
 }
-
-const buttonClass =
-  "flex items-center gap-1.5 px-3 py-1.5 border border-[var(--ds-btn-neutral-border)] rounded-control text-xs text-[var(--ds-btn-neutral-text)] hover:border-[var(--ds-btn-neutral-hover-border)] hover:bg-[var(--ds-btn-neutral-hover-bg)] disabled:opacity-40";
 
 export function ShopPreviewImageSection({
   displayImage,
@@ -44,52 +44,54 @@ export function ShopPreviewImageSection({
   return (
     <DashboardSection>
       <DashboardSection.Header
-        icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+        icon={<ImageIcon weight="duotone" className="size-4" />}
         title={previewImageLabel}
       />
       <DashboardSection.Body>
       <div className="flex items-stretch gap-3">
         <div className="shrink-0 w-18 aspect-square rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
           {displayImage ? (
-            <img src={displayImage} alt="" className="w-full h-full object-contain" />
+            <img src={displayImage} alt="" className="size-full object-contain" />
           ) : name ? (
-            <span className="text-xl font-bold text-[var(--ds-text-subtle)] select-none">
+            <span className="text-xl font-semibold text-[var(--ds-text-subtle)] select-none">
               {name.charAt(0).toUpperCase()}
             </span>
           ) : (
-            <StorefrontIcon weight="duotone" className="w-5 h-5 text-[var(--ds-text-subtle)]" />
+            <StorefrontIcon weight="duotone" className="size-5 text-[var(--ds-text-subtle)]" />
           )}
         </div>
         <div className="flex-1 min-w-0 flex flex-col gap-2">
-          <input
+          <DashboardInput
             type="text"
             value={ogImageInput}
             onChange={(e) => onChangeOgImageInput(e.target.value)}
             placeholder={placeholder}
-            className="min-w-0 w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="min-w-0"
           />
           <div className="flex gap-1.5 justify-end">
-            <button
-              type="button"
+            <DashboardButton
               onClick={onRefreshImage}
               disabled={isRefetchPending || isLoading}
-              className={`${buttonClass} shrink-0`}
+              className="shrink-0"
+              leadingIcon={
+                <ArrowClockwiseIcon
+                  weight="duotone"
+                  className={`size-3 ${isRefetchPending ? "animate-spin" : ""}`}
+                />
+              }
+              variant="neutral"
             >
-              <ArrowClockwiseIcon
-                weight="duotone"
-                className={`w-3 h-3 ${isRefetchPending ? "animate-spin" : ""}`}
-              />
               {reloadImageLabel}
-            </button>
-            <button
-              type="button"
+            </DashboardButton>
+            <DashboardButton
               onClick={onApplyImage}
               disabled={isSavingImage || isLoading}
-              className={`${buttonClass} shrink-0`}
+              className="shrink-0"
+              leadingIcon={<CopyIcon weight="duotone" className="size-3" />}
+              variant="neutral"
             >
-              <CopyIcon weight="duotone" className="w-3 h-3" />
               {setImageLabel}
-            </button>
+            </DashboardButton>
           </div>
         </div>
       </div>
