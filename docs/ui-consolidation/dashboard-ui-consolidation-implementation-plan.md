@@ -66,7 +66,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `ControlTrigger`, `ListboxPopover` und `ListboxOption` anlegen.
 - [x] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
 - [x] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
-- [ ] `SegmentedControlPrimitive` anlegen.
+- [x] `SegmentedControlPrimitive` anlegen.
 - [ ] `SwitchPrimitive` und `CheckboxPrimitive` anlegen.
 - [ ] `DialogFooterPrimitive` und `SurfacePrimitive` anlegen.
 - [ ] `packages/ui/src/FormPrimitives.tsx` auf Foundation umbauen.
@@ -377,6 +377,22 @@ Teilfortschritt 2026-05-10, Tabs-Primitives:
 - `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
 
 Verifiziert fuer den Tabs-Primitive-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, Segmented-Control-Primitive:
+
+- `packages/ui/src/SegmentedControlPrimitive.tsx` stellt eine generische, optionbasierte `SegmentedControlPrimitive` bereit.
+- Die Primitive deckt Icon-only-, Label-, Badge- und Disabled-Optionen ab und unterstuetzt `compact`, `default` und `large`.
+- Die Primitive misst den aktiven Sliding-Pill-Indikator ueber ResizeObserver und aktualisiert ihn bei Layout- und Viewport-Aenderungen.
+- Arrow-Keys, Home und End fokussieren und aktivieren benachbarte Segmente; der aktive Button bleibt der einzige Tab-Stop.
+- `packages/ui/src/index.ts` exportiert die neue Komponente und Props.
+
+Verifiziert fuer den Segmented-Control-Primitive-Task:
 
 - `npm run lint`
 - `npm run typecheck`
