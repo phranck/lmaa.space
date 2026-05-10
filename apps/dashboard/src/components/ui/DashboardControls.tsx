@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import type {
   ButtonHTMLAttributes,
+  KeyboardEvent,
   ReactNode,
   SelectHTMLAttributes,
 } from "react";
@@ -255,6 +256,7 @@ export interface DashboardComboboxOption {
   disabled?: boolean;
   label: ReactNode;
   leadingIcon?: ReactNode;
+  triggerLabel?: ReactNode;
   value: string;
 }
 
@@ -269,7 +271,10 @@ export interface DashboardComboboxProps
   optionalLabel?: ReactNode;
   options: readonly DashboardComboboxOption[];
   placeholder?: ReactNode;
+  portal?: boolean;
   required?: boolean;
+  searchable?: boolean;
+  searchPlaceholder?: string;
   value?: string;
 }
 
@@ -283,25 +288,178 @@ export function DashboardCombobox({
   label,
   matchTriggerWidth = true,
   onClick,
+  onKeyDown,
   onValueChange,
   optionalLabel,
   options,
   placeholder,
+  portal,
   required,
+  searchable,
+  searchPlaceholder,
   value,
   ...buttonProps
 }: DashboardComboboxProps) {
   const [open, setOpen] = useState(false);
+  const [activeValue, setActiveValue] = useState<string | undefined>();
+  const [searchQuery, setSearchQuery] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const generatedListboxId = useId();
   const selectedOption = options.find((option) => option.value === value);
-  const optionValues = options.map((option) => option.value);
-  const disabledValues = options.reduce<string[]>((values, option) => {
+  const filteredOptions =
+    searchable && searchQuery.trim()
+      ? options.filter((option) =>
+          optionLabelToString(option.label)
+            .toLowerCase()
+            .includes(searchQuery.trim().toLowerCase()),
+        )
+      : options;
+  const optionValues = filteredOptions.map((option) => option.value);
+  const disabledValues = filteredOptions.reduce<string[]>((values, option) => {
     if (option.disabled) {
       values.push(option.value);
     }
     return values;
   }, []);
+  const enabledOptionValues = optionValues.filter(
+    (optionValue) => !disabledValues.includes(optionValue),
+  );
+  const allEnabledOptionValues = options.reduce<string[]>((values, option) => {
+    if (!option.disabled) {
+      values.push(option.value);
+    }
+    return values;
+  }, []);
+
+  function openCombobox() {
+    const nextActiveValue =
+      value && allEnabledOptionValues.includes(value)
+        ? value
+        : allEnabledOptionValues[0];
+    setSearchQuery("");
+    setActiveValue(nextActiveValue);
+    setOpen(true);
+  }
+
+  function closeCombobox() {
+    setOpen(false);
+    triggerRef.current?.focus();
+  }
+
+  function selectValue(nextValue: string) {
+    onValueChange(nextValue);
+    closeCombobox();
+  }
+
+  function moveActiveValue(direction: 1 | -1) {
+    if (enabledOptionValues.length === 0) {
+      return;
+    }
+    const currentIndex = activeValue
+      ? enabledOptionValues.indexOf(activeValue)
+      : -1;
+    const nextIndex =
+      currentIndex >= 0
+        ? (currentIndex + direction + enabledOptionValues.length) %
+          enabledOptionValues.length
+        : direction > 0
+          ? 0
+          : enabledOptionValues.length - 1;
+    setActiveValue(enabledOptionValues[nextIndex]);
+  }
+
+  function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        moveActiveValue(1);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        moveActiveValue(-1);
+        break;
+      case "Home":
+        event.preventDefault();
+        if (enabledOptionValues[0]) {
+          setActiveValue(enabledOptionValues[0]);
+        }
+        break;
+      case "End": {
+        event.preventDefault();
+        const lastValue = enabledOptionValues[enabledOptionValues.length - 1];
+        if (lastValue) {
+          setActiveValue(lastValue);
+        }
+        break;
+      }
+      case "Enter":
+        event.preventDefault();
+        if (activeValue) {
+          selectValue(activeValue);
+        }
+        break;
+      case "Escape":
+        event.preventDefault();
+        closeCombobox();
+        break;
+      default:
+        break;
+    }
+  }
+
+  function handleTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || disabled) {
+      return;
+    }
+
+    if (!open) {
+      if (!["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+        return;
+      }
+      event.preventDefault();
+      openCombobox();
+      return;
+    }
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        moveActiveValue(1);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        moveActiveValue(-1);
+        break;
+      case "Home":
+        event.preventDefault();
+        if (enabledOptionValues[0]) {
+          setActiveValue(enabledOptionValues[0]);
+        }
+        break;
+      case "End": {
+        event.preventDefault();
+        const lastValue = enabledOptionValues[enabledOptionValues.length - 1];
+        if (lastValue) {
+          setActiveValue(lastValue);
+        }
+        break;
+      }
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        if (activeValue) {
+          selectValue(activeValue);
+        }
+        break;
+      case "Escape":
+        event.preventDefault();
+        closeCombobox();
+        break;
+      default:
+        break;
+    }
+  }
 
   const content = (
     controlProps?: {
@@ -323,28 +481,66 @@ export function DashboardCombobox({
         onClick={(event) => {
           onClick?.(event);
           if (!event.defaultPrevented && !disabled) {
-            setOpen((current) => !current);
+            if (open) {
+              setOpen(false);
+            } else {
+              openCombobox();
+            }
           }
         }}
+        onKeyDown={handleTriggerKeyDown}
         open={open}
         placeholder={placeholder}
         ref={triggerRef}
+        leadingIcon={selectedOption?.leadingIcon}
         trailingIcon={<CaretDownIcon className="size-4" weight="duotone" />}
       >
-        {selectedOption?.label ?? null}
+        {selectedOption?.triggerLabel ?? selectedOption?.label ?? null}
       </ControlTrigger>
       <ListboxPopover
+        activeValue={activeValue}
         disabledValues={disabledValues}
         listboxId={generatedListboxId}
         matchTriggerWidth={matchTriggerWidth}
+        onActiveValueChange={setActiveValue}
         onOpenChange={setOpen}
-        onSelect={onValueChange}
+        onSelect={selectValue}
         open={open}
         optionValues={optionValues}
+        portal={portal}
         selectedValue={value}
         triggerRef={triggerRef}
       >
-        {options.map((option) => (
+        {searchable && (
+          <div className="border-b border-[var(--ds-border-subtle)] px-2 pb-2">
+            <DashboardInput
+              aria-label={
+                typeof searchPlaceholder === "string"
+                  ? searchPlaceholder
+                  : undefined
+              }
+              onChange={(event) => {
+                const nextSearchQuery = event.currentTarget.value;
+                setSearchQuery(nextSearchQuery);
+                const nextOptions = nextSearchQuery.trim()
+                  ? options.filter((option) =>
+                      optionLabelToString(option.label)
+                        .toLowerCase()
+                        .includes(nextSearchQuery.trim().toLowerCase()),
+                    )
+                  : options;
+                const nextEnabledValue = nextOptions.find(
+                  (option) => !option.disabled,
+                )?.value;
+                setActiveValue(nextEnabledValue);
+              }}
+              onKeyDown={handleSearchKeyDown}
+              placeholder={searchPlaceholder}
+              value={searchQuery}
+            />
+          </div>
+        )}
+        {filteredOptions.map((option) => (
           <ListboxOption
             addOn={option.addOn}
             key={option.value}
@@ -607,6 +803,13 @@ function hasFieldShell(
   optionalLabel: ReactNode,
 ) {
   return Boolean(label || hint || error || optionalLabel);
+}
+
+function optionLabelToString(label: ReactNode) {
+  if (typeof label === "string" || typeof label === "number") {
+    return String(label);
+  }
+  return "";
 }
 
 function toOptionalNumber(value: string | number | readonly string[] | undefined) {

@@ -104,8 +104,8 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 ### Stufe 5: Control-Primitives migrieren
 
-- [ ] `Dropdown.tsx` auf `DashboardCombobox`/`DashboardListbox` umbauen.
-- [ ] `FilterDropdown.tsx` anbinden.
+- [x] `Dropdown.tsx` auf `DashboardCombobox`/`DashboardListbox` umbauen.
+- [x] `FilterDropdown.tsx` anbinden.
 - [ ] sichtbare native Selects in `RejectDialog`, `NotificationsTab`, `UserProfileFields`, `UserCreateCard` und weiteren Fundstellen ersetzen.
 - [ ] `MultiSelect`, `CountryCodeSelect` und `RegionSelect` auf gemeinsame Popover-/Listbox-Basis bringen.
 - [ ] Inputs in High-Drift-Dateien auf `DashboardInput` migrieren.
@@ -742,6 +742,24 @@ Gate:
 - Statisches Gate: keine neuen sichtbaren rohen `<select>`.
 - Dropdowns sind im Light- und Dark-Mode lesbar.
 - Keyboard-Navigation funktioniert.
+
+Teilfortschritt 2026-05-10, Dropdown-/FilterDropdown-Basis:
+
+- `DashboardCombobox` unterstuetzt jetzt Suche, Portal-Steuerung, Trigger-Icons, Trigger-Labels und aktive Option per Tastatur.
+- `Dropdown.tsx` ist nur noch ein Adapter auf `DashboardCombobox`; lokale Portal-/Outside-Click-/Listbox-Logik wurde entfernt.
+- `FilterDropdown` laeuft unveraendert ueber den neuen `Dropdown`-Adapter.
+
+Verifiziert fuer den Dropdown-/FilterDropdown-Basis-Task:
+
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
+- `cd /tmp/lmaa-pw && npx playwright test lmaa-dropdown.spec.js --browser=chromium --reporter=line`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
 
 ### 5B: Inputs, Textareas, Number und Stepper
 
