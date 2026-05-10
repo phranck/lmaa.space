@@ -1,6 +1,7 @@
 import {
   CaretDownIcon,
   CaretRightIcon,
+  CaretUpIcon,
   CaretUpDownIcon,
   DotsSixVerticalIcon,
   MinusIcon,
@@ -734,24 +735,26 @@ export function TableSortHeader({
   return (
     <button
       {...buttonProps}
-      aria-sort={toAriaSort(direction)}
       className={cx(
-        "inline-flex items-center gap-1.5 text-left text-xs font-medium uppercase tracking-[0.04em] text-[var(--ds-text-subtle)] transition-colors hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
+        "inline-flex h-7 items-center gap-1.5 text-left font-medium transition-colors hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
         className,
       )}
       type={type}
     >
       <span>{label}</span>
-      <CaretUpDownIcon
-        aria-hidden="true"
-        className={cx(
-          "size-3.5",
-          direction && "text-[var(--color-primary)]",
-        )}
-        weight="duotone"
-      />
+      <TableSortIcon direction={direction} />
     </button>
   );
+}
+
+export function getTableSortAriaSort(direction: TableSortDirection) {
+  if (direction === "asc") {
+    return "ascending";
+  }
+  if (direction === "desc") {
+    return "descending";
+  }
+  return "none";
 }
 
 export interface DashboardDragHandleProps
@@ -823,14 +826,24 @@ function toOptionalNumber(value: string | number | readonly string[] | undefined
   return undefined;
 }
 
-function toAriaSort(direction: TableSortDirection) {
-  if (direction === "asc") {
-    return "ascending";
-  }
-  if (direction === "desc") {
-    return "descending";
-  }
-  return "none";
+function TableSortIcon({ direction }: { direction: TableSortDirection }) {
+  const Icon =
+    direction === "asc"
+      ? CaretUpIcon
+      : direction === "desc"
+        ? CaretDownIcon
+        : CaretUpDownIcon;
+
+  return (
+    <Icon
+      aria-hidden="true"
+      className={cx(
+        "size-3.5 shrink-0",
+        direction ? "text-[var(--color-primary)]" : "opacity-40",
+      )}
+      weight="duotone"
+    />
+  );
 }
 
 function cx(...parts: Array<string | false | null | undefined>) {
