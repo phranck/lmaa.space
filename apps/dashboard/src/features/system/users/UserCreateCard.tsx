@@ -10,6 +10,7 @@ import { useState } from "react";
 import type { AdminUserInvite } from "@lmaa/shared";
 import { FormLabel, FormLabelText, formInputClass } from "@lmaa/ui";
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
@@ -41,12 +42,12 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
     {
       value: "admin" as const,
       label: usersMessages.role.admin,
-      icon: <PersonIcon weight="duotone" className="w-3.5 h-3.5" />,
+      icon: <PersonIcon weight="duotone" className="size-3.5" />,
     },
     {
       value: "moderator" as const,
       label: usersMessages.role.moderator,
-      icon: <UserCheckIcon weight="duotone" className="w-3.5 h-3.5" />,
+      icon: <UserCheckIcon weight="duotone" className="size-3.5" />,
     },
   ] as const;
   const [form, setForm] = useState<CreateUserFormData>({
@@ -183,24 +184,23 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
               <FormLabel htmlFor="uc-welcome-template">
                 {usersMessages.createCard.welcomeTemplate}
               </FormLabel>
-              <select
+              <DashboardCombobox
                 id="uc-welcome-template"
-                value={form.welcomeTemplateId ?? ""}
-                onChange={(e) =>
+                value={String(form.welcomeTemplateId ?? "")}
+                onValueChange={(value) =>
                   setForm((f) => ({
                     ...f,
-                    welcomeTemplateId: e.target.value ? Number(e.target.value) : undefined,
+                    welcomeTemplateId: value ? Number(value) : undefined,
                   }))
                 }
-                className={`${formInputClass} h-9`}
-              >
-                <option value="">{usersMessages.createCard.welcomeTemplateNone}</option>
-                {emailTemplates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: usersMessages.createCard.welcomeTemplateNone },
+                  ...emailTemplates.map((template) => ({
+                    value: String(template.id),
+                    label: template.name,
+                  })),
+                ]}
+              />
               <div className="mt-3 rounded-control border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-inset)] p-3">
                 <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--ds-text-subtle)]">
                   {usersMessages.createCard.templateVariablesLabel}
@@ -246,7 +246,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             onClick={handleCopyInviteLink}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
           >
-            <CopyIcon weight="duotone" className="w-3.5 h-3.5" />
+            <CopyIcon weight="duotone" className="size-3.5" />
             {copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite}
           </button>
         ) : (
@@ -256,7 +256,7 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             disabled={!canSubmit}
             className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
           >
-            <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+            <PlusCircleIcon weight="duotone" className="size-3.5" />
             {createMutation.isPending
               ? usersMessages.createCard.creating
               : usersMessages.createCard.create}
