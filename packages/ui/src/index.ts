@@ -59,6 +59,17 @@ export type {
   ListboxPopoverProps,
   ListboxPopoverRenderState,
 } from "./ListboxPrimitives.tsx";
+/** Shared low-level menu primitives. */
+export { MenuItemPrimitive, MenuPrimitive } from "./MenuPrimitives.tsx";
+/** Re-exported contracts for menu primitives. */
+export type {
+  MenuItemPrimitiveProps,
+  MenuItemPrimitiveSize,
+  MenuItemPrimitiveVariant,
+  MenuOrigin,
+  MenuPrimitiveProps,
+  MenuPrimitiveRenderState,
+} from "./MenuPrimitives.tsx";
 /** Shared form field wrapper composing label, error, hint and optional/required indicators. */
 export { FormField } from "./FormField.tsx";
 /** Re-exported props for `FormField`. */
