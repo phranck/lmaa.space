@@ -50,14 +50,14 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 ### Stufe 1: Tokens und Foundation
 
-- [ ] Control-Size-Tokens in `packages/shared/styles/tokens.css` ergaenzen.
-- [ ] Focus-/Interaction-Tokens ergaenzen.
-- [ ] Overlay-/Popover-Tokens ergaenzen.
-- [ ] Fehlende oder driftende Tokens wie `--ds-border-focus`, `--ds-bg-hover`, `--ds-nav-hover-bg` und `--ds-surface-hover` klaeren.
-- [ ] `formInputClass` auf `h-8` vorbereiten.
-- [ ] Textareas aus fixer Input-Hoehe herausloesen.
-- [ ] Dialog-Button-Klassen als Legacy markieren.
-- [ ] `@lmaa/ui` und Dashboard nach Token-Aenderungen pruefen.
+- [x] Control-Size-Tokens in `packages/shared/styles/tokens.css` ergaenzen.
+- [x] Focus-/Interaction-Tokens ergaenzen.
+- [x] Overlay-/Popover-Tokens ergaenzen.
+- [x] Fehlende oder driftende Tokens wie `--ds-border-focus`, `--ds-bg-hover`, `--ds-nav-hover-bg` und `--ds-surface-hover` klaeren.
+- [x] `formInputClass` auf `h-8` vorbereiten.
+- [x] Textareas aus fixer Input-Hoehe herausloesen.
+- [x] Dialog-Button-Klassen als Legacy markieren.
+- [x] `@lmaa/ui` und Dashboard nach Token-Aenderungen pruefen.
 
 ### Stufe 2: Shared Primitives
 
@@ -248,6 +248,24 @@ Arbeit:
   - `--ds-surface-hover`
 - `formInputClass` auf `h-8` Default vorbereiten, aber Textareas aus der fixen Hoehe herausloesen.
 - Dialog-Button-Klassen nicht sofort entfernen, aber als Legacy markieren.
+
+Umgesetzt 2026-05-10:
+
+- `packages/shared/styles/tokens.css` definiert zentrale Control-Hoehen fuer Actions, Icon-Actions, Felder, Large-Felder und Menu-Items.
+- Fokus, Hover, Active, Disabled, Border-Focus, Surface-Hover, Background-Hover und Nav-Hover haben gemeinsame Foundation-Tokens. Dashboard-lokale Nav-Overrides bleiben fuer die App-spezifische aktive Sidebar-Optik erhalten.
+- Overlay-/Popover-Z-Index- und Shadow-Tokens sind zentral verfuegbar.
+- `formInputClass` nutzt `--ds-control-h-field` als `h-8`-Basis. Ein temporaerer Textarea-Guard hebt die fixe Hoehe fuer Legacy-Textarea-Consumer auf; `formTextareaClass` ist als eigener Export vorbereitet.
+- `dialogBtnPrimary`, `dialogBtnSecondary` und `dialogBtnDestructive` bleiben exportiert, sind aber als Legacy fuer die Stufe-4-Migration markiert.
+
+Verifiziert:
+
+- `npm run typecheck -w @lmaa/ui`
+- `npm run lint -w @lmaa/ui`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run build:dashboard`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+- Dashboard-Browser-Smoke gegen `apps/dashboard/dist` mit Mock-API: `/shops` rendert Tabellen-/Sidebar-Controls ohne ErrorBoundary und ohne sichtbare Token-Ausfaelle.
 
 Gate:
 

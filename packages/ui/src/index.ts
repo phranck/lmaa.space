@@ -29,6 +29,7 @@ export {
   formInputClass,
   formLabelClass,
   formOptionalClass,
+  formTextareaClass,
 } from "./FormPrimitives.tsx";
 /** Shared form field wrapper composing label, error, hint and optional/required indicators. */
 export { FormField } from "./FormField.tsx";
