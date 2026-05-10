@@ -2,7 +2,6 @@ import {
   BracketsCurlyIcon,
   CheckCircleIcon,
   CopyIcon,
-  DownloadIcon,
   EyeIcon,
   ListChecksIcon,
   PaperPlaneTiltIcon,
@@ -20,8 +19,16 @@ import {
   type SocialMediaPostTemplateInput,
   type SocialMediaPostTemplateScope,
 } from "@lmaa/contracts";
-import { DashboardSection, FormLabel, PLATFORM_MAP, formInputClass } from "@lmaa/ui";
+import { DashboardSection, PLATFORM_MAP } from "@lmaa/ui";
 
+import {
+  CopyActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
+  DashboardCheckboxField,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
@@ -218,30 +225,26 @@ export function SocialMediaPostTemplateEditPage() {
             </span>
           )}
           {error && <p className="text-xs text-red-500">{error}</p>}
-          <button
+          <SaveActionButton
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-primary-border)] px-4 text-sm font-medium text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-          >
-            <DownloadIcon weight="duotone" className="size-3.5" />
-            {isPending ? messages.common.saving : m.save}
-          </button>
+            label={isPending ? messages.common.saving : m.save}
+          />
         </div>
       </PageHeader>
 
       <div className="flex shrink-0 items-end gap-3 px-3 py-2">
-        <div className="w-64">
-          <FormLabel htmlFor="social-media-template-name">{m.templateName}</FormLabel>
-          <input
-            id="social-media-template-name"
-            type="text"
-            value={form.name}
-            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-            placeholder={m.newTemplate}
-            className={`${formInputClass} font-mono`}
-          />
-        </div>
+        <DashboardInput
+          fieldClassName="w-64"
+          id="social-media-template-name"
+          type="text"
+          value={form.name}
+          onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+          placeholder={m.newTemplate}
+          className="font-mono"
+          label={m.templateName}
+        />
         <div className="ml-auto flex items-center">
           {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
           {isOwner && (
@@ -266,22 +269,16 @@ export function SocialMediaPostTemplateEditPage() {
                 />
                 <DashboardSection.Body className="!gap-2">
                   <div className="flex flex-wrap items-center gap-4 text-sm">
-                    <label className="flex items-center gap-1.5">
-                      <input
-                        type="checkbox"
-                        checked={form.platforms.includes("mastodon")}
-                        onChange={(event) => togglePlatform("mastodon", event.target.checked)}
-                      />
-                      <span>{m.platformMastodon}</span>
-                    </label>
-                    <label className="flex items-center gap-1.5">
-                      <input
-                        type="checkbox"
-                        checked={form.platforms.includes("bluesky")}
-                        onChange={(event) => togglePlatform("bluesky", event.target.checked)}
-                      />
-                      <span>{m.platformBluesky}</span>
-                    </label>
+                    <DashboardCheckboxField
+                      checked={form.platforms.includes("mastodon")}
+                      label={m.platformMastodon}
+                      onCheckedChange={(checked) => togglePlatform("mastodon", checked)}
+                    />
+                    <DashboardCheckboxField
+                      checked={form.platforms.includes("bluesky")}
+                      label={m.platformBluesky}
+                      onCheckedChange={(checked) => togglePlatform("bluesky", checked)}
+                    />
                   </div>
                 </DashboardSection.Body>
               </DashboardSection>
@@ -385,14 +382,12 @@ function TemplateVariablesSidebar({
           <DashboardSection.Body className="!gap-2">
             <div className="flex flex-wrap items-center gap-4 text-sm">
               {SOCIAL_MEDIA_POST_TEMPLATE_SCOPES.map((scope) => (
-                <label key={scope} className="flex items-center gap-1.5">
-                  <input
-                    type="checkbox"
-                    checked={scopes.includes(scope)}
-                    onChange={(event) => onScopeToggle(scope, event.target.checked)}
-                  />
-                  <span>{messages.scopes[scope]}</span>
-                </label>
+                <DashboardCheckboxField
+                  checked={scopes.includes(scope)}
+                  key={scope}
+                  label={messages.scopes[scope]}
+                  onCheckedChange={(checked) => onScopeToggle(scope, checked)}
+                />
               ))}
             </div>
             <p className="text-xs text-[var(--ds-text-subtle)]">{messages.scopes.helpText}</p>
@@ -457,19 +452,21 @@ function TemplateVariableItem({
         </dt>
         <dd className="text-xs leading-snug text-[var(--ds-text-muted)]">{description}</dd>
       </div>
-      <button
-        type="button"
+      <CopyActionButton
+        className="mt-0.5 shrink-0"
+        icon={
+          copied ? (
+            <CheckCircleIcon weight="duotone" className="size-3.5 text-green-600 dark:text-green-400" />
+          ) : (
+            <CopyIcon weight="duotone" className="size-3.5" />
+          )
+        }
+        iconOnly
+        label={`${copied ? copiedLabel : copyLabel}: ${token}`}
         onClick={() => onCopy(variable)}
-        aria-label={`${copied ? copiedLabel : copyLabel}: ${token}`}
         title={copied ? copiedLabel : copyLabel}
-        className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-control text-[var(--ds-text-muted)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-      >
-        {copied ? (
-          <CheckCircleIcon weight="duotone" className="size-3.5 text-green-600 dark:text-green-400" />
-        ) : (
-          <CopyIcon weight="duotone" className="size-3.5" />
-        )}
-      </button>
+        variant="ghost"
+      />
     </div>
   );
 }

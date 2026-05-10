@@ -53,15 +53,3 @@ export function Dialog({
 }
 
 Dialog.Footer = DialogFooter;
-
-/** @deprecated Stage 4 migrates dialog footers to shared button primitives. */
-export const dialogBtnPrimary =
-	"h-[var(--ds-control-h-field-large)] px-4 border border-[var(--ds-accent)] text-[var(--ds-accent)] rounded-control text-sm font-medium hover:bg-[var(--ds-accent-subtle)] transition-colors disabled:opacity-60";
-
-/** @deprecated Stage 4 migrates dialog footers to shared button primitives. */
-export const dialogBtnSecondary =
-	"h-[var(--ds-control-h-field-large)] px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] transition-colors";
-
-/** @deprecated Stage 4 migrates dialog footers to shared button primitives. */
-export const dialogBtnDestructive =
-	"h-[var(--ds-control-h-field-large)] px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] transition-colors disabled:opacity-60";

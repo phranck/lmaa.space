@@ -1,6 +1,11 @@
 import { ArrowClockwiseIcon, CheckCircleIcon, MagnifyingGlassIcon, XCircleIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
+import { DashboardButton, DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
+import {
+  DashboardInput,
+  DashboardSegmentedControl,
+} from "@/components/ui/DashboardControls.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { api } from "@/lib/api.ts";
@@ -317,13 +322,6 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
   const isLoading = status === "loading";
   const isLoadingMore = status === "loading-more";
 
-  const chipClass = (active: boolean) =>
-    `px-2 py-0.5 text-xs rounded border transition-colors ${
-      active
-        ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-        : "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-    }`;
-
   return (
     <OverlayCard
       open
@@ -336,69 +334,57 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
         <div className="relative flex-1">
           <MagnifyingGlassIcon
             weight="duotone"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-subtle)] w-3.5 h-3.5"
+            className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--ds-text-subtle)]"
           />
-          <input
+          <DashboardInput
             type="text"
             value={query}
             onChange={(e) => dispatch({ type: "set-query", query: e.target.value })}
             placeholder={unsplash.searchPlaceholder}
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-[var(--ds-border)] rounded-control focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="pl-8"
           />
         </div>
-        <button
+        <DashboardIconButton
           type="button"
           onClick={onClose}
-          className="p-2 text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)] rounded-control hover:bg-[var(--ds-bg-elevated)]"
           aria-label={unsplash.closeAria}
+          variant="ghost"
         >
-          <XCircleIcon weight="duotone" className="w-5 h-5" />
-        </button>
+          <XCircleIcon weight="duotone" className="size-4" />
+        </DashboardIconButton>
       </div>
 
       {/* Filter bar */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-[var(--ds-border-subtle)] shrink-0 flex-wrap">
-        <div className="flex items-center gap-1">
-          {(
-            [
-              { value: "", label: unsplash.orientationAll },
-              { value: "landscape", label: unsplash.orientationLandscape },
-              { value: "portrait", label: unsplash.orientationPortrait },
-              { value: "squarish", label: unsplash.orientationSquarish },
-            ] as const
-          ).map(({ value, label }) => (
-            <button
-              key={value || "all"}
-              type="button"
-              onClick={() => dispatch({ type: "set-orientation", orientation: value })}
-              className={chipClass(orientation === value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <DashboardSegmentedControl
+          aria-label={unsplash.filterOrientation}
+          onValueChange={(value) => dispatch({ type: "set-orientation", orientation: value })}
+          options={[
+            { value: "", label: unsplash.orientationAll },
+            { value: "landscape", label: unsplash.orientationLandscape },
+            { value: "portrait", label: unsplash.orientationPortrait },
+            { value: "squarish", label: unsplash.orientationSquarish },
+          ]}
+          size="compact"
+          value={orientation}
+          variant="outline"
+        />
 
-        <div className="w-px h-4 bg-[var(--ds-border-subtle)] shrink-0" />
+        <div className="h-4 w-px shrink-0 bg-[var(--ds-border-subtle)]" />
 
-        <div className="flex items-center gap-1">
-          {(
-            [
-              { value: "", label: unsplash.orderByRelevant },
-              { value: "latest", label: unsplash.orderByLatest },
-            ] as const
-          ).map(({ value, label }) => (
-            <button
-              key={value || "relevant"}
-              type="button"
-              onClick={() => dispatch({ type: "set-order-by", orderBy: value })}
-              className={chipClass(orderBy === value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <DashboardSegmentedControl
+          aria-label={unsplash.filterOrderBy}
+          onValueChange={(value) => dispatch({ type: "set-order-by", orderBy: value })}
+          options={[
+            { value: "", label: unsplash.orderByRelevant },
+            { value: "latest", label: unsplash.orderByLatest },
+          ]}
+          size="compact"
+          value={orderBy}
+          variant="outline"
+        />
 
-        <div className="w-px h-4 bg-[var(--ds-border-subtle)] shrink-0" />
+        <div className="h-4 w-px shrink-0 bg-[var(--ds-border-subtle)]" />
 
         <div className="flex items-center gap-1.5" aria-label={unsplash.filterColor}>
           {COLORS.map(({ value, css, labelKey }) => {
@@ -409,7 +395,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
                 key={value}
                 type="button"
                 onClick={() => dispatch({ type: "set-color", color: isActive ? "" : value })}
-                className={`w-4.5 h-4.5 rounded-full border transition-all ${
+                className={`size-4.5 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] ${
                   isActive
                     ? "ring-2 ring-offset-1 ring-[var(--color-primary)] scale-110 border-transparent"
                     : "border-[var(--ds-border)] opacity-80 hover:opacity-100 hover:scale-110"
@@ -435,7 +421,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
           <div className="flex items-center justify-center py-12">
             <ArrowClockwiseIcon
               weight="duotone"
-              className="w-6 h-6 text-[var(--ds-text-subtle)] animate-spin"
+              className="size-6 animate-spin text-[var(--ds-text-subtle)]"
             />
           </div>
         )}
@@ -458,7 +444,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
                     key={photo.id}
                     type="button"
                     onClick={() => handlePhotoClick(photo)}
-                    className={`group relative aspect-video overflow-hidden rounded-control bg-[var(--ds-bg-elevated)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
+                    className={`group relative aspect-video overflow-hidden rounded-control bg-[var(--ds-bg-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] ${
                       isSelected ? "ring-2 ring-[var(--color-primary)]" : ""
                     }`}
                     title={`${unsplash.addTitlePrefix} ${photo.user.name}`}
@@ -466,12 +452,12 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
                     <img
                       src={photo.urls.small}
                       alt=""
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      className="size-full object-cover transition-transform group-hover:scale-105"
                       loading="lazy"
                     />
                     {isSelected && (
                       <div className="absolute top-1.5 right-1.5 bg-[var(--color-primary)] rounded-full p-0.5">
-                        <CheckCircleIcon weight="fill" className="w-4 h-4 text-white" />
+                        <CheckCircleIcon weight="fill" className="size-4 text-white" />
                       </div>
                     )}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -488,7 +474,7 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
                 <span title={common.loading} aria-label={common.loading}>
                   <ArrowClockwiseIcon
                     weight="duotone"
-                    className="w-5 h-5 text-[var(--ds-text-subtle)] animate-spin"
+                    className="size-5 animate-spin text-[var(--ds-text-subtle)]"
                   />
                 </span>
               )}
@@ -505,15 +491,16 @@ export function UnsplashBrowser({ defaultQuery = "", onSelect, onSelectMultiple,
               ? `${selectedIds.size} ${unsplash.selectedCount}`
               : ""}
           </span>
-          <button
+          <DashboardButton
             type="button"
             disabled={selectedIds.size === 0}
             onClick={handleConfirmMultiSelect}
-            className="flex items-center gap-1.5 h-9 px-4 text-sm font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:bg-[var(--ds-btn-primary-hover-bg)] hover:border-[var(--ds-btn-primary-hover-border)] disabled:opacity-40 disabled:cursor-not-allowed"
+            size="large"
+            variant="primary"
           >
             {unsplash.addSelected}
             {selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
-          </button>
+          </DashboardButton>
         </div>
       )}
     </OverlayCard>

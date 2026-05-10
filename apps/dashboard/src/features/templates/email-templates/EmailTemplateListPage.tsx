@@ -2,7 +2,6 @@ import {
   DownloadIcon,
   EnvelopeOpenIcon,
   FileTextIcon,
-  PlusCircleIcon,
   TrashIcon,
   UploadIcon,
 } from "@phosphor-icons/react";
@@ -14,8 +13,11 @@ import type { EmailTemplate, EmailTemplateInput } from "@lmaa/contracts";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
+  CreateActionButton,
   CloseActionButton,
   DeleteActionButton,
+  ExportActionButton,
+  ImportActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import {
   Dialog,
@@ -176,31 +178,24 @@ export function EmailTemplateListPage() {
   return (
     <PageLayout>
       <PageHeader title={m.listTitle}>
-        <button
+        <ImportActionButton
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-        >
-          <DownloadIcon weight="duotone" className="size-3.5" />
-          {m.importTemplate}
-        </button>
-        <button
+          label={m.importTemplate}
+          variant="neutral"
+        />
+        <ExportActionButton
           type="button"
           onClick={() => void exportEmailTemplateAll()}
           disabled={templates.length === 0}
-          className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
-        >
-          <UploadIcon weight="duotone" className="size-3.5" />
-          {m.exportAll}
-        </button>
-        <button
+          label={m.exportAll}
+          variant="neutral"
+        />
+        <CreateActionButton
           type="button"
           onClick={() => navigate("/email-templates/new")}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          <PlusCircleIcon weight="duotone" className="size-3.5" />
-          {m.newTemplate}
-        </button>
+          label={m.newTemplate}
+        />
       </PageHeader>
 
       <PageBody>

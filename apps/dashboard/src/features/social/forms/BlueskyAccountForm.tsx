@@ -1,6 +1,6 @@
 import type React from "react";
 
-import { formInputClass, formLabelClass } from "@lmaa/ui";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 
 export interface BlueskyAccountFormInput {
   label: string;
@@ -36,46 +36,46 @@ export function BlueskyAccountForm({
 }: BlueskyAccountFormProps): React.ReactElement {
   return (
     <div className="flex flex-col gap-3">
-      <label>
-        <span className={formLabelClass}>{labels.handle}</span>
-        <input
-          value={form.handle}
-          onChange={(event) => onChange({ ...form, handle: event.target.value })}
-          className={`${formInputClass} font-mono`}
-          placeholder="lmaa.bsky.social oder you@example.com"
-          required={requirePassword}
-        />
-      </label>
-      <label>
-        <span className={formLabelClass}>
+      <DashboardInput
+        className="font-mono"
+        label={labels.handle}
+        onChange={(event) => onChange({ ...form, handle: event.target.value })}
+        placeholder="lmaa.bsky.social oder you@example.com"
+        required={requirePassword}
+        value={form.handle}
+      />
+      <DashboardInput
+        autoComplete="new-password"
+        className="font-mono"
+        hint={
+          <>
+            {labels.appPasswordRecommendation}{" "}
+            <a
+              href={BLUESKY_APP_PASSWORDS_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-[var(--ds-accent)] hover:underline"
+            >
+              {labels.appPasswordSettingsLink}
+            </a>
+          </>
+        }
+        label={
+          <>
           {labels.appPassword}
           {!requirePassword && hasStoredPassword && (
             <span className="ml-2 text-[var(--ds-text-muted)]">
               ({labels.appPasswordKeepHint})
             </span>
           )}
-        </span>
-        <input
-          type="password"
-          value={form.appPassword}
-          onChange={(event) => onChange({ ...form, appPassword: event.target.value })}
-          className={`${formInputClass} font-mono`}
-          placeholder="xxxx-xxxx-xxxx-xxxx"
-          autoComplete="new-password"
-          required={requirePassword}
-        />
-        <span className="mt-1 block text-xs text-[var(--ds-text-muted)]">
-          {labels.appPasswordRecommendation}{" "}
-          <a
-            href={BLUESKY_APP_PASSWORDS_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="text-[var(--ds-accent)] hover:underline"
-          >
-            {labels.appPasswordSettingsLink}
-          </a>
-        </span>
-      </label>
+        </>
+        }
+        onChange={(event) => onChange({ ...form, appPassword: event.target.value })}
+        placeholder="xxxx-xxxx-xxxx-xxxx"
+        required={requirePassword}
+        type="password"
+        value={form.appPassword}
+      />
     </div>
   );
 }

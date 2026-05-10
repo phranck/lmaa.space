@@ -126,16 +126,16 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] Content Slice migrieren.
 - [x] Media Slice migrieren.
 - [x] Landing Page und Widgets Slice migrieren.
-- [ ] Pro Slice Typecheck, Lint und relevanten Browser-Flow pruefen.
+- [x] Pro Slice Typecheck, Lint und relevanten Browser-Flow pruefen.
 
 ### Stufe 7: Cleanup
 
-- [ ] Nicht mehr referenzierte i18n Keys entfernen.
-- [ ] Legacy-Exports wie `dialogBtnPrimary`, `dialogBtnSecondary`, `dialogBtnDestructive`, `formBtnBaseClass` und alte Field-Klassen entfernen oder bewusst dokumentieren.
-- [ ] Alias-Komponenten entfernen oder dokumentiert behalten.
-- [ ] doppelte Popover-/Portal-/Outside-Click-Logik abbauen.
-- [ ] Button- und Control-Inventare aktualisieren.
-- [ ] Plan-Websites aktualisieren, falls Zielzustand sichtbar geaendert wurde.
+- [x] Nicht mehr referenzierte i18n Keys entfernen.
+- [x] Legacy-Exports wie `dialogBtnPrimary`, `dialogBtnSecondary`, `dialogBtnDestructive`, `formBtnBaseClass` und alte Field-Klassen entfernen oder bewusst dokumentieren.
+- [x] Alias-Komponenten entfernen oder dokumentiert behalten.
+- [x] doppelte Popover-/Portal-/Outside-Click-Logik abbauen.
+- [x] Button- und Control-Inventare aktualisieren.
+- [x] Plan-Websites aktualisieren, falls Zielzustand sichtbar geaendert wurde.
 
 ### Stufe 8: Abschluss-QA
 
@@ -1291,6 +1291,31 @@ Static Gates:
 - keine direkten `focus:ring-*`/`focus:border-*` in Feature-Controls
 - keine direkten `--ds-btn-*` Klassen in Menueitems oder Feature-Controls
 - keine rohen Action-Buttons mit wiederverwendbarer Standardaction
+
+Teilfortschritt 2026-05-10, Cleanup:
+
+- Legacy-Exports `dialogBtnPrimary`, `dialogBtnSecondary`, `dialogBtnDestructive`, `formBtnBaseClass`, `formInputClass` und `formTextareaClass` wurden aus `@lmaa/ui` entfernt; `AlertDialog` nutzt stattdessen `ButtonPrimitive`.
+- Die letzten `formInputClass`-Consumer in Social-Account-Formularen und Social-Media-Template-Editor wurden auf Dashboard-Inputs, Number-Inputs und Checkboxen migriert.
+- Auth-, Background-Errors-, Email-Template-, Social-Account-, Social-Media-Template-, IconPicker-, DateTimePicker- und Unsplash-Controls nutzen zentrale Dashboard-Controls oder Shared-Primitives; `h-9`-Klassen sind aus Dashboard/`@lmaa/ui` entfernt.
+- Die lokale Plattform-Picker-Popover-Logik in `AccountFormDialog` wurde durch `DashboardCombobox` ersetzt. Unsplash-Filter nutzen `DashboardSegmentedControl`.
+- `AccountFormDialog` bindet das Profil-URL-Feld wieder ueber `DashboardField` an das sichtbare Label; der Cleanup-Smoke hat die Label-Zuordnung geprueft.
+- I18n-Key-Cleanup ergab in dieser Scheibe keine fachlich sicher entfernbaren Keys; die entfernten Legacy-Klassen hatten keine i18n-Vertraege.
+- Finales Static-Inventar: sichtbare rohe Selects nur noch im technischen `DashboardSelect`-Wrapper; keine `h-9`-Treffer; keine Legacy-Form-/Dialog-Klassen; direkte `--ds-btn-*` nur noch in Token-Definitionen, `ButtonPrimitive` und Dashboard-CSS-Farb-Alias.
+
+Verifiziert fuer den Cleanup:
+
+- `rg -n --glob '*.{ts,tsx}' -- '<select|</select>' apps/dashboard/src packages/ui/src` findet nur `DashboardControls.tsx`.
+- `rg -n --glob '*.{ts,tsx}' -- '\\bh-9\\b' apps/dashboard/src packages/ui/src` findet keine Treffer.
+- `rg -n "formBtnBaseClass|formInputClass|formTextareaClass|dialogBtnPrimary|dialogBtnSecondary|dialogBtnDestructive" --glob '*.{ts,tsx}'` findet keine Treffer.
+- `rg -n --glob '*.{ts,tsx,css}' -- '--ds-btn-' apps/dashboard/src packages/ui/src packages/shared/styles/tokens.css` findet nur Tokens, `ButtonPrimitive` und `apps/dashboard/src/index.css`.
+- `npm run lint -w @lmaa/ui`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/ui`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest packages/ui --verbose --diff` lief durch mit 100/100.
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch mit 99/100; verbleibende Hinweise betreffen die bestehende `UnsplashBrowser`-Groesse und bestehendes Invite-Effect-State-Handling.
+- `cd /tmp/lmaa-pw && npx playwright test lmaa-cleanup-smoke.spec.js --browser=chromium --reporter=line` prueft Auth, Setup, Email Templates, Social Media Templates, Social Media Accounts, Background Errors und Unsplash-Overlay.
+- Root-Gates fuer den Cleanup: `npm run lint`, `npm run typecheck`, `npm run test --workspaces --if-present`, `npm run build` gruen. Dashboard-Build-Warnung zu grossen Chunks bleibt die bekannte Vite-Baseline.
 
 ## Stufe 8: Abschluss-QA
 

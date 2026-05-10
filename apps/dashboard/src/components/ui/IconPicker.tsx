@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { BUTTON_ICON_LIST, getButtonIconComponent } from "@lmaa/ui";
 
+import { DashboardButton, DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 interface IconPickerProps {
@@ -31,27 +33,24 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
       <span className="text-xs font-semibold text-[var(--ds-text-subtle)] uppercase tracking-wider">
         {label}
       </span>
-      <input
+      <DashboardInput
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder={mp.iconPickerSearch}
-        className="w-full px-2 py-1 text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
       />
       <div className="grid grid-cols-6 gap-1 max-h-[276px] overflow-y-auto pr-px">
         {!q && (
-          <button
+          <DashboardButton
             type="button"
             title={noneLabel}
             onClick={() => onChange(undefined)}
-            className={`h-8 flex items-center justify-center rounded-control border text-xs ${
-              !value
-                ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text-subtle)] hover:border-[var(--color-primary)]"
-            }`}
+            className="w-full px-0"
+            size="control"
+            variant={!value ? "primary" : "neutral"}
           >
-            —
-          </button>
+            x
+          </DashboardButton>
         )}
         {icons.length === 0 ? (
           <p className="col-span-6 py-4 text-center text-xs text-[var(--ds-text-muted)]">
@@ -66,19 +65,18 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
             }
 
             return (
-              <button
+              <DashboardIconButton
                 key={entry.name}
                 type="button"
+                aria-label={entry.label}
                 title={entry.label}
                 onClick={() => onChange(entry.name)}
-                className={`h-9 flex items-center justify-center rounded-control border ${
-                  value === entry.name
-                    ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-                    : "border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-[var(--ds-text)] hover:border-[var(--color-primary)]"
-                }`}
+                className="w-full"
+                size="control"
+                variant={value === entry.name ? "primary" : "neutral"}
               >
                 <Icon width={18} height={18} />
-              </button>
+              </DashboardIconButton>
             );
           })
         )}
