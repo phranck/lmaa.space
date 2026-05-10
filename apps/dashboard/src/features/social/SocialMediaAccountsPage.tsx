@@ -1,7 +1,6 @@
 import {
   ArrowSquareOutIcon,
   PencilSimpleIcon,
-  PlusCircleIcon,
   ShareNetworkIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
@@ -14,6 +13,7 @@ import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
+  CreateActionButton,
   DeleteActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import {
@@ -178,14 +178,11 @@ export function SocialMediaAccountsPage(): React.ReactElement {
   return (
     <PageLayout>
       <PageHeader title={t.title}>
-        <button
+        <CreateActionButton
           type="button"
           onClick={() => setDialogTarget({ mode: "create" })}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          <PlusCircleIcon weight="duotone" className="size-3.5" />
-          {t.addAccountTitle}
-        </button>
+          label={t.addAccountTitle}
+        />
       </PageHeader>
 
       <PageBody>

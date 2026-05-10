@@ -5,8 +5,11 @@ import {
   MASTODON_MAX_POST_CHARACTERS_LIMIT,
   type MastodonVisibility,
 } from "@lmaa/contracts";
-import { formInputClass, formLabelClass } from "@lmaa/ui";
 
+import {
+  DashboardInput,
+  DashboardNumberInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 
 export interface MastodonAccountFormInput {
@@ -53,39 +56,31 @@ export function MastodonAccountForm({
 
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <label>
-        <span className={formLabelClass}>{labels.instanceUrl}</span>
-        <input
-          value={form.instanceUrl}
-          onChange={(event) => onChange({ ...form, instanceUrl: event.target.value })}
-          className={formInputClass}
-          placeholder="https://mastodon.social"
-        />
-      </label>
-      <label>
-        <span className={formLabelClass}>{labels.username}</span>
-        <input
-          value={form.username ?? ""}
-          onChange={(event) => onChange({ ...form, username: event.target.value })}
-          className={formInputClass}
-          placeholder="@lmaa"
-        />
-      </label>
-      <label className="md:col-span-2">
-        <span className={formLabelClass}>
-          {requireToken ? labels.accessToken : labels.accessTokenOptional}
-        </span>
-        <input
-          type="password"
-          value={form.accessToken ?? ""}
-          onChange={(event) => onChange({ ...form, accessToken: event.target.value })}
-          className={formInputClass}
-          placeholder={tokenPlaceholder}
-          autoComplete="new-password"
-        />
-      </label>
+      <DashboardInput
+        label={labels.instanceUrl}
+        value={form.instanceUrl}
+        onChange={(event) => onChange({ ...form, instanceUrl: event.target.value })}
+        placeholder="https://mastodon.social"
+      />
+      <DashboardInput
+        label={labels.username}
+        value={form.username ?? ""}
+        onChange={(event) => onChange({ ...form, username: event.target.value })}
+        placeholder="@lmaa"
+      />
+      <DashboardInput
+        autoComplete="new-password"
+        fieldClassName="md:col-span-2"
+        label={requireToken ? labels.accessToken : labels.accessTokenOptional}
+        onChange={(event) => onChange({ ...form, accessToken: event.target.value })}
+        placeholder={tokenPlaceholder}
+        type="password"
+        value={form.accessToken ?? ""}
+      />
       <div>
-        <span className={formLabelClass}>{labels.visibility}</span>
+        <span className="mb-1 block px-[5px] text-xs font-medium text-[var(--ds-text-subtle)]">
+          {labels.visibility}
+        </span>
         <Dropdown<MastodonVisibility>
           value={form.visibility}
           onChange={(value) => onChange({ ...form, visibility: value })}
@@ -94,23 +89,19 @@ export function MastodonAccountForm({
           portal
         />
       </div>
-      <label>
-        <span className={formLabelClass}>{labels.maxPostCharacters}</span>
-        <input
-          type="number"
-          min={1}
-          max={MASTODON_MAX_POST_CHARACTERS_LIMIT}
-          value={form.maxPostCharacters}
-          onChange={(event) =>
-            onChange({
-              ...form,
-              maxPostCharacters:
-                Number(event.target.value) || MASTODON_DEFAULT_MAX_POST_CHARACTERS,
-            })
-          }
-          className={formInputClass}
-        />
-      </label>
+      <DashboardNumberInput
+        label={labels.maxPostCharacters}
+        min={1}
+        max={MASTODON_MAX_POST_CHARACTERS_LIMIT}
+        value={form.maxPostCharacters}
+        onChange={(event) =>
+          onChange({
+            ...form,
+            maxPostCharacters:
+              Number(event.target.value) || MASTODON_DEFAULT_MAX_POST_CHARACTERS,
+          })
+        }
+      />
     </div>
   );
 }

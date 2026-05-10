@@ -1,6 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useNavigate } from "react-router";
 
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { AuthBackground } from "@/features/auth/AuthBackground.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -49,6 +52,17 @@ function useAutofillSwap(ids: string[], setters: Record<string, (v: string) => v
 }
 
 const FIELD_IDS = ["username", "password"];
+const LOGO_MASK_STYLE: CSSProperties = {
+  backgroundColor: "var(--color-primary)",
+  WebkitMaskImage: "url(/logo.png)",
+  WebkitMaskSize: "contain",
+  WebkitMaskRepeat: "no-repeat",
+  WebkitMaskPosition: "center",
+  maskImage: "url(/logo.png)",
+  maskSize: "contain",
+  maskRepeat: "no-repeat",
+  maskPosition: "center",
+};
 
 /**
  * Login screen for existing dashboard users.
@@ -90,32 +104,17 @@ export function LoginPage() {
     if (e.key === "Enter") handleLogin();
   }
 
-  const inputClassName =
-    "w-full h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
-
   return (
     <AuthBackground>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="relative mx-auto w-[120px] h-[120px]">
+          <div className="relative mx-auto size-[120px]">
             <div className="absolute inset-0 rounded-full animate-[auth-glow_8s_ease-in-out_infinite] bg-[var(--color-primary)]" />
             <div
               role="img"
               aria-label={messages.auth.logoAlt}
-              style={{
-                width: 120,
-                height: 120,
-                backgroundColor: "var(--color-primary)",
-                WebkitMaskImage: "url(/logo.png)",
-                WebkitMaskSize: "contain",
-                WebkitMaskRepeat: "no-repeat",
-                WebkitMaskPosition: "center",
-                maskImage: "url(/logo.png)",
-                maskSize: "contain",
-                maskRepeat: "no-repeat",
-                maskPosition: "center",
-              }}
-              className="relative"
+              style={LOGO_MASK_STYLE}
+              className="relative size-[120px]"
             />
           </div>
         </div>
@@ -125,47 +124,31 @@ export function LoginPage() {
           className="bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl border border-[rgba(255,255,255,0.06)] overflow-hidden"
         >
           <div className="bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)] px-5 py-4">
-            <h2 className="font-bold text-[var(--ds-text)]">{loginMessages.title}</h2>
+            <h2 className="font-semibold text-[var(--ds-text)]">{loginMessages.title}</h2>
           </div>
 
           <div key={inputKey} className="px-5 py-4 flex flex-col gap-4">
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-              >
-                {loginMessages.username}
-              </label>
-              <input
-                id="username"
-                type="text"
-                autoComplete="off"
-                data-1p-ignore={ignore || undefined}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className={inputClassName}
-              />
-            </div>
+            <DashboardInput
+              id="username"
+              type="text"
+              autoComplete="off"
+              data-1p-ignore={ignore || undefined}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              onKeyDown={handleKeyDown}
+              label={loginMessages.username}
+            />
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-              >
-                {loginMessages.password}
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="off"
-                data-1p-ignore={ignore || undefined}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className={inputClassName}
-              />
-            </div>
+            <DashboardInput
+              id="password"
+              type="password"
+              autoComplete="off"
+              data-1p-ignore={ignore || undefined}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
+              label={loginMessages.password}
+            />
 
             {error && (
               <p role="alert" className="text-red-500 text-sm">
@@ -175,14 +158,15 @@ export function LoginPage() {
           </div>
 
           <div className="bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border-subtle)] px-5 py-4 flex justify-end">
-            <button
+            <DashboardButton
               type="button"
               disabled={loading || !username || !password}
               onClick={handleLogin}
-              className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
+              size="large"
+              variant="primary"
             >
               {loading ? loginMessages.submitLoading : loginMessages.submit}
-            </button>
+            </DashboardButton>
           </div>
         </div>
       </div>

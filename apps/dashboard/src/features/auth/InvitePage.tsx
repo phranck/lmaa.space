@@ -3,13 +3,12 @@ import { useNavigate, useParams } from "react-router";
 
 import type { AdminInviteState, AdminUser } from "@lmaa/shared";
 
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { AuthBackground } from "@/features/auth/AuthBackground.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { api } from "@/lib/api.ts";
-
-const inputClassName =
-  "w-full h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] text-sm text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
 interface FormState {
   password: string;
@@ -99,7 +98,7 @@ export function InvitePage() {
       <div className="w-full max-w-sm">
         <div className="bg-[var(--ds-surface)] rounded-[var(--radius-card)] shadow-2xl border border-[rgba(255,255,255,0.06)] overflow-hidden">
           <div className="bg-[var(--ds-surface-inset)] border-b border-[var(--ds-border-subtle)] px-5 py-4">
-            <h2 className="font-bold text-[var(--ds-text)]">{inviteMessages.title}</h2>
+            <h2 className="font-semibold text-[var(--ds-text)]">{inviteMessages.title}</h2>
           </div>
 
           <div className="px-5 py-4 flex flex-col gap-4">
@@ -114,39 +113,23 @@ export function InvitePage() {
                   <p className="text-sm text-[var(--ds-text-muted)]">{inviteState.email}</p>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="invite-password"
-                    className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-                  >
-                    {inviteMessages.password}
-                  </label>
-                  <input
-                    id="invite-password"
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => updateForm({ password: e.target.value })}
-                    minLength={8}
-                    className={inputClassName}
-                  />
-                </div>
+                <DashboardInput
+                  id="invite-password"
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => updateForm({ password: e.target.value })}
+                  minLength={8}
+                  label={inviteMessages.password}
+                />
 
-                <div>
-                  <label
-                    htmlFor="invite-password-confirm"
-                    className="block text-sm font-medium text-[var(--ds-text)] mb-1.5"
-                  >
-                    {inviteMessages.confirmPassword}
-                  </label>
-                  <input
-                    id="invite-password-confirm"
-                    type="password"
-                    value={form.confirmPassword}
-                    onChange={(e) => updateForm({ confirmPassword: e.target.value })}
-                    minLength={8}
-                    className={inputClassName}
-                  />
-                </div>
+                <DashboardInput
+                  id="invite-password-confirm"
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={(e) => updateForm({ confirmPassword: e.target.value })}
+                  minLength={8}
+                  label={inviteMessages.confirmPassword}
+                />
               </>
             ) : (
               <p className="text-sm text-[var(--ds-text-muted)]">
@@ -158,22 +141,24 @@ export function InvitePage() {
           </div>
 
           <div className="bg-[var(--ds-surface-inset)] border-t border-[var(--ds-border-subtle)] px-5 py-4 flex justify-end gap-2">
-            <button
+            <DashboardButton
               type="button"
               onClick={() => navigate("/login")}
-              className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
+              size="large"
+              variant="neutral"
             >
               {inviteMessages.toLogin}
-            </button>
+            </DashboardButton>
             {inviteState && (
-              <button
+              <DashboardButton
                 type="button"
                 disabled={form.isSubmitting || form.password.length < 8 || form.confirmPassword.length < 8}
                 onClick={handleSubmit}
-                className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
+                size="large"
+                variant="primary"
               >
                 {form.isSubmitting ? inviteMessages.submitLoading : inviteMessages.submit}
-              </button>
+              </DashboardButton>
             )}
           </div>
         </div>

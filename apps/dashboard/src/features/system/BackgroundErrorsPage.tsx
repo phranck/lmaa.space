@@ -2,7 +2,10 @@ import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  DashboardCombobox,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { DataTable, type ColumnDef } from "@/components/ui/Table.tsx";
@@ -103,12 +106,11 @@ export function BackgroundErrorsPage() {
       <PageHeader title={t.title} />
       <PageBody className="p-4 gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <input
+          <DashboardInput
             type="text"
             placeholder={t.filterSourcePlaceholder}
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
-            className="h-9 px-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:border-[var(--ds-border-focus)]"
           />
           <DashboardCombobox
             value={resolvedFilter}

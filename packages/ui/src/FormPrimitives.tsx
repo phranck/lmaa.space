@@ -2,22 +2,15 @@ import type { HTMLAttributes, LabelHTMLAttributes, ReactNode } from "react";
 
 import { cx } from "./classNames.ts";
 import {
-  fieldControlBaseClass,
   fieldErrorClass,
   fieldHelpClass,
   fieldLabelClass,
   fieldOptionalClass,
-  inputSizeClass,
-  textareaSizeClass,
 } from "./FieldPrimitives.tsx";
 
 export const formLabelClass = cx(fieldLabelClass, "mb-1");
 export const formOptionalClass = fieldOptionalClass;
-export const formInputClass = cx(fieldControlBaseClass, inputSizeClass.field);
-export const formTextareaClass = cx(fieldControlBaseClass, textareaSizeClass.field);
 export const formHelpClass = fieldHelpClass;
-export const formBtnBaseClass =
-  "inline-flex h-[var(--ds-control-h-action)] items-center gap-1.5 px-3 rounded-control text-xs font-medium transition-colors disabled:opacity-40";
 export const formErrorClass = cx(fieldErrorClass, "mt-1");
 
 export function FormLabel({ className, htmlFor, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {

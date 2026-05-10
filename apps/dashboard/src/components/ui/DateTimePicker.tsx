@@ -1,9 +1,12 @@
 import { CalendarBlankIcon, CaretLeftIcon, CaretRightIcon, ClockIcon, DotIcon } from "@phosphor-icons/react";
 import { de } from "date-fns/locale";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { createPortal } from "react-dom";
 
+import { ControlTrigger } from "@lmaa/ui";
+
+import { DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
 interface DateTimePickerProps {
@@ -42,24 +45,25 @@ function emitValue(day: Date | undefined, hours: string, minutes: string, onChan
 function usePopoverPosition(triggerRef: React.RefObject<HTMLButtonElement | null>, open: boolean) {
   const [style, setStyle] = useState<React.CSSProperties>({});
 
-  const update = useCallback(() => {
-    const el = triggerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const spaceAbove = rect.top;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const openAbove = spaceAbove > spaceBelow;
-
-    setStyle({
-      position: "fixed",
-      left: rect.left,
-      ...(openAbove ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
-      zIndex: 9999,
-    });
-  }, [triggerRef]);
-
   useEffect(() => {
     if (!open) return;
+
+    const update = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const spaceAbove = rect.top;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openAbove = spaceAbove > spaceBelow;
+
+      setStyle({
+        position: "fixed",
+        left: rect.left,
+        ...(openAbove ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
+        zIndex: 9999,
+      });
+    };
+
     update();
     window.addEventListener("scroll", update, true);
     window.addEventListener("resize", update);
@@ -67,7 +71,7 @@ function usePopoverPosition(triggerRef: React.RefObject<HTMLButtonElement | null
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
     };
-  }, [open, update]);
+  }, [open, triggerRef]);
 
   return style;
 }
@@ -129,22 +133,21 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
 
   return (
     <>
-      <button
+      <ControlTrigger
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-2 px-3 py-2 border border-[var(--ds-border)] rounded-control bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] text-sm hover:border-[var(--ds-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+        leadingIcon={<CalendarBlankIcon weight="duotone" className="size-4" />}
+        open={open}
+        placeholder={isDe ? "Datum & Uhrzeit wählen" : "Pick date & time"}
       >
-        <CalendarBlankIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-muted)]" />
         {selected ? (
           <span>
             {displayDate}
             <span className="text-[var(--ds-text-muted)] mx-1">{displayTime}</span>
           </span>
-        ) : (
-          <span className="text-[var(--ds-text-subtle)]">{isDe ? "Datum & Uhrzeit wählen" : "Pick date & time"}</span>
-        )}
-      </button>
+        ) : null}
+      </ControlTrigger>
 
       {open && createPortal(
         <div ref={popoverRef} style={popoverStyle} className="rounded-card border border-[var(--ds-border)] bg-[var(--ds-surface)] shadow-lg p-3 w-max">
@@ -164,47 +167,45 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
               button_previous: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
               button_next: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
               weekdays: "rdp-weekdays",
-              weekday: "text-xs font-semibold text-[var(--ds-text-subtle)] w-9 h-8 uppercase",
+              weekday: "h-[var(--ds-control-h-field)] w-[var(--ds-control-h-field-large)] text-xs font-semibold text-[var(--ds-text-subtle)] uppercase",
               week: "rdp-week",
-              day: "text-sm w-9 h-9 text-center",
-              day_button: "w-9 h-9 rounded-full flex items-center justify-center hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+              day: "size-[var(--ds-control-h-field-large)] text-center text-sm",
+              day_button: "flex size-[var(--ds-control-h-field-large)] items-center justify-center rounded-full text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)]",
               today: "font-bold",
-              selected: "[&>button]:bg-[var(--color-primary)] [&>button]:text-white [&>button]:hover:bg-[var(--ds-btn-primary-hover)]",
+              selected: "[&>button]:bg-[var(--color-primary)] [&>button]:text-white [&>button]:hover:bg-[var(--color-primary)]",
               outside: "text-[var(--ds-text-subtle)] opacity-40",
               disabled: "opacity-30 cursor-not-allowed",
             }}
             components={{
               Chevron: ({ orientation }) =>
                 orientation === "left" ? (
-                  <CaretLeftIcon weight="bold" className="w-3.5 h-3.5" />
+                  <CaretLeftIcon weight="bold" className="size-3.5" />
                 ) : orientation === "right" ? (
-                  <CaretRightIcon weight="bold" className="w-3.5 h-3.5" />
+                  <CaretRightIcon weight="bold" className="size-3.5" />
                 ) : (
-                  <DotIcon className="w-3.5 h-3.5" />
+                  <DotIcon className="size-3.5" />
                 ),
             }}
           />
 
           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--ds-border)]">
-            <ClockIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-muted)]" />
-            <input
-              type="number"
+            <ClockIcon weight="duotone" className="size-4 text-[var(--ds-text-muted)]" />
+            <DashboardNumberInput
               min={0}
               max={23}
               value={hours}
               onChange={(e) => handleTimeChange(e.target.value, minutes)}
               onBlur={() => handleTimeChange(pad(Math.max(0, Math.min(23, Number(hours) || 0))), minutes)}
-              className="w-12 px-2 py-1 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] text-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-12 text-center"
             />
             <span className="text-sm font-medium text-[var(--ds-text-muted)]">:</span>
-            <input
-              type="number"
+            <DashboardNumberInput
               min={0}
               max={59}
               value={minutes}
               onChange={(e) => handleTimeChange(hours, e.target.value)}
               onBlur={() => handleTimeChange(hours, pad(Math.max(0, Math.min(59, Number(minutes) || 0))))}
-              className="w-12 px-2 py-1 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-[var(--ds-text)] text-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-12 text-center"
             />
             <span className="text-xs text-[var(--ds-text-subtle)]">Uhr</span>
           </div>

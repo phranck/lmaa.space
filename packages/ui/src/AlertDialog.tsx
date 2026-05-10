@@ -1,7 +1,8 @@
 import { InfoIcon, SealWarningIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
-import { Dialog, dialogBtnPrimary, dialogHeaderIconClass } from "./Dialog.tsx";
+import { ButtonPrimitive } from "./ButtonPrimitive.tsx";
+import { Dialog, dialogHeaderIconClass } from "./Dialog.tsx";
 
 type AlertVariant = "info" | "warning" | "error";
 
@@ -32,9 +33,9 @@ export function AlertDialog({
 		<Dialog open={open} title={title} titleIcon={variantIcons[variant]} onClose={onClose}>
 			<div className="px-6 py-4 text-sm text-[var(--ds-text)]">{children}</div>
 			<Dialog.Footer>
-				<button type="button" className={dialogBtnPrimary} onClick={onClose}>
+				<ButtonPrimitive type="button" onClick={onClose} size="large" variant="primary">
 					{buttonLabel}
-				</button>
+				</ButtonPrimitive>
 			</Dialog.Footer>
 		</Dialog>
 	);

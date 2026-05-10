@@ -3,7 +3,7 @@ export { getOverlayStackSnapshot, registerOverlay, subscribeOverlayStack } from 
 /** Shared overlay card (fixed-size modal base). */
 export { OverlayCard } from "./OverlayCard.tsx";
 /** Shared dialog component with header, body, footer. */
-export { Dialog, dialogBtnDestructive, dialogBtnPrimary, dialogBtnSecondary, dialogHeaderIconClass } from "./Dialog.tsx";
+export { Dialog, dialogHeaderIconClass } from "./Dialog.tsx";
 /** Shared alert dialog with variant icons (info, warning, error). */
 export { AlertDialog } from "./AlertDialog.tsx";
 /** Shared character counter component. */
@@ -41,13 +41,10 @@ export {
   FormLabel,
   FormLabelText,
   FormOptional,
-  formBtnBaseClass,
   formErrorClass,
   formHelpClass,
-  formInputClass,
   formLabelClass,
   formOptionalClass,
-  formTextareaClass,
 } from "./FormPrimitives.tsx";
 /** Shared low-level field and form control primitives. */
 export { FieldShell, InputPrimitive, TextareaPrimitive } from "./FieldPrimitives.tsx";

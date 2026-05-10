@@ -1,4 +1,4 @@
-import { FileTextIcon, PaperPlaneTiltIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
+import { FileTextIcon, PaperPlaneTiltIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -8,6 +8,7 @@ import { PLATFORM_MAP } from "@lmaa/ui";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
+  CreateActionButton,
   DeleteActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import {
@@ -122,14 +123,11 @@ export function SocialMediaPostTemplateListPage() {
   return (
     <PageLayout>
       <PageHeader title={m.listTitle}>
-        <button
+        <CreateActionButton
           type="button"
           onClick={() => navigate("/social-media-post-templates/new")}
-          className="flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-primary-border)] px-4 text-sm font-medium text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          <PlusCircleIcon weight="duotone" className="size-3.5" />
-          {m.newTemplate}
-        </button>
+          label={m.newTemplate}
+        />
       </PageHeader>
 
       <PageBody>

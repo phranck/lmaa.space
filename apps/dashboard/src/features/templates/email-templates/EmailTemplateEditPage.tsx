@@ -1,4 +1,4 @@
-import { CheckCircleIcon, DownloadIcon, SealWarningIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, SealWarningIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -9,6 +9,9 @@ const MarkdownEditor = lazy(() =>
 );
 
 import { Card, SectionCard } from "@/components/ui/Card.tsx";
+import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
@@ -61,13 +64,12 @@ function TextInput({
   placeholder?: string;
 }) {
   return (
-    <input
+    <DashboardInput
       id={id}
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full px-3 py-1.5 text-sm bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded-control text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
     />
   );
 }
@@ -205,34 +207,33 @@ export function EmailTemplateEditPage() {
             </span>
           )}
           {error && <p className="text-xs text-red-500">{error}</p>}
-          <button
+          <SaveActionButton
             type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-          >
-            <DownloadIcon weight="duotone" className="size-3.5" />
-            {isPending ? messages.common.saving : m.save}
-          </button>
+            label={isPending ? messages.common.saving : m.save}
+          />
         </div>
       </PageHeader>
 
       {/* Sub-bar: back link + inline name input */}
       <div className="px-3 py-1.5 shrink-0 flex items-center gap-3">
-        <button
+        <DashboardButton
           type="button"
           onClick={() => navigate("/email-templates")}
-          className="text-sm text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] shrink-0"
+          className="shrink-0 border-transparent px-0 hover:bg-transparent"
+          variant="ghost"
         >
           {m.backToList}
-        </button>
+        </DashboardButton>
         <span className="text-[var(--ds-border)]">·</span>
-        <input
+        <DashboardInput
+          aria-label={m.templateName}
           type="text"
           value={name}
           onChange={(e) => updateField("name", e.target.value)}
           placeholder={m.newTemplate}
-          className="w-64 px-2 py-1 text-sm font-mono bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+          className="w-64 font-mono"
         />
         {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
         {isOwner && (

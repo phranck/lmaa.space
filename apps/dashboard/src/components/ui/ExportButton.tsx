@@ -12,7 +12,7 @@ interface ExportButtonProps {
 
 export function ExportButton({ onClick, disabled, tooltip, label, children }: ExportButtonProps) {
   return (
-    <div className="flex items-center rounded-control border border-[var(--ds-btn-primary-border)] overflow-hidden">
+    <div className="flex items-center overflow-hidden rounded-control border border-[var(--ds-border)]">
       {children}
       <ExportActionButton
         className="rounded-none border-0"

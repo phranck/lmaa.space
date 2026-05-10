@@ -6,6 +6,7 @@ import {
   SkipActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 
@@ -44,21 +45,14 @@ export function EmailTemplateImportConflictDialog({
         <p className="text-sm text-[var(--ds-text-muted)] mb-4">{m.importConflictHint}</p>
 
         {showRename && (
-          <div className="mb-4">
-            <label
-              htmlFor="import-new-name"
-              className="block text-xs font-medium text-[var(--ds-text-muted)] mb-1"
-            >
-              {m.importNewNameLabel}
-            </label>
-            <input
-              id="import-new-name"
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="w-full px-3 py-1.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-surface)] text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-border-strong)]"
-            />
-          </div>
+          <DashboardInput
+            fieldClassName="mb-4"
+            id="import-new-name"
+            label={m.importNewNameLabel}
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+          />
         )}
       </div>
 
