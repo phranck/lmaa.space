@@ -71,7 +71,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `DialogFooterPrimitive` und `SurfacePrimitive` anlegen.
 - [x] `packages/ui/src/FormPrimitives.tsx` auf Foundation umbauen.
 - [x] `packages/ui/src/Tabs.tsx` auf `TabsPrimitive` umbauen.
-- [ ] `packages/ui/src/ToggleSwitch.tsx` auf `SwitchPrimitive` umbauen.
+- [x] `packages/ui/src/ToggleSwitch.tsx` auf `SwitchPrimitive` umbauen.
 - [ ] `packages/ui/src/MultiSelect.tsx`, `CountryCodeSelect.tsx` und `RegionSelect.tsx` auf Listbox-/Popover-Foundation vorbereiten.
 - [ ] `npm run typecheck -w @lmaa/ui` ausfuehren.
 - [ ] `npm run lint -w @lmaa/ui` ausfuehren.
@@ -453,6 +453,20 @@ Teilfortschritt 2026-05-10, Tabs-Wrapper:
 - Bestehende Optik bleibt ueber die bisherigen Klassen erhalten, bekommt aber stabile ARIA-IDs und Arrow-/Home-/End-Tastaturverhalten aus der Primitive.
 
 Verifiziert fuer den Tabs-Wrapper-Task:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest packages/ui --verbose --diff`
+
+Teilfortschritt 2026-05-10, ToggleSwitch-Wrapper:
+
+- `packages/ui/src/ToggleSwitch.tsx` delegiert intern an `SwitchPrimitive`.
+- Das bestehende Public API mit `checked`, `onChange` und `disabled` bleibt erhalten.
+- Fokus-, Disabled- und Track-/Thumb-Klassen kommen jetzt aus der Choice-Foundation.
+
+Verifiziert fuer den ToggleSwitch-Wrapper-Task:
 
 - `npm run lint`
 - `npm run typecheck`
