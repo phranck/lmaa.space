@@ -93,11 +93,11 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 ### Stufe 4: Bestehende Action-Buttons intern umstellen
 
-- [ ] `TableActionButton` intern auf `DashboardButton` legen.
-- [ ] `EditorToolbarButton` intern auf `DashboardButton` legen.
-- [ ] `ImportButton` intern auf `DashboardActionButton`/File-Wrapper legen.
-- [ ] `ExportButton` intern auf `DashboardActionButton` legen.
-- [ ] `HeaderBackButton` als dokumentierte Navigationsausnahme auf zentrale Basis legen.
+- [x] `TableActionButton` intern auf `DashboardButton` legen.
+- [x] `EditorToolbarButton` intern auf `DashboardButton` legen.
+- [x] `ImportButton` intern auf `DashboardActionButton`/File-Wrapper legen.
+- [x] `ExportButton` intern auf `DashboardActionButton` legen.
+- [x] `HeaderBackButton` als dokumentierte Navigationsausnahme auf zentrale Basis legen.
 - [ ] Dialog-Footer-Buttons auf neue Button-Basis migrieren.
 - [ ] rohe Action-Buttons in `ErrorBoundary` migrieren.
 - [ ] Screenshot-Vergleich fuer Tabellen, Toolbars und Dialoge pruefen.
@@ -645,6 +645,22 @@ Gate:
 - Editor-Toolbar bleibt scanbar.
 - Dialog-Footer hat keine `h-9`-Legacy-Buttons mehr, ausser explizit `large`.
 - Import-/Export-Flows funktionieren inklusive Hidden File Input.
+
+Teilfortschritt 2026-05-10, zentrale Action-Komponenten:
+
+- `TableActionButton` und `EditorToolbarButton` delegieren intern an `DashboardButton`.
+- `ImportButton` und `ExportButton` nutzen `DashboardActionButton`-Varianten, inklusive bestehendem Hidden-File-Input fuer Import.
+- `HeaderBackButton` bleibt Navigations-Wrapper, nutzt aber die zentrale `DashboardButton`-Basis mit fester Action-Hoehe.
+
+Verifiziert fuer den zentrale-Action-Komponenten-Task:
+
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
 
 ## Stufe 5: Control-Primitives migrieren
 

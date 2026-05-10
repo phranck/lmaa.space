@@ -1,5 +1,6 @@
-import { DownloadSimpleIcon } from "@phosphor-icons/react";
 import { useRef } from "react";
+
+import { ImportActionButton } from "./DashboardActionButton.tsx";
 
 interface ImportButtonProps {
   onFileSelected: (file: File) => void;
@@ -20,16 +21,12 @@ export function ImportButton({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
+      <ImportActionButton
         disabled={disabled}
-        className="h-9 px-3 flex items-center gap-2 border border-[var(--ds-btn-success-border)] rounded-control text-[var(--ds-btn-success-text)] text-sm hover:border-[var(--ds-btn-success-hover-border)] hover:bg-[var(--ds-btn-success-hover-bg)] disabled:opacity-50"
+        label={label}
+        onClick={() => fileInputRef.current?.click()}
         title={tooltip}
-      >
-        <DownloadSimpleIcon weight="duotone" className="w-3.5 h-3.5" />
-        {label}
-      </button>
+      />
       <input
         ref={fileInputRef}
         type="file"
