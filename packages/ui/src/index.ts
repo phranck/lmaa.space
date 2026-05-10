@@ -50,6 +50,15 @@ export type {
   InputPrimitiveProps,
   TextareaPrimitiveProps,
 } from "./FieldPrimitives.tsx";
+/** Shared low-level control trigger and listbox primitives. */
+export { ControlTrigger, ListboxOption, ListboxPopover } from "./ListboxPrimitives.tsx";
+/** Re-exported contracts for listbox primitives. */
+export type {
+  ControlTriggerProps,
+  ListboxOptionProps,
+  ListboxPopoverProps,
+  ListboxPopoverRenderState,
+} from "./ListboxPrimitives.tsx";
 /** Shared form field wrapper composing label, error, hint and optional/required indicators. */
 export { FormField } from "./FormField.tsx";
 /** Re-exported props for `FormField`. */
