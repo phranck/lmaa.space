@@ -5,12 +5,12 @@ import type { ReactNode } from "react";
 import { AlertDialog } from "./AlertDialog.tsx";
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
 import { DashboardSection } from "./DashboardSection.tsx";
+import { InputPrimitive } from "./FieldPrimitives.tsx";
 import {
   FormErrorText,
   FormLabel,
   FormLabelText,
   FormOptional,
-  formInputClass,
 } from "./FormPrimitives.tsx";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { MultiSelect, type MultiSelectMessages } from "./MultiSelect.tsx";
@@ -198,19 +198,18 @@ export function ShopEditForm({
         {/* Shop Data: Name, URL, Email, Categories */}
         <DashboardSection>
           <DashboardSection.Header
-            icon={<StorefrontIcon weight="duotone" className="w-4 h-4" />}
+            icon={<StorefrontIcon weight="duotone" className="size-4" />}
             title={messages.shopDataSectionLabel}
           />
           <DashboardSection.Body>
           {/* Name */}
           <div>
             <FormLabel htmlFor="sef-name">{messages.nameLabel}</FormLabel>
-          <input
+          <InputPrimitive
             id="sef-name"
-            type="text"
             value={value.name}
             onChange={(e) => set("name", e.target.value)}
-            className={`${formInputClass}${errors?.name ? " border-red-400" : ""}`}
+            invalid={Boolean(errors?.name)}
           />
           {errors?.name && <FormErrorText>{errors.name}</FormErrorText>}
         </div>
@@ -219,14 +218,15 @@ export function ShopEditForm({
         <div>
           <FormLabel htmlFor="sef-url">{messages.urlLabel}</FormLabel>
           <div className="flex gap-2">
-            <input
+            <InputPrimitive
               id="sef-url"
               type="url"
               value={value.url}
               onChange={(e) => set("url", e.target.value)}
               onBlur={() => onUrlBlur?.(value.url)}
               placeholder={messages.urlPlaceholder}
-              className={`flex-1 ${formInputClass}${errors?.url ? " border-red-400" : ""}`}
+              className="flex-1"
+              invalid={Boolean(errors?.url)}
             />
             <a
               href={value.url || undefined}
@@ -241,7 +241,7 @@ export function ShopEditForm({
                   : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
               }`}
             >
-              <ArrowSquareOutIcon weight="duotone" className="w-4 h-4" />
+              <ArrowSquareOutIcon weight="duotone" className="size-4" />
             </a>
           </div>
           {errors?.url && <FormErrorText>{errors.url}</FormErrorText>}
@@ -255,13 +255,13 @@ export function ShopEditForm({
               {messages.contactEmailLabel} <FormOptional>{messages.optionalLabel}</FormOptional>
             </span>
           </FormLabel>
-          <input
+          <InputPrimitive
             id="sef-contact-email"
             type="email"
             value={value.contactEmail}
             onChange={(e) => set("contactEmail", e.target.value)}
             placeholder={messages.contactEmailPlaceholder}
-            className={`${formInputClass}${errors?.contactEmail ? " border-red-400" : ""}`}
+            invalid={Boolean(errors?.contactEmail)}
           />
           {errors?.contactEmail && <FormErrorText>{errors.contactEmail}</FormErrorText>}
         </div>
@@ -285,19 +285,18 @@ export function ShopEditForm({
         {/* Headquarters + Geo */}
         <DashboardSection>
           <DashboardSection.Header
-            icon={<MapPinIcon weight="duotone" className="w-4 h-4" />}
+            icon={<MapPinIcon weight="duotone" className="size-4" />}
             title={messages.headquartersLabel}
           />
           <DashboardSection.Body>
           <div>
             <FormLabel htmlFor="sef-hq-street">{messages.streetLabel}</FormLabel>
-            <input
+            <InputPrimitive
               id="sef-hq-street"
-              type="text"
               value={value.headquartersStreet}
               onChange={(e) => set("headquartersStreet", e.target.value)}
               placeholder={messages.streetPlaceholder}
-              className={`${formInputClass}${errors?.headquartersStreet ? " border-red-400" : ""}`}
+              invalid={Boolean(errors?.headquartersStreet)}
             />
             {errors?.headquartersStreet && <FormErrorText>{errors.headquartersStreet}</FormErrorText>}
           </div>
@@ -316,25 +315,23 @@ export function ShopEditForm({
             </div>
             <div className="col-span-1">
               <FormLabel htmlFor="sef-hq-postal-code">{messages.postalCodeLabel}</FormLabel>
-              <input
+              <InputPrimitive
                 id="sef-hq-postal-code"
-                type="text"
                 value={value.headquartersPostalCode}
                 onChange={(e) => set("headquartersPostalCode", e.target.value)}
                 placeholder={messages.postalCodePlaceholder}
-                className={`${formInputClass}${errors?.headquartersPostalCode ? " border-red-400" : ""}`}
+                invalid={Boolean(errors?.headquartersPostalCode)}
               />
               {errors?.headquartersPostalCode && <FormErrorText>{errors.headquartersPostalCode}</FormErrorText>}
             </div>
             <div className="col-span-2">
               <FormLabel htmlFor="sef-hq-city">{messages.cityLabel}</FormLabel>
-              <input
+              <InputPrimitive
                 id="sef-hq-city"
-                type="text"
                 value={value.headquartersCity}
                 onChange={(e) => set("headquartersCity", e.target.value)}
                 placeholder={messages.cityPlaceholder}
-                className={`${formInputClass}${errors?.headquartersCity ? " border-red-400" : ""}`}
+                invalid={Boolean(errors?.headquartersCity)}
               />
               {errors?.headquartersCity && <FormErrorText>{errors.headquartersCity}</FormErrorText>}
             </div>
@@ -344,27 +341,25 @@ export function ShopEditForm({
           <div className="grid grid-cols-8 gap-4">
             <div className="col-span-3">
               <FormLabel htmlFor="sef-hq-lat">{messages.latitudeLabel}</FormLabel>
-              <input
+              <InputPrimitive
                 id="sef-hq-lat"
-                type="text"
                 inputMode="decimal"
                 value={value.headquartersLatitude}
                 onChange={(e) => set("headquartersLatitude", e.target.value)}
                 placeholder={messages.latitudePlaceholder}
-                className={`${formInputClass}${errors?.headquartersLatitude ? " border-red-400" : ""}`}
+                invalid={Boolean(errors?.headquartersLatitude)}
               />
               {errors?.headquartersLatitude && <FormErrorText>{errors.headquartersLatitude}</FormErrorText>}
             </div>
             <div className="col-span-3">
               <FormLabel htmlFor="sef-hq-lng">{messages.longitudeLabel}</FormLabel>
-              <input
+              <InputPrimitive
                 id="sef-hq-lng"
-                type="text"
                 inputMode="decimal"
                 value={value.headquartersLongitude}
                 onChange={(e) => set("headquartersLongitude", e.target.value)}
                 placeholder={messages.longitudePlaceholder}
-                className={`${formInputClass}${errors?.headquartersLongitude ? " border-red-400" : ""}`}
+                invalid={Boolean(errors?.headquartersLongitude)}
               />
               {errors?.headquartersLongitude && <FormErrorText>{errors.headquartersLongitude}</FormErrorText>}
             </div>
@@ -378,8 +373,8 @@ export function ShopEditForm({
                 className="w-full flex-1 flex items-center justify-center gap-1.5 px-3 border border-[var(--ds-border)] rounded-control text-sm font-medium text-[var(--ds-text-muted)] bg-[var(--ds-bg-elevated)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-hover)] transition-colors disabled:opacity-40"
               >
                 {geocoding
-                  ? <SpinnerIcon className="w-4 h-4 animate-spin" />
-                  : <CrosshairIcon weight="duotone" className="w-4 h-4" />}
+                  ? <SpinnerIcon className="size-4 animate-spin" />
+                  : <CrosshairIcon weight="duotone" className="size-4" />}
               </button>
             </div>
           </div>
@@ -389,7 +384,7 @@ export function ShopEditForm({
         {/* Shipping Region + Note */}
         <DashboardSection>
           <DashboardSection.Header
-            icon={<TruckIcon weight="duotone" className="w-4 h-4" />}
+            icon={<TruckIcon weight="duotone" className="size-4" />}
             title={messages.shippingSectionLabel}
           />
           <DashboardSection.Body>
@@ -406,13 +401,12 @@ export function ShopEditForm({
             </div>
             <div className="col-span-2">
               <FormLabel htmlFor="sef-shipping">{messages.shippingLabel}</FormLabel>
-              <input
+              <InputPrimitive
                 id="sef-shipping"
-                type="text"
                 value={value.shipping}
                 onChange={(e) => set("shipping", e.target.value)}
                 placeholder={messages.shippingPlaceholder}
-                className={`${formInputClass}${errors?.shipping ? " border-red-400" : ""}`}
+                invalid={Boolean(errors?.shipping)}
               />
               {errors?.shipping && <FormErrorText>{errors.shipping}</FormErrorText>}
             </div>
@@ -424,7 +418,7 @@ export function ShopEditForm({
         {messages.socialMediaLabel && messages.socialMedia && (
           <DashboardSection>
             <DashboardSection.Header
-              icon={<ShareNetworkIcon weight="duotone" className="w-4 h-4" />}
+              icon={<ShareNetworkIcon weight="duotone" className="size-4" />}
               title={messages.socialMediaLabel}
             />
             <DashboardSection.Body>
@@ -462,7 +456,7 @@ export function ShopEditForm({
         {/* Description (MarkdownEditor) */}
         <DashboardSection>
           <DashboardSection.Header
-            icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
+            icon={<MarkdownLogoIcon weight="duotone" className="size-4" />}
             title={messages.descriptionLabel}
           />
           <DashboardSection.Body className="!p-0 min-h-[24rem]">

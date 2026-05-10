@@ -906,6 +906,23 @@ Verifiziert fuer den Submission-Config-Controls-Task:
 - `npm run test --workspaces --if-present`
 - `npm run build`
 
+Teilfortschritt 2026-05-10, Shared-Shop-Edit-Inputs:
+
+- `packages/ui/src/ShopEditForm.tsx` nutzt fuer Name, URL, Contact Email, Headquarters, Koordinaten und Shipping `InputPrimitive`.
+- Die alte `formInputClass`-Nutzung wurde aus `ShopEditForm` entfernt; Valid-Fehler laufen ueber den `invalid`-State der Field-Primitive.
+- Mechanische Icon-Groessen wurden auf `size-*` normalisiert.
+
+Verifiziert fuer den Shared-Shop-Edit-Inputs-Task:
+
+- `rg -n "<input|formInputClass|w-4 h-4" packages/ui/src/ShopEditForm.tsx`
+- `npm run lint -w @lmaa/ui`
+- `npm run typecheck -w @lmaa/ui`
+- `npx -y react-doctor@latest packages/ui --verbose --diff` (Exit 0; verbleibender Hinweis ist der bestehende Giant-Component-Hinweis.)
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+
 ### 5C: Tabs und Segments
 
 Betroffene Dateien:
