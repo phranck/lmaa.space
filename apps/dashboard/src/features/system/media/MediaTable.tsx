@@ -24,9 +24,9 @@ const MediaThumb = memo(function MediaThumb({ asset }: { asset: MediaAsset }) {
   return (
     <div className="w-28 h-[63px] rounded-lg overflow-hidden bg-[var(--ds-bg-elevated)] shrink-0 flex items-center justify-center">
       {imageAsset ? (
-        <img src={asset.url} alt="" loading="lazy" className="block w-full h-full object-cover" />
+        <img src={asset.url} alt="" loading="lazy" className="block size-full object-cover" />
       ) : (
-        <FileIcon weight="duotone" className="w-7 h-7 text-[var(--ds-text-subtle)]" />
+        <FileIcon weight="duotone" className="size-7 text-[var(--ds-text-subtle)]" />
       )}
     </div>
   );
@@ -71,9 +71,9 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
         cell: (asset) => (
           <span className="inline-flex items-center gap-2 text-[var(--ds-text-muted)]">
             {isImageAsset(asset) ? (
-              <ImageIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
+              <ImageIcon weight="duotone" className="size-3.5 shrink-0" />
             ) : (
-              <FileIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
+              <FileIcon weight="duotone" className="size-3.5 shrink-0" />
             )}
             {getMediaTypeLabel(asset)}
           </span>

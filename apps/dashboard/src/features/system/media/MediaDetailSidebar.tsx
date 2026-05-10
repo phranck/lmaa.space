@@ -1,14 +1,18 @@
 import {
-  CopyIcon,
   FileIcon,
   ImageIcon,
   PencilSimpleIcon,
-  TrashIcon,
 } from "@phosphor-icons/react";
 
 import type { MediaAsset } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui";
 
+import {
+  CopyActionButton,
+  DeleteActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import type { useI18n } from "@/context/I18nContext.tsx";
 import {
   formatBytes,
@@ -28,14 +32,14 @@ function MediaPreview({
   if (isImageAsset(asset)) {
     return (
       <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--ds-bg-elevated)]">
-        <img src={asset.url} alt="" className="w-full h-full object-cover" />
+        <img src={asset.url} alt="" className="size-full object-cover" />
       </div>
     );
   }
 
   return (
     <div className="aspect-[4/3] rounded-xl bg-[var(--ds-bg-elevated)] border border-dashed border-[var(--ds-border)] flex flex-col items-center justify-center gap-3 text-[var(--ds-text-subtle)]">
-      <FileIcon weight="duotone" className="w-12 h-12" />
+      <FileIcon weight="duotone" className="size-12" />
       <div className="text-center">
         <p className="text-sm font-medium text-[var(--ds-text)]">{getMediaTypeLabel(asset)}</p>
         <p className="text-xs">{unsupportedPreview}</p>
@@ -75,7 +79,7 @@ export function MediaDetailSidebar({
     <div className="space-y-3">
       <DashboardSection>
         <DashboardSection.Header
-          icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+          icon={<ImageIcon weight="duotone" className="size-4" />}
           title={mediaMessages.previewTitle}
         />
         <DashboardSection.Body>
@@ -88,7 +92,7 @@ export function MediaDetailSidebar({
 
       <DashboardSection>
         <DashboardSection.Header
-          icon={<PencilSimpleIcon weight="duotone" className="w-4 h-4" />}
+          icon={<PencilSimpleIcon weight="duotone" className="size-4" />}
           title={mediaMessages.detailsTitle}
         />
         <DashboardSection.Body>
@@ -96,22 +100,21 @@ export function MediaDetailSidebar({
             <span className="text-sm font-medium text-[var(--ds-text)]">
               {mediaMessages.displayName}
             </span>
-            <input
+            <DashboardInput
               type="text"
               value={draft.name}
               onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
-              className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </label>
 
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-[var(--ds-text)]">Alias</span>
-            <input
+            <DashboardInput
               type="text"
               value={draft.alias}
               onChange={(event) => onDraftChange({ ...draft, alias: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
               placeholder="z.B. sepa-qr"
-              className="w-full px-3 py-2.5 border border-[var(--ds-border)] rounded-control text-sm font-mono bg-[var(--ds-input-bg)] text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="font-mono"
             />
             <p className="text-xs text-[var(--ds-text-subtle)]">
               {draft.alias ? `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]` : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
@@ -119,32 +122,29 @@ export function MediaDetailSidebar({
           </label>
 
           <div className="flex gap-2">
-            <button
-              type="button"
+            <SaveActionButton
               onClick={onSaveMeta}
               disabled={
                 isRenaming ||
                 draft.name.trim().length === 0 ||
                 (draft.name.trim() === asset.displayName && (draft.alias.trim() || null) === (asset.alias ?? null))
               }
-              className="flex-1 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-            >
-              {isRenaming ? common.saving : mediaMessages.saveName}
-            </button>
-            <button
-              type="button"
+              className="flex-1"
+              busy={isRenaming}
+              label={isRenaming ? common.saving : mediaMessages.saveName}
+            />
+            <DeleteActionButton
               onClick={onDelete}
-              className="h-9 px-4 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-            >
-              <TrashIcon weight="duotone" className="w-4 h-4" />
-            </button>
+              iconOnly
+              label={common.delete}
+            />
           </div>
         </DashboardSection.Body>
       </DashboardSection>
 
       <DashboardSection>
         <DashboardSection.Header
-          icon={<FileIcon weight="duotone" className="w-4 h-4" />}
+          icon={<FileIcon weight="duotone" className="size-4" />}
           title={mediaMessages.infoTitle}
         />
         <DashboardSection.Body>
@@ -188,14 +188,11 @@ export function MediaDetailSidebar({
           </div>
 
           <div className="flex gap-2">
-            <button
-              type="button"
+            <CopyActionButton
               onClick={onCopyUrl}
-              className="flex-1 h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text)] hover:border-[var(--ds-border-strong)] flex items-center justify-center gap-2"
-            >
-              <CopyIcon weight="duotone" className="w-4 h-4" />
-              {copied ? mediaMessages.copied : mediaMessages.copyUrl}
-            </button>
+              className="flex-1"
+              label={copied ? mediaMessages.copied : mediaMessages.copyUrl}
+            />
           </div>
         </DashboardSection.Body>
       </DashboardSection>
