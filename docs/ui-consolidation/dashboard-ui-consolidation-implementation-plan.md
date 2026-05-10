@@ -840,6 +840,22 @@ Gate:
 - Eingaben bleiben klick- und tastaturbedienbar.
 - Keine lokalen `inputClass`/`selectClass`/`formBtnBaseClass` in migrierten Dateien.
 
+Teilfortschritt 2026-05-10, Reminder-Controls:
+
+- `ReminderForm` nutzt fuer das Custom-Intervall `DashboardNumberInput` und fuer die Notiz `DashboardTextarea`.
+- Lokale `formInputClass`-Nutzung und rohe `<input>`/`<textarea>`-Controls wurden aus `ReminderForm` entfernt; DateTimePicker und Action-Buttons bleiben eigene spaetere Scheiben.
+
+Verifiziert fuer den Reminder-Controls-Task:
+
+- `rg -n "<input|<textarea|formInputClass" apps/dashboard/src/features/content/shops/ReminderForm.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+
 ### 5C: Tabs und Segments
 
 Betroffene Dateien:

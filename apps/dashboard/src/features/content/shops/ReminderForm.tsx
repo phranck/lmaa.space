@@ -2,9 +2,13 @@ import { ClockIcon, EnvelopeSimpleIcon, TrashIcon } from "@phosphor-icons/react"
 import { useReducer } from "react";
 
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
-import { AlertDialog, FormLabel, ToggleSwitch, formBtnBaseClass, formInputClass } from "@lmaa/ui";
+import { AlertDialog, FormLabel, ToggleSwitch, formBtnBaseClass } from "@lmaa/ui";
 
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  DashboardCombobox,
+  DashboardNumberInput,
+  DashboardTextarea,
+} from "@/components/ui/DashboardControls.tsx";
 import { DateTimePicker } from "@/components/ui/DateTimePicker.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
 
@@ -166,13 +170,12 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
 
           <div className="flex items-center gap-2">
             <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Alle</span>
-            <input
-              type="number"
+            <DashboardNumberInput
               min={1}
               max={999}
               value={customInterval}
               onChange={(e) => dispatch({ customInterval: e.target.value })}
-              className="px-2 py-1.5 w-16 border border-[var(--ds-border)] rounded-control text-sm bg-[var(--ds-input-bg)] text-[var(--ds-text)] text-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="w-16 text-center"
             />
             <span className="text-xs text-[var(--ds-text-muted)]">
               {UNIT_OPTIONS.find((o) => o.value === customUnit)?.singular ?? ""}
@@ -208,14 +211,14 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
         <FormLabel htmlFor="reminder-note">
           Notiz <span className="font-normal">(optional)</span>
         </FormLabel>
-        <textarea
+        <DashboardTextarea
           id="reminder-note"
           value={note}
           onChange={(e) => dispatch({ note: e.target.value })}
           maxLength={500}
           rows={2}
           placeholder="Worum geht es bei dieser Prüfung?"
-          className={`${formInputClass} resize-none`}
+          className="resize-none"
         />
       </div>
 
