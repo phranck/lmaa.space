@@ -62,7 +62,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 ### Stufe 2: Shared Primitives
 
 - [x] `ButtonPrimitive` und `IconButtonPrimitive` anlegen.
-- [ ] `FieldShell`, `InputPrimitive` und `TextareaPrimitive` anlegen.
+- [x] `FieldShell`, `InputPrimitive` und `TextareaPrimitive` anlegen.
 - [ ] `ControlTrigger`, `ListboxPopover` und `ListboxOption` anlegen.
 - [ ] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
 - [ ] `TabsPrimitive` mit roving tabindex und Arrow-Key-Verhalten anlegen.
@@ -320,6 +320,18 @@ Teilfortschritt 2026-05-10:
 - `packages/ui/src/classNames.ts` buendelt den kleinen `cx`-Helper fuer neue Primitives; `FormPrimitives.tsx` nutzt ihn bereits.
 
 Verifiziert fuer den Button-Primitive-Task:
+
+- `npm run typecheck -w @lmaa/ui`
+- `npm run lint -w @lmaa/ui`
+
+Teilfortschritt 2026-05-10, Field-Primitives:
+
+- `packages/ui/src/FieldPrimitives.tsx` stellt `FieldShell`, `InputPrimitive` und `TextareaPrimitive` bereit.
+- `FieldShell` kann Controls ueber Render-Props mit stabiler `id`, `aria-describedby`, `aria-invalid` und `aria-required` versorgen.
+- `InputPrimitive` und `TextareaPrimitive` teilen Foundation-Tokens fuer Border, Fokus, Disabled-State und Farben, behalten aber getrennte Hoehen-/Min-Height-Regeln.
+- `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
+
+Verifiziert fuer den Field-Primitive-Task:
 
 - `npm run typecheck -w @lmaa/ui`
 - `npm run lint -w @lmaa/ui`
