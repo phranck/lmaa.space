@@ -19,7 +19,6 @@ import {
   DownloadIcon,
   EnvelopeOpenIcon,
   PaperPlaneTiltIcon,
-  PlusCircleIcon,
   StorefrontIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
@@ -32,6 +31,7 @@ const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
+import { CreateActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import {
   DashboardCombobox,
   DashboardDragHandle,
@@ -360,14 +360,10 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                   leadingIcon: icon,
                 }))}
               />
-              <button
-                type="button"
+              <CreateActionButton
                 onClick={() => addStep(pendingStepType)}
-                className="flex items-center gap-1.5 h-7 px-3 text-xs font-medium border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-              >
-                <PlusCircleIcon weight="duotone" className="size-3" />
-                {m.addStepButton}
-              </button>
+                label={m.addStepButton}
+              />
             </div>
           }
         />

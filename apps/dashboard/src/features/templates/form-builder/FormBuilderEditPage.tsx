@@ -7,11 +7,9 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import {
-  DownloadIcon,
   GearIcon,
   HandTapIcon,
   QuestionIcon,
-  UploadIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useReducer, useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -26,6 +24,12 @@ import type {
 import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import {
+  ExportActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -396,7 +400,7 @@ export function FormBuilderEditPage() {
           leading={<HeaderBackButton label={m.listTitle} onClick={() => navigate("/forms")} />}
         />
         <div className="flex items-center justify-center py-24">
-          <div className="w-8 h-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+          <div className="size-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
         </div>
       </div>
     );
@@ -428,14 +432,16 @@ export function FormBuilderEditPage() {
         </label>
         <div className="flex items-center gap-1">
           <span className="text-sm text-[var(--ds-text-muted)] font-mono">/</span>
-          <input
-            id="form-slug"
-            type="text"
-            value={slug}
-            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-            placeholder={m.slugPlaceholder}
-            className="w-48 px-2 py-1 text-sm font-mono bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-          />
+          <div className="w-48">
+            <DashboardInput
+              id="form-slug"
+              type="text"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+              placeholder={m.slugPlaceholder}
+              className="font-mono"
+            />
+          </div>
         </div>
         {config && (
           <div className="ml-auto flex items-center gap-2">
@@ -478,7 +484,7 @@ export function FormBuilderEditPage() {
                 <DashboardSection.Header
                   icon={selectedField !== null
                     ? <FieldTypeIcon type={selectedField.type} />
-                    : <GearIcon weight="duotone" className="w-4 h-4" />
+                    : <GearIcon weight="duotone" className="size-4" />
                   }
                   title={selectedField !== null
                     ? fieldTypeLabel(selectedField.type, m.fieldTypes as unknown as Record<string, string>)
@@ -570,24 +576,19 @@ function BuilderHeaderActions({
       {showExportWarning && (
         <span className="text-sm text-amber-600 font-medium">{m.exportUnsavedWarning}</span>
       )}
-      <button
-        type="button"
+      <DashboardIconButton
         onClick={onOpenHelp}
         title={m.textTokensHelp.open}
         aria-label={m.textTokensHelp.open}
-        className="flex items-center justify-center w-9 h-9 border border-[var(--ds-border)] rounded-control text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
       >
-        <QuestionIcon weight="duotone" className="w-4 h-4" />
-      </button>
-      <button
-        type="button"
+        <QuestionIcon weight="duotone" className="size-4" />
+      </DashboardIconButton>
+      <ExportActionButton
         onClick={onExport}
         disabled={!hasConfig}
-        className="flex items-center gap-2 px-4 py-1.5 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40"
-      >
-        <UploadIcon weight="duotone" className="w-3.5 h-3.5" />
-        {m.exportForm}
-      </button>
+        label={m.exportForm}
+        variant="neutral"
+      />
       {saveStatus === "saved" && (
         <span className="text-sm text-green-600 font-medium">{m.saved}</span>
       )}
@@ -597,15 +598,12 @@ function BuilderHeaderActions({
       {saveStatus === "slug_conflict" && (
         <span className="text-sm text-red-600 font-medium">{m.slugConflict}</span>
       )}
-      <button
-        type="button"
+      <SaveActionButton
         onClick={onSave}
         disabled={isSaving}
-        className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-50"
-      >
-        <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
-        {isSaving ? savingLabel : m.save}
-      </button>
+        busy={isSaving}
+        label={isSaving ? savingLabel : m.save}
+      />
     </div>
   );
 }

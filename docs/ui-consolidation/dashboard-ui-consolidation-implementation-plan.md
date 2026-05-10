@@ -120,7 +120,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 ### Stufe 6: Feature-Slices migrieren
 
-- [ ] Form Builder Slice migrieren.
+- [x] Form Builder Slice migrieren.
 - [ ] Submissions Slice migrieren.
 - [ ] System Settings und Users Slice migrieren.
 - [ ] Content Slice migrieren.
@@ -1172,6 +1172,21 @@ Gate pro Slice:
 - Lint Dashboard oder mindestens betroffene Dateien.
 - Relevanter Browser-Flow oeffnet ohne Console-Errors.
 - Light/Dark Mode fuer betroffene Flaeche geprueft.
+
+Teilfortschritt 2026-05-10, Form-Builder-Slice:
+
+- `FormBuilderListPage`, `FormBuilderEditPage`, `SubmissionConfigPanel`, `FieldConfigPanel`, `ImportConflictDialog`, `BuilderRow` und `TextTokensHelp` nutzen fuer sichtbare Form-Builder-Controls die zentralen Dashboard-Inputs, Checkboxen und Action-/Icon-Buttons.
+- Form-Builder-`h-9`, direkte Fokusklassen und direkte `--ds-btn-*` Feature-Button-Klassen wurden entfernt; uebrig ist nur das technische Hidden-File-Input fuer JSON-Imports.
+- Die freie DND-Row-Flaeche nutzt den Large-Control-Token statt einer lokalen `min-h-9`-Klasse.
+
+Verifiziert fuer den Form-Builder-Slice:
+
+- `rg -n --glob '*.{ts,tsx}' -- '<input|<textarea|\\bh-9\\b|focus:(ring|border)-|--ds-btn-|formBtnBaseClass|formInputClass|inputClass' apps/dashboard/src/features/templates/form-builder`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch; verbleibende Warnungen betreffen bestehende Giant-Components und Combine-Iteration-Hinweise in `FormBuilderEditPage`/`FieldConfigPanel`.
+- `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
+- `cd /tmp/lmaa-pw && npx playwright test lmaa-dashboard-ui-visual.spec.js --browser=chromium --reporter=line`
 
 ## Stufe 7: Cleanup
 
