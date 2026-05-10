@@ -1,16 +1,22 @@
 import {
-  CopyIcon,
   PersonIcon,
-  PlusCircleIcon,
   UserCheckIcon,
   UserPlusIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { AdminUserInvite } from "@lmaa/shared";
-import { FormLabel, FormLabelText, formInputClass } from "@lmaa/ui";
+import { FormLabel, FormLabelText } from "@lmaa/ui";
 
-import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
+import {
+  CancelActionButton,
+  CopyActionButton,
+  CreateActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
+  DashboardCombobox,
+  DashboardInput,
+} from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
@@ -132,12 +138,11 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             </div>
             <div>
               <FormLabel htmlFor="uc-invite-url">{usersMessages.createCard.inviteLink}</FormLabel>
-              <input
+              <DashboardInput
                 id="uc-invite-url"
                 type="text"
                 readOnly
                 value={inviteResult.inviteUrl}
-                className={formInputClass}
               />
             </div>
           </div>
@@ -155,24 +160,22 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
 
             <div>
               <FormLabel htmlFor="uc-username">{usersMessages.createCard.username}</FormLabel>
-              <input
+              <DashboardInput
                 id="uc-username"
                 type="text"
                 value={form.username}
                 onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                 minLength={3}
-                className={formInputClass}
               />
             </div>
 
             <div>
               <FormLabel htmlFor="uc-email">{usersMessages.createCard.email}</FormLabel>
-              <input
+              <DashboardInput
                 id="uc-email"
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className={formInputClass}
               />
             </div>
 
@@ -233,34 +236,25 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <button
-          type="button"
+        <CancelActionButton
+          label={common.cancel}
           onClick={onClose}
-          className="h-9 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
-        >
-          {common.cancel}
-        </button>
+        />
         {inviteResult ? (
-          <button
-            type="button"
+          <CopyActionButton
             onClick={handleCopyInviteLink}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-          >
-            <CopyIcon weight="duotone" className="size-3.5" />
-            {copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite}
-          </button>
+            label={copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite}
+            variant="primary"
+          />
         ) : (
-          <button
-            type="button"
+          <CreateActionButton
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-40"
-          >
-            <PlusCircleIcon weight="duotone" className="size-3.5" />
-            {createMutation.isPending
+            busy={createMutation.isPending}
+            label={createMutation.isPending
               ? usersMessages.createCard.creating
               : usersMessages.createCard.create}
-          </button>
+          />
         )}
       </OverlayCard.Footer>
     </OverlayCard>

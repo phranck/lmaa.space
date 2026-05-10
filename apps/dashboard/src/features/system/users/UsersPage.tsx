@@ -1,9 +1,11 @@
-import { FileTextIcon, PlusCircleIcon, TrashIcon } from "@phosphor-icons/react";
+import { TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ItemCard } from "@/components/ui/Card.tsx";
 import {
   CancelActionButton,
+  CreateActionButton,
+  EditActionButton,
   RemoveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import {
@@ -42,14 +44,10 @@ export function UsersPage() {
   return (
     <PageLayout>
       <PageHeader title={usersMessages.title}>
-        <button
-          type="button"
+        <CreateActionButton
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 py-1.5 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          <PlusCircleIcon weight="duotone" className="size-3.5" />
-          {usersMessages.inviteUser}
-        </button>
+          label={usersMessages.inviteUser}
+        />
       </PageHeader>
 
       <PageBody>
@@ -93,24 +91,17 @@ export function UsersPage() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {(me?.isOwner || user.id === me?.id) && (
-                  <button
-                    type="button"
+                  <EditActionButton
                     onClick={() => setEditingUserId(user.id)}
-                    className="py-1.5 px-3 flex items-center gap-2 rounded-control border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-sm hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
-                  >
-                    <FileTextIcon weight="duotone" className="size-3.5" />
-                    {usersMessages.editCard.editTooltip}
-                  </button>
+                    label={usersMessages.editCard.editTooltip}
+                    variant="neutral"
+                  />
                 )}
                 {me?.isOwner && user.id !== me?.id && (
-                  <button
-                    type="button"
+                  <RemoveActionButton
                     onClick={() => setDeleteId(user.id)}
-                    className="py-1.5 px-3 flex items-center gap-2 text-sm border border-[var(--ds-btn-danger-border)] rounded-control text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-                  >
-                    <TrashIcon weight="duotone" className="size-3.5" />
-                    {usersMessages.remove}
-                  </button>
+                    label={usersMessages.remove}
+                  />
                 )}
               </div>
             </ItemCard>

@@ -122,7 +122,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 - [x] Form Builder Slice migrieren.
 - [x] Submissions Slice migrieren.
-- [ ] System Settings und Users Slice migrieren.
+- [x] System Settings und Users Slice migrieren.
 - [ ] Content Slice migrieren.
 - [ ] Media Slice migrieren.
 - [ ] Landing Page und Widgets Slice migrieren.
@@ -1202,6 +1202,21 @@ Verifiziert fuer den Submissions-Slice:
 - `npx -y react-doctor@latest apps/dashboard --verbose --diff`
 - `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
 - `cd /tmp/lmaa-pw && npx playwright test lmaa-submissions-smoke.spec.js --browser=chromium --reporter=line`
+
+Teilfortschritt 2026-05-10, System-Settings-und-Users-Slice:
+
+- `NotificationsTab`, `DomainAlertsTab`, `UsersPage`, `UserCreateCard`, `UserEditCard`, `UserProfileFields`, `UserAvatar` und `UserAvatarEditor` nutzen fuer sichtbare Inputs, Textareas, Checkboxen und Actions zentrale Dashboard-Controls.
+- Lokale `formInputClass`-Nutzung, direkte `h-9`-Buttons, direkte `--ds-btn-*` Feature-Button-Klassen und mechanische Icon-Size-Drift wurden in diesem Slice entfernt.
+- Uebrig ist nur das technische Hidden-File-Input in `UserAvatarEditor` fuer Avatar-Uploads.
+
+Verifiziert fuer den System-Settings-und-Users-Slice:
+
+- `rg -n --glob '*.{ts,tsx}' -- '<input|<textarea|\\bh-9\\b|focus:(ring|border)-|--ds-btn-|formBtnBaseClass|formInputClass|inputClass|w-3\\.5 h-3\\.5|w-4 h-4|w-8 h-8|w-9 h-9|w-12 h-12|w-24 h-24|w-full h-full|font-bold' apps/dashboard/src/features/system/settings/NotificationsTab.tsx apps/dashboard/src/features/system/settings/DomainAlertsTab.tsx apps/dashboard/src/features/system/users`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch; verbleibende Hinweise betreffen bestehende `DomainAlertsTab`-State-Effects und einen nicht-blockierenden Avatar-Hinweis.
+- `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
+- `cd /tmp/lmaa-pw && npx playwright test lmaa-system-users-smoke.spec.js --browser=chromium --reporter=line`
 
 ## Stufe 7: Cleanup
 

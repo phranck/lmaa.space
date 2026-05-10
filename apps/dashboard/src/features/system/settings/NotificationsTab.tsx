@@ -1,9 +1,10 @@
-import { BellIcon, FloppyDiskIcon } from "@phosphor-icons/react";
+import { BellIcon } from "@phosphor-icons/react";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { SETTINGS_KEYS } from "@lmaa/shared";
 import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
 
+import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useEmailTemplates } from "@/features/templates/hooks/useEmailTemplates.ts";
@@ -153,15 +154,12 @@ export const NotificationsTab = memo(function NotificationsTab() {
           <span className="min-w-0 flex-1 text-xs text-[var(--ds-text-muted)]">
             {canEnable ? t.hint : t.requireTemplateHint}
           </span>
-          <button
-            type="button"
+          <SaveActionButton
             onClick={() => void save()}
             disabled={!dirty || saving}
-            className="flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] px-3 text-sm font-medium text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <FloppyDiskIcon weight="duotone" className="size-3.5" />
-            {saving ? common.saving : common.save}
-          </button>
+            busy={saving}
+            label={saving ? common.saving : common.save}
+          />
         </DashboardSection.Footer>
       </DashboardSection>
     </div>

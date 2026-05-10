@@ -1,6 +1,5 @@
 import {
   PencilSimpleIcon,
-  PlusCircleIcon,
   TrashIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
@@ -18,6 +17,15 @@ import { SETTINGS_KEYS } from "@lmaa/shared";
 import { ToggleSwitch } from "@lmaa/ui";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import {
+  CancelActionButton,
+  CreateActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import {
+  DashboardInput,
+  DashboardTextarea,
+} from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
@@ -27,8 +35,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import {
   fieldHintClass,
   fieldLabelClass,
-  textAreaClass,
-  textInputClass,
 } from "@/features/system/widget-utils.ts";
 
 import { useSaveSystemSetting, useSystemSettings } from "./hooks/useSystemSettings.ts";
@@ -185,7 +191,7 @@ function DomainAlertRuleDialog({
           <div className="flex min-w-0 items-center gap-3">
             <WarningCircleIcon weight="duotone" className={dialogHeaderIconClass} />
             <div className="min-w-0">
-              <h3 className="truncate font-bold text-[var(--ds-text)]">{title}</h3>
+              <h3 className="truncate font-semibold text-[var(--ds-text)]">{title}</h3>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -213,10 +219,9 @@ function DomainAlertRuleDialog({
         ) : null}
 
         <Field label={t.nameLabel} error={showValidationError ? errors.name : null}>
-          <input
+          <DashboardInput
             value={draft.name}
             onChange={(event) => updateDraft({ name: event.target.value })}
-            className={textInputClass}
           />
         </Field>
 
@@ -225,11 +230,11 @@ function DomainAlertRuleDialog({
           hint={t.domainsHint}
           error={showValidationError ? errors.domains : null}
         >
-          <textarea
+          <DashboardTextarea
             rows={4}
             value={draft.domainsText}
             onChange={(event) => updateDraft({ domainsText: event.target.value })}
-            className={`${textAreaClass} font-mono text-xs`}
+            className="font-mono text-xs"
           />
         </Field>
 
@@ -256,22 +261,17 @@ function DomainAlertRuleDialog({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <button
-          type="button"
+        <CancelActionButton
+          label={common.cancel}
           onClick={onClose}
           disabled={isSaving}
-          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
-        >
-          {common.cancel}
-        </button>
-        <button
-          type="button"
+        />
+        <SaveActionButton
           onClick={() => void handleSave()}
           disabled={isSaving}
-          className="h-9 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
-        >
-          {isSaving ? common.saving : target.mode === "create" ? t.createRule : t.saveRule}
-        </button>
+          busy={isSaving}
+          label={isSaving ? common.saving : target.mode === "create" ? t.createRule : t.saveRule}
+        />
       </OverlayCard.Footer>
     </OverlayCard>
   );
@@ -413,7 +413,7 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
           <div className="flex items-center justify-end gap-2">
             <TableActionButton
               variant="neutral"
-              icon={<PencilSimpleIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<PencilSimpleIcon weight="duotone" className="size-3.5" />}
               label={t.editRule}
               onClick={() => {
                 setSaveError(null);
@@ -423,7 +423,7 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
             />
             <TableActionButton
               variant="danger"
-              icon={<TrashIcon weight="duotone" className="w-3.5 h-3.5" />}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
               label={deletingRuleId === row.id ? common.saving : t.deleteRule}
               onClick={() => void handleDeleteRule(row.id)}
               disabled={savingDialog || deletingRuleId !== null}
@@ -462,14 +462,10 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
 
       {active ? (
         <PageFooter>
-          <button
-            type="button"
+          <CreateActionButton
             onClick={handleAddRule}
-            className="flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-primary-border)] px-3 text-sm font-medium text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-          >
-            <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-            {t.newRule}
-          </button>
+            label={t.newRule}
+          />
         </PageFooter>
       ) : null}
 

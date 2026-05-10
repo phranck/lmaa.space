@@ -1,9 +1,9 @@
 import { useState } from "react";
 
 const SIZE_CLASSES = {
-  sm: "w-8 h-8 text-xs",
-  md: "w-9 h-9 text-sm",
-  lg: "w-12 h-12 text-base",
+  sm: "size-8 text-xs",
+  md: "size-9 text-sm",
+  lg: "size-12 text-base",
 };
 
 interface UserAvatarProps {
@@ -36,7 +36,7 @@ export function UserAvatar({ username, avatarUrl, size = "md", className = "" }:
 
   return (
     <div
-      className={`${sizeClass} ${className} rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-bold shrink-0`}
+      className={`${sizeClass} ${className} rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-semibold shrink-0`}
     >
       {username[0]?.toUpperCase()}
     </div>
