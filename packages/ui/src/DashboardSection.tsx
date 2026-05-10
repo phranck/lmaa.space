@@ -1,4 +1,5 @@
-import { createContext, useContext } from "react";
+import { CaretDownIcon } from "@phosphor-icons/react";
+import { createContext, use, useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 /* ------------------------------------------------------------------ */
@@ -6,10 +7,20 @@ import type { ReactNode } from "react";
 /* ------------------------------------------------------------------ */
 
 interface DashboardSectionContextValue {
+  collapsible: boolean;
+  collapseButtonLabel: string;
   expanded: boolean;
+  toggleExpanded: () => void;
 }
 
-const DashboardSectionContext = createContext<DashboardSectionContextValue>({ expanded: true });
+const noop = () => {};
+
+const DashboardSectionContext = createContext<DashboardSectionContextValue>({
+  collapsible: false,
+  collapseButtonLabel: "Toggle section",
+  expanded: true,
+  toggleExpanded: noop,
+});
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                             */
@@ -17,8 +28,16 @@ const DashboardSectionContext = createContext<DashboardSectionContextValue>({ ex
 
 export interface DashboardSectionProps {
   children: ReactNode;
-  /** When set, the section becomes collapsible. Body is hidden when false. */
+  /** Shows a built-in collapse toggle in the section header. */
+  collapsible?: boolean;
+  /** Accessible label for the built-in collapse toggle. */
+  collapseButtonLabel?: string;
+  /** Initial expanded state for uncontrolled collapsible sections. */
+  defaultExpanded?: boolean;
+  /** Controlled expanded state. Body and footer are hidden when false. */
   expanded?: boolean;
+  /** Called when the built-in collapse toggle changes state. */
+  onExpandedChange?: (expanded: boolean) => void;
   className?: string;
 }
 
@@ -52,15 +71,42 @@ export interface DashboardSectionItemProps {
 
 /**
  * Card-like container for grouping dashboard sections.
- * Supports collapsible mode via the `expanded` prop.
+ * Supports controlled visibility via `expanded` and optional built-in
+ * collapsible behavior via `collapsible`.
  */
 export function DashboardSection({
   children,
-  expanded = true,
+  collapsible = false,
+  collapseButtonLabel = "Toggle section",
+  defaultExpanded = true,
+  expanded,
+  onExpandedChange,
   className = "",
 }: DashboardSectionProps) {
+  const [uncontrolledExpanded, setUncontrolledExpanded] = useState<boolean | undefined>();
+  const isControlled = expanded !== undefined;
+  const actualExpanded = expanded ?? uncontrolledExpanded ?? defaultExpanded;
+  const toggleExpanded = useCallback(() => {
+    if (!collapsible) return;
+
+    const nextExpanded = !actualExpanded;
+    if (!isControlled) {
+      setUncontrolledExpanded(nextExpanded);
+    }
+    onExpandedChange?.(nextExpanded);
+  }, [actualExpanded, collapsible, isControlled, onExpandedChange]);
+  const contextValue = useMemo(
+    () => ({
+      collapsible,
+      collapseButtonLabel,
+      expanded: actualExpanded,
+      toggleExpanded,
+    }),
+    [actualExpanded, collapsible, collapseButtonLabel, toggleExpanded],
+  );
+
   return (
-    <DashboardSectionContext.Provider value={{ expanded }}>
+    <DashboardSectionContext.Provider value={contextValue}>
       <div className={`bg-[var(--ds-section-body-bg)] rounded-xl shadow-sm ${className}`}>
         {children}
       </div>
@@ -79,7 +125,8 @@ function DashboardSectionHeader({
   addOn,
   className = "",
 }: DashboardSectionHeaderProps) {
-  const { expanded } = useContext(DashboardSectionContext);
+  const { collapsible, collapseButtonLabel, expanded, toggleExpanded } =
+    use(DashboardSectionContext);
 
   return (
     <div
@@ -96,13 +143,31 @@ function DashboardSectionHeader({
           </span>
         )}
       </span>
-      {addOn && <span className="ml-auto flex shrink-0 items-center">{addOn}</span>}
+      {(addOn || collapsible) && (
+        <span className="ml-auto flex shrink-0 items-center gap-2">
+          {addOn}
+          {collapsible && (
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-label={collapseButtonLabel}
+              onClick={toggleExpanded}
+              className="flex size-7 items-center justify-center rounded-control text-[var(--ds-text-muted)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+              <CaretDownIcon
+                weight="duotone"
+                className={`size-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+              />
+            </button>
+          )}
+        </span>
+      )}
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  DashboardSection.Body (animated collapsible via grid-rows trick)  */
+/*  DashboardSection.Body                                             */
 /* ------------------------------------------------------------------ */
 
 function DashboardSectionBody({
@@ -112,7 +177,7 @@ function DashboardSectionBody({
   children: ReactNode;
   className?: string;
 }) {
-  const { expanded } = useContext(DashboardSectionContext);
+  const { expanded } = use(DashboardSectionContext);
 
   if (!expanded) return null;
 
@@ -124,6 +189,10 @@ function DashboardSectionBody({
 /* ------------------------------------------------------------------ */
 
 function DashboardSectionFooter({ children, className = "" }: DashboardSectionFooterProps) {
+  const { expanded } = use(DashboardSectionContext);
+
+  if (!expanded) return null;
+
   return (
     <div
       className={`flex items-center gap-2 px-4 py-2.5 bg-[var(--ds-section-header-bg)] rounded-b-xl ${className}`}
@@ -146,27 +215,13 @@ function DashboardSectionItem({
   className = "",
   onClick,
 }: DashboardSectionItemProps) {
-  return (
-    <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      className={`flex items-center gap-3 py-2 px-3 rounded-control text-sm font-medium ${
-        active
-          ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
-          : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
-      } ${className}`}
-      onClick={onClick}
-      onKeyDown={
-        onClick
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
-    >
+  const itemClassName = `flex w-full items-center gap-3 py-2 px-3 rounded-control text-left text-sm font-medium ${
+    active
+      ? "bg-[var(--ds-nav-active-bg)] text-[var(--ds-nav-active-text)]"
+      : "text-[var(--ds-nav-text)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-nav-hover-text)]"
+  } ${onClick ? "appearance-none border-0 bg-transparent cursor-pointer" : ""} ${className}`;
+  const content = (
+    <>
       <span className="shrink-0 opacity-70">{icon}</span>
       <span className="flex-1">{label}</span>
       {badge !== undefined && badge > 0 && (
@@ -178,8 +233,18 @@ function DashboardSectionItem({
         </>
       )}
       {addOn}
-    </div>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button type="button" className={itemClassName} onClick={onClick}>
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={itemClassName}>{content}</div>;
 }
 
 /* ------------------------------------------------------------------ */

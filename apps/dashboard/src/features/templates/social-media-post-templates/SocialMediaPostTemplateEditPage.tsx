@@ -1,10 +1,14 @@
 import {
+  BracketsCurlyIcon,
   CheckCircleIcon,
+  ChatTextIcon,
   DownloadIcon,
+  EyeIcon,
+  ListChecksIcon,
   PaperPlaneTiltIcon,
   SealWarningIcon,
 } from "@phosphor-icons/react";
-import { Suspense, lazy, useMemo, useState } from "react";
+import { Suspense, lazy, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import {
@@ -16,10 +20,8 @@ import {
   type SocialMediaPostTemplateInput,
   type SocialMediaPostTemplateScope,
 } from "@lmaa/contracts";
+import { DashboardSection } from "@lmaa/ui";
 
-const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
-
-import { Card } from "@/components/ui/Card.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import {
@@ -36,6 +38,10 @@ import {
 } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
+const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
+
+type SocialMediaTemplateMessages = ReturnType<typeof useI18n>["messages"]["socialMediaTemplates"];
+
 function renderPreview(template: string) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, name) => {
     const examples: Record<string, string> = {
@@ -49,12 +55,35 @@ function renderPreview(template: string) {
       shopCategories: "Kaffee, Feinkost",
       shopPageUrl: "https://lmaa.space/shop/abc12345",
       adminNote: "Neu im Verzeichnis.",
+      categoryName: "Fair Fashion",
+      categorySlug: "fair-fashion",
+      categoryDescription: "Kleidung und Accessoires mit fairer Produktion.",
+      categoryUrl: "https://lmaa.space/category/fair-fashion",
+      categoryImageUrl: "https://lmaa.space/images/fair-fashion.jpg",
       frontendUrl: "https://lmaa.space",
       dashboardUrl: "https://admin.lmaa.space",
     };
     return examples[name] ?? "";
   });
 }
+
+const CATEGORY_TEMPLATE_VARIABLES = [
+  "categoryName",
+  "categorySlug",
+  "categoryDescription",
+  "categoryUrl",
+  "categoryImageUrl",
+  "frontendUrl",
+  "dashboardUrl",
+] as const;
+
+const TEMPLATE_VARIABLE_SECTIONS = [
+  { scope: "submission", variables: SOCIAL_MEDIA_POST_TEMPLATE_VARIABLES },
+  { scope: "category", variables: CATEGORY_TEMPLATE_VARIABLES },
+] as const satisfies readonly {
+  scope: SocialMediaPostTemplateScope;
+  variables: readonly string[];
+}[];
 
 export function SocialMediaPostTemplateEditPage() {
   const { messages } = useI18n();
@@ -76,12 +105,11 @@ export function SocialMediaPostTemplateEditPage() {
     bodyBluesky: null,
     isSystemTemplate: false,
   });
-  const [syncedExistingId, setSyncedExistingId] = useState<number | undefined>();
+  const syncedExistingIdRef = useRef<number | undefined>(undefined);
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mastoQuery = usePostingAccount("mastodon");
-  const mastoMaxChars =
-    mastoQuery.data?.maxPostCharacters ?? MASTODON_DEFAULT_MAX_POST_CHARACTERS;
+  const mastoMaxChars = mastoQuery.data?.maxPostCharacters ?? MASTODON_DEFAULT_MAX_POST_CHARACTERS;
 
   function togglePlatform(p: SocialMediaPlatform, on: boolean) {
     setForm((current) => {
@@ -109,8 +137,8 @@ export function SocialMediaPostTemplateEditPage() {
     });
   }
 
-  if (existing && existing.id !== syncedExistingId) {
-    setSyncedExistingId(existing.id);
+  if (existing && existing.id !== syncedExistingIdRef.current) {
+    syncedExistingIdRef.current = existing.id;
     setForm({
       name: existing.name,
       platforms: existing.platforms,
@@ -187,7 +215,7 @@ export function SocialMediaPostTemplateEditPage() {
         <div className="flex items-center gap-3">
           {savedIndicator && (
             <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-              <CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />
+              <CheckCircleIcon weight="duotone" className="size-3.5" />
               {m.saved}
             </span>
           )}
@@ -198,7 +226,7 @@ export function SocialMediaPostTemplateEditPage() {
             disabled={isPending}
             className="flex h-9 items-center gap-2 rounded-control border border-[var(--ds-btn-primary-border)] px-4 text-sm font-medium text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
           >
-            <DownloadIcon weight="duotone" className="h-3.5 w-3.5" />
+            <DownloadIcon weight="duotone" className="size-3.5" />
             {isPending ? messages.common.saving : m.save}
           </button>
         </div>
@@ -232,111 +260,151 @@ export function SocialMediaPostTemplateEditPage() {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <Card className="grid h-full grid-cols-1 overflow-hidden xl:grid-cols-[minmax(0,1fr)_24rem]">
-          <div className="min-w-0 overflow-y-auto border-r border-[var(--ds-border)] p-3">
-            <div className="mb-4 space-y-2 rounded-control border border-[var(--ds-border)] p-3 text-sm">
-              <span className="block text-[var(--ds-text-muted)]">{m.platformsLabel}</span>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-1.5">
-                  <input
-                    type="checkbox"
-                    checked={form.platforms.includes("mastodon")}
-                    onChange={(event) => togglePlatform("mastodon", event.target.checked)}
-                  />
-                  <span>{m.platformMastodon}</span>
-                </label>
-                <label className="flex items-center gap-1.5">
-                  <input
-                    type="checkbox"
-                    checked={form.platforms.includes("bluesky")}
-                    onChange={(event) => togglePlatform("bluesky", event.target.checked)}
-                  />
-                  <span>{m.platformBluesky}</span>
-                </label>
-              </div>
+        <div className="grid h-full grid-cols-1 gap-3 overflow-hidden xl:grid-cols-[minmax(0,1fr)_24rem]">
+          <div className="min-w-0 overflow-y-auto">
+            <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              <DashboardSection className="h-full">
+                <DashboardSection.Header
+                  icon={<PaperPlaneTiltIcon weight="duotone" className="size-4" />}
+                  title={m.platformsLabel.replace(/:$/, "")}
+                />
+                <DashboardSection.Body className="!gap-2">
+                  <div className="flex flex-wrap items-center gap-4 text-sm">
+                    <label className="flex items-center gap-1.5">
+                      <input
+                        type="checkbox"
+                        checked={form.platforms.includes("mastodon")}
+                        onChange={(event) => togglePlatform("mastodon", event.target.checked)}
+                      />
+                      <span>{m.platformMastodon}</span>
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <input
+                        type="checkbox"
+                        checked={form.platforms.includes("bluesky")}
+                        onChange={(event) => togglePlatform("bluesky", event.target.checked)}
+                      />
+                      <span>{m.platformBluesky}</span>
+                    </label>
+                  </div>
+                </DashboardSection.Body>
+              </DashboardSection>
+
+              <DashboardSection className="h-full">
+                <DashboardSection.Header
+                  icon={<ListChecksIcon weight="duotone" className="size-4" />}
+                  title={m.scopesLabel}
+                />
+                <DashboardSection.Body className="!gap-2">
+                  <div className="flex flex-wrap items-center gap-4 text-sm">
+                    {SOCIAL_MEDIA_POST_TEMPLATE_SCOPES.map((scope) => (
+                      <label key={scope} className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={form.scopes.includes(scope)}
+                          onChange={(event) => toggleScope(scope, event.target.checked)}
+                        />
+                        <span>{m.scopes[scope]}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[var(--ds-text-subtle)]">{m.scopes.helpText}</p>
+                </DashboardSection.Body>
+              </DashboardSection>
             </div>
 
-            <div className="mb-4 space-y-2 rounded-control border border-[var(--ds-border)] p-3 text-sm">
-              <span className="block text-[var(--ds-text-muted)]">{m.scopesLabel}</span>
-              <div className="flex items-center gap-4">
-                {SOCIAL_MEDIA_POST_TEMPLATE_SCOPES.map((scope) => (
-                  <label key={scope} className="flex items-center gap-1.5">
-                    <input
-                      type="checkbox"
-                      checked={form.scopes.includes(scope)}
-                      onChange={(event) => toggleScope(scope, event.target.checked)}
-                    />
-                    <span>{m.scopes[scope]}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-xs text-[var(--ds-text-subtle)]">{m.scopes.helpText}</p>
-            </div>
+            <div className="space-y-4">
+              {form.platforms.includes("mastodon") && (
+                <BodyEditor
+                  idBase="mastodon-post-body"
+                  label={m.bodyMastodonLabel}
+                  value={form.bodyMastodon ?? ""}
+                  onChange={(bodyMastodon) => setForm((current) => ({ ...current, bodyMastodon }))}
+                  counterMax={mastoMaxChars}
+                  hint={!mastoQuery.data ? "(no Mastodon account configured)" : undefined}
+                />
+              )}
 
-            {form.platforms.includes("mastodon") && (
-              <BodyEditor
-                idBase="mastodon-post-body"
-                label={m.bodyMastodonLabel}
-                value={form.bodyMastodon ?? ""}
-                onChange={(bodyMastodon) =>
-                  setForm((current) => ({ ...current, bodyMastodon }))
-                }
-                counterMax={mastoMaxChars}
-                hint={!mastoQuery.data ? "(no Mastodon account configured)" : undefined}
-              />
-            )}
-
-            {form.platforms.includes("bluesky") && (
-              <div className="mt-4">
+              {form.platforms.includes("bluesky") && (
                 <BodyEditor
                   idBase="bluesky-post-body"
                   label={m.bodyBlueskyLabel}
                   value={form.bodyBluesky ?? ""}
-                  onChange={(bodyBluesky) =>
-                    setForm((current) => ({ ...current, bodyBluesky }))
-                  }
+                  onChange={(bodyBluesky) => setForm((current) => ({ ...current, bodyBluesky }))}
                   counterMax={BLUESKY_FIXED_MAX_POST_CHARACTERS}
                 />
-              </div>
-            )}
+              )}
 
-            <section className="mt-4 rounded-control border border-[var(--ds-border)] p-4">
-              <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase text-[var(--ds-text-muted)]">
-                <PaperPlaneTiltIcon weight="duotone" className="h-3.5 w-3.5" />
-                {m.previewTitle}
-              </h2>
-              <pre className="whitespace-pre-wrap break-words rounded-control bg-[var(--ds-bg-elevated)] p-3 text-sm leading-relaxed text-[var(--ds-text)]">
-                {preview || m.emptyPreview}
-              </pre>
-            </section>
+              <DashboardSection>
+                <DashboardSection.Header
+                  icon={<EyeIcon weight="duotone" className="size-4" />}
+                  title={m.previewTitle}
+                />
+                <DashboardSection.Body>
+                  <pre className="whitespace-pre-wrap break-words rounded-control bg-[var(--ds-bg-elevated)] p-3 text-sm leading-relaxed text-[var(--ds-text)]">
+                    {preview || m.emptyPreview}
+                  </pre>
+                </DashboardSection.Body>
+              </DashboardSection>
+            </div>
           </div>
 
-          <aside className="overflow-y-auto p-4">
-            <h2 className="text-sm font-semibold text-[var(--ds-text)]">{m.variablesTitle}</h2>
-            <p className="mt-1 text-xs leading-relaxed text-[var(--ds-text-muted)]">
-              {m.variablesHint}
-            </p>
-            <dl className="mt-4 space-y-3">
-              {SOCIAL_MEDIA_POST_TEMPLATE_VARIABLES.map((variable) => (
-                <div
-                  key={variable}
-                  className="rounded-control border border-[var(--ds-border)] p-3"
-                >
-                  <dt className="font-mono text-xs font-semibold text-[var(--ds-text)]">
-                    {"{{"}
-                    {variable}
-                    {"}}"}
-                  </dt>
-                  <dd className="mt-1 text-xs leading-relaxed text-[var(--ds-text-muted)]">
-                    {m.variables[variable]}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </aside>
-        </Card>
+          <TemplateVariablesSidebar messages={m} scopes={form.scopes} />
+        </div>
       </div>
     </div>
+  );
+}
+
+function TemplateVariablesSidebar({
+  messages,
+  scopes,
+}: {
+  messages: SocialMediaTemplateMessages;
+  scopes: SocialMediaPostTemplateScope[];
+}) {
+  const selectedScopes = new Set(scopes);
+  const visibleVariableSections = TEMPLATE_VARIABLE_SECTIONS.filter(({ scope }) =>
+    selectedScopes.has(scope),
+  );
+
+  return (
+    <aside className="overflow-y-auto">
+      <div className="space-y-4">
+        {visibleVariableSections.map(({ scope, variables }) => (
+          <DashboardSection
+            key={scope}
+            collapsible
+            collapseButtonLabel={`${messages.scopes[scope]} ${messages.variablesTitle}`}
+          >
+            <DashboardSection.Header
+              icon={<BracketsCurlyIcon weight="duotone" className="size-4" />}
+              title={messages.scopes[scope]}
+              subtitle={messages.variablesTitle}
+            />
+            <DashboardSection.Body className="!gap-2">
+              <dl className="space-y-2">
+                {variables.map((variable) => (
+                  <div
+                    key={variable}
+                    className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3"
+                  >
+                    <dt className="font-mono text-xs font-semibold text-[var(--ds-text)]">
+                      {"{{"}
+                      {variable}
+                      {"}}"}
+                    </dt>
+                    <dd className="mt-1 text-xs leading-relaxed text-[var(--ds-text-muted)]">
+                      {messages.variables[variable]}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </DashboardSection.Body>
+          </DashboardSection>
+        ))}
+      </div>
+    </aside>
   );
 }
 
@@ -358,27 +426,33 @@ function BodyEditor({
   const remaining = counterMax - value.length;
   const overLimit = remaining < 0;
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-[var(--ds-text-muted)]">
-          {label}
-          <SealWarningIcon
-            weight="duotone"
-            className="ml-1 inline-block h-3 w-3 align-middle text-red-500"
-          />
-          {hint && <span className="ml-2 italic">{hint}</span>}
-        </span>
-        <span className={overLimit ? "text-red-500" : "text-[var(--ds-text-muted)]"}>
-          {value.length} / {counterMax}
-        </span>
-      </div>
-      <Suspense
-        fallback={
-          <div className="h-[18rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
+    <DashboardSection>
+      <DashboardSection.Header
+        icon={<ChatTextIcon weight="duotone" className="size-4" />}
+        title={label}
+        addOn={
+          <span
+            className={overLimit ? "text-xs text-red-500" : "text-xs text-[var(--ds-text-muted)]"}
+          >
+            {value.length} / {counterMax}
+          </span>
         }
-      >
-        <MarkdownEditor id={idBase} value={value} onChange={onChange} rows={12} resizable />
-      </Suspense>
-    </div>
+      />
+      <DashboardSection.Body className="!gap-2">
+        {hint && (
+          <p className="flex items-center gap-1.5 text-xs italic text-[var(--ds-text-muted)]">
+            <SealWarningIcon weight="duotone" className="size-3 text-red-500" />
+            {hint}
+          </p>
+        )}
+        <Suspense
+          fallback={
+            <div className="h-[18rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
+          }
+        >
+          <MarkdownEditor id={idBase} value={value} onChange={onChange} rows={12} resizable />
+        </Suspense>
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }
