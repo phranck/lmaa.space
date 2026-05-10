@@ -40,6 +40,16 @@ export {
   formOptionalClass,
   formTextareaClass,
 } from "./FormPrimitives.tsx";
+/** Shared low-level field and form control primitives. */
+export { FieldShell, InputPrimitive, TextareaPrimitive } from "./FieldPrimitives.tsx";
+/** Re-exported contracts for field primitives. */
+export type {
+  FieldControlSize,
+  FieldShellControlProps,
+  FieldShellProps,
+  InputPrimitiveProps,
+  TextareaPrimitiveProps,
+} from "./FieldPrimitives.tsx";
 /** Shared form field wrapper composing label, error, hint and optional/required indicators. */
 export { FormField } from "./FormField.tsx";
 /** Re-exported props for `FormField`. */
