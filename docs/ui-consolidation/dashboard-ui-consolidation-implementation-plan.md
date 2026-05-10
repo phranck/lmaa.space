@@ -778,6 +778,25 @@ Verifiziert fuer den benannte-native-Selects-Task:
 - `npm run test --workspaces --if-present`
 - `npm run build`
 
+Teilfortschritt 2026-05-10, Content-/System-/Social-Selects:
+
+- Native Selects in `ShopDeleteReasonCard`, `BackgroundErrorsPage`, `TemplateAssignmentsSection`, `WidgetEditorPanel` und `ContentEditorPage` wurden auf `DashboardCombobox` umgestellt.
+- Betroffene Status-, Widget-Typ-, Loeschmodus- und Social-Template-Auswahlen nutzen damit die gemeinsame Popover-/Listbox-Basis.
+- Mechanische React-Doctor-Hinweise in den beruehrten Dateien wurden bereinigt (`size-*`, bewusste Zeitstempel-Hydration, eindeutiger Editor-Handlername).
+- Der globale Select-Checklistpunkt bleibt offen, weil noch native Selects in `ReminderForm`, `ShopsPage`, `FieldConfigPanel` und `SubmissionConfigPanel` bestehen; `DashboardSelect` bleibt als zentraler technischer Wrapper bewusst erhalten.
+
+Verifiziert fuer den Content-System-Social-Selects-Task:
+
+- `rg -n "<select|</select>" apps/dashboard/src/features/content/shops/ShopDeleteReasonCard.tsx apps/dashboard/src/features/system/BackgroundErrorsPage.tsx apps/dashboard/src/features/social/components/TemplateAssignmentsSection.tsx apps/dashboard/src/features/system/WidgetEditorPanel.tsx apps/dashboard/src/features/content/pages/ContentEditorPage.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff` (Exit 0; verbleibende Hinweise sind bestehende Strukturhinweise ausserhalb dieser Select-Migration.)
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `rg -n "<select|</select>" apps/dashboard/src packages/ui/src -g '*.tsx'`
+
 ### 5B: Inputs, Textareas, Number und Stepper
 
 Betroffene Dateien:

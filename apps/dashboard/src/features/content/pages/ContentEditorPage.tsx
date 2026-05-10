@@ -16,6 +16,7 @@ const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
@@ -183,20 +184,20 @@ function EditorHeaderActions({
           type="button"
           onClick={onDecreaseFont}
           disabled={!canDecreaseFont}
-          className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
+          className="flex size-5 items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
           title={editorMessages.decreaseFontSize}
         >
-          <MinusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <MinusCircleIcon weight="duotone" className="size-3.5" />
         </button>
         <span className="w-8 text-center text-xs tabular-nums select-none">{sourceFontSize}px</span>
         <button
           type="button"
           onClick={onIncreaseFont}
           disabled={!canIncreaseFont}
-          className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
+          className="flex size-5 items-center justify-center rounded hover:bg-[var(--ds-surface-hover)] disabled:opacity-30"
           title={editorMessages.increaseFontSize}
         >
-          <PlusCircleIcon weight="duotone" className="w-3.5 h-3.5" />
+          <PlusCircleIcon weight="duotone" className="size-3.5" />
         </button>
       </div>
 
@@ -205,7 +206,7 @@ function EditorHeaderActions({
         onClick={onPreview}
         className="flex items-center gap-2 px-3 h-8 min-w-8 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm font-medium hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
       >
-        <EyeIcon weight="duotone" className="w-3.5 h-3.5" />
+        <EyeIcon weight="duotone" className="size-3.5" />
         {editorMessages.preview}
       </button>
 
@@ -215,7 +216,7 @@ function EditorHeaderActions({
         disabled={isSaving}
         className="flex items-center gap-2 h-8 min-w-8 px-4 border border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] rounded-control text-sm font-medium hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)] disabled:opacity-60"
       >
-        <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+        <DownloadIcon weight="duotone" className="size-3.5" />
         {saved ? editorMessages.saved : common.save}
       </button>
 
@@ -223,10 +224,10 @@ function EditorHeaderActions({
         <button
           type="button"
           onClick={onOpenDelete}
-          className="flex items-center justify-center w-8 h-8 border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)]"
+          className="flex size-8 items-center justify-center border border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] rounded-control text-sm font-medium hover:bg-[var(--ds-btn-danger-hover-bg)] hover:border-[var(--ds-btn-danger-hover-border)]"
           title={editorMessages.deletePage}
         >
-          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
+          <TrashIcon weight="duotone" className="size-3.5" />
         </button>
       ) : (
         <div className="flex items-center gap-2 px-3 h-8 border border-[var(--ds-btn-danger-border)] rounded-control bg-[var(--ds-btn-danger-hover-bg)]">
@@ -387,15 +388,16 @@ function EditorMetadataBar({
 
       <div className="flex items-center gap-2">
         <span className="font-medium">{editorMessages.statusLabel}:</span>
-        <select
+        <DashboardCombobox
           value={page.status}
-          onChange={(e) => onStatusChange(e.target.value)}
-          className="text-xs bg-[var(--ds-input-bg)] border border-[var(--ds-border)] rounded px-1.5 py-0.5 text-[var(--ds-text)] focus:outline-none cursor-pointer"
-        >
-          <option value="draft">{editorMessages.statusDraft}</option>
-          <option value="published">{editorMessages.statusPublished}</option>
-          <option value="hidden">{editorMessages.statusHidden}</option>
-        </select>
+          onValueChange={onStatusChange}
+          className="w-32"
+          options={[
+            { value: "draft", label: editorMessages.statusDraft },
+            { value: "published", label: editorMessages.statusPublished },
+            { value: "hidden", label: editorMessages.statusHidden },
+          ]}
+        />
       </div>
 
       <label className="flex items-center gap-1.5 cursor-pointer">
@@ -450,7 +452,7 @@ export function ContentEditorPage() {
     dispatch({ type: "resetForSlug" });
   }, [slug]);
 
-  const handleChange = useCallback((markdown: string) => {
+  const updateDraftContent = useCallback((markdown: string) => {
     dispatch({ type: "setDraftContent", value: markdown });
     dispatch({ type: "setSaved", value: false });
   }, []);
@@ -574,7 +576,7 @@ export function ContentEditorPage() {
 
       <DashboardSection>
         <DashboardSection.Header
-          icon={<MarkdownLogoIcon weight="duotone" className="w-4 h-4" />}
+          icon={<MarkdownLogoIcon weight="duotone" className="size-4" />}
           title={title}
         />
         <PageBody
@@ -592,7 +594,7 @@ export function ContentEditorPage() {
               <MarkdownEditor
                 key={slug}
                 value={currentContent}
-                onChange={handleChange}
+                onChange={updateDraftContent}
                 height="100%"
                 className="rounded-none border-none"
               />

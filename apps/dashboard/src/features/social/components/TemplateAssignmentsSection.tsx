@@ -9,6 +9,7 @@ import {
 } from "@lmaa/contracts";
 import { PLATFORM_MAP } from "@lmaa/ui";
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { usePostingAccount } from "@/features/social/hooks/useSocialMediaAccounts.ts";
 import { useTemplateChoices } from "@/features/social/hooks/useTemplateChoices.ts";
@@ -125,27 +126,27 @@ export function TemplateAssignmentsSection({
                 {Icon && <Icon size={14} />}
                 <span>{account.label}</span>
               </span>
-              <select
-                className="h-9 flex-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 text-sm text-[var(--ds-text)]"
-                value={selected ?? ""}
-                onChange={(event) => {
-                  const value = event.target.value === "" ? null : Number(event.target.value);
+              <DashboardCombobox
+                className="flex-1"
+                value={String(selected ?? "")}
+                onValueChange={(nextValue) => {
+                  const value = nextValue === "" ? null : Number(nextValue);
                   onChange(
                     assignments.map((row) =>
                       row.accountId === assignment.accountId
                         ? { ...row, templateId: value }
                         : row,
-                    ),
+                      ),
                   );
                 }}
-              >
-                <option value="">{a.noPost}</option>
-                {pool.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: a.noPost },
+                  ...pool.map((template) => ({
+                    value: String(template.id),
+                    label: template.name,
+                  })),
+                ]}
+              />
               {preview && (
                 <span
                   className={`shrink-0 text-xs tabular-nums ${

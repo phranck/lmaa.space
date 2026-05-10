@@ -1,12 +1,13 @@
 import { TrashIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useState } from "react";
 
-import { Checkbox, FormLabel, FormOptional, formInputClass } from "@lmaa/ui";
+import { Checkbox, FormLabel, FormOptional } from "@lmaa/ui";
 
 const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
+import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -95,15 +96,21 @@ export function ShopDeleteReasonCard({
 
         <div>
           <FormLabel htmlFor="shop-delete-mode">{shopsMessages.deleteCard.modeLabel}</FormLabel>
-          <select
+          <DashboardCombobox
             id="shop-delete-mode"
             value={deleteMode}
-            onChange={(event) => setDeleteMode(event.target.value as ShopDeleteMode)}
-            className={formInputClass}
-          >
-            <option value="mark_deleted">{shopsMessages.deleteCard.markDeleted}</option>
-            <option value="delete">{shopsMessages.deleteCard.deletePermanently}</option>
-          </select>
+            onValueChange={(value) => setDeleteMode(value as ShopDeleteMode)}
+            options={[
+              {
+                value: "mark_deleted",
+                label: shopsMessages.deleteCard.markDeleted,
+              },
+              {
+                value: "delete",
+                label: shopsMessages.deleteCard.deletePermanently,
+              },
+            ]}
+          />
         </div>
       </OverlayCard.Body>
 
