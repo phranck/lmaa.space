@@ -1,8 +1,9 @@
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
   useEffect,
+  useEffectEvent,
   useId,
   useLayoutEffect,
   useRef,
@@ -88,6 +89,12 @@ export function MenuPrimitive({
     onOpenChange(false);
     triggerRef?.current?.focus();
   }, [onOpenChange, triggerRef]);
+  const closeFromDocumentEvent = useEffectEvent((restoreFocus: boolean) => {
+    onOpenChange(false);
+    if (restoreFocus) {
+      triggerRef?.current?.focus();
+    }
+  });
 
   useLayoutEffect(() => {
     if (!open || (!origin && !triggerRef?.current)) {
@@ -148,12 +155,12 @@ export function MenuPrimitive({
       if (menuRef.current?.contains(target)) {
         return;
       }
-      onOpenChange(false);
+      closeFromDocumentEvent(false);
     };
 
     document.addEventListener("mousedown", handleMouseDown);
     return () => document.removeEventListener("mousedown", handleMouseDown);
-  }, [onOpenChange, open, triggerRef]);
+  }, [open, triggerRef]);
 
   useEffect(() => {
     if (!open) {
@@ -190,7 +197,7 @@ export function MenuPrimitive({
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
-        closeMenu();
+        closeFromDocumentEvent(true);
         return;
       }
 
@@ -225,7 +232,7 @@ export function MenuPrimitive({
           break;
         }
         case "Tab":
-          closeMenu();
+          closeFromDocumentEvent(true);
           break;
         default:
           break;
@@ -234,7 +241,7 @@ export function MenuPrimitive({
 
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [autoFocus, closeMenu, open, triggerRef]);
+  }, [autoFocus, open, triggerRef]);
 
   if (!open) {
     return null;
@@ -316,7 +323,7 @@ export function MenuItemPrimitive({
   variant = "default",
   ...buttonProps
 }: MenuItemPrimitiveProps) {
-  const context = useContext(MenuContext);
+  const context = use(MenuContext);
 
   const selectItem = useCallback(() => {
     onSelect?.();
@@ -325,7 +332,7 @@ export function MenuItemPrimitive({
     }
   }, [closeOnSelect, context, onSelect]);
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+  const selectMenuItemWithClick = (event: MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
     if (event.defaultPrevented || disabled) {
       return;
@@ -333,7 +340,7 @@ export function MenuItemPrimitive({
     selectItem();
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const selectMenuItemWithKeyboard = (event: KeyboardEvent<HTMLButtonElement>) => {
     onKeyDown?.(event);
     if (event.defaultPrevented || disabled) {
       return;
@@ -345,7 +352,7 @@ export function MenuItemPrimitive({
     selectItem();
   };
 
-  const handleMouseEnter = (event: MouseEvent<HTMLButtonElement>) => {
+  const focusMenuItemOnMouseEnter = (event: MouseEvent<HTMLButtonElement>) => {
     onMouseEnter?.(event);
     if (event.defaultPrevented || disabled) {
       return;
@@ -362,15 +369,15 @@ export function MenuItemPrimitive({
         "disabled:pointer-events-none disabled:opacity-[var(--ds-control-disabled-opacity)]",
         size === "compact" ? "h-7" : "h-[var(--ds-control-h-menu-item)]",
         variant === "danger"
-          ? "text-[var(--ds-btn-danger-text)]"
+          ? "text-[var(--ds-danger-text)]"
           : "text-[var(--ds-text)]",
         className,
       )}
       data-menu-item="true"
       disabled={disabled}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      onMouseEnter={handleMouseEnter}
+      onClick={selectMenuItemWithClick}
+      onKeyDown={selectMenuItemWithKeyboard}
+      onMouseEnter={focusMenuItemOnMouseEnter}
       role="menuitem"
       tabIndex={-1}
       type={type}
