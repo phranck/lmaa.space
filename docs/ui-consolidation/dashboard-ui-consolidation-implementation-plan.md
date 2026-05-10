@@ -111,7 +111,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] Inputs in High-Drift-Dateien auf `DashboardInput` migrieren.
 - [x] Textareas auf `DashboardTextarea` migrieren.
 - [x] Number-Inputs und Stepper auf `DashboardNumberInput`/`DashboardStepper` migrieren.
-- [ ] `Tabs.tsx` und Dashboard-Tabs auf `DashboardTabs` migrieren.
+- [x] `Tabs.tsx` und Dashboard-Tabs auf `DashboardTabs` migrieren.
 - [x] `SegmentedControl` und `SegmentSwitch` konsolidieren.
 - [ ] `ContextMenu` und Dropdown-Items auf `DashboardMenu`/`DashboardMenuItem` migrieren.
 - [ ] `TableSortHeader` extrahieren und in Tabellen verwenden.
@@ -957,6 +957,23 @@ Gate:
 
 - Roving tabindex und Arrow-Key-Verhalten fuer Tabs.
 - Keine Content-Tabs, die optisch wie winzige Toolbar-Chips wirken.
+
+Teilfortschritt 2026-05-10, Dashboard-Tabs:
+
+- `SystemSettingsPage` nutzt `DashboardTabs`, `DashboardTabList`, `DashboardTabTrigger` und `DashboardTabPanel` statt direkter `@lmaa/ui`-Tab-Wrapper.
+- Die Settings-Panels bleiben mit `forceMount` gemountet, waehrend `DashboardTabPanel` die ARIA-Verknuepfung und Sichtbarkeit uebernimmt.
+- Direkte Dashboard-Imports von `TabList`, `TabTrigger` und `Tabs` aus `@lmaa/ui` sind entfernt.
+
+Verifiziert fuer den Dashboard-Tabs-Task:
+
+- `rg -n "import \\{ TabList|TabTrigger|Tabs \\} from \\\"@lmaa/ui\\\"|<Tabs|<TabList|<TabTrigger|role=\\\"tabpanel\\\"" apps/dashboard/src/features/system/settings/SystemSettingsPage.tsx apps/dashboard/src --glob '*.{ts,tsx}'`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
 
 Teilfortschritt 2026-05-10, Dashboard-Segment-Wrapper:
 

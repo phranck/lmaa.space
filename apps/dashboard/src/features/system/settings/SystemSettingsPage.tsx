@@ -1,7 +1,11 @@
 import { useState } from "react";
 
-import { TabList, TabTrigger, Tabs } from "@lmaa/ui";
-
+import {
+  DashboardTabList,
+  DashboardTabPanel,
+  DashboardTabs,
+  DashboardTabTrigger,
+} from "@/components/ui/DashboardControls.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -19,26 +23,24 @@ export function SystemSettingsPage() {
     <PageLayout>
       <PageHeader title={t.title} />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabList>
-          <TabTrigger value="notifications">{t.notificationsTab}</TabTrigger>
-          <TabTrigger value="domainAlerts">{t.domainAlertsTab}</TabTrigger>
-        </TabList>
+      <DashboardTabs value={activeTab} onValueChange={setActiveTab}>
+        <DashboardTabList>
+          <DashboardTabTrigger value="notifications">
+            {t.notificationsTab}
+          </DashboardTabTrigger>
+          <DashboardTabTrigger value="domainAlerts">
+            {t.domainAlertsTab}
+          </DashboardTabTrigger>
+        </DashboardTabList>
 
-        <div
-          role="tabpanel"
-          className={activeTab === "notifications" ? "pt-6" : "hidden"}
-        >
+        <DashboardTabPanel className="pt-6" forceMount value="notifications">
           <NotificationsTab />
-        </div>
+        </DashboardTabPanel>
 
-        <div
-          role="tabpanel"
-          className={activeTab === "domainAlerts" ? "pt-6" : "hidden"}
-        >
+        <DashboardTabPanel className="pt-6" forceMount value="domainAlerts">
           <DomainAlertsTab active={activeTab === "domainAlerts"} />
-        </div>
-      </Tabs>
+        </DashboardTabPanel>
+      </DashboardTabs>
     </PageLayout>
   );
 }
