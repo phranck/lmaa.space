@@ -760,9 +760,20 @@ export function getTableSortAriaSort(direction: TableSortDirection) {
 export interface DashboardDragHandleProps
   extends Omit<DashboardIconButtonProps, "children"> {}
 
-export function DashboardDragHandle(props: DashboardDragHandleProps) {
+export function DashboardDragHandle({
+  className,
+  variant = "ghost",
+  ...props
+}: DashboardDragHandleProps) {
   return (
-    <DashboardIconButton {...props} variant={props.variant ?? "ghost"}>
+    <DashboardIconButton
+      {...props}
+      className={cx(
+        "touch-none cursor-grab active:cursor-grabbing",
+        className,
+      )}
+      variant={variant}
+    >
       <DotsSixVerticalIcon className="size-4" weight="duotone" />
     </DashboardIconButton>
   );

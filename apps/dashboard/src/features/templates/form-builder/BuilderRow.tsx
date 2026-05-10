@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import type { FormField, FormRow } from "@lmaa/contracts";
 
+import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderField } from "@/features/templates/form-builder/BuilderField.tsx";
 
@@ -67,23 +68,12 @@ export function BuilderRow({
       style={style}
       className="group relative flex items-stretch gap-2 p-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)]"
     >
-      {/* Row drag handle */}
-      <button
-        type="button"
-        aria-label={messages.formBuilder.moveRow}
+      <DashboardDragHandle
         {...attributes}
         {...listeners}
-        className="shrink-0 self-center cursor-grab active:cursor-grabbing text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)] px-0.5 rounded"
-      >
-        <svg width="10" height="16" viewBox="0 0 10 16" fill="none" aria-hidden="true">
-          <circle cx="3" cy="3" r="1.5" fill="currentColor" />
-          <circle cx="7" cy="3" r="1.5" fill="currentColor" />
-          <circle cx="3" cy="8" r="1.5" fill="currentColor" />
-          <circle cx="7" cy="8" r="1.5" fill="currentColor" />
-          <circle cx="3" cy="13" r="1.5" fill="currentColor" />
-          <circle cx="7" cy="13" r="1.5" fill="currentColor" />
-        </svg>
-      </button>
+        aria-label={messages.formBuilder.moveRow}
+        className="self-center"
+      />
 
       <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
         <div className="grid grid-cols-12 gap-2 flex-1">

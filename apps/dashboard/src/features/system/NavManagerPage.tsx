@@ -1,16 +1,11 @@
 import {
   DndContext,
   type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
   closestCenter,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -19,7 +14,6 @@ import {
   BrowsersIcon,
   DownloadIcon,
   FileIcon,
-  ListIcon,
   NotebookIcon,
   PlusCircleIcon,
   SquareHalfBottomIcon,
@@ -30,9 +24,11 @@ import { forwardRef, useEffect, useImperativeHandle, useReducer, useRef, useStat
 import type { NavId } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui";
 
+import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
@@ -142,15 +138,12 @@ function SortableNavItem({
       style={style}
       className="flex items-center gap-3 p-3 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control"
     >
-      <button
-        type="button"
+      <DashboardDragHandle
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] touch-none"
+        aria-label={text.dragTitle}
         title={text.dragTitle}
-      >
-        <ListIcon weight="duotone" className="w-4 h-4" />
-      </button>
+      />
 
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-[var(--ds-text)] truncate">
@@ -244,10 +237,7 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
     });
   }, [serverItems]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const sensors = useDashboardSortableSensors();
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;

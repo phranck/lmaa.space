@@ -2,9 +2,6 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -25,6 +22,7 @@ const MarkdownEditor = lazy(() =>
 
 import { Card } from "@/components/ui/Card.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
+import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FooterBlockTypeIcon } from "@/features/content/footer-builder/FooterPalette.tsx";
 import { useFooterEligibleAccounts } from "@/features/social/hooks/useSocialMediaAccounts.ts";
@@ -250,7 +248,7 @@ function SocialMediaOrderEditor({
   emptyHint,
 }: SocialMediaOrderEditorProps) {
   const { data: accounts = [], isLoading } = useFooterEligibleAccounts();
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useDashboardSortableSensors({ activationDistance: 4 });
 
   // block.order acts as an ordering hint, not a whitelist: accounts added
   // after the order was saved appear at the end; orphan keys (account removed

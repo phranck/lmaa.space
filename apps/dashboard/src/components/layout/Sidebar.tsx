@@ -18,7 +18,6 @@ import {
   CircleIcon,
   ClockIcon,
   CopyIcon,
-  DotsSixVerticalIcon,
   EnvelopeOpenIcon,
   EyeSlashIcon,
   FileIcon,
@@ -56,7 +55,9 @@ import {
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
 import { ContextMenu, type ContextMenuEntry } from "@/components/ui/ContextMenu.tsx";
+import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
+import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useUpdateUiPreferences } from "@/features/auth/useUpdateUiPreferences.ts";
@@ -97,6 +98,10 @@ const SIDEBAR_SECTION_IDS = [
 ] as const;
 type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
 const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "system"];
+const SECTION_DRAG_LABEL = {
+  de: "Abschnitt verschieben",
+  en: "Move section",
+} as const;
 
 function parseSectionOrder(dbOrder?: string[]): SidebarSectionId[] {
   if (!Array.isArray(dbOrder)) return [...SIDEBAR_SECTION_IDS];
@@ -114,20 +119,18 @@ function SortableSidebarSection({
   id: string;
   children: (dragHandle: ReactNode) => ReactNode;
 }) {
+  const { locale } = useI18n();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
   });
 
   const dragHandle = (
-    <button
-      type="button"
+    <DashboardDragHandle
       {...listeners}
-      className="opacity-0 group-hover/section:opacity-100 cursor-grab active:cursor-grabbing p-0.5 rounded text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-opacity duration-100"
+      aria-label={SECTION_DRAG_LABEL[locale]}
+      className="opacity-0 transition-opacity duration-100 group-hover/section:opacity-100"
       tabIndex={-1}
-      aria-label="Abschnitt verschieben"
-    >
-      <DotsSixVerticalIcon weight="bold" className="w-3.5 h-3.5" />
-    </button>
+    />
   );
 
   return (
@@ -582,6 +585,7 @@ export function Sidebar({
   const [sectionOrder, setSectionOrder] = useState<SidebarSectionId[]>(() =>
     parseSectionOrder(user?.uiPreferences?.sidebarSectionOrder ?? undefined),
   );
+  const sensors = useDashboardSortableSensors({ activationDistance: 4 });
 
   function handleToggleAllGroups(next: boolean) {
     SIDEBAR_GROUP_STORAGE_KEYS.forEach((key) => localStorage.setItem(key, String(next)));
@@ -898,7 +902,11 @@ export function Sidebar({
           };
 
           return (
-            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
               <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
                 {visibleSections.map((id) => (
                   <SortableSidebarSection key={id} id={id}>
