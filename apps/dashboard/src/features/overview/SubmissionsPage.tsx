@@ -79,19 +79,19 @@ export function SubmissionsPage() {
       {
         value: "pending",
         label: statusLabels.pending,
-        icon: <ClockIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <ClockIcon weight="duotone" className="size-3.5" />,
         count: pendingSubmissions.length,
       },
       {
         value: "onhold",
         label: statusLabels.onhold,
-        icon: <PauseCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <PauseCircleIcon weight="duotone" className="size-3.5" />,
         count: onholdSubmissions.length,
       },
       {
         value: "rejected",
         label: statusLabels.rejected,
-        icon: <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />,
+        icon: <XCircleIcon weight="duotone" className="size-3.5" />,
         count: rejectedSubmissions.length,
       },
     ],

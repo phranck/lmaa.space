@@ -1,6 +1,5 @@
 import {
   CheckCircleIcon,
-  CopyIcon,
   DownloadIcon,
   FileTextIcon,
   TrashIcon,
@@ -14,6 +13,12 @@ import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
 
 const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
 
+import {
+  ApproveActionButton,
+  CancelActionButton,
+  CopyActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { NotificationTemplateSelect, RejectDialog } from "@/components/ui/RejectDialog.tsx";
@@ -147,7 +152,7 @@ export function SubmissionDialogs({
         submitVariant={reviewState.editingRejection ? "primary" : "danger"}
         submitIcon={
           reviewState.editingRejection ? (
-            <DownloadIcon weight="duotone" className="w-3.5 h-3.5" />
+            <DownloadIcon weight="duotone" className="size-3.5" />
           ) : undefined
         }
         headerRight={<SaveNotification phase={combinedSavedPhase} label={common.saved} />}
@@ -224,7 +229,7 @@ function DeleteSubmissionDialog({
       <OverlayCard.Header>
         <div className="flex items-center gap-3">
           <TrashIcon weight="duotone" className={dialogHeaderIconClass} />
-          <h3 className="font-bold text-[var(--ds-text)]">
+          <h3 className="font-semibold text-[var(--ds-text)]">
             {submissionsMessages.confirmDeleteTitle}
           </h3>
         </div>
@@ -238,22 +243,16 @@ function DeleteSubmissionDialog({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-3">
-        <button
-          type="button"
+        <CancelActionButton
+          label={common.cancel}
           onClick={onClose}
-          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
-        >
-          {common.cancel}
-        </button>
-        <button
-          type="button"
+        />
+        <DeleteActionButton
           disabled={isPending}
+          label={isPending ? "..." : common.delete}
+          busy={isPending}
           onClick={onDelete}
-          className="flex items-center gap-2 h-9 px-4 border border-[var(--ds-btn-danger-border)] rounded-control text-sm font-medium text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)] disabled:opacity-60"
-        >
-          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-          {isPending ? "..." : common.delete}
-        </button>
+        />
       </OverlayCard.Footer>
     </OverlayCard>
   );
@@ -340,21 +339,20 @@ function ApproveSubmissionReviewCard({
         <div className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <CheckCircleIcon weight="duotone" className={dialogHeaderIconClass} />
-            <h3 className="font-bold text-[var(--ds-text)]">{reviewTitle}</h3>
+            <h3 className="font-semibold text-[var(--ds-text)]">{reviewTitle}</h3>
           </div>
           <SaveNotification phase={savedPhase} label={savedLabel} />
         </div>
         <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{reviewing.shopName}</p>
         <div className="flex items-center gap-1.5 mt-1">
           <p className="text-xs text-[var(--ds-text-subtle)] truncate">{reviewing.shopUrl}</p>
-          <button
-            type="button"
+          <CopyActionButton
+            iconOnly
             onClick={() => navigator.clipboard.writeText(reviewing.shopUrl)}
-            className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
-            aria-label={copyUrlLabel}
-          >
-            <CopyIcon weight="duotone" className="w-4 h-4" />
-          </button>
+            className="shrink-0 ml-auto"
+            label={copyUrlLabel}
+            variant="ghost"
+          />
         </div>
       </OverlayCard.Header>
 
@@ -415,30 +413,17 @@ function ApproveSubmissionReviewCard({
         {hasPostOverflow && (
           <span className="mr-auto text-xs text-red-500">{a.approveBlockedHint}</span>
         )}
-        <button
-          type="button"
+        <CancelActionButton
+          label={cancelLabel}
           onClick={onClose}
-          className="h-9 px-4 border border-[var(--ds-border)] rounded-control text-sm text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)]"
-        >
-          {cancelLabel}
-        </button>
-        <button
-          type="button"
+        />
+        <ApproveActionButton
           disabled={isPending || hasPostOverflow}
+          label={isPending ? "..." : submitLabel}
+          busy={isPending}
           onClick={onSubmit}
-          className="flex items-center gap-2 h-9 px-4 border rounded-control text-sm font-medium disabled:opacity-60 border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-        >
-          {isPending ? (
-            "…"
-          ) : (
-            <>
-              <CheckCircleIcon weight="duotone" className="w-3.5 h-3.5" />
-              {submitLabel}
-            </>
-          )}
-        </button>
+        />
       </OverlayCard.Footer>
     </OverlayCard>
   );
 }
-

@@ -121,7 +121,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 ### Stufe 6: Feature-Slices migrieren
 
 - [x] Form Builder Slice migrieren.
-- [ ] Submissions Slice migrieren.
+- [x] Submissions Slice migrieren.
 - [ ] System Settings und Users Slice migrieren.
 - [ ] Content Slice migrieren.
 - [ ] Media Slice migrieren.
@@ -1187,6 +1187,21 @@ Verifiziert fuer den Form-Builder-Slice:
 - `npx -y react-doctor@latest apps/dashboard --verbose --diff` lief durch; verbleibende Warnungen betreffen bestehende Giant-Components und Combine-Iteration-Hinweise in `FormBuilderEditPage`/`FieldConfigPanel`.
 - `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
 - `cd /tmp/lmaa-pw && npx playwright test lmaa-dashboard-ui-visual.spec.js --browser=chromium --reporter=line`
+
+Teilfortschritt 2026-05-10, Submissions-Slice:
+
+- `SubmissionDialogs` nutzt fuer Approve-, Delete-, Cancel- und Copy-Aktionen den zentralen Dashboard-Action-Katalog.
+- Lokale Dialog-Footer-Buttons mit `h-9` und direkten `--ds-btn-*` Klassen wurden aus dem Submissions-Slice entfernt.
+- Mechanische Icon-Size- und Heading-Hinweise in `SubmissionsPage`/`SubmissionDialogs` wurden im Slice bereinigt.
+
+Verifiziert fuer den Submissions-Slice:
+
+- `rg -n --glob '*.{ts,tsx}' -- '<input|<textarea|\\bh-9\\b|focus:(ring|border)-|--ds-btn-|formBtnBaseClass|formInputClass|inputClass|w-3\\.5 h-3\\.5|w-4 h-4|font-bold' apps/dashboard/src/features/overview/SubmissionsPage.tsx apps/dashboard/src/features/overview/SubmissionDialogs.tsx apps/dashboard/src/components/ui/RejectDialog.tsx`
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+- `npm run dev -w @lmaa/dashboard -- --host 127.0.0.1 --port 5174`
+- `cd /tmp/lmaa-pw && npx playwright test lmaa-submissions-smoke.spec.js --browser=chromium --reporter=line`
 
 ## Stufe 7: Cleanup
 
