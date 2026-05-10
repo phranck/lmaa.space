@@ -1,4 +1,4 @@
-import { CopyIcon, EnvelopeSimpleIcon, XCircleIcon } from "@phosphor-icons/react";
+import { EnvelopeSimpleIcon, XCircleIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, type ReactNode } from "react";
 
 import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
@@ -7,6 +7,11 @@ const MarkdownEditor = lazy(() =>
   import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
 );
 
+import {
+  CancelActionButton,
+  CopyActionButton,
+  DashboardActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
@@ -116,21 +121,20 @@ export function RejectDialog({
         <div className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-3">
             {headerIcon ?? <XCircleIcon weight="duotone" className={dialogHeaderIconClass} />}
-            <h3 className="font-bold text-[var(--ds-text)]">{title}</h3>
+            <h3 className="font-semibold text-[var(--ds-text)]">{title}</h3>
           </div>
           {headerRight}
         </div>
         <p className="text-sm text-[var(--ds-text-muted)] mt-0.5">{name}</p>
         <div className="flex items-center gap-1.5 mt-1">
           <p className="text-xs text-[var(--ds-text-subtle)] truncate">{url}</p>
-          <button
-            type="button"
+          <CopyActionButton
+            iconOnly
+            label={messages.copyUrl}
             onClick={() => navigator.clipboard.writeText(url)}
-            className="shrink-0 ml-auto p-1 rounded text-[var(--ds-text-subtle)] hover:text-[var(--ds-text-muted)]"
+            className="ml-auto"
             aria-label={messages.copyUrl}
-          >
-            <CopyIcon weight="duotone" className="w-4 h-4" />
-          </button>
+          />
         </div>
       </OverlayCard.Header>
 
@@ -189,26 +193,14 @@ export function RejectDialog({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="py-1.5 px-4 border border-[var(--ds-border)] text-[var(--ds-text-muted)] rounded-control text-sm hover:border-[var(--ds-border-strong)]"
-        >
-          {messages.cancel}
-        </button>
-        <button
-          type="button"
+        <CancelActionButton label={messages.cancel} onClick={onClose} />
+        <DashboardActionButton
+          action={isDanger ? "reject" : "approve"}
           onClick={onSubmit}
           disabled={isPending}
-          className={`flex items-center gap-2 py-1.5 px-4 border rounded-control text-sm font-medium disabled:opacity-60 ${
-            isDanger
-              ? "border-[var(--ds-btn-danger-border)] text-[var(--ds-btn-danger-text)] hover:border-[var(--ds-btn-danger-hover-border)] hover:bg-[var(--ds-btn-danger-hover-bg)]"
-              : "border-[var(--ds-btn-primary-border)] text-[var(--ds-btn-primary-text)] hover:border-[var(--ds-btn-primary-hover-border)] hover:bg-[var(--ds-btn-primary-hover-bg)]"
-          }`}
-        >
-          {submitIcon ?? <XCircleIcon weight="duotone" className="w-3.5 h-3.5" />}
-          {isPending ? "…" : submitLabel}
-        </button>
+          icon={submitIcon}
+          label={isPending ? "…" : submitLabel}
+        />
       </OverlayCard.Footer>
     </OverlayCard>
   );
@@ -236,7 +228,7 @@ export function NotificationTemplateSelect({
   return (
     <div className="rounded-lg border border-[var(--ds-border)] p-3">
       <div className="flex items-center gap-2 mb-2">
-        <EnvelopeSimpleIcon weight="duotone" className="w-4 h-4 text-[var(--ds-text-muted)]" />
+        <EnvelopeSimpleIcon weight="duotone" className="size-4 text-[var(--ds-text-muted)]" />
         <span className="text-sm font-medium text-[var(--ds-text)]">{notificationLabel}</span>
       </div>
       <select

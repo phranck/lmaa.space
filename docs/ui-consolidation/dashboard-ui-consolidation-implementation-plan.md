@@ -99,7 +99,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 - [x] `ExportButton` intern auf `DashboardActionButton` legen.
 - [x] `HeaderBackButton` als dokumentierte Navigationsausnahme auf zentrale Basis legen.
 - [ ] Dialog-Footer-Buttons auf neue Button-Basis migrieren.
-- [ ] rohe Action-Buttons in `ErrorBoundary` migrieren.
+- [x] rohe Action-Buttons in `ErrorBoundary` migrieren.
 - [ ] Screenshot-Vergleich fuer Tabellen, Toolbars und Dialoge pruefen.
 
 ### Stufe 5: Control-Primitives migrieren
@@ -653,6 +653,22 @@ Teilfortschritt 2026-05-10, zentrale Action-Komponenten:
 - `HeaderBackButton` bleibt Navigations-Wrapper, nutzt aber die zentrale `DashboardButton`-Basis mit fester Action-Hoehe.
 
 Verifiziert fuer den zentrale-Action-Komponenten-Task:
+
+- `npm run lint -w @lmaa/dashboard`
+- `npm run typecheck -w @lmaa/dashboard`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test --workspaces --if-present`
+- `npm run build`
+- `npx -y react-doctor@latest apps/dashboard --verbose --diff`
+
+Teilfortschritt 2026-05-10, Shared-Dialog- und Error-Actions:
+
+- `DeleteConfirmDialog` und `RejectDialog` nutzen zentrale Dashboard-Action-Buttons fuer ihre Footer-Actions.
+- Der URL-Copy-Button in `RejectDialog` nutzt `CopyActionButton` als Icon-only Action.
+- `ErrorBoundary` rendert Reload/Retry ueber `DashboardButton` statt rohe Utility-Buttons.
+
+Verifiziert fuer den Shared-Dialog- und Error-Actions-Task:
 
 - `npm run lint -w @lmaa/dashboard`
 - `npm run typecheck -w @lmaa/dashboard`

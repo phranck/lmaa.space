@@ -1,6 +1,10 @@
 import { TrashIcon } from "@phosphor-icons/react";
 
-import { Dialog, dialogBtnDestructive, dialogBtnSecondary, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import {
+  CancelActionButton,
+  DeleteActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -36,18 +40,12 @@ export function DeleteConfirmDialog({
         </div>
       )}
       <Dialog.Footer>
-        <button type="button" onClick={onClose} className={dialogBtnSecondary}>
-          {cancelLabel}
-        </button>
-        <button
-          type="button"
+        <CancelActionButton label={cancelLabel} onClick={onClose} />
+        <DeleteActionButton
           disabled={isPending}
+          label={isPending ? "..." : deleteLabel}
           onClick={onConfirm}
-          className={`${dialogBtnDestructive} flex items-center gap-2`}
-        >
-          <TrashIcon weight="duotone" className="w-3.5 h-3.5" />
-          {isPending ? "..." : deleteLabel}
-        </button>
+        />
       </Dialog.Footer>
     </Dialog>
   );

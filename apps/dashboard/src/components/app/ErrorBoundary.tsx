@@ -1,6 +1,7 @@
 import { Component } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 
+import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { resolveInitialLocale } from "@/context/I18nContext.tsx";
 import { DASHBOARD_MESSAGES } from "@/i18n/messages.ts";
 
@@ -44,34 +45,38 @@ export class ErrorBoundary extends Component<Props, State> {
       const boundaryMessages = DASHBOARD_MESSAGES[locale].errors.boundary;
 
       return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
-          <div className="text-center max-w-md bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8">
-            <div className="text-4xl font-bold text-red-600 dark:text-red-400 mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+        <div className="flex min-h-screen items-center justify-center bg-[var(--ds-bg)] p-4">
+          <div className="max-w-md rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] p-8 text-center shadow-[var(--ds-overlay-shadow)]">
+            <div className="mb-4 text-4xl font-semibold text-[var(--ds-danger-text,var(--ds-btn-danger-text))]">
+              ⚠️
+            </div>
+            <h1 className="mb-2 text-2xl font-semibold text-[var(--ds-text)]">
               {boundaryMessages.title}
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mb-6 break-words text-sm">
+            <p className="mb-6 break-words text-sm text-[var(--ds-text-muted)]">
               {this.state.error?.message || boundaryMessages.fallbackMessage}
             </p>
             <div className="flex gap-3">
-              <button
-                type="button"
+              <DashboardButton
+                className="flex-1"
                 onClick={() => {
                   window.location.href = "/";
                 }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium text-sm"
+                size="control"
+                variant="primary"
               >
                 {boundaryMessages.reload}
-              </button>
-              <button
-                type="button"
+              </DashboardButton>
+              <DashboardButton
+                className="flex-1"
                 onClick={() => {
                   this.setState({ hasError: false });
                 }}
-                className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded hover:bg-slate-300 dark:hover:bg-slate-600 font-medium text-sm"
+                size="control"
+                variant="neutral"
               >
                 {boundaryMessages.retry}
-              </button>
+              </DashboardButton>
             </div>
           </div>
         </div>
