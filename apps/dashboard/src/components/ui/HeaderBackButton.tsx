@@ -1,6 +1,8 @@
 import { CaretLeftIcon } from "@phosphor-icons/react";
 import type { ButtonHTMLAttributes } from "react";
 
+import { DashboardButton } from "./DashboardButton.tsx";
+
 interface HeaderBackButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
 }
@@ -12,18 +14,15 @@ export function HeaderBackButton({
   ...props
 }: HeaderBackButtonProps) {
   return (
-    <button
+    <DashboardButton
+      className={className}
+      leadingIcon={<CaretLeftIcon weight="duotone" className="size-3.5 shrink-0" />}
+      size="action"
       type={type}
-      className={[
-        "flex items-center gap-1.5 text-sm font-medium text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      variant="ghost"
       {...props}
     >
-      <CaretLeftIcon weight="duotone" className="w-3.5 h-3.5 shrink-0" />
       <span>{label}</span>
-    </button>
+    </DashboardButton>
   );
 }
