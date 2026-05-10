@@ -61,7 +61,7 @@ Pflege-Regel: Diese Checkliste ist der Arbeitsstand fuer die Umsetzung. Wenn ich
 
 ### Stufe 2: Shared Primitives
 
-- [ ] `ButtonPrimitive` und `IconButtonPrimitive` anlegen.
+- [x] `ButtonPrimitive` und `IconButtonPrimitive` anlegen.
 - [ ] `FieldShell`, `InputPrimitive` und `TextareaPrimitive` anlegen.
 - [ ] `ControlTrigger`, `ListboxPopover` und `ListboxOption` anlegen.
 - [ ] `MenuPrimitive` und `MenuItemPrimitive` anlegen.
@@ -311,6 +311,18 @@ Wichtige Entscheidungen:
 - `ListboxPopover` bekommt stabile IDs, Portal-Faehigkeit, Escape-/Outside-Click-Handling und keyboardfähige Optionen.
 - `MenuItemPrimitive` bekommt `h-8` Default und `compact` als expliziten `h-7` Modus.
 - `InputPrimitive` und `TextareaPrimitive` teilen Tokens, aber nicht dieselbe fixe Hoehe.
+
+Teilfortschritt 2026-05-10:
+
+- `packages/ui/src/ButtonPrimitive.tsx` stellt `ButtonPrimitive` und `IconButtonPrimitive` bereit.
+- Button-Primitives nutzen die Foundation-Tokens fuer Action-/Control-/Large-Hoehen, Fokus, Disabled-State und bestehende `--ds-btn-*` Farbrollen.
+- `IconButtonPrimitive` erzwingt per Typ eine zugängliche Benennung ueber `aria-label` oder `aria-labelledby`.
+- `packages/ui/src/classNames.ts` buendelt den kleinen `cx`-Helper fuer neue Primitives; `FormPrimitives.tsx` nutzt ihn bereits.
+
+Verifiziert fuer den Button-Primitive-Task:
+
+- `npm run typecheck -w @lmaa/ui`
+- `npm run lint -w @lmaa/ui`
 
 Gate:
 
