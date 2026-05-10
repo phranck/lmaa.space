@@ -123,6 +123,22 @@ export type { PlatformDef } from "./social-media-platforms.ts";
 export { Tabs, TabList, TabTrigger, TabContent } from "./Tabs.tsx";
 /** Re-exported props for Tabs. */
 export type { TabsProps, TabListProps, TabTriggerProps, TabContentProps } from "./Tabs.tsx";
+/** Shared low-level tab primitives with roving keyboard behavior. */
+export {
+  TabListPrimitive,
+  TabPanelPrimitive,
+  TabsPrimitive,
+  TabTriggerPrimitive,
+} from "./TabsPrimitives.tsx";
+/** Re-exported contracts for tab primitives. */
+export type {
+  TabListPrimitiveProps,
+  TabPanelPrimitiveProps,
+  TabsActivationMode,
+  TabsOrientation,
+  TabsPrimitiveProps,
+  TabTriggerPrimitiveProps,
+} from "./TabsPrimitives.tsx";
 /** Focal point overlay and drag hook for image cropping control. */
 export { FocalPointOverlay, useFocalPointDrag } from "./FocalPointOverlay.tsx";
 /** Shared shop edit form and value contracts. */
