@@ -1,6 +1,12 @@
 import { eq, sql } from "drizzle-orm";
 
-import type { AdminShopListItem, Shop as SharedShop, ShopMutableVisibility, ShopVisibility } from "@lmaa/shared";
+import type {
+  AdminShopListItem,
+  Shop as SharedShop,
+  ShopCheckNotes,
+  ShopMutableVisibility,
+  ShopVisibility,
+} from "@lmaa/shared";
 
 import type { HeadquartersInput } from "./headquarters.js";
 import { loadShopHeadquartersMap, upsertShopHeadquarters } from "./headquarters.js";
@@ -20,6 +26,7 @@ export interface CreateAdminShopData {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
 }
@@ -36,6 +43,7 @@ export interface UpdateAdminShopData {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
   needsReview?: boolean;
@@ -55,6 +63,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            s.shipping,
            s.like_count as "likeCount",
            s.contact_email as "contactEmail",
+           s.shop_check_notes as "shopCheckNotes",
            s.social_media as "socialMedia",
            s.og_image as "ogImage",
            s.visibility,
@@ -106,6 +115,7 @@ export async function getAdminShopById(id: number): Promise<SharedShop | null> {
   const [shop] = await db.execute<SharedShop & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.shop_check_notes as "shopCheckNotes",
            s.like_count as "likeCount",
            s.is_active as "isActive", s.visibility,
            s.rejection_token as "rejectionToken",
@@ -182,13 +192,22 @@ export async function updateAdminShop(
   data: UpdateAdminShopData,
 ): Promise<DbShop | null> {
   return db.transaction(async (tx) => {
-    const { categoryIds, contactEmail, headquarters, needsReview, reviewData, ...shopData } = data;
+    const {
+      categoryIds,
+      contactEmail,
+      headquarters,
+      needsReview,
+      reviewData,
+      shopCheckNotes,
+      ...shopData
+    } = data;
 
     const [shop] = await tx
       .update(shops)
       .set({
         ...shopData,
         contactEmail: contactEmail || null,
+        ...(shopCheckNotes !== undefined ? { shopCheckNotes } : {}),
         ...(needsReview !== undefined ? { needsReview } : {}),
         ...(reviewData !== undefined ? { reviewData } : {}),
         updatedAt: new Date(),
@@ -223,10 +242,10 @@ export async function updateAdminShop(
  *
  * @returns Record mapping each visibility to its count plus a total.
  */
-export async function getShopVisibilityCounts(): Promise<
-  Record<ShopVisibility | "all", number>
-> {
-  const rows = await db.execute<{ visibility: ShopVisibility; count: number } & Record<string, unknown>>(sql`
+export async function getShopVisibilityCounts(): Promise<Record<ShopVisibility | "all", number>> {
+  const rows = await db.execute<
+    { visibility: ShopVisibility; count: number } & Record<string, unknown>
+  >(sql`
     SELECT visibility, count(*)::int AS count
     FROM shops
     GROUP BY visibility

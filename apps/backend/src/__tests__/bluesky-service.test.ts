@@ -63,6 +63,7 @@ const submission: Submission = {
   description: "",
   ogImage: null,
   socialMedia: {},
+  shopCheckNotes: null,
   contactEmail: null,
   submitterEmail: null,
   submitterNote: null,

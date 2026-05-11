@@ -17,6 +17,7 @@ function makeSubmission(overrides: Partial<Submission> = {}): Submission {
     description: "Great coffee",
     ogImage: null,
     socialMedia: {},
+    shopCheckNotes: null,
     contactEmail: null,
     submitterEmail: null,
     submitterNote: null,
@@ -49,10 +50,7 @@ function makeTemplate(overrides: Partial<SocialMediaPostTemplate> = {}): SocialM
   };
 }
 
-function makeAccount(
-  id: number,
-  overrides: Partial<SocialMediaAccount> = {},
-): SocialMediaAccount {
+function makeAccount(id: number, overrides: Partial<SocialMediaAccount> = {}): SocialMediaAccount {
   return {
     id,
     platform: "mastodon",

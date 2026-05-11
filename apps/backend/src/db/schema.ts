@@ -16,6 +16,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
+import type { ShopCheckNotes } from "@lmaa/shared";
 
 function quotedTextSql(values: readonly string[]) {
   return sql.join(
@@ -62,6 +63,7 @@ export const shops = pgTable(
     ogImage: text("og_image"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
     contactEmail: text("contact_email"),
+    shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
     /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -255,6 +257,7 @@ export const submissions = pgTable(
     description: text("description").notNull().default(""),
     ogImage: text("og_image"),
     socialMedia: jsonb("social_media").$type<Record<string, string>>().notNull().default({}),
+    shopCheckNotes: jsonb("shop_check_notes").$type<ShopCheckNotes | null>(),
     contactEmail: text("contact_email"),
     submitterEmail: text("submitter_email"),
     submitterNote: text("submitter_note"),

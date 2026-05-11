@@ -51,6 +51,30 @@ interface ShopByDomainRow {
   rejectionToken: string | null;
 }
 
+function shopCheckNotesMatch(pattern: string) {
+  return sql`(
+    COALESCE(s.shop_check_notes->>'companyPresentation', '') ILIKE ${pattern}
+    OR EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements_text(COALESCE(s.shop_check_notes->'focus', '[]'::jsonb)) notes_focus(value)
+      WHERE notes_focus.value ILIKE ${pattern}
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements_text(COALESCE(s.shop_check_notes->'brandsOrProducts', '[]'::jsonb)) notes_brands(value)
+      WHERE notes_brands.value ILIKE ${pattern}
+    )
+  )`;
+}
+
+function categoryNameMatch(pattern: string) {
+  return sql`EXISTS (
+    SELECT 1 FROM shop_categories sc2
+    JOIN categories c2 ON c2.id = sc2.category_id
+    WHERE sc2.shop_id = s.id AND c2.name ILIKE ${pattern}
+  )`;
+}
+
 /**
  * Lists all categories plus number of currently public/active shops.
  *
@@ -211,6 +235,8 @@ export async function searchPublicShops(
   const postalMatch = postalPattern
     ? sql`REGEXP_REPLACE(UPPER(hq.postal_code), '[[:space:]\-]', '', 'g') LIKE ${postalPattern}`
     : sql`false`;
+  const notesMatch = shopCheckNotesMatch(pattern);
+  const categoryMatch = categoryNameMatch(pattern);
 
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
@@ -228,8 +254,10 @@ export async function searchPublicShops(
              WHEN s.name ILIKE ${pattern} THEN 1
              WHEN s.url ILIKE ${pattern} THEN 2
              WHEN bool_or(${postalMatch}) THEN 3
-             WHEN s.description ILIKE ${pattern} THEN 4
-             ELSE 5
+             WHEN ${notesMatch} THEN 4
+             WHEN s.description ILIKE ${pattern} THEN 5
+             WHEN ${categoryMatch} THEN 6
+             ELSE 7
            END as rank
     FROM shops s
     LEFT JOIN shop_categories sc ON sc.shop_id = s.id
@@ -239,13 +267,10 @@ export async function searchPublicShops(
       AND (
         s.name ILIKE ${pattern}
         OR s.url ILIKE ${pattern}
+        OR ${notesMatch}
         OR s.description ILIKE ${pattern}
         OR ${postalMatch}
-        OR EXISTS (
-          SELECT 1 FROM shop_categories sc2
-          JOIN categories c2 ON c2.id = sc2.category_id
-          WHERE sc2.shop_id = s.id AND c2.name ILIKE ${pattern}
-        )
+        OR ${categoryMatch}
       )
     GROUP BY s.id
     ORDER BY rank, s.name

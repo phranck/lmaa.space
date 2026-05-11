@@ -101,6 +101,7 @@ export function useEditSubmission() {
         categoryIds: data.categoryIds,
         contactEmail: data.contactEmail,
         headquarters: toHeadquartersPayload(data),
+        shopCheckNotes: data.shopCheckNotes,
         socialMedia: data.socialMedia,
       }),
     onSuccess: (_submission, variables) => {

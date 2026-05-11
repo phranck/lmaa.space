@@ -528,7 +528,7 @@ export const publicOpenApiOperations: OpenApiOperation[] = [
     tags: ["Search"],
     summary: "Search shops and categories",
     description:
-      "Searches public shops and categories. Shop matches are ranked by name, URL, postal-code prefix and description. Category matches are limited to five items.",
+      "Searches public shops and categories. Shop matches are ranked by name, URL, postal-code prefix, imported shop-check notes and description. Category matches are limited to five items.",
     operationId: "searchPublicCatalog",
     parameters: [searchQueryParam],
     responses: withCommonErrors({
@@ -635,7 +635,7 @@ export const publicOpenApiOperations: OpenApiOperation[] = [
     tags: ["Filters"],
     summary: "Search within filtered shops",
     description:
-      "Searches public shops within the active filters and returns matching categories for the query.",
+      "Searches public shops within the active filters, including imported shop-check notes, and returns matching categories for the query.",
     operationId: "searchFilteredPublicCatalog",
     parameters: [searchQueryParam, ...filterParameters],
     responses: withCommonErrors({
@@ -724,7 +724,7 @@ export function buildOpenApiDocument() {
         "",
         "Only externally useful public endpoints are listed. Dashboard endpoints, website-internal runtime endpoints and side-effect endpoints are intentionally excluded.",
         "",
-        "All documented API responses return JSON wrapped in a `{ \"data\": ... }` envelope. Errors use `{ \"error\": { \"message\": \"...\" } }`.",
+        'All documented API responses return JSON wrapped in a `{ "data": ... }` envelope. Errors use `{ "error": { "message": "..." } }`.',
         "",
         "Rate-limited endpoints allow 100 read requests per minute per IP and include `X-RateLimit-*` response headers.",
       ].join("\n"),
