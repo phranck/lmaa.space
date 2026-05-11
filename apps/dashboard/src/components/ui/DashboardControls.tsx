@@ -13,7 +13,7 @@ import type {
   ReactNode,
   SelectHTMLAttributes,
 } from "react";
-import { useId, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import {
   CheckboxPrimitive,
@@ -270,6 +270,7 @@ export interface DashboardComboboxProps
   hint?: ReactNode;
   label?: ReactNode;
   matchTriggerWidth?: boolean;
+  minWidthFromOptions?: boolean;
   onValueChange: (value: string) => void;
   optionalLabel?: ReactNode;
   options: readonly DashboardComboboxOption[];
@@ -292,6 +293,7 @@ export function DashboardCombobox({
   id,
   label,
   matchTriggerWidth = true,
+  minWidthFromOptions = false,
   onClick,
   onKeyDown,
   onValueChange,
@@ -302,15 +304,21 @@ export function DashboardCombobox({
   required,
   searchable,
   searchPlaceholder,
+  style,
   value,
   ...buttonProps
 }: DashboardComboboxProps) {
   const [open, setOpen] = useState(false);
   const [activeValue, setActiveValue] = useState<string | undefined>();
+  const [measuredOptionsMinWidth, setMeasuredOptionsMinWidth] = useState<
+    number | undefined
+  >();
   const [searchQuery, setSearchQuery] = useState("");
+  const measurementRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const generatedListboxId = useId();
-  const shouldFillWidth = fullWidth ?? !hasExplicitWidthClass(className);
+  const shouldFillWidth =
+    fullWidth ?? (!minWidthFromOptions && !hasExplicitWidthClass(className));
   const selectedOption = options.find((option) => option.value === value);
   const filteredOptions =
     searchable && searchQuery.trim()
@@ -336,6 +344,54 @@ export function DashboardCombobox({
     }
     return values;
   }, []);
+  const triggerStyle =
+    minWidthFromOptions && measuredOptionsMinWidth
+      ? { ...style, minWidth: measuredOptionsMinWidth }
+      : style;
+
+  useLayoutEffect(() => {
+    if (!minWidthFromOptions) {
+      return;
+    }
+
+    const measurementRoot = measurementRef.current;
+    if (!measurementRoot) {
+      return;
+    }
+
+    const measure = () => {
+      const measuredOptions = measurementRoot.querySelectorAll<HTMLElement>(
+        "[data-dashboard-combobox-measure-option]",
+      );
+      const nextMinWidth = Math.ceil(
+        Math.max(
+          ...Array.from(measuredOptions, (option) =>
+            option.getBoundingClientRect().width,
+          ),
+          0,
+        ),
+      );
+      setMeasuredOptionsMinWidth((current) =>
+        current === nextMinWidth ? current : nextMinWidth,
+      );
+    };
+
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(measurementRoot);
+    for (const measuredOption of measurementRoot.querySelectorAll<HTMLElement>(
+      "[data-dashboard-combobox-measure-option]",
+    )) {
+      observer.observe(measuredOption);
+    }
+
+    return () => observer.disconnect();
+  }, [className, controlSize, minWidthFromOptions, options, placeholder]);
 
   function openCombobox() {
     const nextActiveValue =
@@ -486,6 +542,7 @@ export function DashboardCombobox({
         fullWidth={shouldFillWidth}
         invalid={Boolean(error)}
         aria-required={controlProps?.["aria-required"] ?? (required || undefined)}
+        style={triggerStyle}
         onClick={(event) => {
           onClick?.(event);
           if (!event.defaultPrevented && !disabled) {
@@ -560,6 +617,32 @@ export function DashboardCombobox({
           </ListboxOption>
         ))}
       </ListboxPopover>
+      {minWidthFromOptions && (
+        <div
+          aria-hidden="true"
+          className="invisible pointer-events-none fixed left-0 top-0 -z-10 flex flex-col items-start"
+          ref={measurementRef}
+        >
+          {placeholder && (
+            <DashboardComboboxMeasureOption
+              className={className}
+              controlSize={controlSize}
+            >
+              {placeholder}
+            </DashboardComboboxMeasureOption>
+          )}
+          {options.map((option) => (
+            <DashboardComboboxMeasureOption
+              className={className}
+              controlSize={controlSize}
+              key={option.value}
+              leadingIcon={option.leadingIcon}
+            >
+              {option.triggerLabel ?? option.label}
+            </DashboardComboboxMeasureOption>
+          ))}
+        </div>
+      )}
     </>
   );
 
@@ -586,6 +669,39 @@ export type DashboardMultiSelectProps = MultiSelectProps;
 
 export function DashboardMultiSelect(props: DashboardMultiSelectProps) {
   return <MultiSelect {...props} />;
+}
+
+function DashboardComboboxMeasureOption({
+  children,
+  className,
+  controlSize,
+  leadingIcon,
+}: {
+  children: ReactNode;
+  className?: string;
+  controlSize: FieldControlSize;
+  leadingIcon?: ReactNode;
+}) {
+  return (
+    <div
+      className={cx(
+        "inline-flex box-border items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)]",
+        selectSizeClass[controlSize],
+        stripWidthClasses(className),
+      )}
+      data-dashboard-combobox-measure-option="true"
+    >
+      {leadingIcon && (
+        <span className="flex shrink-0 items-center text-[var(--ds-text-muted)]">
+          {leadingIcon}
+        </span>
+      )}
+      <span className="whitespace-nowrap">{children}</span>
+      <span className="flex shrink-0 items-center text-[var(--ds-text-muted)]">
+        <CaretDownIcon className="size-4" weight="duotone" />
+      </span>
+    </div>
+  );
 }
 
 export interface DashboardNumberInputProps
@@ -828,6 +944,13 @@ function hasFieldShell(
 
 function hasExplicitWidthClass(className: string | undefined) {
   return /(?:^|\s)w-(?!full(?:\s|$))[^\s]+/.test(className ?? "");
+}
+
+function stripWidthClasses(className: string | undefined) {
+  return className
+    ?.split(/\s+/)
+    .filter((part) => part && !/^(?:w|min-w|max-w)-/.test(part))
+    .join(" ");
 }
 
 function optionLabelToString(label: ReactNode) {
