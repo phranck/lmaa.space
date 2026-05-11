@@ -1,7 +1,9 @@
+import { SlidersHorizontalIcon } from "@phosphor-icons/react";
+
 import type { FooterStyle } from "@lmaa/contracts";
 import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
+import { DashboardSection } from "@lmaa/ui";
 
-import { Card } from "@/components/ui/Card.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -34,51 +36,51 @@ export function FooterStylePane({ style, onChange }: Props) {
   ];
 
   return (
-    <Card className="flex flex-col gap-4 p-4">
-      <div className="flex items-center gap-2 pb-3 border-b border-[var(--ds-border)]">
-        <span className="text-sm font-semibold text-[var(--ds-text)]">
-          {footerMessages.styleTitle}
-        </span>
-      </div>
+    <DashboardSection>
+      <DashboardSection.Header
+        icon={<SlidersHorizontalIcon weight="duotone" className="size-4" />}
+        title={footerMessages.styleTitle}
+      />
+      <DashboardSection.Body className="!gap-4">
+        {colorFields.map(({ key, label }) => (
+          <label key={key} className="flex items-center justify-between gap-3">
+            <span className={labelClass}>{label}</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={s[key] as string}
+                onChange={(e) => onChange({ ...s, [key]: e.target.value })}
+                className="size-8 cursor-pointer rounded-control border border-[var(--ds-border)] bg-transparent"
+              />
+              <DashboardInput
+                type="text"
+                value={s[key] as string}
+                onChange={(e) => onChange({ ...s, [key]: e.target.value })}
+                className="w-24 font-mono text-xs"
+                spellCheck={false}
+              />
+            </div>
+          </label>
+        ))}
 
-      {colorFields.map(({ key, label }) => (
-        <label key={key} className="flex items-center justify-between gap-3">
-          <span className={labelClass}>{label}</span>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={s[key] as string}
-              onChange={(e) => onChange({ ...s, [key]: e.target.value })}
-              className="size-8 cursor-pointer rounded-control border border-[var(--ds-border)] bg-transparent"
-            />
-            <DashboardInput
-              type="text"
-              value={s[key] as string}
-              onChange={(e) => onChange({ ...s, [key]: e.target.value })}
-              className="w-24 font-mono text-xs"
-              spellCheck={false}
-            />
-          </div>
-        </label>
-      ))}
+        <div className="flex flex-col gap-2">
+          <span className={labelClass}>{footerMessages.heightLabel}</span>
+          <SegmentSwitch
+            value={s.height}
+            onChange={(v) => onChange({ ...s, height: v })}
+            options={sizeOptions}
+          />
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <span className={labelClass}>{footerMessages.heightLabel}</span>
-        <SegmentSwitch
-          value={s.height}
-          onChange={(v) => onChange({ ...s, height: v })}
-          options={sizeOptions}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <span className={labelClass}>{footerMessages.verticalPaddingLabel}</span>
-        <SegmentSwitch
-          value={s.paddingY}
-          onChange={(v) => onChange({ ...s, paddingY: v })}
-          options={sizeOptions}
-        />
-      </div>
-    </Card>
+        <div className="flex flex-col gap-2">
+          <span className={labelClass}>{footerMessages.verticalPaddingLabel}</span>
+          <SegmentSwitch
+            value={s.paddingY}
+            onChange={(v) => onChange({ ...s, paddingY: v })}
+            options={sizeOptions}
+          />
+        </div>
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }

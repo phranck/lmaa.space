@@ -21,14 +21,8 @@ import {
 } from "@lmaa/contracts";
 import { DashboardSection, PLATFORM_MAP } from "@lmaa/ui";
 
-import {
-  CopyActionButton,
-  SaveActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
-import {
-  DashboardCheckboxField,
-  DashboardInput,
-} from "@/components/ui/DashboardControls.tsx";
+import { CopyActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardCheckboxField, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";
@@ -44,6 +38,7 @@ import {
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
+const FLUSH_MARKDOWN_EDITOR_CLASS = "rounded-none border-x-0 border-b-0";
 
 type SocialMediaTemplateMessages = ReturnType<typeof useI18n>["messages"]["socialMediaTemplates"];
 
@@ -456,7 +451,10 @@ function TemplateVariableItem({
         className="mt-0.5 shrink-0"
         icon={
           copied ? (
-            <CheckCircleIcon weight="duotone" className="size-3.5 text-green-600 dark:text-green-400" />
+            <CheckCircleIcon
+              weight="duotone"
+              className="size-3.5 text-green-600 dark:text-green-400"
+            />
           ) : (
             <CopyIcon weight="duotone" className="size-3.5" />
           )
@@ -527,7 +525,7 @@ function PostBodySection({
             onChange={onChange}
             rows={12}
             resizable
-            className="rounded-none border-0"
+            className={FLUSH_MARKDOWN_EDITOR_CLASS}
           />
         </Suspense>
       </DashboardSection.Body>
