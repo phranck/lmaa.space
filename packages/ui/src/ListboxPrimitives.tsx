@@ -23,6 +23,10 @@ import type {
 import { createPortal } from "react-dom";
 
 import { cx } from "./classNames";
+import {
+  OverlayLayerZIndexContext,
+  resolveOverlayZIndex,
+} from "./overlay-stack";
 
 type ControlTriggerSize = "field" | "large";
 
@@ -190,6 +194,7 @@ export function ListboxPopover({
   const generatedId = useId();
   const resolvedListboxId = listboxId ?? `${generatedId}-listbox`;
   const popoverRef = useRef<HTMLDivElement>(null);
+  const overlayLayerZIndex = use(OverlayLayerZIndexContext);
   const portalPosition = useListboxPortalPosition({
     open,
     placementOffset,
@@ -317,6 +322,10 @@ export function ListboxPopover({
           position: "fixed",
           top: portalPosition.top,
           width: matchTriggerWidth ? portalPosition.width : undefined,
+          zIndex:
+            overlayLayerZIndex === undefined
+              ? undefined
+              : resolveOverlayZIndex(overlayLayerZIndex, 50),
           ...style,
         }
       : style;

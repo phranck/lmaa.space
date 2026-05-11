@@ -21,6 +21,10 @@ import type {
 import { createPortal } from "react-dom";
 
 import { cx } from "./classNames";
+import {
+  OverlayLayerZIndexContext,
+  resolveOverlayZIndex,
+} from "./overlay-stack";
 
 export interface MenuOrigin {
   x: number;
@@ -83,6 +87,7 @@ export function MenuPrimitive({
   const generatedId = useId();
   const resolvedMenuId = menuId ?? `${generatedId}-menu`;
   const menuRef = useRef<HTMLDivElement>(null);
+  const overlayLayerZIndex = use(OverlayLayerZIndexContext);
   const [position, setPosition] = useState<MenuPosition | null>(null);
 
   const closeMenu = useCallback(() => {
@@ -263,6 +268,10 @@ export function MenuPrimitive({
           position: portal ? "fixed" : "absolute",
           top: position?.top ?? origin?.y,
           visibility: position ? undefined : "hidden",
+          zIndex:
+            portal && overlayLayerZIndex !== undefined
+              ? resolveOverlayZIndex(overlayLayerZIndex, 60)
+              : undefined,
           ...style,
         }
       : style;

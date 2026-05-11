@@ -1,5 +1,12 @@
 /** Shared overlay stack for nested dialog/alert management. */
-export { getOverlayStackSnapshot, registerOverlay, subscribeOverlayStack } from "./overlay-stack.ts";
+export {
+  getOverlayStackSnapshot,
+  OverlayLayerZIndexContext,
+  registerOverlay,
+  resolveOverlayZIndex,
+  subscribeOverlayStack,
+} from "./overlay-stack.ts";
+export type { OverlayLayerZIndex } from "./overlay-stack.ts";
 /** Shared overlay card (fixed-size modal base). */
 export { OverlayCard } from "./OverlayCard.tsx";
 /** Shared dialog component with header, body, footer. */

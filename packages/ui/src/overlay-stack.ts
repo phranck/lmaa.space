@@ -1,9 +1,17 @@
+import { createContext } from "react";
+
 /**
  * Module-level overlay layer manager for nested dialogs/alerts/drawers.
  *
  * Tracks layer order so the top-most overlay alone owns Escape handling,
  * focus trapping and interactive backdrop behavior.
  */
+
+export type OverlayLayerZIndex = number | string;
+
+export const OverlayLayerZIndexContext = createContext<
+	OverlayLayerZIndex | undefined
+>(undefined);
 
 type EscHandler = () => void;
 
@@ -75,4 +83,17 @@ export function registerOverlay(id: string, onEscape: EscHandler): () => void {
 			listening = false;
 		}
 	};
+}
+
+export function resolveOverlayZIndex(
+	zIndex: OverlayLayerZIndex,
+	offset: number,
+): OverlayLayerZIndex {
+	if (offset === 0) {
+		return zIndex;
+	}
+	if (typeof zIndex === "number") {
+		return zIndex + offset;
+	}
+	return `calc(${zIndex} + ${offset})`;
 }
