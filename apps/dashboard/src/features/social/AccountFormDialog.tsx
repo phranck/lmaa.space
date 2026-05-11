@@ -13,12 +13,10 @@ import {
 } from "@lmaa/contracts";
 import { detectPlatformFromUrl } from "@lmaa/shared";
 import type { ApiRequestError } from "@lmaa/shared";
-import { PLATFORM_MAP, PLATFORMS, ToggleSwitch } from "@lmaa/ui";
+import { PLATFORM_MAP, PLATFORMS } from "@lmaa/ui/social-media-platforms";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
-import {
-  CancelActionButton,
-  SaveActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { CancelActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import {
   DashboardCheckboxField,
   DashboardCombobox,
@@ -181,10 +179,7 @@ function buildUpdateInput(state: AccountFormState): SocialMediaAccountUpdateInpu
   return base;
 }
 
-export function AccountFormDialog({
-  target,
-  onClose,
-}: AccountFormDialogProps): React.ReactElement {
+export function AccountFormDialog({ target, onClose }: AccountFormDialogProps): React.ReactElement {
   const { messages } = useI18n();
   const t = messages.socialMedia;
   const common = messages.common;
@@ -199,10 +194,7 @@ export function AccountFormDialog({
   const updateMutation = useUpdateSocialMediaAccount();
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
-  const platformDef = useMemo(
-    () => PLATFORM_MAP.get(state.platform),
-    [state.platform],
-  );
+  const platformDef = useMemo(() => PLATFORM_MAP.get(state.platform), [state.platform]);
   const platformOptions = useMemo(
     () =>
       PLATFORMS.map((platform) => {
@@ -364,9 +356,7 @@ export function AccountFormDialog({
           <DashboardCheckboxField
             checked={state.showInFooter}
             label={t.showInFooter}
-            onCheckedChange={(checked) =>
-              setState((prev) => ({ ...prev, showInFooter: checked }))
-            }
+            onCheckedChange={(checked) => setState((prev) => ({ ...prev, showInFooter: checked }))}
           />
           <DashboardCheckboxField
             checked={state.canPost}
@@ -420,9 +410,7 @@ export function AccountFormDialog({
                 appPasswordSettingsLink: t.bluesky.appPasswordSettingsLink,
               }}
               requirePassword={isCreate}
-              hasStoredPassword={
-                target.mode === "edit" ? target.account.hasAccessToken : false
-              }
+              hasStoredPassword={target.mode === "edit" ? target.account.hasAccessToken : false}
             />
           </div>
         )}

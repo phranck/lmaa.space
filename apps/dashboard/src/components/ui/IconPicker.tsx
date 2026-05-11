@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { BUTTON_ICON_LIST, getButtonIconComponent } from "@lmaa/ui";
+import { BUTTON_ICON_LIST, getButtonIconComponent } from "@lmaa/ui/button-icons";
 
 import { DashboardButton, DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";

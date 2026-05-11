@@ -16,7 +16,7 @@ import {
   resolveOverlayZIndex,
   subscribeOverlayStack,
   type OverlayLayerZIndex,
-} from "@lmaa/ui";
+} from "@lmaa/ui/overlay-stack";
 
 import { ResizableDialogCard } from "./ResizableDialogCard.tsx";
 
@@ -210,9 +210,7 @@ export function OverlayCard({
   const fixedMaxWidth = size === "fixed-sm" ? "max-w-sm" : size === "fixed-md" ? "max-w-md" : "";
 
   const cardAnimClass = closing ? "overlay-card-exit" : "overlay-card-enter";
-  const effectiveZIndex = isRegistered
-    ? resolveOverlayZIndex(zIndex, stackIndex * 100)
-    : zIndex;
+  const effectiveZIndex = isRegistered ? resolveOverlayZIndex(zIndex, stackIndex * 100) : zIndex;
 
   // Shared ARIA props for the dialog container
   const dialogProps = {
@@ -228,11 +226,7 @@ export function OverlayCard({
       defaultWidth={(size as ResizableSize).defaultWidth}
       minWidth={(size as ResizableSize).minWidth}
       minHeight={(size as ResizableSize).minHeight}
-      className={[
-        "flex flex-col rounded-[var(--radius-card)] shadow-2xl",
-        cardAnimClass,
-        className,
-      ]
+      className={["flex flex-col rounded-[var(--radius-card)] shadow-2xl", cardAnimClass, className]
         .filter(Boolean)
         .join(" ")}
       style={style}

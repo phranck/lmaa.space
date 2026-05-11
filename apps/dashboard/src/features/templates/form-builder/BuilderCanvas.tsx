@@ -3,7 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SquaresFourIcon } from "@phosphor-icons/react";
 
 import type { FormRow } from "@lmaa/contracts";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderRow } from "@/features/templates/form-builder/BuilderRow.tsx";

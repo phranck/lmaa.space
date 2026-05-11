@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -95,8 +95,26 @@ export function MetricList({ title, icon, type, period, renderLabel }: MetricLis
         {!isLoading && rows.length > 0 && (
           <CollapsibleList
             canCollapse={canCollapse}
-            collapsedContent={<MetricRowList rows={collapsedRows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
-            expandedContent={<MetricRowList rows={rows} type={type} max={max} renderLabel={renderLabel} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+            collapsedContent={
+              <MetricRowList
+                rows={collapsedRows}
+                type={type}
+                max={max}
+                renderLabel={renderLabel}
+                unknownLabel={analyticsMessages.unknown}
+                formatNumber={formatNumber}
+              />
+            }
+            expandedContent={
+              <MetricRowList
+                rows={rows}
+                type={type}
+                max={max}
+                renderLabel={renderLabel}
+                unknownLabel={analyticsMessages.unknown}
+                formatNumber={formatNumber}
+              />
+            }
           />
         )}
       </DashboardSection.Body>

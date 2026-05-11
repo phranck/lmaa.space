@@ -10,9 +10,12 @@ import { ListIcon } from "@phosphor-icons/react";
 import { Suspense, lazy } from "react";
 
 import type { FooterBlock, SocialMediaBlock } from "@lmaa/contracts";
-import { DashboardSection, PLATFORM_MAP } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 
-const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { DashboardCheckboxField, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";

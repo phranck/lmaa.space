@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import { COLLAPSIBLE_ROW_LIMIT } from "@/features/analytics/analytics-utils.ts";
@@ -71,8 +71,17 @@ export function EventListCard({ title, icon, rows, isLoading }: EventListCardPro
         ) : (
           <CollapsibleList
             canCollapse={canCollapse}
-            collapsedContent={<EventRowList rows={collapsedRows} max={max} keyPrefix={title} formatNumber={formatNumber} />}
-            expandedContent={<EventRowList rows={rows} max={max} keyPrefix={title} formatNumber={formatNumber} />}
+            collapsedContent={
+              <EventRowList
+                rows={collapsedRows}
+                max={max}
+                keyPrefix={title}
+                formatNumber={formatNumber}
+              />
+            }
+            expandedContent={
+              <EventRowList rows={rows} max={max} keyPrefix={title} formatNumber={formatNumber} />
+            }
           />
         )}
       </DashboardSection.Body>

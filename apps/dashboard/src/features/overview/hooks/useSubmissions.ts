@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Submission, SubmissionStatus } from "@lmaa/shared";
-import type { ShopEditFormValue } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
 import { api } from "@/lib/api.ts";
 import { toHeadquartersPayload } from "@/lib/form-payload-builders.ts";

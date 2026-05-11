@@ -2,7 +2,8 @@ import { BellIcon, BellSlashIcon, ClockIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { ShopReminder } from "@lmaa/shared";
-import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
 import { EditActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
@@ -95,7 +96,9 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
                   {recurrenceSummary(reminder)}
                 </p>
                 {reminder.note && (
-                  <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5 break-words">{reminder.note}</p>
+                  <p className="text-xs text-[var(--ds-text-subtle)] mt-0.5 break-words">
+                    {reminder.note}
+                  </p>
                 )}
               </div>
               <EditActionButton
@@ -108,7 +111,6 @@ export function ShopReminderSection({ shopId }: ShopReminderSectionProps) {
             <ReminderForm
               initial={editing ? reminder : null}
               isActive={isActive}
-
               isPending={setMutation.isPending}
               isDeleting={deleteMutation.isPending}
               onSave={(data) => {

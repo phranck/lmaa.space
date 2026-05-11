@@ -8,7 +8,8 @@ import type React from "react";
 import { useMemo, useState } from "react";
 
 import type { SocialMediaAccount } from "@lmaa/contracts";
-import { PLATFORM_MAP, ToggleSwitch } from "@lmaa/ui";
+import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -16,10 +17,7 @@ import {
   CreateActionButton,
   DeleteActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
@@ -80,9 +78,7 @@ export function SocialMediaAccountsPage(): React.ReactElement {
         id: "label",
         header: t.columns.account,
         sortKey: (row) => row.label,
-        cell: (row) => (
-          <span className="font-medium text-[var(--ds-text)]">{row.label}</span>
-        ),
+        cell: (row) => <span className="font-medium text-[var(--ds-text)]">{row.label}</span>,
       },
       {
         id: "profileUrl",

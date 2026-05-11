@@ -2,7 +2,9 @@ import { ClockIcon, EnvelopeSimpleIcon, TrashIcon } from "@phosphor-icons/react"
 import { useReducer } from "react";
 
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
-import { AlertDialog, FormLabel, ToggleSwitch } from "@lmaa/ui";
+import { AlertDialog } from "@lmaa/ui/alert-dialog";
+import { FormLabel } from "@lmaa/ui/form-primitives";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
 import { DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
@@ -51,18 +53,29 @@ interface ReminderFormState {
 
 type ReminderFormAction = Partial<ReminderFormState>;
 
-function reminderFormReducer(state: ReminderFormState, action: ReminderFormAction): ReminderFormState {
+function reminderFormReducer(
+  state: ReminderFormState,
+  action: ReminderFormAction,
+): ReminderFormState {
   return { ...state, ...action };
 }
 
-export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, isDeleting }: ReminderFormProps) {
+export function ReminderForm({
+  initial,
+  isActive,
+  onSave,
+  onDelete,
+  isPending,
+  isDeleting,
+}: ReminderFormProps) {
   const { data: emailTemplates = [] } = useEmailTemplates();
 
   const [form, dispatch] = useReducer(reminderFormReducer, {
     remindAt: initial?.remindAt ? initial.remindAt.slice(0, 16) : "",
     note: initial?.note ?? "",
     recurrence: initial?.recurrence ?? "never",
-    customInterval: initial?.recurrenceCustomDays != null ? String(initial.recurrenceCustomDays) : "1",
+    customInterval:
+      initial?.recurrenceCustomDays != null ? String(initial.recurrenceCustomDays) : "1",
     customUnit: (initial?.recurrenceUnit as "days" | "weeks" | "months" | "years") ?? "weeks",
     customDaysOfWeek: initial?.recurrenceDaysOfWeek
       ? new Set(
@@ -77,7 +90,17 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
     validationError: null,
   });
 
-  const { remindAt, note, recurrence, customInterval, customUnit, customDaysOfWeek, sendEmail, emailTemplateId, validationError } = form;
+  const {
+    remindAt,
+    note,
+    recurrence,
+    customInterval,
+    customUnit,
+    customDaysOfWeek,
+    sendEmail,
+    emailTemplateId,
+    validationError,
+  } = form;
 
   const toggleDay = (day: number) => {
     const next = new Set(customDaysOfWeek);
@@ -95,10 +118,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
     if (remindAt && new Date(remindAt) < new Date()) {
       errors.push("Der Zeitpunkt liegt in der Vergangenheit.");
     }
-    if (
-      recurrence === "custom" &&
-      (!Number(customInterval) || Number(customInterval) < 1)
-    ) {
+    if (recurrence === "custom" && (!Number(customInterval) || Number(customInterval) < 1)) {
       errors.push("Das Wiederholungs-Intervall muss mindestens 1 sein.");
     }
     if (errors.length > 0) {
@@ -139,9 +159,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
         <DashboardCombobox
           id="reminder-recurrence"
           value={recurrence}
-          onValueChange={(value) =>
-            dispatch({ recurrence: value as ReminderRecurrence })
-          }
+          onValueChange={(value) => dispatch({ recurrence: value as ReminderRecurrence })}
           options={RECURRENCE_OPTIONS.map((option) => ({
             value: option.value,
             label: option.label,
@@ -153,7 +171,9 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
       {recurrence === "custom" && (
         <div className="rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] p-3 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Häufigkeit</span>
+            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">
+              Häufigkeit
+            </span>
             <DashboardCombobox
               value={customUnit}
               onValueChange={(value) => {
@@ -171,7 +191,9 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">Alle</span>
+            <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">
+              Alle
+            </span>
             <DashboardNumberInput
               min={1}
               max={999}
@@ -186,7 +208,9 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
 
           {customUnit === "weeks" && (
             <div className="flex items-center gap-2">
-              <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">an</span>
+              <span className="px-[5px] text-xs font-medium text-[var(--ds-text-muted)] shrink-0 w-20">
+                an
+              </span>
               <div className="flex gap-1">
                 {WEEKDAYS.map(({ iso, label }) => (
                   <button
@@ -242,9 +266,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
             <DashboardCombobox
               id="reminder-email-template"
               value={String(emailTemplateId ?? "")}
-              onValueChange={(value) =>
-                dispatch({ emailTemplateId: value ? Number(value) : null })
-              }
+              onValueChange={(value) => dispatch({ emailTemplateId: value ? Number(value) : null })}
               options={[
                 { value: "", label: "Standard (ohne Template)" },
                 ...emailTemplates.map((template) => ({

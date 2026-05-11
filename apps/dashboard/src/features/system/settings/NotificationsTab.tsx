@@ -2,7 +2,8 @@ import { BellIcon } from "@phosphor-icons/react";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { SETTINGS_KEYS } from "@lmaa/shared";
-import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";

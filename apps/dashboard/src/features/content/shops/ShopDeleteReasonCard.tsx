@@ -1,20 +1,14 @@
 import { TrashIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useState } from "react";
 
-import { FormLabel, FormOptional } from "@lmaa/ui";
+import { FormLabel, FormOptional } from "@lmaa/ui/form-primitives";
 
 const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
 );
 
-import {
-  CancelActionButton,
-  DeleteActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
-import {
-  DashboardCheckboxField,
-  DashboardCombobox,
-} from "@/components/ui/DashboardControls.tsx";
+import { CancelActionButton, DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardCheckboxField, DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -83,7 +77,11 @@ export function ShopDeleteReasonCard({
               <FormOptional>{shopsMessages.deleteCard.optional}</FormOptional>
             </span>
           </FormLabel>
-          <Suspense fallback={<div className="h-[7.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+          <Suspense
+            fallback={
+              <div className="h-[7.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+            }
+          >
             <MarkdownEditor
               id="shop-delete-reason"
               value={reason}
@@ -124,19 +122,17 @@ export function ShopDeleteReasonCard({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <CancelActionButton
-          onClick={onCancel}
-          disabled={isPending}
-          label={common.cancel}
-        />
+        <CancelActionButton onClick={onCancel} disabled={isPending} label={common.cancel} />
         <DeleteActionButton
           onClick={() => onConfirm(reason.trim(), wasReported, deleteMode)}
           disabled={isPending}
-          label={isPending
-            ? shopsMessages.deleteCard.deleting
-            : deleteMode === "delete"
-              ? shopsMessages.deleteCard.deletePermanently
-              : shopsMessages.deleteCard.markDeleted}
+          label={
+            isPending
+              ? shopsMessages.deleteCard.deleting
+              : deleteMode === "delete"
+                ? shopsMessages.deleteCard.deletePermanently
+                : shopsMessages.deleteCard.markDeleted
+          }
         />
       </OverlayCard.Footer>
     </OverlayCard>

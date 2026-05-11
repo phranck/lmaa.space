@@ -1,5 +1,5 @@
 import type { AdminShopListItem } from "@lmaa/shared";
-import type { ShopEditFormValue } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
 export type ShopEditorModeProps = {
   initialData?: Partial<ShopEditFormValue>;

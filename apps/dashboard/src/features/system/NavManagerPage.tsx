@@ -1,8 +1,4 @@
-import {
-  DndContext,
-  type DragEndEvent,
-  closestCenter,
-} from "@dnd-kit/core";
+import { DndContext, type DragEndEvent, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
@@ -10,26 +6,18 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  BrowsersIcon,
-  FileIcon,
-  NotebookIcon,
-  SquareHalfBottomIcon,
-} from "@phosphor-icons/react";
+import { BrowsersIcon, FileIcon, NotebookIcon, SquareHalfBottomIcon } from "@phosphor-icons/react";
 import { forwardRef, useEffect, useImperativeHandle, useReducer, useRef, useState } from "react";
 
 import type { NavId } from "@lmaa/shared";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import {
   CreateActionButton,
   RemoveActionButton,
   SaveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  DashboardDragHandle,
-  DashboardInput,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardDragHandle, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -210,7 +198,10 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
   }
 
   const [state, dispatch] = useReducer(
-    (prev: NavColumnState, action: Partial<NavColumnState>): NavColumnState => ({ ...prev, ...action }),
+    (prev: NavColumnState, action: Partial<NavColumnState>): NavColumnState => ({
+      ...prev,
+      ...action,
+    }),
     {
       items: [],
       dirty: false,

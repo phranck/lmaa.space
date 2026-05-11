@@ -16,10 +16,10 @@ import type {
   InputType,
   RichTextVariant,
 } from "@lmaa/contracts";
-import { FormLabelText } from "@lmaa/ui";
+import { FormLabelText } from "@lmaa/ui/form-primitives";
 
 const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
 );
 
 import {
@@ -73,8 +73,16 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
 
   const inputTypeOptions: DropdownOption<InputType>[] = [
     { value: "text", label: m.inputTypeText, icon: <TextAaIcon weight="duotone" size={15} /> },
-    { value: "email", label: m.inputTypeEmail, icon: <EnvelopeOpenIcon weight="duotone" size={15} /> },
-    { value: "password", label: m.inputTypePassword, icon: <LockIcon weight="duotone" size={15} /> },
+    {
+      value: "email",
+      label: m.inputTypeEmail,
+      icon: <EnvelopeOpenIcon weight="duotone" size={15} />,
+    },
+    {
+      value: "password",
+      label: m.inputTypePassword,
+      icon: <LockIcon weight="duotone" size={15} />,
+    },
     { value: "url", label: m.inputTypeUrl, icon: <LinkIcon weight="duotone" size={15} /> },
     { value: "tel", label: m.inputTypeTel, icon: <DeviceMobileIcon weight="duotone" size={15} /> },
     { value: "date", label: m.inputTypeDate, icon: <CalendarIcon weight="duotone" size={15} /> },
@@ -118,9 +126,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Paragraph: plain text content */}
       {isParagraph && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.content}
-          </FormLabelText>
+          <FormLabelText>{m.content}</FormLabelText>
           <DashboardTextarea
             rows={4}
             value={field.content ?? ""}
@@ -133,13 +139,8 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Label — hidden for separator and paragraph */}
       {!isSeparator && !isParagraph && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.label}
-          </FormLabelText>
-          <DashboardInput
-            value={field.label}
-            onChange={(e) => set("label", e.target.value)}
-          />
+          <FormLabelText>{m.label}</FormLabelText>
+          <DashboardInput value={field.label} onChange={(e) => set("label", e.target.value)} />
         </label>
       )}
 
@@ -156,9 +157,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Headline level — only for headline fields */}
       {isHeadline && (
         <div className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.headlineLevel}
-          </FormLabelText>
+          <FormLabelText>{m.headlineLevel}</FormLabelText>
           <div className="flex flex-col gap-1.5">
             {(
               [
@@ -187,9 +186,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Variable name — hidden for richtext, button, headline, separator, paragraph */}
       {!isRichText && !isButton && !isHeadline && !isSeparator && !isParagraph && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.fieldName}
-          </FormLabelText>
+          <FormLabelText>{m.fieldName}</FormLabelText>
           <DashboardInput
             value={field.name ?? ""}
             onChange={(e) => set("name", e.target.value || undefined)}
@@ -204,9 +201,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Placeholder */}
       {hasPlaceholder && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.placeholder}
-          </FormLabelText>
+          <FormLabelText>{m.placeholder}</FormLabelText>
           <DashboardInput
             value={field.placeholder ?? ""}
             onChange={(e) => set("placeholder", e.target.value || undefined)}
@@ -217,9 +212,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Max chars — only for textarea */}
       {hasMaxChars && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.maxChars}
-          </FormLabelText>
+          <FormLabelText>{m.maxChars}</FormLabelText>
           <DashboardNumberInput
             min={1}
             value={field.validation?.max ?? ""}
@@ -235,9 +228,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Subtext — for text, email, password, textarea */}
       {hasSubtext && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.subtext}
-          </FormLabelText>
+          <FormLabelText>{m.subtext}</FormLabelText>
           <DashboardInput
             value={field.subtext ?? ""}
             onChange={(e) => set("subtext", e.target.value || undefined)}
@@ -269,9 +260,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {!isRichText && !isButton && !isSeparator && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <FormLabelText>
-              {m.span}
-            </FormLabelText>
+            <FormLabelText>{m.span}</FormLabelText>
             <span className="text-xs tabular-nums text-[var(--ds-text-subtle)]">
               {field.span ?? 12}/12
             </span>
@@ -297,9 +286,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Options — only for select/multi-select without optionsSource */}
       {hasOptions && !field.optionsSource && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.options}
-          </FormLabelText>
+          <FormLabelText>{m.options}</FormLabelText>
           <DashboardTextarea
             rows={4}
             value={(field.options ?? []).join("\n")}
@@ -317,9 +304,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Rows — only for textarea and richtext */}
       {hasRows && (
         <label className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.rows}
-          </FormLabelText>
+          <FormLabelText>{m.rows}</FormLabelText>
           <DashboardNumberInput
             min={1}
             max={30}
@@ -341,9 +326,7 @@ export function FieldConfigPanel({ field, onChange, allFields }: FieldConfigPane
       {/* Validation min/max — only for text/textarea */}
       {hasValidationMinMax && (
         <div className="flex flex-col gap-2">
-          <FormLabelText>
-            {m.validation}
-          </FormLabelText>
+          <FormLabelText>{m.validation}</FormLabelText>
           <div className="flex gap-2">
             <label className="flex-1 min-w-0 flex flex-col gap-1">
               <span className="text-xs text-[var(--ds-text-subtle)]">{m.validationMin}</span>
@@ -392,10 +375,12 @@ function RichTextFieldConfig({ field, onChange, m }: RichTextFieldConfigProps) {
   return (
     <>
       <div className="flex flex-col gap-1">
-        <FormLabelText>
-          {m.content}
-        </FormLabelText>
-        <Suspense fallback={<div className="h-[6rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+        <FormLabelText>{m.content}</FormLabelText>
+        <Suspense
+          fallback={
+            <div className="h-[6rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+          }
+        >
           <MarkdownEditor
             value={field.content ?? ""}
             onChange={(val) => set("content", val || undefined)}
@@ -405,9 +390,7 @@ function RichTextFieldConfig({ field, onChange, m }: RichTextFieldConfigProps) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <FormLabelText>
-          {m.variant}
-        </FormLabelText>
+        <FormLabelText>{m.variant}</FormLabelText>
         <div className="grid grid-cols-2 gap-1.5">
           {(
             [
@@ -480,9 +463,7 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
     <>
       {/* Button type */}
       <div className="flex flex-col gap-1">
-        <FormLabelText>
-          {m.buttonType}
-        </FormLabelText>
+        <FormLabelText>{m.buttonType}</FormLabelText>
         <div className="flex flex-col gap-1.5">
           {(
             [
@@ -509,9 +490,7 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
 
       {/* Button width */}
       <div className="flex flex-col gap-1">
-        <FormLabelText>
-          {m.buttonWidth}
-        </FormLabelText>
+        <FormLabelText>{m.buttonWidth}</FormLabelText>
         <div className="flex gap-1.5">
           {(
             [
@@ -537,9 +516,7 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
 
       {/* Button alignment */}
       <div className="flex flex-col gap-1">
-        <FormLabelText>
-          {m.buttonAlign}
-        </FormLabelText>
+        <FormLabelText>{m.buttonAlign}</FormLabelText>
         <div className="flex gap-1.5">
           {(
             [
@@ -581,9 +558,7 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
       {/* Button display mode -- only shown when an icon is selected */}
       {field.buttonIcon && (
         <div className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.buttonDisplay}
-          </FormLabelText>
+          <FormLabelText>{m.buttonDisplay}</FormLabelText>
           <div className="flex gap-1.5">
             {(
               [
@@ -612,9 +587,7 @@ function ButtonFieldConfig({ field, onChange, allFields, m }: ButtonFieldConfigP
       {/* Button action -- only for buttonType === "button" */}
       {(field.buttonType ?? "button") === "button" && (
         <div className="flex flex-col gap-1">
-          <FormLabelText>
-            {m.buttonAction}
-          </FormLabelText>
+          <FormLabelText>{m.buttonAction}</FormLabelText>
           <div className="flex flex-col gap-1.5">
             {(
               [

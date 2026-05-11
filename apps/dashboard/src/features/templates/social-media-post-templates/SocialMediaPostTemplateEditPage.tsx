@@ -19,7 +19,8 @@ import {
   type SocialMediaPostTemplateInput,
   type SocialMediaPostTemplateScope,
 } from "@lmaa/contracts";
-import { DashboardSection, PLATFORM_MAP } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 
 import { CopyActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardCheckboxField, DashboardInput } from "@/components/ui/DashboardControls.tsx";
@@ -37,7 +38,9 @@ import {
 } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
-const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
+);
 const FLUSH_MARKDOWN_EDITOR_CLASS = "rounded-none border-x-0 border-b-0";
 
 type SocialMediaTemplateMessages = ReturnType<typeof useI18n>["messages"]["socialMediaTemplates"];
