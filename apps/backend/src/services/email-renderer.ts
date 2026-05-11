@@ -9,7 +9,10 @@ const VAR_REGEX = /\{\{(\w+)\}\}/g;
 
 /** Dark mode rules as plain CSS (no @media wrapper). Used directly in previews. */
 const DARK_RULES = `
-  body                        { background: #1c1917 !important; }
+  body,
+  .em-body,
+  table.em-page,
+  td.em-page-cell             { background: #1c1917 !important; background-color: #1c1917 !important; }
   table.em-container          { background: #292524 !important; border-color: #44403c !important; }
   h1, h2, h3                  { color: #fafaf9 !important; }
   p                           { color: #d6d3d1 !important; }
@@ -20,11 +23,18 @@ const DARK_RULES = `
   .em-footer-text p           { color: #78716c !important; }
 `;
 
+const COLOR_SCHEME_CSS = `
+  :root {
+    color-scheme: light dark;
+    supported-color-schemes: light dark;
+  }
+`;
+
 /**
  * CSS injected into real emails — wraps dark rules in a @media query so email
  * clients apply them automatically based on the user's OS setting.
  */
-const DARK_MODE_CSS = `@media (prefers-color-scheme: dark) {${DARK_RULES}}`;
+const DARK_MODE_CSS = `${COLOR_SCHEME_CSS}@media (prefers-color-scheme: dark) {${DARK_RULES}}`;
 
 function interpolate(text: string, variables: Record<string, string>): string {
   return text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) =>
@@ -104,11 +114,13 @@ function buildEmailHtml(rows: string[], css: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <style>${css}</style>
 </head>
-<body style="margin:0;padding:0;background:#f5f5f4;font-family:'Inter',system-ui,-apple-system,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td align="center" style="padding:40px 16px;">
+<body class="em-body" style="margin:0;padding:0;background:#f5f5f4;background-color:#f5f5f4;font-family:'Inter',system-ui,-apple-system,sans-serif;">
+  <table class="em-page" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f4;background-color:#f5f5f4;">
+    <tr><td class="em-page-cell" align="center" style="padding:40px 16px;background:#f5f5f4;background-color:#f5f5f4;">
       <table class="em-container" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#fff;border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;">
         ${rows.join("\n        ")}
       </table>
@@ -144,5 +156,5 @@ export async function renderEmailTemplate(
  */
 export function renderEmailPreview(fields: TemplateFields, colorScheme: "light" | "dark"): string {
   const rows = buildRows(fields, {});
-  return buildEmailHtml(rows, colorScheme === "dark" ? DARK_RULES : "");
+  return buildEmailHtml(rows, `${COLOR_SCHEME_CSS}${colorScheme === "dark" ? DARK_RULES : ""}`);
 }

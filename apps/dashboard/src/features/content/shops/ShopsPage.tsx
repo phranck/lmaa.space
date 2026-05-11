@@ -28,17 +28,24 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { type SortState } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAuth } from "@/features/auth/AuthContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import {
   EXPORT_LIMITS,
   type ExportLimit,
   type GeoFilter,
   INITIAL_FILTER_STATE,
+  SHOP_SORTABLE_COLUMNS,
   type VisibilityFilter,
   parseShopsSort,
   shopsFilterReducer,
 } from "@/features/content/shops/shop-filter-state.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
+import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import {
+  readStoredTableSort,
+  writeStoredTableSort,
+} from "@/lib/table-sort-storage.ts";
 
 import {
   useAdminShops,
@@ -54,6 +61,7 @@ import {
 export function ShopsPage() {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -73,7 +81,13 @@ export function ShopsPage() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-  const sort = useMemo(() => parseShopsSort(searchParams), [searchParams]);
+  const sortStorageKey = getSegmentedStorageKey(user?.id, "shops:list:sort");
+  const sort = useMemo(() => {
+    const urlSort = parseShopsSort(searchParams);
+    if (urlSort) return urlSort;
+    const storedSort = readStoredTableSort(sortStorageKey, SHOP_SORTABLE_COLUMNS);
+    return storedSort === undefined ? null : storedSort;
+  }, [searchParams, sortStorageKey]);
 
   function setSearch(value: string) {
     const next = new URLSearchParams(searchParams);
@@ -203,6 +217,7 @@ export function ShopsPage() {
   );
 
   function handleSortChange(nextSort: SortState | null) {
+    writeStoredTableSort(sortStorageKey, nextSort, SHOP_SORTABLE_COLUMNS);
     const nextParams = new URLSearchParams(searchParams);
     if (nextSort) {
       nextParams.set("sort", nextSort.id);
