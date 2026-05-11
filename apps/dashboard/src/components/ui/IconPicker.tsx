@@ -13,6 +13,9 @@ interface IconPickerProps {
   noneLabel: string;
 }
 
+const selectedIconPickerButtonClass =
+  "border-[var(--color-primary)] bg-[var(--ds-control-active-bg)] text-[var(--color-primary)] hover:border-[var(--color-primary)] hover:bg-[color-mix(in_srgb,var(--color-primary)_28%,transparent)] hover:text-[var(--color-primary)]";
+
 export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
   const { messages } = useI18n();
   const mp = messages.formBuilder.panel;
@@ -43,11 +46,12 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
         {!q && (
           <DashboardButton
             type="button"
+            aria-pressed={!value}
             title={noneLabel}
             onClick={() => onChange(undefined)}
-            className="w-full px-0"
+            className={cx("w-full px-0", !value && selectedIconPickerButtonClass)}
             size="control"
-            variant={!value ? "primary" : "neutral"}
+            variant="neutral"
           >
             x
           </DashboardButton>
@@ -69,11 +73,12 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
                 key={entry.name}
                 type="button"
                 aria-label={entry.label}
+                aria-pressed={value === entry.name}
                 title={entry.label}
                 onClick={() => onChange(entry.name)}
-                className="w-full"
+                className={cx("w-full", value === entry.name && selectedIconPickerButtonClass)}
                 size="control"
-                variant={value === entry.name ? "primary" : "neutral"}
+                variant="neutral"
               >
                 <Icon width={18} height={18} />
               </DashboardIconButton>
@@ -83,4 +88,8 @@ export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProp
       </div>
     </div>
   );
+}
+
+function cx(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
 }
