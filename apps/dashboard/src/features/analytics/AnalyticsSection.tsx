@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import { Suspense, lazy, useCallback, useMemo, useState } from "react";
 
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";

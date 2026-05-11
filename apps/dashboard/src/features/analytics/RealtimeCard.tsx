@@ -1,6 +1,6 @@
 import { Suspense, lazy, useMemo } from "react";
 
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useTheme } from "@/context/ThemeContext.tsx";

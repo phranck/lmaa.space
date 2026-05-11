@@ -1,4 +1,1 @@
-export {
-	Dialog,
-	dialogHeaderIconClass,
-} from "@lmaa/ui";
+export { Dialog, dialogHeaderIconClass } from "@lmaa/ui/dialog";

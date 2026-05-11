@@ -1,10 +1,11 @@
 import { EnvelopeSimpleIcon, XCircleIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, type ReactNode } from "react";
 
-import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
+import { CharCounter } from "@lmaa/ui/char-counter";
+import { FormLabel, FormOptional } from "@lmaa/ui/form-primitives";
 
 const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
 );
 
 import {
@@ -144,7 +145,11 @@ export function RejectDialog({
           <FormLabel htmlFor="reject-note">
             {messages.comment} <FormOptional>{messages.optional}</FormOptional>
           </FormLabel>
-          <Suspense fallback={<div className="h-[4.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+          <Suspense
+            fallback={
+              <div className="h-[4.5rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+            }
+          >
             <MarkdownEditor
               id="reject-note"
               value={adminNote}
@@ -162,7 +167,11 @@ export function RejectDialog({
           <FormLabel htmlFor="reject-long">
             {messages.rejectionLongLabel} <FormOptional>{messages.optional}</FormOptional>
           </FormLabel>
-          <Suspense fallback={<div className="h-[9rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+          <Suspense
+            fallback={
+              <div className="h-[9rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+            }
+          >
             <MarkdownEditor
               id="reject-long"
               value={rejectionLongText}
@@ -234,9 +243,7 @@ export function NotificationTemplateSelect({
       </div>
       <DashboardCombobox
         value={String(notificationTemplateId ?? "")}
-        onValueChange={(value) =>
-          onNotificationTemplateChange(value ? Number(value) : undefined)
-        }
+        onValueChange={(value) => onNotificationTemplateChange(value ? Number(value) : undefined)}
         disabled={!hasSubmitterEmail}
         options={[
           { value: "", label: notificationNoneLabel },

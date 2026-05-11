@@ -1,8 +1,6 @@
-import {
-  type ShopEditFormMessages,
-  createDefaultCountryCodeOptions,
-  createDefaultRegionOptions,
-} from "@lmaa/ui";
+import { createDefaultCountryCodeOptions } from "@lmaa/ui/country-code-select";
+import { createDefaultRegionOptions } from "@lmaa/ui/region-select";
+import { type ShopEditFormMessages } from "@lmaa/ui/shop-edit-form";
 
 import type { DashboardLocale } from "@/i18n/messages.ts";
 
@@ -90,7 +88,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         shopCheckBrandsSectionLabel: "Brands & Products",
         shopCheckBrandsLabel: "Brands or products",
         shopCheckBrandsPlaceholder: "e.g. Stanley/Stella\nB&C\norganic cotton shirts",
-        shopCheckListHelpLabel: "One entry per line. These values are stored and included in search.",
+        shopCheckListHelpLabel:
+          "One entry per line. These values are stored and included in search.",
         categorySelect: {
           selectAll: "(Select all)",
           clearAllAriaLabel: "Clear all selected categories",
@@ -140,8 +139,10 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       longitudePlaceholder: "z.B. 13.4050",
       geocodeButtonLabel: "Geocode",
       geocodingErrorTitle: "Geocoding fehlgeschlagen",
-      geocodingNoResultsLabel: "Für die eingegebene Adresse konnten keine Koordinaten gefunden werden.",
-      geocodingFetchErrorLabel: "Die Geocoding-Anfrage ist fehlgeschlagen. Bitte versuche es erneut.",
+      geocodingNoResultsLabel:
+        "Für die eingegebene Adresse konnten keine Koordinaten gefunden werden.",
+      geocodingFetchErrorLabel:
+        "Die Geocoding-Anfrage ist fehlgeschlagen. Bitte versuche es erneut.",
       jsonToolTitle: "JSON aus Shop-Check Skill",
       jsonApplyLabel: "Aus JSON übernehmen",
       jsonImportFileLabel: "JSON importieren",
@@ -167,7 +168,8 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
       shopCheckBrandsSectionLabel: "Brands & Produkte",
       shopCheckBrandsLabel: "Brands oder Produkte",
       shopCheckBrandsPlaceholder: "z.B. Stanley/Stella\nB&C\nBio-Baumwollshirts",
-      shopCheckListHelpLabel: "Ein Eintrag pro Zeile. Diese Werte werden gespeichert und in der Suche berücksichtigt.",
+      shopCheckListHelpLabel:
+        "Ein Eintrag pro Zeile. Diese Werte werden gespeichert und in der Suche berücksichtigt.",
       categorySelect: {
         selectAll: "(Alle auswählen)",
         clearAllAriaLabel: "Alle ausgewählten Kategorien entfernen",

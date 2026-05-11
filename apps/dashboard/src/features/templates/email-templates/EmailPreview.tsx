@@ -1,7 +1,7 @@
 import { EyeIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -60,12 +60,7 @@ export function EmailPreview({
       <DashboardSection.Header
         icon={<EyeIcon weight="duotone" className="size-4" />}
         title={m.previewTitle}
-        addOn={
-          <ThemeSegmentedControl
-            value={theme}
-            onChange={setTheme}
-          />
-        }
+        addOn={<ThemeSegmentedControl value={theme} onChange={setTheme} />}
       />
       <DashboardSection.Body className="min-h-0 flex-1 !gap-0 !p-0">
         <iframe

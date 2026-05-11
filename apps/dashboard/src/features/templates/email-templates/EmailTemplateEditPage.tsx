@@ -10,9 +10,11 @@ import { Suspense, lazy, type ReactNode, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
-const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";

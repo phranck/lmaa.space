@@ -1,11 +1,13 @@
 import { BracketsCurlyIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useRef, useState } from "react";
 
-import { FormErrorText, DashboardSection, ShopEditForm } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { FormErrorText } from "@lmaa/ui/form-primitives";
+import { ShopEditForm } from "@lmaa/ui/shop-edit-form";
 import { ShopLocationMap } from "@lmaa/ui/shop-location-map";
 
 const JsonEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.JsonEditor })),
+  import("@lmaa/ui/json-editor").then((m) => ({ default: m.JsonEditor })),
 );
 
 import type { ShopEditorController } from "./hooks/useShopEditorController.ts";
@@ -152,7 +154,11 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                 title={shopFormI18n.messages.jsonToolTitle ?? ""}
               />
               <DashboardSection.Body className="!p-0">
-                <Suspense fallback={<div className="h-[11rem] bg-[var(--ds-input-bg)] animate-pulse rounded-b-xl" />}>
+                <Suspense
+                  fallback={
+                    <div className="h-[11rem] bg-[var(--ds-input-bg)] animate-pulse rounded-b-xl" />
+                  }
+                >
                   <JsonEditor
                     id="shop-check-json"
                     value={shopCheckJson}
@@ -163,7 +169,9 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
                     className="!border-0 !rounded-none !rounded-b-xl"
                   />
                 </Suspense>
-                {jsonImportError && <FormErrorText className="px-4 pb-3">{jsonImportError}</FormErrorText>}
+                {jsonImportError && (
+                  <FormErrorText className="px-4 pb-3">{jsonImportError}</FormErrorText>
+                )}
               </DashboardSection.Body>
             </DashboardSection>
           }
@@ -176,9 +184,11 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
             />
           }
           descriptionAside={
-            !isNew && !controller.isSubmissionMode && typeof controller.activeShop?.id === "number"
-              ? <ShopReminderSection shopId={controller.activeShop.id} />
-              : undefined
+            !isNew &&
+            !controller.isSubmissionMode &&
+            typeof controller.activeShop?.id === "number" ? (
+              <ShopReminderSection shopId={controller.activeShop.id} />
+            ) : undefined
           }
         />
       )}

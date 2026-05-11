@@ -1,5 +1,5 @@
 import type { AdminLocale, AdminUser } from "@lmaa/shared";
-import { FormLabel } from "@lmaa/ui";
+import { FormLabel } from "@lmaa/ui/form-primitives";
 
 import {
   DashboardCheckboxField,
@@ -7,7 +7,11 @@ import {
   DashboardInput,
 } from "@/components/ui/DashboardControls.tsx";
 import { LanguageToggle } from "@/components/ui/LanguageToggle.tsx";
-import type { EditableRole, UserEditDraftState, UserEditField } from "@/features/system/users/user-edit-state.ts";
+import type {
+  EditableRole,
+  UserEditDraftState,
+  UserEditField,
+} from "@/features/system/users/user-edit-state.ts";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 
 interface UserProfileFieldsProps {
@@ -115,7 +119,9 @@ export function UserProfileFields({
           <DashboardCheckboxField
             checked={draft.logoutConfirm}
             className="items-center gap-2 px-[5px] pt-1"
-            label={<span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>}
+            label={
+              <span className="text-xs text-[var(--ds-text-muted)]">{logoutConfirmLabel}</span>
+            }
             onCheckedChange={onLogoutConfirmChange}
           />
         </>

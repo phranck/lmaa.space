@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { SocialMediaPostTemplate } from "@lmaa/contracts";
-import { PLATFORM_MAP } from "@lmaa/ui";
+import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -11,10 +11,7 @@ import {
   CreateActionButton,
   DeleteActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { SystemTemplateBadge } from "@/components/ui/SystemTemplateBadge.tsx";

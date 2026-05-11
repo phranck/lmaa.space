@@ -1,22 +1,15 @@
-import {
-  PersonIcon,
-  UserCheckIcon,
-  UserPlusIcon,
-} from "@phosphor-icons/react";
+import { PersonIcon, UserCheckIcon, UserPlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import type { AdminUserInvite } from "@lmaa/shared";
-import { FormLabel, FormLabelText } from "@lmaa/ui";
+import { FormLabel, FormLabelText } from "@lmaa/ui/form-primitives";
 
 import {
   CancelActionButton,
   CopyActionButton,
   CreateActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  DashboardCombobox,
-  DashboardInput,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardCombobox, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
@@ -236,14 +229,13 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <CancelActionButton
-          label={common.cancel}
-          onClick={onClose}
-        />
+        <CancelActionButton label={common.cancel} onClick={onClose} />
         {inviteResult ? (
           <CopyActionButton
             onClick={handleCopyInviteLink}
-            label={copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite}
+            label={
+              copied ? usersMessages.createCard.inviteCopied : usersMessages.createCard.copyInvite
+            }
             variant="primary"
           />
         ) : (
@@ -251,9 +243,11 @@ export function UserCreateCard({ onClose, onCreated }: UserCreateCardProps) {
             onClick={handleSubmit}
             disabled={!canSubmit}
             busy={createMutation.isPending}
-            label={createMutation.isPending
-              ? usersMessages.createCard.creating
-              : usersMessages.createCard.create}
+            label={
+              createMutation.isPending
+                ? usersMessages.createCard.creating
+                : usersMessages.createCard.create
+            }
           />
         )}
       </OverlayCard.Footer>

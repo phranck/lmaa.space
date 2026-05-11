@@ -6,11 +6,7 @@ import {
   closestCenter,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import {
-  GearIcon,
-  HandTapIcon,
-  QuestionIcon,
-} from "@phosphor-icons/react";
+import { GearIcon, HandTapIcon, QuestionIcon } from "@phosphor-icons/react";
 import { useEffect, useReducer, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -21,13 +17,11 @@ import type {
   FormRow,
   SubmissionConfig,
 } from "@lmaa/contracts";
-import { DashboardSection, ToggleSwitch } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import {
-  ExportActionButton,
-  SaveActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { ExportActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { FlowConnector } from "@/components/ui/FlowConnector.tsx";
@@ -36,7 +30,10 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { BuilderCanvas } from "@/features/templates/form-builder/BuilderCanvas.tsx";
-import { FieldConfigPanel, fieldTypeLabel } from "@/features/templates/form-builder/FieldConfigPanel.tsx";
+import {
+  FieldConfigPanel,
+  fieldTypeLabel,
+} from "@/features/templates/form-builder/FieldConfigPanel.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { FieldPalette } from "@/features/templates/form-builder/FieldPalette.tsx";
 import { SubmissionConfigPanel } from "@/features/templates/form-builder/SubmissionConfigPanel.tsx";
@@ -171,7 +168,10 @@ export function FormBuilderEditPage() {
   }
 
   const [uiState, dispatchUI] = useReducer(
-    (prev: BuilderUIState, action: Partial<BuilderUIState>): BuilderUIState => ({ ...prev, ...action }),
+    (prev: BuilderUIState, action: Partial<BuilderUIState>): BuilderUIState => ({
+      ...prev,
+      ...action,
+    }),
     { selectedFieldId: null, saveStatus: "idle", showExportWarning: false, activeDrag: null },
   );
   const { selectedFieldId, saveStatus, showExportWarning, activeDrag } = uiState;
@@ -482,13 +482,20 @@ export function FormBuilderEditPage() {
             <div className="shrink-0 w-72">
               <DashboardSection>
                 <DashboardSection.Header
-                  icon={selectedField !== null
-                    ? <FieldTypeIcon type={selectedField.type} />
-                    : <GearIcon weight="duotone" className="size-4" />
+                  icon={
+                    selectedField !== null ? (
+                      <FieldTypeIcon type={selectedField.type} />
+                    ) : (
+                      <GearIcon weight="duotone" className="size-4" />
+                    )
                   }
-                  title={selectedField !== null
-                    ? fieldTypeLabel(selectedField.type, m.fieldTypes as unknown as Record<string, string>)
-                    : m.preferencesTitle
+                  title={
+                    selectedField !== null
+                      ? fieldTypeLabel(
+                          selectedField.type,
+                          m.fieldTypes as unknown as Record<string, string>,
+                        )
+                      : m.preferencesTitle
                   }
                 />
                 {selectedField !== null ? (

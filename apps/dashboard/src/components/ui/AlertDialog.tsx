@@ -1,1 +1,1 @@
-export { AlertDialog } from "@lmaa/ui";
+export { AlertDialog } from "@lmaa/ui/alert-dialog";

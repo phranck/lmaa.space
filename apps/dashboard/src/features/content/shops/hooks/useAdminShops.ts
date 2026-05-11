@@ -7,7 +7,7 @@ import type {
   ShopReminder,
   ShopVisibility,
 } from "@lmaa/shared";
-import type { ShopEditFormValue } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
 import type { ShopDeleteMode } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
 import { api } from "@/lib/api.ts";
@@ -120,7 +120,13 @@ export function getAdminShopQueryOptions(id: number) {
 export function useSaveShop(editId: number | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ formData, needsReview }: { formData: ShopEditFormValue; needsReview?: boolean }) =>
+    mutationFn: ({
+      formData,
+      needsReview,
+    }: {
+      formData: ShopEditFormValue;
+      needsReview?: boolean;
+    }) =>
       editId
         ? api.patch<Shop>(`/admin/shops/${editId}`, {
             ...formData,

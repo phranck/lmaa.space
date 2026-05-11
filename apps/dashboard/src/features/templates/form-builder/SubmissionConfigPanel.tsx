@@ -25,10 +25,11 @@ import {
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 
 import type { SubmissionConfig, SubmissionStep, SubmissionStepEmail } from "@lmaa/contracts";
-import { DashboardSection, FormLabel } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { FormLabel } from "@lmaa/ui/form-primitives";
 
 const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
 );
 
 import { CreateActionButton } from "@/components/ui/DashboardActionButton.tsx";
@@ -98,11 +99,7 @@ function StepRow({ sortableId, index, step, onUpdate, onRemove, fields, template
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <DashboardDragHandle
-            {...attributes}
-            {...listeners}
-            aria-label={m.stepMoveAria}
-          />
+          <DashboardDragHandle {...attributes} {...listeners} aria-label={m.stepMoveAria} />
           <span className="text-sm font-medium text-[var(--ds-text)] truncate">
             {step.type === "store"
               ? m.stepStore
@@ -349,9 +346,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
             <div className="flex items-center gap-1.5">
               <DashboardCombobox
                 value={pendingStepType}
-                onValueChange={(value) =>
-                  setPendingStepType(value as SubmissionStep["type"])
-                }
+                onValueChange={(value) => setPendingStepType(value as SubmissionStep["type"])}
                 className="w-52"
                 matchTriggerWidth={false}
                 options={stepOptions.map(({ type, label, icon }) => ({
@@ -471,9 +466,7 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
           <>
             <DashboardSection.Body>
               <div>
-                <FormLabel htmlFor="submission-success-headline">
-                  {m.successHeadline}
-                </FormLabel>
+                <FormLabel htmlFor="submission-success-headline">{m.successHeadline}</FormLabel>
                 <DashboardInput
                   id="submission-success-headline"
                   value={cfg.successHeadline ?? ""}
@@ -481,11 +474,13 @@ export function SubmissionConfigPanel({ config, onChange, fields }: SubmissionCo
                   placeholder={m.successHeadlinePlaceholder}
                 />
               </div>
-              <FormLabel htmlFor="submission-success-message">
-                Text
-              </FormLabel>
+              <FormLabel htmlFor="submission-success-message">Text</FormLabel>
             </DashboardSection.Body>
-            <Suspense fallback={<div className="h-[6rem] rounded-b-xl border-t border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
+            <Suspense
+              fallback={
+                <div className="h-[6rem] rounded-b-xl border-t border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+              }
+            >
               <MarkdownEditor
                 id="submission-success-message"
                 value={cfg.successMessage ?? ""}

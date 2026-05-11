@@ -1,24 +1,14 @@
-import {
-  MagnifyingGlassIcon,
-  TagIcon,
-  TrashIcon,
-  TrayArrowUpIcon,
-} from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, TagIcon, TrashIcon, TrayArrowUpIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { TemplateAssignment } from "@lmaa/contracts";
-import { FocalPointOverlay, FormLabel, useFocalPointDrag } from "@lmaa/ui";
+import { FocalPointOverlay, useFocalPointDrag } from "@lmaa/ui/focal-point-overlay";
+import { FormLabel } from "@lmaa/ui/form-primitives";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
-import {
-  CancelActionButton,
-  SaveActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { CancelActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
-import {
-  DashboardInput,
-  DashboardTextarea,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardInput, DashboardTextarea } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -95,13 +85,16 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
 
   const setFocalPoint = useSetCategoryFocalPoint();
   const handleFocalCommit = useCallback(
-    (y: number) => { if (!isNew && category) setFocalPoint.mutate({ id: category.id, focalPointY: y }); },
+    (y: number) => {
+      if (!isNew && category) setFocalPoint.mutate({ id: category.id, focalPointY: y });
+    },
     [isNew, category?.id, setFocalPoint],
   );
-  const { focalY, containerRef: imageContainerRef, startDrag: startFocalDrag } = useFocalPointDrag(
-    category?.imageFocalPointY ?? 50,
-    handleFocalCommit,
-  );
+  const {
+    focalY,
+    containerRef: imageContainerRef,
+    startDrag: startFocalDrag,
+  } = useFocalPointDrag(category?.imageFocalPointY ?? 50, handleFocalCommit);
 
   const [form, setForm] = useState<CategoryFormData>({ name: "", slug: "", description: "" });
   const [image, setImage] = useState<CategoryImageState>({
@@ -247,7 +240,10 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         onEscape={handleEscape}
       >
         {/* Image Panel -- 50 % */}
-        <div ref={imageContainerRef} className="group relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]">
+        <div
+          ref={imageContainerRef}
+          className="group relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]"
+        >
           {displayImageUrl && !image.loadError ? (
             <>
               <img
@@ -257,9 +253,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 draggable={false}
                 onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
               />
-              {!isNew && (
-                <FocalPointOverlay focalY={focalY} onMouseDown={startFocalDrag} />
-              )}
+              {!isNew && <FocalPointOverlay focalY={focalY} onMouseDown={startFocalDrag} />}
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
@@ -397,10 +391,7 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
                 {messages.socialMedia.approve.approveBlockedHint}
               </span>
             )}
-            <CancelActionButton
-              label={common.cancel}
-              onClick={onClose}
-            />
+            <CancelActionButton label={common.cancel} onClick={onClose} />
             <SaveActionButton
               onClick={() => handleSave()}
               disabled={!canSave}

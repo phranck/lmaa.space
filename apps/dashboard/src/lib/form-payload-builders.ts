@@ -1,4 +1,4 @@
-import type { ShopEditFormValue } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
 function parseCoordinate(value: string) {
   const trimmed = value.trim();

@@ -1,17 +1,12 @@
-import {
-  EyeIcon,
-  MarkdownLogoIcon,
-  MinusCircleIcon,
-  PlusCircleIcon,
-} from "@phosphor-icons/react";
+import { EyeIcon, MarkdownLogoIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
 import { Suspense, lazy, useCallback, useEffect, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { ContentPage } from "@lmaa/shared";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
 );
 
 import {
@@ -19,10 +14,7 @@ import {
   DeleteActionButton,
   SaveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  DashboardButton,
-  DashboardIconButton,
-} from "@/components/ui/DashboardButton.tsx";
+import { DashboardButton, DashboardIconButton } from "@/components/ui/DashboardButton.tsx";
 import {
   DashboardCheckboxField,
   DashboardCombobox,
@@ -249,10 +241,7 @@ function EditorHeaderActions({
             disabled={isDeleting}
             label={editorMessages.confirmDeleteAction}
           />
-          <CancelActionButton
-            onClick={onCancelDelete}
-            label={common.cancel}
-          />
+          <CancelActionButton onClick={onCancelDelete} label={common.cancel} />
         </div>
       )}
     </div>
@@ -330,11 +319,7 @@ function EditorMetadataBar({
               }}
               className="w-48 text-xs"
             />
-            <DashboardButton
-              onClick={onSaveTitle}
-              className="px-2"
-              variant="ghost"
-            >
+            <DashboardButton onClick={onSaveTitle} className="px-2" variant="ghost">
               {editorMessages.ok}
             </DashboardButton>
             <DashboardButton onClick={onCancelTitle} className="px-2" variant="ghost">
@@ -368,11 +353,7 @@ function EditorMetadataBar({
               pattern="[a-z0-9-]+"
               className="w-40 font-mono text-xs"
             />
-            <DashboardButton
-              onClick={onSaveSlug}
-              className="px-2"
-              variant="ghost"
-            >
+            <DashboardButton onClick={onSaveSlug} className="px-2" variant="ghost">
               {editorMessages.ok}
             </DashboardButton>
             <DashboardButton onClick={onCancelSlug} className="px-2" variant="ghost">
@@ -407,7 +388,11 @@ function EditorMetadataBar({
       <DashboardCheckboxField
         checked={page.showTitle}
         onCheckedChange={onShowTitleChange}
-        label={<span className="text-xs font-medium text-[var(--ds-text-muted)]">{editorMessages.showTitleLabel}</span>}
+        label={
+          <span className="text-xs font-medium text-[var(--ds-text-muted)]">
+            {editorMessages.showTitleLabel}
+          </span>
+        }
         className="items-center gap-1.5"
         boxClassName="mt-0"
       />
@@ -518,7 +503,12 @@ export function ContentEditorPage() {
     <PageLayout>
       <PageHeader
         title={title}
-        leading={<HeaderBackButton label={messages.content.pages.title} onClick={() => navigate("/pages")} />}
+        leading={
+          <HeaderBackButton
+            label={messages.content.pages.title}
+            onClick={() => navigate("/pages")}
+          />
+        }
       >
         <EditorHeaderActions
           sourceFontSize={state.sourceFontSize}

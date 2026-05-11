@@ -9,7 +9,9 @@ import {
 } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
 
-import { DashboardSection, FocalPointOverlay, ToggleSwitch, useFocalPointDrag } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
+import { FocalPointOverlay, useFocalPointDrag } from "@lmaa/ui/focal-point-overlay";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -58,13 +60,13 @@ function HeroImageCard({
     (y: number) => setFocalPoint.mutate({ id: image.id, focalPointY: y }),
     [image.id, setFocalPoint],
   );
-  const { focalY, containerRef, startDrag } = useFocalPointDrag(image.focalPointY ?? 50, handleCommit);
+  const { focalY, containerRef, startDrag } = useFocalPointDrag(
+    image.focalPointY ?? 50,
+    handleCommit,
+  );
 
   return (
-    <div
-      ref={containerRef}
-      className="group relative rounded-control overflow-hidden"
-    >
+    <div ref={containerRef} className="group relative rounded-control overflow-hidden">
       <img
         src={image.url}
         alt=""
@@ -98,7 +100,9 @@ function HeroImageCard({
           disabled={togglePending}
           className="bg-white text-stone-900 hover:bg-stone-100"
           size="control"
-          title={image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
+          title={
+            image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive
+          }
           variant="neutral"
           leadingIcon={
             image.isSelected ? (
@@ -162,7 +166,6 @@ export function HeroBannerTab() {
     <>
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         <div className="p-4 space-y-4">
-
           {/* Rotation Section */}
           <DashboardSection expanded={rotation.enabled}>
             <DashboardSection.Header
@@ -178,7 +181,10 @@ export function HeroBannerTab() {
             />
             <DashboardSection.Body>
               <div className="flex items-center gap-3">
-                <label htmlFor="rotation-interval" className="text-sm text-[var(--ds-text)] shrink-0">
+                <label
+                  htmlFor="rotation-interval"
+                  className="text-sm text-[var(--ds-text)] shrink-0"
+                >
                   {m.rotationInterval}
                 </label>
                 <DashboardNumberInput
@@ -186,10 +192,14 @@ export function HeroBannerTab() {
                   min={1}
                   max={99}
                   value={localInterval}
-                  onChange={(e) => setLocalInterval(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
+                  onChange={(e) =>
+                    setLocalInterval(Math.max(1, Number.parseInt(e.target.value, 10) || 1))
+                  }
                   className="w-14 text-center"
                 />
-                <span className="text-sm text-[var(--ds-text-muted)]">{m.rotationIntervalSuffix}</span>
+                <span className="text-sm text-[var(--ds-text-muted)]">
+                  {m.rotationIntervalSuffix}
+                </span>
                 {intervalDirty && (
                   <SaveActionButton
                     disabled={intervalConfig.isSaving}
@@ -247,7 +257,6 @@ export function HeroBannerTab() {
               )}
             </DashboardSection.Body>
           </DashboardSection>
-
         </div>
       </div>
 

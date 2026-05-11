@@ -7,46 +7,46 @@ import {
   MinusIcon,
   PlusIcon,
 } from "@phosphor-icons/react";
-import type {
-  ButtonHTMLAttributes,
-  KeyboardEvent,
-  ReactNode,
-  SelectHTMLAttributes,
-} from "react";
+import type { ButtonHTMLAttributes, KeyboardEvent, ReactNode, SelectHTMLAttributes } from "react";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import {
   CheckboxPrimitive,
-  ControlTrigger,
+  SwitchPrimitive,
+  type CheckboxPrimitiveProps,
+  type SwitchPrimitiveProps,
+} from "@lmaa/ui/choice-primitives";
+import {
   FieldShell,
   InputPrimitive,
-  ListboxOption,
-  ListboxPopover,
+  TextareaPrimitive,
+  type FieldControlSize,
+  type FieldShellProps,
+  type InputPrimitiveProps,
+  type TextareaPrimitiveProps,
+} from "@lmaa/ui/field-primitives";
+import { ControlTrigger, ListboxOption, ListboxPopover } from "@lmaa/ui/listbox-primitives";
+import {
   MenuItemPrimitive,
   MenuPrimitive,
-  MultiSelect,
+  type MenuItemPrimitiveProps,
+  type MenuPrimitiveProps,
+} from "@lmaa/ui/menu-primitives";
+import { MultiSelect, type MultiSelectProps } from "@lmaa/ui/multi-select";
+import {
   SegmentedControlPrimitive,
-  SwitchPrimitive,
+  type SegmentedControlPrimitiveProps,
+} from "@lmaa/ui/segmented-control-primitive";
+import {
   TabListPrimitive,
   TabPanelPrimitive,
   TabTriggerPrimitive,
   TabsPrimitive,
-  TextareaPrimitive,
-  type CheckboxPrimitiveProps,
-  type FieldControlSize,
-  type FieldShellProps,
-  type InputPrimitiveProps,
-  type MenuItemPrimitiveProps,
-  type MenuPrimitiveProps,
-  type MultiSelectProps,
-  type SegmentedControlPrimitiveProps,
-  type SwitchPrimitiveProps,
   type TabListPrimitiveProps,
   type TabPanelPrimitiveProps,
   type TabsPrimitiveProps,
   type TabTriggerPrimitiveProps,
-  type TextareaPrimitiveProps,
-} from "@lmaa/ui";
+} from "@lmaa/ui/tabs-primitives";
 
 import {
   DashboardButton,
@@ -171,8 +171,10 @@ export interface DashboardSelectOption {
   value: string;
 }
 
-export interface DashboardSelectProps
-  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> {
+export interface DashboardSelectProps extends Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  "size"
+> {
   controlSize?: FieldControlSize;
   error?: ReactNode;
   fieldClassName?: string;
@@ -205,14 +207,12 @@ export function DashboardSelect({
   required,
   ...selectProps
 }: DashboardSelectProps) {
-  const select = (
-    controlProps?: {
-      "aria-describedby"?: string;
-      "aria-invalid"?: true;
-      "aria-required"?: true;
-      id: string;
-    },
-  ) => (
+  const select = (controlProps?: {
+    "aria-describedby"?: string;
+    "aria-invalid"?: true;
+    "aria-required"?: true;
+    id: string;
+  }) => (
     <select
       {...selectProps}
       {...controlProps}
@@ -221,11 +221,7 @@ export function DashboardSelect({
     >
       {placeholder && <option value="">{placeholder}</option>}
       {options?.map((option) => (
-        <option
-          disabled={option.disabled}
-          key={option.value}
-          value={option.value}
-        >
+        <option disabled={option.disabled} key={option.value} value={option.value}>
           {option.label}
         </option>
       ))}
@@ -261,8 +257,10 @@ export interface DashboardComboboxOption {
   value: string;
 }
 
-export interface DashboardComboboxProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChange" | "value"> {
+export interface DashboardComboboxProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "onChange" | "value"
+> {
   controlSize?: FieldControlSize;
   error?: ReactNode;
   fieldClassName?: string;
@@ -310,15 +308,12 @@ export function DashboardCombobox({
 }: DashboardComboboxProps) {
   const [open, setOpen] = useState(false);
   const [activeValue, setActiveValue] = useState<string | undefined>();
-  const [measuredOptionsMinWidth, setMeasuredOptionsMinWidth] = useState<
-    number | undefined
-  >();
+  const [measuredOptionsMinWidth, setMeasuredOptionsMinWidth] = useState<number | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const measurementRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const generatedListboxId = useId();
-  const shouldFillWidth =
-    fullWidth ?? (!minWidthFromOptions && !hasExplicitWidthClass(className));
+  const shouldFillWidth = fullWidth ?? (!minWidthFromOptions && !hasExplicitWidthClass(className));
   const selectedOption = options.find((option) => option.value === value);
   const filteredOptions =
     searchable && searchQuery.trim()
@@ -365,15 +360,11 @@ export function DashboardCombobox({
       );
       const nextMinWidth = Math.ceil(
         Math.max(
-          ...Array.from(measuredOptions, (option) =>
-            option.getBoundingClientRect().width,
-          ),
+          ...Array.from(measuredOptions, (option) => option.getBoundingClientRect().width),
           0,
         ),
       );
-      setMeasuredOptionsMinWidth((current) =>
-        current === nextMinWidth ? current : nextMinWidth,
-      );
+      setMeasuredOptionsMinWidth((current) => (current === nextMinWidth ? current : nextMinWidth));
     };
 
     measure();
@@ -395,9 +386,7 @@ export function DashboardCombobox({
 
   function openCombobox() {
     const nextActiveValue =
-      value && allEnabledOptionValues.includes(value)
-        ? value
-        : allEnabledOptionValues[0];
+      value && allEnabledOptionValues.includes(value) ? value : allEnabledOptionValues[0];
     setSearchQuery("");
     setActiveValue(nextActiveValue);
     setOpen(true);
@@ -417,13 +406,10 @@ export function DashboardCombobox({
     if (enabledOptionValues.length === 0) {
       return;
     }
-    const currentIndex = activeValue
-      ? enabledOptionValues.indexOf(activeValue)
-      : -1;
+    const currentIndex = activeValue ? enabledOptionValues.indexOf(activeValue) : -1;
     const nextIndex =
       currentIndex >= 0
-        ? (currentIndex + direction + enabledOptionValues.length) %
-          enabledOptionValues.length
+        ? (currentIndex + direction + enabledOptionValues.length) % enabledOptionValues.length
         : direction > 0
           ? 0
           : enabledOptionValues.length - 1;
@@ -523,14 +509,12 @@ export function DashboardCombobox({
     }
   }
 
-  const content = (
-    controlProps?: {
-      "aria-describedby"?: string;
-      "aria-invalid"?: true;
-      "aria-required"?: true;
-      id: string;
-    },
-  ) => (
+  const content = (controlProps?: {
+    "aria-describedby"?: string;
+    "aria-invalid"?: true;
+    "aria-required"?: true;
+    id: string;
+  }) => (
     <>
       <ControlTrigger
         {...buttonProps}
@@ -579,11 +563,7 @@ export function DashboardCombobox({
         {searchable && (
           <div className="border-b border-[var(--ds-border-subtle)] px-2 pb-2">
             <DashboardInput
-              aria-label={
-                typeof searchPlaceholder === "string"
-                  ? searchPlaceholder
-                  : undefined
-              }
+              aria-label={typeof searchPlaceholder === "string" ? searchPlaceholder : undefined}
               onChange={(event) => {
                 const nextSearchQuery = event.currentTarget.value;
                 setSearchQuery(nextSearchQuery);
@@ -594,9 +574,7 @@ export function DashboardCombobox({
                         .includes(nextSearchQuery.trim().toLowerCase()),
                     )
                   : options;
-                const nextEnabledValue = nextOptions.find(
-                  (option) => !option.disabled,
-                )?.value;
+                const nextEnabledValue = nextOptions.find((option) => !option.disabled)?.value;
                 setActiveValue(nextEnabledValue);
               }}
               onKeyDown={handleSearchKeyDown}
@@ -624,10 +602,7 @@ export function DashboardCombobox({
           ref={measurementRef}
         >
           {placeholder && (
-            <DashboardComboboxMeasureOption
-              className={className}
-              controlSize={controlSize}
-            >
+            <DashboardComboboxMeasureOption className={className} controlSize={controlSize}>
               {placeholder}
             </DashboardComboboxMeasureOption>
           )}
@@ -704,15 +679,16 @@ function DashboardComboboxMeasureOption({
   );
 }
 
-export interface DashboardNumberInputProps
-  extends Omit<DashboardInputProps, "type"> {}
+export interface DashboardNumberInputProps extends Omit<DashboardInputProps, "type"> {}
 
 export function DashboardNumberInput(props: DashboardNumberInputProps) {
   return <DashboardInput {...props} type="number" />;
 }
 
-export interface DashboardStepperProps
-  extends Omit<DashboardNumberInputProps, "onChange" | "value"> {
+export interface DashboardStepperProps extends Omit<
+  DashboardNumberInputProps,
+  "onChange" | "value"
+> {
   decrementLabel?: string;
   incrementLabel?: string;
   onValueChange: (value: number) => void;
@@ -734,10 +710,8 @@ export function DashboardStepper({
   function commit(nextValue: number) {
     const minNumber = toOptionalNumber(min);
     const maxNumber = toOptionalNumber(max);
-    const clampedToMin =
-      minNumber === undefined ? nextValue : Math.max(minNumber, nextValue);
-    const clamped =
-      maxNumber === undefined ? clampedToMin : Math.min(maxNumber, clampedToMin);
+    const clampedToMin = minNumber === undefined ? nextValue : Math.max(minNumber, nextValue);
+    const clamped = maxNumber === undefined ? clampedToMin : Math.min(maxNumber, clampedToMin);
     onValueChange(clamped);
   }
 
@@ -800,9 +774,7 @@ export function DashboardSwitchField({
         <span className="min-w-0">
           {label && <span className="block text-sm text-[var(--ds-text)]">{label}</span>}
           {description && (
-            <span className="block text-xs text-[var(--ds-text-muted)]">
-              {description}
-            </span>
+            <span className="block text-xs text-[var(--ds-text-muted)]">{description}</span>
           )}
         </span>
       )}
@@ -842,8 +814,10 @@ export function DashboardMenuItem(props: MenuItemPrimitiveProps) {
 
 export type TableSortDirection = "asc" | "desc" | null;
 
-export interface TableSortHeaderProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface TableSortHeaderProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   direction?: TableSortDirection;
   label: ReactNode;
 }
@@ -880,8 +854,7 @@ export function getTableSortAriaSort(direction: TableSortDirection) {
   return "none";
 }
 
-export interface DashboardDragHandleProps
-  extends Omit<DashboardIconButtonProps, "children"> {}
+export interface DashboardDragHandleProps extends Omit<DashboardIconButtonProps, "children"> {}
 
 export function DashboardDragHandle({
   className,
@@ -891,10 +864,7 @@ export function DashboardDragHandle({
   return (
     <DashboardIconButton
       {...props}
-      className={cx(
-        "touch-none cursor-grab active:cursor-grabbing",
-        className,
-      )}
+      className={cx("touch-none cursor-grab active:cursor-grabbing", className)}
       variant={variant}
     >
       <ListIcon className="size-4" weight="bold" />
@@ -902,8 +872,7 @@ export function DashboardDragHandle({
   );
 }
 
-export interface DisclosureButtonProps
-  extends Omit<DashboardButtonProps, "leadingIcon"> {
+export interface DisclosureButtonProps extends Omit<DashboardButtonProps, "leadingIcon"> {
   open: boolean;
 }
 
@@ -973,19 +942,12 @@ function toOptionalNumber(value: string | number | readonly string[] | undefined
 
 function TableSortIcon({ direction }: { direction: TableSortDirection }) {
   const Icon =
-    direction === "asc"
-      ? CaretUpIcon
-      : direction === "desc"
-        ? CaretDownIcon
-        : CaretUpDownIcon;
+    direction === "asc" ? CaretUpIcon : direction === "desc" ? CaretDownIcon : CaretUpDownIcon;
 
   return (
     <Icon
       aria-hidden="true"
-      className={cx(
-        "size-3.5 shrink-0",
-        direction ? "text-[var(--color-primary)]" : "opacity-40",
-      )}
+      className={cx("size-3.5 shrink-0", direction ? "text-[var(--color-primary)]" : "opacity-40")}
       weight="duotone"
     />
   );

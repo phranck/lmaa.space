@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from "react";
 import { FaGlobe } from "react-icons/fa6";
 
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -138,8 +138,28 @@ export function TabbedMetricCard({ title, icon, tabs, period, storageKey }: Tabb
         ) : (
           <CollapsibleList
             canCollapse={canCollapse}
-            collapsedContent={<TabbedMetricRowList rows={collapsedRows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
-            expandedContent={<TabbedMetricRowList rows={rows} total={total} activeType={activeType} activeTab={activeTab} locale={locale} unknownLabel={analyticsMessages.unknown} formatNumber={formatNumber} />}
+            collapsedContent={
+              <TabbedMetricRowList
+                rows={collapsedRows}
+                total={total}
+                activeType={activeType}
+                activeTab={activeTab}
+                locale={locale}
+                unknownLabel={analyticsMessages.unknown}
+                formatNumber={formatNumber}
+              />
+            }
+            expandedContent={
+              <TabbedMetricRowList
+                rows={rows}
+                total={total}
+                activeType={activeType}
+                activeTab={activeTab}
+                locale={locale}
+                unknownLabel={analyticsMessages.unknown}
+                formatNumber={formatNumber}
+              />
+            }
           />
         )}
       </DashboardSection.Body>

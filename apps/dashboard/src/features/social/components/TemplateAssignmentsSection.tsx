@@ -7,7 +7,7 @@ import {
   type SocialMediaPostTemplateScope,
   type TemplateAssignment,
 } from "@lmaa/contracts";
-import { PLATFORM_MAP } from "@lmaa/ui";
+import { PLATFORM_MAP } from "@lmaa/ui/social-media-platforms";
 
 import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -20,10 +20,7 @@ export interface TemplateAssignmentsSectionProps {
   assignments: TemplateAssignment[];
   onChange: (next: TemplateAssignment[]) => void;
   open: boolean;
-  previewBody: (
-    template: SocialMediaPostTemplate,
-    platform: "mastodon" | "bluesky",
-  ) => string;
+  previewBody: (template: SocialMediaPostTemplate, platform: "mastodon" | "bluesky") => string;
   onOverflowChange: (hasOverflow: boolean) => void;
 }
 
@@ -133,10 +130,8 @@ export function TemplateAssignmentsSection({
                   const value = nextValue === "" ? null : Number(nextValue);
                   onChange(
                     assignments.map((row) =>
-                      row.accountId === assignment.accountId
-                        ? { ...row, templateId: value }
-                        : row,
-                      ),
+                      row.accountId === assignment.accountId ? { ...row, templateId: value } : row,
+                    ),
                   );
                 }}
                 options={[

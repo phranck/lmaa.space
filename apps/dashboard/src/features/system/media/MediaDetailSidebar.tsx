@@ -1,11 +1,7 @@
-import {
-  FileIcon,
-  ImageIcon,
-  PencilSimpleIcon,
-} from "@phosphor-icons/react";
+import { FileIcon, ImageIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 
 import type { MediaAsset } from "@lmaa/shared";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import {
   CopyActionButton,
@@ -83,10 +79,7 @@ export function MediaDetailSidebar({
           title={mediaMessages.previewTitle}
         />
         <DashboardSection.Body>
-          <MediaPreview
-            asset={asset}
-            unsupportedPreview={mediaMessages.unsupportedPreview}
-          />
+          <MediaPreview asset={asset} unsupportedPreview={mediaMessages.unsupportedPreview} />
         </DashboardSection.Body>
       </DashboardSection>
 
@@ -112,12 +105,19 @@ export function MediaDetailSidebar({
             <DashboardInput
               type="text"
               value={draft.alias}
-              onChange={(event) => onDraftChange({ ...draft, alias: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
+              onChange={(event) =>
+                onDraftChange({
+                  ...draft,
+                  alias: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                })
+              }
               placeholder="z.B. sepa-qr"
               className="font-mono"
             />
             <p className="text-xs text-[var(--ds-text-subtle)]">
-              {draft.alias ? `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]` : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
+              {draft.alias
+                ? `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]`
+                : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
             </p>
           </label>
 
@@ -127,17 +127,14 @@ export function MediaDetailSidebar({
               disabled={
                 isRenaming ||
                 draft.name.trim().length === 0 ||
-                (draft.name.trim() === asset.displayName && (draft.alias.trim() || null) === (asset.alias ?? null))
+                (draft.name.trim() === asset.displayName &&
+                  (draft.alias.trim() || null) === (asset.alias ?? null))
               }
               className="flex-1"
               busy={isRenaming}
               label={isRenaming ? common.saving : mediaMessages.saveName}
             />
-            <DeleteActionButton
-              onClick={onDelete}
-              iconOnly
-              label={common.delete}
-            />
+            <DeleteActionButton onClick={onDelete} iconOnly label={common.delete} />
           </div>
         </DashboardSection.Body>
       </DashboardSection>
@@ -164,7 +161,9 @@ export function MediaDetailSidebar({
             {asset.width && asset.height && (
               <div>
                 <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
-                <p className="text-[var(--ds-text)]">{asset.width} x {asset.height}px</p>
+                <p className="text-[var(--ds-text)]">
+                  {asset.width} x {asset.height}px
+                </p>
               </div>
             )}
             <div>

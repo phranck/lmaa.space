@@ -9,9 +9,12 @@ import { Suspense, lazy, useState } from "react";
 
 import type { SocialMediaPostTemplate, TemplateAssignment } from "@lmaa/contracts";
 import type { Submission } from "@lmaa/shared";
-import { CharCounter, FormLabel, FormOptional } from "@lmaa/ui";
+import { CharCounter } from "@lmaa/ui/char-counter";
+import { FormLabel, FormOptional } from "@lmaa/ui/form-primitives";
 
-const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
+const MarkdownEditor = lazy(() =>
+  import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
+);
 
 import {
   ApproveActionButton,
@@ -31,10 +34,7 @@ import type {
   useReviewSubmission,
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { renderPostPreview } from "@/features/overview/post-preview.ts";
-import type {
-  ReviewAction,
-  ReviewState,
-} from "@/features/overview/submission-review-state.ts";
+import type { ReviewAction, ReviewState } from "@/features/overview/submission-review-state.ts";
 import { TemplateAssignmentsSection } from "@/features/social/components/TemplateAssignmentsSection.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 
@@ -243,10 +243,7 @@ function DeleteSubmissionDialog({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-3">
-        <CancelActionButton
-          label={common.cancel}
-          onClick={onClose}
-        />
+        <CancelActionButton label={common.cancel} onClick={onClose} />
         <DeleteActionButton
           disabled={isPending}
           label={isPending ? "..." : common.delete}
@@ -413,10 +410,7 @@ function ApproveSubmissionReviewCard({
         {hasPostOverflow && (
           <span className="mr-auto text-xs text-red-500">{a.approveBlockedHint}</span>
         )}
-        <CancelActionButton
-          label={cancelLabel}
-          onClick={onClose}
-        />
+        <CancelActionButton label={cancelLabel} onClick={onClose} />
         <ApproveActionButton
           disabled={isPending || hasPostOverflow}
           label={isPending ? "..." : submitLabel}

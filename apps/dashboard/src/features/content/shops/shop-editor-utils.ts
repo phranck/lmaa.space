@@ -1,6 +1,6 @@
 import { REGION_CODES, type ShopCheckNotes } from "@lmaa/shared";
-import { EMPTY_SHOP_FORM_VALUE } from "@lmaa/ui";
-import type { ShopEditFormValue } from "@lmaa/ui";
+import { EMPTY_SHOP_FORM_VALUE } from "@lmaa/ui/shop-edit-form";
+import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
 import type { useAdminShop } from "./hooks/useAdminShops.ts";
 import type { RejectState, ShopCheckJsonPayload, ShopImageState } from "./shop-editor-types.ts";

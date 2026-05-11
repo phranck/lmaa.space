@@ -12,6 +12,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./api-error": {
+      "types": "./dist/utils/api-error.d.ts",
+      "import": "./dist/utils/api-error.js",
+      "require": "./dist/utils/api-error.cjs"
+    },
     "./styles/tokens.css": "./styles/tokens.css"
   },
   "scripts": {

@@ -5,28 +5,22 @@ import {
   type ButtonPrimitiveSize,
   type ButtonPrimitiveVariant,
   type IconButtonPrimitiveProps,
-} from "@lmaa/ui";
+} from "@lmaa/ui/button-primitives";
 
 export type DashboardButtonVariant = ButtonPrimitiveVariant | "review";
 export type DashboardButtonSize = ButtonPrimitiveSize;
 
-export interface DashboardButtonProps
-  extends Omit<ButtonPrimitiveProps, "size" | "variant"> {
+export interface DashboardButtonProps extends Omit<ButtonPrimitiveProps, "size" | "variant"> {
   size?: DashboardButtonSize;
   variant?: DashboardButtonVariant;
 }
 
-export type DashboardIconButtonProps = Omit<
-  IconButtonPrimitiveProps,
-  "size" | "variant"
-> & {
+export type DashboardIconButtonProps = Omit<IconButtonPrimitiveProps, "size" | "variant"> & {
   size?: DashboardButtonSize;
   variant?: DashboardButtonVariant;
 };
 
-const dashboardButtonVariantClass: Partial<
-  Record<DashboardButtonVariant, string>
-> = {
+const dashboardButtonVariantClass: Partial<Record<DashboardButtonVariant, string>> = {
   review:
     "border-[var(--ds-badge-review-text)]/30 text-[var(--ds-badge-review-text)] hover:border-[var(--ds-badge-review-text)]/50 hover:bg-[var(--ds-badge-review-bg)]",
 };
@@ -35,9 +29,7 @@ function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
-function resolvePrimitiveVariant(
-  variant: DashboardButtonVariant,
-): ButtonPrimitiveVariant {
+function resolvePrimitiveVariant(variant: DashboardButtonVariant): ButtonPrimitiveVariant {
   return variant === "review" ? "neutral" : variant;
 }
 

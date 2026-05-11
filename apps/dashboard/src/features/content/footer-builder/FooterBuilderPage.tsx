@@ -20,7 +20,7 @@ import { useEffect, useReducer, useRef } from "react";
 import type { FooterBlock, FooterColumn, FooterConfig, FooterStyle } from "@lmaa/contracts";
 import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
 import { resolveFooterHeightPx } from "@lmaa/shared";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";

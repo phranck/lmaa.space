@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { ArrowsOutLineVerticalIcon, BlueprintIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 
 import type { FooterBlock } from "@lmaa/contracts";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";

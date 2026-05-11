@@ -1,4 +1,4 @@
-import { createApiRequestError, createNetworkRequestError } from "@lmaa/shared";
+import { createApiRequestError, createNetworkRequestError } from "@lmaa/shared/api-error";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
 const FETCH_TIMEOUT_MS = 30_000;

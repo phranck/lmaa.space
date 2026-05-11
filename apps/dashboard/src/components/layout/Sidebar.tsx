@@ -46,7 +46,7 @@ import { type ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
 import type { AdminRole } from "@lmaa/shared";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import {
   CollapsibleSidebarGroup,
@@ -89,13 +89,7 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-social-media-post-templates-open",
 ] as const;
 
-const SIDEBAR_SECTION_IDS = [
-  "general",
-  "content",
-  "builders",
-  "analytics",
-  "system",
-] as const;
+const SIDEBAR_SECTION_IDS = ["general", "content", "builders", "analytics", "system"] as const;
 type SidebarSectionId = (typeof SIDEBAR_SECTION_IDS)[number];
 const ADMIN_ONLY_SECTIONS: SidebarSectionId[] = ["builders", "analytics", "system"];
 const SECTION_DRAG_LABEL = {
@@ -626,14 +620,10 @@ export function Sidebar({
             onClick={() => handleToggleAllGroups(!areAllGroupsOpen)}
             className="flex w-full items-center justify-center gap-2 h-8 rounded-control border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-xs font-medium text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)]"
             aria-label={
-              areAllGroupsOpen
-                ? sidebarMessages.collapseAllAria
-                : sidebarMessages.expandAllAria
+              areAllGroupsOpen ? sidebarMessages.collapseAllAria : sidebarMessages.expandAllAria
             }
             title={
-              areAllGroupsOpen
-                ? sidebarMessages.collapseAllAria
-                : sidebarMessages.expandAllAria
+              areAllGroupsOpen ? sidebarMessages.collapseAllAria : sidebarMessages.expandAllAria
             }
           >
             <span className="relative h-3.5 w-3.5 shrink-0 overflow-hidden">
@@ -887,7 +877,11 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
-                  <NavLink to="/system/background-errors" onClick={onItemClick} className="contents">
+                  <NavLink
+                    to="/system/background-errors"
+                    onClick={onItemClick}
+                    className="contents"
+                  >
                     {({ isActive }) => (
                       <DashboardSection.Item
                         icon={<BugIcon weight="duotone" className="w-4 h-4" />}

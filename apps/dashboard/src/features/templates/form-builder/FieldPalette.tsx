@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { CubeIcon, StarIcon } from "@phosphor-icons/react";
 
 import type { FieldType } from "@lmaa/contracts";
-import { DashboardSection } from "@lmaa/ui";
+import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 

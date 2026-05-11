@@ -1,10 +1,16 @@
-import { CalendarBlankIcon, CaretLeftIcon, CaretRightIcon, ClockIcon, DotIcon } from "@phosphor-icons/react";
+import {
+  CalendarBlankIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  ClockIcon,
+  DotIcon,
+} from "@phosphor-icons/react";
 import { de } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { createPortal } from "react-dom";
 
-import { ControlTrigger } from "@lmaa/ui";
+import { ControlTrigger } from "@lmaa/ui/listbox-primitives";
 
 import { DashboardNumberInput } from "@/components/ui/DashboardControls.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -29,7 +35,12 @@ function toLocalParts(iso: string) {
   };
 }
 
-function emitValue(day: Date | undefined, hours: string, minutes: string, onChange: (v: string) => void) {
+function emitValue(
+  day: Date | undefined,
+  hours: string,
+  minutes: string,
+  onChange: (v: string) => void,
+) {
   if (!day) {
     onChange("");
     return;
@@ -80,7 +91,11 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const { locale } = useI18n();
   const isDe = locale === "de";
   const parts = toLocalParts(value);
-  const [pickerState, setPickerState] = useState<{ date: Date | undefined; hours: string; minutes: string }>({
+  const [pickerState, setPickerState] = useState<{
+    date: Date | undefined;
+    hours: string;
+    minutes: string;
+  }>({
     date: parts.date,
     hours: parts.hours,
     minutes: parts.minutes,
@@ -101,8 +116,10 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
     function onClickOutside(e: MouseEvent) {
       const target = e.target as Node;
       if (
-        triggerRef.current && !triggerRef.current.contains(target) &&
-        popoverRef.current && !popoverRef.current.contains(target)
+        triggerRef.current &&
+        !triggerRef.current.contains(target) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(target)
       ) {
         setOpen(false);
       }
@@ -149,69 +166,83 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
         ) : null}
       </ControlTrigger>
 
-      {open && createPortal(
-        <div ref={popoverRef} style={popoverStyle} className="rounded-card border border-[var(--ds-border)] bg-[var(--ds-surface)] shadow-lg p-3 w-max">
-          <DayPicker
-            mode="single"
-            selected={selected}
-            onSelect={handleDaySelect}
-            locale={isDe ? de : undefined}
-            weekStartsOn={1}
-            showOutsideDays
-            classNames={{
-              root: "rdp-root",
-              months: "rdp-months",
-              month_caption: "rdp-month-caption flex items-center justify-between mb-2",
-              caption_label: "text-sm font-semibold text-[var(--ds-text)]",
-              nav: "rdp-nav flex items-center gap-0.5",
-              button_previous: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
-              button_next: "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
-              weekdays: "rdp-weekdays",
-              weekday: "h-[var(--ds-control-h-field)] w-[var(--ds-control-h-field-large)] text-xs font-semibold text-[var(--ds-text-subtle)] uppercase",
-              week: "rdp-week",
-              day: "size-[var(--ds-control-h-field-large)] text-center text-sm",
-              day_button: "flex size-[var(--ds-control-h-field-large)] items-center justify-center rounded-full text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)]",
-              today: "font-bold",
-              selected: "[&>button]:bg-[var(--color-primary)] [&>button]:text-white [&>button]:hover:bg-[var(--color-primary)]",
-              outside: "text-[var(--ds-text-subtle)] opacity-40",
-              disabled: "opacity-30 cursor-not-allowed",
-            }}
-            components={{
-              Chevron: ({ orientation }) =>
-                orientation === "left" ? (
-                  <CaretLeftIcon weight="bold" className="size-3.5" />
-                ) : orientation === "right" ? (
-                  <CaretRightIcon weight="bold" className="size-3.5" />
-                ) : (
-                  <DotIcon className="size-3.5" />
-                ),
-            }}
-          />
+      {open &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={popoverStyle}
+            className="rounded-card border border-[var(--ds-border)] bg-[var(--ds-surface)] shadow-lg p-3 w-max"
+          >
+            <DayPicker
+              mode="single"
+              selected={selected}
+              onSelect={handleDaySelect}
+              locale={isDe ? de : undefined}
+              weekStartsOn={1}
+              showOutsideDays
+              classNames={{
+                root: "rdp-root",
+                months: "rdp-months",
+                month_caption: "rdp-month-caption flex items-center justify-between mb-2",
+                caption_label: "text-sm font-semibold text-[var(--ds-text)]",
+                nav: "rdp-nav flex items-center gap-0.5",
+                button_previous:
+                  "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
+                button_next:
+                  "rdp-btn p-1 rounded hover:bg-[var(--ds-surface-hover)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]",
+                weekdays: "rdp-weekdays",
+                weekday:
+                  "h-[var(--ds-control-h-field)] w-[var(--ds-control-h-field-large)] text-xs font-semibold text-[var(--ds-text-subtle)] uppercase",
+                week: "rdp-week",
+                day: "size-[var(--ds-control-h-field-large)] text-center text-sm",
+                day_button:
+                  "flex size-[var(--ds-control-h-field-large)] items-center justify-center rounded-full text-[var(--ds-text)] hover:bg-[var(--ds-surface-hover)]",
+                today: "font-bold",
+                selected:
+                  "[&>button]:bg-[var(--color-primary)] [&>button]:text-white [&>button]:hover:bg-[var(--color-primary)]",
+                outside: "text-[var(--ds-text-subtle)] opacity-40",
+                disabled: "opacity-30 cursor-not-allowed",
+              }}
+              components={{
+                Chevron: ({ orientation }) =>
+                  orientation === "left" ? (
+                    <CaretLeftIcon weight="bold" className="size-3.5" />
+                  ) : orientation === "right" ? (
+                    <CaretRightIcon weight="bold" className="size-3.5" />
+                  ) : (
+                    <DotIcon className="size-3.5" />
+                  ),
+              }}
+            />
 
-          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--ds-border)]">
-            <ClockIcon weight="duotone" className="size-4 text-[var(--ds-text-muted)]" />
-            <DashboardNumberInput
-              min={0}
-              max={23}
-              value={hours}
-              onChange={(e) => handleTimeChange(e.target.value, minutes)}
-              onBlur={() => handleTimeChange(pad(Math.max(0, Math.min(23, Number(hours) || 0))), minutes)}
-              className="w-12 text-center"
-            />
-            <span className="text-sm font-medium text-[var(--ds-text-muted)]">:</span>
-            <DashboardNumberInput
-              min={0}
-              max={59}
-              value={minutes}
-              onChange={(e) => handleTimeChange(hours, e.target.value)}
-              onBlur={() => handleTimeChange(hours, pad(Math.max(0, Math.min(59, Number(minutes) || 0))))}
-              className="w-12 text-center"
-            />
-            <span className="text-xs text-[var(--ds-text-subtle)]">Uhr</span>
-          </div>
-        </div>,
-        document.body,
-      )}
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--ds-border)]">
+              <ClockIcon weight="duotone" className="size-4 text-[var(--ds-text-muted)]" />
+              <DashboardNumberInput
+                min={0}
+                max={23}
+                value={hours}
+                onChange={(e) => handleTimeChange(e.target.value, minutes)}
+                onBlur={() =>
+                  handleTimeChange(pad(Math.max(0, Math.min(23, Number(hours) || 0))), minutes)
+                }
+                className="w-12 text-center"
+              />
+              <span className="text-sm font-medium text-[var(--ds-text-muted)]">:</span>
+              <DashboardNumberInput
+                min={0}
+                max={59}
+                value={minutes}
+                onChange={(e) => handleTimeChange(hours, e.target.value)}
+                onBlur={() =>
+                  handleTimeChange(hours, pad(Math.max(0, Math.min(59, Number(minutes) || 0))))
+                }
+                className="w-12 text-center"
+              />
+              <span className="text-xs text-[var(--ds-text-subtle)]">Uhr</span>
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

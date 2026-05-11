@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 
 import { generateRejectionToken } from "@lmaa/shared";
-import type { ShopEditFormValue } from "@lmaa/ui";
+import type { ShopEditFormValue } from "@lmaa/ui/shop-edit-form";
 
 import { useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -18,7 +18,12 @@ import {
   useSetShopOgImage,
   useSetShopVisibility,
 } from "./useAdminShops.ts";
-import type { RejectState, ShopCheckJsonPayload, ShopEditorModeProps, ShopImageState } from "../shop-editor-types.ts";
+import type {
+  RejectState,
+  ShopCheckJsonPayload,
+  ShopEditorModeProps,
+  ShopImageState,
+} from "../shop-editor-types.ts";
 import {
   applyShopCheckJsonToForm,
   formReducer,
@@ -70,7 +75,9 @@ export function useShopEditorController({
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const importJsonHandlerRef = useRef<((jsonText: string) => void) | null>(null);
-  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>({});
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>(
+    {},
+  );
   const previewImageQuery = usePreviewImage(isSubmissionMode ? imageState.previewRequestUrl : null);
   const showLoadingSkeleton = isLoadingShop && !hasImmediateFormData;
 
@@ -81,7 +88,11 @@ export function useShopEditorController({
     formInitializedRef.current = true;
     const baseForm = getInitialFormValue(initialData, shopData);
     if (shopData.reviewData && shopData.needsReview) {
-      const withReview = applyShopCheckJsonToForm(baseForm, shopData.reviewData as ShopCheckJsonPayload, categories);
+      const withReview = applyShopCheckJsonToForm(
+        baseForm,
+        shopData.reviewData as ShopCheckJsonPayload,
+        categories,
+      );
       setForm(withReview ?? baseForm);
     } else {
       setForm(baseForm);

@@ -1,8 +1,4 @@
-import {
-  PencilSimpleIcon,
-  TrashIcon,
-  WarningCircleIcon,
-} from "@phosphor-icons/react";
+import { PencilSimpleIcon, TrashIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { nanoid } from "nanoid";
 import { memo, Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -14,7 +10,7 @@ import {
   type DomainAlertRulesConfig,
 } from "@lmaa/contracts";
 import { SETTINGS_KEYS } from "@lmaa/shared";
-import { ToggleSwitch } from "@lmaa/ui";
+import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
@@ -22,25 +18,19 @@ import {
   CreateActionButton,
   SaveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
-import {
-  DashboardInput,
-  DashboardTextarea,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardInput, DashboardTextarea } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
-import {
-  fieldHintClass,
-  fieldLabelClass,
-} from "@/features/system/widget-utils.ts";
+import { fieldHintClass, fieldLabelClass } from "@/features/system/widget-utils.ts";
 
 import { useSaveSystemSetting, useSystemSettings } from "./hooks/useSystemSettings.ts";
 
 const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((module) => ({ default: module.MarkdownEditor })),
+  import("@lmaa/ui/markdown-editor").then((module) => ({ default: module.MarkdownEditor })),
 );
 
 interface DomainAlertsTabProps {
@@ -261,11 +251,7 @@ function DomainAlertRuleDialog({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <CancelActionButton
-          label={common.cancel}
-          onClick={onClose}
-          disabled={isSaving}
-        />
+        <CancelActionButton label={common.cancel} onClick={onClose} disabled={isSaving} />
         <SaveActionButton
           onClick={() => void handleSave()}
           disabled={isSaving}
@@ -303,27 +289,30 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
     setSaveError(null);
   }, [initialConfig]);
 
-  const persistRules = useCallback(async (nextRules: DomainAlertRule[]) => {
-    const parsed = domainAlertRulesConfigSchema.safeParse({ rules: nextRules });
-    if (!parsed.success) {
-      setShowValidationError(true);
-      return false;
-    }
+  const persistRules = useCallback(
+    async (nextRules: DomainAlertRule[]) => {
+      const parsed = domainAlertRulesConfigSchema.safeParse({ rules: nextRules });
+      if (!parsed.success) {
+        setShowValidationError(true);
+        return false;
+      }
 
-    try {
-      await saveSetting.mutateAsync({
-        key: SETTINGS_KEYS.DOMAIN_ALERT_RULES,
-        value: serializeConfig(parsed.data),
-      });
-      setRules(parsed.data.rules);
-      setShowValidationError(false);
-      setSaveError(null);
-      return true;
-    } catch {
-      setSaveError(t.saveError);
-      return false;
-    }
-  }, [saveSetting, t.saveError]);
+      try {
+        await saveSetting.mutateAsync({
+          key: SETTINGS_KEYS.DOMAIN_ALERT_RULES,
+          value: serializeConfig(parsed.data),
+        });
+        setRules(parsed.data.rules);
+        setShowValidationError(false);
+        setSaveError(null);
+        return true;
+      } catch {
+        setSaveError(t.saveError);
+        return false;
+      }
+    },
+    [saveSetting, t.saveError],
+  );
 
   const handleAddRule = useCallback(() => {
     setDialogTarget({ mode: "create", rule: createEmptyRule(t.defaultName) });
@@ -331,35 +320,41 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
     setSaveError(null);
   }, [t.defaultName]);
 
-  const handleSaveRule = useCallback(async (target: DomainAlertDialogTarget) => {
-    const parsed = domainAlertRuleSchema.safeParse(target.rule);
-    if (!parsed.success) return false;
+  const handleSaveRule = useCallback(
+    async (target: DomainAlertDialogTarget) => {
+      const parsed = domainAlertRuleSchema.safeParse(target.rule);
+      if (!parsed.success) return false;
 
-    const nextRules =
-      target.mode === "create"
-        ? [...rules, parsed.data]
-        : rules.map((rule) => (rule.id === parsed.data.id ? parsed.data : rule));
+      const nextRules =
+        target.mode === "create"
+          ? [...rules, parsed.data]
+          : rules.map((rule) => (rule.id === parsed.data.id ? parsed.data : rule));
 
-    setSavingDialog(true);
-    try {
-      return await persistRules(nextRules);
-    } finally {
-      setSavingDialog(false);
-    }
-  }, [persistRules, rules]);
-
-  const handleDeleteRule = useCallback(async (id: string) => {
-    const nextRules = rules.filter((rule) => rule.id !== id);
-    setDeletingRuleId(id);
-    try {
-      const saved = await persistRules(nextRules);
-      if (saved) {
-        setDialogTarget((current) => (current?.rule.id === id ? null : current));
+      setSavingDialog(true);
+      try {
+        return await persistRules(nextRules);
+      } finally {
+        setSavingDialog(false);
       }
-    } finally {
-      setDeletingRuleId(null);
-    }
-  }, [persistRules, rules]);
+    },
+    [persistRules, rules],
+  );
+
+  const handleDeleteRule = useCallback(
+    async (id: string) => {
+      const nextRules = rules.filter((rule) => rule.id !== id);
+      setDeletingRuleId(id);
+      try {
+        const saved = await persistRules(nextRules);
+        if (saved) {
+          setDialogTarget((current) => (current?.rule.id === id ? null : current));
+        }
+      } finally {
+        setDeletingRuleId(null);
+      }
+    },
+    [persistRules, rules],
+  );
 
   const columns: ColumnDef<DomainAlertRule>[] = useMemo(
     () => [
@@ -462,10 +457,7 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
 
       {active ? (
         <PageFooter>
-          <CreateActionButton
-            onClick={handleAddRule}
-            label={t.newRule}
-          />
+          <CreateActionButton onClick={handleAddRule} label={t.newRule} />
         </PageFooter>
       ) : null}
 
