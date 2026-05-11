@@ -39,6 +39,7 @@ export interface ControlTriggerProps
   fullWidth?: boolean;
   invalid?: boolean;
   leadingIcon?: ReactNode;
+  multiline?: boolean;
   open?: boolean;
   placeholder?: ReactNode;
   ref?: Ref<HTMLButtonElement>;
@@ -56,6 +57,7 @@ export function ControlTrigger({
   fullWidth = true,
   invalid = false,
   leadingIcon,
+  multiline = false,
   open,
   placeholder,
   ref,
@@ -85,8 +87,12 @@ export function ControlTrigger({
         "focus:border-[var(--ds-border-focus)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
         "disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]",
         controlSize === "large"
-          ? "h-[var(--ds-control-h-field-large)] px-4"
-          : "h-[var(--ds-control-h-field)] px-3",
+          ? multiline
+            ? "min-h-[var(--ds-control-h-field-large)] px-4 py-2"
+            : "h-[var(--ds-control-h-field-large)] px-4"
+          : multiline
+            ? "min-h-[var(--ds-control-h-field)] px-3 py-1.5"
+            : "h-[var(--ds-control-h-field)] px-3",
         invalid
           ? "border-[var(--ds-danger-border,var(--ds-danger))]"
           : "border-[var(--ds-border)]",
