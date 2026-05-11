@@ -367,7 +367,7 @@ export function MenuItemPrimitive({
         "flex w-full items-center gap-2 px-3 text-left text-sm transition-colors",
         "focus:bg-[var(--ds-control-hover-bg)] focus:outline-none hover:bg-[var(--ds-control-hover-bg)]",
         "disabled:pointer-events-none disabled:opacity-[var(--ds-control-disabled-opacity)]",
-        size === "compact" ? "h-7" : "h-[var(--ds-control-h-menu-item)]",
+        "h-[var(--ds-control-h-menu-item)]",
         variant === "danger"
           ? "text-[var(--ds-danger-text)]"
           : "text-[var(--ds-text)]",

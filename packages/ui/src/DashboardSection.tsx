@@ -152,7 +152,7 @@ function DashboardSectionHeader({
               aria-expanded={expanded}
               aria-label={collapseButtonLabel}
               onClick={toggleExpanded}
-              className="flex size-7 items-center justify-center rounded-control text-[var(--ds-text-muted)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
+              className="flex size-8 items-center justify-center rounded-control text-[var(--ds-text-muted)] hover:bg-[var(--ds-nav-hover-bg)] hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
             >
               <CaretDownIcon
                 weight="duotone"

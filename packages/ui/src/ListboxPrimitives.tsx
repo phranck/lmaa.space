@@ -32,6 +32,7 @@ export interface ControlTriggerProps
   controls?: string;
   controlSize?: ControlTriggerSize;
   contentClassName?: string;
+  fullWidth?: boolean;
   invalid?: boolean;
   leadingIcon?: ReactNode;
   open?: boolean;
@@ -48,6 +49,7 @@ export function ControlTrigger({
   controlSize = "field",
   controls,
   disabled,
+  fullWidth = true,
   invalid = false,
   leadingIcon,
   open,
@@ -74,7 +76,8 @@ export function ControlTrigger({
       aria-haspopup={ariaHasPopup ?? "listbox"}
       aria-invalid={ariaInvalid ?? (invalid || undefined)}
       className={cx(
-        "inline-flex w-full items-center gap-2 rounded-control border bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors",
+        "inline-flex items-center gap-2 rounded-control border bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors",
+        fullWidth && "w-full",
         "focus:border-[var(--ds-border-focus)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
         "disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]",
         controlSize === "large"

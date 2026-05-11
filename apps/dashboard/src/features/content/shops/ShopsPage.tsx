@@ -297,7 +297,7 @@ export function ShopsPage() {
                 value: Number(value) as ExportLimit,
               })
             }
-            className="w-20 rounded-none border-y-0 border-l-0 border-r border-[var(--ds-border)] bg-[var(--ds-surface)]"
+            className="h-full w-20 shrink-0 rounded-none border-y-0 border-l-0 border-r border-[var(--ds-btn-primary-border)] bg-[var(--ds-surface)]"
             matchTriggerWidth={false}
             options={EXPORT_LIMITS.map((limit) => ({
               value: String(limit),

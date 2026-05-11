@@ -25,6 +25,7 @@ export function ImportButton({
         disabled={disabled}
         label={label}
         onClick={() => fileInputRef.current?.click()}
+        size="control"
         title={tooltip}
       />
       <input

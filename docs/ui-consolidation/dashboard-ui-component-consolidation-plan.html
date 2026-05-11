@@ -806,7 +806,7 @@
             Gesamtplan fuer Select-Optionen, Tabs, Toggles, Table-Sort-Header, Drag-Handles,
             Dropdown-Items, Eingabefelder, Stepper und shared Primitive-Internals. Der Button-Plan
             bleibt Action-spezifisch:
-            <code>h-7</code> fuer Actions, <code>h-8</code> fuer Standard-Controls.
+            <code>h-8</code> fuer Actions, <code>h-8</code> fuer Standard-Controls.
           </p>
         </div>
         <aside class="hero-card">
@@ -884,8 +884,8 @@
               <li>
                 <span class="check">1</span
                 ><span
-                  >Action-Buttons bleiben im Button-Plan: <code>h-7</code> oder
-                  <code>size-7</code>.</span
+                  >Action-Buttons bleiben im Button-Plan: <code>h-8</code> oder
+                  <code>size-8</code>.</span
                 >
               </li>
               <li>
@@ -899,7 +899,7 @@
                 <span class="check">3</span
                 ><span
                   >Dropdown-, Select- und Menu-Items werden <code>h-8</code>; kompakte
-                  Table-/Toolbar-Ausnahmen <code>h-7</code>.</span
+                  Table-/Toolbar-Ausnahmen <code>h-8</code>.</span
                 >
               </li>
               <li>
@@ -929,11 +929,11 @@
           </div>
           <div class="panel-body preview-board">
             <div class="preview">
-              <h3>Action Button, h-7</h3>
+              <h3>Action Button, h-8</h3>
               <div class="demo-row">
                 <button class="demo-button primary" type="button" data-demo-action>
                   <span class="glyph">S</span><span data-action-label>Speichern</span></button
-                ><span class="pill">28px</span>
+                ><span class="pill">32px</span>
               </div>
             </div>
             <div class="preview">
@@ -1056,7 +1056,7 @@
               </button>
             </div>
             <div class="preview">
-              <h3>Sort Header, h-7</h3>
+              <h3>Sort Header, h-8</h3>
               <button
                 class="sort-demo"
                 type="button"
@@ -1067,7 +1067,7 @@
               </button>
             </div>
             <div class="preview">
-              <h3>Drag Handle, size-7</h3>
+              <h3>Drag Handle, size-8</h3>
               <button class="drag-demo" type="button" aria-label="Verschieben" aria-pressed="false">
                 <svg class="drag-icon" viewBox="0 0 14 14" aria-hidden="true">
                   <circle cx="4" cy="2.5" r="1.25"></circle>
@@ -1130,7 +1130,7 @@
                 </td>
                 <td><code>DashboardField</code><br /><code>DashboardInput</code></td>
                 <td><span class="pill">h-8</span></td>
-                <td><span class="pill">h-7 compact</span><span class="pill">h-9 large</span></td>
+                <td><span class="pill">h-8 compact</span><span class="pill">h-9 large</span></td>
                 <td>
                   <span class="ref">packages/ui/src/FormPrimitives.tsx:9</span><br /><span
                     class="ref"
@@ -1238,7 +1238,7 @@
                 </td>
                 <td><code>DashboardTabs</code></td>
                 <td><span class="pill">h-8</span></td>
-                <td><span class="pill">h-7 compact</span></td>
+                <td><span class="pill">h-8 compact</span></td>
                 <td>
                   <span class="ref">packages/ui/src/Tabs.tsx:60</span><br /><span class="ref"
                     >packages/ui/src/Tabs.tsx:76</span
@@ -1249,16 +1249,16 @@
               <tr
                 data-area="selection"
                 data-priority="high"
-                data-search="segmentedcontrol segments segmentswitch dashboardsegmentedcontrol h-7 h-6 h-8 navmanager footerbuilder"
+                data-search="segmentedcontrol segments segmentswitch dashboardsegmentedcontrol h-8 h-6 h-8 navmanager footerbuilder"
               >
                 <td><strong>Segment-Auswahl</strong></td>
                 <td>
-                  <code>SegmentedControl</code> ist <code>h-7</code>;
+                  <code>SegmentedControl</code> ist <code>h-8</code>;
                   <code>SegmentSwitch</code> mischt <code>h-6</code>/<code>h-8</code>.
                 </td>
                 <td><code>DashboardSegmentedControl</code></td>
-                <td><span class="pill">compact h-7</span><span class="pill">default h-8</span></td>
-                <td><span class="pill">icon-only size-7</span></td>
+                <td><span class="pill">compact h-8</span><span class="pill">default h-8</span></td>
+                <td><span class="pill">icon-only size-8</span></td>
                 <td>
                   <span class="ref">apps/dashboard/src/components/ui/SegmentedControl.tsx:124</span
                   ><br /><span class="ref"
@@ -1296,7 +1296,7 @@
                   <code>de</code>.
                 </td>
                 <td><code>TableSortHeader</code></td>
-                <td><span class="pill">h-7</span></td>
+                <td><span class="pill">h-8</span></td>
                 <td><span class="pill">nicht-sortierbar = Text</span></td>
                 <td>
                   <span class="ref">apps/dashboard/src/components/ui/Table.tsx:155</span><br /><span
@@ -1317,7 +1317,7 @@
                   <code>span</code>, Labels teils hart deutsch.
                 </td>
                 <td><code>DashboardDragHandle</code><br /><code>useDashboardDndSensors</code></td>
-                <td><span class="pill">size-7</span></td>
+                <td><span class="pill">size-8</span></td>
                 <td><span class="pill">Overlay objektabhaengig</span></td>
                 <td>
                   <span class="ref">apps/dashboard/src/components/layout/Sidebar.tsx:121</span
@@ -1339,7 +1339,7 @@
                 </td>
                 <td><code>DashboardMenu</code><br /><code>DashboardMenuItem</code></td>
                 <td><span class="pill">h-8</span></td>
-                <td><span class="pill">h-7 compact</span></td>
+                <td><span class="pill">h-8 compact</span></td>
                 <td>
                   <span class="ref">apps/dashboard/src/components/ui/ContextMenu.tsx:94</span
                   ><br /><span class="ref">packages/shared/styles/tokens.css:386</span>
@@ -1355,7 +1355,7 @@
                 <td>Number-Inputs, Einheiten und Step-Regeln sind lokal verstreut.</td>
                 <td><code>DashboardNumberInput</code><br /><code>DashboardStepper</code></td>
                 <td><span class="pill">h-8</span></td>
-                <td><span class="pill">h-7 compact</span></td>
+                <td><span class="pill">h-8 compact</span></td>
                 <td>
                   <span class="ref"
                     >apps/dashboard/src/features/content/shops/ReminderForm.tsx:130</span
@@ -1412,7 +1412,7 @@
                   DashboardSection, Sidebar-Gruppen und Analytics-Listen haben eigene Toggle-Optik.
                 </td>
                 <td><code>DisclosureButton</code><br /><code>CollapsibleRegion</code></td>
-                <td><span class="pill">size-7</span></td>
+                <td><span class="pill">size-8</span></td>
                 <td><span class="pill">Sidebar min-h-8</span></td>
                 <td>
                   <span class="ref">packages/ui/src/DashboardSection.tsx:150</span><br /><span
@@ -1470,12 +1470,12 @@
             <tbody>
               <tr>
                 <td>Action-Buttons</td>
-                <td><code>h-7</code> / <code>size-7</code></td>
+                <td><code>h-8</code> / <code>size-8</code></td>
                 <td>Nur echte Dashboard-Actions aus dem Action-Katalog.</td>
               </tr>
               <tr>
                 <td>Compact Controls</td>
-                <td><code>h-7</code></td>
+                <td><code>h-8</code></td>
                 <td>
                   Table Header, Toolbar, kleine Header-AddOns, explizit per
                   <code>size="compact"</code>.

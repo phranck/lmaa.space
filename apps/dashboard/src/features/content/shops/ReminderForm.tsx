@@ -193,7 +193,7 @@ export function ReminderForm({ initial, isActive, onSave, onDelete, isPending, i
                     key={iso}
                     type="button"
                     onClick={() => toggleDay(iso)}
-                    className={`size-7 rounded text-xs font-medium ${
+                    className={`size-8 rounded text-xs font-medium ${
                       customDaysOfWeek.has(iso)
                         ? "bg-[var(--ds-text-subtle)] text-[var(--ds-bg)]"
                         : "bg-[var(--ds-bg)] border border-[var(--ds-border)] text-[var(--ds-text-subtle)] hover:border-[var(--ds-border-strong)]"

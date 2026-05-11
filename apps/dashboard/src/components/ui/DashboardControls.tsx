@@ -263,8 +263,10 @@ export interface DashboardComboboxOption {
 
 export interface DashboardComboboxProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChange" | "value"> {
+  controlSize?: FieldControlSize;
   error?: ReactNode;
   fieldClassName?: string;
+  fullWidth?: boolean;
   hint?: ReactNode;
   label?: ReactNode;
   matchTriggerWidth?: boolean;
@@ -281,9 +283,11 @@ export interface DashboardComboboxProps
 
 export function DashboardCombobox({
   className,
+  controlSize = "field",
   disabled,
   error,
   fieldClassName,
+  fullWidth,
   hint,
   id,
   label,
@@ -306,6 +310,7 @@ export function DashboardCombobox({
   const [searchQuery, setSearchQuery] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const generatedListboxId = useId();
+  const shouldFillWidth = fullWidth ?? !hasExplicitWidthClass(className);
   const selectedOption = options.find((option) => option.value === value);
   const filteredOptions =
     searchable && searchQuery.trim()
@@ -476,7 +481,9 @@ export function DashboardCombobox({
         {...controlProps}
         className={className}
         controls={generatedListboxId}
+        controlSize={controlSize}
         disabled={disabled}
+        fullWidth={shouldFillWidth}
         invalid={Boolean(error)}
         aria-required={controlProps?.["aria-required"] ?? (required || undefined)}
         onClick={(event) => {
@@ -736,7 +743,7 @@ export function TableSortHeader({
     <button
       {...buttonProps}
       className={cx(
-        "inline-flex h-7 items-center gap-1.5 text-left font-medium transition-colors hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
+        "inline-flex h-8 items-center gap-1.5 text-left font-medium transition-colors hover:text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
         className,
       )}
       type={type}
@@ -817,6 +824,10 @@ function hasFieldShell(
   optionalLabel: ReactNode,
 ) {
   return Boolean(label || hint || error || optionalLabel);
+}
+
+function hasExplicitWidthClass(className: string | undefined) {
+  return /(?:^|\s)w-(?!full(?:\s|$))[^\s]+/.test(className ?? "");
 }
 
 function optionLabelToString(label: ReactNode) {

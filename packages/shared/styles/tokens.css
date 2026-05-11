@@ -169,11 +169,11 @@
   --ds-radius-pill: 9999px;
 
   /* Control geometry */
-  --ds-control-h-action: 1.75rem; /* 28px */
-  --ds-control-h-icon: 1.75rem; /* 28px */
-  --ds-control-h-field: 2rem; /* 32px */
-  --ds-control-h-field-large: 2.25rem; /* 36px */
-  --ds-control-h-menu-item: 2rem; /* 32px */
+  --ds-control-h-action: 2rem; /* h-8 basis */
+  --ds-control-h-icon: 2rem; /* size-8 basis */
+  --ds-control-h-field: 2rem; /* h-8 basis */
+  --ds-control-h-field-large: 2.25rem; /* h-9 basis */
+  --ds-control-h-menu-item: 2rem; /* h-8 basis */
 
   /* Shadows */
   --ds-shadow-xs: 0 1px 2px oklch(0 0 0 / 0.04);

@@ -83,7 +83,7 @@ export function MetricList({ title, icon, type, period, renderLabel }: MetricLis
         {isLoading && (
           <div className="space-y-2">
             {Array.from({ length: 5 }, (_, i) => `sk-${i}`).map((k) => (
-              <div key={k} className="h-7 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
+              <div key={k} className="h-8 bg-[var(--ds-bg-elevated)] rounded animate-pulse" />
             ))}
           </div>
         )}

@@ -1,6 +1,6 @@
 # Dashboard UI Component Consolidation Plan
 
-Stand: 2026-05-10
+Stand: 2026-05-11
 
 Quelle: aktueller Code in `apps/dashboard/src`, `packages/ui/src`, `packages/shared/styles/tokens.css` sowie der bestehende Button-Plan in `docs/dashboard-button-consolidation-plan.md`.
 
@@ -14,12 +14,12 @@ Zur Analyse wurden drei parallele Sub-Agenten eingesetzt:
 
 Der Orchestrator-Entscheid nach Abgleich:
 
-- Der bestehende Button-Plan bleibt fuer Dashboard-Action-Buttons bei `h-7` und fuer icon-only bei `size-7`.
+- Der bestehende Button-Plan wurde am 2026-05-11 fuer Dashboard-Action-Buttons auf `h-8` und fuer icon-only auf `size-8` angehoben.
 - Andere Controls werden nicht ueber `DashboardActionButton` geloest. Sie bekommen eigene Primitives.
 - Standard-Formfelder und Select-/Combobox-Trigger sollen im Zielbild `h-8` bekommen.
 - Sichtbare Selects und Dropdowns sind immer Custom-Controls auf `DashboardSelect`/`DashboardCombobox`/`DashboardListbox`; native `<select>` duerfen nur als versteckter State-/Fallback-Anker begruendet werden.
 - `h-9` ist danach keine stillschweigende Formular-Default-Hoehe mehr, sondern eine explizite Large-/Editor-/Kalender-Ausnahme.
-- Dropdown-, Select- und Menu-Items bekommen als Default `h-8`; kompakte Tabellen- oder Toolbar-Ausnahmen duerfen `h-7` sein.
+- Dropdown-, Select- und Menu-Items bekommen als Default `h-8`; kompakte Tabellen- oder Toolbar-Ausnahmen duerfen `h-8` sein.
 - Alle Farben, Fokus-Ringe, Radii, Disabled-States, Hover-States und Z-Index-Werte muessen aus gemeinsamen Tokens kommen.
 
 ## Zielbild
@@ -39,7 +39,7 @@ Anpassungen fuer das Gesamtbild:
 
 - `DashboardActionButton` ist nur fuer Actions: speichern, loeschen, importieren, exportieren, bearbeiten, kopieren, bestaetigen.
 - Tabs, Segment-Auswahl, Select-Trigger, Menu-Items, Drag-Handles, Sort-Header und Toggles sind keine Action-Buttons, auch wenn sie technisch `<button>` nutzen.
-- Der Button-Plan braucht eine klare Abgrenzung: Form-Submit in grossen Auth-/Setup-Formularen oder Marketing-Formularen kann eine `formSubmit`/`large`-Ausnahme sein. Dashboard-Panel- und Table-Actions bleiben `h-7`.
+- Der Button-Plan braucht eine klare Abgrenzung: Form-Submit in grossen Auth-/Setup-Formularen oder Marketing-Formularen kann eine `formSubmit`/`large`-Ausnahme sein. Dashboard-Panel- und Table-Actions bleiben `h-8`.
 - `dialogBtn*`, `formBtnBaseClass` und lokale `--ds-btn-*` Klassen in Feature-Dateien sind Hintertueren und muessen in der ersten Primitive-Phase adressiert werden.
 - Neue generische i18n Keys aus dem Button-Plan wie `common.import`, `common.export`, `common.create`, `common.approve` muessen vor Migration wirklich in `DashboardMessages`, `de` und `en` angelegt werden.
 
@@ -60,21 +60,21 @@ Anpassungen fuer das Gesamtbild:
 
 | Bereich                    | Aktueller Drift                                                                                                                              | Ziel-Primitive                                                           |                                                          Default-Hoehe | Ausnahmen                                                                                 | Migration                                                                                                        |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------: | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Eingabefelder              | `formInputClass` ist `h-9`, Feature-Dateien setzen eigene `inputClass`/`selectClass`; `focus:ring-1`, `focus:border-*` und `bg-*` variieren. | `DashboardField`, `DashboardInput`                                       |                                                                  `h-8` | `h-7` compact in Toolbars/Tables, `h-9` large nur explizit                                | zuerst `FormPrimitives.tsx`, danach `FieldConfigPanel`, `SubmissionConfigPanel`, `ReminderForm`, System Settings |
+| Eingabefelder              | `formInputClass` ist `h-9`, Feature-Dateien setzen eigene `inputClass`/`selectClass`; `focus:ring-1`, `focus:border-*` und `bg-*` variieren. | `DashboardField`, `DashboardInput`                                       |                                                                  `h-8` | `h-8` compact in Toolbars/Tables, `h-9` large nur explizit                                | zuerst `FormPrimitives.tsx`, danach `FieldConfigPanel`, `SubmissionConfigPanel`, `ReminderForm`, System Settings |
 | Textareas                  | `formInputClass` wird auch fuer Textareas genutzt, dadurch falsche fixe Hoehe.                                                               | `DashboardTextarea`                                                      |                                   keine fixe Hoehe, `min-h` ueber rows | CodeMirror/Markdown/JSON bleiben Editor-Primitives                                        | Textareas aus `formInputClass` herausloesen                                                                      |
-| Native Selects             | Native Selects duplizieren `h-9`, `px-3`, `focus:*` lokal und weichen visuell von den Dashboard-Custom-Dropdowns mit Caret/Listbox ab.       | `DashboardSelect` auf `DashboardListbox`                                 |                                                                  `h-8` | keine sichtbaren nativen Selects; compact `h-7` nur als Custom-Trigger in dichten Headern | sichtbare native `<select>` Fundstellen ersetzen, Hidden-Fallbacks explizit markieren                            |
+| Native Selects             | Native Selects duplizieren `h-9`, `px-3`, `focus:*` lokal und weichen visuell von den Dashboard-Custom-Dropdowns mit Caret/Listbox ab.       | `DashboardSelect` auf `DashboardListbox`                                 |                                                                  `h-8` | keine sichtbaren nativen Selects; compact `h-8` nur als Custom-Trigger in dichten Headern | sichtbare native `<select>` Fundstellen ersetzen, Hidden-Fallbacks explizit markieren                            |
 | Combobox/Dropdown          | `Dropdown` hat statische IDs, Trigger `h-9`, Optionen `h-8`; `FilterDropdown` reicht Label/ARIA nicht sauber durch.                          | `DashboardCombobox`, `DashboardListbox`, `DashboardPopover`              |                                            Trigger `h-8`, Option `h-8` | lange Multi-Value Trigger duerfen auto-height                                             | `Dropdown` intern umbauen, dann `FilterDropdown` anbinden                                                        |
 | MultiSelect/RegionSelect   | `MultiSelect`, `RegionSelect`, Country-/Social-Selects haben eigene Portal- und Option-Styles.                                               | `DashboardMultiSelect` auf `DashboardListbox`                            |                                            Trigger `h-8`, Option `h-8` | Chips duerfen eigene Hoehe behalten                                                       | gemeinsame Popover-/Option-Komponenten extrahieren                                                               |
-| Tabs                       | `@lmaa/ui/Tabs` hat keine `aria-controls`, `aria-labelledby`, roving tabindex oder Arrow-Key-Verhalten.                                      | `DashboardTabs`                                                          |                                                                  `h-8` | compact `h-7` nur in echten Toolbars; Content-Tabs bleiben sichtbar kraeftig              | `Tabs.tsx` robust machen, Dashboard-Wrapper anlegen                                                              |
-| Segment-Auswahl            | `SegmentedControl` ist `h-7`, `SegmentSwitch` hat `h-6`/`h-8`, lokale Toggle-Gruppen existieren.                                             | `DashboardSegmentedControl`                                              |                                           compact `h-7`, default `h-8` | icon-only `size-7`                                                                        | `SegmentSwitch` entfernen oder intern auf den neuen Primitive legen                                              |
-| Toggles/Switches           | `ToggleSwitch` ist visuell ok, aber Feldzeilen und Labels sind nicht standardisiert; Checkboxen sind uneinheitlich.                          | `DashboardSwitchField`, `DashboardCheckboxField`, `CheckboxPrimitive`    |                                         Row `h-8`; Mark/Switch kleiner | Sidebar/kompakte Listen duerfen `min-h-7`                                                 | native Checkboxen und `SubtextCheckbox` migrieren                                                                |
-| Table-Sort-Header          | Sort-Button ist inline in `DataTable`, keine lokalisierte Sort-Ansage, String-Sortierung ist fest auf `de`.                                  | `TableSortHeader`                                                        |                                                        `h-7` im Header | nicht-sortierbare Header bleiben Text                                                     | `DataTable` extrahieren, Locale als Prop/Context                                                                 |
-| Drag-Handles               | Sidebar nutzt `tabIndex={-1}` und hart deutschen Text; Submission-Step nutzt `span`; Builder-Karten nutzen grosse Drag-Flächen.              | `DashboardDragHandle`, `useDashboardDndSensors`                          |                                                               `size-7` | Drag-Overlay/Karte objektabhaengig                                                        | Handles ersetzen, Icon optisch exakt zentrieren, KeyboardSensor und i18n-ARIA einfuehren                         |
-| Dropdown-Items/ContextMenu | `ContextMenu` nutzt eigene Portal-Logik und Inline-Danger-Style wegen globaler Button-CSS-Regel.                                             | `DashboardMenu`, `DashboardMenuItem`                                     |                                                                  `h-8` | compact `h-7` fuer Table-/Toolbar-Menues                                                  | globale `--ds-btn-*` Selektor-Falle entfernen                                                                    |
-| Stepper/Number             | Number-Inputs sind lokale `type=number` Felder; Einheiten und Step-Regeln sind verstreut.                                                    | `DashboardNumberInput`, `DashboardStepper`                               |                                                                  `h-8` | compact `h-7` in dichten Buildern; Stepper-Aussenabstand und Button-Padding symmetrisch   | `FieldConfigPanel`, `ReminderForm`, `HeroBannerTab` zuerst                                                       |
+| Tabs                       | `@lmaa/ui/Tabs` hat keine `aria-controls`, `aria-labelledby`, roving tabindex oder Arrow-Key-Verhalten.                                      | `DashboardTabs`                                                          |                                                                  `h-8` | compact `h-8` nur in echten Toolbars; Content-Tabs bleiben sichtbar kraeftig              | `Tabs.tsx` robust machen, Dashboard-Wrapper anlegen                                                              |
+| Segment-Auswahl            | `SegmentedControl` ist `h-8`, `SegmentSwitch` hat `h-6`/`h-8`, lokale Toggle-Gruppen existieren.                                             | `DashboardSegmentedControl`                                              |                                           compact `h-8`, default `h-8` | icon-only `size-8`                                                                        | `SegmentSwitch` entfernen oder intern auf den neuen Primitive legen                                              |
+| Toggles/Switches           | `ToggleSwitch` ist visuell ok, aber Feldzeilen und Labels sind nicht standardisiert; Checkboxen sind uneinheitlich.                          | `DashboardSwitchField`, `DashboardCheckboxField`, `CheckboxPrimitive`    |                                         Row `h-8`; Mark/Switch kleiner | Sidebar/kompakte Listen duerfen `min-h-8`                                                 | native Checkboxen und `SubtextCheckbox` migrieren                                                                |
+| Table-Sort-Header          | Sort-Button ist inline in `DataTable`, keine lokalisierte Sort-Ansage, String-Sortierung ist fest auf `de`.                                  | `TableSortHeader`                                                        |                                                        `h-8` im Header | nicht-sortierbare Header bleiben Text                                                     | `DataTable` extrahieren, Locale als Prop/Context                                                                 |
+| Drag-Handles               | Sidebar nutzt `tabIndex={-1}` und hart deutschen Text; Submission-Step nutzt `span`; Builder-Karten nutzen grosse Drag-Flächen.              | `DashboardDragHandle`, `useDashboardDndSensors`                          |                                                               `size-8` | Drag-Overlay/Karte objektabhaengig                                                        | Handles ersetzen, Icon optisch exakt zentrieren, KeyboardSensor und i18n-ARIA einfuehren                         |
+| Dropdown-Items/ContextMenu | `ContextMenu` nutzt eigene Portal-Logik und Inline-Danger-Style wegen globaler Button-CSS-Regel.                                             | `DashboardMenu`, `DashboardMenuItem`                                     |                                                                  `h-8` | compact `h-8` fuer Table-/Toolbar-Menues                                                  | globale `--ds-btn-*` Selektor-Falle entfernen                                                                    |
+| Stepper/Number             | Number-Inputs sind lokale `type=number` Felder; Einheiten und Step-Regeln sind verstreut.                                                    | `DashboardNumberInput`, `DashboardStepper`                               |                                                                  `h-8` | compact `h-8` in dichten Buildern; Stepper-Aussenabstand und Button-Padding symmetrisch   | `FieldConfigPanel`, `ReminderForm`, `HeroBannerTab` zuerst                                                       |
 | DateTimePicker             | Trigger ohne Zielhoehe, lokale Time-Inputs, hardcodierte Texte.                                                                              | `DashboardDateTimePicker` auf `DashboardPopover`, `DashboardNumberInput` |                                                          Trigger `h-8` | Kalendertage `w-9 h-9` erlaubt                                                            | i18n Messages ergaenzen, Time-Stepper zentralisieren                                                             |
 | IconPicker                 | Suchfeld `py-1`, None-Button `h-8`, Icon-Buttons `h-9`.                                                                                      | `DashboardIconPicker`                                                    | Search `h-8`, Icon-Zelle `size-8` oder `size-9` als explizite Variante | grosse Icon-Zellen erlaubt wegen Erkennbarkeit                                            | auf Field/Listbox/Grid-Primitive setzen                                                                          |
-| Collapsible/Disclosure     | `DashboardSection`, Sidebar-Gruppen, Analytics-Listen und globale Sidebar Expand/Collapse haben eigene Toggle-Optik.                         | `DisclosureButton`, `CollapsibleRegion`                                  |                                                   `size-7` fuer Toggle | Sidebar-Gruppen `min-h-8`                                                                 | Collapse-Button zentralisieren, ARIA/i18n vereinheitlichen                                                       |
+| Collapsible/Disclosure     | `DashboardSection`, Sidebar-Gruppen, Analytics-Listen und globale Sidebar Expand/Collapse haben eigene Toggle-Optik.                         | `DisclosureButton`, `CollapsibleRegion`                                  |                                                   `size-8` fuer Toggle | Sidebar-Gruppen `min-h-8`                                                                 | Collapse-Button zentralisieren, ARIA/i18n vereinheitlichen                                                       |
 | Shared Primitive-Internals | Tokens, Radius, Fokus, Overlay und Icon-Familie driften zwischen `@lmaa/ui` und Dashboard.                                                   | `controlFoundation`, `surfaceFoundation`, `overlayFoundation`            |                                                        Token-gesteuert | Frontend-spezifische Varianten in `@lmaa/ui` duerfen eigene Wrapper behalten              | Foundation zuerst, danach Features                                                                               |
 
 ## Ziel-API
@@ -86,7 +86,7 @@ type DashboardControlSize = "compact" | "default" | "large";
 type DashboardTone = "neutral" | "primary" | "danger" | "success" | "warning";
 
 const controlSize = {
-  compact: "h-7",
+  compact: "h-8",
   default: "h-8",
   large: "h-9",
 } as const;
@@ -130,8 +130,8 @@ const controlSize = {
 
 | Ausnahme           | Erlaubte Abweichung        | Bedingung                                                                  |
 | ------------------ | -------------------------- | -------------------------------------------------------------------------- |
-| Action-Buttons     | `h-7`/`size-7` statt `h-8` | nur fuer echte Dashboard-Actions aus dem Action-Katalog                    |
-| Compact Controls   | `h-7`                      | Table Header, Toolbar, kleine Header-AddOns, explizit per `size="compact"` |
+| Action-Buttons     | `h-8`/`size-8`             | nur fuer echte Dashboard-Actions aus dem Action-Katalog                    |
+| Compact Controls   | `h-8`                      | Table Header, Toolbar, kleine Header-AddOns, explizit per `size="compact"` |
 | Large Controls     | `h-9`                      | Auth-/Setup-Submit, grosse Form-Entry-Screens, explizit per `size="large"` |
 | Textareas/Editoren | keine fixe `h-8`           | rows/minRows/Editor-Height bestimmen die Flaeche                           |
 | Kalender-Tage      | `w-9 h-9`                  | Date-Picker Grid, wegen Trefferflaeche                                     |
@@ -144,11 +144,11 @@ const controlSize = {
 ### Phase 1: Foundation und Tokens
 
 - Neue Tokens in `packages/shared/styles/tokens.css` definieren:
-  - `--ds-control-h-action: 1.75rem`
+  - `--ds-control-h-action: 2rem`
   - `--ds-control-h-field: 2rem`
   - `--ds-control-h-field-large: 2.25rem`
   - `--ds-control-h-menu-item: 2rem`
-  - `--ds-control-h-icon: 1.75rem`
+  - `--ds-control-h-icon: 2rem`
   - `--ds-focus-ring`, `--ds-focus-ring-offset`, `--ds-overlay-z-*`
 - Uno/Tailwind-Radius und CSS-Variablen angleichen.
 - Undefinierte Tokens wie `--ds-text-secondary`, `--ds-bg-hover`, `--ds-border-focus` ersetzen oder definieren.
@@ -228,9 +228,9 @@ Reihenfolge:
 
 Die Konsolidierung darf nicht nur gleiche Labels oder Icons zusammenziehen. Sie muss die UI-Sprache vereinheitlichen:
 
-- Actions kompakt: `h-7`.
+- Actions kompakt: `h-8`.
 - Felder ruhig und lesbar: `h-8`.
 - Optionen und Menues scanbar: `h-8`.
-- Kompakte Header-/Table-Ausnahmen explizit: `h-7`.
+- Kompakte Header-/Table-Ausnahmen explizit: `h-8`.
 - Grosse Form-/Editor-Ausnahmen explizit: `h-9` oder Content-Hoehe.
 - Jedes sichtbare Control bekommt eine eindeutige Rolle, zentrale Tokens, i18n-faehige ARIA-Texte und eine klar benannte Komponente.
