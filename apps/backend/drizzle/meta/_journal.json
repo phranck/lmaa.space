@@ -379,6 +379,13 @@
       "when": 1778361141823,
       "tag": "0053_domain_alert_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1778533473905,
+      "tag": "0054_fix_shop_check_notes",
+      "breakpoints": true
     }
   ]
 }
