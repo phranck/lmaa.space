@@ -24,6 +24,8 @@ Der Orchestrator-Entscheid nach Abgleich:
 - Field-Primitives duerfen `w-full` nicht hart in der Basis erzwingen. Explizite Breiten wie `w-44`, `w-24` oder `w-12` muessen in dichten Grid-/Flex-Zeilen Vorrang haben, damit Slug-, Prefix- und Add-on-Spalten sichtbar bleiben.
 - Sortier- und Drag-Handles nutzen visuell einheitlich das Phosphor-`ListIcon` mit `weight="bold"`; `DotsSixVerticalIcon` ist fuer Dashboard-Handles keine Ziel-Ikone mehr.
 - Feature-Screens mit Page/URL- oder Mode-Auswahl verwenden den Dashboard-`SegmentSwitch`-Wrapper; direkte `DashboardSegmentedControl`-Nutzung bleibt fuer primitive-nahe Sonderfaelle.
+- `SegmentedControlPrimitive` darf durch Padding nicht hoeher als Field-Controls werden. Der Container traegt die `h-8`-Aussenhoehe, Segmente/Pill liegen mit symmetrischem 2px-Inset aus 1px Border plus `p-px` innen, der aktive Zustand bekommt einen klaren Fill plus schwache echte Border ohne Shadow und Segment-Buttons zeigen keinen Fokus-Ring. Innere Radii werden aus `--radius-control` minus Border/Padding-Inset berechnet, nicht fix in Pixeln gesetzt.
+- Dropdown- und Combobox-Items verwenden fuer Hover und keyboardaktiven Zustand ausschliesslich definierte Interaktionstokens wie `--ds-control-hover-bg`; undefinierte Alias-Tokens wie `--ds-hover` sind in gemeinsamen Primitives nicht erlaubt.
 
 ## Zielbild
 

@@ -38,15 +38,21 @@ interface SegmentPill {
 }
 
 const sizeClass: Record<SegmentedControlPrimitiveSize, string> = {
-  compact: "h-8 px-3 text-sm",
-  default: "h-8 px-3.5 text-sm",
-  large: "h-[var(--ds-control-h-field-large)] px-4 text-sm",
+  compact: "h-[calc(var(--ds-control-h-field)-0.25rem)] px-2.5 text-sm",
+  default: "h-[calc(var(--ds-control-h-field)-0.25rem)] px-3 text-sm",
+  large: "h-[calc(var(--ds-control-h-field-large)-0.25rem)] px-4 text-sm",
 };
 
 const iconOnlySizeClass: Record<SegmentedControlPrimitiveSize, string> = {
-  compact: "size-8 text-sm",
-  default: "size-8 text-sm",
-  large: "size-[var(--ds-control-h-field-large)] text-sm",
+  compact: "h-[calc(var(--ds-control-h-field)-0.25rem)] w-[calc(var(--ds-control-h-field)-0.25rem)] text-sm",
+  default: "h-[calc(var(--ds-control-h-field)-0.25rem)] w-[calc(var(--ds-control-h-field)-0.25rem)] text-sm",
+  large: "h-[calc(var(--ds-control-h-field-large)-0.25rem)] w-[calc(var(--ds-control-h-field-large)-0.25rem)] text-sm",
+};
+
+const containerSizeClass: Record<SegmentedControlPrimitiveSize, string> = {
+  compact: "h-[var(--ds-control-h-field)]",
+  default: "h-[var(--ds-control-h-field)]",
+  large: "h-[var(--ds-control-h-field-large)]",
 };
 
 export function SegmentedControlPrimitive<T extends string = string>({
@@ -83,9 +89,11 @@ export function SegmentedControlPrimitive<T extends string = string>({
 
     const containerRect = container.getBoundingClientRect();
     const buttonRect = activeButton.getBoundingClientRect();
+    const containerStyle = getComputedStyle(container);
+    const borderLeft = Number.parseFloat(containerStyle.borderLeftWidth) || 0;
     const nextPill = {
       height: buttonRect.height,
-      left: buttonRect.left - containerRect.left,
+      left: buttonRect.left - containerRect.left - borderLeft,
       width: buttonRect.width,
     };
 
@@ -169,10 +177,11 @@ export function SegmentedControlPrimitive<T extends string = string>({
     <div
       aria-label={ariaLabel}
       className={cx(
-        "relative flex w-fit items-center rounded-control",
+        "relative flex w-fit items-center rounded-control p-px",
+        containerSizeClass[size],
         variant === "outline"
-          ? "border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] p-1"
-          : "bg-[var(--ds-segment-bg)] p-1",
+          ? "border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)]"
+          : "border border-transparent bg-[var(--ds-segment-bg)]",
         className,
       )}
       onKeyDown={handleKeyDown}
@@ -182,7 +191,7 @@ export function SegmentedControlPrimitive<T extends string = string>({
       {pill && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute rounded-[4px] bg-[var(--ds-segment-active-bg,var(--ds-surface))] shadow-sm"
+          className="pointer-events-none absolute rounded-[calc(var(--radius-control)-2px)] border border-[var(--ds-segment-active-border,var(--ds-border))] bg-[var(--ds-segment-active-bg,var(--ds-control-active-bg))]"
           style={{
             height: pill.height,
             left: pill.left,
@@ -206,8 +215,8 @@ export function SegmentedControlPrimitive<T extends string = string>({
             aria-label={iconOnly ? accessibleLabel : undefined}
             aria-pressed={isActive}
             className={cx(
-              "relative z-10 inline-flex items-center justify-center gap-1.5 rounded-[4px] font-medium transition-colors",
-              "focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
+              "relative z-10 inline-flex items-center justify-center gap-1.5 rounded-[calc(var(--radius-control)-2px)] font-medium transition-colors",
+              "focus:outline-none",
               "disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]",
               iconOnly ? iconOnlySizeClass[size] : sizeClass[size],
               isActive

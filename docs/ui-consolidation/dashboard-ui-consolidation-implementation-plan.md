@@ -1371,6 +1371,8 @@ Nachtrag 2026-05-11, Navigation-Builder-Regressionsfix:
 - `NavManagerPage` rendert Sortierzeilen mit festen Grid-Spalten fuer Drag-Handle, Slug/Title, Label-Override und Remove-Action. Slugs werden trunciert statt von Label-Inputs ueberdeckt.
 - Die Add-Type-Auswahl im Navigation-Builder nutzt den bestehenden `SegmentSwitch`-Wrapper statt direkt auf `DashboardSegmentedControl` zu gehen.
 - Dashboard-Drag-Handles verwenden einheitlich das Phosphor-`ListIcon` mit `weight="bold"`; lokale `DotsSixVerticalIcon`-Handles wurden entfernt.
+- `SegmentedControlPrimitive` ist auf dieselbe Aussenhoehe wie andere Field-Controls korrigiert: Container `h-8`, innerer Pill mit symmetrischem 2px-Inset aus 1px Border plus `p-px`, sichtbarem Active-Fill und schwacher echter Border ohne Shadow. Segment-Buttons zeigen keinen Fokus-Ring; innerer Pill-/Button-Radius wird aus `--radius-control` minus Border/Padding-Inset berechnet.
+- `ListboxOption` verwendet fuer Mouse-Hover und keyboardaktiven Zustand den vorhandenen Token `--ds-control-hover-bg`; undefinierte Alias-Tokens duerfen in gemeinsamen Dropdown-Primitives nicht verwendet werden.
 - Der Navigations-Smoke muss `/navigations` mit bestehenden Header-/Footer-Eintraegen pruefen und verifizieren, dass Slug-Spalte und Label-Input nicht ueberlappen.
 
 ## Stop-Kriterien
