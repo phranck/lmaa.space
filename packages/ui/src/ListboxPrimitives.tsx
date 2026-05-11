@@ -661,8 +661,9 @@ export function ListboxOption({
       aria-selected={selectedState}
       className={cx(
         "flex min-h-[var(--ds-control-h-menu-item)] w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors",
+        "hover:bg-[var(--ds-control-hover-bg)] hover:text-[var(--ds-text)]",
         "disabled:pointer-events-none disabled:opacity-[var(--ds-control-disabled-opacity)]",
-        activeState && "bg-[var(--ds-hover)] text-[var(--ds-text)]",
+        activeState && "bg-[var(--ds-control-hover-bg)] text-[var(--ds-text)]",
         selectedState && "font-medium text-[var(--ds-text)]",
         !selectedState && "text-[var(--ds-text-secondary)]",
         className,
