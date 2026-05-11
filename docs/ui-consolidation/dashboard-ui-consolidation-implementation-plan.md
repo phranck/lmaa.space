@@ -1365,6 +1365,14 @@ Nachtrag 2026-05-11, Hoehen- und Header-Regressionsfix:
 - `Dropdown`/`FilterDropdown` verwenden wieder Portal-Positionierung als Default, damit Popover an den Trigger gebunden bleiben und nicht im Header-Flex-Container auf die Restbreite wachsen.
 - Der Shops-Export bleibt als zusammenhaengendes Split-Control dokumentiert: Limit-Auswahl links, Export-Action rechts, gemeinsame Control-Hoehe und gemeinsame Border.
 
+Nachtrag 2026-05-11, Navigation-Builder-Regressionsfix:
+
+- `InputPrimitive` und `TextareaPrimitive` setzen `w-full` nur noch, wenn keine explizite `w-*`-Breite uebergeben wurde oder `fullWidth` explizit gesetzt ist. Damit koennen kompakte Felder wie `w-44`, `w-24` und `w-12` wieder neben Slug-/Label-Spalten stehen.
+- `NavManagerPage` rendert Sortierzeilen mit festen Grid-Spalten fuer Drag-Handle, Slug/Title, Label-Override und Remove-Action. Slugs werden trunciert statt von Label-Inputs ueberdeckt.
+- Die Add-Type-Auswahl im Navigation-Builder nutzt den bestehenden `SegmentSwitch`-Wrapper statt direkt auf `DashboardSegmentedControl` zu gehen.
+- Dashboard-Drag-Handles verwenden einheitlich das Phosphor-`ListIcon` mit `weight="bold"`; lokale `DotsSixVerticalIcon`-Handles wurden entfernt.
+- Der Navigations-Smoke muss `/navigations` mit bestehenden Header-/Footer-Eintraegen pruefen und verifizieren, dass Slug-Spalte und Label-Input nicht ueberlappen.
+
 ## Stop-Kriterien
 
 Die Umsetzung wird unterbrochen, wenn eine dieser Bedingungen eintritt:

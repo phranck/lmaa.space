@@ -21,6 +21,9 @@ Der Orchestrator-Entscheid nach Abgleich:
 - `h-9` ist danach keine stillschweigende Formular-Default-Hoehe mehr, sondern eine explizite Large-/Editor-/Kalender-Ausnahme.
 - Dropdown-, Select- und Menu-Items bekommen als Default `h-8`; kompakte Tabellen- oder Toolbar-Ausnahmen duerfen `h-8` sein.
 - Alle Farben, Fokus-Ringe, Radii, Disabled-States, Hover-States und Z-Index-Werte muessen aus gemeinsamen Tokens kommen.
+- Field-Primitives duerfen `w-full` nicht hart in der Basis erzwingen. Explizite Breiten wie `w-44`, `w-24` oder `w-12` muessen in dichten Grid-/Flex-Zeilen Vorrang haben, damit Slug-, Prefix- und Add-on-Spalten sichtbar bleiben.
+- Sortier- und Drag-Handles nutzen visuell einheitlich das Phosphor-`ListIcon` mit `weight="bold"`; `DotsSixVerticalIcon` ist fuer Dashboard-Handles keine Ziel-Ikone mehr.
+- Feature-Screens mit Page/URL- oder Mode-Auswahl verwenden den Dashboard-`SegmentSwitch`-Wrapper; direkte `DashboardSegmentedControl`-Nutzung bleibt fuer primitive-nahe Sonderfaelle.
 
 ## Zielbild
 

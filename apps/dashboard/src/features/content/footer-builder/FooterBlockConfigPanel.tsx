@@ -10,7 +10,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DotsSixVerticalIcon } from "@phosphor-icons/react";
+import { ListIcon } from "@phosphor-icons/react";
 import { Suspense, lazy } from "react";
 
 import type { FooterBlock, SocialMediaBlock } from "@lmaa/contracts";
@@ -295,7 +295,7 @@ function SocialMediaOrderItem({ platform, label }: { platform: string; label: st
       {...listeners}
       className="flex cursor-grab items-center gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-2 py-1.5 text-sm text-[var(--ds-text)] hover:border-[var(--color-primary)] active:cursor-grabbing"
     >
-      <DotsSixVerticalIcon className="size-4 shrink-0 text-[var(--ds-text-subtle)]" />
+      <ListIcon className="size-4 shrink-0 text-[var(--ds-text-subtle)]" weight="bold" />
       {Icon ? <Icon size={16} /> : null}
       <span className="flex-1 truncate">{def?.label ?? platform}</span>
       <span className="shrink-0 text-xs text-[var(--ds-text-subtle)]">{label}</span>

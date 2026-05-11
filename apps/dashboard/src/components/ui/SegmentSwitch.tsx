@@ -10,6 +10,7 @@ interface SegmentSwitchOption<T extends string> {
 }
 
 interface SegmentSwitchProps<T extends string> {
+  "aria-label"?: string;
   className?: string;
   onChange: (value: T) => void;
   options: readonly SegmentSwitchOption<T>[];
@@ -23,6 +24,7 @@ const sizeMap = {
 } as const;
 
 export function SegmentSwitch<T extends string>({
+  "aria-label": ariaLabel,
   className,
   onChange,
   options,
@@ -31,6 +33,7 @@ export function SegmentSwitch<T extends string>({
 }: SegmentSwitchProps<T>) {
   return (
     <DashboardSegmentedControl
+      aria-label={ariaLabel}
       className={className}
       onValueChange={onChange}
       options={options}

@@ -3,7 +3,7 @@ import {
   CaretRightIcon,
   CaretUpIcon,
   CaretUpDownIcon,
-  DotsSixVerticalIcon,
+  ListIcon,
   MinusIcon,
   PlusIcon,
 } from "@phosphor-icons/react";
@@ -781,7 +781,7 @@ export function DashboardDragHandle({
       )}
       variant={variant}
     >
-      <DotsSixVerticalIcon className="size-4" weight="duotone" />
+      <ListIcon className="size-4" weight="bold" />
     </DashboardIconButton>
   );
 }

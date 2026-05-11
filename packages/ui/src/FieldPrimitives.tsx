@@ -27,11 +27,13 @@ export interface FieldShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "c
 
 export interface InputPrimitiveProps extends ComponentPropsWithoutRef<"input"> {
   controlSize?: FieldControlSize;
+  fullWidth?: boolean;
   invalid?: boolean;
 }
 
 export interface TextareaPrimitiveProps extends ComponentPropsWithoutRef<"textarea"> {
   controlSize?: FieldControlSize;
+  fullWidth?: boolean;
   invalid?: boolean;
 }
 
@@ -41,7 +43,7 @@ export const fieldOptionalClass = "font-normal text-[var(--ds-text-subtle)]";
 export const fieldHelpClass = "text-xs text-[var(--ds-text-subtle)]";
 export const fieldErrorClass = "text-xs text-red-500";
 export const fieldControlBaseClass =
-  "w-full box-border rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-focus)] focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]";
+  "box-border rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] text-sm text-[var(--ds-text)] transition-colors placeholder:text-[var(--ds-text-subtle)] focus:outline-none focus:border-[var(--ds-border-focus)] focus:ring-2 focus:ring-[var(--ds-focus-ring)] disabled:cursor-not-allowed disabled:opacity-[var(--ds-control-disabled-opacity)]";
 export const fieldControlInvalidClass =
   "border-[var(--ds-danger-border)] focus:border-[var(--ds-danger-border)] focus:ring-[var(--ds-danger-border)]";
 
@@ -124,6 +126,7 @@ export function FieldShell({
 export function InputPrimitive({
   className,
   controlSize = "field",
+  fullWidth,
   invalid,
   ...inputProps
 }: InputPrimitiveProps) {
@@ -135,6 +138,7 @@ export function InputPrimitive({
       aria-invalid={ariaInvalid}
       className={cx(
         fieldControlBaseClass,
+        shouldFillControl(fullWidth, className) && "w-full",
         inputSizeClass[controlSize],
         hasInvalidState(ariaInvalid) && fieldControlInvalidClass,
         className,
@@ -146,6 +150,7 @@ export function InputPrimitive({
 export function TextareaPrimitive({
   className,
   controlSize = "field",
+  fullWidth,
   invalid,
   ...textareaProps
 }: TextareaPrimitiveProps) {
@@ -157,10 +162,19 @@ export function TextareaPrimitive({
       aria-invalid={ariaInvalid}
       className={cx(
         fieldControlBaseClass,
+        shouldFillControl(fullWidth, className) && "w-full",
         textareaSizeClass[controlSize],
         hasInvalidState(ariaInvalid) && fieldControlInvalidClass,
         className,
       )}
     />
   );
+}
+
+function shouldFillControl(fullWidth: boolean | undefined, className: string | undefined) {
+  return fullWidth ?? !hasExplicitWidthClass(className);
+}
+
+function hasExplicitWidthClass(className: string | undefined) {
+  return /(?:^|\s)w-(?!full(?:\s|$))[^\s]+/.test(className ?? "");
 }
