@@ -395,7 +395,7 @@ function EditorMetadataBar({
         <DashboardCombobox
           value={page.status}
           onValueChange={onStatusChange}
-          className="w-32"
+          minWidthFromOptions
           options={[
             { value: "draft", label: editorMessages.statusDraft },
             { value: "published", label: editorMessages.statusPublished },
