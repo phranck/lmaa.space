@@ -1374,7 +1374,7 @@ Nachtrag 2026-05-11, Navigation-Builder-Regressionsfix:
 - `SegmentedControlPrimitive` ist auf dieselbe Aussenhoehe wie andere Field-Controls korrigiert: Container `h-8`, innerer Pill mit symmetrischem 2px-Inset aus 1px Border plus `p-px`, sichtbarem Active-Fill und schwacher echter Border ohne Shadow. Segment-Buttons zeigen keinen Fokus-Ring; innerer Pill-/Button-Radius wird aus `--radius-control` minus Border/Padding-Inset berechnet.
 - `ListboxOption` verwendet fuer Mouse-Hover und keyboardaktiven Zustand den vorhandenen Token `--ds-control-hover-bg`; undefinierte Alias-Tokens duerfen in gemeinsamen Dropdown-Primitives nicht verwendet werden.
 - `DashboardCombobox` bietet fuer Enum-/Status-Controls `minWidthFromOptions`: Die geschlossene Trigger-Breite wird aus allen Optionslabels gemessen, damit der breiteste Eintrag ohne hart codiertes `w-*` passt. Der Page-Editor-Status nutzt diese Option statt `w-32`.
-- `IconPicker` hebt die aktuelle Auswahl lokal staerker hervor: Active-Fill, Primary-Border und Primary-Text aus bestehenden Tokens, ohne Shadow und ohne globale Primary-Button-Variante zu veraendern.
+- `IconPicker` hebt die aktuelle Auswahl lokal staerker hervor: leuchtender Active-Fill, Primary-Border und im Dark Mode ein weisses Icon, ohne Shadow und ohne globale Primary-Button-Variante zu veraendern.
 - Der Navigations-Smoke muss `/navigations` mit bestehenden Header-/Footer-Eintraegen pruefen und verifizieren, dass Slug-Spalte und Label-Input nicht ueberlappen.
 
 ## Stop-Kriterien
