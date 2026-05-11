@@ -11,8 +11,11 @@ import {
 
 import {
 	getOverlayStackSnapshot,
+	OverlayLayerZIndexContext,
 	registerOverlay,
+	resolveOverlayZIndex,
 	subscribeOverlayStack,
+	type OverlayLayerZIndex,
 } from "./overlay-stack.ts";
 
 // ---------------------------------------------------------------------------
@@ -61,7 +64,7 @@ interface OverlayCardProps {
 	className?: string;
 	style?: React.CSSProperties;
 	backdropClose?: boolean;
-	zIndex?: number;
+	zIndex?: OverlayLayerZIndex;
 	onEscape?: () => boolean;
 	children: ReactNode;
 }
@@ -141,7 +144,7 @@ export function OverlayCard({
 	className,
 	style,
 	backdropClose = false,
-	zIndex = 2000,
+	zIndex = "var(--ds-overlay-z-dialog)",
 	onEscape,
 	children,
 }: OverlayCardProps) {
@@ -227,43 +230,47 @@ export function OverlayCard({
 		size === "fixed-lg" ? "max-w-lg" : size === "fixed-md" ? "max-w-md" : "max-w-sm";
 	const cardAnim = closing ? "lmaa-card-out 280ms ease forwards" : "lmaa-card-in 380ms ease forwards";
 	const backdropAnim = closing ? "lmaa-overlay-out 280ms ease forwards" : "lmaa-overlay-in 360ms ease forwards";
-	const effectiveZIndex = isRegistered ? zIndex + stackIndex * 100 : zIndex;
+	const effectiveZIndex = isRegistered
+		? resolveOverlayZIndex(zIndex, stackIndex * 100)
+		: zIndex;
 
 	return (
-		<div
-			className="fixed inset-0 flex items-center justify-center px-4"
-			style={{ zIndex: effectiveZIndex }}
-		>
-			{/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click handled separately, ESC via overlay-stack */}
+		<OverlayLayerZIndexContext.Provider value={effectiveZIndex}>
 			<div
-				className={[
-					"absolute inset-0",
-					isBaseLayer ? "backdrop-blur-xl bg-black/10" : "bg-black/20",
-					isTopMost ? "pointer-events-auto" : "pointer-events-none",
-				]
-					.filter(Boolean)
-					.join(" ")}
-				style={{ animation: backdropAnim }}
-				aria-hidden="true"
-				onClick={handleBackdropClick}
-				onAnimationEnd={handleBackdropAnimationEnd}
-			/>
-			<div
-				ref={dialogRef}
-				className={[
-					`relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl overflow-hidden w-full ${fixedMaxWidth}`,
-					className,
-				]
-					.filter(Boolean)
-					.join(" ")}
-				style={{ animation: cardAnim, ...style }}
-				role="dialog"
-				aria-modal={true}
-				aria-label={ariaLabel}
+				className="fixed inset-0 flex items-center justify-center px-4"
+				style={{ zIndex: effectiveZIndex }}
 			>
-				{children}
+				{/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click handled separately, ESC via overlay-stack */}
+				<div
+					className={[
+						"absolute inset-0",
+						isBaseLayer ? "backdrop-blur-xl bg-black/10" : "bg-black/20",
+						isTopMost ? "pointer-events-auto" : "pointer-events-none",
+					]
+						.filter(Boolean)
+						.join(" ")}
+					style={{ animation: backdropAnim }}
+					aria-hidden="true"
+					onClick={handleBackdropClick}
+					onAnimationEnd={handleBackdropAnimationEnd}
+				/>
+				<div
+					ref={dialogRef}
+					className={[
+						`relative bg-[var(--ds-surface)] border border-[rgba(255,255,255,0.06)] rounded-2xl shadow-xl overflow-hidden w-full ${fixedMaxWidth}`,
+						className,
+					]
+						.filter(Boolean)
+						.join(" ")}
+					style={{ animation: cardAnim, ...style }}
+					role="dialog"
+					aria-modal={true}
+					aria-label={ariaLabel}
+				>
+					{children}
+				</div>
 			</div>
-		</div>
+		</OverlayLayerZIndexContext.Provider>
 	);
 }
 

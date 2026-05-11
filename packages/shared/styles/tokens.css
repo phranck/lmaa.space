@@ -297,9 +297,9 @@
 :root {
   /* Overlay / modal backdrop */
   --ds-overlay-bg: oklch(0 0 0 / 0.5);
+  --ds-overlay-z-dialog: 2000;
   --ds-overlay-z-dropdown: 50;
   --ds-overlay-z-menu: 60;
-  --ds-overlay-z-dialog: 100;
   --ds-overlay-shadow: var(--ds-shadow-xl);
 
   /* Filled button (dark primary action — not CTA green) */
