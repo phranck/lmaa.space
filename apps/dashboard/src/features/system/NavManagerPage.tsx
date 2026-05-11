@@ -29,11 +29,11 @@ import {
 import {
   DashboardDragHandle,
   DashboardInput,
-  DashboardSegmentedControl,
 } from "@/components/ui/DashboardControls.tsx";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
+import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
@@ -142,7 +142,7 @@ function SortableNavItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-control"
+      className="grid grid-cols-[auto_minmax(0,1fr)_minmax(10rem,11rem)_auto] items-center gap-3 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] p-3"
     >
       <DashboardDragHandle
         {...attributes}
@@ -151,11 +151,11 @@ function SortableNavItem({
         title={text.dragTitle}
       />
 
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 overflow-hidden">
         <div className="text-sm font-medium text-[var(--ds-text)] truncate">
           {item.pageTitle ?? item.url}
         </div>
-        <div className="text-xs text-[var(--ds-text-muted)] font-mono">{displayUrl}</div>
+        <div className="truncate font-mono text-xs text-[var(--ds-text-muted)]">{displayUrl}</div>
       </div>
 
       <DashboardInput
@@ -163,7 +163,7 @@ function SortableNavItem({
         value={item.label}
         onChange={(e) => onLabelChange(item.id, e.target.value)}
         placeholder={item.pageTitle ?? item.url ?? ""}
-        className="w-44 text-xs"
+        className="w-44 min-w-0 text-xs"
         title={text.labelOverrideTitle}
       />
 
@@ -475,15 +475,15 @@ function NavColumnAddSection({
   return (
     <div className="border-t border-[var(--ds-border)] pt-3 space-y-3">
       {/* Type toggle */}
-      <DashboardSegmentedControl
+      <SegmentSwitch
+        aria-label={text.choosePageOrForm}
         value={addType === "form" ? "page" : addType}
-        onValueChange={(value) => onTypeChange(value)}
+        onChange={(value) => onTypeChange(value)}
         options={[
           { value: "page", label: text.typePage },
           { value: "url", label: text.typeUrl },
         ]}
-        size="compact"
-        variant="outline"
+        size="sm"
       />
 
       {addType === "page" ? (
