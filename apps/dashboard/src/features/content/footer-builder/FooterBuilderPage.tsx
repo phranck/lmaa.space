@@ -7,15 +7,21 @@ import {
   closestCenter,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from "@dnd-kit/sortable";
-import { ArrowClockwiseIcon, PlusCircleIcon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon,
+  ColumnsPlusRightIcon,
+  EyeIcon,
+  PlusCircleIcon,
+  SlidersHorizontalIcon,
+} from "@phosphor-icons/react";
 import { nanoid } from "nanoid";
 import { useEffect, useReducer, useRef } from "react";
 
 import type { FooterBlock, FooterColumn, FooterConfig, FooterStyle } from "@lmaa/contracts";
 import { FOOTER_STYLE_DEFAULTS } from "@lmaa/contracts";
 import { resolveFooterHeightPx } from "@lmaa/shared";
+import { DashboardSection } from "@lmaa/ui";
 
-import { Card } from "@/components/ui/Card.tsx";
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -29,7 +35,11 @@ import { FooterCanvas } from "./FooterCanvas.tsx";
 import { FooterPalette } from "./FooterPalette.tsx";
 import { FooterPreview } from "./FooterPreview.tsx";
 import { FooterStylePane } from "./FooterStylePane.tsx";
-import { useFooterConfig, useFooterPreview, useSaveFooterConfig } from "../hooks/useFooterConfig.ts";
+import {
+  useFooterConfig,
+  useFooterPreview,
+  useSaveFooterConfig,
+} from "../hooks/useFooterConfig.ts";
 
 type Selection = { kind: "style" } | { kind: "block"; id: string } | null;
 type FooterBlockType = FooterBlock["type"];
@@ -44,7 +54,10 @@ interface FooterBuilderState {
 
 type FooterBuilderAction = Partial<FooterBuilderState>;
 
-function footerBuilderReducer(state: FooterBuilderState, action: FooterBuilderAction): FooterBuilderState {
+function footerBuilderReducer(
+  state: FooterBuilderState,
+  action: FooterBuilderAction,
+): FooterBuilderState {
   return { ...state, ...action };
 }
 
@@ -210,14 +223,16 @@ export function FooterBuilderPage() {
       const block = config?.columns
         .find((c) => c.id === colId)
         ?.blocks.find((b) => b.id === blockId);
-      dispatch({ activeDrag: {
-        label:
-          block?.type === "headline"
-            ? block.text || blockTypeLabels.headline
-            : block?.type === "button"
-              ? block.label || blockTypeLabels.button
-              : blockTypeLabels[block?.type ?? "headline"],
-      } });
+      dispatch({
+        activeDrag: {
+          label:
+            block?.type === "headline"
+              ? block.text || blockTypeLabels.headline
+              : block?.type === "button"
+                ? block.label || blockTypeLabels.button
+                : blockTypeLabels[block?.type ?? "headline"],
+        },
+      });
     }
   }
 
@@ -385,47 +400,54 @@ export function FooterBuilderPage() {
         onDragEnd={handleDragEnd}
         onDragCancel={() => dispatch({ activeDrag: null })}
       >
-        <div className="flex gap-4 items-start">
-          {/* Palette sidebar */}
-          <div className="shrink-0">
-            <FooterPalette />
-          </div>
+        <div className="grid items-start gap-4 xl:grid-cols-[11rem_minmax(0,1fr)_18rem]">
+          <FooterPalette />
 
-          {/* Column canvases */}
-          <div className="flex-1 min-w-0 flex gap-3 overflow-auto">
-            <SortableContext
-              items={config.columns.map((c) => `col:${c.id}`)}
-              strategy={horizontalListSortingStrategy}
-            >
-              {config.columns.map((col) => (
-                <FooterCanvas
-                  key={col.id}
-                  column={col}
-                  selectedBlockId={selectedBlockId}
-                  onSelectBlock={(id) =>
-                    dispatch({
-                      selection: selection?.kind === "block" && selection.id === id ? null : { kind: "block", id },
-                    })
-                  }
-                  onDeleteBlock={(blockId) => handleDeleteBlock(col.id, blockId)}
-                  onChangeSpan={(span) => handleChangeSpan(col.id, span)}
-                  onRemoveColumn={() => handleRemoveColumn(col.id)}
-                />
-              ))}
-            </SortableContext>
+          <DashboardSection className="min-w-0 overflow-hidden">
+            <DashboardSection.Header
+              icon={<ColumnsPlusRightIcon weight="duotone" className="size-4" />}
+              title={footerMessages.columnsTitle}
+              addOn={
+                <DashboardButton
+                  onClick={handleAddColumn}
+                  className="whitespace-nowrap border-dashed"
+                  leadingIcon={<PlusCircleIcon weight="duotone" className="size-4" />}
+                  variant="neutral"
+                >
+                  {footerMessages.addColumn}
+                </DashboardButton>
+              }
+            />
+            <DashboardSection.Body className="!gap-0">
+              <div className="flex min-w-0 gap-3 overflow-x-auto pb-1">
+                <SortableContext
+                  items={config.columns.map((c) => `col:${c.id}`)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  {config.columns.map((col) => (
+                    <FooterCanvas
+                      key={col.id}
+                      column={col}
+                      selectedBlockId={selectedBlockId}
+                      onSelectBlock={(id) =>
+                        dispatch({
+                          selection:
+                            selection?.kind === "block" && selection.id === id
+                              ? null
+                              : { kind: "block", id },
+                        })
+                      }
+                      onDeleteBlock={(blockId) => handleDeleteBlock(col.id, blockId)}
+                      onChangeSpan={(span) => handleChangeSpan(col.id, span)}
+                      onRemoveColumn={() => handleRemoveColumn(col.id)}
+                    />
+                  ))}
+                </SortableContext>
+              </div>
+            </DashboardSection.Body>
+          </DashboardSection>
 
-            <DashboardButton
-              onClick={handleAddColumn}
-              className="shrink-0 self-start whitespace-nowrap border-dashed"
-              leadingIcon={<PlusCircleIcon weight="duotone" className="size-4" />}
-              variant="neutral"
-            >
-              Spalte
-            </DashboardButton>
-          </div>
-
-          {/* Config panel — always visible: block props when selected, style otherwise */}
-          <div className="shrink-0 w-72">
+          <div className="min-w-0">
             {selectedBlock !== null ? (
               <FooterBlockConfigPanel block={selectedBlock} onChange={handleBlockUpdate} />
             ) : (
@@ -446,11 +468,14 @@ export function FooterBuilderPage() {
         </DragOverlay>
       </DndContext>
 
-      <FooterPreviewCard
+      <FooterPreviewSection
         showStyle={showStyle}
         previewUrl={previewUrl}
         previewHeightPx={previewHeightPx}
         isPreviewPending={isPreviewPending}
+        previewTitle={footerMessages.previewTitle}
+        styleLabel={footerMessages.styleTitle}
+        reloadLabel={footerMessages.reloadPreview}
         onOpenStyle={() => dispatch({ selection: { kind: "style" } })}
         onReload={handleReloadPreview}
       />
@@ -462,53 +487,68 @@ export function FooterBuilderPage() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-interface FooterPreviewCardProps {
+interface FooterPreviewSectionProps {
   showStyle: boolean;
   previewUrl: string | null;
   previewHeightPx: string;
   isPreviewPending: boolean;
+  previewTitle: string;
+  styleLabel: string;
+  reloadLabel: string;
   onOpenStyle: () => void;
   onReload: () => void;
 }
 
-function FooterPreviewCard({
+function FooterPreviewSection({
   showStyle,
   previewUrl,
   previewHeightPx,
   isPreviewPending,
+  previewTitle,
+  styleLabel,
+  reloadLabel,
   onOpenStyle,
   onReload,
-}: FooterPreviewCardProps) {
+}: FooterPreviewSectionProps) {
   return (
-    <Card>
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--ds-border)]">
-        <button
-          type="button"
-          onClick={onOpenStyle}
-          className={`min-w-0 flex-1 text-left text-xs font-semibold uppercase tracking-wider ${
-            showStyle
-              ? "text-[var(--color-primary)]"
-              : "text-[var(--ds-text-subtle)] hover:text-[var(--ds-text)]"
-          }`}
-        >
-          Vorschau
-        </button>
-        <DashboardButton
-          onClick={onReload}
-          disabled={isPreviewPending}
-          className="shrink-0"
-          leadingIcon={
-            <ArrowClockwiseIcon
-              weight="duotone"
-              className={`size-3.5 ${isPreviewPending ? "animate-spin" : ""}`}
-            />
-          }
-          variant="neutral"
-        >
-          Reload
-        </DashboardButton>
-      </div>
-      <FooterPreview src={previewUrl} heightPx={previewHeightPx} isLoading={isPreviewPending} />
-    </Card>
+    <DashboardSection>
+      <DashboardSection.Header
+        icon={<EyeIcon weight="duotone" className="size-4" />}
+        title={previewTitle}
+        addOn={
+          <span className="flex items-center gap-2">
+            <DashboardButton
+              onClick={onOpenStyle}
+              className={`shrink-0 ${
+                showStyle
+                  ? "border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-[var(--color-primary)]"
+                  : ""
+              }`}
+              leadingIcon={<SlidersHorizontalIcon weight="duotone" className="size-3.5" />}
+              variant="neutral"
+            >
+              {styleLabel}
+            </DashboardButton>
+            <DashboardButton
+              onClick={onReload}
+              disabled={isPreviewPending}
+              className="shrink-0"
+              leadingIcon={
+                <ArrowClockwiseIcon
+                  weight="duotone"
+                  className={`size-3.5 ${isPreviewPending ? "animate-spin" : ""}`}
+                />
+              }
+              variant="neutral"
+            >
+              {reloadLabel}
+            </DashboardButton>
+          </span>
+        }
+      />
+      <DashboardSection.Body className="!gap-0 !p-0 overflow-hidden rounded-b-xl">
+        <FooterPreview src={previewUrl} heightPx={previewHeightPx} isLoading={isPreviewPending} />
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }

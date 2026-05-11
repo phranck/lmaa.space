@@ -1,16 +1,20 @@
-import { CheckCircleIcon, SealWarningIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useRef, useState } from "react";
+import {
+  ArticleIcon,
+  CheckCircleIcon,
+  EnvelopeOpenIcon,
+  EnvelopeSimpleIcon,
+  SealWarningIcon,
+  SquareHalfBottomIcon,
+} from "@phosphor-icons/react";
+import { Suspense, lazy, type ReactNode, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { EmailTemplateInput } from "@lmaa/contracts";
+import { DashboardSection } from "@lmaa/ui";
 
-const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
-);
+const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
 
-import { Card, SectionCard } from "@/components/ui/Card.tsx";
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
-import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { HeaderBackButton } from "@/components/ui/HeaderBackButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
@@ -26,18 +30,29 @@ import {
 } from "@/features/templates/hooks/useEmailTemplates.ts";
 import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
-interface FieldProps {
-  label: string;
-  htmlFor?: string;
-  required?: boolean;
-  hint?: string;
-  children: React.ReactNode;
-}
+const FLUSH_MARKDOWN_EDITOR_CLASS = "rounded-none border-x-0 border-b-0";
 
-function Field({ label, htmlFor, required, hint, children }: FieldProps) {
+function MarkdownEditorField({
+  id,
+  label,
+  required,
+  showLabel = true,
+  children,
+}: {
+  id: string;
+  label: string;
+  required?: boolean;
+  showLabel?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <div className="space-y-1">
-      <label htmlFor={htmlFor} className="block text-xs font-medium text-[var(--ds-text-muted)]">
+    <div>
+      <label
+        htmlFor={id}
+        className={
+          showLabel ? "block px-3 pb-1 text-xs font-medium text-[var(--ds-text-subtle)]" : "sr-only"
+        }
+      >
         {label}
         {required && (
           <SealWarningIcon
@@ -47,30 +62,7 @@ function Field({ label, htmlFor, required, hint, children }: FieldProps) {
         )}
       </label>
       {children}
-      {hint && <p className="text-xs text-[var(--ds-text-muted)]">{hint}</p>}
     </div>
-  );
-}
-
-function TextInput({
-  id,
-  value,
-  onChange,
-  placeholder,
-}: {
-  id?: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <DashboardInput
-      id={id}
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-    />
   );
 }
 
@@ -113,9 +105,13 @@ export function EmailTemplateEditPage() {
     footerText: "",
     isSystemTemplate: false,
   });
-  const { name, subject, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText } = form;
+  const { name, subject, headerBannerUrl, headerText, bodyText, footerBannerUrl, footerText } =
+    form;
 
-  const updateField = <K extends keyof TemplateFormFields>(key: K, value: TemplateFormFields[K]) => {
+  const updateField = <K extends keyof TemplateFormFields>(
+    key: K,
+    value: TemplateFormFields[K],
+  ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -197,7 +193,12 @@ export function EmailTemplateEditPage() {
     <div className="flex flex-col h-full">
       <PageHeader
         title={name || m.newTemplate}
-        leading={<HeaderBackButton label={messages.emailTemplates.listTitle} onClick={() => navigate("/email-templates")} />}
+        leading={
+          <HeaderBackButton
+            label={messages.emailTemplates.listTitle}
+            onClick={() => navigate("/email-templates")}
+          />
+        }
       >
         <div className="flex items-center gap-3">
           {savedIndicator && (
@@ -216,112 +217,163 @@ export function EmailTemplateEditPage() {
         </div>
       </PageHeader>
 
-      {/* Sub-bar: back link + inline name input */}
-      <div className="px-3 py-1.5 shrink-0 flex items-center gap-3">
-        <DashboardButton
-          type="button"
-          onClick={() => navigate("/email-templates")}
-          className="shrink-0 border-transparent px-0 hover:bg-transparent"
-          variant="ghost"
-        >
-          {m.backToList}
-        </DashboardButton>
-        <span className="text-[var(--ds-border)]">·</span>
+      <div className="flex shrink-0 items-end gap-3 px-3 py-2">
         <DashboardInput
-          aria-label={m.templateName}
+          fieldClassName="w-64"
+          id="email-template-name"
           type="text"
           value={name}
           onChange={(e) => updateField("name", e.target.value)}
           placeholder={m.newTemplate}
-          className="w-64 font-mono"
+          className="font-mono"
+          label={m.templateName}
         />
-        {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
-        {isOwner && (
-          <SystemTemplateCheckbox
-            checked={form.isSystemTemplate}
-            onChange={(value) => updateField("isSystemTemplate", value)}
-            label={m.systemCheckbox}
-            hint={m.systemHint}
-          />
-        )}
+        <div className="ml-auto flex items-center">
+          {form.isSystemTemplate && !isOwner && <SystemTemplateBadge label={m.systemBadge} />}
+          {isOwner && (
+            <SystemTemplateCheckbox
+              checked={form.isSystemTemplate}
+              onChange={(value) => updateField("isSystemTemplate", value)}
+              label={m.systemCheckbox}
+              hint={m.systemHint}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Body: two-column split — wrapped in a card */}
       <div className="flex-1 overflow-hidden">
-        <Card className="h-full flex overflow-hidden">
-          {/* Left: form */}
-          <div className="w-1/2 overflow-y-auto p-3 space-y-3 border-r border-[var(--ds-border)]">
-            {/* Subject */}
-            <Field label={m.templateSubject} htmlFor="tpl-subject" required>
-              <TextInput
-                id="tpl-subject"
-                value={subject}
-                onChange={(v) => updateField("subject", v)}
-                placeholder={m.subjectPlaceholder}
-              />
-            </Field>
-
-            {/* Header */}
-            <SectionCard title={m.sectionHeader}>
-              <Field label={m.headerBanner} htmlFor="tpl-header-banner">
-                <TextInput
-                  id="tpl-header-banner"
-                  value={headerBannerUrl}
-                  onChange={(v) => updateField("headerBannerUrl", v)}
-                  placeholder="https://example.com/header.png"
+        <div className="grid h-full grid-cols-1 gap-3 overflow-hidden xl:grid-cols-[minmax(0,1fr)_minmax(26rem,0.9fr)]">
+          <div className="min-w-0 overflow-y-auto">
+            <div className="space-y-4">
+              <DashboardSection className="overflow-hidden">
+                <DashboardSection.Header
+                  icon={<EnvelopeSimpleIcon weight="duotone" className="size-4" />}
+                  title={m.templateSubject}
                 />
-              </Field>
-              <Field label={m.headerText} htmlFor="tpl-header-text">
-                <Suspense fallback={<div className="h-[6rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
-                  <MarkdownEditor
-                    id="tpl-header-text"
-                    value={headerText}
-                    onChange={(v) => updateField("headerText", v)}
-                    rows={4}
+                <DashboardSection.Body>
+                  <DashboardInput
+                    aria-label={m.templateSubject}
+                    id="tpl-subject"
+                    required
+                    type="text"
+                    value={subject}
+                    onChange={(event) => updateField("subject", event.target.value)}
+                    placeholder={m.subjectPlaceholder}
                   />
-                </Suspense>
-              </Field>
-            </SectionCard>
+                </DashboardSection.Body>
+              </DashboardSection>
 
-            {/* Body */}
-            <SectionCard title={m.sectionBody}>
-              <Field label={m.bodyText} htmlFor="tpl-body-text" required>
-                <Suspense fallback={<div className="h-[18rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
-                  <MarkdownEditor
+              <DashboardSection className="overflow-hidden">
+                <DashboardSection.Header
+                  icon={<EnvelopeOpenIcon weight="duotone" className="size-4" />}
+                  title={m.sectionHeader}
+                />
+                <DashboardSection.Body className="!gap-0 !p-0">
+                  <div className="p-3">
+                    <DashboardInput
+                      id="tpl-header-banner"
+                      type="text"
+                      value={headerBannerUrl}
+                      onChange={(event) => updateField("headerBannerUrl", event.target.value)}
+                      placeholder="https://example.com/header.png"
+                      label={m.headerBanner}
+                    />
+                  </div>
+                  <MarkdownEditorField id="tpl-header-text" label={m.headerText}>
+                    <Suspense
+                      fallback={
+                        <div className="h-[6rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
+                      }
+                    >
+                      <MarkdownEditor
+                        id="tpl-header-text"
+                        value={headerText}
+                        onChange={(v) => updateField("headerText", v)}
+                        rows={4}
+                        resizable
+                        className={FLUSH_MARKDOWN_EDITOR_CLASS}
+                      />
+                    </Suspense>
+                  </MarkdownEditorField>
+                </DashboardSection.Body>
+              </DashboardSection>
+
+              <DashboardSection className="overflow-hidden">
+                <DashboardSection.Header
+                  icon={<ArticleIcon weight="duotone" className="size-4" />}
+                  title={
+                    <>
+                      {m.sectionBody}
+                      <SealWarningIcon
+                        weight="duotone"
+                        className="inline-block ml-1 size-3.5 text-red-500 align-middle"
+                      />
+                    </>
+                  }
+                />
+                <DashboardSection.Body className="!gap-0 !p-0">
+                  <MarkdownEditorField
                     id="tpl-body-text"
-                    value={bodyText}
-                    onChange={(v) => updateField("bodyText", v)}
-                    rows={12}
-                  />
-                </Suspense>
-              </Field>
-            </SectionCard>
+                    label={m.bodyText}
+                    required
+                    showLabel={false}
+                  >
+                    <Suspense
+                      fallback={
+                        <div className="h-[18rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
+                      }
+                    >
+                      <MarkdownEditor
+                        id="tpl-body-text"
+                        value={bodyText}
+                        onChange={(v) => updateField("bodyText", v)}
+                        rows={12}
+                        resizable
+                        className={FLUSH_MARKDOWN_EDITOR_CLASS}
+                      />
+                    </Suspense>
+                  </MarkdownEditorField>
+                </DashboardSection.Body>
+              </DashboardSection>
 
-            {/* Footer */}
-            <SectionCard title={m.sectionFooter}>
-              <Field label={m.footerText} htmlFor="tpl-footer-text">
-                <Suspense fallback={<div className="h-[6rem] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
-                  <MarkdownEditor
-                    id="tpl-footer-text"
-                    value={footerText}
-                    onChange={(v) => updateField("footerText", v)}
-                    rows={4}
-                  />
-                </Suspense>
-              </Field>
-              <Field label={m.footerBanner} htmlFor="tpl-footer-banner">
-                <TextInput
-                  id="tpl-footer-banner"
-                  value={footerBannerUrl}
-                  onChange={(v) => updateField("footerBannerUrl", v)}
-                  placeholder="https://example.com/footer.png"
+              <DashboardSection className="overflow-hidden">
+                <DashboardSection.Header
+                  icon={<SquareHalfBottomIcon weight="duotone" className="size-4" />}
+                  title={m.sectionFooter}
                 />
-              </Field>
-            </SectionCard>
+                <DashboardSection.Body className="!gap-0 !p-0">
+                  <div className="p-3">
+                    <DashboardInput
+                      id="tpl-footer-banner"
+                      type="text"
+                      value={footerBannerUrl}
+                      onChange={(event) => updateField("footerBannerUrl", event.target.value)}
+                      placeholder="https://example.com/footer.png"
+                      label={m.footerBanner}
+                    />
+                  </div>
+                  <MarkdownEditorField id="tpl-footer-text" label={m.footerText}>
+                    <Suspense
+                      fallback={
+                        <div className="h-[6rem] animate-pulse rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)]" />
+                      }
+                    >
+                      <MarkdownEditor
+                        id="tpl-footer-text"
+                        value={footerText}
+                        onChange={(v) => updateField("footerText", v)}
+                        rows={4}
+                        resizable
+                        className={FLUSH_MARKDOWN_EDITOR_CLASS}
+                      />
+                    </Suspense>
+                  </MarkdownEditorField>
+                </DashboardSection.Body>
+              </DashboardSection>
+            </div>
           </div>
 
-          {/* Right: live preview */}
-          <div className="w-1/2 overflow-hidden">
+          <div className="min-h-[32rem] overflow-hidden xl:min-h-0">
             <EmailPreview
               headerBannerUrl={headerBannerUrl}
               headerText={headerText}
@@ -330,7 +382,7 @@ export function EmailTemplateEditPage() {
               footerText={footerText}
             />
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

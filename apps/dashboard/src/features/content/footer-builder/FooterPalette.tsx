@@ -1,10 +1,10 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowsOutLineVerticalIcon, ShareNetworkIcon } from "@phosphor-icons/react";
+import { ArrowsOutLineVerticalIcon, BlueprintIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 
 import type { FooterBlock } from "@lmaa/contracts";
+import { DashboardSection } from "@lmaa/ui";
 
-import { Card } from "@/components/ui/Card.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FieldTypeIcon } from "@/features/templates/form-builder/FieldPalette.tsx";
 
@@ -73,15 +73,16 @@ export function FooterPalette() {
   ];
 
   return (
-    <Card className="flex flex-col gap-4 p-4 min-w-44">
-      <div className="flex flex-col gap-1.5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-text-subtle)] mb-1 px-1">
-          {footerMessages.paletteTitle}
-        </p>
+    <DashboardSection className="min-w-44">
+      <DashboardSection.Header
+        icon={<BlueprintIcon weight="duotone" className="size-4" />}
+        title={footerMessages.paletteTitle}
+      />
+      <DashboardSection.Body className="!gap-1.5">
         {paletteBlocks.map(({ type, label }) => (
           <PaletteTile key={type} type={type} label={label} />
         ))}
-      </div>
-    </Card>
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }

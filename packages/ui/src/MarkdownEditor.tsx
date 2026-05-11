@@ -6,7 +6,6 @@ import { tags as t } from "@lezer/highlight";
 import CodeMirror from "@uiw/react-codemirror";
 import * as React from "react";
 
-
 export interface MarkdownEditorProps {
   id?: string;
   value: string;
@@ -25,7 +24,7 @@ export interface MarkdownEditorProps {
 
 const editorTheme = EditorView.theme({
   "&": {
-    backgroundColor: "var(--ds-md-editor-bg, var(--ds-input-bg))",
+    backgroundColor: "var(--ds-md-editor-bg, var(--ds-form-control-bg, var(--ds-input-bg)))",
     color: "var(--ds-text)",
     fontSize: "var(--source-font-size, 0.875rem)",
   },
@@ -62,7 +61,11 @@ const editorTheme = EditorView.theme({
 });
 
 const highlightStyle = HighlightStyle.define([
-  { tag: [t.heading1, t.heading2, t.heading3, t.heading4, t.heading5, t.heading6], fontWeight: "600", color: "var(--md-heading)" },
+  {
+    tag: [t.heading1, t.heading2, t.heading3, t.heading4, t.heading5, t.heading6],
+    fontWeight: "600",
+    color: "var(--md-heading)",
+  },
   { tag: t.strong, fontWeight: "bold" },
   { tag: t.emphasis, fontStyle: "italic", color: "var(--md-emphasis)" },
   { tag: t.strikethrough, textDecoration: "line-through" },
@@ -97,28 +100,30 @@ function wrapSelection(view: EditorView, before: string, after: string): boolean
   return true;
 }
 
-const mdKeymap = Prec.highest(keymap.of([
-  { key: "Mod-b", run: (view) => wrapSelection(view, "**", "**") },
-  { key: "Mod-i", run: (view) => wrapSelection(view, "*", "*") },
-  { key: "Mod-Shift-d", run: (view) => wrapSelection(view, "~~", "~~") },
-  {
-    key: "Mod-k",
-    run(view) {
-      const { state } = view;
-      view.dispatch(
-        state.changeByRange((range) => {
-          const sel = state.sliceDoc(range.from, range.to);
-          const insert = `[${sel}]()`;
-          return {
-            changes: { from: range.from, to: range.to, insert },
-            range: EditorSelection.cursor(range.from + insert.length - 1),
-          };
-        }),
-      );
-      return true;
+const mdKeymap = Prec.highest(
+  keymap.of([
+    { key: "Mod-b", run: (view) => wrapSelection(view, "**", "**") },
+    { key: "Mod-i", run: (view) => wrapSelection(view, "*", "*") },
+    { key: "Mod-Shift-d", run: (view) => wrapSelection(view, "~~", "~~") },
+    {
+      key: "Mod-k",
+      run(view) {
+        const { state } = view;
+        view.dispatch(
+          state.changeByRange((range) => {
+            const sel = state.sliceDoc(range.from, range.to);
+            const insert = `[${sel}]()`;
+            return {
+              changes: { from: range.from, to: range.to, insert },
+              range: EditorSelection.cursor(range.from + insert.length - 1),
+            };
+          }),
+        );
+        return true;
+      },
     },
-  },
-]));
+  ]),
+);
 
 // --- Hints bar ---
 
@@ -133,7 +138,9 @@ function Key({ children }: { children: string }) {
 function Hint({ keys, label }: { keys: string[]; label: string }) {
   return (
     <span className="flex items-center gap-0.5">
-      {keys.map((k) => <Key key={k}>{k}</Key>)}
+      {keys.map((k) => (
+        <Key key={k}>{k}</Key>
+      ))}
       <span className="ml-0.5 text-[var(--ds-text-muted)]">{label}</span>
     </span>
   );
@@ -158,7 +165,10 @@ function HintsBar() {
   if (!visible) return null;
 
   return (
-    <div ref={ref} className="flex items-center justify-between gap-3 px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[0.625rem]">
+    <div
+      ref={ref}
+      className="flex items-center justify-between gap-3 px-2.5 py-1.5 border-t border-[var(--ds-border)] bg-[var(--ds-section-header-bg,var(--ds-bg-elevated))] text-[0.625rem]"
+    >
       <div className="flex items-center gap-2.5">
         <Hint keys={["⌘", "B"]} label="Fett" />
         <Hint keys={["⌘", "I"]} label="Kursiv" />
@@ -192,8 +202,7 @@ export function MarkdownEditor({
   const rowsHeight = `${rows * 1.5}rem`;
   // When resizable + hints bar visible, the wrapper height must cover both the
   // editor content area (rowsHeight) AND the hints bar (~2.25rem).
-  const wrapperHeight =
-    resizable && showHints ? `calc(${rowsHeight} + 2.25rem)` : rowsHeight;
+  const wrapperHeight = resizable && showHints ? `calc(${rowsHeight} + 2.25rem)` : rowsHeight;
 
   const extensions = React.useMemo(
     () => [
@@ -231,7 +240,7 @@ export function MarkdownEditor({
   return (
     <div
       id={id}
-      className={`rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] overflow-hidden focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:outline-none ${isFlexCol ? "flex flex-col" : ""} ${className}`}
+      className={`rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg,var(--ds-input-bg))] overflow-hidden focus-within:ring-2 focus-within:ring-[var(--color-primary)] focus-within:outline-none ${isFlexCol ? "flex flex-col" : ""} ${className}`}
       style={wrapperStyle}
     >
       <div className={isFlexCol ? "flex-1 min-h-0 overflow-hidden" : undefined}>
@@ -242,7 +251,7 @@ export function MarkdownEditor({
           theme={lmaaTheme}
           className={editorContainerClassName}
           height={resizable ? "100%" : height}
-          minHeight={resizable ? undefined : (height ? undefined : rowsHeight)}
+          minHeight={resizable ? undefined : height ? undefined : rowsHeight}
           basicSetup={{
             lineNumbers: false,
             foldGutter: false,

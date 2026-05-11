@@ -1,8 +1,4 @@
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-} from "@dnd-kit/core";
+import { closestCenter, DndContext, type DragEndEvent } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -14,17 +10,11 @@ import { ListIcon } from "@phosphor-icons/react";
 import { Suspense, lazy } from "react";
 
 import type { FooterBlock, SocialMediaBlock } from "@lmaa/contracts";
-import { PLATFORM_MAP } from "@lmaa/ui";
+import { DashboardSection, PLATFORM_MAP } from "@lmaa/ui";
 
-const MarkdownEditor = lazy(() =>
-  import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })),
-);
+const MarkdownEditor = lazy(() => import("@lmaa/ui").then((m) => ({ default: m.MarkdownEditor })));
 
-import { Card } from "@/components/ui/Card.tsx";
-import {
-  DashboardCheckboxField,
-  DashboardInput,
-} from "@/components/ui/DashboardControls.tsx";
+import { DashboardCheckboxField, DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { SegmentSwitch } from "@/components/ui/SegmentSwitch.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
@@ -66,157 +56,157 @@ export function FooterBlockConfigPanel({ block, onChange }: Props) {
   ];
 
   return (
-    <Card className="flex flex-col gap-4 p-4 min-w-64">
-      {/* Header: type icon + label */}
-      <div className="flex items-center gap-2 pb-3 border-b border-[var(--ds-border)]">
-        <span className="text-[var(--ds-text-subtle)]">
-          <FooterBlockTypeIcon type={block.type} />
-        </span>
-        <span className="text-sm font-semibold text-[var(--ds-text)]">
-          {blockTypeLabels[block.type]}
-        </span>
-      </div>
+    <DashboardSection className="min-w-64">
+      <DashboardSection.Header
+        icon={<FooterBlockTypeIcon type={block.type} />}
+        title={blockTypeLabels[block.type]}
+      />
+      <DashboardSection.Body className="!gap-4">
+        {block.type === "separator" && (
+          <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.noSettings}</p>
+        )}
 
-      {block.type === "separator" && (
-        <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.noSettings}</p>
-      )}
+        {block.type === "spacer" && (
+          <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.spacerHint}</p>
+        )}
 
-      {block.type === "spacer" && (
-        <p className="text-xs text-[var(--ds-text-subtle)] italic">{footerMessages.spacerHint}</p>
-      )}
-
-      {block.type === "headline" && (
-        <label className="flex flex-col gap-1">
-          <span className={labelClass}>{footerMessages.headlineTextLabel}</span>
-          <DashboardInput
-            type="text"
-            value={block.text}
-            onChange={(e) => onChange({ ...block, text: e.target.value })}
-          />
-        </label>
-      )}
-
-      {block.type === "text" && (
-        <div className="flex flex-col gap-1">
-          <span className={labelClass}>{footerMessages.contentLabel}</span>
-          <Suspense fallback={<div className="h-[180px] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />}>
-            <MarkdownEditor
-              value={block.markdown}
-              onChange={(v) => onChange({ ...block, markdown: v })}
-              height="180px"
-              showHints={false}
-            />
-          </Suspense>
-        </div>
-      )}
-
-      {block.type === "button" && (
-        <>
+        {block.type === "headline" && (
           <label className="flex flex-col gap-1">
-            <span className={labelClass}>{footerMessages.buttonLabelField}</span>
+            <span className={labelClass}>{footerMessages.headlineTextLabel}</span>
             <DashboardInput
               type="text"
-              value={block.label ?? ""}
-              onChange={(e) => onChange({ ...block, label: e.target.value || undefined })}
-              placeholder={footerMessages.buttonLabelPlaceholder}
+              value={block.text}
+              onChange={(e) => onChange({ ...block, text: e.target.value })}
             />
           </label>
+        )}
 
-          <Suspense
-            fallback={
-              <div className="h-48 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
-            }
-          >
-            <IconPicker
-              value={block.icon}
-              onChange={(icon) => onChange({ ...block, icon })}
-              label={buttonMessages.buttonIcon}
-              noneLabel={buttonMessages.buttonIconNone}
-            />
-          </Suspense>
-
-          <label className="flex flex-col gap-1">
-            <span className={labelClass}>{footerMessages.urlLabel}</span>
-            <DashboardInput
-              type="text"
-              autoComplete="off"
-              value={block.href}
-              onChange={(e) => onChange({ ...block, href: e.target.value })}
-              placeholder={footerMessages.urlPlaceholder}
-            />
-          </label>
-
+        {block.type === "text" && (
           <div className="flex flex-col gap-1">
-            <span className={labelClass}>{footerMessages.styleLabel}</span>
-            <SegmentSwitch
-              value={block.style ?? "filled"}
-              onChange={(value) => onChange({ ...block, style: value })}
-              options={buttonStyleOptions}
-            />
+            <span className={labelClass}>{footerMessages.contentLabel}</span>
+            <Suspense
+              fallback={
+                <div className="h-[180px] rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+              }
+            >
+              <MarkdownEditor
+                value={block.markdown}
+                onChange={(v) => onChange({ ...block, markdown: v })}
+                height="180px"
+                showHints={false}
+              />
+            </Suspense>
           </div>
+        )}
 
-          <DashboardCheckboxField
-            checked={block.external}
-            onCheckedChange={(checked) => onChange({ ...block, external: checked })}
-            label={footerMessages.externalLink}
-            className="items-center"
-            boxClassName="mt-0"
-          />
-        </>
-      )}
+        {block.type === "button" && (
+          <>
+            <label className="flex flex-col gap-1">
+              <span className={labelClass}>{footerMessages.buttonLabelField}</span>
+              <DashboardInput
+                type="text"
+                value={block.label ?? ""}
+                onChange={(e) => onChange({ ...block, label: e.target.value || undefined })}
+                placeholder={footerMessages.buttonLabelPlaceholder}
+              />
+            </label>
 
-      {block.type === "footer-nav" && (
-        <div className="flex flex-col gap-2">
-          <span className={labelClass}>{footerMessages.directionLabel}</span>
-          <SegmentSwitch
-            value={block.direction ?? "vertical"}
-            onChange={(v) => onChange({ ...block, direction: v })}
-            options={[
-              { value: "vertical" as const, label: footerMessages.directionOptions.vertical },
-              {
-                value: "horizontal" as const,
-                label: footerMessages.directionOptions.horizontal,
-              },
-            ]}
-          />
-        </div>
-      )}
+            <Suspense
+              fallback={
+                <div className="h-48 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] animate-pulse" />
+              }
+            >
+              <IconPicker
+                value={block.icon}
+                onChange={(icon) => onChange({ ...block, icon })}
+                label={buttonMessages.buttonIcon}
+                noneLabel={buttonMessages.buttonIconNone}
+              />
+            </Suspense>
 
-      {block.type === "social-media" && (
-        <>
+            <label className="flex flex-col gap-1">
+              <span className={labelClass}>{footerMessages.urlLabel}</span>
+              <DashboardInput
+                type="text"
+                autoComplete="off"
+                value={block.href}
+                onChange={(e) => onChange({ ...block, href: e.target.value })}
+                placeholder={footerMessages.urlPlaceholder}
+              />
+            </label>
+
+            <div className="flex flex-col gap-1">
+              <span className={labelClass}>{footerMessages.styleLabel}</span>
+              <SegmentSwitch
+                value={block.style ?? "filled"}
+                onChange={(value) => onChange({ ...block, style: value })}
+                options={buttonStyleOptions}
+              />
+            </div>
+
+            <DashboardCheckboxField
+              checked={block.external}
+              onCheckedChange={(checked) => onChange({ ...block, external: checked })}
+              label={footerMessages.externalLink}
+              className="items-center"
+              boxClassName="mt-0"
+            />
+          </>
+        )}
+
+        {block.type === "footer-nav" && (
           <div className="flex flex-col gap-2">
-            <span className={labelClass}>{footerMessages.alignLabel}</span>
+            <span className={labelClass}>{footerMessages.directionLabel}</span>
             <SegmentSwitch
-              value={block.align ?? "center"}
-              onChange={(v) => onChange({ ...block, align: v })}
+              value={block.direction ?? "vertical"}
+              onChange={(v) => onChange({ ...block, direction: v })}
               options={[
-                { value: "left" as const, label: footerMessages.alignOptions.left },
-                { value: "center" as const, label: footerMessages.alignOptions.center },
-                { value: "right" as const, label: footerMessages.alignOptions.right },
+                { value: "vertical" as const, label: footerMessages.directionOptions.vertical },
+                {
+                  value: "horizontal" as const,
+                  label: footerMessages.directionOptions.horizontal,
+                },
               ]}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <span className={labelClass}>{footerMessages.iconSizeLabel}</span>
-            <SegmentSwitch
-              value={block.iconSize ?? "md"}
-              onChange={(v) => onChange({ ...block, iconSize: v })}
-              options={[
-                { value: "sm" as const, label: footerMessages.iconSizeOptions.sm },
-                { value: "md" as const, label: footerMessages.iconSizeOptions.md },
-                { value: "lg" as const, label: footerMessages.iconSizeOptions.lg },
-              ]}
+        )}
+
+        {block.type === "social-media" && (
+          <>
+            <div className="flex flex-col gap-2">
+              <span className={labelClass}>{footerMessages.alignLabel}</span>
+              <SegmentSwitch
+                value={block.align ?? "center"}
+                onChange={(v) => onChange({ ...block, align: v })}
+                options={[
+                  { value: "left" as const, label: footerMessages.alignOptions.left },
+                  { value: "center" as const, label: footerMessages.alignOptions.center },
+                  { value: "right" as const, label: footerMessages.alignOptions.right },
+                ]}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className={labelClass}>{footerMessages.iconSizeLabel}</span>
+              <SegmentSwitch
+                value={block.iconSize ?? "md"}
+                onChange={(v) => onChange({ ...block, iconSize: v })}
+                options={[
+                  { value: "sm" as const, label: footerMessages.iconSizeOptions.sm },
+                  { value: "md" as const, label: footerMessages.iconSizeOptions.md },
+                  { value: "lg" as const, label: footerMessages.iconSizeOptions.lg },
+                ]}
+              />
+            </div>
+            <SocialMediaOrderEditor
+              block={block}
+              onChange={(updated) => onChange(updated)}
+              label={footerMessages.iconsLabel}
+              emptyHint={footerMessages.iconsEmpty}
             />
-          </div>
-          <SocialMediaOrderEditor
-            block={block}
-            onChange={(updated) => onChange(updated)}
-            label={footerMessages.iconsLabel}
-            emptyHint={footerMessages.iconsEmpty}
-          />
-        </>
-      )}
-    </Card>
+          </>
+        )}
+      </DashboardSection.Body>
+    </DashboardSection>
   );
 }
 

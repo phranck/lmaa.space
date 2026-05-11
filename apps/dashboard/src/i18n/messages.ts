@@ -572,6 +572,8 @@ export interface DashboardMessages {
       saveError: string;
       styleTitle: string;
       paletteTitle: string;
+      columnsTitle: string;
+      addColumn: string;
       noSettings: string;
       headlineTextLabel: string;
       contentLabel: string;
@@ -624,6 +626,7 @@ export interface DashboardMessages {
       heightLabel: string;
       verticalPaddingLabel: string;
       previewTitle: string;
+      reloadPreview: string;
       noPreviewLoaded: string;
       moveColumn: string;
       removeColumn: string;
@@ -1761,6 +1764,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         saveError: "Fehler beim Speichern",
         styleTitle: "Stil",
         paletteTitle: "Blöcke",
+        columnsTitle: "Spalten",
+        addColumn: "Spalte",
         noSettings: "Keine weiteren Einstellungen.",
         headlineTextLabel: "Text",
         contentLabel: "Inhalt",
@@ -1814,6 +1819,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         heightLabel: "Footer-Höhe",
         verticalPaddingLabel: "Vertikales Padding",
         previewTitle: "Footer Vorschau",
+        reloadPreview: "Neu laden",
         noPreviewLoaded: "Noch keine Vorschau geladen.",
         moveColumn: "Spalte verschieben",
         removeColumn: "Spalte entfernen",
@@ -2976,6 +2982,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         saveError: "Error while saving",
         styleTitle: "Style",
         paletteTitle: "Blocks",
+        columnsTitle: "Columns",
+        addColumn: "Column",
         noSettings: "No additional settings.",
         headlineTextLabel: "Text",
         contentLabel: "Content",
@@ -3029,6 +3037,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         heightLabel: "Footer height",
         verticalPaddingLabel: "Vertical padding",
         previewTitle: "Footer preview",
+        reloadPreview: "Reload",
         noPreviewLoaded: "No preview loaded yet.",
         moveColumn: "Move column",
         removeColumn: "Remove column",
