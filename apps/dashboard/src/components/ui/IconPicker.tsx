@@ -14,7 +14,7 @@ interface IconPickerProps {
 }
 
 const selectedIconPickerButtonClass =
-  "border-[var(--color-primary)] bg-[var(--ds-control-active-bg)] text-[var(--color-primary)] hover:border-[var(--color-primary)] hover:bg-[color-mix(in_srgb,var(--color-primary)_28%,transparent)] hover:text-[var(--color-primary)]";
+  "border-[var(--color-primary)] bg-[color-mix(in_srgb,var(--color-primary)_30%,transparent)] text-[var(--color-primary)] hover:border-[var(--color-primary)] hover:bg-[color-mix(in_srgb,var(--color-primary)_38%,transparent)] hover:text-[var(--color-primary)] dark:text-white dark:hover:text-white";
 
 export function IconPicker({ value, onChange, label, noneLabel }: IconPickerProps) {
   const { messages } = useI18n();
