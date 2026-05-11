@@ -26,7 +26,7 @@ const MediaThumb = memo(function MediaThumb({ asset }: { asset: MediaAsset }) {
       {imageAsset ? (
         <img src={asset.url} alt="" loading="lazy" className="block size-full object-cover" />
       ) : (
-        <FileIcon weight="duotone" className="size-7 text-[var(--ds-text-subtle)]" />
+        <FileIcon weight="duotone" className="size-8 text-[var(--ds-text-subtle)]" />
       )}
     </div>
   );

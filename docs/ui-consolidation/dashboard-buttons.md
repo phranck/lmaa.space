@@ -2,6 +2,8 @@
 
 Scope: user-facing action buttons in `apps/dashboard/src`. This excludes control internals such as select options, tabs, toggle switches, table sort headers, drag handles, dropdown items, and raw shared primitive implementations.
 
+Note: This inventory is the static baseline used for the consolidation work. The target height was updated on 2026-05-11 to `h-8` for text actions and `size-8` for icon-only actions.
+
 Height is taken from the rendered button component or the class tokens at the usage site. `auto` means no fixed height token was found.
 
 | Icon name | React component | Button i18n key | German text | English text | Height | Where used |
@@ -35,7 +37,7 @@ Height is taken from the rendered button component or the class tokens at the us
 | `DownloadIcon` | `button` | `common.saving`<br>`common.save` | Wird gespeichert…<br>Speichern | Saving…<br>Save | `h-9` | `apps/dashboard/src/features/content/footer-builder/FooterBuilderPage.tsx:371` (FooterBuilderPage)<br>`apps/dashboard/src/features/system/NavManagerPage.tsx:622` (NavManagerPage) |
 | `PlusCircleIcon` | `button` | not i18n-backed or prop-driven<br>Source: `<PlusCircleIcon> / Spalte` |  |  | auto via `py-2` | `apps/dashboard/src/features/content/footer-builder/FooterBuilderPage.tsx:420` (FooterBuilderPage) |
 | none | `button` | not i18n-backed or prop-driven<br>Source: `Vorschau` |  |  | auto / content-based | `apps/dashboard/src/features/content/footer-builder/FooterBuilderPage.tsx:488` (FooterPreviewCard) |
-| `ArrowClockwiseIcon` | `button` | not i18n-backed or prop-driven<br>Source: `<ArrowClockwiseIcon> / Reload` |  |  | `h-7` | `apps/dashboard/src/features/content/footer-builder/FooterBuilderPage.tsx:499` (FooterPreviewCard) |
+| `ArrowClockwiseIcon` | `button` | not i18n-backed or prop-driven<br>Source: `<ArrowClockwiseIcon> / Reload` |  |  | `h-8` | `apps/dashboard/src/features/content/footer-builder/FooterBuilderPage.tsx:499` (FooterPreviewCard) |
 | `ListIcon` | `button` | `content.footerBuilder.moveColumn` | Spalte verschieben | Move column | auto / content-based | `apps/dashboard/src/features/content/footer-builder/FooterCanvas.tsx:70` (FooterCanvas) |
 | `XCircleIcon` | `button` | `content.footerBuilder.removeColumn` | Spalte entfernen | Remove column | auto / content-based | `apps/dashboard/src/features/content/footer-builder/FooterCanvas.tsx:86` (FooterCanvas) |
 | `TrashIcon` | `button` | `landingPage.heroBanner.removeImage` | Entfernen | Remove | `h-8` | `apps/dashboard/src/features/content/landing-page/HeroBannerTab.tsx:103` (HeroImageCard) |
@@ -154,11 +156,11 @@ Height is taken from the rendered button component or the class tokens at the us
 | none | `button` | `formBuilder.importRename` | Neuer Name | New name | `h-9` | `apps/dashboard/src/features/templates/form-builder/ImportConflictDialog.tsx:71` (ImportConflictDialog)<br>`apps/dashboard/src/features/templates/form-builder/ImportConflictDialog.tsx:80` (ImportConflictDialog) |
 | none | `button` | `formBuilder.importSkip` | Überspringen | Skip | `h-9` (36px) | `apps/dashboard/src/features/templates/form-builder/ImportConflictDialog.tsx:88` (ImportConflictDialog) |
 | `TrashIcon` | `button` | `formBuilder.submission.stepRemoveAria` | Schritt entfernen | Remove step | auto / content-based | `apps/dashboard/src/features/templates/form-builder/SubmissionConfigPanel.tsx:117` (StepRow) |
-| `PlusCircleIcon` | `button` | `formBuilder.submission.addStepButton` | Hinzufügen | Add | `h-7` | `apps/dashboard/src/features/templates/form-builder/SubmissionConfigPanel.tsx:381` (SubmissionConfigPanel) |
+| `PlusCircleIcon` | `button` | `formBuilder.submission.addStepButton` | Hinzufügen | Add | `h-8` | `apps/dashboard/src/features/templates/form-builder/SubmissionConfigPanel.tsx:381` (SubmissionConfigPanel) |
 | none | `button` | `formBuilder.textTokensHelp.close` | Schließen | Close | auto via `py-1.5` | `apps/dashboard/src/features/templates/form-builder/TextTokensHelp.tsx:117` (TextTokensHelp) |
 | `CaretLeftIcon` | `HeaderBackButton` | `socialMediaTemplates.listTitle` | Social Media Templates | Social Media Templates | auto, no fixed height | `apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx:207` (SocialMediaPostTemplateEditPage) |
 | `DownloadIcon` | `button` | `common.saving`<br>`socialMediaTemplates.save` | Wird gespeichert…<br>Speichern | Saving…<br>Save | `h-9` | `apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx:221` (SocialMediaPostTemplateEditPage) |
-| `CheckCircleIcon`, `CopyIcon` | `button` | not i18n-backed or prop-driven<br>Source: `copied ? ( <CheckCircleIcon weight="duotone" className="size-3.5 text-green-600 dark:text-green-400" /> ) : ( <CopyIcon ` |  |  | `size-7` | `apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx:460` (TemplateVariableItem) |
+| `CheckCircleIcon`, `CopyIcon` | `button` | not i18n-backed or prop-driven<br>Source: `copied ? ( <CheckCircleIcon weight="duotone" className="size-3.5 text-green-600 dark:text-green-400" /> ) : ( <CopyIcon ` |  |  | `size-8` | `apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx:460` (TemplateVariableItem) |
 | `TrashIcon` | `TableActionButton` | `socialMediaTemplates.deleteTemplate` | Template löschen | Delete template | `h-9` (36px) | `apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateListPage.tsx:106` (SocialMediaPostTemplateListPage) |
 | `PlusCircleIcon` | `button` | `socialMediaTemplates.newTemplate` | Neues Template | New Template | `h-9` | `apps/dashboard/src/features/templates/social-media-post-templates/SocialMediaPostTemplateListPage.tsx:123` (SocialMediaPostTemplateListPage) |
 

@@ -1,16 +1,18 @@
 # Dashboard Button Consolidation Plan
 
-Stand: 2026-05-10
+Stand: 2026-05-11
 
 Quelle: `docs/ui-consolidation/dashboard-buttons.md` mit 155 dokumentierten Dashboard-Action-Button-Zeilen.
+
+Nachtrag 2026-05-11: Die urspruengliche Zielhoehe `h-7` war im praktischen Dashboard zu flach. Der verbindliche Zielzustand fuer Dashboard-Actions ist jetzt `h-8` fuer Text-Actions und `size-8` fuer icon-only Actions.
 
 ## Zielbild
 
 Alle user-facing Dashboard-Action-Buttons werden auf eine einheitliche visuelle Basis konsolidiert:
 
-- Default-Hoehe: `h-7` (28px) fuer alle Text-Action-Buttons.
-- Icon-only Action-Buttons bekommen als Default `size-7`.
-- Abweichungen von `h-7`/`size-7` sind keine stillen One-offs mehr, sondern muessen spaeter als explizite Ausnahme im Komponenten-API modelliert werden.
+- Default-Hoehe: `h-8` (`2rem`) fuer alle Text-Action-Buttons.
+- Icon-only Action-Buttons bekommen als Default `size-8`.
+- Abweichungen von `h-8`/`size-8` sind keine stillen One-offs mehr, sondern muessen spaeter als explizite Ausnahme im Komponenten-API modelliert werden.
 - Ein gemeinsamer visueller Primitive: `DashboardButton`.
 - Wiederverwendbare Action-Komponenten fuer wiederkehrende Labels und Icon-Semantik, z. B. `SaveActionButton`, `DeleteActionButton`, `EditActionButton`, `ImportActionButton`, `ExportActionButton`.
 - Label- und Icon-Entscheidungen liegen zentral in einem Action-Katalog, nicht verteilt in Feature-Dateien.
@@ -24,8 +26,8 @@ Alle user-facing Dashboard-Action-Buttons werden auf eine einheitliche visuelle 
 | ----------------------------------- | ---: |
 | Dokumentierte Button-Zeilen         |  155 |
 | Explodierte Label-Vorkommen         |  192 |
-| Zeilen bereits mit `h-7` / `size-7` |    3 |
-| Zeilen nicht `h-7` / `size-7`       |  152 |
+| Zeilen bereits mit `h-8` / `size-8` |    3 |
+| Zeilen nicht `h-8` / `size-8`       |  152 |
 | Rohe `button`-Zeilen                |  115 |
 | Bereits benannte Button-Komponenten |   40 |
 | Redundante Label-Gruppen            |   50 |
@@ -40,13 +42,13 @@ Alle user-facing Dashboard-Action-Buttons werden auf eine einheitliche visuelle 
 - `h-9`: 33 Zeilen
 - `auto via py-1.5`: 27 Zeilen
 - `h-6`: 2 Zeilen
-- `h-7`: 2 Zeilen
+- `h-8`: 2 Zeilen
 - `h-5`: 2 Zeilen
 - `auto, no fixed height`: 4 Zeilen
 - `h-8 (32px)`: 14 Zeilen
-- `size-7`: 1 Zeilen
+- `size-8`: 1 Zeilen
 
-Konsequenz: Die Normalisierung ist nicht kosmetisch. `h-7` wird als Default-Hoehe im Plan gesetzt und muss an den zentralen Komponenten beginnen, sonst bleiben rohe `py-*`, `h-9`, `h-8`, `h-6` und `h-5` weiter in den Features verstreut.
+Konsequenz: Die Normalisierung ist nicht kosmetisch. `h-8` wird als Default-Hoehe im Plan gesetzt und muss an den zentralen Komponenten beginnen, sonst bleiben rohe `py-*`, `h-9`, `h-6` und `h-5` weiter in den Features verstreut.
 
 ## Farb-Normalisierung
 
@@ -68,17 +70,17 @@ Ausnahmen sind zulaessig, aber nicht als lokale Klassen in Feature-Dateien. Jede
 
 | Ausnahme                    | API-Modellierung                                                               | Erlaubte Abweichung                                                                        | Beispiele                                                                  | Gate                                                                     |
 | --------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Icon-only Aktionen          | `DashboardIconButton` oder `DashboardActionButton display="icon"`              | Kein sichtbares Label, Default `size-7`, zwingend `aria-label`.                            | Sidebar auf-/zuklappen, Bild aktiv setzen, kompakte Tabellenwerkzeuge.     | Sichtbarer Tooltip oder ARIA-Label muss aus i18n kommen.                 |
-| File-Input Trigger          | `ImportFileButton` als Behavior-Wrapper um `DashboardActionButton`             | Hidden `<input type="file">`, visuell trotzdem `h-7` und zentrale Farbrolle.               | JSON importieren, Template importieren.                                    | Der sichtbare Button darf keine eigenen Hoehen- oder Farbklassen setzen. |
+| Icon-only Aktionen          | `DashboardIconButton` oder `DashboardActionButton display="icon"`              | Kein sichtbares Label, Default `size-8`, zwingend `aria-label`.                            | Sidebar auf-/zuklappen, Bild aktiv setzen, kompakte Tabellenwerkzeuge.     | Sichtbarer Tooltip oder ARIA-Label muss aus i18n kommen.                 |
+| File-Input Trigger          | `ImportFileButton` als Behavior-Wrapper um `DashboardActionButton`             | Hidden `<input type="file">`, visuell trotzdem `h-8` und zentrale Farbrolle.               | JSON importieren, Template importieren.                                    | Der sichtbare Button darf keine eigenen Hoehen- oder Farbklassen setzen. |
 | Status-Buttons              | `DashboardActionButton status="idle                                            | pending                                                                                    | success                                                                    | error"`                                                                  | Label, Icon und Disabled-State duerfen statusabhaengig wechseln. Hoehe und Farbrolle bleiben zentral. | Speichern, Wird gespeichert, Gespeichert, Wird gelöscht. | Status-Texte muessen zentral im Action-Katalog oder in klaren Status-Keys liegen. |
-| Header-/Navigationsaktionen | Dedizierter Wrapper wie `HeaderBackButton`, intern auf `DashboardActionButton` | Layout darf sich an Header-Typografie ausrichten, Hit-Zone bleibt mindestens `h-7`.        | Zurueck zu Seiten, E-Mail-Templates, Formulare.                            | Keine freie Auto-Hoehe ohne dokumentierten Wrapper.                      |
-| Toggle-/Auswahlaktionen     | `DashboardActionButton pressed` oder `DashboardIconButton pressed`             | Aktiver Zustand darf Icon, ARIA und Tone ergaenzen. Grundhoehe bleibt `h-7` bzw. `size-7`. | Als aktives Bild setzen, Fuer Rotation aktivieren, Gruppen auf-/zuklappen. | `aria-pressed` oder aequivalenter Zustand muss gesetzt sein.             |
+| Header-/Navigationsaktionen | Dedizierter Wrapper wie `HeaderBackButton`, intern auf `DashboardActionButton` | Layout darf sich an Header-Typografie ausrichten, Hit-Zone bleibt mindestens `h-8`.        | Zurueck zu Seiten, E-Mail-Templates, Formulare.                            | Keine freie Auto-Hoehe ohne dokumentierten Wrapper.                      |
+| Toggle-/Auswahlaktionen     | `DashboardActionButton pressed` oder `DashboardIconButton pressed`             | Aktiver Zustand darf Icon, ARIA und Tone ergaenzen. Grundhoehe bleibt `h-8` bzw. `size-8`. | Als aktives Bild setzen, Fuer Rotation aktivieren, Gruppen auf-/zuklappen. | `aria-pressed` oder aequivalenter Zustand muss gesetzt sein.             |
 
 Konsequenz: Wenn eine Feature-Datei eine andere Hoehe, Farbe, Icon-Platzierung oder Label-Logik braucht, wird zuerst geprueft, ob eine dieser Ausnahmen passt. Passt keine, wird eine neue Ausnahme im Action-Katalog ergaenzt, bevor Code migriert wird.
 
 ## Vorgeschlagene Architektur
 
-1. `apps/dashboard/src/components/ui/DashboardButton.tsx` einfuehren, mit `h-7` als Default-Hoehe.
+1. `apps/dashboard/src/components/ui/DashboardButton.tsx` einfuehren, mit `h-8` als Default-Hoehe.
 2. `TableActionButton`, `EditorToolbarButton`, `ImportButton`, `ExportButton` und `HeaderBackButton` intern auf `DashboardButton` umstellen.
 3. `apps/dashboard/src/components/ui/DashboardActionButton.tsx` einfuehren, als generischen Renderer fuer Action-Katalog-Eintraege.
 4. `apps/dashboard/src/components/ui/action-buttons.tsx` einfuehren.
@@ -92,11 +94,11 @@ Konsequenz: Wenn eine Feature-Datei eine andere Hoehe, Farbe, Icon-Platzierung o
 | ----------- | ----------------------- | -------------------------- | ------------------ | --------------------------- | --------- | -------------------: | ----------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
 | `save`      | `SaveActionButton`      | Speichern                  | `common.save`      | `FloppyDiskIcon`            | `primary` |                   13 | Ein Button mit status="idle                                                                                                         | pending | saved". Lokale Save-Keys werden nur behalten, wenn der Fachtext wirklich abweicht. |
 | `delete`    | `DeleteActionButton`    | Löschen                    | `common.delete`    | `TrashIcon`                 | `danger`  |                   14 | Destruktive Objektlöschung. Bestätigungsdialoge verwenden denselben Action-Button im Footer.                                        |
-| `remove`    | `RemoveActionButton`    | Entfernen                  | `common.remove`    | `TrashIcon`                 | `danger`  |                    5 | Semantisch getrennt von Delete, aber gleicher h-7-Button und gleiche Icon-Konvention.                                               |
+| `remove`    | `RemoveActionButton`    | Entfernen                  | `common.remove`    | `TrashIcon`                 | `danger`  |                    5 | Semantisch getrennt von Delete, aber gleicher h-8-Button und gleiche Icon-Konvention.                                               |
 | `edit`      | `EditActionButton`      | Bearbeiten                 | `common.edit`      | `PencilSimpleIcon`          | `neutral` |                    9 | Einheitlich PencilSimpleIcon. FileTextIcon nur behalten, wenn damit „Dokument öffnen“ statt „Bearbeiten“ gemeint ist.               |
 | `cancel`    | `CancelActionButton`    | Abbrechen                  | `common.cancel`    | `XIcon`                     | `neutral` |                    4 | Nur Komponente konsolidieren, Key ist bereits zentral.                                                                              |
 | `close`     | `CloseActionButton`     | Schließen                  | `common.close`     | `XIcon`                     | `neutral` |                    2 | Lokalen Help-Key entfernen, wenn kein anderer Wortlaut benötigt wird.                                                               |
-| `import`    | `ImportActionButton`    | Importieren                | `common.import`    | `DownloadSimpleIcon`        | `neutral` |                    3 | ImportFileButton behält File-Input-Verhalten, rendert innen denselben h-7-ActionButton.                                             |
+| `import`    | `ImportActionButton`    | Importieren                | `common.import`    | `DownloadSimpleIcon`        | `neutral` |                    3 | ImportFileButton behält File-Input-Verhalten, rendert innen denselben h-8-ActionButton.                                             |
 | `export`    | `ExportActionButton`    | Exportieren                | `common.export`    | `UploadSimpleIcon`          | `neutral` |                    5 | ExportButton und TableActionButton teilen dieselbe Action-Konfiguration.                                                            |
 | `create`    | `CreateActionButton`    | Neu / Erstellen            | `common.create`    | `PlusCircleIcon`            | `primary` |                   19 | Parametrisierter subjectKey: „Neue Seite“, „Neues Template“, „Benutzer erstellen“. Generischer Button stellt Icon, Höhe und Status. |
 | `reject`    | `RejectActionButton`    | Ablehnen                   | `common.reject`    | `XCircleIcon`               | `danger`  |                    4 | Workflow-Action mit einheitlichem Icon und Variantenfarbe.                                                                          |
@@ -147,8 +149,8 @@ Konsequenz: Wenn eine Feature-Datei eine andere Hoehe, Farbe, Icon-Platzierung o
 | `TrashIcon`                 |        22 |      7 |                17 | `button`<br>`TableActionButton`<br>`EditorToolbarButton` | `auto via py-1.5`<br>`h-8`<br>`h-9 (36px)`<br>`h-9`<br>`auto / content-based`<br>`h-8 (32px)`           |
 | `PlusCircleIcon`            |        19 |     16 |                17 | `button`                                                 | `auto via py-1.5`<br>`auto via py-2`<br>`h-5`<br>`h-9`<br>`h-8`<br>`auto / content-based`<br>+1 weitere |
 | `DownloadIcon`              |        17 |      5 |                 9 | `button`<br>`EditorToolbarButton`                        | `auto via py-1.5`<br>`h-9`<br>`h-8`<br>`h-8 (32px)`                                                     |
-| `CheckCircleIcon`           |        10 |      6 |                 5 | `button`<br>`EditorToolbarButton`<br>`TableActionButton` | `h-8`<br>`h-9`<br>`h-8 (32px)`<br>`h-9 (36px)`<br>`size-7`                                              |
-| `CopyIcon`                  |         8 |      6 |                 6 | `button`                                                 | `auto / content-based`<br>`h-9`<br>`size-7`                                                             |
+| `CheckCircleIcon`           |        10 |      6 |                 5 | `button`<br>`EditorToolbarButton`<br>`TableActionButton` | `h-8`<br>`h-9`<br>`h-8 (32px)`<br>`h-9 (36px)`<br>`size-8`                                              |
+| `CopyIcon`                  |         8 |      6 |                 6 | `button`                                                 | `auto / content-based`<br>`h-9`<br>`size-8`                                                             |
 | `FileTextIcon`              |         7 |      2 |                 7 | `button`<br>`TableActionButton`<br>`EditorToolbarButton` | `auto via py-1.5`<br>`h-9 (36px)`<br>`h-8 (32px)`                                                       |
 | `XCircleIcon`               |         6 |      2 |                 4 | `button`<br>`EditorToolbarButton`<br>`TableActionButton` | `auto / content-based`<br>`auto via py-1.5`<br>`h-8 (32px)`<br>`h-9 (36px)`                             |
 | `UploadIcon`                |         5 |      2 |                 4 | `TableActionButton`<br>`button`                          | `h-9 (36px)`<br>`auto via py-1.5`                                                                       |
@@ -167,15 +169,15 @@ Konsequenz: Wenn eine Feature-Datei eine andere Hoehe, Farbe, Icon-Platzierung o
 
 ## Migrationsreihenfolge
 
-### Phase 1: Button-Primitive mit `h-7` Default einführen
+### Phase 1: Button-Primitive mit `h-8` Default einführen
 
-- Scope: Neuer `DashboardButton` plus `DashboardIconButton` als einzige visuelle Basis fuer Action-Buttons. Default ist `h-7`; icon-only Default ist `size-7`; Variantenfarben kommen aus zentralen Tokens.
+- Scope: Neuer `DashboardButton` plus `DashboardIconButton` als einzige visuelle Basis fuer Action-Buttons. Default ist `h-8`; icon-only Default ist `size-8`; Variantenfarben kommen aus zentralen Tokens.
 - Dateien: `apps/dashboard/src/components/ui/DashboardButton.tsx`
 - Risiko: Niedrig, wenn zuerst bestehende TableActionButton/EditorToolbarButton intern umgestellt werden.
 
 ### Phase 2: Bestehende Buttons auf Default-Hoehe und Ausnahmen mappen
 
-- Scope: `TableActionButton`, `ImportButton`, `ExportButton`, `HeaderBackButton` und rohe Action-Buttons auf den neuen Default `h-7` bzw. `size-7` normalisieren; echte Sonderfaelle einer dokumentierten Ausnahme zuordnen.
+- Scope: `TableActionButton`, `ImportButton`, `ExportButton`, `HeaderBackButton` und rohe Action-Buttons auf den neuen Default `h-8` bzw. `size-8` normalisieren; echte Sonderfaelle einer dokumentierten Ausnahme zuordnen.
 - Dateien: `components/ui/*Button.tsx und danach Feature-Dateien`
 - Risiko: Mittel: Dialogfooter und enge Toolbar-Bereiche muessen visuell geprueft werden.
 
@@ -208,7 +210,7 @@ Konsequenz: Wenn eine Feature-Datei eine andere Hoehe, Farbe, Icon-Platzierung o
 - `tsc`/Typecheck muss alle entfernten i18n Keys abfangen.
 - Lint/Format fuer geaenderte Dashboard-Dateien.
 - UI-Pruefung fuer mindestens diese Flaechen: Tabellenaktionen, Editor-Toolbar, Dialog-Footer, Import/Export-Leisten, HeaderBackButton, kompakte Cards.
-- Screenshot-Pruefung vor/nach der `h-7`-Default-Hoehe fuer dichte Bereiche.
+- Screenshot-Pruefung vor/nach der `h-8`-Default-Hoehe fuer dichte Bereiche.
 - Screenshot-Pruefung der Farbrollen in hellen und dichten Bereichen: Primary, Neutral, Danger, Success, Warning.
 - Keine Entfernung semantisch unterschiedlicher Labels ohne fachliche Pruefung: `Löschen` vs. `Entfernen`, `Freischalten` vs. `Akzeptieren`, `Importieren` vs. `Template importieren`.
 - Keine neue Hoehen-, Farb- oder Icon-Ausnahme ohne Eintrag im Action-Katalog und ohne dokumentierten Wrapper oder Modus.

@@ -38,15 +38,15 @@ interface SegmentPill {
 }
 
 const sizeClass: Record<SegmentedControlPrimitiveSize, string> = {
-  compact: "h-6 px-2.5 text-xs",
-  default: "h-7 px-3.5 text-sm",
-  large: "h-8 px-3.5 text-sm",
+  compact: "h-8 px-3 text-sm",
+  default: "h-8 px-3.5 text-sm",
+  large: "h-[var(--ds-control-h-field-large)] px-4 text-sm",
 };
 
 const iconOnlySizeClass: Record<SegmentedControlPrimitiveSize, string> = {
-  compact: "size-6 text-xs",
-  default: "size-7 text-sm",
-  large: "size-8 text-sm",
+  compact: "size-8 text-sm",
+  default: "size-8 text-sm",
+  large: "size-[var(--ds-control-h-field-large)] text-sm",
 };
 
 export function SegmentedControlPrimitive<T extends string = string>({

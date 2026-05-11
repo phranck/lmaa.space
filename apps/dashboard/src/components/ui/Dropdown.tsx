@@ -27,8 +27,8 @@ interface DropdownProps<T extends string = string> {
   searchPlaceholder?: string;
   /**
    * When true, the listbox is rendered in a portal attached to document.body.
-   * Required when the dropdown lives inside a container with `overflow: hidden`
-   * (e.g. dialogs). Default false to preserve legacy in-tree rendering.
+   * Default true so toolbar dropdowns stay anchored to their trigger even when
+   * the header uses portal slots and nested flex containers.
    */
   portal?: boolean;
 }
@@ -58,7 +58,7 @@ export function Dropdown<T extends string = string>({
       label={label}
       onValueChange={(nextValue) => onChange(nextValue as T)}
       options={options.map(toComboboxOption)}
-      portal={portal ?? false}
+      portal={portal ?? true}
       searchable={searchable}
       searchPlaceholder={searchPlaceholder}
       value={value}

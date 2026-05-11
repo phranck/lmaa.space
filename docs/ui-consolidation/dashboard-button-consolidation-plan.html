@@ -499,8 +499,8 @@
             <h1>Dashboard Button Consolidation</h1>
             <p class="subtitle">
               Plan zur Reduzierung redundanter Labels, Icons, Farben und i18n Keys. Ziel:
-              <code>h-7</code> ist die Default-Hoehe fuer alle Text-Action-Buttons,
-              <code>size-7</code> fuer icon-only. Abweichungen werden spaeter explizite
+              <code>h-8</code> ist die Default-Hoehe fuer alle Text-Action-Buttons,
+              <code>size-8</code> fuer icon-only. Abweichungen werden spaeter explizite
               Komponenten-Ausnahmen.
             </p>
           </div>
@@ -508,7 +508,7 @@
             <div class="theme-slot" data-dashboard-theme-slot></div>
             <a class="stat stat-link" href="index.html"><strong>UI</strong> Übersicht</a>
             <span class="stat"><strong>155</strong> Button-Zeilen</span>
-            <span class="stat"><strong>152</strong> werden h-7 / size-7</span>
+            <span class="stat"><strong>152</strong> werden h-8 / size-8</span>
             <span class="stat"><strong>50</strong> Label-Gruppen</span>
             <span class="stat"><strong>24</strong> Icon-Gruppen</span>
             <span class="stat"><strong>5</strong> Farbrollen</span>
@@ -554,8 +554,8 @@
           <div class="metric">
             <strong>152</strong
             ><span
-              >Button-Zeilen muessen fuer das Zielbild auf die Default-Hoehe <code>h-7</code> oder
-              bei icon-only auf <code>size-7</code> gebracht werden.</span
+              >Button-Zeilen muessen fuer das Zielbild auf die Default-Hoehe <code>h-8</code> oder
+              bei icon-only auf <code>size-8</code> gebracht werden.</span
             >
           </div>
           <div class="metric">
@@ -583,12 +583,12 @@
 
         <section class="notice">
           <div>
-            <h2>Zielentscheidung: <code>h-7</code> als Default</h2>
+            <h2>Zielentscheidung: <code>h-8</code> als Default</h2>
             <p>
               Der Plan konsolidiert nicht blind alle gleichen Woerter. Semantische Unterschiede
               bleiben erhalten: <strong>Löschen</strong> ist destruktive Objektloeschung,
               <strong>Entfernen</strong> ist Entfernen aus einer Beziehung oder einem Slot. Beide
-              teilen aber die Default-Hoehe <code>h-7</code>, den Primitive, Variantenlogik und
+              teilen aber die Default-Hoehe <code>h-8</code>, den Primitive, Variantenlogik und
               Icon-Konvention.
             </p>
           </div>
@@ -629,7 +629,7 @@
               <h3>Icon-only Aktionen</h3>
               <p>
                 <code>DashboardIconButton</code> oder <code>display=&quot;icon&quot;</code>. Default
-                <code>size-7</code>, kein sichtbares Label.
+                <code>size-8</code>, kein sichtbares Label.
               </p>
               <div class="risk">Pflicht: i18n-basiertes aria-label oder Tooltip.</div>
             </article>
@@ -659,7 +659,7 @@
                 ausrichten.
               </p>
               <div class="risk">
-                Hit-Zone bleibt mindestens <code>h-7</code>, keine freie Auto-Hoehe.
+                Hit-Zone bleibt mindestens <code>h-8</code>, keine freie Auto-Hoehe.
               </div>
             </article>
             <article class="phase-card">
@@ -723,7 +723,7 @@
               <h2>Ziel-Komponenten</h2>
               <p>
                 Vorgeschlagene wiederverwendbare Action-Buttons. Jede Preview zeigt die geplante
-                Default-Hoehe <code>h-7</code>.
+                Default-Hoehe <code>h-8</code>.
               </p>
             </div>
           </div>
@@ -732,7 +732,7 @@
               <thead>
                 <tr>
                   <th>Ziel-Button</th>
-                  <th>Preview Default h-7</th>
+                  <th>Preview Default h-8</th>
                   <th>Action</th>
                   <th>Ziel-Key</th>
                   <th>Ersetzt aktuelle Keys</th>
@@ -831,7 +831,7 @@
                 <tr
                   data-kind="actions"
                   data-priority="high"
-                  data-search="remove removeactionbutton entfernen common.remove trashicon common.remove landingpage.herobanner.removeimage users.editcard.removeavatar users.remove semantisch getrennt von delete, aber gleicher h-7-button und gleiche icon-konvention."
+                  data-search="remove removeactionbutton entfernen common.remove trashicon common.remove landingpage.herobanner.removeimage users.editcard.removeavatar users.remove semantisch getrennt von delete, aber gleicher h-8-button und gleiche icon-konvention."
                 >
                   <td><code>RemoveActionButton</code></td>
                   <td>
@@ -865,7 +865,7 @@
                   </td>
                   <td>5</td>
                   <td>
-                    Semantisch getrennt von Delete, aber gleicher h-7-Button und gleiche
+                    Semantisch getrennt von Delete, aber gleicher h-8-Button und gleiche
                     Icon-Konvention.
                   </td>
                 </tr>
@@ -978,7 +978,7 @@
                 <tr
                   data-kind="actions"
                   data-priority="high"
-                  data-search="import importactionbutton importieren common.import downloadsimpleicon shops.importlabel submissions.suggestions.importlabel formbuilder.importform importfilebutton behält file-input-verhalten, rendert innen denselben h-7-actionbutton."
+                  data-search="import importactionbutton importieren common.import downloadsimpleicon shops.importlabel submissions.suggestions.importlabel formbuilder.importform importfilebutton behält file-input-verhalten, rendert innen denselben h-8-actionbutton."
                 >
                   <td><code>ImportActionButton</code></td>
                   <td>
@@ -1014,7 +1014,7 @@
                   <td>3</td>
                   <td>
                     ImportFileButton behält File-Input-Verhalten, rendert innen denselben
-                    h-7-ActionButton.
+                    h-8-ActionButton.
                   </td>
                 </tr>
                 <tr
@@ -2078,7 +2078,7 @@
                 <tr
                   data-kind="icons"
                   data-priority="high"
-                  data-search="pluscircleicon neue kategorie spalte schriftgröße vergrößern neue seite wird erstellt… erstellen account hinzufügen neu lade hoch… dateien hochladen neuer domain-alert benutzer erstellen + benutzer einladen neues template neues formular hinzufügen categories.newcategory content.editor.increasefontsize content.pages.newpage content.pages.creating content.pages.create socialmedia.addaccounttitle content.markdownwidgets.newwidget media.uploading media.upload system.settings.domainalerts.newrule users.createcard.creating users.createcard.create users.inviteuser emailtemplates.newtemplate formbuilder.newform formbuilder.submission.addstepbutton socialmediatemplates.newtemplate button auto via py-1.5 auto via py-2 h-5 h-9 h-8 auto / content-based h-7"
+                  data-search="pluscircleicon neue kategorie spalte schriftgröße vergrößern neue seite wird erstellt… erstellen account hinzufügen neu lade hoch… dateien hochladen neuer domain-alert benutzer erstellen + benutzer einladen neues template neues formular hinzufügen categories.newcategory content.editor.increasefontsize content.pages.newpage content.pages.creating content.pages.create socialmedia.addaccounttitle content.markdownwidgets.newwidget media.uploading media.upload system.settings.domainalerts.newrule users.createcard.creating users.createcard.create users.inviteuser emailtemplates.newtemplate formbuilder.newform formbuilder.submission.addstepbutton socialmediatemplates.newtemplate button auto via py-1.5 auto via py-2 h-5 h-9 h-8 auto / content-based h-8"
                 >
                   <td><code>PlusCircleIcon</code></td>
                   <td>
@@ -2192,7 +2192,7 @@
                 <tr
                   data-kind="icons"
                   data-priority="high"
-                  data-search="checkcircleicon aus rotation entfernen für rotation aktivieren als aktives bild setzen … freischalten lösen landingpage.herobanner.markdeselected landingpage.herobanner.markselected landingpage.herobanner.markactive submissions.suggestions.approve system.backgrounderrors.resolveaction button editortoolbarbutton tableactionbutton h-8 h-9 h-8 (32px) h-9 (36px) size-7"
+                  data-search="checkcircleicon aus rotation entfernen für rotation aktivieren als aktives bild setzen … freischalten lösen landingpage.herobanner.markdeselected landingpage.herobanner.markselected landingpage.herobanner.markactive submissions.suggestions.approve system.backgrounderrors.resolveaction button editortoolbarbutton tableactionbutton h-8 h-9 h-8 (32px) h-9 (36px) size-8"
                 >
                   <td><code>CheckCircleIcon</code></td>
                   <td>
@@ -2239,13 +2239,13 @@
                   <td>
                     <span class="mini-pill">h-8</span><span class="mini-pill">h-9</span
                     ><span class="mini-pill">h-8 (32px)</span
-                    ><span class="mini-pill">h-9 (36px)</span><span class="mini-pill">size-7</span>
+                    ><span class="mini-pill">h-9 (36px)</span><span class="mini-pill">size-8</span>
                   </td>
                 </tr>
                 <tr
                   data-kind="icons"
                   data-priority="high"
-                  data-search="copyicon duplizieren übernehmen kopiert url kopieren link kopiert link kopieren common.duplicate shops.editcard.setimage media.copied media.copyurl users.createcard.invitecopied users.createcard.copyinvite button auto / content-based h-9 size-7"
+                  data-search="copyicon duplizieren übernehmen kopiert url kopieren link kopiert link kopieren common.duplicate shops.editcard.setimage media.copied media.copyurl users.createcard.invitecopied users.createcard.copyinvite button auto / content-based h-9 size-8"
                 >
                   <td><code>CopyIcon</code></td>
                   <td>
@@ -2283,7 +2283,7 @@
                   <td><span class="mini-pill">button</span></td>
                   <td>
                     <span class="mini-pill">auto / content-based</span
-                    ><span class="mini-pill">h-9</span><span class="mini-pill">size-7</span>
+                    ><span class="mini-pill">h-9</span><span class="mini-pill">size-8</span>
                   </td>
                 </tr>
                 <tr
@@ -2921,10 +2921,10 @@
           <div class="phase-grid">
             <article class="phase-card">
               <span class="phase-num">1</span>
-              <h3>Button-Primitive mit h-7 Default einführen</h3>
+              <h3>Button-Primitive mit h-8 Default einführen</h3>
               <p>
                 Neuer `DashboardButton` plus `DashboardIconButton` als einzige visuelle Basis fuer
-                Action-Buttons. Default ist `h-7`; icon-only Default ist `size-7`; Farben kommen aus
+                Action-Buttons. Default ist `h-8`; icon-only Default ist `size-8`; Farben kommen aus
                 zentralen Variant-Tokens.
               </p>
               <p><code>apps/dashboard/src/components/ui/DashboardButton.tsx</code></p>
@@ -2938,7 +2938,7 @@
               <h3>Bestehende Buttons auf Default-Hoehe und Ausnahmen mappen</h3>
               <p>
                 `TableActionButton`, `ImportButton`, `ExportButton`, `HeaderBackButton` und rohe
-                Action-Buttons auf den neuen Default `h-7` bzw. `size-7` normalisieren; echte
+                Action-Buttons auf den neuen Default `h-8` bzw. `size-8` normalisieren; echte
                 Sonderfaelle einer dokumentierten Ausnahme zuordnen.
               </p>
               <p><code>components/ui/*Button.tsx und danach Feature-Dateien</code></p>

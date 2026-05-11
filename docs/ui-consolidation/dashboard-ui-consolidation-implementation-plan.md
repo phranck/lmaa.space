@@ -1,6 +1,6 @@
 # Dashboard UI Consolidation Implementation Plan
 
-Stand: 2026-05-10
+Stand: 2026-05-11
 
 Quelle:
 
@@ -13,7 +13,7 @@ Dieser Plan ist die Umsetzungsreihenfolge fuer die Dashboard-UI-Konsolidierung. 
 
 ## Leitentscheidungen
 
-- Action-Buttons bleiben eine eigene Linie: `h-7` fuer Text-Actions, `size-7` fuer icon-only.
+- Action-Buttons bleiben eine eigene Linie: `h-8` fuer Text-Actions, `size-8` fuer icon-only.
 - Standard-Controls bleiben eine eigene Linie: `h-8` fuer Inputs, Select-/Combobox-Trigger, Dropdown-/Menu-/Listbox-Items und Content-Tabs.
 - Sichtbare Selects und Dropdowns werden Custom-Controls. Native `<select>` sind nur als bewusst markierter Hidden-Fallback oder technischer State-Anker erlaubt.
 - `h-9` ist keine Default-Hoehe mehr. `h-9` bleibt nur fuer explizite `large`-/Editor-/Kalender-Ausnahmen.
@@ -29,7 +29,7 @@ Dieser Plan ist die Umsetzungsreihenfolge fuer die Dashboard-UI-Konsolidierung. 
 | 1     | Token- und Foundation-Basis          | `packages/shared/styles/tokens.css`, `packages/ui/src/FormPrimitives.tsx`                                      | zentrale Hoehen, Fokus, Radius, Farben        | keine visuelle Feature-Migration ohne Tokens                     |
 | 2     | Shared Primitives                    | `packages/ui/src/*`                                                                                            | framework-nahe Primitives ohne Dashboard-i18n | `@lmaa/ui` typecheck/lint                                        |
 | 3     | Dashboard Wrapper und Action-Katalog | `apps/dashboard/src/components/ui/*`, `apps/dashboard/src/i18n/messages.ts`                                    | app-spezifische Komponenten und i18n-Vertrag  | Dashboard typecheck                                              |
-| 4     | Bestehende Button-Komponenten        | `TableActionButton`, `EditorToolbarButton`, `ImportButton`, `ExportButton`, `HeaderBackButton`, Dialog Buttons | Actions auf `h-7`/`size-7` normalisiert       | Screenshot-Vergleich fuer Tabellen, Toolbars, Dialoge            |
+| 4     | Bestehende Button-Komponenten        | `TableActionButton`, `EditorToolbarButton`, `ImportButton`, `ExportButton`, `HeaderBackButton`, Dialog Buttons | Actions auf `h-8`/`size-8` normalisiert       | Screenshot-Vergleich fuer Tabellen, Toolbars, Dialoge            |
 | 5     | Control-Primitives migrieren         | Dropdown, Selects, Inputs, Tabs, Segments, Toggles, Menus, Sort, DND                                           | sichtbare Controls nutzen zentrale Wrapper    | statische `rg`-Gates plus UI-Pruefung                            |
 | 6     | Feature-Slices migrieren             | Form Builder, Submissions, System, Content, Media, Users                                                       | lokale Klassen verschwinden aus Features      | Slice-spezifische Regression                                     |
 | 7     | Cleanup                              | i18n, Exporte, alte Klassen, tote Komponenten                                                                  | keine parallelen alten APIs                   | Dead-Code- und Key-Pruefung                                      |
@@ -309,7 +309,7 @@ Wichtige Entscheidungen:
 
 - `TabsPrimitive` bekommt roving tabindex, Arrow-Key-Verhalten, `aria-controls` und `aria-labelledby`.
 - `ListboxPopover` bekommt stabile IDs, Portal-Faehigkeit, Escape-/Outside-Click-Handling und keyboardfähige Optionen.
-- `MenuItemPrimitive` bekommt `h-8` Default und `compact` als expliziten `h-7` Modus.
+- `MenuItemPrimitive` bekommt `h-8` Default und `compact` als expliziten `h-8` Modus.
 - `InputPrimitive` und `TextareaPrimitive` teilen Tokens, aber nicht dieselbe fixe Hoehe.
 
 Teilfortschritt 2026-05-10:
@@ -356,7 +356,7 @@ Teilfortschritt 2026-05-10, Menu-Primitives:
 
 - `packages/ui/src/MenuPrimitives.tsx` stellt `MenuPrimitive` und `MenuItemPrimitive` bereit.
 - `MenuPrimitive` unterstuetzt Portal-Rendering, Contextmenu-Origin oder Trigger-Positionierung, Viewport-Clamping, Escape-/Outside-Click-Handling und Arrow-/Home-/End-Tastaturfokus.
-- `MenuItemPrimitive` nutzt `h-[var(--ds-control-h-menu-item)]` als Default-Hoehe und `compact` als expliziten `h-7` Modus.
+- `MenuItemPrimitive` nutzt `h-[var(--ds-control-h-menu-item)]` als Default-Hoehe und `compact` als expliziten `h-8` Modus.
 - `MenuItemPrimitive` stellt Leading-/Trailing-Slots, `danger`-Variante, Disabled-State und optionales Auto-Close nach Auswahl bereit.
 - `packages/ui/src/index.ts` exportiert die neuen Komponenten und Props.
 
@@ -633,7 +633,7 @@ Reihenfolge:
 Arbeit:
 
 - Intern auf `DashboardButton`/`DashboardIconButton` legen.
-- Default auf `h-7` bzw. `size-7` setzen.
+- Default auf `h-8` bzw. `size-8` setzen.
 - Status-Zustaende wie `saving`, `saved`, `deleting` als Prop modellieren.
 - Variantenfarben aus dem Action-Katalog ziehen.
 - Jeder Action-Button bekommt ein Icon.
@@ -950,7 +950,7 @@ Betroffene Dateien:
 Arbeit:
 
 - Content-Tabs bekommen `h-8`, sichtbar kraeftiger als Toolbar-Segments.
-- Kompakte Segments bleiben `h-7`, aber als expliziter Modus.
+- Kompakte Segments bleiben `h-8`, aber als expliziter Modus.
 - `SegmentSwitch` wird entfernt oder als Alias auf `DashboardSegmentedControl` gelegt.
 
 Gate:
@@ -1001,7 +1001,7 @@ Betroffene Dateien:
 Arbeit:
 
 - `DashboardMenu` und `DashboardMenuItem` einfuehren.
-- Default Item `h-8`, compact `h-7`.
+- Default Item `h-8`, compact `h-8`.
 - Danger-/Disabled-/Selected-Zustaende ueber Tokens.
 - Globale Button-CSS-Falle, die `--ds-btn-*` in Menueitems beeinflusst, entfernen.
 
@@ -1041,7 +1041,7 @@ Arbeit:
 
 - `TableSortHeader` extrahieren.
 - `aria-sort`, lokalisierte Sort-Ansage und Icon-Zustaende zentralisieren.
-- Header-Button `h-7`, nicht-sortierbare Header bleiben Text.
+- Header-Button `h-8`, nicht-sortierbare Header bleiben Text.
 - Locale nicht hart auf `de` im Sort-Verhalten verdrahten.
 
 Gate:
@@ -1079,7 +1079,7 @@ Arbeit:
 
 - `DashboardDragHandle` einfuehren.
 - Icon horizontal und vertikal exakt zentrieren.
-- `size-7` Default.
+- `size-8` Default.
 - KeyboardSensor und i18n-faehige ARIA-Labels zentralisieren.
 - Drag-Overlay bleibt objektabhaengig und wird nicht auf Handle-Hoehe gezwungen.
 
@@ -1090,7 +1090,7 @@ Gate:
 
 Teilfortschritt 2026-05-10, Drag-Handles und Sortable-Sensors:
 
-- `DashboardDragHandle` setzt den zentralen `size-7` Icon-Button, zentriert das Drag-Icon und kapselt Cursor-/Touch-Styles.
+- `DashboardDragHandle` setzt den zentralen `size-8` Icon-Button, zentriert das Drag-Icon und kapselt Cursor-/Touch-Styles.
 - Eigenstaendige Drag-Handles in Sidebar, Form Builder, Submission-Step-Flow, Footer Builder und Navigation Manager nutzen `DashboardDragHandle`.
 - `useDashboardSortableSensors` zentralisiert Pointer- und Keyboard-Sensoren mit `sortableKeyboardCoordinates`; Distanz-Constraints bleiben pro DND-Kontext konfigurierbar.
 - Drag-Overlays bleiben objektabhaengig und wurden nicht an Handle-Hoehen gekoppelt.
@@ -1357,6 +1357,13 @@ Teilfortschritt 2026-05-10, Abschluss-QA:
 - Beim Abschluss-Smoke wurde ein echter Keyboard-Flake in offenen Listbox-Popovern gefunden: Pfeiltasten konnten vom Popover-Capture-Listener und vom fokussierten Trigger doppelt verarbeitet werden. `ListboxPopover` konsumiert behandelte Navigationskeys jetzt vollstaendig, sodass die aktive Option stabil bleibt.
 - Der Footer-Builder-Smoke filtert in der temporaeren Playwright-Umgebung bekannten Preview-Iframe-Laerm von `localhost:3003` zu CSP/400. Dieser stammt aus dem isolierten Preview-Frame und nicht aus den konsolidierten Dashboard-Controls.
 - `npx -y react-doctor@latest packages/ui --verbose --diff` lief fuer den Listbox-Fix mit 100/100. Ein zusaetzlicher Dashboard-Full-Scan ohne Dashboard-Diff meldete bestehende Strukturhinweise ausserhalb dieser Konsolidierungs-Scheibe.
+
+Nachtrag 2026-05-11, Hoehen- und Header-Regressionsfix:
+
+- Der Zielzustand wurde von `h-7`/`size-7` fuer Actions auf `h-8`/`size-8` angehoben. `--ds-control-h-action`, `--ds-control-h-icon`, Field-Controls und Menu-Items liegen damit auf derselben `2rem`-Basis.
+- Header-Toolbar-Actions wie Import/Export nutzen die Control-Hoehe, damit sie mit Filter-Dropdowns und Combobox-Triggern eine Linie bilden.
+- `Dropdown`/`FilterDropdown` verwenden wieder Portal-Positionierung als Default, damit Popover an den Trigger gebunden bleiben und nicht im Header-Flex-Container auf die Restbreite wachsen.
+- Der Shops-Export bleibt als zusammenhaengendes Split-Control dokumentiert: Limit-Auswahl links, Export-Action rechts, gemeinsame Control-Hoehe und gemeinsame Border.
 
 ## Stop-Kriterien
 
