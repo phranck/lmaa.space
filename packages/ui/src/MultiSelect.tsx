@@ -259,6 +259,7 @@ export function MultiSelect({
         contentClassName="flex flex-wrap items-center gap-1 overflow-visible whitespace-normal text-clip"
         controls={listboxId}
         invalid={Boolean(error)}
+        multiline
         onClick={handleTriggerClick}
         open={isOpen}
         ref={triggerRef}
@@ -297,12 +298,16 @@ export function MultiSelect({
               const opt = options.find((o) => o.value === val);
               if (!opt) return null;
               return (
-                <span key={val} className={cn(multiSelectVariants({ variant }))} style={opt.style}>
-                  {opt.icon && <opt.icon className="size-3" />}
-                  {opt.label}
+                <span
+                  key={val}
+                  className={cn(multiSelectVariants({ variant }), "min-w-0 max-w-full")}
+                  style={opt.style}
+                >
+                  {opt.icon && <opt.icon className="size-3 shrink-0" />}
+                  <span className="min-w-0 truncate">{opt.label}</span>
                   <span
                     data-remove-value={val}
-                    className="cursor-pointer text-current opacity-60 hover:opacity-100"
+                    className="shrink-0 cursor-pointer text-current opacity-60 hover:opacity-100"
                     aria-label={messages.clearSelectionAriaLabel}
                   >
                     <XCircle className="size-3" />
@@ -313,10 +318,10 @@ export function MultiSelect({
             {value.length > maxCount && (
               <span
                 data-clear-extra="true"
-                className={cn(multiSelectVariants({ variant }), "cursor-pointer")}
+                className={cn(multiSelectVariants({ variant }), "max-w-full cursor-pointer")}
               >
-                {messages.moreSelected(value.length - maxCount)}
-                <XCircle className="size-3 opacity-60" />
+                <span className="min-w-0 truncate">{messages.moreSelected(value.length - maxCount)}</span>
+                <XCircle className="size-3 shrink-0 opacity-60" />
               </span>
             )}
           </>
