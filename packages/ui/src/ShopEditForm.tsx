@@ -1,13 +1,27 @@
-import { ArrowSquareOutIcon, CrosshairIcon, MapPinIcon, MarkdownLogoIcon, ShareNetworkIcon, SpinnerIcon, StorefrontIcon, TruckIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import {
+  ArrowSquareOutIcon,
+  CrosshairIcon,
+  MapPinIcon,
+  MarkdownLogoIcon,
+  NotePencilIcon,
+  ShareNetworkIcon,
+  SpinnerIcon,
+  StorefrontIcon,
+  TagIcon,
+  TruckIcon,
+} from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+
+import type { ShopCheckNotes } from "@lmaa/shared";
 
 import { AlertDialog } from "./AlertDialog.tsx";
 import { CountryCodeSelect, type CountryCodeOption } from "./CountryCodeSelect.tsx";
 import { DashboardSection } from "./DashboardSection.tsx";
-import { InputPrimitive } from "./FieldPrimitives.tsx";
+import { InputPrimitive, TextareaPrimitive } from "./FieldPrimitives.tsx";
 import {
   FormErrorText,
+  FormHelpText,
   FormLabel,
   FormLabelText,
   FormOptional,
@@ -33,6 +47,7 @@ export interface ShopEditFormValue {
   shipping: string;
   contactEmail: string;
   socialMedia: Record<string, string>;
+  shopCheckNotes: ShopCheckNotes | null;
   headquartersStreet: string;
   headquartersPostalCode: string;
   headquartersCity: string;
@@ -54,6 +69,7 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   shipping: "",
   contactEmail: "",
   socialMedia: {},
+  shopCheckNotes: null,
   headquartersStreet: "",
   headquartersPostalCode: "",
   headquartersCity: "",
@@ -110,6 +126,15 @@ export interface ShopEditFormMessages {
   categorySelect: MultiSelectMessages;
   socialMediaLabel?: string;
   socialMedia?: SocialMediaEditorMessages;
+  shopCheckNotesSectionLabel: string;
+  shopCheckFocusLabel: string;
+  shopCheckFocusPlaceholder: string;
+  shopCheckCompanyPresentationLabel: string;
+  shopCheckCompanyPresentationPlaceholder: string;
+  shopCheckBrandsSectionLabel: string;
+  shopCheckBrandsLabel: string;
+  shopCheckBrandsPlaceholder: string;
+  shopCheckListHelpLabel: string;
 }
 
 /**
@@ -160,6 +185,19 @@ export function ShopEditForm({
 
   function set<K extends keyof ShopEditFormValue>(key: K, val: ShopEditFormValue[K]) {
     onChange({ ...value, [key]: val });
+  }
+
+  function setShopCheckNotesField<K extends keyof ShopCheckNotes>(
+    key: K,
+    fieldValue: ShopCheckNotes[K],
+  ) {
+    set(
+      "shopCheckNotes",
+      normalizeShopCheckNotes({
+        ...(value.shopCheckNotes ?? {}),
+        [key]: fieldValue,
+      }),
+    );
   }
 
   async function handleGeocode() {
@@ -434,6 +472,62 @@ export function ShopEditForm({
           </DashboardSection>
         )}
 
+        <DashboardSection>
+          <DashboardSection.Header
+            icon={<NotePencilIcon weight="duotone" className="size-4" />}
+            title={messages.shopCheckNotesSectionLabel}
+          />
+          <DashboardSection.Body>
+            <ShopCheckListTextarea
+              id="sef-shop-check-focus"
+              label={messages.shopCheckFocusLabel}
+              value={value.shopCheckNotes?.focus}
+              onValueChange={(nextValue) => setShopCheckNotesField("focus", nextValue)}
+              placeholder={messages.shopCheckFocusPlaceholder}
+              helpLabel={messages.shopCheckListHelpLabel}
+              rows={4}
+            />
+
+            <div>
+              <FormLabel htmlFor="sef-shop-check-company-presentation">
+                {messages.shopCheckCompanyPresentationLabel}
+              </FormLabel>
+              <TextareaPrimitive
+                id="sef-shop-check-company-presentation"
+                value={value.shopCheckNotes?.companyPresentation ?? ""}
+                onChange={(e) =>
+                  setShopCheckNotesField(
+                    "companyPresentation",
+                    e.target.value.trim() === "" ? null : e.target.value,
+                  )
+                }
+                placeholder={messages.shopCheckCompanyPresentationPlaceholder}
+                rows={4}
+              />
+            </div>
+
+            {errors?.shopCheckNotes && <FormErrorText>{errors.shopCheckNotes}</FormErrorText>}
+          </DashboardSection.Body>
+        </DashboardSection>
+
+        <DashboardSection>
+          <DashboardSection.Header
+            icon={<TagIcon weight="duotone" className="size-4" />}
+            title={messages.shopCheckBrandsSectionLabel}
+          />
+          <DashboardSection.Body>
+            <ShopCheckListTextarea
+              id="sef-shop-check-brands"
+              label={messages.shopCheckBrandsLabel}
+              value={value.shopCheckNotes?.brandsOrProducts}
+              onValueChange={(nextValue) => setShopCheckNotesField("brandsOrProducts", nextValue)}
+              placeholder={messages.shopCheckBrandsPlaceholder}
+              helpLabel={messages.shopCheckListHelpLabel}
+              rows={5}
+            />
+          </DashboardSection.Body>
+        </DashboardSection>
+
         {descriptionAside && <div>{descriptionAside}</div>}
       </div>
 
@@ -475,4 +569,88 @@ export function ShopEditForm({
       </div>
     </div>
   );
+}
+
+interface ShopCheckListTextareaProps {
+  id: string;
+  label: string;
+  value: string[] | undefined;
+  onValueChange: (value: string[] | undefined) => void;
+  placeholder: string;
+  helpLabel: string;
+  rows: number;
+}
+
+function ShopCheckListTextarea({
+  id,
+  label,
+  value,
+  onValueChange,
+  placeholder,
+  helpLabel,
+  rows,
+}: ShopCheckListTextareaProps) {
+  const externalValue = formatTextareaList(value);
+  const [draftValue, setDraftValue] = useState(externalValue);
+
+  useEffect(() => {
+    setDraftValue(externalValue);
+  }, [externalValue]);
+
+  function handleDraftChange(nextDraftValue: string) {
+    setDraftValue(nextDraftValue);
+    onValueChange(parseTextareaList(nextDraftValue));
+  }
+
+  function handleDraftBlur() {
+    const nextValue = parseTextareaList(draftValue);
+    setDraftValue(formatTextareaList(nextValue));
+    onValueChange(nextValue);
+  }
+
+  return (
+    <div>
+      <FormLabel htmlFor={id}>{label}</FormLabel>
+      <TextareaPrimitive
+        id={id}
+        value={draftValue}
+        onChange={(event) => handleDraftChange(event.target.value)}
+        onBlur={handleDraftBlur}
+        placeholder={placeholder}
+        rows={rows}
+      />
+      <FormHelpText>{helpLabel}</FormHelpText>
+    </div>
+  );
+}
+
+function formatTextareaList(values: string[] | undefined) {
+  return values?.join("\n") ?? "";
+}
+
+function parseTextareaList(value: string): string[] | undefined {
+  const entries = value
+    .split(/\r?\n/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  return entries.length > 0 ? Array.from(new Set(entries)) : undefined;
+}
+
+function normalizeShopCheckNotes(notes: ShopCheckNotes): ShopCheckNotes | null {
+  const next: ShopCheckNotes = {};
+
+  if (notes.focus && notes.focus.length > 0) {
+    next.focus = notes.focus;
+  }
+
+  if (notes.brandsOrProducts && notes.brandsOrProducts.length > 0) {
+    next.brandsOrProducts = notes.brandsOrProducts;
+  }
+
+  if (typeof notes.companyPresentation === "string" && notes.companyPresentation.trim() !== "") {
+    next.companyPresentation = notes.companyPresentation.trim();
+  }
+
+  return Object.keys(next).length > 0 ? next : null;
 }

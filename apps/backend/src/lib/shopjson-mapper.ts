@@ -1,3 +1,5 @@
+import type { ShopCheckNotes } from "@lmaa/shared";
+
 import type { HeadquartersInput } from "../repositories/headquarters.js";
 
 const REGION_CODES = ["DE", "AT", "CH", "EU", "WORLD"] as const;
@@ -8,9 +10,7 @@ function getString(value: unknown): string | null {
 
 function getStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .map((entry) => getString(entry))
-    .filter((entry): entry is string => entry !== null);
+  return value.map((entry) => getString(entry)).filter((entry): entry is string => entry !== null);
 }
 
 function getRecord(value: unknown): Record<string, unknown> | null {
@@ -28,7 +28,30 @@ export interface MappedShopData {
   categoryIds: number[];
   contactEmail?: string;
   headquarters?: HeadquartersInput;
+  shopCheckNotes?: ShopCheckNotes | null;
   socialMedia: Record<string, string>;
+}
+
+function normalizeStringArray(value: unknown): string[] | undefined {
+  const entries = getStringArray(value);
+  if (entries.length === 0) return undefined;
+  return Array.from(new Set(entries));
+}
+
+function mapShopCheckNotes(value: unknown): ShopCheckNotes | null | undefined {
+  const raw = getRecord(value);
+  if (!raw) return undefined;
+
+  const notes: ShopCheckNotes = {};
+  const focus = normalizeStringArray(raw.focus);
+  const brandsOrProducts = normalizeStringArray(raw.brandsOrProducts);
+  const companyPresentation = getString(raw.companyPresentation);
+
+  if (focus) notes.focus = focus;
+  if (brandsOrProducts) notes.brandsOrProducts = brandsOrProducts;
+  if (companyPresentation !== null) notes.companyPresentation = companyPresentation;
+
+  return Object.keys(notes).length > 0 ? notes : null;
 }
 
 /**
@@ -46,6 +69,7 @@ export function mapShopJsonToShopData(
   const url = getString(shopJson.url) ?? "";
   const description = getString(shopJson.description) ?? "";
   const contactEmail = getString(shopJson.contactEmail) ?? undefined;
+  const shopCheckNotes = mapShopCheckNotes(shopJson.notes);
 
   const categoryNames = getStringArray(shopJson.categories);
   const categoryIds = categoryNames
@@ -72,10 +96,10 @@ export function mapShopJsonToShopData(
   let headquarters: HeadquartersInput | undefined;
   if (hqRaw || geoRaw) {
     headquarters = {
-      street: hqRaw ? getString(hqRaw.street) ?? undefined : undefined,
-      postalCode: hqRaw ? getString(hqRaw.postalCode) ?? undefined : undefined,
-      city: hqRaw ? getString(hqRaw.city) ?? undefined : undefined,
-      state: hqRaw ? getString(hqRaw.state) ?? undefined : undefined,
+      street: hqRaw ? (getString(hqRaw.street) ?? undefined) : undefined,
+      postalCode: hqRaw ? (getString(hqRaw.postalCode) ?? undefined) : undefined,
+      city: hqRaw ? (getString(hqRaw.city) ?? undefined) : undefined,
+      state: hqRaw ? (getString(hqRaw.state) ?? undefined) : undefined,
       countryCode: hqRaw ? (getString(hqRaw.countryCode)?.toUpperCase() ?? undefined) : undefined,
       latitude: geoRaw && typeof geoRaw.latitude === "number" ? geoRaw.latitude : undefined,
       longitude: geoRaw && typeof geoRaw.longitude === "number" ? geoRaw.longitude : undefined,
@@ -90,6 +114,7 @@ export function mapShopJsonToShopData(
     categoryIds: Array.from(new Set(categoryIds)),
     contactEmail,
     headquarters,
+    shopCheckNotes,
     socialMedia,
   };
 }

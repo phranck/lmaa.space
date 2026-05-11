@@ -23,6 +23,18 @@ export interface ShopCategory {
 }
 
 /**
+ * Search-relevant metadata produced by shop checks.
+ *
+ * These fields are meant for matching and editorial context, not for direct
+ * public rendering.
+ */
+export interface ShopCheckNotes {
+  focus?: string[];
+  brandsOrProducts?: string[];
+  companyPresentation?: string | null;
+}
+
+/**
  * Compact shop representation for tables and cards.
  */
 export interface ShopSummary {
@@ -52,6 +64,7 @@ export interface AdminShopListItem extends ShopSummary {
   shipping: string;
   contactEmail?: string | null;
   socialMedia: Record<string, string>;
+  shopCheckNotes?: ShopCheckNotes | null;
   ogImage?: string | null;
   headquarters?: ShopHeadquarters | null;
 
@@ -80,6 +93,7 @@ export interface Shop {
   ogImage?: string | null;
   contactEmail?: string | null;
   socialMedia: Record<string, string>;
+  shopCheckNotes?: ShopCheckNotes | null;
   visibility: ShopVisibility;
   /** @deprecated Legacy field, always `true`. Use `visibility` instead. */
   isActive: boolean;
@@ -108,8 +122,8 @@ export interface ShopCreate {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: Partial<ShopHeadquarters> | null;
-
 }
 
 /**

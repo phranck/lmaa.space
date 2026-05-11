@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { socialMediaSchema } from "@lmaa/shared";
 
-import { shopJsonSchema } from "./admin-shops";
+import { shopCheckNotesSchema, shopJsonSchema } from "./admin-shops";
 import {
   defaultRegionArraySchema,
   submissionReviewStatusSchema,
@@ -60,6 +60,7 @@ export const submissionEditSchema = z.object({
     z.string().email().max(200).optional(),
   ),
   headquarters: headquartersSchema.optional(),
+  shopCheckNotes: shopCheckNotesSchema.optional(),
   socialMedia: socialMediaSchema,
 });
 

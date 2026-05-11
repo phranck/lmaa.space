@@ -21,10 +21,7 @@ import {
   listAdminSubmissions,
   setReadyForReview,
 } from "../../repositories/admin-submissions.js";
-import {
-  deleteAdminSubmission,
-  reviewAdminSubmission,
-} from "../../services/admin-submissions.js";
+import { deleteAdminSubmission, reviewAdminSubmission } from "../../services/admin-submissions.js";
 
 /**
  * Admin submission moderation routes.
@@ -149,6 +146,7 @@ function mapShopJsonToSubmissionEditData(
     categoryIds: mapped.categoryIds,
     contactEmail: mapped.contactEmail,
     headquarters: mapped.headquarters,
+    shopCheckNotes: mapped.shopCheckNotes,
     socialMedia: mapped.socialMedia,
   };
 }

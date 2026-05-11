@@ -42,10 +42,7 @@ describe("mapShopJsonToShopData", () => {
   });
 
   it("deduplicates category IDs", () => {
-    const result = mapShopJsonToShopData(
-      { categories: ["Mode", "mode"] },
-      categoryMap,
-    );
+    const result = mapShopJsonToShopData({ categories: ["Mode", "mode"] }, categoryMap);
 
     expect(result.categoryIds).toEqual([1]);
   });
@@ -60,10 +57,7 @@ describe("mapShopJsonToShopData", () => {
   });
 
   it("deduplicates regions", () => {
-    const result = mapShopJsonToShopData(
-      { shippingRegions: ["DE", "de"] },
-      categoryMap,
-    );
+    const result = mapShopJsonToShopData({ shippingRegions: ["DE", "de"] }, categoryMap);
 
     expect(result.region).toEqual(["DE"]);
   });
@@ -109,12 +103,34 @@ describe("mapShopJsonToShopData", () => {
   });
 
   it("maps contactEmail", () => {
+    const result = mapShopJsonToShopData({ contactEmail: "info@shop.de" }, categoryMap);
+
+    expect(result.contactEmail).toBe("info@shop.de");
+  });
+
+  it("maps shop check notes for search metadata", () => {
     const result = mapShopJsonToShopData(
-      { contactEmail: "info@shop.de" },
+      {
+        notes: {
+          focus: ["Coffee", "Coffee", "Roastery"],
+          brandsOrProducts: ["Hario", "Comandante", ""],
+          companyPresentation: "Small direct trade roaster",
+        },
+      },
       categoryMap,
     );
 
-    expect(result.contactEmail).toBe("info@shop.de");
+    expect(result.shopCheckNotes).toEqual({
+      focus: ["Coffee", "Roastery"],
+      brandsOrProducts: ["Hario", "Comandante"],
+      companyPresentation: "Small direct trade roaster",
+    });
+  });
+
+  it("omits shop check notes when the field is absent", () => {
+    const result = mapShopJsonToShopData({}, categoryMap);
+
+    expect(result.shopCheckNotes).toBeUndefined();
   });
 
   it("omits headquarters when neither hq nor geo provided", () => {

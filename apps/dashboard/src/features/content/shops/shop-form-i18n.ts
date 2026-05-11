@@ -81,6 +81,16 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
           selectPlatformAriaLabel: "Select platform",
           invalidUrlMessage: (platformLabel) => `Invalid ${platformLabel} URL.`,
         },
+        shopCheckNotesSectionLabel: "Shopcheck Notes",
+        shopCheckFocusLabel: "Focus",
+        shopCheckFocusPlaceholder: "e.g. sustainable fashion\nlocal production\ncustom prints",
+        shopCheckCompanyPresentationLabel: "Company note",
+        shopCheckCompanyPresentationPlaceholder:
+          "Editorial context from the shop check, without turning the public description into a fact list.",
+        shopCheckBrandsSectionLabel: "Brands & Products",
+        shopCheckBrandsLabel: "Brands or products",
+        shopCheckBrandsPlaceholder: "e.g. Stanley/Stella\nB&C\norganic cotton shirts",
+        shopCheckListHelpLabel: "One entry per line. These values are stored and included in search.",
         categorySelect: {
           selectAll: "(Select all)",
           clearAllAriaLabel: "Clear all selected categories",
@@ -148,6 +158,16 @@ export function getShopEditFormI18n(locale: DashboardLocale): {
         selectPlatformAriaLabel: "Plattform wählen",
         invalidUrlMessage: (platformLabel) => `Ungültige ${platformLabel}-URL.`,
       },
+      shopCheckNotesSectionLabel: "Shopcheck-Notizen",
+      shopCheckFocusLabel: "Fokus",
+      shopCheckFocusPlaceholder: "z.B. nachhaltige Mode\nlokale Produktion\nindividuelle Prints",
+      shopCheckCompanyPresentationLabel: "Unternehmensnotiz",
+      shopCheckCompanyPresentationPlaceholder:
+        "Redaktioneller Kontext aus dem Shopcheck, ohne die öffentliche Beschreibung zur Faktensammlung zu machen.",
+      shopCheckBrandsSectionLabel: "Brands & Produkte",
+      shopCheckBrandsLabel: "Brands oder Produkte",
+      shopCheckBrandsPlaceholder: "z.B. Stanley/Stella\nB&C\nBio-Baumwollshirts",
+      shopCheckListHelpLabel: "Ein Eintrag pro Zeile. Diese Werte werden gespeichert und in der Suche berücksichtigt.",
       categorySelect: {
         selectAll: "(Alle auswählen)",
         clearAllAriaLabel: "Alle ausgewählten Kategorien entfernen",

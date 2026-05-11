@@ -1,4 +1,4 @@
-import { REGION_CODES } from "@lmaa/shared";
+import { REGION_CODES, type ShopCheckNotes } from "@lmaa/shared";
 import { EMPTY_SHOP_FORM_VALUE } from "@lmaa/ui";
 import type { ShopEditFormValue } from "@lmaa/ui";
 
@@ -48,6 +48,7 @@ export function getInitialFormValue(
     shipping: shopData.shipping ?? "",
     contactEmail: shopData.contactEmail ?? "",
     socialMedia: shopData.socialMedia ?? {},
+    shopCheckNotes: shopData.shopCheckNotes ?? null,
     headquartersStreet: shopData.headquarters?.street ?? "",
     headquartersPostalCode: shopData.headquarters?.postalCode ?? "",
     headquartersCity: shopData.headquarters?.city ?? "",
@@ -64,7 +65,10 @@ export function getInitialFormValue(
   };
 }
 
-export function formReducer(_state: ShopEditFormValue, nextState: ShopEditFormValue): ShopEditFormValue {
+export function formReducer(
+  _state: ShopEditFormValue,
+  nextState: ShopEditFormValue,
+): ShopEditFormValue {
   return nextState;
 }
 
@@ -120,9 +124,7 @@ function getString(value: unknown): string | null {
 
 function getStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .map((entry) => getString(entry))
-    .filter((entry): entry is string => entry !== null);
+  return value.map((entry) => getString(entry)).filter((entry): entry is string => entry !== null);
 }
 
 function getRecord(value: unknown): Record<string, unknown> | null {
@@ -133,6 +135,28 @@ function getRecord(value: unknown): Record<string, unknown> | null {
 
 function normalizeCategoryName(value: string) {
   return value.trim().toLocaleLowerCase("de-DE");
+}
+
+function normalizeStringArray(value: unknown): string[] | undefined {
+  const entries = getStringArray(value);
+  if (entries.length === 0) return undefined;
+  return Array.from(new Set(entries));
+}
+
+function mapShopCheckNotes(value: unknown): ShopCheckNotes | null | undefined {
+  const raw = getRecord(value);
+  if (!raw) return undefined;
+
+  const notes: ShopCheckNotes = {};
+  const focus = normalizeStringArray(raw.focus);
+  const brandsOrProducts = normalizeStringArray(raw.brandsOrProducts);
+  const companyPresentation = getString(raw.companyPresentation);
+
+  if (focus) notes.focus = focus;
+  if (brandsOrProducts) notes.brandsOrProducts = brandsOrProducts;
+  if (companyPresentation !== null) notes.companyPresentation = companyPresentation;
+
+  return Object.keys(notes).length > 0 ? notes : null;
 }
 
 export function applyShopCheckJsonToForm(
@@ -204,6 +228,12 @@ export function applyShopCheckJsonToForm(
     }
   }
 
+  const shopCheckNotes = mapShopCheckNotes(payload.notes);
+  if (shopCheckNotes !== undefined) {
+    nextForm.shopCheckNotes = shopCheckNotes;
+    changed = true;
+  }
+
   const headquarters = getRecord(payload.headquarters);
   if (headquarters !== null) {
     const street = getString(headquarters.street);
@@ -240,18 +270,14 @@ export function applyShopCheckJsonToForm(
   const geo = getRecord(payload.geo);
   if (geo !== null) {
     const latitude =
-      typeof geo.latitude === "number"
-        ? String(geo.latitude)
-        : getString(geo.latitude);
+      typeof geo.latitude === "number" ? String(geo.latitude) : getString(geo.latitude);
     if (latitude !== null) {
       nextForm.headquartersLatitude = latitude;
       changed = true;
     }
 
     const longitude =
-      typeof geo.longitude === "number"
-        ? String(geo.longitude)
-        : getString(geo.longitude);
+      typeof geo.longitude === "number" ? String(geo.longitude) : getString(geo.longitude);
     if (longitude !== null) {
       nextForm.headquartersLongitude = longitude;
       changed = true;

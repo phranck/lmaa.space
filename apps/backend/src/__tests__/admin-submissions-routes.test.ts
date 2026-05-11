@@ -210,6 +210,43 @@ describe("submissionsRoutes", () => {
     });
   });
 
+  describe("PATCH /submissions/:id/edit", () => {
+    it("passes shop check notes to the repository", async () => {
+      repoMocks.editSubmission.mockResolvedValue({ id: 1, shopName: "Shop" });
+
+      const res = await app.request("/submissions/1/edit", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopName: "Shop",
+          shopUrl: "https://shop.de",
+          description: "Description",
+          region: ["DE"],
+          shipping: "Germany",
+          categoryIds: [1],
+          shopCheckNotes: {
+            focus: ["Siebdruck"],
+            brandsOrProducts: ["BirdShirts"],
+            companyPresentation: "Small textile printer",
+          },
+          socialMedia: {},
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(repoMocks.editSubmission).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          shopCheckNotes: {
+            focus: ["Siebdruck"],
+            brandsOrProducts: ["BirdShirts"],
+            companyPresentation: "Small textile printer",
+          },
+        }),
+      );
+    });
+  });
+
   describe("DELETE /submissions/:id", () => {
     it("deletes submission successfully", async () => {
       serviceMocks.deleteAdminSubmission.mockResolvedValue({ ok: true });

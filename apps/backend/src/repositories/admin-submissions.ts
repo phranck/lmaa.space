@@ -1,7 +1,7 @@
 import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDomain } from "tldts";
 
-import type { SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
+import type { ShopCheckNotes, SubmissionReviewStatus, SubmissionStatus } from "@lmaa/shared";
 
 import type { HeadquartersInput } from "./headquarters.js";
 import {
@@ -32,6 +32,7 @@ export interface SubmissionEditData {
   shipping?: string;
   categoryIds: number[];
   contactEmail?: string;
+  shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;
 }
@@ -226,6 +227,7 @@ export async function reviewSubmission(
         description: submission.description,
         ogImage: submission.ogImage,
         contactEmail: submission.contactEmail,
+        shopCheckNotes: submission.shopCheckNotes,
         socialMedia: submission.socialMedia,
       })
       .returning({ id: shops.id, url: shops.url });
@@ -266,6 +268,7 @@ export async function editSubmission(
         region: data.region,
         shipping: data.shipping ?? "",
         contactEmail: data.contactEmail || null,
+        ...(data.shopCheckNotes !== undefined ? { shopCheckNotes: data.shopCheckNotes } : {}),
         socialMedia: data.socialMedia ?? {},
         updatedAt: new Date(),
       })
