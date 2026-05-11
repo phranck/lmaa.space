@@ -26,11 +26,17 @@ import {
 import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
 import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
+import {
+  parseTableSortFromSearchParams,
+  readStoredTableSort,
+  writeStoredTableSort,
+} from "@/lib/table-sort-storage.ts";
 
 type Tab = "suggestions" | "dead-links" | "shop-reports";
 type SuggestionsStatusFilter = Extract<SubmissionStatus, "pending" | "onhold" | "rejected">;
 type ReportTabParam = Tab | undefined;
 const SUGGESTIONS_SORTABLE_COLUMNS = new Set(["shop", "submitted", "rejectedAt"]);
+const DEFAULT_SUGGESTIONS_SORT: SortState = { id: "shop", dir: "asc" };
 
 function resolveInitialTab(tabParam: ReportTabParam, search: string): Tab {
   if (tabParam === "dead-links" || tabParam === "shop-reports" || tabParam === "suggestions") {
@@ -41,15 +47,6 @@ function resolveInitialTab(tabParam: ReportTabParam, search: string): Tab {
   const t = params.get("tab");
   if (t === "dead-links" || t === "shop-reports") return t;
   return "suggestions";
-}
-
-function parseSuggestionsSort(searchParams: URLSearchParams): SortState {
-  const id = searchParams.get("sort");
-  const dir = searchParams.get("dir");
-  if (id && dir && SUGGESTIONS_SORTABLE_COLUMNS.has(id) && (dir === "asc" || dir === "desc")) {
-    return { id, dir };
-  }
-  return { id: "shop", dir: "asc" };
 }
 
 /**
@@ -69,7 +66,22 @@ export function SubmissionsPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const importMutation = useImportSubmissions();
   const statusLabels = submissionsMessages.status;
-  const suggestionsSort = useMemo(() => parseSuggestionsSort(searchParams), [searchParams]);
+  const suggestionsStatusStorageKey = getSegmentedStorageKey(
+    user?.id,
+    "submissions:suggestions:status",
+  );
+  const suggestionsSortStorageKey = getSegmentedStorageKey(
+    user?.id,
+    "submissions:suggestions:sort",
+  );
+  const suggestionsSort = useMemo(() => {
+    const urlSort = parseTableSortFromSearchParams(searchParams, SUGGESTIONS_SORTABLE_COLUMNS);
+    if (urlSort) return urlSort;
+    return (
+      readStoredTableSort(suggestionsSortStorageKey, SUGGESTIONS_SORTABLE_COLUMNS) ??
+      DEFAULT_SUGGESTIONS_SORT
+    );
+  }, [searchParams, suggestionsSortStorageKey]);
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: onholdSubmissions = [] } = useAdminSubmissions("onhold");
   const { data: rejectedSubmissions = [] } = useAdminSubmissions("rejected");
@@ -134,6 +146,11 @@ export function SubmissionsPage() {
   function handleSuggestionsSortChange(nextSort: SortState | null) {
     const nextParams = new URLSearchParams(searchParams);
     if (nextSort) {
+      writeStoredTableSort(
+        suggestionsSortStorageKey,
+        nextSort,
+        SUGGESTIONS_SORTABLE_COLUMNS,
+      );
       nextParams.set("sort", nextSort.id);
       nextParams.set("dir", nextSort.dir);
     } else {
@@ -152,7 +169,7 @@ export function SubmissionsPage() {
               value={statusFilter}
               onChange={setStatusFilter}
               options={filterOptions}
-              storageKey={getSegmentedStorageKey(user?.id, "submissions:suggestions:status")}
+              storageKey={suggestionsStatusStorageKey}
             />
             <ImportButton
               onFileSelected={handleImportFile}

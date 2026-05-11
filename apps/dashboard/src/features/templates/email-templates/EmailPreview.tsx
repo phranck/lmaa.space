@@ -5,6 +5,7 @@ import { DashboardSection } from "@lmaa/ui";
 
 import { ThemeSegmentedControl } from "@/components/ui/ThemeSegmentedControl.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useTheme } from "@/context/ThemeContext.tsx";
 import { api } from "@/lib/api.ts";
 
 interface EmailPreviewProps {
@@ -28,10 +29,11 @@ export function EmailPreview({
   footerText,
 }: EmailPreviewProps) {
   const { messages } = useI18n();
+  const { theme, setTheme, effectiveTheme } = useTheme();
   const m = messages.emailTemplates;
-  const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
   const [srcDoc, setSrcDoc] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const colorScheme = theme === "system" ? effectiveTheme : theme;
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -60,11 +62,8 @@ export function EmailPreview({
         title={m.previewTitle}
         addOn={
           <ThemeSegmentedControl
-            value={colorScheme}
-            onChange={(v) => {
-              if (v !== "system") setColorScheme(v);
-            }}
-            options={["light", "dark"]}
+            value={theme}
+            onChange={setTheme}
           />
         }
       />
