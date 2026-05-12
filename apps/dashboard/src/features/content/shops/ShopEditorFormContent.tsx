@@ -39,6 +39,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     isSavingImage,
     saveErrorMessage,
     ogImageInput,
+    openImageLabel,
     placeholder,
     previewImageLabel,
     reloadImageLabel,
@@ -109,6 +110,7 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
       onApplyImage={handleApplyImage}
       onChangeOgImageInput={handleOgImageInputChange}
       onRefreshImage={handleRefreshImage}
+      openImageLabel={openImageLabel}
       placeholder={placeholder}
       previewImageLabel={previewImageLabel}
       reloadImageLabel={reloadImageLabel}

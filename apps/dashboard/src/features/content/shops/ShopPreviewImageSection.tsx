@@ -1,4 +1,10 @@
-import { ArrowClockwiseIcon, CopyIcon, ImageIcon, StorefrontIcon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon,
+  ArrowSquareOutIcon,
+  CopyIcon,
+  ImageIcon,
+  StorefrontIcon,
+} from "@phosphor-icons/react";
 
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
@@ -15,6 +21,7 @@ interface ShopPreviewImageSectionProps {
   onApplyImage: () => void;
   onChangeOgImageInput: (value: string) => void;
   onRefreshImage: () => void;
+  openImageLabel: string;
   placeholder: string;
   previewImageLabel: string;
   reloadImageLabel: string;
@@ -31,11 +38,14 @@ export function ShopPreviewImageSection({
   onApplyImage,
   onChangeOgImageInput,
   onRefreshImage,
+  openImageLabel,
   placeholder,
   previewImageLabel,
   reloadImageLabel,
   setImageLabel,
 }: ShopPreviewImageSectionProps) {
+  const trimmedImageHref = ogImageInput.trim();
+  const hasImageHref = trimmedImageHref.length > 0;
   return (
     <DashboardSection>
       <DashboardSection.Header
@@ -56,13 +66,30 @@ export function ShopPreviewImageSection({
             )}
           </div>
           <div className="flex-1 min-w-0 flex flex-col gap-2">
-            <DashboardInput
-              type="text"
-              value={ogImageInput}
-              onChange={(e) => onChangeOgImageInput(e.target.value)}
-              placeholder={placeholder}
-              className="min-w-0"
-            />
+            <div className="flex gap-2">
+              <DashboardInput
+                type="text"
+                value={ogImageInput}
+                onChange={(e) => onChangeOgImageInput(e.target.value)}
+                placeholder={placeholder}
+                className="flex-1 min-w-0"
+              />
+              <a
+                href={hasImageHref ? trimmedImageHref : undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={openImageLabel}
+                title={openImageLabel}
+                tabIndex={hasImageHref ? 0 : -1}
+                className={`shrink-0 flex items-center justify-center w-9 border rounded-control transition-colors ${
+                  hasImageHref
+                    ? "border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-bg-elevated)]"
+                    : "border-[var(--ds-border)] bg-[var(--ds-bg-elevated)] text-[var(--ds-text-subtle)] pointer-events-none"
+                }`}
+              >
+                <ArrowSquareOutIcon weight="duotone" className="size-4" />
+              </a>
+            </div>
             <div className="flex gap-1.5 justify-end">
               <DashboardButton
                 onClick={onRefreshImage}

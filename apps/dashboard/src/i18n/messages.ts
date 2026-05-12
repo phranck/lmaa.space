@@ -247,6 +247,7 @@ export interface DashboardMessages {
       titleEdit: string;
       previewImage: string;
       noImage: string;
+      openImage: string;
       reloadImage: string;
       setImage: string;
       upload: string;
@@ -1429,6 +1430,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         titleEdit: "Shop bearbeiten",
         previewImage: "Vorschaubild",
         noImage: "Kein Bild gesetzt",
+        openImage: "Bild in neuem Tab öffnen",
         reloadImage: "Neu laden",
         setImage: "Übernehmen",
         upload: "Hochladen",
@@ -2653,6 +2655,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         titleEdit: "Edit shop",
         previewImage: "Preview image",
         noImage: "No image set",
+        openImage: "Open image in new tab",
         reloadImage: "Reload",
         setImage: "Apply",
         upload: "Upload",
