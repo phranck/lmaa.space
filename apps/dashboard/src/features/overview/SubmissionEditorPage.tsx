@@ -272,7 +272,7 @@ function LoadedSubmissionEditorPage({
             <p className="truncate text-lg font-semibold leading-tight text-[var(--ds-text)]">
               {pageTitle}
             </p>
-            <p className="truncate text-[11px] leading-4 text-[var(--ds-text-muted)]">
+            <p className="truncate text-[13px] leading-tight text-[var(--ds-text-muted)]">
               {pageSubtitle}
             </p>
           </div>
