@@ -18,15 +18,41 @@ function ImportDialog({
   hasExisting,
   onMerge,
   onReplace,
+  onCancel,
 }: {
   importCount: number;
   hasExisting: boolean;
   onMerge: () => void;
   onReplace: () => void;
+  onCancel: () => void;
 }) {
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onCancel();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6">
+    <div
+      role="button"
+      tabIndex={0}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onCancel}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onCancel();
+        }
+      }}
+    >
+      <div
+        role="dialog"
+        className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
         <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
           Shops importieren
         </h2>
@@ -57,6 +83,13 @@ function ImportDialog({
             }`}
           >
             {hasExisting ? "Ersetzen" : "Importieren"}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-10 rounded-xl text-sm text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
+          >
+            Abbrechen
           </button>
         </div>
       </div>
@@ -254,6 +287,12 @@ export default function LikedShopsGrid() {
     loadShops();
   }
 
+  function handleImportCancel() {
+    if (!importData) return;
+    window.history.replaceState({}, "", importData.cleanUrl);
+    dispatch({ importData: null });
+  }
+
   if (loading && !importData) {
     return (
       <p className="text-sm text-stone-400 text-center py-12">Lade deine Shops...</p>
@@ -268,6 +307,7 @@ export default function LikedShopsGrid() {
           hasExisting={getLikedShopIds().size > 0}
           onMerge={handleImportMerge}
           onReplace={handleImportReplace}
+          onCancel={handleImportCancel}
         />
       )}
 
