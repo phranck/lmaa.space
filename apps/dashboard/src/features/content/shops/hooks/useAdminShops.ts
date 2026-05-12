@@ -240,26 +240,6 @@ export function usePreviewImage(url: string | null) {
   });
 }
 
-/**
- * Refetches/stores OG image for an existing shop.
- *
- * @param shopId - Shop id.
- * @returns React Query mutation.
- */
-export function useRefetchShopImage(shopId: number) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => api.post<{ ogImage: string | null }>(`/admin/shops/${shopId}/refetch-image`),
-    onSuccess: ({ ogImage }) => {
-      qc.setQueryData<Shop | undefined>(["shop", shopId], (current) =>
-        current ? { ...current, ogImage } : current,
-      );
-      qc.invalidateQueries({ queryKey: ["shop", shopId] });
-      qc.invalidateQueries({ queryKey: ["shops-admin"] });
-    },
-  });
-}
-
 export function useSetShopOgImage(shopId: number) {
   const qc = useQueryClient();
   return useMutation({

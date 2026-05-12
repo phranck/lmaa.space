@@ -12,8 +12,8 @@ import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeig
 
 import {
   useAdminShop,
+  useFetchPreviewImage,
   usePreviewImage,
-  useRefetchShopImage,
   useSaveShop,
   useSetShopOgImage,
   useSetShopVisibility,
@@ -57,7 +57,7 @@ export function useShopEditorController({
   );
   const shopMutation = useSaveShop(isSubmissionMode ? null : isNew ? null : (shopId as number));
   const submissionMutation = useEditSubmission();
-  const refetchImageMutation = useRefetchShopImage(typeof shopId === "number" ? shopId : 0);
+  const fetchPreviewImageMutation = useFetchPreviewImage();
   const setOgImageMutation = useSetShopOgImage(typeof shopId === "number" ? shopId : 0);
   const setVisibilityMutation = useSetShopVisibility();
   const title = isSubmissionMode
@@ -127,12 +127,14 @@ export function useShopEditorController({
     (isSubmissionMode ? (previewImageQuery.data?.ogImage ?? "") : (activeShop?.ogImage ?? ""));
   const displayImage = isSubmissionMode
     ? previewImage
-    : showDeferredShopImage
-      ? (activeShop?.ogImage ?? null)
-      : null;
+    : imageState.draftOgImageInput !== null
+      ? imageState.draftOgImageInput.trim() || null
+      : showDeferredShopImage
+        ? (activeShop?.ogImage ?? null)
+        : null;
   const isRefetchPending = isSubmissionMode
     ? previewImageQuery.isFetching
-    : refetchImageMutation.isPending;
+    : fetchPreviewImageMutation.isPending;
 
   function getSubmissionOgImageValue() {
     if (!isSubmissionMode) return null;
@@ -252,7 +254,16 @@ export function useShopEditorController({
       return;
     }
 
-    refetchImageMutation.mutate();
+    const nextUrl = form.url.trim() || activeShop?.url?.trim() || "";
+    if (!nextUrl) return;
+    fetchPreviewImageMutation.mutate(nextUrl, {
+      onSuccess: ({ ogImage }) => {
+        setImageState((current) => ({
+          ...current,
+          draftOgImageInput: ogImage ?? "",
+        }));
+      },
+    });
   }
 
   function handleApplyImage() {
@@ -317,6 +328,7 @@ export function useShopEditorController({
     showSaved,
     title,
     suggestionsMsg,
+    openImageLabel: shopsMessages.editCard.openImage,
     reloadImageLabel: shopsMessages.editCard.reloadImage,
     isSavingImage: !isSubmissionMode && setOgImageMutation.isPending,
     previewImageQuery,
