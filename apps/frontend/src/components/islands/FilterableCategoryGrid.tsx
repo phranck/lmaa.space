@@ -162,7 +162,7 @@ export default function FilterableCategoryGrid({
       ) : (
         <div
           ref={gridRef}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3"
         >
           {visibleCategories.map((cat) => (
             <CategoryCard

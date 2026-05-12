@@ -134,8 +134,8 @@ export default function FilterableSearchResults({
             type="text"
             value={query}
             onChange={handleQueryChange}
-            aria-label="Shop oder Kategorie suchen"
-            placeholder="Shop oder Kategorie suchen…"
+            aria-label="Shops oder Kategorien suchen"
+            placeholder="Shops oder Kategorien suchen…"
             className="w-full px-4 pr-10 py-3 text-base rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all"
           />
           {query && (

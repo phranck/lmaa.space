@@ -100,8 +100,8 @@ const jsonLd = {
               id="hero-search"
               name="q"
               type="text"
-              placeholder="Shop oder Kategorie suchen…"
-              class="w-full px-4 pr-8 py-2.5 bg-transparent text-white placeholder-stone-400 text-sm focus:outline-none"
+              placeholder="Shops oder Kategorien suchen…"
+              class="w-full px-4 sm:pr-8 py-2.5 bg-transparent text-white placeholder-stone-400 text-sm focus:outline-none"
             />
             <span
               id="hero-search-shortcut"
@@ -134,9 +134,12 @@ const jsonLd = {
             const shortcut = document.getElementById('hero-search-shortcut');
             if (!input || !btn || !shortcut) return;
 
-            // Detect platform and show shortcut badge (hidden on mobile/touch)
-            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            if (!isTouchDevice) {
+            // Show shortcut badge only on viewports >= sm breakpoint (640px)
+            const showShortcut = window.matchMedia('(min-width: 640px)').matches;
+            if (!showShortcut) {
+              input.placeholder = 'Shops oder Kategorien';
+            }
+            if (showShortcut) {
               const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
               const kbdStyle = 'display:inline-flex;align-items:center;justify-content:center;padding:1px 5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:5px;font-size:11px;color:rgb(168,162,158);font-family:inherit;line-height:1.5';
               shortcut.innerHTML = `<kbd style="${kbdStyle}">${isMac ? '\u2318' : 'Ctrl'}</kbd><kbd style="${kbdStyle}">K</kbd>`;
@@ -145,12 +148,13 @@ const jsonLd = {
 
             const toggle = () => {
               const hasValue = !!input.value;
+              input.classList.toggle('pr-8', hasValue);
               if (hasValue) {
                 btn.classList.remove('hidden');
                 shortcut.classList.add('hidden');
               } else {
                 btn.classList.add('hidden');
-                if (!isTouchDevice) shortcut.classList.remove('hidden');
+                if (showShortcut) shortcut.classList.remove('hidden');
               }
             };
 
