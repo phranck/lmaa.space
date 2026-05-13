@@ -257,6 +257,11 @@ export interface DashboardMessages {
       rejectTitle: string;
       rejectSubmit: string;
       acceptReview: string;
+      logoBackground: {
+        label: string;
+        reset: string;
+        invalid: string;
+      };
     };
     deleteCard: {
       title: string;
@@ -1440,6 +1445,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         rejectTitle: "Shop ablehnen",
         rejectSubmit: "Ablehnen",
         acceptReview: "Review akzeptieren",
+        logoBackground: {
+          label: "Logo-Hintergrundfarbe",
+          reset: "Zurücksetzen",
+          invalid: "Ungültiger Hex-Wert",
+        },
       },
       deleteCard: {
         title: "Shop löschen",
@@ -2665,6 +2675,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         rejectTitle: "Reject shop",
         rejectSubmit: "Reject",
         acceptReview: "Accept Review",
+        logoBackground: {
+          label: "Logo background color",
+          reset: "Reset",
+          invalid: "Invalid hex value",
+        },
       },
       deleteCard: {
         title: "Delete shop",

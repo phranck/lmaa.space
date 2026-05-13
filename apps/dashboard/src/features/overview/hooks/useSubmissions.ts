@@ -96,6 +96,7 @@ export function useEditSubmission() {
         shopUrl: data.url,
         description: data.description,
         ogImage: ogImage ?? null,
+        logoBackgroundColor: data.logoBackgroundColor,
         region: data.region,
         shipping: data.shipping,
         categoryIds: data.categoryIds,

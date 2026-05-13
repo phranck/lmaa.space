@@ -62,6 +62,7 @@ export function getInitialFormValue(
       shopData.headquarters?.longitude !== null && shopData.headquarters?.longitude !== undefined
         ? String(shopData.headquarters.longitude)
         : "",
+    logoBackgroundColor: shopData.logoBackgroundColor ?? null,
   };
 }
 

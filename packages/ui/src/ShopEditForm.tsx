@@ -55,6 +55,7 @@ export interface ShopEditFormValue {
   headquartersCountryCode: string;
   headquartersLatitude: string;
   headquartersLongitude: string;
+  logoBackgroundColor: string | null;
 }
 
 /**
@@ -77,6 +78,7 @@ export const EMPTY_SHOP_FORM_VALUE: ShopEditFormValue = {
   headquartersCountryCode: "",
   headquartersLatitude: "",
   headquartersLongitude: "",
+  logoBackgroundColor: null,
 };
 
 /**
