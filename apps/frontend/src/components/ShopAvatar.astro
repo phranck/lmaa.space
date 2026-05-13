@@ -1,13 +1,17 @@
 ---
+import { resolveLogoBackground } from "@lmaa/shared";
+
 interface Props {
   name: string;
   imageUrl?: string | null;
+  logoBackgroundColor?: string | null;
   size?: "sm" | "md" | "lg";
 }
 
-const { name, imageUrl, size = "sm" } = Astro.props;
+const { name, imageUrl, logoBackgroundColor, size = "sm" } = Astro.props;
 
 const letter = name.charAt(0).toUpperCase();
+const bgColor = resolveLogoBackground(logoBackgroundColor);
 
 const sizeClasses: Record<string, { container: string; letter: string }> = {
   sm: { container: "w-12 h-12 rounded-lg", letter: "text-lg" },
@@ -18,7 +22,10 @@ const sizeClasses: Record<string, { container: string; letter: string }> = {
 const s = sizeClasses[size];
 ---
 
-<div class={`shrink-0 ${s.container} overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center`}>
+<div
+  class={`shrink-0 ${s.container} overflow-hidden border border-stone-100 flex items-center justify-center`}
+  style={`background-color: ${bgColor}`}
+>
   {imageUrl ? (
     <img
       src={imageUrl}
