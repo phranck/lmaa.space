@@ -27,6 +27,7 @@
     "blueimp-md5": "^2.19.0",
     "date-fns": "^4.1.0",
     "react": "^19.0.0",
+    "react-colorful": "^5.7.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.6.2",
@@ -40,7 +41,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.3",
     "unocss": "^66.3.3",
-    "vitest": "^4.0.18",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^4.0.18"
   }
 }

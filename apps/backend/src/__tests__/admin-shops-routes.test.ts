@@ -155,6 +155,30 @@ describe("shopsRoutes", () => {
       });
       expect(res.status).toBe(200);
     });
+
+    it("accepts a valid 8-digit hex with alpha on shop update", async () => {
+      serviceMocks.updateManagedAdminShop.mockResolvedValue({
+        ok: true,
+        shop: { id: 1, name: "Shop" },
+      });
+
+      const res = await app.request("/shops/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoBackgroundColor: "#ABCDEF80" }),
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it("rejects a 7-digit hex on shop update", async () => {
+      const res = await app.request("/shops/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoBackgroundColor: "#ABCDEF1" }),
+      });
+      expect(res.status).toBe(400);
+      expect(serviceMocks.updateManagedAdminShop).not.toHaveBeenCalled();
+    });
   });
 
   describe("POST /shops/:id/accept-review", () => {

@@ -260,7 +260,6 @@ export interface DashboardMessages {
       logoBackground: {
         label: string;
         reset: string;
-        invalid: string;
       };
     };
     deleteCard: {
@@ -1448,7 +1447,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         logoBackground: {
           label: "Logo-Hintergrundfarbe",
           reset: "Zurücksetzen",
-          invalid: "Ungültiger Hex-Wert",
         },
       },
       deleteCard: {
@@ -2678,7 +2676,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         logoBackground: {
           label: "Logo background color",
           reset: "Reset",
-          invalid: "Invalid hex value",
         },
       },
       deleteCard: {
