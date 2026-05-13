@@ -5,6 +5,7 @@ import { socialMediaSchema } from "@lmaa/shared";
 import { shopCheckNotesSchema, shopJsonSchema } from "./admin-shops";
 import {
   defaultRegionArraySchema,
+  logoBackgroundColorSchema,
   submissionReviewStatusSchema,
   submissionStatusSchema,
 } from "./common";
@@ -62,6 +63,7 @@ export const submissionEditSchema = z.object({
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
   socialMedia: socialMediaSchema,
+  logoBackgroundColor: logoBackgroundColorSchema,
 });
 
 /**

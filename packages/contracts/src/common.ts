@@ -47,3 +47,13 @@ export const shopVisibilitySchema = z.enum(SHOP_VISIBILITIES);
  * Mutable shop visibility validator (excludes hard-delete state).
  */
 export const shopMutableVisibilitySchema = z.enum(SHOP_MUTABLE_VISIBILITIES);
+
+/**
+ * Logo background color validator.
+ * Accepts a 6-digit hex color prefixed with `#` (e.g. `#ff00aa`), or null/undefined.
+ */
+export const logoBackgroundColorSchema = z
+  .string()
+  .regex(/^#[0-9a-fA-F]{6}$/, "Must be a 6-digit hex color (e.g. #ff00aa)")
+  .nullable()
+  .optional();

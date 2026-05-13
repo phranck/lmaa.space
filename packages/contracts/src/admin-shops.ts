@@ -4,6 +4,7 @@ import { socialMediaSchema } from "@lmaa/shared";
 
 import {
   defaultRegionArraySchema,
+  logoBackgroundColorSchema,
   optionalRegionArraySchema,
   shopMutableVisibilitySchema,
   shopVisibilitySchema,
@@ -65,6 +66,7 @@ export const shopUpdateSchema = z.object({
   headquarters: headquartersSchema.optional(),
   shopCheckNotes: shopCheckNotesSchema.optional(),
   socialMedia: socialMediaSchema,
+  logoBackgroundColor: logoBackgroundColorSchema,
   needsReview: z.boolean().optional(),
 });
 
