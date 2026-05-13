@@ -43,6 +43,7 @@ export interface UpdateAdminShopData {
   shipping?: string;
   description?: string;
   contactEmail?: string;
+  logoBackgroundColor?: string | null;
   shopCheckNotes?: ShopCheckNotes | null;
   headquarters?: HeadquartersInput | null;
   socialMedia?: Record<string, string>;

@@ -227,6 +227,7 @@ export async function reviewSubmission(
         shipping: submission.shipping,
         description: submission.description,
         ogImage: submission.ogImage,
+        logoBackgroundColor: submission.logoBackgroundColor,
         contactEmail: submission.contactEmail,
         shopCheckNotes: submission.shopCheckNotes,
         socialMedia: submission.socialMedia,
@@ -266,6 +267,9 @@ export async function editSubmission(
         shopUrl: data.shopUrl,
         description: data.description ?? "",
         ...(data.ogImage !== undefined ? { ogImage: data.ogImage } : {}),
+        ...(data.logoBackgroundColor !== undefined
+          ? { logoBackgroundColor: data.logoBackgroundColor }
+          : {}),
         region: data.region,
         shipping: data.shipping ?? "",
         contactEmail: data.contactEmail || null,
