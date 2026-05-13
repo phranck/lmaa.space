@@ -115,14 +115,19 @@ Bestehende `shopUpdateSchema` und `submissionUpdateSchema` (genaue Namen werden 
 ```ts
 logoBackgroundColor: z
   .string()
-  .regex(/^#[0-9a-fA-F]{6}$/, "Must be a 6-digit hex color")
+  .regex(
+    /^#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?$/,
+    "Must be a 6-digit hex color or 8-digit hex with alpha",
+  )
   .nullable()
   .optional()
 ```
 
-- Striktes `#RRGGBB`-Format, keine 3-stelligen Hex-Werte, keine `rgb()`/`hsl()`-Strings.
+- Akzeptiert `#RRGGBB` (volle Farbe) und `#RRGGBBAA` (mit Alpha-Anteil). Keine 3-stelligen Kurzformen, keine `rgb()`/`hsl()`-Strings.
 - Nullable → expliziter Reset auf Default-Fallback möglich.
 - Optional → Field-Passthrough-Pattern bleibt kompatibel (`...(data.logoBackgroundColor !== undefined ? { logoBackgroundColor } : {})`).
+
+> **Addendum 2026-05-13:** Initial-Release des Specs sah nur 6-stelligen Hex vor. Nach UX-Review wurde `#RRGGBBAA` (Alpha-Channel) nachgezogen, damit Shops auch teiltransparente Logo-Hintergründe einsetzen können. Frontend-Konsumenten und Helper sind unverändert, weil `resolveLogoBackground()` den String unbesehen weiterreicht und Browsers `background-color: #RRGGBBAA` nativ rendern.
 
 ---
 
@@ -173,18 +178,32 @@ Service-Layer reicht das Feld nur durch (keine Business-Logik). Routes (`apps/ba
 
 ### `ShopPreviewImageSection.tsx`
 
-Bestehende Sektion behält Thumbnail + URL-Input + Buttons. Neuer Sub-Block darunter:
+Bestehende Sektion behält Thumbnail + URL-Input + Buttons. Color-Control + Reset stehen in derselben Zeile wie `Neu laden`/`Übernehmen` direkt unter dem URL-Input:
 
 ```
-┌─ Logo-Hintergrund ──────────────────────────┐
-│ [🎨 #fafaf9] [HEX-Input #fafaf9] [Reset]    │
-└──────────────────────────────────────────────┘
+┌─ URL + External-Link ─────────────────────────────────────────┐
+│ [Logo-Bg-Label] [DashboardColorInput] [Reset]    [Neu laden] [Übernehmen]
+└───────────────────────────────────────────────────────────────┘
 ```
 
-- Native HTML5 `<input type="color" />` (Pattern wie `apps/dashboard/src/features/content/footer-builder/FooterStylePane.tsx:50`).
-- Begleitendes Text-Input mit Hex-Validation; bei invalidem Format roter Border und Save deaktiviert.
-- **Reset-Button** setzt Wert auf `null` (HTML5-Color-Picker selbst kann nicht "leeren").
-- **Live-Vorschau:** das 18x18-Thumbnail (Line 57) bekommt `style={{ backgroundColor: resolveLogoBackground(currentColor) }}` → Admin sieht direkt was rauskommt.
+- Picker + Hex-Feld sind als gemeinsame Einheit `DashboardColorInput` (`apps/dashboard/src/components/ui/DashboardColorInput.tsx`) gebaut.
+- Reset-Button setzt Wert auf `null` (der Picker selbst kann nicht "leeren").
+- **Live-Vorschau:** das Thumbnail bekommt `style={{ backgroundColor: resolveLogoBackground(currentColor) }}` → Admin sieht direkt was rauskommt.
+
+### `DashboardColorInput` (Addendum 2026-05-13)
+
+Custom-Control, das Swatch + Hex-Eingabe als eine Einheit kapselt. Verwendet `react-colorful` (≈3kB, MIT) für den eigentlichen Color-Picker mit Alpha-Slider.
+
+- Klick auf Swatch öffnet/schließt ein Picker-Popover mit `HexAlphaColorPicker`.
+- Hex-Eingabe ist ein `HexColorInput alpha prefixed`, der ungültige Zeichen schon beim Tippen verhindert.
+- Beide Wege schreiben in denselben controlled-state-Pfad (`value` / `onChange`), Picker und Hex sind also bidirektional verknüpft.
+- Empty-Input → `null` (Reset über Hex-Feld funktioniert).
+- Checkerboard-Background unter dem Swatch macht Alpha-Werte sofort sichtbar.
+- **Visuelle Form (Addendum 2026-05-13):** Swatch ist ein perfekter Kreis (`w-8 h-8 rounded-full`), Hex-Feld eine Pill (`rounded-full`) mit 2px Abstand zum Swatch (`ml-[2px]`). Im Hex-Feld rechts integriert: ein `XCircleIcon` (Phosphor, duotone) als Reset-Trigger — nur sichtbar wenn `value !== null`, Klick ruft `onChange(null)`. Der externe "Zurücksetzen"-Button entfällt damit.
+
+CSS ist von `react-colorful` per `microbundle --css inline` ins JS-Bundle gemerged — kein separater CSS-Import nötig.
+
+> **Addendum 2026-05-13 (Pipette zurückgebaut):** Initial-Version dieses Addendums sah einen "Vom Bildschirm wählen"-Button via [`use-eye-dropper`](https://www.npmjs.com/package/use-eye-dropper) vor. Library wrappt nur die native [`EyeDropper` API](https://developer.mozilla.org/en-US/docs/Web/API/EyeDropper) (Chrome/Edge/Opera 95+) — kein `getDisplayMedia`-Polyfill. Da der primäre Browser des Users Safari ist, wäre die Pipette dort immer ausgeblendet. Funktion entfernt; Picker + Hex-Eingabe (mit Alpha) bleiben.
 
 ### Props-Erweiterung
 
@@ -208,10 +227,9 @@ interface ShopPreviewImageSectionProps {
 
 ### i18n
 
-Neue Keys in `apps/dashboard/src/i18n/`:
-- `shops.editor.logoBackground.label`
+Keys in `apps/dashboard/src/i18n/messages.ts`:
+- `shops.editor.logoBackground.label` (nur aria-label am Swatch, nicht visuell)
 - `shops.editor.logoBackground.reset`
-- `shops.editor.logoBackground.invalid`
 
 ---
 

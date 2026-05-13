@@ -50,10 +50,14 @@ export const shopMutableVisibilitySchema = z.enum(SHOP_MUTABLE_VISIBILITIES);
 
 /**
  * Logo background color validator.
- * Accepts a 6-digit hex color prefixed with `#` (e.g. `#ff00aa`), or null/undefined.
+ * Accepts a 6-digit hex color or an 8-digit hex color with alpha, prefixed
+ * with `#` (e.g. `#ff00aa`, `#ff00aa80`), or null/undefined.
  */
 export const logoBackgroundColorSchema = z
   .string()
-  .regex(/^#[0-9a-fA-F]{6}$/, "Must be a 6-digit hex color (e.g. #ff00aa)")
+  .regex(
+    /^#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?$/,
+    "Must be a 6-digit hex color or 8-digit hex with alpha (e.g. #ff00aa, #ff00aa80)",
+  )
   .nullable()
   .optional();

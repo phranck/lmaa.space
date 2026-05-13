@@ -121,7 +121,6 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
       onChangeLogoBackground={onChangeLogoBackground}
       logoBackgroundLabel={shopsMessages.editCard.logoBackground.label}
       logoBackgroundResetLabel={shopsMessages.editCard.logoBackground.reset}
-      logoBackgroundInvalidLabel={shopsMessages.editCard.logoBackground.invalid}
     />
   ) : undefined;
 

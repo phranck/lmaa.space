@@ -6,10 +6,11 @@ import {
   StorefrontIcon,
 } from "@phosphor-icons/react";
 
-import { resolveLogoBackground } from "@lmaa/shared";
+import { DEFAULT_LOGO_BACKGROUND, resolveLogoBackground } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DashboardColorInput } from "@/components/ui/DashboardColorInput.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 
 interface ShopPreviewImageSectionProps {
@@ -31,7 +32,6 @@ interface ShopPreviewImageSectionProps {
   onChangeLogoBackground: (value: string | null) => void;
   logoBackgroundLabel: string;
   logoBackgroundResetLabel: string;
-  logoBackgroundInvalidLabel: string;
 }
 
 export function ShopPreviewImageSection({
@@ -53,7 +53,6 @@ export function ShopPreviewImageSection({
   onChangeLogoBackground,
   logoBackgroundLabel,
   logoBackgroundResetLabel,
-  logoBackgroundInvalidLabel: _logoBackgroundInvalidLabel,
 }: ShopPreviewImageSectionProps) {
   const trimmedImageHref = ogImageInput.trim();
   const hasImageHref = trimmedImageHref.length > 0;
@@ -64,7 +63,7 @@ export function ShopPreviewImageSection({
         title={previewImageLabel}
       />
       <DashboardSection.Body>
-        <div className="flex items-stretch gap-3">
+        <div className="flex items-start gap-3">
           <div
             className="shrink-0 w-18 aspect-square rounded-lg border border-[var(--ds-border)] overflow-hidden flex items-center justify-center"
             style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
@@ -104,11 +103,19 @@ export function ShopPreviewImageSection({
                 <ArrowSquareOutIcon weight="duotone" className="size-4" />
               </a>
             </div>
-            <div className="flex gap-1.5 justify-end">
+            <div className="flex items-center gap-2">
+              <DashboardColorInput
+                value={logoBackgroundColor}
+                onChange={onChangeLogoBackground}
+                fallback={DEFAULT_LOGO_BACKGROUND}
+                placeholder={DEFAULT_LOGO_BACKGROUND}
+                ariaLabel={logoBackgroundLabel}
+                resetLabel={logoBackgroundResetLabel}
+              />
               <DashboardButton
                 onClick={onRefreshImage}
                 disabled={isRefetchPending || isLoading}
-                className="shrink-0"
+                className="shrink-0 ml-auto"
                 leadingIcon={
                   <ArrowClockwiseIcon
                     weight="duotone"
@@ -128,41 +135,6 @@ export function ShopPreviewImageSection({
               >
                 {setImageLabel}
               </DashboardButton>
-            </div>
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--ds-border)]">
-              <label className="text-xs text-[var(--ds-text-muted)] shrink-0">
-                {logoBackgroundLabel}
-              </label>
-              <input
-                type="color"
-                value={resolveLogoBackground(logoBackgroundColor)}
-                onChange={(e) => onChangeLogoBackground(e.target.value)}
-                className="h-7 w-10 rounded border border-[var(--ds-border)] cursor-pointer"
-                aria-label={logoBackgroundLabel}
-              />
-              <input
-                type="text"
-                value={logoBackgroundColor ?? ""}
-                onChange={(e) => {
-                  const next = e.target.value.trim();
-                  if (next === "") {
-                    onChangeLogoBackground(null);
-                    return;
-                  }
-                  onChangeLogoBackground(next);
-                }}
-                placeholder="#fafaf9"
-                pattern="^#[0-9a-fA-F]{6}$"
-                className="flex-1 min-w-0 h-7 px-2 rounded border border-[var(--ds-border)] bg-transparent text-xs font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => onChangeLogoBackground(null)}
-                disabled={logoBackgroundColor === null}
-                className="text-xs px-2 h-7 rounded border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {logoBackgroundResetLabel}
-              </button>
             </div>
           </div>
         </div>
