@@ -3,9 +3,11 @@ import { FileIcon, VideoCameraIcon } from "@phosphor-icons/react";
 import type { MediaAsset } from "@lmaa/shared";
 
 import { useI18n } from "@/context/I18nContext.tsx";
+import { HlsAssetVisual } from "@/features/system/media/HlsAssetVisual.tsx";
 import {
   formatBytes,
   getMediaTypeLabel,
+  isHlsBundleAsset,
   isImageAsset,
   isVideoAsset,
 } from "@/features/system/media/media-utils.ts";
@@ -19,11 +21,13 @@ interface MediaGridItemProps {
 export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps) {
   const { locale } = useI18n();
   const imageAsset = isImageAsset(asset);
+  const hlsAsset = isHlsBundleAsset(asset);
   const videoAsset = isVideoAsset(asset);
 
   return (
     <button
       type="button"
+      data-media-asset-item
       onClick={() => onSelect(asset.id)}
       className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors text-center"
     >
@@ -36,6 +40,8 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
       >
         {imageAsset ? (
           <img src={asset.url} alt="" loading="lazy" className="size-full object-cover" />
+        ) : hlsAsset ? (
+          <HlsAssetVisual />
         ) : (
           <div className="size-full bg-[var(--ds-bg-elevated)] flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
             {videoAsset ? (

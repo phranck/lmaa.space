@@ -5,10 +5,12 @@ import type { MediaAsset } from "@lmaa/shared";
 
 import { type ColumnDef, DataTable } from "@/components/ui/Table.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { HlsAssetVisual, HlsTypeBadge } from "@/features/system/media/HlsAssetVisual.tsx";
 import {
   formatBytes,
   formatMediaDate,
   getMediaTypeLabel,
+  isHlsBundleAsset,
   isImageAsset,
   isVideoAsset,
 } from "@/features/system/media/media-utils.ts";
@@ -21,12 +23,15 @@ interface MediaTableProps {
 
 const MediaThumb = memo(function MediaThumb({ asset }: { asset: MediaAsset }) {
   const imageAsset = isImageAsset(asset);
+  const hlsAsset = isHlsBundleAsset(asset);
   const videoAsset = isVideoAsset(asset);
 
   return (
     <div className="w-28 h-[63px] rounded-lg overflow-hidden bg-[var(--ds-bg-elevated)] shrink-0 flex items-center justify-center">
       {imageAsset ? (
         <img src={asset.url} alt="" loading="lazy" className="block size-full object-cover" />
+      ) : hlsAsset ? (
+        <HlsAssetVisual compact />
       ) : videoAsset ? (
         <VideoCameraIcon weight="duotone" className="size-8 text-[var(--ds-text-subtle)]" />
       ) : (
@@ -46,7 +51,12 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
         id: "preview",
         className: "w-32",
         cell: (asset) => (
-          <button type="button" onClick={() => onSelect(asset.id)} className="block">
+          <button
+            type="button"
+            data-media-asset-item
+            onClick={() => onSelect(asset.id)}
+            className="block"
+          >
             <MediaThumb asset={asset} />
           </button>
         ),
@@ -58,6 +68,7 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
         cell: (asset) => (
           <button
             type="button"
+            data-media-asset-item
             onClick={() => onSelect(asset.id)}
             className="text-left flex flex-col min-w-0"
           >
@@ -76,6 +87,8 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
           <span className="inline-flex items-center gap-2 text-[var(--ds-text-muted)]">
             {isImageAsset(asset) ? (
               <ImageIcon weight="duotone" className="size-3.5 shrink-0" />
+            ) : isHlsBundleAsset(asset) ? (
+              <HlsTypeBadge />
             ) : isVideoAsset(asset) ? (
               <VideoCameraIcon weight="duotone" className="size-3.5 shrink-0" />
             ) : (

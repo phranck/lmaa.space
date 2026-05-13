@@ -10,6 +10,7 @@ export default [
       "**/*.d.ts",
       "**/tsconfig*.json",
       "**/drizzle/meta/**",
+      "**/.gource/lmaa-history/**",
       "**/.gource/lmaa-history-hls/**",
     ],
   },

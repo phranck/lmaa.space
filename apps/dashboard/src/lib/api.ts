@@ -4,6 +4,17 @@ const API_BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
 const FETCH_TIMEOUT_MS = 30_000;
 const UPLOAD_FETCH_TIMEOUT_MS = 5 * 60_000;
 
+export interface UploadProgress {
+  loaded: number;
+  total: number | null;
+  percent: number | null;
+}
+
+export interface UploadRequestOptions {
+  onProgress?: (progress: UploadProgress) => void;
+  onUploadComplete?: () => void;
+}
+
 /**
  * Normalizes API responses and throws typed request errors on failure.
  *
@@ -51,6 +62,67 @@ async function fetchWithTimeout(
   }
 }
 
+function createXhrResponse(xhr: XMLHttpRequest) {
+  return {
+    status: xhr.status,
+    json: async () => JSON.parse(xhr.responseText || "null"),
+  };
+}
+
+function uploadWithProgress<T>(
+  url: string,
+  formData: FormData,
+  options?: UploadRequestOptions,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.withCredentials = true;
+    xhr.timeout = UPLOAD_FETCH_TIMEOUT_MS;
+
+    xhr.upload.onprogress = (event) => {
+      const total = event.lengthComputable ? event.total : null;
+      options?.onProgress?.({
+        loaded: event.loaded,
+        total,
+        percent: total && total > 0 ? Math.round((event.loaded / total) * 100) : null,
+      });
+    };
+
+    xhr.upload.onload = () => {
+      options?.onUploadComplete?.();
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const body = JSON.parse(xhr.responseText || "{}") as { data?: T };
+          resolve(body.data as T);
+        } catch (cause) {
+          reject(createNetworkRequestError("network", cause));
+        }
+        return;
+      }
+
+      void createApiRequestError(createXhrResponse(xhr)).then(reject);
+    };
+
+    xhr.onerror = () => {
+      reject(createNetworkRequestError("network"));
+    };
+
+    xhr.onabort = () => {
+      reject(createNetworkRequestError("aborted"));
+    };
+
+    xhr.ontimeout = () => {
+      reject(createNetworkRequestError("timeout"));
+    };
+
+    xhr.send(formData);
+  });
+}
+
 /**
  * Lightweight dashboard API client with credentialed requests.
  *
@@ -95,14 +167,16 @@ export const api = {
       credentials: "include",
     }).then((r) => handleResponse<T>(r)),
 
-  upload: <T>(path: string, formData: FormData): Promise<T> =>
-    fetchWithTimeout(
-      `${API_BASE}${path}`,
-      {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      },
-      UPLOAD_FETCH_TIMEOUT_MS,
-    ).then((r) => handleResponse<T>(r)),
+  upload: <T>(path: string, formData: FormData, options?: UploadRequestOptions): Promise<T> =>
+    options
+      ? uploadWithProgress<T>(`${API_BASE}${path}`, formData, options)
+      : fetchWithTimeout(
+          `${API_BASE}${path}`,
+          {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          },
+          UPLOAD_FETCH_TIMEOUT_MS,
+        ).then((r) => handleResponse<T>(r)),
 };

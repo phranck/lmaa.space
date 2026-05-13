@@ -347,6 +347,18 @@ export interface DashboardMessages {
     upload: string;
     uploading: string;
     uploadHint: string;
+    dropTitle: string;
+    hlsBundleFallbackName: string;
+    readingHlsFolder: string;
+    readingFilesProgress: string;
+    uploadingHlsBundle: string;
+    uploadingFile: string;
+    uploadProgress: string;
+    uploadProgressUnknown: string;
+    processingUpload: string;
+    processingUploadHint: string;
+    directoryUploadUnsupported: string;
+    emptyFolderUpload: string;
     empty: string;
     emptyHint: string;
     selectPrompt: string;
@@ -1564,6 +1576,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       upload: "Dateien hochladen",
       uploading: "Lade hoch…",
       uploadHint: `Erlaubt: Bilder, MP4-Video, HLS-Ordner, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis ${MEDIA_UPLOAD_MAX_LABEL}`,
+      dropTitle: "Loslassen zum Hochladen",
+      hlsBundleFallbackName: "HLS-Ordner",
+      readingHlsFolder: "HLS-Ordner wird gelesen…",
+      readingFilesProgress: "{read}/{total} Dateien gelesen",
+      uploadingHlsBundle: "HLS-Bundle wird hochgeladen…",
+      uploadingFile: "Datei wird hochgeladen…",
+      uploadProgress: "{percent}% hochgeladen",
+      uploadProgressUnknown: "Upload läuft…",
+      processingUpload: "Upload wird verarbeitet…",
+      processingUploadHint: "Der Server validiert und speichert die Dateien.",
+      directoryUploadUnsupported:
+        "Der Ordner konnte nicht gelesen werden. Zieh den HLS-Ordner direkt aus Finder oder Explorer in den Media-Bereich.",
+      emptyFolderUpload: "{name} enthält keine lesbaren Dateien.",
       empty: "Noch keine Dateien vorhanden.",
       emptyHint:
         "Lade Bilder, Videos oder Dokumente hoch, damit sie in Pages und anderen Inhalten nutzbar sind.",
@@ -2792,6 +2817,19 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       upload: "Upload files",
       uploading: "Uploading…",
       uploadHint: `Allowed: images, MP4 video, HLS folders, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) up to ${MEDIA_UPLOAD_MAX_LABEL}`,
+      dropTitle: "Release to upload",
+      hlsBundleFallbackName: "HLS folder",
+      readingHlsFolder: "Reading HLS folder…",
+      readingFilesProgress: "{read}/{total} files read",
+      uploadingHlsBundle: "Uploading HLS bundle…",
+      uploadingFile: "Uploading file…",
+      uploadProgress: "{percent}% uploaded",
+      uploadProgressUnknown: "Upload in progress…",
+      processingUpload: "Processing upload…",
+      processingUploadHint: "The server is validating and storing the files.",
+      directoryUploadUnsupported:
+        "The folder could not be read. Drag the HLS folder directly from Finder or Explorer into the media area.",
+      emptyFolderUpload: "{name} does not contain readable files.",
       empty: "No files uploaded yet.",
       emptyHint:
         "Upload images, videos or documents so they can be reused in pages and other content.",

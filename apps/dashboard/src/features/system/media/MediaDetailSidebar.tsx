@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import type { useI18n } from "@/context/I18nContext.tsx";
+import { HlsAssetVisual } from "@/features/system/media/HlsAssetVisual.tsx";
 import {
   formatBytes,
   formatMediaDate,
   getMediaTypeLabel,
+  isHlsBundleAsset,
   isImageAsset,
   isVideoAsset,
 } from "@/features/system/media/media-utils.ts";
@@ -34,9 +36,13 @@ function MediaPreview({
     );
   }
 
+  if (isHlsBundleAsset(asset)) {
+    return <HlsAssetVisual className="aspect-[4/3] rounded-xl" />;
+  }
+
   if (isVideoAsset(asset)) {
     return (
-      <div className="aspect-video rounded-xl overflow-hidden bg-black">
+      <div className="aspect-video rounded-xl overflow-hidden bg-[#080a14]">
         <video src={asset.url} controls preload="metadata" playsInline className="size-full" />
       </div>
     );
