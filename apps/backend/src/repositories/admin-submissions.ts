@@ -28,6 +28,7 @@ export interface SubmissionEditData {
   shopUrl: string;
   description?: string;
   ogImage?: string | null;
+  logoBackgroundColor?: string | null;
   region: string[];
   shipping?: string;
   categoryIds: number[];

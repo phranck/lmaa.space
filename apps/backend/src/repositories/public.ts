@@ -29,6 +29,7 @@ export type CategoryShopRow = Pick<
   | "shipping"
   | "description"
   | "ogImage"
+  | "logoBackgroundColor"
   | "socialMedia"
   | "likeCount"
 >;
@@ -175,6 +176,7 @@ export async function listPublicShopsByCategoryId(categoryId: number) {
       shipping: shops.shipping,
       description: shops.description,
       ogImage: shops.ogImage,
+      logoBackgroundColor: shops.logoBackgroundColor,
       socialMedia: shops.socialMedia,
       likeCount: shops.likeCount,
     })
@@ -196,6 +198,7 @@ export async function listAllPublicShopsWithCategories() {
   return db.execute<PublicShopRow>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
+           s.logo_background_color as "logoBackgroundColor",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
            s.like_count as "likeCount",
@@ -240,7 +243,9 @@ export async function searchPublicShops(
 
   return db.execute<SearchShopRow & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.og_image as "ogImage",
+           s.logo_background_color as "logoBackgroundColor",
+           s.contact_email as "contactEmail",
            s.is_active as "isActive",
            s.social_media as "socialMedia",
            s.like_count as "likeCount",
@@ -562,6 +567,7 @@ export async function getFullPublicShopById(id: number) {
   >(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
+           s.logo_background_color as "logoBackgroundColor",
            s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
            s.like_count as "likeCount",

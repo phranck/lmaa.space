@@ -66,6 +66,7 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
            s.shop_check_notes as "shopCheckNotes",
            s.social_media as "socialMedia",
            s.og_image as "ogImage",
+           s.logo_background_color as "logoBackgroundColor",
            s.visibility,
            s.delete_reason as "deleteReason",
            s.deleted_was_reported as "deletedWasReported",
@@ -114,7 +115,8 @@ export async function listAdminShops(visibility?: ShopVisibility): Promise<Admin
 export async function getAdminShopById(id: number): Promise<SharedShop | null> {
   const [shop] = await db.execute<SharedShop & Record<string, unknown>>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.og_image as "ogImage", s.logo_background_color as "logoBackgroundColor",
+           s.contact_email as "contactEmail",
            s.shop_check_notes as "shopCheckNotes",
            s.like_count as "likeCount",
            s.is_active as "isActive", s.visibility,
