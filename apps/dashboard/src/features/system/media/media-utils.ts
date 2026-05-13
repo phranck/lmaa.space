@@ -7,12 +7,13 @@ export function isImageAsset(asset: MediaAsset) {
   return asset.kind === "image";
 }
 
-export function isVideoAsset(asset: MediaAsset) {
-  return asset.kind === "video" || asset.mimeType.startsWith("video/");
-}
-
 export function isHlsBundleAsset(asset: MediaAsset) {
   return asset.mimeType === HLS_MANIFEST_MIME_TYPE || asset.storedFilename.endsWith(".m3u8");
+}
+
+export function isVideoAsset(asset: MediaAsset) {
+  if (isHlsBundleAsset(asset)) return false;
+  return asset.kind === "video" || asset.mimeType.startsWith("video/");
 }
 
 export function formatBytes(bytes: number, locale: DashboardLocale) {

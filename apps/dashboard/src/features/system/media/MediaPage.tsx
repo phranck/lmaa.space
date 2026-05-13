@@ -40,6 +40,7 @@ import type {
   MediaBundleUpload,
   MediaBundleUploadFile,
 } from "@/features/system/hooks/useAdminMedia.ts";
+import { formatBytes } from "@/features/system/media/media-utils.ts";
 import { MediaDetailSidebar } from "@/features/system/media/MediaDetailSidebar.tsx";
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import { MediaTable } from "@/features/system/media/MediaTable.tsx";
@@ -58,6 +59,11 @@ interface BrowserFileSystemFileEntry extends BrowserFileSystemEntry {
   file: (success: (file: File) => void, failure?: (error: DOMException) => void) => void;
 }
 
+interface BrowserFileSystemFileHandle {
+  entry: BrowserFileSystemFileEntry;
+  relativePath: string;
+}
+
 interface BrowserFileSystemDirectoryReader {
   readEntries: (
     success: (entries: BrowserFileSystemEntry[]) => void,
@@ -68,6 +74,19 @@ interface BrowserFileSystemDirectoryReader {
 interface BrowserFileSystemDirectoryEntry extends BrowserFileSystemEntry {
   isDirectory: true;
   createReader: () => BrowserFileSystemDirectoryReader;
+}
+
+interface DirectoryReadProgress {
+  name: string;
+  filesRead: number;
+  filesTotal: number;
+}
+
+interface DroppedHlsBundleCollection {
+  bundles: MediaBundleUpload[];
+  directoryCount: number;
+  emptyDirectories: string[];
+  unsupportedItemCount: number;
 }
 
 function getFileSystemEntry(item: DataTransferItem): BrowserFileSystemEntry | null {
@@ -108,12 +127,11 @@ async function readAllDirectoryEntries(
 async function collectEntryFiles(
   entry: BrowserFileSystemEntry,
   parentPath: string,
-): Promise<MediaBundleUploadFile[]> {
+): Promise<BrowserFileSystemFileHandle[]> {
   const relativePath = parentPath ? `${parentPath}/${entry.name}` : entry.name;
 
   if (entry.isFile) {
-    const file = await readFileEntry(entry as BrowserFileSystemFileEntry);
-    return [{ file, relativePath }];
+    return [{ entry: entry as BrowserFileSystemFileEntry, relativePath }];
   }
 
   if (entry.isDirectory) {
@@ -127,22 +145,61 @@ async function collectEntryFiles(
   return [];
 }
 
-async function collectDroppedHlsBundles(items: DataTransferItemList): Promise<MediaBundleUpload[]> {
-  const bundles: MediaBundleUpload[] = [];
+async function readBundleFiles(
+  name: string,
+  handles: BrowserFileSystemFileHandle[],
+  onProgress?: (progress: DirectoryReadProgress) => void,
+): Promise<MediaBundleUploadFile[]> {
+  const files: MediaBundleUploadFile[] = [];
 
-  for (const item of Array.from(items)) {
-    const entry = getFileSystemEntry(item);
-    if (!entry?.isDirectory) continue;
+  onProgress?.({ name, filesRead: 0, filesTotal: handles.length });
 
-    const children = await readAllDirectoryEntries(entry as BrowserFileSystemDirectoryEntry);
-    const files = (await Promise.all(children.map((child) => collectEntryFiles(child, "")))).flat();
-
-    if (files.length > 0) {
-      bundles.push({ name: entry.name, files });
-    }
+  for (const [index, handle] of handles.entries()) {
+    const file = await readFileEntry(handle.entry);
+    files.push({ file, relativePath: handle.relativePath });
+    onProgress?.({ name, filesRead: index + 1, filesTotal: handles.length });
   }
 
-  return bundles;
+  return files;
+}
+
+async function collectDroppedHlsBundles(
+  items: DataTransferItem[],
+  onProgress?: (progress: DirectoryReadProgress) => void,
+): Promise<DroppedHlsBundleCollection> {
+  const collection: DroppedHlsBundleCollection = {
+    bundles: [],
+    directoryCount: 0,
+    emptyDirectories: [],
+    unsupportedItemCount: 0,
+  };
+
+  for (const item of items) {
+    const entry = getFileSystemEntry(item);
+    if (!entry) {
+      collection.unsupportedItemCount += 1;
+      continue;
+    }
+
+    if (!entry.isDirectory) continue;
+
+    collection.directoryCount += 1;
+
+    const children = await readAllDirectoryEntries(entry as BrowserFileSystemDirectoryEntry);
+    const handles = (
+      await Promise.all(children.map((child) => collectEntryFiles(child, "")))
+    ).flat();
+
+    if (handles.length === 0) {
+      collection.emptyDirectories.push(entry.name);
+      continue;
+    }
+
+    const files = await readBundleFiles(entry.name, handles, onProgress);
+    collection.bundles.push({ name: entry.name, files });
+  }
+
+  return collection;
 }
 
 interface MediaPageState {
@@ -151,10 +208,24 @@ interface MediaPageState {
   actionError: string | null;
   copied: boolean;
   deleteTarget: MediaAsset | null;
+  hasAutoSelected: boolean;
   isDragActive: boolean;
+  uploadProgress: MediaUploadProgress | null;
 }
 
 type MediaPageAction = Partial<MediaPageState>;
+
+type MediaUploadPhase = "reading" | "uploading" | "processing";
+
+interface MediaUploadProgress {
+  phase: MediaUploadPhase;
+  name: string;
+  filesRead?: number;
+  filesTotal?: number;
+  bytesLoaded?: number;
+  bytesTotal?: number;
+  percent?: number | null;
+}
 
 function mediaPageReducer(state: MediaPageState, action: MediaPageAction): MediaPageState {
   return { ...state, ...action };
@@ -172,9 +243,20 @@ export function MediaPage() {
     actionError: null,
     copied: false,
     deleteTarget: null,
+    hasAutoSelected: false,
     isDragActive: false,
+    uploadProgress: null,
   });
-  const { selectedId, draft, actionError, copied, deleteTarget, isDragActive } = state;
+  const {
+    selectedId,
+    draft,
+    actionError,
+    copied,
+    deleteTarget,
+    hasAutoSelected,
+    isDragActive,
+    uploadProgress,
+  } = state;
   const inputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
 
@@ -190,14 +272,19 @@ export function MediaPage() {
 
   useEffect(() => {
     if (assets.length === 0) {
+      dispatch({ selectedId: null, hasAutoSelected: false });
+      return;
+    }
+
+    if (selectedId !== null && !assets.some((asset) => asset.id === selectedId)) {
       dispatch({ selectedId: null });
       return;
     }
 
-    if (!selectedId || !assets.some((asset) => asset.id === selectedId)) {
-      dispatch({ selectedId: assets[0].id });
+    if (selectedId === null && !hasAutoSelected) {
+      dispatch({ selectedId: assets[0].id, hasAutoSelected: true });
     }
-  }, [assets, selectedId]);
+  }, [assets, hasAutoSelected, selectedId]);
 
   useEffect(() => {
     dispatch({
@@ -215,11 +302,64 @@ export function MediaPage() {
     return () => window.clearTimeout(timer);
   }, [copied]);
 
-  async function handleUpload(files: FileList | null) {
-    if (!files?.length) return;
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape" || deleteTarget) return;
+      dispatch({ selectedId: null });
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [deleteTarget]);
+
+  function getUploadProgressValue(progress: MediaUploadProgress | null) {
+    if (!progress) return null;
+    if (progress.phase === "reading" && progress.filesTotal && progress.filesTotal > 0) {
+      return Math.round(((progress.filesRead ?? 0) / progress.filesTotal) * 100);
+    }
+    if (progress.phase === "uploading" && progress.percent !== undefined) {
+      return progress.percent;
+    }
+    if (progress.phase === "processing") {
+      return 100;
+    }
+    return null;
+  }
+
+  function getUploadProgressTitle(progress: MediaUploadProgress) {
+    if (progress.phase === "reading") return mediaMessages.readingHlsFolder;
+    if (progress.phase === "uploading") {
+      return progress.filesTotal ? mediaMessages.uploadingHlsBundle : mediaMessages.uploadingFile;
+    }
+    return mediaMessages.processingUpload;
+  }
+
+  function getUploadProgressDetail(progress: MediaUploadProgress) {
+    if (progress.phase === "reading" && progress.filesTotal !== undefined) {
+      return mediaMessages.readingFilesProgress
+        .replace("{read}", String(progress.filesRead ?? 0))
+        .replace("{total}", String(progress.filesTotal));
+    }
+
+    if (progress.phase === "uploading") {
+      const percent = progress.percent ?? getUploadProgressValue(progress);
+      const size =
+        progress.bytesTotal && progress.bytesTotal > 0
+          ? ` · ${formatBytes(progress.bytesLoaded ?? 0, locale)} / ${formatBytes(progress.bytesTotal, locale)}`
+          : "";
+      return percent !== null
+        ? mediaMessages.uploadProgress.replace("{percent}", String(percent)) + size
+        : mediaMessages.uploadProgressUnknown + size;
+    }
+
+    return mediaMessages.processingUploadHint;
+  }
+
+  async function handleUpload(files: FileList | File[] | null) {
+    const fileArray = Array.from(files ?? []);
+    if (fileArray.length === 0) return;
 
     dispatch({ actionError: null });
-    const fileArray = Array.from(files);
     const oversizedFile = fileArray.find((file) => file.size > MEDIA_UPLOAD_MAX_BYTES);
     if (oversizedFile) {
       dispatch({
@@ -234,7 +374,40 @@ export function MediaPage() {
 
     try {
       for (const file of fileArray) {
-        lastUploaded = await uploadMedia.mutateAsync(file);
+        dispatch({
+          uploadProgress: {
+            phase: "uploading",
+            name: file.name,
+            bytesLoaded: 0,
+            bytesTotal: file.size,
+            percent: 0,
+          },
+        });
+        lastUploaded = await uploadMedia.mutateAsync({
+          file,
+          onProgress: (progress) => {
+            dispatch({
+              uploadProgress: {
+                phase: "uploading",
+                name: file.name,
+                bytesLoaded: progress.loaded,
+                bytesTotal: progress.total ?? file.size,
+                percent: progress.percent,
+              },
+            });
+          },
+          onUploadComplete: () => {
+            dispatch({
+              uploadProgress: {
+                phase: "processing",
+                name: file.name,
+                bytesLoaded: file.size,
+                bytesTotal: file.size,
+                percent: 100,
+              },
+            });
+          },
+        });
       }
 
       if (lastUploaded) {
@@ -242,6 +415,8 @@ export function MediaPage() {
       }
     } catch (error) {
       dispatch({ actionError: error instanceof Error ? error.message : mediaMessages.uploadError });
+    } finally {
+      dispatch({ uploadProgress: null });
     }
   }
 
@@ -268,7 +443,45 @@ export function MediaPage() {
 
     try {
       for (const bundle of bundles) {
-        lastUploaded = await uploadHlsBundle.mutateAsync(bundle);
+        const bundleSize = bundle.files.reduce((sum, item) => sum + item.file.size, 0);
+        const fileCount = bundle.files.length;
+        dispatch({
+          uploadProgress: {
+            phase: "uploading",
+            name: bundle.name,
+            filesTotal: fileCount,
+            bytesLoaded: 0,
+            bytesTotal: bundleSize,
+            percent: 0,
+          },
+        });
+        lastUploaded = await uploadHlsBundle.mutateAsync({
+          ...bundle,
+          onProgress: (progress) => {
+            dispatch({
+              uploadProgress: {
+                phase: "uploading",
+                name: bundle.name,
+                filesTotal: fileCount,
+                bytesLoaded: progress.loaded,
+                bytesTotal: progress.total ?? bundleSize,
+                percent: progress.percent,
+              },
+            });
+          },
+          onUploadComplete: () => {
+            dispatch({
+              uploadProgress: {
+                phase: "processing",
+                name: bundle.name,
+                filesTotal: fileCount,
+                bytesLoaded: bundleSize,
+                bytesTotal: bundleSize,
+                percent: 100,
+              },
+            });
+          },
+        });
       }
 
       if (lastUploaded) {
@@ -276,6 +489,8 @@ export function MediaPage() {
       }
     } catch (error) {
       dispatch({ actionError: error instanceof Error ? error.message : mediaMessages.uploadError });
+    } finally {
+      dispatch({ uploadProgress: null });
     }
   }
 
@@ -309,17 +524,76 @@ export function MediaPage() {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
     const { dataTransfer } = event;
+    const droppedItems = Array.from(dataTransfer.items);
+    const droppedFiles = Array.from(dataTransfer.files);
+    const hasDirectoryEntry = droppedItems.some((item) => getFileSystemEntry(item)?.isDirectory);
     dragDepthRef.current = 0;
-    dispatch({ isDragActive: false });
+    dispatch({
+      actionError: null,
+      isDragActive: false,
+      uploadProgress: hasDirectoryEntry
+        ? {
+            phase: "reading",
+            name: mediaMessages.hlsBundleFallbackName,
+            filesRead: 0,
+          }
+        : null,
+    });
     void (async () => {
-      const bundles = await collectDroppedHlsBundles(dataTransfer.items);
-      if (bundles.length > 0) {
-        await handleUploadBundles(bundles);
-        return;
-      }
+      try {
+        const collection = await collectDroppedHlsBundles(droppedItems, (progress) => {
+          dispatch({
+            uploadProgress: {
+              phase: "reading",
+              name: progress.name,
+              filesRead: progress.filesRead,
+              filesTotal: progress.filesTotal,
+            },
+          });
+        });
 
-      await handleUpload(dataTransfer.files);
+        if (collection.bundles.length > 0) {
+          await handleUploadBundles(collection.bundles);
+          return;
+        }
+
+        if (collection.emptyDirectories.length > 0) {
+          dispatch({
+            actionError: mediaMessages.emptyFolderUpload.replace(
+              "{name}",
+              collection.emptyDirectories[0] ?? mediaMessages.hlsBundleFallbackName,
+            ),
+            uploadProgress: null,
+          });
+          return;
+        }
+
+        if (
+          collection.directoryCount > 0 ||
+          (collection.unsupportedItemCount > 0 && droppedFiles.length === 0)
+        ) {
+          dispatch({
+            actionError: mediaMessages.directoryUploadUnsupported,
+            uploadProgress: null,
+          });
+          return;
+        }
+
+        await handleUpload(droppedFiles);
+      } catch (error) {
+        dispatch({
+          actionError: error instanceof Error ? error.message : mediaMessages.uploadError,
+          uploadProgress: null,
+        });
+      }
     })();
+  }
+
+  function handleMediaAreaClick(event: React.MouseEvent<HTMLDivElement>) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest("[data-media-asset-item]")) return;
+    dispatch({ selectedId: null });
   }
 
   async function handleCopyUrl() {
@@ -351,6 +625,9 @@ export function MediaPage() {
       dispatch({ actionError: error instanceof Error ? error.message : mediaMessages.renameError });
     }
   }
+
+  const uploadProgressValue = getUploadProgressValue(uploadProgress);
+  const showUploadOverlay = isDragActive || uploadProgress !== null;
 
   return (
     <PageLayout>
@@ -412,7 +689,7 @@ export function MediaPage() {
       >
         {assets.length > 0 ? (
           <PageSplitLayout>
-            <PageSplitMain>
+            <PageSplitMain onClick={handleMediaAreaClick}>
               {isLoading && (
                 <div
                   className={
@@ -492,20 +769,49 @@ export function MediaPage() {
         )}
 
         <div
-          aria-hidden={!isDragActive}
+          aria-hidden={!showUploadOverlay}
+          aria-live="polite"
           className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-[1.25rem] border-2 border-dashed transition-all ${
-            isDragActive
+            showUploadOverlay
               ? "border-[var(--color-primary)] bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] opacity-100"
               : "border-transparent bg-transparent opacity-0"
           }`}
         >
-          <div className="rounded-2xl border border-[var(--ds-border)] bg-[var(--ds-surface)]/95 px-6 py-5 text-center shadow-lg backdrop-blur-sm">
-            <PlusCircleIcon
-              weight="duotone"
-              className="mx-auto mb-3 size-8 text-[var(--color-primary)]"
-            />
-            <p className="text-sm font-medium text-[var(--ds-text)]">{mediaMessages.upload}</p>
-            <p className="mt-1 text-xs text-[var(--ds-text-subtle)]">{mediaMessages.uploadHint}</p>
+          <div className="w-full max-w-sm rounded-2xl border border-[var(--ds-border)] bg-[var(--ds-surface)]/95 px-6 py-5 text-center shadow-lg backdrop-blur-sm">
+            {uploadProgress ? (
+              <ArrowsClockwiseIcon
+                weight="duotone"
+                className={`mx-auto mb-3 size-8 text-[var(--color-primary)] ${uploadProgress.phase === "processing" ? "animate-spin" : ""}`}
+              />
+            ) : (
+              <PlusCircleIcon
+                weight="duotone"
+                className="mx-auto mb-3 size-8 text-[var(--color-primary)]"
+              />
+            )}
+            <p className="text-sm font-medium text-[var(--ds-text)]">
+              {uploadProgress ? getUploadProgressTitle(uploadProgress) : mediaMessages.dropTitle}
+            </p>
+            <p className="mt-1 truncate text-xs text-[var(--ds-text-muted)]">
+              {uploadProgress?.name ?? mediaMessages.uploadHint}
+            </p>
+            <p className="mt-1 text-xs text-[var(--ds-text-subtle)]">
+              {uploadProgress ? getUploadProgressDetail(uploadProgress) : mediaMessages.uploadHint}
+            </p>
+            {uploadProgress && (
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--ds-bg-elevated)]">
+                <div
+                  className={`h-full rounded-full bg-[var(--color-primary)] transition-all ${
+                    uploadProgressValue === null ? "w-1/3 animate-pulse" : ""
+                  }`}
+                  style={
+                    uploadProgressValue !== null
+                      ? { width: `${Math.min(100, Math.max(0, uploadProgressValue))}%` }
+                      : undefined
+                  }
+                />
+              </div>
+            )}
           </div>
         </div>
       </PageBody>

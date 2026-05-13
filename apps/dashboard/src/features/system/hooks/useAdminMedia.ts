@@ -2,16 +2,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { MediaAsset } from "@lmaa/shared";
 
-import { api } from "@/lib/api.ts";
+import { api, type UploadRequestOptions } from "@/lib/api.ts";
+
+export interface MediaFileUpload extends UploadRequestOptions {
+  file: File;
+}
 
 export interface MediaBundleUploadFile {
   file: File;
   relativePath: string;
 }
 
-export interface MediaBundleUpload {
+export interface MediaBundleUpload extends UploadRequestOptions {
   name: string;
   files: MediaBundleUploadFile[];
+}
+
+function resolveFileUpload(input: File | MediaFileUpload): MediaFileUpload {
+  return input instanceof File ? { file: input } : input;
 }
 
 export function useAdminMedia() {
@@ -25,10 +33,14 @@ export function useUploadMedia() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: (input: File | MediaFileUpload) => {
+      const { file, onProgress, onUploadComplete } = resolveFileUpload(input);
       const formData = new FormData();
       formData.append("file", file);
-      return api.upload<MediaAsset>("/admin/media", formData);
+      return api.upload<MediaAsset>("/admin/media", formData, {
+        onProgress,
+        onUploadComplete,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["media-admin"] });
@@ -47,7 +59,10 @@ export function useUploadHlsBundle() {
         formData.append("files", item.file, item.file.name);
         formData.append("paths", item.relativePath);
       }
-      return api.upload<MediaAsset>("/admin/media/bundles/hls", formData);
+      return api.upload<MediaAsset>("/admin/media/bundles/hls", formData, {
+        onProgress: bundle.onProgress,
+        onUploadComplete: bundle.onUploadComplete,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["media-admin"] });
