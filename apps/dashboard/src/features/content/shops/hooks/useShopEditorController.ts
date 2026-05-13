@@ -287,6 +287,10 @@ export function useShopEditorController({
     if (canSave) void handleSaveSafely();
   });
 
+  function handleChangeLogoBackground(value: string | null) {
+    setForm({ ...form, logoBackgroundColor: value });
+  }
+
   return {
     activeShop,
     canReject,
@@ -311,6 +315,8 @@ export function useShopEditorController({
     isRejecting,
     isRejectError: setVisibilityMutation.isError,
     isSubmissionMode,
+    logoBackgroundColor: form.logoBackgroundColor,
+    onChangeLogoBackground: handleChangeLogoBackground,
     name: form.name,
     ogImageInput,
     previewImageLabel: shopsMessages.editCard.previewImage,
