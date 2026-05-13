@@ -62,6 +62,7 @@ const submission: Submission = {
   shipping: "",
   description: "",
   ogImage: null,
+  logoBackgroundColor: null,
   socialMedia: {},
   shopCheckNotes: null,
   contactEmail: null,
