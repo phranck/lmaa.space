@@ -16,6 +16,7 @@ function makeSubmission(overrides: Partial<Submission> = {}): Submission {
     shipping: "DE",
     description: "Great coffee",
     ogImage: null,
+    logoBackgroundColor: null,
     socialMedia: {},
     shopCheckNotes: null,
     contactEmail: null,
