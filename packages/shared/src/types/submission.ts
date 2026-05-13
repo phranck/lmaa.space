@@ -20,6 +20,7 @@ export interface Submission {
   shipping: string;
   description: string;
   ogImage: string | null;
+  logoBackgroundColor: string | null;
   socialMedia: Record<string, string>;
   shopCheckNotes?: ShopCheckNotes | null;
   contactEmail: string | null;
