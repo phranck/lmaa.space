@@ -29,7 +29,6 @@ export function HlsAssetVisual({ className, compact = false }: HlsAssetVisualPro
       )}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_18%,rgba(56,189,248,0.38),transparent_30%),radial-gradient(circle_at_85%_25%,rgba(79,70,229,0.55),transparent_34%),radial-gradient(circle_at_70%_85%,rgba(217,70,239,0.5),transparent_38%),linear-gradient(135deg,#060711_0%,#14175d_45%,#4b1168_100%)]" />
-      <div className="absolute inset-x-[12%] top-[14%] h-px bg-white/18" />
       <div className="absolute -left-[10%] bottom-[12%] h-[34%] w-[70%] rotate-[-18deg] rounded-full bg-cyan-300/14 blur-2xl" />
       <div className="absolute -right-[12%] top-[20%] h-[45%] w-[62%] rotate-[22deg] rounded-full bg-fuchsia-400/16 blur-2xl" />
       <div
