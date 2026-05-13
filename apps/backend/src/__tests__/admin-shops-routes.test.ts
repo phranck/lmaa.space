@@ -117,6 +117,46 @@ describe("shopsRoutes", () => {
     });
   });
 
+  describe("PATCH /shops/:id (logoBackgroundColor validation)", () => {
+    it("rejects invalid hex string on shop update", async () => {
+      const res = await app.request("/shops/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoBackgroundColor: "red" }),
+      });
+      expect(res.status).toBe(400);
+      expect(serviceMocks.updateManagedAdminShop).not.toHaveBeenCalled();
+    });
+
+    it("accepts null logoBackgroundColor on shop update", async () => {
+      serviceMocks.updateManagedAdminShop.mockResolvedValue({
+        ok: true,
+        shop: { id: 1, name: "Shop" },
+      });
+
+      const res = await app.request("/shops/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoBackgroundColor: null }),
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it("accepts a valid 6-digit hex on shop update", async () => {
+      serviceMocks.updateManagedAdminShop.mockResolvedValue({
+        ok: true,
+        shop: { id: 1, name: "Shop" },
+      });
+
+      const res = await app.request("/shops/1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoBackgroundColor: "#ABCDEF" }),
+      });
+      expect(res.status).toBe(200);
+    });
+  });
+
   describe("POST /shops/:id/accept-review", () => {
     it("accepts review and returns shop", async () => {
       serviceMocks.acceptShopReview.mockResolvedValue({
