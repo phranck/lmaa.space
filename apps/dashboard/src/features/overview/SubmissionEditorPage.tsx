@@ -41,6 +41,7 @@ function toSubmissionFormData(submission: Submission) {
     contactEmail: submission.contactEmail ?? "",
     socialMedia: submission.socialMedia ?? {},
     shopCheckNotes: submission.shopCheckNotes ?? null,
+    logoBackgroundColor: submission.logoBackgroundColor ?? null,
     headquartersStreet: submission.headquarters?.street ?? "",
     headquartersPostalCode: submission.headquarters?.postalCode ?? "",
     headquartersCity: submission.headquarters?.city ?? "",
