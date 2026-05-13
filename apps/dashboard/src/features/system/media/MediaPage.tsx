@@ -771,7 +771,7 @@ export function MediaPage() {
         <div
           aria-hidden={!showUploadOverlay}
           aria-live="polite"
-          className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-[1.25rem] border-2 border-dashed transition-all ${
+          className={`pointer-events-none absolute inset-[3px] z-10 flex items-center justify-center rounded-[calc(1.25rem-3px)] border-2 border-dashed transition-all ${
             showUploadOverlay
               ? "border-[var(--color-primary)] bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] opacity-100"
               : "border-transparent bg-transparent opacity-0"
@@ -781,7 +781,7 @@ export function MediaPage() {
             {uploadProgress ? (
               <ArrowsClockwiseIcon
                 weight="duotone"
-                className={`mx-auto mb-3 size-8 text-[var(--color-primary)] ${uploadProgress.phase === "processing" ? "animate-spin" : ""}`}
+                className="mx-auto mb-3 size-8 animate-spin text-[var(--color-primary)]"
               />
             ) : (
               <PlusCircleIcon
