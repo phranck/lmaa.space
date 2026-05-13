@@ -215,6 +215,7 @@ export async function listFilteredShopsByCategoryId(categoryId: number, filters:
   return db.execute<FilteredShopRow>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
            s.og_image as "ogImage",
+           s.logo_background_color as "logoBackgroundColor",
            s.social_media as "socialMedia",
            s.like_count as "likeCount",
            hq.latitude, hq.longitude,
@@ -245,7 +246,9 @@ export async function listFilteredPublicShops(filters: ShopFilterParams) {
 
   return db.execute<FilteredShopRow>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.og_image as "ogImage",
+           s.logo_background_color as "logoBackgroundColor",
+           s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
            s.like_count as "likeCount",
            hq.latitude, hq.longitude,
@@ -289,7 +292,9 @@ export async function searchFilteredPublicShops(
 
   return db.execute<FilteredShopRow & { rank: number }>(sql`
     SELECT s.id, s.name, s.url, s.region, s.pickup, s.shipping, s.description,
-           s.og_image as "ogImage", s.contact_email as "contactEmail",
+           s.og_image as "ogImage",
+           s.logo_background_color as "logoBackgroundColor",
+           s.contact_email as "contactEmail",
            s.social_media as "socialMedia",
            s.like_count as "likeCount",
            hq.latitude, hq.longitude,
