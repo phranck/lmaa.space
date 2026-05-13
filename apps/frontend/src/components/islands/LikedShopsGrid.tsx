@@ -344,6 +344,7 @@ export default function LikedShopsGrid() {
                 shopId={shop.id}
                 name={shop.name}
                 ogImage={shop.ogImage}
+                logoBackgroundColor={shop.logoBackgroundColor}
                 url={shop.url}
                 categories={shop.categories}
                 detailHref={`/shop/${encodeShopToken(shop.id)}?from=likes`}

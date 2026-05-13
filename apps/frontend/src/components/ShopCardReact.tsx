@@ -1,5 +1,7 @@
 import { HeartIcon, MapPinLineIcon } from "@phosphor-icons/react";
 
+import { resolveLogoBackground } from "@lmaa/shared";
+
 import { shopDomain } from "@/lib/shop";
 
 interface ShopCategory {
@@ -12,6 +14,7 @@ interface ShopCardProps {
   shopId: number;
   name: string;
   ogImage?: string | null;
+  logoBackgroundColor?: string | null;
   url: string;
   categories?: ShopCategory[];
   detailHref: string;
@@ -39,6 +42,7 @@ export default function ShopCardReact({
   shopId,
   name,
   ogImage,
+  logoBackgroundColor,
   url,
   categories,
   detailHref,
@@ -74,7 +78,10 @@ export default function ShopCardReact({
       )}
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-stone-100 bg-stone-50 flex items-center justify-center">
+        <div
+          className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-stone-100 flex items-center justify-center"
+          style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
+        >
           {ogImage ? (
             <img
               src={ogImage}
