@@ -165,6 +165,64 @@ describe("admin-submissions service", () => {
     expect(setAdminShopOgImage).not.toHaveBeenCalled();
   });
 
+  it("passes logoBackgroundColor through when approving a submission with a color set", async () => {
+    reviewSubmission.mockResolvedValue({
+      submission: {
+        id: 7,
+        shopName: "Colorful Shop",
+        shopUrl: "https://colorful.example",
+        ogImage: "https://cdn.example.com/preview.png",
+        logoBackgroundColor: "#ff00aa",
+      },
+      newShop: {
+        id: 20,
+        url: "https://colorful.example",
+      },
+      conflict: null,
+    });
+    const service = await loadServiceModule();
+
+    const result = await service.reviewAdminSubmission({
+      id: 7,
+      status: "approved",
+      adminId: 1,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      submission: expect.objectContaining({ logoBackgroundColor: "#ff00aa" }),
+    });
+  });
+
+  it("passes null logoBackgroundColor through when approving a submission without a color", async () => {
+    reviewSubmission.mockResolvedValue({
+      submission: {
+        id: 8,
+        shopName: "Plain Shop",
+        shopUrl: "https://plain.example",
+        ogImage: "https://cdn.example.com/preview.png",
+        logoBackgroundColor: null,
+      },
+      newShop: {
+        id: 21,
+        url: "https://plain.example",
+      },
+      conflict: null,
+    });
+    const service = await loadServiceModule();
+
+    const result = await service.reviewAdminSubmission({
+      id: 8,
+      status: "approved",
+      adminId: 1,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      submission: expect.objectContaining({ logoBackgroundColor: null }),
+    });
+  });
+
   it("forwards templateAssignments to the dispatcher with submission context", async () => {
     const submission = {
       id: 5,
