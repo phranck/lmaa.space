@@ -10,17 +10,12 @@ import {
 import { useEffect, useReducer, useRef, useState } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
+import { MEDIA_UPLOAD_ACCEPT, MEDIA_UPLOAD_MAX_BYTES, MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import {
-  CancelActionButton,
-  DeleteActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { CancelActionButton, DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
-import {
-  Dialog,
-  dialogHeaderIconClass,
-} from "@/components/ui/Dialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import {
@@ -38,7 +33,12 @@ import {
   useDeleteMedia,
   useRenameMedia,
   useSyncMedia,
+  useUploadHlsBundle,
   useUploadMedia,
+} from "@/features/system/hooks/useAdminMedia.ts";
+import type {
+  MediaBundleUpload,
+  MediaBundleUploadFile,
 } from "@/features/system/hooks/useAdminMedia.ts";
 import { MediaDetailSidebar } from "@/features/system/media/MediaDetailSidebar.tsx";
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
@@ -46,6 +46,104 @@ import { MediaTable } from "@/features/system/media/MediaTable.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 
 type ViewMode = "list" | "grid";
+
+interface BrowserFileSystemEntry {
+  name: string;
+  isFile: boolean;
+  isDirectory: boolean;
+}
+
+interface BrowserFileSystemFileEntry extends BrowserFileSystemEntry {
+  isFile: true;
+  file: (success: (file: File) => void, failure?: (error: DOMException) => void) => void;
+}
+
+interface BrowserFileSystemDirectoryReader {
+  readEntries: (
+    success: (entries: BrowserFileSystemEntry[]) => void,
+    failure?: (error: DOMException) => void,
+  ) => void;
+}
+
+interface BrowserFileSystemDirectoryEntry extends BrowserFileSystemEntry {
+  isDirectory: true;
+  createReader: () => BrowserFileSystemDirectoryReader;
+}
+
+function getFileSystemEntry(item: DataTransferItem): BrowserFileSystemEntry | null {
+  const entryGetter = (
+    item as DataTransferItem & {
+      webkitGetAsEntry?: () => BrowserFileSystemEntry | null;
+    }
+  ).webkitGetAsEntry;
+
+  return entryGetter?.call(item) ?? null;
+}
+
+function readFileEntry(entry: BrowserFileSystemFileEntry): Promise<File> {
+  return new Promise((resolve, reject) => entry.file(resolve, reject));
+}
+
+function readDirectoryEntries(
+  reader: BrowserFileSystemDirectoryReader,
+): Promise<BrowserFileSystemEntry[]> {
+  return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+}
+
+async function readAllDirectoryEntries(
+  directory: BrowserFileSystemDirectoryEntry,
+): Promise<BrowserFileSystemEntry[]> {
+  const reader = directory.createReader();
+  const entries: BrowserFileSystemEntry[] = [];
+
+  for (;;) {
+    const batch = await readDirectoryEntries(reader);
+    if (batch.length === 0) break;
+    entries.push(...batch);
+  }
+
+  return entries;
+}
+
+async function collectEntryFiles(
+  entry: BrowserFileSystemEntry,
+  parentPath: string,
+): Promise<MediaBundleUploadFile[]> {
+  const relativePath = parentPath ? `${parentPath}/${entry.name}` : entry.name;
+
+  if (entry.isFile) {
+    const file = await readFileEntry(entry as BrowserFileSystemFileEntry);
+    return [{ file, relativePath }];
+  }
+
+  if (entry.isDirectory) {
+    const children = await readAllDirectoryEntries(entry as BrowserFileSystemDirectoryEntry);
+    const nestedFiles = await Promise.all(
+      children.map((child) => collectEntryFiles(child, relativePath)),
+    );
+    return nestedFiles.flat();
+  }
+
+  return [];
+}
+
+async function collectDroppedHlsBundles(items: DataTransferItemList): Promise<MediaBundleUpload[]> {
+  const bundles: MediaBundleUpload[] = [];
+
+  for (const item of Array.from(items)) {
+    const entry = getFileSystemEntry(item);
+    if (!entry?.isDirectory) continue;
+
+    const children = await readAllDirectoryEntries(entry as BrowserFileSystemDirectoryEntry);
+    const files = (await Promise.all(children.map((child) => collectEntryFiles(child, "")))).flat();
+
+    if (files.length > 0) {
+      bundles.push({ name: entry.name, files });
+    }
+  }
+
+  return bundles;
+}
 
 interface MediaPageState {
   selectedId: number | null;
@@ -82,9 +180,11 @@ export function MediaPage() {
 
   const { data: assets = [], isLoading } = useAdminMedia();
   const uploadMedia = useUploadMedia();
+  const uploadHlsBundle = useUploadHlsBundle();
   const renameMedia = useRenameMedia();
   const deleteMedia = useDeleteMedia();
   const syncMedia = useSyncMedia();
+  const isUploading = uploadMedia.isPending || uploadHlsBundle.isPending;
 
   const selectedAsset = assets.find((asset) => asset.id === selectedId) ?? null;
 
@@ -100,10 +200,12 @@ export function MediaPage() {
   }, [assets, selectedId]);
 
   useEffect(() => {
-    dispatch({ draft: {
-      name: selectedAsset?.displayName ?? "",
-      alias: selectedAsset?.alias ?? "",
-    } });
+    dispatch({
+      draft: {
+        name: selectedAsset?.displayName ?? "",
+        alias: selectedAsset?.alias ?? "",
+      },
+    });
     dispatch({ copied: false });
   }, [selectedAsset]);
 
@@ -117,11 +219,56 @@ export function MediaPage() {
     if (!files?.length) return;
 
     dispatch({ actionError: null });
+    const fileArray = Array.from(files);
+    const oversizedFile = fileArray.find((file) => file.size > MEDIA_UPLOAD_MAX_BYTES);
+    if (oversizedFile) {
+      dispatch({
+        actionError: mediaMessages.uploadTooLarge
+          .replace("{name}", oversizedFile.name)
+          .replace("{max}", MEDIA_UPLOAD_MAX_LABEL),
+      });
+      return;
+    }
+
     let lastUploaded: MediaAsset | null = null;
 
     try {
-      for (const file of Array.from(files)) {
+      for (const file of fileArray) {
         lastUploaded = await uploadMedia.mutateAsync(file);
+      }
+
+      if (lastUploaded) {
+        dispatch({ selectedId: lastUploaded.id });
+      }
+    } catch (error) {
+      dispatch({ actionError: error instanceof Error ? error.message : mediaMessages.uploadError });
+    }
+  }
+
+  async function handleUploadBundles(bundles: MediaBundleUpload[]) {
+    if (bundles.length === 0) return;
+
+    dispatch({ actionError: null });
+
+    const oversizedBundle = bundles.find(
+      (bundle) =>
+        bundle.files.reduce((sum, item) => sum + item.file.size, 0) > MEDIA_UPLOAD_MAX_BYTES,
+    );
+
+    if (oversizedBundle) {
+      dispatch({
+        actionError: mediaMessages.uploadTooLarge
+          .replace("{name}", oversizedBundle.name)
+          .replace("{max}", MEDIA_UPLOAD_MAX_LABEL),
+      });
+      return;
+    }
+
+    let lastUploaded: MediaAsset | null = null;
+
+    try {
+      for (const bundle of bundles) {
+        lastUploaded = await uploadHlsBundle.mutateAsync(bundle);
       }
 
       if (lastUploaded) {
@@ -161,9 +308,18 @@ export function MediaPage() {
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {
     if (!hasDraggedFiles(event)) return;
     event.preventDefault();
+    const { dataTransfer } = event;
     dragDepthRef.current = 0;
     dispatch({ isDragActive: false });
-    void handleUpload(event.dataTransfer.files);
+    void (async () => {
+      const bundles = await collectDroppedHlsBundles(dataTransfer.items);
+      if (bundles.length > 0) {
+        await handleUploadBundles(bundles);
+        return;
+      }
+
+      await handleUpload(dataTransfer.files);
+    })();
   }
 
   async function handleCopyUrl() {
@@ -186,7 +342,11 @@ export function MediaPage() {
     dispatch({ actionError: null });
 
     try {
-      await renameMedia.mutateAsync({ id: selectedAsset.id, displayName: nextName, alias: nextAlias });
+      await renameMedia.mutateAsync({
+        id: selectedAsset.id,
+        displayName: nextName,
+        alias: nextAlias,
+      });
     } catch (error) {
       dispatch({ actionError: error instanceof Error ? error.message : mediaMessages.renameError });
     }
@@ -210,7 +370,7 @@ export function MediaPage() {
           type="file"
           multiple
           className="hidden"
-          accept="image/*,.pdf,.txt,.md,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+          accept={MEDIA_UPLOAD_ACCEPT}
           onChange={(event) => {
             void handleUpload(event.target.files);
             event.currentTarget.value = "";
@@ -233,11 +393,11 @@ export function MediaPage() {
 
         <DashboardButton
           onClick={() => inputRef.current?.click()}
-          disabled={uploadMedia.isPending}
+          disabled={isUploading}
           leadingIcon={<PlusCircleIcon weight="duotone" className="size-3.5" />}
           variant="primary"
         >
-          {uploadMedia.isPending ? mediaMessages.uploading : mediaMessages.upload}
+          {isUploading ? mediaMessages.uploading : mediaMessages.upload}
         </DashboardButton>
       </PageHeader>
 
@@ -254,16 +414,29 @@ export function MediaPage() {
           <PageSplitLayout>
             <PageSplitMain>
               {isLoading && (
-                <div className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" : "space-y-2"}>
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                      : "space-y-2"
+                  }
+                >
                   {Array.from({ length: 8 }, (_, index) => `media-sk-${index}`).map((key) => (
-                    <div key={key} className={`bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`} />
+                    <div
+                      key={key}
+                      className={`bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] animate-pulse ${viewMode === "grid" ? "aspect-[4/3]" : "h-16"}`}
+                    />
                   ))}
                 </div>
               )}
 
               {!isLoading && viewMode === "list" && (
                 <div className="-mx-3 -mt-3">
-                  <MediaTable assets={assets} selectedId={selectedId} onSelect={(id) => dispatch({ selectedId: id })} />
+                  <MediaTable
+                    assets={assets}
+                    selectedId={selectedId}
+                    onSelect={(id) => dispatch({ selectedId: id })}
+                  />
                 </div>
               )}
 
@@ -327,7 +500,10 @@ export function MediaPage() {
           }`}
         >
           <div className="rounded-2xl border border-[var(--ds-border)] bg-[var(--ds-surface)]/95 px-6 py-5 text-center shadow-lg backdrop-blur-sm">
-            <PlusCircleIcon weight="duotone" className="mx-auto mb-3 size-8 text-[var(--color-primary)]" />
+            <PlusCircleIcon
+              weight="duotone"
+              className="mx-auto mb-3 size-8 text-[var(--color-primary)]"
+            />
             <p className="text-sm font-medium text-[var(--ds-text)]">{mediaMessages.upload}</p>
             <p className="mt-1 text-xs text-[var(--ds-text-subtle)]">{mediaMessages.uploadHint}</p>
           </div>
@@ -368,7 +544,9 @@ export function MediaPage() {
                   dispatch({ deleteTarget: null });
                 },
                 onError: (error) => {
-                  dispatch({ actionError: error instanceof Error ? error.message : common.unknownError });
+                  dispatch({
+                    actionError: error instanceof Error ? error.message : common.unknownError,
+                  });
                 },
               });
             }}

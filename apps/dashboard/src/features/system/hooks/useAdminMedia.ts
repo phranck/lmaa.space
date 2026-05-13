@@ -4,6 +4,16 @@ import type { MediaAsset } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
+export interface MediaBundleUploadFile {
+  file: File;
+  relativePath: string;
+}
+
+export interface MediaBundleUpload {
+  name: string;
+  files: MediaBundleUploadFile[];
+}
+
 export function useAdminMedia() {
   return useQuery({
     queryKey: ["media-admin"],
@@ -26,12 +36,38 @@ export function useUploadMedia() {
   });
 }
 
+export function useUploadHlsBundle() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (bundle: MediaBundleUpload) => {
+      const formData = new FormData();
+      formData.append("name", bundle.name);
+      for (const item of bundle.files) {
+        formData.append("files", item.file, item.file.name);
+        formData.append("paths", item.relativePath);
+      }
+      return api.upload<MediaAsset>("/admin/media/bundles/hls", formData);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["media-admin"] });
+    },
+  });
+}
+
 export function useRenameMedia() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, displayName, alias }: { id: number; displayName: string; alias?: string | null }) =>
-      api.patch<MediaAsset>(`/admin/media/${id}`, { displayName, alias }),
+    mutationFn: ({
+      id,
+      displayName,
+      alias,
+    }: {
+      id: number;
+      displayName: string;
+      alias?: string | null;
+    }) => api.patch<MediaAsset>(`/admin/media/${id}`, { displayName, alias }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["media-admin"] });
     },
@@ -42,7 +78,8 @@ export function useSyncMedia() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: () => api.post<{ created: number; updated: number; removed: number }>("/admin/media/sync"),
+    mutationFn: () =>
+      api.post<{ created: number; updated: number; removed: number }>("/admin/media/sync"),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["media-admin"] });
     },

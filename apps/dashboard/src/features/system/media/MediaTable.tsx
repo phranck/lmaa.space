@@ -1,4 +1,4 @@
-import { FileIcon, ImageIcon } from "@phosphor-icons/react";
+import { FileIcon, ImageIcon, VideoCameraIcon } from "@phosphor-icons/react";
 import { memo, useMemo } from "react";
 
 import type { MediaAsset } from "@lmaa/shared";
@@ -10,6 +10,7 @@ import {
   formatMediaDate,
   getMediaTypeLabel,
   isImageAsset,
+  isVideoAsset,
 } from "@/features/system/media/media-utils.ts";
 
 interface MediaTableProps {
@@ -20,11 +21,14 @@ interface MediaTableProps {
 
 const MediaThumb = memo(function MediaThumb({ asset }: { asset: MediaAsset }) {
   const imageAsset = isImageAsset(asset);
+  const videoAsset = isVideoAsset(asset);
 
   return (
     <div className="w-28 h-[63px] rounded-lg overflow-hidden bg-[var(--ds-bg-elevated)] shrink-0 flex items-center justify-center">
       {imageAsset ? (
         <img src={asset.url} alt="" loading="lazy" className="block size-full object-cover" />
+      ) : videoAsset ? (
+        <VideoCameraIcon weight="duotone" className="size-8 text-[var(--ds-text-subtle)]" />
       ) : (
         <FileIcon weight="duotone" className="size-8 text-[var(--ds-text-subtle)]" />
       )}
@@ -72,6 +76,8 @@ export function MediaTable({ assets, selectedId, onSelect }: MediaTableProps) {
           <span className="inline-flex items-center gap-2 text-[var(--ds-text-muted)]">
             {isImageAsset(asset) ? (
               <ImageIcon weight="duotone" className="size-3.5 shrink-0" />
+            ) : isVideoAsset(asset) ? (
+              <VideoCameraIcon weight="duotone" className="size-3.5 shrink-0" />
             ) : (
               <FileIcon weight="duotone" className="size-3.5 shrink-0" />
             )}
