@@ -6,6 +6,7 @@ import {
   StorefrontIcon,
 } from "@phosphor-icons/react";
 
+import { resolveLogoBackground } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
@@ -26,6 +27,11 @@ interface ShopPreviewImageSectionProps {
   previewImageLabel: string;
   reloadImageLabel: string;
   setImageLabel: string;
+  logoBackgroundColor: string | null;
+  onChangeLogoBackground: (value: string | null) => void;
+  logoBackgroundLabel: string;
+  logoBackgroundResetLabel: string;
+  logoBackgroundInvalidLabel: string;
 }
 
 export function ShopPreviewImageSection({
@@ -43,6 +49,11 @@ export function ShopPreviewImageSection({
   previewImageLabel,
   reloadImageLabel,
   setImageLabel,
+  logoBackgroundColor,
+  onChangeLogoBackground,
+  logoBackgroundLabel,
+  logoBackgroundResetLabel,
+  logoBackgroundInvalidLabel: _logoBackgroundInvalidLabel,
 }: ShopPreviewImageSectionProps) {
   const trimmedImageHref = ogImageInput.trim();
   const hasImageHref = trimmedImageHref.length > 0;
@@ -54,7 +65,10 @@ export function ShopPreviewImageSection({
       />
       <DashboardSection.Body>
         <div className="flex items-stretch gap-3">
-          <div className="shrink-0 w-18 aspect-square rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] overflow-hidden flex items-center justify-center">
+          <div
+            className="shrink-0 w-18 aspect-square rounded-lg border border-[var(--ds-border)] overflow-hidden flex items-center justify-center"
+            style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
+          >
             {displayImage ? (
               <img src={displayImage} alt="" className="size-full object-contain" />
             ) : name ? (
@@ -114,6 +128,41 @@ export function ShopPreviewImageSection({
               >
                 {setImageLabel}
               </DashboardButton>
+            </div>
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--ds-border)]">
+              <label className="text-xs text-[var(--ds-text-muted)] shrink-0">
+                {logoBackgroundLabel}
+              </label>
+              <input
+                type="color"
+                value={resolveLogoBackground(logoBackgroundColor)}
+                onChange={(e) => onChangeLogoBackground(e.target.value)}
+                className="h-7 w-10 rounded border border-[var(--ds-border)] cursor-pointer"
+                aria-label={logoBackgroundLabel}
+              />
+              <input
+                type="text"
+                value={logoBackgroundColor ?? ""}
+                onChange={(e) => {
+                  const next = e.target.value.trim();
+                  if (next === "") {
+                    onChangeLogoBackground(null);
+                    return;
+                  }
+                  onChangeLogoBackground(next);
+                }}
+                placeholder="#fafaf9"
+                pattern="^#[0-9a-fA-F]{6}$"
+                className="flex-1 min-w-0 h-7 px-2 rounded border border-[var(--ds-border)] bg-transparent text-xs font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => onChangeLogoBackground(null)}
+                disabled={logoBackgroundColor === null}
+                className="text-xs px-2 h-7 rounded border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:border-[var(--ds-border-strong)] hover:text-[var(--ds-text)] disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {logoBackgroundResetLabel}
+              </button>
             </div>
           </div>
         </div>
