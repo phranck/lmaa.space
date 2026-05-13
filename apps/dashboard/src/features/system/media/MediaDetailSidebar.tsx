@@ -15,6 +15,7 @@ import {
   formatMediaDate,
   getMediaTypeLabel,
   isImageAsset,
+  isVideoAsset,
 } from "@/features/system/media/media-utils.ts";
 import type { DashboardLocale } from "@/i18n/messages.ts";
 
@@ -29,6 +30,14 @@ function MediaPreview({
     return (
       <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--ds-bg-elevated)]">
         <img src={asset.url} alt="" className="size-full object-cover" />
+      </div>
+    );
+  }
+
+  if (isVideoAsset(asset)) {
+    return (
+      <div className="aspect-video rounded-xl overflow-hidden bg-black">
+        <video src={asset.url} controls preload="metadata" playsInline className="size-full" />
       </div>
     );
   }

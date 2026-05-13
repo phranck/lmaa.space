@@ -1,9 +1,12 @@
 import { serve } from "@hono/node-server";
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
+import type { MiddlewareHandler } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
+
+import { MEDIA_UPLOAD_MAX_BYTES, MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
 
 import { env } from "./config/env.js";
 import { client, db } from "./db/index.js";
@@ -20,7 +23,22 @@ import { sitemapRoutes } from "./routes/sitemap.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 import { startReminderScheduler } from "./services/shop-reminders.js";
 
+const DEFAULT_BODY_LIMIT_BYTES = 10 * 1024 * 1024;
+const DEFAULT_BODY_LIMIT_LABEL = "10 MB";
+const ADMIN_MEDIA_UPLOAD_PATH = "/api/v1/admin/media";
+const ADMIN_HLS_BUNDLE_UPLOAD_PATH = "/api/v1/admin/media/bundles/hls";
+
 const app = new Hono<{ Variables: { requestId: string } }>();
+
+function createJsonBodyLimit(maxSize: number, maxLabel: string): MiddlewareHandler {
+  return bodyLimit({
+    maxSize,
+    onError: (c) => fail(c, 413, `Payload too large (max ${maxLabel})`, "PAYLOAD_TOO_LARGE"),
+  });
+}
+
+const defaultBodyLimit = createJsonBodyLimit(DEFAULT_BODY_LIMIT_BYTES, DEFAULT_BODY_LIMIT_LABEL);
+const adminMediaBodyLimit = createJsonBodyLimit(MEDIA_UPLOAD_MAX_BYTES, MEDIA_UPLOAD_MAX_LABEL);
 
 app.use(
   "*",
@@ -33,11 +51,22 @@ app.use("*", secureHeaders());
 if (env.NODE_ENV === "production") {
   app.use("*", async (c, next) => {
     c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    c.header("Content-Security-Policy", "default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'");
+    c.header(
+      "Content-Security-Policy",
+      "default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+    );
     return next();
   });
 }
-app.use("*", bodyLimit({ maxSize: 10 * 1024 * 1024 }));
+app.use("*", (c, next) => {
+  if (
+    c.req.method === "POST" &&
+    (c.req.path === ADMIN_MEDIA_UPLOAD_PATH || c.req.path === ADMIN_HLS_BUNDLE_UPLOAD_PATH)
+  ) {
+    return adminMediaBodyLimit(c, next);
+  }
+  return defaultBodyLimit(c, next);
+});
 app.use("*", requestId);
 app.use("*", async (c, next) => {
   const start = Date.now();
@@ -84,7 +113,12 @@ async function startServer() {
     await runMigrations();
   }
 
-  const timers = [startSessionCleanupJob(), startRateLimitCleanupJob(), startCacheCleanupJob(), startReminderScheduler()];
+  const timers = [
+    startSessionCleanupJob(),
+    startRateLimitCleanupJob(),
+    startCacheCleanupJob(),
+    startReminderScheduler(),
+  ];
 
   const port = env.PORT;
   const server = serve({ fetch: app.fetch, port });

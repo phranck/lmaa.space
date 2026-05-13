@@ -1,4 +1,4 @@
-import { FileIcon } from "@phosphor-icons/react";
+import { FileIcon, VideoCameraIcon } from "@phosphor-icons/react";
 
 import type { MediaAsset } from "@lmaa/shared";
 
@@ -7,6 +7,7 @@ import {
   formatBytes,
   getMediaTypeLabel,
   isImageAsset,
+  isVideoAsset,
 } from "@/features/system/media/media-utils.ts";
 
 interface MediaGridItemProps {
@@ -18,6 +19,7 @@ interface MediaGridItemProps {
 export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps) {
   const { locale } = useI18n();
   const imageAsset = isImageAsset(asset);
+  const videoAsset = isVideoAsset(asset);
 
   return (
     <button
@@ -36,13 +38,21 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
           <img src={asset.url} alt="" loading="lazy" className="size-full object-cover" />
         ) : (
           <div className="size-full bg-[var(--ds-bg-elevated)] flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
-            <FileIcon weight="duotone" className="size-10" />
-            <span className="text-[10px] font-semibold tracking-wide">{getMediaTypeLabel(asset)}</span>
+            {videoAsset ? (
+              <VideoCameraIcon weight="duotone" className="size-10" />
+            ) : (
+              <FileIcon weight="duotone" className="size-10" />
+            )}
+            <span className="text-[10px] font-semibold tracking-wide">
+              {getMediaTypeLabel(asset)}
+            </span>
           </div>
         )}
       </div>
       <div className="w-full px-0.5">
-        <p className={`text-xs font-medium truncate ${selected ? "text-[var(--color-primary)]" : "text-[var(--ds-text)]"}`}>
+        <p
+          className={`text-xs font-medium truncate ${selected ? "text-[var(--color-primary)]" : "text-[var(--ds-text)]"}`}
+        >
           {asset.displayName}
         </p>
         <p className="text-[10px] text-[var(--ds-text-muted)] truncate">

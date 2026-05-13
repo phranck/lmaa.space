@@ -1,5 +1,7 @@
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 
+import type { MediaKind } from "@lmaa/shared";
+
 import { db } from "../db/index.js";
 import { adminUsers, mediaAssets } from "../db/schema.js";
 
@@ -43,7 +45,7 @@ export async function createMediaAsset(data: {
   originalName: string;
   storedFilename: string;
   mimeType: string;
-  kind: "image" | "document";
+  kind: MediaKind;
   sizeBytes: number;
   width: number | null;
   height: number | null;

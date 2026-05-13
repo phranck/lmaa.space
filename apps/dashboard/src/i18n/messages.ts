@@ -1,3 +1,5 @@
+import { MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
+
 /**
  * Supported dashboard UI locales.
  */
@@ -366,6 +368,7 @@ export interface DashboardMessages {
     copied: string;
     renameError: string;
     uploadError: string;
+    uploadTooLarge: string;
     unsupportedPreview: string;
     deleteTitle: string;
     deleteDescription: string;
@@ -1560,10 +1563,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Media",
       upload: "Dateien hochladen",
       uploading: "Lade hoch…",
-      uploadHint: "Erlaubt: Bilder, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis 10 MB",
+      uploadHint: `Erlaubt: Bilder, MP4-Video, HLS-Ordner, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis ${MEDIA_UPLOAD_MAX_LABEL}`,
       empty: "Noch keine Dateien vorhanden.",
       emptyHint:
-        "Lade Bilder oder Dokumente hoch, damit sie in Pages und anderen Inhalten nutzbar sind.",
+        "Lade Bilder, Videos oder Dokumente hoch, damit sie in Pages und anderen Inhalten nutzbar sind.",
       selectPrompt: "Wähle links eine Datei aus, um Metadaten und die interne URL zu sehen.",
       detailsTitle: "Metadaten",
       previewTitle: "Vorschau",
@@ -1583,10 +1586,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       copied: "Kopiert",
       renameError: "Name konnte nicht gespeichert werden.",
       uploadError: "Datei konnte nicht hochgeladen werden.",
+      uploadTooLarge: "{name} ist zu groß. Maximal erlaubt sind {max}.",
       unsupportedPreview: "Für diesen Dateityp ist keine Vorschau verfügbar.",
       deleteTitle: "Datei löschen?",
       deleteDescription:
-        "wird dauerhaft gelöscht und ist unter der internen URL nicht mehr erreichbar.",
+        "wird dauerhaft gelöscht und ist unter der internen URL nicht mehr erreichbar. Bei Bundles wird der gesamte Inhalt entfernt.",
       table: {
         name: "Name",
         type: "Typ",
@@ -2787,9 +2791,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Media",
       upload: "Upload files",
       uploading: "Uploading…",
-      uploadHint: "Allowed: images, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) up to 10 MB",
+      uploadHint: `Allowed: images, MP4 video, HLS folders, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) up to ${MEDIA_UPLOAD_MAX_LABEL}`,
       empty: "No files uploaded yet.",
-      emptyHint: "Upload images or documents so they can be reused in pages and other content.",
+      emptyHint:
+        "Upload images, videos or documents so they can be reused in pages and other content.",
       selectPrompt: "Select a file on the left to view metadata and the internal URL.",
       detailsTitle: "Metadata",
       previewTitle: "Preview",
@@ -2809,10 +2814,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       copied: "Copied",
       renameError: "Could not save file name.",
       uploadError: "Could not upload file.",
+      uploadTooLarge: "{name} is too large. The maximum is {max}.",
       unsupportedPreview: "No preview is available for this file type.",
       deleteTitle: "Delete file?",
       deleteDescription:
-        "will be permanently deleted and will no longer be reachable via its internal URL.",
+        "will be permanently deleted and will no longer be reachable via its internal URL. Bundles are removed with all contents.",
       table: {
         name: "Name",
         type: "Type",

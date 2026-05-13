@@ -32,4 +32,5 @@ WHATS-NEXT.md
 shop-geo-data.json
 /affiliate/
 .gource/*.mp4
+.gource/lmaa-history-hls/
 skills

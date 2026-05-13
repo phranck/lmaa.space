@@ -2,6 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { mediaUpdateSchema } from "@lmaa/contracts";
+import { MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
@@ -10,6 +11,7 @@ import {
   deleteManagedMediaAsset,
   listManagedMediaAssets,
   syncMediaFromStorage,
+  uploadManagedHlsBundle,
   updateManagedMediaAsset,
   uploadManagedMediaAsset,
 } from "../../services/admin-media.js";
@@ -32,30 +34,68 @@ mediaRoutes.post("/media", requireAdmin, async (c) => {
   const result = await uploadManagedMediaAsset({ file, adminId });
   if (!result.ok) {
     if (result.reason === "missing_file") return fail(c, 400, "No file provided");
-    if (result.reason === "too_large") return fail(c, 400, "File too large (max 10 MB)");
+    if (result.reason === "too_large")
+      return fail(c, 413, `File too large (max ${MEDIA_UPLOAD_MAX_LABEL})`, "PAYLOAD_TOO_LARGE");
     if (result.reason === "invalid_file")
-      return fail(c, 400, "Unsupported file type. Allowed: images, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X)");
+      return fail(
+        c,
+        400,
+        "Unsupported file type. Allowed: images, MP4, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X)",
+      );
     return fail(c, 500, "Failed to store file");
   }
 
   return ok(c, result.asset, 201);
 });
 
-mediaRoutes.patch(
-  "/media/:id",
-  requireAdmin,
-  zValidator("json", mediaUpdateSchema),
-  async (c) => {
-    const id = parseId(c.req.param("id"));
-    if (!id) return fail(c, 400, "Invalid id");
+mediaRoutes.post("/media/bundles/hls", requireAdmin, async (c) => {
+  const formData = await c.req.formData();
+  const displayName = formData.get("name");
+  const files = formData.getAll("files");
+  const paths = formData.getAll("paths");
+  const adminId = c.get("adminId");
 
-    const { displayName, alias } = c.req.valid("json");
-    const result = await updateManagedMediaAsset(id, { displayName, alias });
-    if (!result.ok) return fail(c, 404, "Media asset not found");
+  if (files.length === 0 || files.length !== paths.length) {
+    return fail(c, 400, "Invalid HLS bundle upload");
+  }
 
-    return ok(c, result.asset);
-  },
-);
+  const result = await uploadManagedHlsBundle({
+    displayName: typeof displayName === "string" ? displayName : "HLS bundle",
+    files: files.map((file, index) => ({
+      file,
+      relativePath: typeof paths[index] === "string" ? paths[index] : "",
+    })),
+    adminId,
+  });
+
+  if (!result.ok) {
+    if (result.reason === "missing_file") return fail(c, 400, "No files provided");
+    if (result.reason === "too_large")
+      return fail(c, 413, `Bundle too large (max ${MEDIA_UPLOAD_MAX_LABEL})`, "PAYLOAD_TOO_LARGE");
+    if (result.reason === "invalid_bundle")
+      return fail(
+        c,
+        400,
+        "Invalid HLS bundle. Required: one .m3u8 manifest and referenced .ts segments",
+      );
+    if (result.reason === "invalid_file")
+      return fail(c, 400, "Unsupported bundle file type. Allowed: .m3u8 and .ts");
+    return fail(c, 500, "Failed to store HLS bundle");
+  }
+
+  return ok(c, result.asset, 201);
+});
+
+mediaRoutes.patch("/media/:id", requireAdmin, zValidator("json", mediaUpdateSchema), async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid id");
+
+  const { displayName, alias } = c.req.valid("json");
+  const result = await updateManagedMediaAsset(id, { displayName, alias });
+  if (!result.ok) return fail(c, 404, "Media asset not found");
+
+  return ok(c, result.asset);
+});
 
 mediaRoutes.post("/media/sync", requireAdmin, async (c) => {
   const result = await syncMediaFromStorage();

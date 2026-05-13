@@ -2,6 +2,7 @@ import { createApiRequestError, createNetworkRequestError } from "@lmaa/shared/a
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
 const FETCH_TIMEOUT_MS = 30_000;
+const UPLOAD_FETCH_TIMEOUT_MS = 5 * 60_000;
 
 /**
  * Normalizes API responses and throws typed request errors on failure.
@@ -95,9 +96,13 @@ export const api = {
     }).then((r) => handleResponse<T>(r)),
 
   upload: <T>(path: string, formData: FormData): Promise<T> =>
-    fetchWithTimeout(`${API_BASE}${path}`, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    }).then((r) => handleResponse<T>(r)),
+    fetchWithTimeout(
+      `${API_BASE}${path}`,
+      {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      },
+      UPLOAD_FETCH_TIMEOUT_MS,
+    ).then((r) => handleResponse<T>(r)),
 };

@@ -16,7 +16,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
-import type { ShopCheckNotes } from "@lmaa/shared";
+import type { MediaKind, ShopCheckNotes } from "@lmaa/shared";
 
 function quotedTextSql(values: readonly string[]) {
   return sql.join(
@@ -401,7 +401,7 @@ export const mediaAssets = pgTable(
     originalName: text("original_name").notNull(),
     storedFilename: text("stored_filename").notNull().unique(),
     mimeType: text("mime_type").notNull(),
-    kind: text("kind").$type<"image" | "document">().notNull(),
+    kind: text("kind").$type<MediaKind>().notNull(),
     sizeBytes: integer("size_bytes").notNull(),
     width: integer("width"),
     height: integer("height"),
