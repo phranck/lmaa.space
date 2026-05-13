@@ -66,6 +66,7 @@ export interface AdminShopListItem extends ShopSummary {
   socialMedia: Record<string, string>;
   shopCheckNotes?: ShopCheckNotes | null;
   ogImage?: string | null;
+  logoBackgroundColor: string | null;
   headquarters?: ShopHeadquarters | null;
 
   needsReview: boolean;
@@ -91,6 +92,7 @@ export interface Shop {
   shipping: string;
   description: string;
   ogImage?: string | null;
+  logoBackgroundColor: string | null;
   contactEmail?: string | null;
   socialMedia: Record<string, string>;
   shopCheckNotes?: ShopCheckNotes | null;

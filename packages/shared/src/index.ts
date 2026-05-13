@@ -28,5 +28,7 @@ export * from "./utils/rejection-token.js";
 export * from "./utils/shop-token.js";
 /** User-friendly token expansion (`U+XXXX`, `{nbhy}`, `&#8209;`) for plain-text fields. */
 export * from "./utils/text-tokens.js";
+/** Logo background color helper for shop avatars. */
+export * from "./utils/logo-background.js";
 /** Shared footer CSS and style-var helper for frontend and backend preview. */
 export { FOOTER_STYLES_CSS, footerStyleVars, resolveFooterHeightPx } from "./footer-styles.js";
