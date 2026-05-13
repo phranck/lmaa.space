@@ -142,6 +142,7 @@ export default function FilterableCategoryShops({
               shopId={shop.id}
               name={shop.name}
               ogImage={shop.ogImage}
+              logoBackgroundColor={shop.logoBackgroundColor}
               url={shop.url}
               categories={shop.categories}
               detailHref={buildShopDetailHref(shop.id, slug, currentFilters)}

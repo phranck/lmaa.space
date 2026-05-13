@@ -225,6 +225,7 @@ export default function FilterableSearchResults({
                 shopId={shop.id}
                 name={shop.name}
                 ogImage={shop.ogImage}
+                logoBackgroundColor={shop.logoBackgroundColor}
                 url={shop.url}
                 categories={shop.categories}
                 hasCoordinates={shop.headquarters?.latitude != null && shop.headquarters?.longitude != null}
