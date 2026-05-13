@@ -1,0 +1,490 @@
+#!/usr/bin/env bash
+# Renders Gource animation of the lmaa.space WebApp repo and exports MP4 + HLS.
+# If .gource/background.mp3 (or .m4a/.wav/.ogg) exists, it's mixed in as audio.
+#
+# Output: .gource/lmaa-history.mp4
+# HLS:    .gource/lmaa-history-hls/index.m3u8
+#
+# Usage: ./gource [options]
+
+set -euo pipefail
+
+VERSION="1.0.0"
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd -P)"
+SCRIPT_PATH="$SCRIPT_DIR/$(basename "$SCRIPT_SOURCE")"
+
+cd "$SCRIPT_DIR"
+
+CONFIG_FILE=".gource.conf"
+AVATAR_DIR="$SCRIPT_DIR/.gource/avatars"
+OUTPUT=".gource/lmaa-history.mp4"
+SILENT=".gource/lmaa-history-silent.mp4"
+HLS_DIR=".gource/lmaa-history-hls"
+HLS_SEGMENT_SECONDS=6
+AUDIO_VOLUME=0.4
+AUDIO_CROSSFADE_SECONDS=4
+AUDIO_EDGE_FADE_SECONDS=3
+GOURCE_BIN="${GOURCE_BIN:-}"
+GENERATE_HLS=1
+HLS_ONLY=0
+USE_AUDIO=1
+AUDIO=""
+HLS_FROM=""
+OUTPUT_SET=0
+TEMP_DIR=""
+
+cleanup_temp_files() {
+  if [[ -n "$TEMP_DIR" && -d "$TEMP_DIR" ]]; then
+    rm -rf "$TEMP_DIR"
+  fi
+}
+
+trap cleanup_temp_files EXIT
+
+print_help() {
+  cat <<'EOF'
+Usage:
+  ./gource [options]
+  ./gource render [options]
+  ./gource hls [options]
+  ./gource help
+  ./gource version
+
+Commands:
+  render                    Render MP4 and package HLS output. Default command.
+  hls                       Render HLS only, or package --from MP4 as HLS.
+  help                      Show this help text and exit.
+  version                   Show wrapper version and exit.
+
+Options:
+  -h, --help                Show this help text and exit.
+  -V, --version             Show wrapper version and exit.
+  -c, --config FILE         Gource config file. Default: .gource.conf
+  -o, --output FILE         MP4 output file. Default: .gource/lmaa-history.mp4
+  -a, --audio FILE          Background audio file.
+                             Default: first .gource/background.{mp3,m4a,wav,ogg}
+  -N, --no-audio            Render without background audio.
+  -H, --hls                 Generate HLS after rendering. Default.
+  -L, --hls-only            Generate HLS without keeping a final MP4.
+  -F, --from FILE           Existing MP4 to package as HLS without rendering.
+  -n, --no-hls              Skip HLS packaging.
+  -O, --hls-output DIR      HLS output directory. Default: .gource/lmaa-history-hls
+  -d, --hls-dir DIR         Alias for --hls-output.
+  -t, --hls-time SECONDS    HLS segment length. Default: 6
+  -C, --crossfade SECONDS   Audio loop crossfade duration. Default: 4
+  -f, --fade SECONDS        Audio fade-in/fade-out duration. Default: 3
+  -v, --volume NUMBER       Audio volume multiplier. Default: 0.4
+  -G, --gource-bin FILE     Path to the real Gource binary.
+
+Examples:
+  ./gource
+  ./gource --no-hls
+  ./gource --hls-only
+  ./gource hls
+  ./gource hls --from .gource/lmaa-history.mp4 --hls-output .gource/lmaa-history-hls
+EOF
+}
+
+print_version() {
+  printf "lmaa gource renderer %s\n" "$VERSION"
+}
+
+die() {
+  printf "Error: %s\n" "$*" >&2
+  printf "Run './gource --help' for usage.\n" >&2
+  exit 1
+}
+
+require_value() {
+  local flag="$1"
+  local value="${2-}"
+
+  if [[ -z "$value" || "$value" == -* ]]; then
+    die "$flag requires a value"
+  fi
+}
+
+resolve_path() {
+  local path="$1"
+  local dir=""
+  local base=""
+
+  if [[ "$path" != */* ]]; then
+    path="$(command -v "$path" 2>/dev/null || printf "%s" "$path")"
+  fi
+
+  dir="$(cd "$(dirname "$path")" 2>/dev/null && pwd -P)" || return 1
+  base="$(basename "$path")"
+  printf "%s/%s\n" "$dir" "$base"
+}
+
+find_gource_binary() {
+  local candidate=""
+  local resolved_candidate=""
+
+  if [[ -n "$GOURCE_BIN" ]]; then
+    [[ -x "$GOURCE_BIN" ]] || die "Gource binary is not executable: $GOURCE_BIN"
+    printf "%s\n" "$GOURCE_BIN"
+    return
+  fi
+
+  while IFS= read -r candidate; do
+    [[ -z "$candidate" ]] && continue
+    resolved_candidate="$(resolve_path "$candidate" || true)"
+    [[ -z "$resolved_candidate" ]] && continue
+
+    if [[ "$resolved_candidate" != "$SCRIPT_PATH" ]]; then
+      printf "%s\n" "$candidate"
+      return
+    fi
+  done < <(type -P -a gource 2>/dev/null || true)
+
+  die "Could not find the real Gource binary. Install gource or pass --gource-bin FILE."
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"
+}
+
+parse_args() {
+  while (($#)); do
+    case "$1" in
+      render)
+        HLS_ONLY=0
+        shift
+        ;;
+      hls)
+        HLS_ONLY=1
+        GENERATE_HLS=1
+        shift
+        ;;
+      help)
+        print_help
+        exit 0
+        ;;
+      version)
+        print_version
+        exit 0
+        ;;
+      -h | --help)
+        print_help
+        exit 0
+        ;;
+      -V | --version)
+        print_version
+        exit 0
+        ;;
+      -c | --config)
+        require_value "$1" "${2-}"
+        CONFIG_FILE="$2"
+        shift 2
+        ;;
+      -o | --output)
+        require_value "$1" "${2-}"
+        OUTPUT="$2"
+        OUTPUT_SET=1
+        shift 2
+        ;;
+      -a | --audio)
+        require_value "$1" "${2-}"
+        AUDIO="$2"
+        USE_AUDIO=1
+        shift 2
+        ;;
+      -N | --no-audio)
+        USE_AUDIO=0
+        AUDIO=""
+        shift
+        ;;
+      -H | --hls)
+        GENERATE_HLS=1
+        shift
+        ;;
+      -L | --hls-only)
+        HLS_ONLY=1
+        GENERATE_HLS=1
+        shift
+        ;;
+      -F | --from)
+        require_value "$1" "${2-}"
+        HLS_FROM="$2"
+        HLS_ONLY=1
+        GENERATE_HLS=1
+        shift 2
+        ;;
+      -n | --no-hls)
+        GENERATE_HLS=0
+        shift
+        ;;
+      -O | --hls-output | -d | --hls-dir)
+        require_value "$1" "${2-}"
+        HLS_DIR="$2"
+        shift 2
+        ;;
+      -t | --hls-time)
+        require_value "$1" "${2-}"
+        HLS_SEGMENT_SECONDS="$2"
+        shift 2
+        ;;
+      -C | --crossfade)
+        require_value "$1" "${2-}"
+        AUDIO_CROSSFADE_SECONDS="$2"
+        shift 2
+        ;;
+      -f | --fade)
+        require_value "$1" "${2-}"
+        AUDIO_EDGE_FADE_SECONDS="$2"
+        shift 2
+        ;;
+      -v | --volume)
+        require_value "$1" "${2-}"
+        AUDIO_VOLUME="$2"
+        shift 2
+        ;;
+      -G | --gource-bin)
+        require_value "$1" "${2-}"
+        GOURCE_BIN="$2"
+        shift 2
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        die "Unknown option: $1"
+        ;;
+      *)
+        die "Unknown command or argument: $1"
+        ;;
+    esac
+  done
+}
+
+detect_background_audio() {
+  local ext=""
+
+  if [[ "$USE_AUDIO" -eq 0 ]]; then
+    return
+  fi
+
+  if [[ -n "$AUDIO" ]]; then
+    [[ -f "$AUDIO" ]] || die "Audio file not found: $AUDIO"
+    return
+  fi
+
+  for ext in mp3 m4a wav ogg; do
+    if [[ -f ".gource/background.$ext" ]]; then
+      AUDIO=".gource/background.$ext"
+      return
+    fi
+  done
+}
+
+get_media_duration() {
+  ffprobe -v error -show_entries format=duration -of csv=p=0 "$1"
+}
+
+clamp_fade_duration() {
+  local media_duration="$1"
+  local requested_duration="$2"
+
+  awk -v media="$media_duration" -v requested="$requested_duration" 'BEGIN {
+    fade = requested;
+    max = media / 2;
+    if (fade > max) fade = max;
+    if (fade < 0) fade = 0;
+    printf "%.3f", fade;
+  }'
+}
+
+calculate_audio_repeats() {
+  local video_duration="$1"
+  local audio_duration="$2"
+  local crossfade_duration="$3"
+
+  awk -v video="$video_duration" -v audio="$audio_duration" -v fade="$crossfade_duration" 'BEGIN {
+    if (video <= audio) {
+      print 1;
+      exit;
+    }
+
+    step = audio - fade;
+    if (step <= 0) step = audio;
+
+    repeats = 1;
+    duration = audio;
+    while (duration < video) {
+      repeats += 1;
+      duration += step;
+    }
+
+    print repeats;
+  }'
+}
+
+build_audio_filter() {
+  local video_duration="$1"
+  local repeat_count="$2"
+  local crossfade_duration="$3"
+  local edge_fade_duration="$4"
+  local edge_fade_start="$5"
+
+  local filter=""
+  local previous_label=""
+  local next_label=""
+  local i=0
+
+  for ((i = 0; i < repeat_count; i++)); do
+    filter+="[$((i + 1)):a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume=${AUDIO_VOLUME}[a${i}];"
+  done
+
+  previous_label="a0"
+  for ((i = 1; i < repeat_count; i++)); do
+    next_label="xf${i}"
+    filter+="[${previous_label}][a${i}]acrossfade=d=${crossfade_duration}:c1=tri:c2=tri[${next_label}];"
+    previous_label="$next_label"
+  done
+
+  filter+="[${previous_label}]atrim=0:${video_duration},asetpts=N/SR/TB"
+  if awk -v fade="$edge_fade_duration" 'BEGIN { exit !(fade > 0) }'; then
+    filter+=",afade=t=in:d=${edge_fade_duration},afade=t=out:st=${edge_fade_start}:d=${edge_fade_duration}"
+  fi
+  filter+="[audio]"
+
+  printf "%s" "$filter"
+}
+
+generate_hls_output() {
+  local input="$1"
+  local playlist="$HLS_DIR/index.m3u8"
+
+  rm -rf "$HLS_DIR"
+  mkdir -p "$HLS_DIR"
+
+  ffmpeg -y -i "$input" \
+    -map 0:v:0 -map "0:a?" \
+    -c:v copy -c:a copy \
+    -hls_time "$HLS_SEGMENT_SECONDS" \
+    -hls_playlist_type vod \
+    -hls_flags independent_segments \
+    -hls_segment_filename "$HLS_DIR/segment_%03d.ts" \
+    "$playlist"
+}
+
+render_video() {
+  local gource_binary="$1"
+  local video_duration=""
+  local audio_duration=""
+  local crossfade_duration=""
+  local edge_fade_duration=""
+  local edge_fade_start=""
+  local audio_repeats=""
+  local audio_filter=""
+  local audio_inputs=()
+  local i=0
+
+  [[ -f "$CONFIG_FILE" ]] || die "Gource config not found: $CONFIG_FILE"
+  [[ -d "$AVATAR_DIR" ]] || die "Avatar directory not found: $AVATAR_DIR"
+
+  echo "Rendering repo history..."
+  "$gource_binary" --load-config "$CONFIG_FILE" \
+    --user-image-dir "$AVATAR_DIR" \
+    --stop-at-end --disable-input \
+    -o - \
+  | ffmpeg -y -r 60 -f image2pipe -vcodec ppm -i - \
+      -vcodec libx264 -preset medium -pix_fmt yuv420p -crf 18 \
+      -g 120 -keyint_min 120 -sc_threshold 0 \
+      "$SILENT"
+
+  if [[ -n "$AUDIO" ]]; then
+    echo "Mixing audio: $AUDIO"
+    video_duration="$(get_media_duration "$SILENT")"
+    audio_duration="$(get_media_duration "$AUDIO")"
+    crossfade_duration="$(clamp_fade_duration "$audio_duration" "$AUDIO_CROSSFADE_SECONDS")"
+    edge_fade_duration="$(clamp_fade_duration "$video_duration" "$AUDIO_EDGE_FADE_SECONDS")"
+    edge_fade_start="$(awk -v video="$video_duration" -v fade="$edge_fade_duration" 'BEGIN {
+      start = video - fade;
+      if (start < 0) start = 0;
+      printf "%.3f", start;
+    }')"
+    audio_repeats="$(calculate_audio_repeats "$video_duration" "$audio_duration" "$crossfade_duration")"
+    audio_filter="$(build_audio_filter "$video_duration" "$audio_repeats" "$crossfade_duration" "$edge_fade_duration" "$edge_fade_start")"
+
+    for ((i = 0; i < audio_repeats; i++)); do
+      audio_inputs+=(-i "$AUDIO")
+    done
+
+    echo "Audio duration: ${audio_duration}s; video duration: ${video_duration}s"
+    echo "Audio repeats: $audio_repeats; loop crossfade: ${crossfade_duration}s"
+
+    ffmpeg -y -i "$SILENT" "${audio_inputs[@]}" \
+      -filter_complex "$audio_filter" \
+      -map 0:v:0 -map "[audio]" \
+      -c:v copy -c:a aac -b:a 192k \
+      -shortest -movflags +faststart \
+      "$OUTPUT"
+  else
+    ffmpeg -y -i "$SILENT" -c copy -movflags +faststart "$OUTPUT"
+  fi
+
+  rm "$SILENT"
+}
+
+main() {
+  local gource_binary=""
+  local hls_playlist=""
+  local hls_input=""
+  local final_mp4_output=""
+
+  parse_args "$@"
+  final_mp4_output="$OUTPUT"
+
+  if [[ "$HLS_ONLY" -eq 1 && "$GENERATE_HLS" -eq 0 ]]; then
+    die "hls/--hls-only cannot be combined with --no-hls"
+  fi
+
+  if [[ "$HLS_ONLY" -eq 1 && "$OUTPUT_SET" -eq 1 ]]; then
+    die "--output writes a final MP4. Use --from FILE for an existing HLS source, or omit --output for HLS-only rendering."
+  fi
+
+  require_command ffmpeg
+  if [[ -n "$HLS_FROM" ]]; then
+    [[ -f "$HLS_FROM" ]] || die "HLS source MP4 not found: $HLS_FROM"
+    hls_input="$HLS_FROM"
+  elif [[ "$HLS_ONLY" -eq 1 ]]; then
+    require_command ffprobe
+    detect_background_audio
+    gource_binary="$(find_gource_binary)"
+    TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lmaa-gource-hls.XXXXXX")"
+    OUTPUT="$TEMP_DIR/render.mp4"
+    render_video "$gource_binary"
+    hls_input="$OUTPUT"
+  else
+    require_command ffprobe
+    detect_background_audio
+    gource_binary="$(find_gource_binary)"
+    render_video "$gource_binary"
+    hls_input="$OUTPUT"
+  fi
+
+  if [[ "$GENERATE_HLS" -eq 1 ]]; then
+    echo "Generating HLS output..."
+    generate_hls_output "$hls_input"
+    hls_playlist="$HLS_DIR/index.m3u8"
+  fi
+
+  if [[ "$HLS_ONLY" -eq 0 ]]; then
+    echo "MP4  -> $final_mp4_output"
+  elif [[ -n "$HLS_FROM" ]]; then
+    echo "MP4 source -> $HLS_FROM"
+  else
+    echo "MP4  -> not kept (--hls-only)"
+  fi
+
+  if [[ "$GENERATE_HLS" -eq 1 ]]; then
+    echo "HLS  -> $hls_playlist"
+  fi
+}
+
+main "$@"
