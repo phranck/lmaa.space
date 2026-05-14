@@ -214,7 +214,7 @@ describe("OpenAPI document", () => {
     ]);
     expect(listShopsOperation["x-code-samples"]).toEqual(samples);
     expect(samples[0].source).toContain("curl --request GET");
-    expect(samples[2].source).toContain('fetch("https://lmaa.space/api/v1/shops"');
+    expect(samples[2].source).toContain('fetch("https://api.lmaa.space/api/v1/shops"');
     expect(samples[3].source).toContain("GuzzleHttp");
     expect(samples[9].source).toContain("curl_easy_setopt");
     expect((healthOperation["x-codeSamples"] as typeof samples)[2].source).toContain(
@@ -233,6 +233,7 @@ describe("OpenAPI document", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(body.info.title).toBe("LMAA Public API");
     expect(body.openapi).toBe("3.1.0");
+    expect(body.servers).toEqual([{ url: "https://api.lmaa.space", description: "Production" }]);
   });
 
   it("serves Scalar API reference instead of Swagger UI", async () => {
@@ -245,6 +246,7 @@ describe("OpenAPI document", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("content-security-policy")).toContain("cdn.jsdelivr.net");
+    expect(response.headers.get("content-security-policy")).toContain("https://api.lmaa.space");
     expect(html).toContain("Scalar.createApiReference");
     expect(html).toContain('"url": "/openapi.json"');
     expect(html).toContain('"theme": "none"');

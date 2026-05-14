@@ -22,8 +22,10 @@ interface OpenApiOperation {
   "x-code-samples"?: OpenApiCodeSample[];
 }
 
+const PRODUCTION_API_BASE_URL = "https://api.lmaa.space";
+
 function getOpenApiServers() {
-  return [{ url: "https://lmaa.space", description: "Production" }];
+  return [{ url: PRODUCTION_API_BASE_URL, description: "Production" }];
 }
 
 function ref(name: string): SchemaObject {
@@ -97,7 +99,7 @@ const samplePathsByOperationId: Record<string, string> = {
 function getOperationSampleUrl(operationId: string): string {
   const samplePath = samplePathsByOperationId[operationId];
   if (!samplePath) throw new Error(`Missing OpenAPI sample path for ${operationId}`);
-  return new URL(samplePath, "https://lmaa.space").toString();
+  return new URL(samplePath, PRODUCTION_API_BASE_URL).toString();
 }
 
 function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
