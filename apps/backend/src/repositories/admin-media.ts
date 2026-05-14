@@ -104,7 +104,11 @@ export async function updateMediaAssetMeta(
 
 export async function listMediaAliases() {
   return db
-    .select({ alias: mediaAssets.alias, storedFilename: mediaAssets.storedFilename })
+    .select({
+      alias: mediaAssets.alias,
+      storedFilename: mediaAssets.storedFilename,
+      posterStoredFilename: mediaAssets.posterStoredFilename,
+    })
     .from(mediaAssets)
     .where(and(isNotNull(mediaAssets.alias)));
 }

@@ -35,6 +35,7 @@ const formConfigMocks = vi.hoisted(() => ({
 
 const mediaMocks = vi.hoisted(() => ({
   getMediaAliasMap: vi.fn(),
+  getMediaShortcodeAssetMap: vi.fn(),
 }));
 
 const footerMocks = vi.hoisted(() => ({
@@ -454,6 +455,21 @@ describe("publicRoutes", () => {
       const res = await app.request("/media-aliases");
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe("GET /media-shortcode-assets", () => {
+    it("returns media shortcode asset map", async () => {
+      mediaMocks.getMediaShortcodeAssetMap.mockResolvedValue({
+        hero: { url: "https://cdn.example.com/hero.png", posterUrl: null },
+      });
+
+      const res = await app.request("/media-shortcode-assets");
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({
+        data: { hero: { url: "https://cdn.example.com/hero.png", posterUrl: null } },
+      });
     });
   });
 });

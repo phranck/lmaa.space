@@ -39,6 +39,7 @@ vi.mock("../services/admin-form-config.js", () => ({
 
 vi.mock("../services/admin-media.js", () => ({
   getMediaAliasMap: vi.fn(),
+  getMediaShortcodeAssetMap: vi.fn(),
 }));
 
 vi.mock("../repositories/footer-config.js", () => ({
