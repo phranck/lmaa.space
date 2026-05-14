@@ -76,10 +76,11 @@ npm run ci:quality
 - Der Public-Shop-Cache in `src/middleware/cache.ts` ist process-lokal und kurzlebig. Er ist für Single-Instance-Deployments oder kurze Stale-Windows gedacht.
 - Admin-Mutationen invalidieren nur den Cache der aktuellen Backend-Instanz. Bei dauerhaftem Multi-Instance-Betrieb braucht der Cache Redis oder eine vergleichbare shared invalidation strategy.
 - Die Rate-Limit-Buckets sind dagegen datenbankgestützt und bereits für mehrere Backend-Instanzen ausgelegt.
+- Die API-Referenz läuft über Scalar unter `/` und `/docs`; das OpenAPI-JSON bleibt unter `/openapi.json`.
 
 ## Wichtige Module
 
-- `src/index.ts`: Server-Boot, globale Middleware, Routen, OpenAPI, Background-Jobs und Shutdown.
+- `src/index.ts`: Server-Boot, globale Middleware, Routen, OpenAPI/Scalar, Background-Jobs und Shutdown.
 - `src/routes`: öffentliche und Admin-HTTP-Routen.
 - `src/services`: fachliche Use-Cases und Integrationslogik.
 - `src/repositories`: Datenbankzugriff.

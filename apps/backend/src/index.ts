@@ -11,7 +11,7 @@ import { MEDIA_UPLOAD_MAX_BYTES, MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
 import { env } from "./config/env.js";
 import { client, db } from "./db/index.js";
 import { runMigrations } from "./db/run-migrations.js";
-import { serveOpenApiJson, serveSwaggerUi } from "./docs/openapi.js";
+import { serveApiReference, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
 import { logger } from "./lib/logger.js";
 import { startCacheCleanupJob } from "./middleware/cache.js";
@@ -87,8 +87,8 @@ app.route("/", sitemapRoutes);
 app.route("/api/v1", publicRoutes);
 app.route("/api/v1/admin", adminRoutes);
 
-app.get("/", serveSwaggerUi);
-app.get("/docs", serveSwaggerUi);
+app.get("/", serveApiReference);
+app.get("/docs", serveApiReference);
 app.get("/openapi.json", serveOpenApiJson);
 app.get("/health", async (c) => {
   try {
