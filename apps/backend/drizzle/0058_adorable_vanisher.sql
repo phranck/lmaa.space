@@ -1,0 +1,1 @@
+ALTER TABLE "media_assets" ADD COLUMN "poster_stored_filename" text;

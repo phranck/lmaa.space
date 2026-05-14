@@ -17,13 +17,17 @@ export function isVideoAsset(asset: MediaAsset) {
 }
 
 function sanitizeShortcodeAttribute(value: string) {
-  return value.trim().replace(/[\r\n\t]+/g, " ").replaceAll('"', "'");
+  return value
+    .trim()
+    .replace(/[\r\n\t]+/g, " ")
+    .replaceAll('"', "'");
 }
 
 export function getHlsMarkdownEmbed(asset: MediaAsset) {
   const target = asset.alias?.trim() || asset.url;
   const title = sanitizeShortcodeAttribute(asset.displayName);
-  return title ? `[[hls:${target} title="${title}"]]` : `[[hls:${target}]]`;
+  const poster = asset.posterUrl ? ` poster="${sanitizeShortcodeAttribute(asset.posterUrl)}"` : "";
+  return title ? `[[hls:${target} title="${title}"${poster}]]` : `[[hls:${target}${poster}]]`;
 }
 
 export function formatBytes(bytes: number, locale: DashboardLocale) {

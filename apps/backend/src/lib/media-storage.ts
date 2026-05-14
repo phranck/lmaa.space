@@ -60,6 +60,13 @@ const HLS_MIME_BY_EXTENSION = {
   ".ts": HLS_SEGMENT_MIME_TYPE,
 } as const;
 
+const HLS_POSTER_MIME_BY_EXTENSION = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+} as const;
+
 type StoreMediaFailure = {
   ok: false;
   reason: "missing_file" | "too_large" | "invalid_file" | "invalid_bundle";
@@ -71,6 +78,7 @@ type StoreMediaSuccess = {
     displayName: string;
     originalName: string;
     storedFilename: string;
+    posterStoredFilename: string | null;
     mimeType: string;
     kind: MediaKind;
     sizeBytes: number;
@@ -123,6 +131,17 @@ function inferVideoExtension(fileName: string): keyof typeof VIDEO_MIME_BY_EXTEN
 function inferHlsExtension(filePath: string): keyof typeof HLS_MIME_BY_EXTENSION | null {
   const ext = path.posix.extname(filePath).toLowerCase() as keyof typeof HLS_MIME_BY_EXTENSION;
   return ext in HLS_MIME_BY_EXTENSION ? ext : null;
+}
+
+function inferHlsPosterMimeType(filePath: string): string | null {
+  const ext = path.posix
+    .extname(filePath)
+    .toLowerCase() as keyof typeof HLS_POSTER_MIME_BY_EXTENSION;
+  const basename = path.posix.basename(filePath, ext).toLowerCase();
+
+  return basename === "poster" && ext in HLS_POSTER_MIME_BY_EXTENSION
+    ? HLS_POSTER_MIME_BY_EXTENSION[ext]
+    : null;
 }
 
 function isMp4File(buffer: Buffer): boolean {
@@ -300,6 +319,7 @@ export async function storeUploadedMedia(
       displayName: originalName,
       originalName,
       storedFilename,
+      posterStoredFilename: null,
       mimeType,
       kind,
       sizeBytes: buffer.byteLength,
@@ -324,7 +344,8 @@ export async function storeUploadedHlsBundle(input: {
   const prepared: Array<{
     file: File;
     relativePath: string;
-    extension: keyof typeof HLS_MIME_BY_EXTENSION;
+    role: "manifest" | "segment" | "poster";
+    mimeType: string;
   }> = [];
   let totalSize = 0;
 
@@ -338,8 +359,10 @@ export async function storeUploadedHlsBundle(input: {
       return { ok: false, reason: "invalid_bundle" };
     }
 
-    const extension = inferHlsExtension(relativePath);
-    if (!extension) {
+    const hlsExtension = inferHlsExtension(relativePath);
+    const posterMimeType = hlsExtension ? null : inferHlsPosterMimeType(relativePath);
+    const mimeType = hlsExtension ? HLS_MIME_BY_EXTENSION[hlsExtension] : posterMimeType;
+    if (!mimeType) {
       return { ok: false, reason: "invalid_bundle" };
     }
 
@@ -349,16 +372,26 @@ export async function storeUploadedHlsBundle(input: {
     }
 
     seenPaths.add(relativePath);
-    prepared.push({ file: item.file, relativePath, extension });
+    prepared.push({
+      file: item.file,
+      relativePath,
+      role: hlsExtension === ".m3u8" ? "manifest" : hlsExtension === ".ts" ? "segment" : "poster",
+      mimeType,
+    });
   }
 
-  const manifests = prepared.filter((item) => item.extension === ".m3u8");
-  const segmentCount = prepared.filter((item) => item.extension === ".ts").length;
+  const manifests = prepared.filter((item) => item.role === "manifest");
+  const segmentCount = prepared.filter((item) => item.role === "segment").length;
+  const posters = prepared.filter((item) => item.role === "poster");
   if (manifests.length !== 1 || segmentCount === 0) {
+    return { ok: false, reason: "invalid_bundle" };
+  }
+  if (posters.length > 1) {
     return { ok: false, reason: "invalid_bundle" };
   }
 
   const manifest = manifests[0];
+  const preparedByPath = new Map(prepared.map((item) => [item.relativePath, item]));
   const manifestBuffer = Buffer.from(await manifest.file.arrayBuffer());
   const manifestText = manifestBuffer.toString("utf8");
   if (!manifestText.trimStart().startsWith("#EXTM3U")) {
@@ -373,7 +406,10 @@ export async function storeUploadedHlsBundle(input: {
 
   if (
     manifestReferences.length === 0 ||
-    manifestReferences.some((reference) => reference == null || !seenPaths.has(reference))
+    manifestReferences.some((reference) => {
+      if (!reference) return true;
+      return preparedByPath.get(reference)?.role !== "segment";
+    })
   ) {
     return { ok: false, reason: "invalid_bundle" };
   }
@@ -381,6 +417,7 @@ export async function storeUploadedHlsBundle(input: {
   const displayName = sanitizeDisplayName(input.displayName);
   const prefix = `${crypto.randomUUID()}-${slugifyBase(displayName) || "hls-bundle"}/`;
   const storedFilename = `${prefix}${manifest.relativePath}`;
+  const posterStoredFilename = posters[0] ? `${prefix}${posters[0].relativePath}` : null;
 
   try {
     for (const item of prepared) {
@@ -392,7 +429,7 @@ export async function storeUploadedHlsBundle(input: {
           Bucket: env.S3_BUCKET,
           Key: `${prefix}${item.relativePath}`,
           Body: buffer,
-          ContentType: HLS_MIME_BY_EXTENSION[item.extension],
+          ContentType: item.mimeType,
           Metadata: buildS3Metadata({
             displayName,
             originalName: displayName,
@@ -415,6 +452,7 @@ export async function storeUploadedHlsBundle(input: {
       displayName,
       originalName: displayName,
       storedFilename,
+      posterStoredFilename,
       mimeType: HLS_MANIFEST_MIME_TYPE,
       kind: "video",
       sizeBytes: totalSize,

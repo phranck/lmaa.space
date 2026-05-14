@@ -47,6 +47,7 @@ export interface MediaAsset {
   width: number | null;
   height: number | null;
   url: string;
+  posterUrl: string | null;
   createdAt: string;
   updatedAt: string;
   createdByUsername: string | null;

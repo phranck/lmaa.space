@@ -4,6 +4,7 @@
 #
 # Output: .gource/lmaa-history.mp4
 # HLS:    .gource/lmaa-history-hls/index.m3u8
+# Poster: .gource/lmaa-history-hls/poster.jpg
 #
 # Usage: ./gource [options]
 
@@ -22,6 +23,7 @@ OUTPUT=".gource/lmaa-history.mp4"
 SILENT=".gource/lmaa-history-silent.mp4"
 HLS_DIR=".gource/lmaa-history-hls"
 HLS_SEGMENT_SECONDS=6
+POSTER_TIME_SECONDS=3
 AUDIO_VOLUME=0.4
 AUDIO_CROSSFADE_SECONDS=4
 AUDIO_EDGE_FADE_SECONDS=3
@@ -72,6 +74,7 @@ Options:
   -O, --hls-output DIR      HLS output directory. Default: .gource/lmaa-history-hls
   -d, --hls-dir DIR         Alias for --hls-output.
   -t, --hls-time SECONDS    HLS segment length. Default: 6
+  -p, --poster-time SECONDS Timestamp for HLS poster.jpg. Default: 3
   -C, --crossfade SECONDS   Audio loop crossfade duration. Default: 4
   -f, --fade SECONDS        Audio fade-in/fade-out duration. Default: 3
   -v, --volume NUMBER       Audio volume multiplier. Default: 0.4
@@ -227,6 +230,11 @@ parse_args() {
         HLS_SEGMENT_SECONDS="$2"
         shift 2
         ;;
+      -p | --poster-time)
+        require_value "$1" "${2-}"
+        POSTER_TIME_SECONDS="$2"
+        shift 2
+        ;;
       -C | --crossfade)
         require_value "$1" "${2-}"
         AUDIO_CROSSFADE_SECONDS="$2"
@@ -358,6 +366,7 @@ build_audio_filter() {
 generate_hls_output() {
   local input="$1"
   local playlist="$HLS_DIR/index.m3u8"
+  local poster="$HLS_DIR/poster.jpg"
 
   rm -rf "$HLS_DIR"
   mkdir -p "$HLS_DIR"
@@ -370,6 +379,14 @@ generate_hls_output() {
     -hls_flags independent_segments \
     -hls_segment_filename "$HLS_DIR/segment_%03d.ts" \
     "$playlist"
+
+  if ! ffmpeg -y -ss "$POSTER_TIME_SECONDS" -i "$input" -frames:v 1 -q:v 2 "$poster" ||
+    [[ ! -s "$poster" ]]; then
+    rm -f "$poster"
+    ffmpeg -y -i "$input" -frames:v 1 -q:v 2 "$poster"
+  fi
+
+  [[ -s "$poster" ]] || die "Failed to generate HLS poster: $poster"
 }
 
 render_video() {
@@ -434,6 +451,7 @@ render_video() {
 main() {
   local gource_binary=""
   local hls_playlist=""
+  local hls_poster=""
   local hls_input=""
   local final_mp4_output=""
 
@@ -472,6 +490,7 @@ main() {
     echo "Generating HLS output..."
     generate_hls_output "$hls_input"
     hls_playlist="$HLS_DIR/index.m3u8"
+    hls_poster="$HLS_DIR/poster.jpg"
   fi
 
   if [[ "$HLS_ONLY" -eq 0 ]]; then
@@ -484,6 +503,7 @@ main() {
 
   if [[ "$GENERATE_HLS" -eq 1 ]]; then
     echo "HLS  -> $hls_playlist"
+    echo "Poster -> $hls_poster"
   fi
 }
 
