@@ -8,6 +8,8 @@
  */
 import { defineMiddleware } from "astro:middleware";
 
+const STORAGE_CSP_ORIGIN = "https://storage-prg1.zerops.io";
+
 const WEBSITE_CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -18,7 +20,8 @@ const WEBSITE_CONTENT_SECURITY_POLICY = [
   "style-src 'self' 'unsafe-inline' https://unpkg.com",
   "img-src 'self' data: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://umami.layered.work",
+  `connect-src 'self' https://umami.layered.work ${STORAGE_CSP_ORIGIN}`,
+  `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
   "form-action 'self'",
 ].join("; ");
 
@@ -42,7 +45,8 @@ function buildFooterPreviewCsp(): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https://umami.layered.work",
+    `connect-src 'self' https://umami.layered.work ${STORAGE_CSP_ORIGIN}`,
+    `media-src 'self' ${STORAGE_CSP_ORIGIN} blob:`,
     "form-action 'self'",
   ].join("; ");
 }

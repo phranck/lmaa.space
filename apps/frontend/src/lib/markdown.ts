@@ -72,6 +72,8 @@ type MarkdownShortcodeToken = {
   html: string;
 };
 
+type MarkdownShortcodeKind = "widget" | "image" | "pdf" | "hls";
+
 function parseShortcodeAttributes(input: string): Record<string, string> {
   const attrs: Record<string, string> = {};
   const attrRegex = /([a-zA-Z][a-zA-Z0-9-]*)=(?:"([^"]*)"|'([^']*)'|([^\s"']+))/g;
@@ -82,6 +84,35 @@ function parseShortcodeAttributes(input: string): Record<string, string> {
   }
 
   return attrs;
+}
+
+function parsePositiveInt(value: string): number | null {
+  if (!/^\d{1,3}$/.test(value)) return null;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function getSafeAspectRatio(raw: string | undefined): string | null {
+  const value = raw?.trim();
+  if (!value) return null;
+
+  const [width, height, ...rest] = value.split("/");
+  if (rest.length > 0 || !width || !height) return null;
+
+  const parsedWidth = parsePositiveInt(width);
+  const parsedHeight = parsePositiveInt(height);
+  if (!parsedWidth || !parsedHeight) return null;
+
+  return `${parsedWidth} / ${parsedHeight}`;
+}
+
+function isHlsManifestPath(pathOrUrl: string): boolean {
+  try {
+    const parsed = new URL(pathOrUrl, "https://lmaa.space");
+    return parsed.pathname.toLowerCase().endsWith(".m3u8");
+  } catch {
+    return pathOrUrl.split(/[?#]/)[0]?.toLowerCase().endsWith(".m3u8") ?? false;
+  }
 }
 
 function renderWidgetShortcode(target: string, attrs: Record<string, string>): string {
@@ -136,6 +167,32 @@ function renderPdfShortcode(target: string, attrs: Record<string, string>): stri
   return `<p class="md-pdf"><a href="${escapeHtmlAttribute(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></p>`;
 }
 
+function renderHlsShortcode(target: string, attrs: Record<string, string>): string {
+  const src = getSafeSiteAssetPath(target);
+  if (!src || !isHlsManifestPath(src)) {
+    return escapeHtml(`[[hls:${target}]]`);
+  }
+
+  const title = attrs.title?.trim();
+  const caption = attrs.caption?.trim();
+  const aspectRatio = getSafeAspectRatio(attrs.aspect);
+  const poster = getSafeSiteAssetPath(attrs.poster);
+  const titleAttr = title
+    ? ` title="${escapeHtmlAttribute(title)}" aria-label="${escapeHtmlAttribute(title)}"`
+    : "";
+  const posterAttr = poster ? ` poster="${escapeHtmlAttribute(poster)}"` : "";
+  const styleAttr = aspectRatio
+    ? ` style="--md-video-aspect-ratio:${escapeHtmlAttribute(aspectRatio)};"`
+    : "";
+  const video = `<video class="js-hls-player" data-hls-src="${escapeHtmlAttribute(src)}" controls playsinline preload="metadata"${titleAttr}${posterAttr}><a href="${escapeHtmlAttribute(src)}" target="_blank" rel="noopener noreferrer">Video öffnen</a></video>`;
+
+  if (!caption) {
+    return `<figure class="md-video"${styleAttr}>${video}</figure>`;
+  }
+
+  return `<figure class="md-video"${styleAttr}>${video}<figcaption>${escapeHtml(caption)}</figcaption></figure>`;
+}
+
 function extractShortcodes(
   content: string,
   aliases?: Record<string, string>,
@@ -144,8 +201,8 @@ function extractShortcodes(
   let index = 0;
 
   const nextContent = content.replace(
-    /\[\[(widget|image|pdf):([^\]\s]+)([^\]]*)\]\]/g,
-    (_match, kind: string, rawTarget: string, attrsInput: string) => {
+    /\[\[(widget|image|pdf|hls):([^\]\s]+)([^\]]*)\]\]/g,
+    (_match, kind: MarkdownShortcodeKind, rawTarget: string, attrsInput: string) => {
       const target = (kind !== "widget" && aliases?.[rawTarget]) || rawTarget;
       const attrs = parseShortcodeAttributes(attrsInput);
       const placeholder = `LMAA_SHORTCODE_${index}_TOKEN`;
@@ -156,7 +213,9 @@ function extractShortcodes(
           ? renderWidgetShortcode(target, attrs)
           : kind === "image"
             ? renderImageShortcode(target, attrs)
-            : renderPdfShortcode(target, attrs);
+            : kind === "pdf"
+              ? renderPdfShortcode(target, attrs)
+              : renderHlsShortcode(target, attrs);
 
       tokens.push({ placeholder, html });
       return `\n\n${placeholder}\n\n`;
@@ -198,7 +257,7 @@ const markedSafe = new Marked({
  * Renders Markdown into sanitized HTML with optional media alias resolution.
  *
  * @param content - Markdown source text.
- * @param aliases - Optional alias-to-URL map for `[[image:alias]]` shortcodes.
+ * @param aliases - Optional alias-to-URL map for media shortcodes.
  * @returns HTML string safe for insertion into trusted templates.
  */
 export async function renderMarkdown(

@@ -14,6 +14,7 @@ import { HlsAssetVisual } from "@/features/system/media/HlsAssetVisual.tsx";
 import {
   formatBytes,
   formatMediaDate,
+  getHlsMarkdownEmbed,
   getMediaTypeLabel,
   isHlsBundleAsset,
   isImageAsset,
@@ -66,7 +67,8 @@ interface MediaDetailSidebarProps {
   onSaveMeta: () => void;
   onDelete: () => void;
   onCopyUrl: () => void;
-  copied: boolean;
+  onCopyMarkdownEmbed: () => void;
+  copied: "url" | "markdown" | null;
   isRenaming: boolean;
   locale: DashboardLocale;
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
@@ -80,6 +82,7 @@ export function MediaDetailSidebar({
   onSaveMeta,
   onDelete,
   onCopyUrl,
+  onCopyMarkdownEmbed,
   copied,
   isRenaming,
   locale,
@@ -131,7 +134,9 @@ export function MediaDetailSidebar({
             />
             <p className="text-xs text-[var(--ds-text-subtle)]">
               {draft.alias
-                ? `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]`
+                ? isHlsBundleAsset(asset)
+                  ? `Verwendung: [[hls:${draft.alias}]]`
+                  : `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]`
                 : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
             </p>
           </label>
@@ -199,14 +204,31 @@ export function MediaDetailSidebar({
                 {asset.url}
               </div>
             </div>
+            {isHlsBundleAsset(asset) && (
+              <div>
+                <p className="text-[var(--ds-text-subtle)]">{mediaMessages.markdownEmbed}</p>
+                <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
+                  {getHlsMarkdownEmbed(asset)}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <CopyActionButton
               onClick={onCopyUrl}
-              className="flex-1"
-              label={copied ? mediaMessages.copied : mediaMessages.copyUrl}
+              className="w-full"
+              label={copied === "url" ? mediaMessages.copied : mediaMessages.copyUrl}
             />
+            {isHlsBundleAsset(asset) && (
+              <CopyActionButton
+                onClick={onCopyMarkdownEmbed}
+                className="w-full"
+                label={
+                  copied === "markdown" ? mediaMessages.copied : mediaMessages.copyMarkdownEmbed
+                }
+              />
+            )}
           </div>
         </DashboardSection.Body>
       </DashboardSection>

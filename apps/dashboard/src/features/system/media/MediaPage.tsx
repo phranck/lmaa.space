@@ -40,7 +40,7 @@ import type {
   MediaBundleUpload,
   MediaBundleUploadFile,
 } from "@/features/system/hooks/useAdminMedia.ts";
-import { formatBytes } from "@/features/system/media/media-utils.ts";
+import { formatBytes, getHlsMarkdownEmbed } from "@/features/system/media/media-utils.ts";
 import { MediaDetailSidebar } from "@/features/system/media/MediaDetailSidebar.tsx";
 import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import { MediaTable } from "@/features/system/media/MediaTable.tsx";
@@ -206,7 +206,7 @@ interface MediaPageState {
   selectedId: number | null;
   draft: { name: string; alias: string };
   actionError: string | null;
-  copied: boolean;
+  copied: "url" | "markdown" | null;
   deleteTarget: MediaAsset | null;
   hasAutoSelected: boolean;
   isDragActive: boolean;
@@ -241,7 +241,7 @@ export function MediaPage() {
     selectedId: null,
     draft: { name: "", alias: "" },
     actionError: null,
-    copied: false,
+    copied: null,
     deleteTarget: null,
     hasAutoSelected: false,
     isDragActive: false,
@@ -293,12 +293,12 @@ export function MediaPage() {
         alias: selectedAsset?.alias ?? "",
       },
     });
-    dispatch({ copied: false });
+    dispatch({ copied: null });
   }, [selectedAsset]);
 
   useEffect(() => {
     if (!copied) return;
-    const timer = window.setTimeout(() => dispatch({ copied: false }), 1500);
+    const timer = window.setTimeout(() => dispatch({ copied: null }), 1500);
     return () => window.clearTimeout(timer);
   }, [copied]);
 
@@ -599,7 +599,13 @@ export function MediaPage() {
   async function handleCopyUrl() {
     if (!selectedAsset) return;
     await navigator.clipboard.writeText(selectedAsset.url);
-    dispatch({ copied: true });
+    dispatch({ copied: "url" });
+  }
+
+  async function handleCopyMarkdownEmbed() {
+    if (!selectedAsset) return;
+    await navigator.clipboard.writeText(getHlsMarkdownEmbed(selectedAsset));
+    dispatch({ copied: "markdown" });
   }
 
   async function handleSaveMeta() {
@@ -740,6 +746,7 @@ export function MediaPage() {
                   onSaveMeta={() => void handleSaveMeta()}
                   onDelete={() => dispatch({ deleteTarget: selectedAsset })}
                   onCopyUrl={() => void handleCopyUrl()}
+                  onCopyMarkdownEmbed={() => void handleCopyMarkdownEmbed()}
                   copied={copied}
                   isRenaming={renameMedia.isPending}
                   locale={locale}
