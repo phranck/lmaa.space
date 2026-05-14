@@ -9,6 +9,7 @@ export const SOCIAL_PLATFORM_KEYS = [
   "facebook",
   "whatsapp",
   "signal",
+  "discord",
   "threads",
   "tiktok",
   "x",
@@ -447,6 +448,41 @@ function normalizeSignal(input: string): string | null {
   return null;
 }
 
+function normalizeDiscord(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const url = tryParseUrl(withScheme);
+  if (url) {
+    const host = stripWww(url.hostname);
+    const path = stripTrailingSlash(url.pathname);
+    const segments = path.split("/").filter(Boolean);
+
+    if (host === "discord.gg") {
+      const inviteCode = segments[0];
+      if (!inviteCode) return null;
+      return `https://discord.gg/${inviteCode}`;
+    }
+
+    if (host === "discord.com" || host === "discordapp.com") {
+      const [section, ...rest] = segments;
+      const firstValue = rest[0];
+      if (section === "invite" && firstValue) {
+        return `https://discord.gg/${firstValue}`;
+      }
+      if ((section === "users" || section === "channels" || section === "servers") && firstValue) {
+        return `https://discord.com/${[section, ...rest].join("/")}`;
+      }
+      return null;
+    }
+  }
+
+  const inviteCode = stripLeadingAt(trimmed);
+  if (!inviteCode || /[/?#\s]/.test(inviteCode)) return null;
+  return `https://discord.gg/${inviteCode}`;
+}
+
 function normalizeWebsite(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
@@ -483,6 +519,9 @@ const DOMAIN_TO_PLATFORM: Record<string, SocialPlatformKey> = {
   "whatsapp.com": "whatsapp",
   "signal.me": "signal",
   "signal.group": "signal",
+  "discord.gg": "discord",
+  "discord.com": "discord",
+  "discordapp.com": "discord",
   "github.com": "github",
   "gist.github.com": "github",
   "gitlab.com": "gitlab",
@@ -545,6 +584,7 @@ const normalizers: Record<SocialPlatformKey, (input: string) => string | null> =
   spotify: normalizeSpotify,
   whatsapp: normalizeWhatsapp,
   signal: normalizeSignal,
+  discord: normalizeDiscord,
   github: normalizeWebsite,
   gitlab: normalizeWebsite,
   codeberg: normalizeWebsite,
