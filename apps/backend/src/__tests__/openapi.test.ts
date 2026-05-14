@@ -1,3 +1,4 @@
+import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../config/env.js", () => ({
@@ -71,6 +72,7 @@ import {
   documentedRouteKeys,
   excludedPublicRouteKeys,
 } from "../docs/openapi-document.js";
+import { serveApiReference, serveOpenApiJson } from "../docs/openapi.js";
 import { publicRoutes } from "../routes/public.js";
 
 const APPROVED_DOCUMENTED_ROUTE_KEYS = [
@@ -151,5 +153,34 @@ describe("OpenAPI document", () => {
       expect(match, `Unsupported $ref format: ${schemaRef}`).not.toBeNull();
       expect(schemaNames.has(match?.[1] ?? ""), `Missing schema for ${schemaRef}`).toBe(true);
     }
+  });
+
+  it("serves the generated OpenAPI JSON document without caching", async () => {
+    const app = new Hono();
+    app.get("/openapi.json", serveOpenApiJson);
+
+    const response = await app.request("/openapi.json");
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(body.info.title).toBe("LMAA Public API");
+    expect(body.openapi).toBe("3.1.0");
+  });
+
+  it("serves Scalar API reference instead of Swagger UI", async () => {
+    const app = new Hono();
+    app.get("/docs", serveApiReference);
+
+    const response = await app.request("/docs");
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("content-security-policy")).toContain("cdn.jsdelivr.net");
+    expect(html).toContain("Scalar.createApiReference");
+    expect(html).toContain('"url": "/openapi.json"');
+    expect(html).not.toContain("SwaggerUIBundle");
+    expect(html).not.toContain("swagger-ui");
   });
 });
