@@ -22,7 +22,7 @@ function navLinkClass(href: string, external = false) {
 
 <header class="sticky top-0 z-50 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200">
   <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
+    <div class="relative flex items-center justify-between h-16">
 
       <!-- Left: Logo + Desktop Nav -->
       <div class="flex items-center gap-10">
@@ -68,11 +68,15 @@ function navLinkClass(href: string, external = false) {
         </div>
       </div>
 
+      <div class="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 md:hidden">
+        <SupportButton variant="mobile-header" />
+      </div>
+
       <!-- Right: My Shops + Donate + Mobile toggle -->
       <div class="flex items-center gap-5">
         <a
           href="/my-shops"
-          class="hidden items-center gap-1.5 font-serif text-lg tracking-wide text-stone-900 hover:text-amber-700 transition-colors"
+          class="hidden max-md:hidden items-center gap-1.5 font-serif text-lg tracking-wide text-stone-900 hover:text-amber-700 transition-colors"
           data-my-shops-link="desktop"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="hidden sm:block w-4 h-4 text-red-500" fill="currentColor" aria-hidden="true">
@@ -176,9 +180,6 @@ function navLinkClass(href: string, external = false) {
               Meine Shops
             </a>
 
-            <div class="pt-1 px-1">
-              <SupportButton variant="mobile" />
-            </div>
           </div>
         </details>
 
