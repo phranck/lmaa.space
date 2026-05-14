@@ -104,12 +104,22 @@ function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
   const url = getOperationSampleUrl(operationId);
   const logsDataEnvelope = operationId !== "healthCheck";
   const jsLogStatement = logsDataEnvelope ? "console.log(payload.data);" : "console.log(payload);";
-  const pythonLogStatement = logsDataEnvelope ? 'print(payload["data"])' : "print(payload)";
   const phpLogStatement = logsDataEnvelope ? "print_r($payload['data']);" : "print_r($payload);";
+  const pythonLogStatement = logsDataEnvelope ? 'print(payload["data"])' : "print(payload)";
+  const rubyLogStatement = logsDataEnvelope ? 'puts payload["data"]' : "puts payload";
+  const rustLogStatement = logsDataEnvelope
+    ? 'println!("{}", payload["data"]);'
+    : 'println!("{payload}");';
+  const swiftLogStatement = logsDataEnvelope
+    ? 'print(payload["data"] ?? payload)'
+    : "print(payload)";
+  const objcLogStatement = logsDataEnvelope
+    ? 'NSLog(@"%@", payload[@"data"] ?: payload);'
+    : 'NSLog(@"%@", payload);';
 
   return [
     {
-      lang: "Shell",
+      lang: "Curl",
       label: "cURL",
       source: [
         "curl --request GET \\",
@@ -118,19 +128,17 @@ function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
       ].join("\n"),
     },
     {
-      lang: "JavaScript",
-      label: "Fetch",
+      lang: "Shell",
+      label: "POSIX",
       source: [
-        `const response = await fetch("${url}", {`,
-        '  headers: { Accept: "application/json" },',
-        "});",
+        "#!/usr/bin/env sh",
+        "set -eu",
         "",
-        "if (!response.ok) {",
-        "  throw new Error(`LMAA API request failed: ${response.status}`);",
-        "}",
+        `response="$(curl --fail --silent --show-error \\`,
+        `  --header 'Accept: application/json' \\`,
+        `  '${url}')"`,
         "",
-        "const payload = await response.json();",
-        jsLogStatement,
+        `printf '%s\\n' "$response"`,
       ].join("\n"),
     },
     {
@@ -150,6 +158,19 @@ function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
       ].join("\n"),
     },
     {
+      lang: "PHP",
+      label: "Guzzle",
+      source: [
+        "<?php",
+        "$client = new \\GuzzleHttp\\Client();",
+        `$response = $client->request('GET', '${url}', [`,
+        "    'headers' => ['Accept' => 'application/json'],",
+        "]);",
+        "$payload = json_decode((string) $response->getBody(), true);",
+        phpLogStatement,
+      ].join("\n"),
+    },
+    {
       lang: "Python",
       label: "Requests",
       source: [
@@ -162,16 +183,95 @@ function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
       ].join("\n"),
     },
     {
-      lang: "PHP",
-      label: "Guzzle",
+      lang: "Ruby",
+      label: "Net::HTTP",
       source: [
-        "<?php",
-        "$client = new \\GuzzleHttp\\Client();",
-        `$response = $client->request('GET', '${url}', [`,
-        "    'headers' => ['Accept' => 'application/json'],",
-        "]);",
-        "$payload = json_decode((string) $response->getBody(), true);",
-        phpLogStatement,
+        'require "json"',
+        'require "net/http"',
+        "",
+        `uri = URI("${url}")`,
+        'request = Net::HTTP::Get.new(uri, "Accept" => "application/json")',
+        'response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|',
+        "  http.request(request)",
+        "end",
+        "response.value",
+        "payload = JSON.parse(response.body)",
+        rubyLogStatement,
+      ].join("\n"),
+    },
+    {
+      lang: "Rust",
+      label: "Reqwest",
+      source: [
+        "#[tokio::main]",
+        "async fn main() -> Result<(), Box<dyn std::error::Error>> {",
+        "    let payload: serde_json::Value = reqwest::Client::new()",
+        `        .get("${url}")`,
+        '        .header("Accept", "application/json")',
+        "        .send()",
+        "        .await?",
+        "        .error_for_status()?",
+        "        .json()",
+        "        .await?;",
+        `    ${rustLogStatement}`,
+        "    Ok(())",
+        "}",
+      ].join("\n"),
+    },
+    {
+      lang: "Swift",
+      label: "URLSession",
+      source: [
+        `let url = URL(string: "${url}")!`,
+        "var request = URLRequest(url: url)",
+        'request.setValue("application/json", forHTTPHeaderField: "Accept")',
+        "",
+        "let (data, response) = try await URLSession.shared.data(for: request)",
+        "guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {",
+        "  throw URLError(.badServerResponse)",
+        "}",
+        "let payload = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]",
+        swiftLogStatement,
+      ].join("\n"),
+    },
+    {
+      lang: "ObjC",
+      label: "NSURLSession",
+      source: [
+        `NSURL *url = [NSURL URLWithString:@"${url}"];`,
+        "NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];",
+        '[request setValue:@"application/json" forHTTPHeaderField:@"Accept"];',
+        "",
+        "NSURLSessionDataTask *task = [[NSURLSession sharedSession]",
+        "  dataTaskWithRequest:request",
+        "  completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {",
+        '    if (error) { NSLog(@"%@", error); return; }',
+        "    NSDictionary *payload = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];",
+        `    ${objcLogStatement}`,
+        "  }];",
+        "[task resume];",
+      ].join("\n"),
+    },
+    {
+      lang: "C",
+      label: "libcurl",
+      source: [
+        "#include <curl/curl.h>",
+        "",
+        "int main(void) {",
+        "  CURL *curl = curl_easy_init();",
+        "  if (!curl) return 1;",
+        "",
+        "  struct curl_slist *headers = NULL;",
+        '  headers = curl_slist_append(headers, "Accept: application/json");',
+        `  curl_easy_setopt(curl, CURLOPT_URL, "${url}");`,
+        "  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);",
+        "  CURLcode result = curl_easy_perform(curl);",
+        "",
+        "  curl_slist_free_all(headers);",
+        "  curl_easy_cleanup(curl);",
+        "  return result == CURLE_OK ? 0 : 1;",
+        "}",
       ].join("\n"),
     },
   ];
