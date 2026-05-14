@@ -24,7 +24,8 @@ SILENT=".gource/lmaa-history-silent.mp4"
 HLS_DIR=".gource/lmaa-history-hls"
 HLS_SEGMENT_SECONDS=6
 POSTER_TIME_SECONDS=3
-AUDIO_VOLUME=0.4
+AUDIO_VOLUME=0.6
+RENDER_RESOLUTION="2560x1440"
 AUDIO_CROSSFADE_SECONDS=4
 AUDIO_EDGE_FADE_SECONDS=3
 GOURCE_BIN="${GOURCE_BIN:-}"
@@ -80,7 +81,7 @@ Options:
       --no-key, --no-legend Hide the file extension legend for this run.
   -C, --crossfade SECONDS   Audio loop crossfade duration. Default: 4
   -f, --fade SECONDS        Audio fade-in/fade-out duration. Default: 3
-  -v, --volume NUMBER       Audio volume multiplier. Default: 0.4
+  -v, --volume NUMBER       Audio volume multiplier. Default: 0.6
   -G, --gource-bin FILE     Path to the real Gource binary.
 
 Examples:
@@ -471,8 +472,9 @@ render_video() {
   [[ -d "$AVATAR_DIR" ]] || die "Avatar directory not found: $AVATAR_DIR"
   effective_config="$(build_effective_gource_config)"
 
-  echo "Rendering repo history..."
+  echo "Rendering repo history at $RENDER_RESOLUTION..."
   "$gource_binary" --load-config "$effective_config" \
+    "-$RENDER_RESOLUTION" \
     --user-image-dir "$AVATAR_DIR" \
     --stop-at-end --disable-input \
     -o - \
