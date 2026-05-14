@@ -40,6 +40,8 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
       >
         {imageAsset ? (
           <img src={asset.url} alt="" loading="lazy" className="size-full object-cover" />
+        ) : hlsAsset && asset.posterUrl ? (
+          <img src={asset.posterUrl} alt="" loading="lazy" className="size-full object-cover" />
         ) : hlsAsset ? (
           <HlsAssetVisual />
         ) : (

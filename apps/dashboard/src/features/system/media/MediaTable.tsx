@@ -30,6 +30,8 @@ const MediaThumb = memo(function MediaThumb({ asset }: { asset: MediaAsset }) {
     <div className="w-28 h-[63px] rounded-lg overflow-hidden bg-[var(--ds-bg-elevated)] shrink-0 flex items-center justify-center">
       {imageAsset ? (
         <img src={asset.url} alt="" loading="lazy" className="block size-full object-cover" />
+      ) : hlsAsset && asset.posterUrl ? (
+        <img src={asset.posterUrl} alt="" loading="lazy" className="block size-full object-cover" />
       ) : hlsAsset ? (
         <HlsAssetVisual compact />
       ) : videoAsset ? (

@@ -38,7 +38,15 @@ function MediaPreview({
   }
 
   if (isHlsBundleAsset(asset)) {
-    return <HlsAssetVisual className="aspect-[4/3] rounded-xl" />;
+    return (
+      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#080a14]">
+        {asset.posterUrl ? (
+          <img src={asset.posterUrl} alt="" className="size-full object-cover" />
+        ) : (
+          <HlsAssetVisual className="size-full" />
+        )}
+      </div>
+    );
   }
 
   if (isVideoAsset(asset)) {
@@ -204,6 +212,14 @@ export function MediaDetailSidebar({
                 {asset.url}
               </div>
             </div>
+            {isHlsBundleAsset(asset) && asset.posterUrl && (
+              <div>
+                <p className="text-[var(--ds-text-subtle)]">{mediaMessages.posterUrl}</p>
+                <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
+                  {asset.posterUrl}
+                </div>
+              </div>
+            )}
             {isHlsBundleAsset(asset) && (
               <div>
                 <p className="text-[var(--ds-text-subtle)]">{mediaMessages.markdownEmbed}</p>

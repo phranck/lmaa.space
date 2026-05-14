@@ -30,6 +30,7 @@ function mapMediaAsset(row: {
   displayName: string;
   originalName: string;
   storedFilename: string;
+  posterStoredFilename: string | null;
   alias: string | null;
   mimeType: string;
   kind: MediaKind;
@@ -52,6 +53,7 @@ function mapMediaAsset(row: {
     width: row.width,
     height: row.height,
     url: getMediaPublicUrl(row.storedFilename),
+    posterUrl: row.posterStoredFilename ? getMediaPublicUrl(row.posterStoredFilename) : null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     createdByUsername: row.createdByUsername,
@@ -221,6 +223,10 @@ export async function syncMediaFromStorage(): Promise<{
     const alias = meta.alias || null;
     const sizeBytes = bundleObjects?.reduce((sum, item) => sum + item.size, 0) ?? obj.size;
     const mimeType = isHlsBundle ? HLS_MANIFEST_MIME_TYPE : obj.contentType;
+    const posterStoredFilename = isHlsBundle
+      ? (bundleObjects?.find((item) => /\/poster\.(?:jpe?g|png|webp)$/i.test(`/${item.key}`))
+          ?.key ?? null)
+      : null;
 
     if (!existing) {
       await createMediaAsset({
@@ -234,18 +240,21 @@ export async function syncMediaFromStorage(): Promise<{
         height: meta.height ?? null,
         createdBy: null,
         alias,
+        posterStoredFilename,
       });
       created += 1;
     } else {
       // Update DB from S3 metadata if S3 has richer data
       const needsUpdate =
         (meta.displayName && meta.displayName !== existing.displayName) ||
-        (meta.alias !== undefined && meta.alias !== existing.alias);
+        (meta.alias !== undefined && meta.alias !== existing.alias) ||
+        posterStoredFilename !== existing.posterStoredFilename;
 
       if (needsUpdate) {
         await updateMediaAssetMeta(existing.id, {
           displayName: meta.displayName || existing.displayName,
           alias: meta.alias !== undefined ? meta.alias : existing.alias,
+          posterStoredFilename,
         });
         updated += 1;
       }

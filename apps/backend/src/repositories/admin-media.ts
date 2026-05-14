@@ -10,6 +10,7 @@ const MEDIA_SELECT_FIELDS = {
   displayName: mediaAssets.displayName,
   originalName: mediaAssets.originalName,
   storedFilename: mediaAssets.storedFilename,
+  posterStoredFilename: mediaAssets.posterStoredFilename,
   alias: mediaAssets.alias,
   mimeType: mediaAssets.mimeType,
   kind: mediaAssets.kind,
@@ -44,6 +45,7 @@ export async function createMediaAsset(data: {
   displayName: string;
   originalName: string;
   storedFilename: string;
+  posterStoredFilename?: string | null;
   mimeType: string;
   kind: MediaKind;
   sizeBytes: number;
@@ -58,6 +60,7 @@ export async function createMediaAsset(data: {
       displayName: data.displayName,
       originalName: data.originalName,
       storedFilename: data.storedFilename,
+      posterStoredFilename: data.posterStoredFilename ?? null,
       mimeType: data.mimeType,
       kind: data.kind,
       sizeBytes: data.sizeBytes,
@@ -73,11 +76,26 @@ export async function createMediaAsset(data: {
 
 export async function updateMediaAssetMeta(
   id: number,
-  data: { displayName: string; alias?: string | null },
+  data: { displayName: string; alias?: string | null; posterStoredFilename?: string | null },
 ) {
+  const updateData: {
+    displayName: string;
+    alias: string | null;
+    posterStoredFilename?: string | null;
+    updatedAt: Date;
+  } = {
+    displayName: data.displayName,
+    alias: data.alias ?? null,
+    updatedAt: new Date(),
+  };
+
+  if ("posterStoredFilename" in data) {
+    updateData.posterStoredFilename = data.posterStoredFilename ?? null;
+  }
+
   const [updated] = await db
     .update(mediaAssets)
-    .set({ displayName: data.displayName, alias: data.alias ?? null, updatedAt: new Date() })
+    .set(updateData)
     .where(eq(mediaAssets.id, id))
     .returning({ id: mediaAssets.id });
 

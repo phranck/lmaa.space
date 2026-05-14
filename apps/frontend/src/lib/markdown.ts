@@ -167,7 +167,11 @@ function renderPdfShortcode(target: string, attrs: Record<string, string>): stri
   return `<p class="md-pdf"><a href="${escapeHtmlAttribute(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></p>`;
 }
 
-function renderHlsShortcode(target: string, attrs: Record<string, string>): string {
+function renderHlsShortcode(
+  target: string,
+  attrs: Record<string, string>,
+  aliases?: Record<string, string>,
+): string {
   const src = getSafeSiteAssetPath(target);
   if (!src || !isHlsManifestPath(src)) {
     return escapeHtml(`[[hls:${target}]]`);
@@ -176,7 +180,8 @@ function renderHlsShortcode(target: string, attrs: Record<string, string>): stri
   const title = attrs.title?.trim();
   const caption = attrs.caption?.trim();
   const aspectRatio = getSafeAspectRatio(attrs.aspect);
-  const poster = getSafeSiteAssetPath(attrs.poster);
+  const posterTarget = attrs.poster ? (aliases?.[attrs.poster] ?? attrs.poster) : undefined;
+  const poster = posterTarget ? getSafeSiteAssetPath(posterTarget) : null;
   const titleAttr = title
     ? ` title="${escapeHtmlAttribute(title)}" aria-label="${escapeHtmlAttribute(title)}"`
     : "";
@@ -185,12 +190,13 @@ function renderHlsShortcode(target: string, attrs: Record<string, string>): stri
     ? ` style="--md-video-aspect-ratio:${escapeHtmlAttribute(aspectRatio)};"`
     : "";
   const video = `<video class="js-hls-player" data-hls-src="${escapeHtmlAttribute(src)}" controls playsinline preload="metadata"${titleAttr}${posterAttr}><a href="${escapeHtmlAttribute(src)}" target="_blank" rel="noopener noreferrer">Video öffnen</a></video>`;
+  const frame = `<div class="md-video-frame">${video}</div>`;
 
   if (!caption) {
-    return `<figure class="md-video"${styleAttr}>${video}</figure>`;
+    return `<figure class="md-video"${styleAttr}>${frame}</figure>`;
   }
 
-  return `<figure class="md-video"${styleAttr}>${video}<figcaption>${escapeHtml(caption)}</figcaption></figure>`;
+  return `<figure class="md-video"${styleAttr}>${frame}<figcaption>${escapeHtml(caption)}</figcaption></figure>`;
 }
 
 function extractShortcodes(
@@ -215,7 +221,7 @@ function extractShortcodes(
             ? renderImageShortcode(target, attrs)
             : kind === "pdf"
               ? renderPdfShortcode(target, attrs)
-              : renderHlsShortcode(target, attrs);
+              : renderHlsShortcode(target, attrs, aliases);
 
       tokens.push({ placeholder, html });
       return `\n\n${placeholder}\n\n`;

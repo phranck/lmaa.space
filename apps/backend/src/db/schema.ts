@@ -400,6 +400,7 @@ export const mediaAssets = pgTable(
     displayName: text("display_name").notNull(),
     originalName: text("original_name").notNull(),
     storedFilename: text("stored_filename").notNull().unique(),
+    posterStoredFilename: text("poster_stored_filename"),
     mimeType: text("mime_type").notNull(),
     kind: text("kind").$type<MediaKind>().notNull(),
     sizeBytes: integer("size_bytes").notNull(),

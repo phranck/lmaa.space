@@ -76,10 +76,14 @@ mediaRoutes.post("/media/bundles/hls", requireAdmin, async (c) => {
       return fail(
         c,
         400,
-        "Invalid HLS bundle. Required: one .m3u8 manifest and referenced .ts segments",
+        "Invalid HLS bundle. Required: one .m3u8 manifest, referenced .ts segments, optional poster.jpg/.jpeg/.png/.webp",
       );
     if (result.reason === "invalid_file")
-      return fail(c, 400, "Unsupported bundle file type. Allowed: .m3u8 and .ts");
+      return fail(
+        c,
+        400,
+        "Unsupported bundle file type. Allowed: .m3u8, .ts, poster.jpg/.jpeg/.png/.webp",
+      );
     return fail(c, 500, "Failed to store HLS bundle");
   }
 

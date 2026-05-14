@@ -371,6 +371,7 @@ export interface DashboardMessages {
     dimensions: string;
     fileSize: string;
     internalUrl: string;
+    posterUrl: string;
     createdAt: string;
     updatedAt: string;
     uploadedBy: string;
@@ -1577,7 +1578,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Media",
       upload: "Dateien hochladen",
       uploading: "Lade hoch…",
-      uploadHint: `Erlaubt: Bilder, MP4-Video, HLS-Ordner, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis ${MEDIA_UPLOAD_MAX_LABEL}`,
+      uploadHint: `Erlaubt: Bilder, MP4-Video, HLS-Ordner mit optionalem Poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis ${MEDIA_UPLOAD_MAX_LABEL}`,
       dropTitle: "Loslassen zum Hochladen",
       hlsBundleFallbackName: "HLS-Ordner",
       readingHlsFolder: "HLS-Ordner wird gelesen…",
@@ -1604,6 +1605,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       dimensions: "Abmessungen",
       fileSize: "Dateigröße",
       internalUrl: "Interne URL",
+      posterUrl: "Poster-URL",
       createdAt: "Hochgeladen",
       updatedAt: "Geändert",
       uploadedBy: "Hochgeladen von",
@@ -2820,7 +2822,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Media",
       upload: "Upload files",
       uploading: "Uploading…",
-      uploadHint: `Allowed: images, MP4 video, HLS folders, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) up to ${MEDIA_UPLOAD_MAX_LABEL}`,
+      uploadHint: `Allowed: images, MP4 video, HLS folders with optional poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) up to ${MEDIA_UPLOAD_MAX_LABEL}`,
       dropTitle: "Release to upload",
       hlsBundleFallbackName: "HLS folder",
       readingHlsFolder: "Reading HLS folder…",
@@ -2847,6 +2849,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       dimensions: "Dimensions",
       fileSize: "File size",
       internalUrl: "Internal URL",
+      posterUrl: "Poster URL",
       createdAt: "Uploaded",
       updatedAt: "Updated",
       uploadedBy: "Uploaded by",
