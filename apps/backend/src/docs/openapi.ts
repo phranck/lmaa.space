@@ -240,20 +240,36 @@ const apiReferenceCustomCss = String.raw`
   color: var(--scalar-color-orange);
 }
 
-.client-libraries-icon__javascript,
-.client-libraries-icon__js {
-  color: var(--scalar-color-yellow);
+.client-libraries-icon__c {
+  color: var(--scalar-color-blue);
 }
 
 .client-libraries-icon__node {
   color: var(--scalar-color-green);
 }
 
+.client-libraries-icon__php {
+  color: var(--scalar-color-purple);
+}
+
 .client-libraries-icon__python {
   color: var(--scalar-color-blue);
 }
 
-.client-libraries-icon__php {
+.client-libraries-icon__ruby {
+  color: var(--scalar-color-red);
+}
+
+.client-libraries-icon__rust {
+  color: var(--scalar-color-orange);
+}
+
+.client-libraries-icon__swift {
+  color: var(--scalar-color-red);
+}
+
+.client-libraries-icon__objc,
+.client-libraries-icon__objective-c {
   color: var(--scalar-color-purple);
 }
 `;
@@ -268,7 +284,6 @@ const scalarApiReference = Scalar({
   withDefaultFonts: false,
   customCss: apiReferenceCustomCss,
   hiddenClients: {
-    c: true,
     clojure: true,
     csharp: true,
     dart: true,
@@ -276,19 +291,13 @@ const scalarApiReference = Scalar({
     go: true,
     http: true,
     java: true,
+    js: true,
+    javascript: true,
     kotlin: true,
-    objc: true,
     ocaml: true,
     powershell: true,
     r: true,
-    ruby: true,
-    rust: true,
-    swift: true,
-    shell: ["httpie", "wget"],
-    js: ["axios", "jquery", "ofetch", "xhr"],
-    javascript: ["axios", "jquery", "ofetch", "xhr"],
-    node: ["axios", "native", "ofetch", "request", "unirest"],
-    php: ["curl", "http1", "http2"],
+    node: ["axios", "ofetch"],
     python: ["httpx_async", "httpx_sync", "python3"],
   },
   defaultHttpClient: {

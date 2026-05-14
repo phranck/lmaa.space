@@ -201,17 +201,23 @@ describe("OpenAPI document", () => {
     }[];
 
     expect(samples.map(({ lang, label }) => `${lang}:${label}`)).toEqual([
-      "Shell:cURL",
-      "JavaScript:Fetch",
+      "Curl:cURL",
+      "Shell:POSIX",
       "Node.js:Fetch",
-      "Python:Requests",
       "PHP:Guzzle",
+      "Python:Requests",
+      "Ruby:Net::HTTP",
+      "Rust:Reqwest",
+      "Swift:URLSession",
+      "ObjC:NSURLSession",
+      "C:libcurl",
     ]);
     expect(listShopsOperation["x-code-samples"]).toEqual(samples);
     expect(samples[0].source).toContain("curl --request GET");
-    expect(samples[1].source).toContain('fetch("https://lmaa.space/api/v1/shops"');
-    expect(samples[4].source).toContain("GuzzleHttp");
-    expect((healthOperation["x-codeSamples"] as typeof samples)[1].source).toContain(
+    expect(samples[2].source).toContain('fetch("https://lmaa.space/api/v1/shops"');
+    expect(samples[3].source).toContain("GuzzleHttp");
+    expect(samples[9].source).toContain("curl_easy_setopt");
+    expect((healthOperation["x-codeSamples"] as typeof samples)[2].source).toContain(
       "console.log(payload);",
     );
   });
@@ -249,6 +255,11 @@ describe("OpenAPI document", () => {
     expect(html).toContain("--lmaa-doc-header-height: 56px");
     expect(html).toContain('content: "LMAA Public API"');
     expect(html).toContain('"hiddenClients"');
+    expect(html).toContain('"js": true');
+    expect(html).not.toContain('"ruby": true');
+    expect(html).not.toContain('"rust": true');
+    expect(html).not.toContain('"swift": true');
+    expect(html).not.toContain('"objc": true');
     expect(html).not.toContain("SwaggerUIBundle");
     expect(html).not.toContain("swagger-ui");
     expect(html).not.toContain("forceDarkModeState");
