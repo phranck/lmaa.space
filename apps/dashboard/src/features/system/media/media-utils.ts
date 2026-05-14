@@ -30,11 +30,27 @@ export function getHlsMarkdownEmbed(asset: MediaAsset) {
   return title ? `[[hls:${target} title="${title}"${poster}]]` : `[[hls:${target}${poster}]]`;
 }
 
-export function formatBytes(bytes: number, locale: DashboardLocale) {
+interface FormatBytesOptions {
+  fixedFractionDigits?: number;
+}
+
+export function formatBytes(
+  bytes: number,
+  locale: DashboardLocale,
+  options: FormatBytesOptions = {},
+) {
+  const numberOptions =
+    options.fixedFractionDigits !== undefined
+      ? {
+          minimumFractionDigits: options.fixedFractionDigits,
+          maximumFractionDigits: options.fixedFractionDigits,
+        }
+      : { maximumFractionDigits: 1 };
+  const formatter = new Intl.NumberFormat(locale, numberOptions);
+
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024)
-    return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(bytes / 1024)} KB`;
-  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(bytes / (1024 * 1024))} MB`;
+  if (bytes < 1024 * 1024) return `${formatter.format(bytes / 1024)} KB`;
+  return `${formatter.format(bytes / (1024 * 1024))} MB`;
 }
 
 export function formatMediaDate(value: string, locale: DashboardLocale) {

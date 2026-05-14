@@ -1,4 +1,7 @@
+import { existsSync } from "node:fs";
+
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
@@ -27,6 +30,9 @@ const DEFAULT_BODY_LIMIT_BYTES = 10 * 1024 * 1024;
 const DEFAULT_BODY_LIMIT_LABEL = "10 MB";
 const ADMIN_MEDIA_UPLOAD_PATH = "/api/v1/admin/media";
 const ADMIN_HLS_BUNDLE_UPLOAD_PATH = "/api/v1/admin/media/bundles/hls";
+const FRONTEND_PUBLIC_ASSETS_ROOT = existsSync("apps/frontend/public")
+  ? "apps/frontend/public"
+  : "../frontend/public";
 
 const app = new Hono<{ Variables: { requestId: string } }>();
 
@@ -53,7 +59,7 @@ if (env.NODE_ENV === "production") {
     c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     c.header(
       "Content-Security-Policy",
-      "default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
+      "default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data:; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'",
     );
     return next();
   });
@@ -87,6 +93,16 @@ app.route("/", sitemapRoutes);
 app.route("/api/v1", publicRoutes);
 app.route("/api/v1/admin", adminRoutes);
 
+app.get(
+  "/fonts/*",
+  serveStatic({
+    root: FRONTEND_PUBLIC_ASSETS_ROOT,
+    rewriteRequestPath: (path) => path,
+    onFound: (_path, c) => {
+      c.header("Cache-Control", "public, max-age=31536000, immutable");
+    },
+  }),
+);
 app.get("/", serveApiReference);
 app.get("/docs", serveApiReference);
 app.get("/openapi.json", serveOpenApiJson);

@@ -3,6 +3,12 @@ import { SOCIAL_PLATFORM_KEYS, REGION_CODES, SHOP_VISIBILITIES } from "@lmaa/sha
 type HttpMethod = "get" | "post" | "put" | "delete" | "patch";
 type SchemaObject = Record<string, unknown>;
 
+interface OpenApiCodeSample {
+  lang: string;
+  label: string;
+  source: string;
+}
+
 interface OpenApiOperation {
   method: HttpMethod;
   path: string;
@@ -12,6 +18,8 @@ interface OpenApiOperation {
   operationId: string;
   parameters?: SchemaObject[];
   responses: Record<string, SchemaObject>;
+  "x-codeSamples"?: OpenApiCodeSample[];
+  "x-code-samples"?: OpenApiCodeSample[];
 }
 
 function getOpenApiServers() {
@@ -65,6 +73,108 @@ function withCommonErrors(
     ...(options.notFound ? { "404": errorResponse(options.notFound) } : {}),
     "429": errorResponse("Rate limit exceeded."),
   };
+}
+
+const samplePathsByOperationId: Record<string, string> = {
+  listPublicShops: "/api/v1/shops",
+  getPublicShop: "/api/v1/shops/layered-work",
+  listPublicCategories: "/api/v1/categories",
+  getPublicCategory: "/api/v1/categories/fair-fashion",
+  searchPublicCatalog: "/api/v1/search?q=kaffee",
+  checkShopUrl: "/api/v1/check-url?url=https%3A%2F%2Fexample-shop.de",
+  getPublicRejectionNotice: "/api/v1/rejected/0123456789abcdef0123456789abcdef",
+  listFilteredPublicShops: "/api/v1/filtered/shops?city=Berlin&radius=50&country=DE&region=EU",
+  listFilteredPublicCategories:
+    "/api/v1/filtered/categories?city=Berlin&radius=50&country=DE&region=EU",
+  getFilteredPublicCategory:
+    "/api/v1/filtered/categories/fair-fashion?city=Berlin&radius=50&country=DE&region=EU",
+  searchFilteredPublicCatalog:
+    "/api/v1/filtered/search?q=kaffee&city=Berlin&radius=50&country=DE&region=EU",
+  getPublicFilterOptions: "/api/v1/filter-options",
+  healthCheck: "/health",
+};
+
+function getOperationSampleUrl(operationId: string): string {
+  const samplePath = samplePathsByOperationId[operationId];
+  if (!samplePath) throw new Error(`Missing OpenAPI sample path for ${operationId}`);
+  return new URL(samplePath, "https://lmaa.space").toString();
+}
+
+function buildCodeSamples(operationId: string): OpenApiCodeSample[] {
+  const url = getOperationSampleUrl(operationId);
+  const logsDataEnvelope = operationId !== "healthCheck";
+  const jsLogStatement = logsDataEnvelope ? "console.log(payload.data);" : "console.log(payload);";
+  const pythonLogStatement = logsDataEnvelope ? 'print(payload["data"])' : "print(payload)";
+  const phpLogStatement = logsDataEnvelope ? "print_r($payload['data']);" : "print_r($payload);";
+
+  return [
+    {
+      lang: "Shell",
+      label: "cURL",
+      source: [
+        "curl --request GET \\",
+        `  --url '${url}' \\`,
+        "  --header 'Accept: application/json'",
+      ].join("\n"),
+    },
+    {
+      lang: "JavaScript",
+      label: "Fetch",
+      source: [
+        `const response = await fetch("${url}", {`,
+        '  headers: { Accept: "application/json" },',
+        "});",
+        "",
+        "if (!response.ok) {",
+        "  throw new Error(`LMAA API request failed: ${response.status}`);",
+        "}",
+        "",
+        "const payload = await response.json();",
+        jsLogStatement,
+      ].join("\n"),
+    },
+    {
+      lang: "Node.js",
+      label: "Fetch",
+      source: [
+        `const response = await fetch("${url}", {`,
+        '  headers: { Accept: "application/json" },',
+        "});",
+        "",
+        "if (!response.ok) {",
+        "  throw new Error(`LMAA API request failed: ${response.status}`);",
+        "}",
+        "",
+        "const payload = await response.json();",
+        jsLogStatement,
+      ].join("\n"),
+    },
+    {
+      lang: "Python",
+      label: "Requests",
+      source: [
+        "import requests",
+        "",
+        `response = requests.get("${url}", headers={"Accept": "application/json"}, timeout=10)`,
+        "response.raise_for_status()",
+        "payload = response.json()",
+        pythonLogStatement,
+      ].join("\n"),
+    },
+    {
+      lang: "PHP",
+      label: "Guzzle",
+      source: [
+        "<?php",
+        "$client = new \\GuzzleHttp\\Client();",
+        `$response = $client->request('GET', '${url}', [`,
+        "    'headers' => ['Accept' => 'application/json'],",
+        "]);",
+        "$payload = json_decode((string) $response->getBody(), true);",
+        phpLogStatement,
+      ].join("\n"),
+    },
+  ];
 }
 
 const tokenParam: SchemaObject = {
@@ -706,13 +816,62 @@ export function documentedRouteKeys(): string[] {
 function buildPaths() {
   const paths: Record<string, Record<string, Omit<OpenApiOperation, "method" | "path">>> = {};
   for (const { method, path, ...operation } of publicOpenApiOperations) {
+    const codeSamples = buildCodeSamples(operation.operationId);
     paths[path] ??= {};
-    paths[path][method] = operation;
+    paths[path][method] = {
+      ...operation,
+      "x-codeSamples": codeSamples,
+      "x-code-samples": codeSamples,
+    };
   }
   return paths;
 }
 
+function collectComponentSchemaRefs(value: unknown, refs = new Set<string>()): Set<string> {
+  if (!value || typeof value !== "object") return refs;
+
+  if (Array.isArray(value)) {
+    for (const item of value) collectComponentSchemaRefs(item, refs);
+    return refs;
+  }
+
+  const record = value as Record<string, unknown>;
+  if (typeof record.$ref === "string") {
+    const match = record.$ref.match(/^#\/components\/schemas\/(.+)$/);
+    if (match) refs.add(match[1]);
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    collectComponentSchemaRefs(nestedValue, refs);
+  }
+
+  return refs;
+}
+
+function buildPublicSchemas(paths: unknown) {
+  const publicSchemaNames = collectComponentSchemaRefs(paths);
+
+  let hasNewRefs = true;
+  while (hasNewRefs) {
+    hasNewRefs = false;
+    for (const schemaName of [...publicSchemaNames]) {
+      const nestedSchema = schemas[schemaName];
+      if (!nestedSchema) continue;
+
+      const previousSize = publicSchemaNames.size;
+      collectComponentSchemaRefs(nestedSchema, publicSchemaNames);
+      hasNewRefs = hasNewRefs || publicSchemaNames.size > previousSize;
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(schemas).filter(([schemaName]) => publicSchemaNames.has(schemaName)),
+  );
+}
+
 export function buildOpenApiDocument() {
+  const paths = buildPaths();
+
   return {
     openapi: "3.1.0",
     info: {
@@ -744,7 +903,7 @@ export function buildOpenApiDocument() {
       { name: "Content", description: "Externally shareable public content endpoints." },
       { name: "System", description: "Operational health endpoint." },
     ],
-    paths: buildPaths(),
-    components: { schemas },
+    paths,
+    components: { schemas: buildPublicSchemas(paths) },
   };
 }

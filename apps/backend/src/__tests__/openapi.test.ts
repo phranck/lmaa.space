@@ -125,6 +125,34 @@ function collectRefs(value: unknown): string[] {
   return ownRef.concat(Object.values(record).flatMap(collectRefs));
 }
 
+function componentNameFromRef(schemaRef: string): string | null {
+  return schemaRef.match(/^#\/components\/schemas\/(.+)$/)?.[1] ?? null;
+}
+
+function collectTransitiveSchemaNames(doc: ReturnType<typeof buildOpenApiDocument>): string[] {
+  const schemas = doc.components.schemas as Record<string, unknown>;
+  const schemaNames = new Set(
+    collectRefs({ paths: doc.paths })
+      .map(componentNameFromRef)
+      .filter((name): name is string => Boolean(name)),
+  );
+
+  let hasNewRefs = true;
+  while (hasNewRefs) {
+    hasNewRefs = false;
+    for (const schemaName of [...schemaNames]) {
+      const previousSize = schemaNames.size;
+      for (const nestedRef of collectRefs(schemas[schemaName])) {
+        const nestedSchemaName = componentNameFromRef(nestedRef);
+        if (nestedSchemaName) schemaNames.add(nestedSchemaName);
+      }
+      hasNewRefs = hasNewRefs || schemaNames.size > previousSize;
+    }
+  }
+
+  return [...schemaNames].sort();
+}
+
 describe("OpenAPI document", () => {
   it("documents only the approved external public endpoints", () => {
     expect(documentedRouteKeys().sort()).toEqual(APPROVED_DOCUMENTED_ROUTE_KEYS);
@@ -149,10 +177,43 @@ describe("OpenAPI document", () => {
     const refs = collectRefs(doc);
 
     for (const schemaRef of refs) {
-      const match = schemaRef.match(/^#\/components\/schemas\/(.+)$/);
-      expect(match, `Unsupported $ref format: ${schemaRef}`).not.toBeNull();
-      expect(schemaNames.has(match?.[1] ?? ""), `Missing schema for ${schemaRef}`).toBe(true);
+      const schemaName = componentNameFromRef(schemaRef);
+      expect(schemaName, `Unsupported $ref format: ${schemaRef}`).not.toBeNull();
+      expect(schemaNames.has(schemaName ?? ""), `Missing schema for ${schemaRef}`).toBe(true);
     }
+  });
+
+  it("exposes only component schemas reachable from public operations", () => {
+    const doc = buildOpenApiDocument();
+
+    expect(Object.keys(doc.components.schemas).sort()).toEqual(collectTransitiveSchemaNames(doc));
+    expect(doc.components.schemas).not.toHaveProperty("ShopVisibility");
+  });
+
+  it("adds curated SDK examples to each public operation", () => {
+    const doc = buildOpenApiDocument();
+    const listShopsOperation = doc.paths["/api/v1/shops"].get as Record<string, unknown>;
+    const healthOperation = doc.paths["/health"].get as Record<string, unknown>;
+    const samples = listShopsOperation["x-codeSamples"] as {
+      lang: string;
+      label: string;
+      source: string;
+    }[];
+
+    expect(samples.map(({ lang, label }) => `${lang}:${label}`)).toEqual([
+      "Shell:cURL",
+      "JavaScript:Fetch",
+      "Node.js:Fetch",
+      "Python:Requests",
+      "PHP:Guzzle",
+    ]);
+    expect(listShopsOperation["x-code-samples"]).toEqual(samples);
+    expect(samples[0].source).toContain("curl --request GET");
+    expect(samples[1].source).toContain('fetch("https://lmaa.space/api/v1/shops"');
+    expect(samples[4].source).toContain("GuzzleHttp");
+    expect((healthOperation["x-codeSamples"] as typeof samples)[1].source).toContain(
+      "console.log(payload);",
+    );
   });
 
   it("serves the generated OpenAPI JSON document without caching", async () => {
@@ -180,7 +241,16 @@ describe("OpenAPI document", () => {
     expect(response.headers.get("content-security-policy")).toContain("cdn.jsdelivr.net");
     expect(html).toContain("Scalar.createApiReference");
     expect(html).toContain('"url": "/openapi.json"');
+    expect(html).toContain('"theme": "none"');
+    expect(html).toContain('"hideDarkModeToggle": false');
+    expect(html).toContain('"withDefaultFonts": false');
+    expect(html).toContain('@import url("/fonts/fonts.css")');
+    expect(html).toContain("--scalar-color-accent: #259dff");
+    expect(html).toContain("--lmaa-doc-header-height: 56px");
+    expect(html).toContain('content: "LMAA Public API"');
+    expect(html).toContain('"hiddenClients"');
     expect(html).not.toContain("SwaggerUIBundle");
     expect(html).not.toContain("swagger-ui");
+    expect(html).not.toContain("forceDarkModeState");
   });
 });

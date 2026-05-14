@@ -11,6 +11,7 @@ zerops:
       deployFiles:
         - apps/backend/dist
         - apps/backend/drizzle
+        - apps/frontend/public/fonts
         - node_modules/sharp
         - node_modules/@img
       cache: .npm
