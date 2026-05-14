@@ -16,6 +16,16 @@ export function isVideoAsset(asset: MediaAsset) {
   return asset.kind === "video" || asset.mimeType.startsWith("video/");
 }
 
+function sanitizeShortcodeAttribute(value: string) {
+  return value.trim().replace(/[\r\n\t]+/g, " ").replaceAll('"', "'");
+}
+
+export function getHlsMarkdownEmbed(asset: MediaAsset) {
+  const target = asset.alias?.trim() || asset.url;
+  const title = sanitizeShortcodeAttribute(asset.displayName);
+  return title ? `[[hls:${target} title="${title}"]]` : `[[hls:${target}]]`;
+}
+
 export function formatBytes(bytes: number, locale: DashboardLocale) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024)

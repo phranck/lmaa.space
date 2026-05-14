@@ -26,6 +26,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@unocss/astro": "^66.6.1",
     "astro": "^5.7.0",
+    "hls.js": "^1.6.16",
     "marked": "^17.0.3",
     "marked-footnote": "^1.4.0",
     "qr-code-styling": "^1.9.2",

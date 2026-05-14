@@ -179,6 +179,7 @@ function HintsBar() {
         <span className="font-mono">[[widget:key]]</span>
         <span className="font-mono">[[image:/uploads/...]]</span>
         <span className="font-mono">[[pdf:/uploads/...]]</span>
+        <span className="font-mono">[[hls:alias]]</span>
       </div>
     </div>
   );

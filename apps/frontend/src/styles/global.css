@@ -112,6 +112,27 @@ dialog[data-animated].is-closing > div {
   z-index: 10;
 }
 
+.md-video {
+  margin: 2rem 0;
+}
+
+.md-video video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--md-video-aspect-ratio, 16 / 9);
+  border-radius: 0.75rem;
+  background: #080a14;
+}
+
+.md-video figcaption {
+  margin-top: 0.5rem;
+  color: var(--ds-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
 /* Mobile menu: hide default marker on summary */
 details > summary {
   list-style: none;

@@ -377,6 +377,8 @@ export interface DashboardMessages {
     saveName: string;
     openFile: string;
     copyUrl: string;
+    copyMarkdownEmbed: string;
+    markdownEmbed: string;
     copied: string;
     renameError: string;
     uploadError: string;
@@ -1608,6 +1610,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saveName: "Name speichern",
       openFile: "Öffnen",
       copyUrl: "URL kopieren",
+      copyMarkdownEmbed: "Markdown-Embed kopieren",
+      markdownEmbed: "Markdown-Embed",
       copied: "Kopiert",
       renameError: "Name konnte nicht gespeichert werden.",
       uploadError: "Datei konnte nicht hochgeladen werden.",
@@ -2849,6 +2853,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       saveName: "Save name",
       openFile: "Open",
       copyUrl: "Copy URL",
+      copyMarkdownEmbed: "Copy Markdown embed",
+      markdownEmbed: "Markdown embed",
       copied: "Copied",
       renameError: "Could not save file name.",
       uploadError: "Could not upload file.",
