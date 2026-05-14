@@ -345,7 +345,7 @@ export function MediaPage() {
       const percent = progress.percent ?? getUploadProgressValue(progress);
       const size =
         progress.bytesTotal && progress.bytesTotal > 0
-          ? ` · ${formatBytes(progress.bytesLoaded ?? 0, locale)} / ${formatBytes(progress.bytesTotal, locale)}`
+          ? ` · ${formatBytes(progress.bytesLoaded ?? 0, locale, { fixedFractionDigits: 1 })} / ${formatBytes(progress.bytesTotal, locale, { fixedFractionDigits: 1 })}`
           : "";
       return percent !== null
         ? mediaMessages.uploadProgress.replace("{percent}", String(percent)) + size
