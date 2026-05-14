@@ -1,19 +1,27 @@
 ---
 interface Props {
-	variant: "desktop" | "mobile";
+	variant: "desktop" | "mobile" | "mobile-header";
 }
 
 const { variant } = Astro.props;
 
 const label = "Ich liebe das Projekt";
+const visibleLabel = variant === "mobile-header" ? "Unterstützen" : label;
 const href = "/support-me";
 
 const classes =
 	variant === "desktop"
 		? "hidden md:flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-[#57201e] border border-[#57201e]/40 hover:bg-[#57201e]/10 transition-colors"
-		: "flex items-center gap-2 h-9 px-3 rounded-control bg-[#57201e] text-white text-sm font-medium hover:opacity-90 transition-opacity w-full justify-center";
+		: variant === "mobile-header"
+			? "inline-flex md:hidden items-center gap-1.5 h-9 px-4 rounded-full text-[#57201e] bg-[#9f1d1d]/5 border border-[#57201e]/40 hover:bg-[#9f1d1d]/10 transition-colors text-sm font-medium whitespace-nowrap"
+			: "flex items-center gap-2 h-9 px-3 rounded-control text-[#57201e] bg-[#9f1d1d]/5 border border-[#57201e]/40 hover:bg-[#9f1d1d]/10 transition-colors text-sm font-medium w-full justify-center";
 
-const placement = variant === "desktop" ? "header" : "header-mobile-menu";
+const placement =
+	variant === "desktop"
+		? "header"
+		: variant === "mobile-header"
+			? "header-mobile"
+			: "header-mobile-menu";
 ---
 
 <a
@@ -25,11 +33,11 @@ const placement = variant === "desktop" ? "header" : "header-mobile-menu";
 	data-analytics-label={label}
 	data-analytics-href={href}
 >
-	{variant === "desktop" && (
+	{variant !== "mobile" && (
 		<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
 			<path fill="currentColor" opacity="0.25" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
 			<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
 		</svg>
 	)}
-	{variant === "desktop" ? <span class="hidden sm:inline">{label}</span> : label}
+	{variant === "desktop" ? <span class="hidden sm:inline">{visibleLabel}</span> : visibleLabel}
 </a>
