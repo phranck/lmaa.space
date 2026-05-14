@@ -133,6 +133,7 @@ dialog[data-animated].is-closing > div {
   display: block;
   width: 100%;
   height: 100%;
+  margin: 0;
   border-radius: inherit;
   background: #080a14;
   object-fit: cover;
