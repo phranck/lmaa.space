@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-VERSION="1.0.0"
+VERSION="1.1.0"
 SCRIPT_SOURCE="${BASH_SOURCE[0]}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd -P)"
 SCRIPT_PATH="$SCRIPT_DIR/$(basename "$SCRIPT_SOURCE")"
@@ -33,6 +33,7 @@ HLS_ONLY=0
 USE_AUDIO=1
 AUDIO=""
 HLS_FROM=""
+KEY_OVERRIDE=""
 OUTPUT_SET=0
 TEMP_DIR=""
 
@@ -75,6 +76,8 @@ Options:
   -d, --hls-dir DIR         Alias for --hls-output.
   -t, --hls-time SECONDS    HLS segment length. Default: 6
   -p, --poster-time SECONDS Timestamp for HLS poster.jpg. Default: 3
+  -K, --key, --legend       Show the file extension legend for this run.
+      --no-key, --no-legend Hide the file extension legend for this run.
   -C, --crossfade SECONDS   Audio loop crossfade duration. Default: 4
   -f, --fade SECONDS        Audio fade-in/fade-out duration. Default: 3
   -v, --volume NUMBER       Audio volume multiplier. Default: 0.4
@@ -83,6 +86,7 @@ Options:
 Examples:
   ./gource
   ./gource --no-hls
+  ./gource --no-legend
   ./gource --hls-only
   ./gource hls
   ./gource hls --from .gource/lmaa-history.mp4 --hls-output .gource/lmaa-history-hls
@@ -148,6 +152,59 @@ find_gource_binary() {
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"
+}
+
+ensure_temp_dir() {
+  if [[ -z "$TEMP_DIR" || ! -d "$TEMP_DIR" ]]; then
+    TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lmaa-gource.XXXXXX")"
+  fi
+}
+
+build_effective_gource_config() {
+  local effective_config=""
+
+  [[ -f "$CONFIG_FILE" ]] || die "Gource config not found: $CONFIG_FILE"
+
+  if [[ -z "$KEY_OVERRIDE" ]]; then
+    printf "%s\n" "$CONFIG_FILE"
+    return
+  fi
+
+  ensure_temp_dir
+  effective_config="$TEMP_DIR/gource.conf"
+
+  awk -v key="$KEY_OVERRIDE" '
+    BEGIN {
+      in_gource = 0;
+      replaced = 0;
+    }
+    /^\[.*\]$/ {
+      if (in_gource && !replaced) {
+        print "key=" key;
+        replaced = 1;
+      }
+      in_gource = ($0 == "[gource]");
+      print;
+      next;
+    }
+    in_gource && $0 ~ /^[[:space:]]*key[[:space:]]*=/ {
+      if (!replaced) {
+        print "key=" key;
+        replaced = 1;
+      }
+      next;
+    }
+    {
+      print;
+    }
+    END {
+      if (in_gource && !replaced) {
+        print "key=" key;
+      }
+    }
+  ' "$CONFIG_FILE" > "$effective_config"
+
+  printf "%s\n" "$effective_config"
 }
 
 parse_args() {
@@ -234,6 +291,14 @@ parse_args() {
         require_value "$1" "${2-}"
         POSTER_TIME_SECONDS="$2"
         shift 2
+        ;;
+      -K | --key | --legend)
+        KEY_OVERRIDE="true"
+        shift
+        ;;
+      --no-key | --no-legend)
+        KEY_OVERRIDE="false"
+        shift
         ;;
       -C | --crossfade)
         require_value "$1" "${2-}"
@@ -391,6 +456,7 @@ generate_hls_output() {
 
 render_video() {
   local gource_binary="$1"
+  local effective_config=""
   local video_duration=""
   local audio_duration=""
   local crossfade_duration=""
@@ -403,9 +469,10 @@ render_video() {
 
   [[ -f "$CONFIG_FILE" ]] || die "Gource config not found: $CONFIG_FILE"
   [[ -d "$AVATAR_DIR" ]] || die "Avatar directory not found: $AVATAR_DIR"
+  effective_config="$(build_effective_gource_config)"
 
   echo "Rendering repo history..."
-  "$gource_binary" --load-config "$CONFIG_FILE" \
+  "$gource_binary" --load-config "$effective_config" \
     --user-image-dir "$AVATAR_DIR" \
     --stop-at-end --disable-input \
     -o - \

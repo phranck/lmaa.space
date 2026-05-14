@@ -158,6 +158,22 @@ export async function getMediaAliasMap(): Promise<Record<string, string>> {
   return map;
 }
 
+export async function getMediaShortcodeAssetMap(): Promise<
+  Record<string, { url: string; posterUrl: string | null }>
+> {
+  const rows = await listMediaAliases();
+  const map: Record<string, { url: string; posterUrl: string | null }> = {};
+  for (const row of rows) {
+    if (row.alias) {
+      map[row.alias] = {
+        url: getMediaPublicUrl(row.storedFilename),
+        posterUrl: row.posterStoredFilename ? getMediaPublicUrl(row.posterStoredFilename) : null,
+      };
+    }
+  }
+  return map;
+}
+
 export async function deleteManagedMediaAsset(id: number) {
   const deleted = await deleteMediaAsset(id);
   if (!deleted) {

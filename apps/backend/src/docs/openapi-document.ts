@@ -691,6 +691,7 @@ export const excludedPublicRouteKeys = [
   "GET /api/v1/markdown-widgets/{key}",
   "GET /api/v1/footer-preview/{token}",
   "GET /api/v1/media-aliases",
+  "GET /api/v1/media-shortcode-assets",
   "GET /api/v1/hero",
 ] as const;
 

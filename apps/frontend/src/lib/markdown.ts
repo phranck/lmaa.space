@@ -74,6 +74,15 @@ type MarkdownShortcodeToken = {
 
 type MarkdownShortcodeKind = "widget" | "image" | "pdf" | "hls";
 
+export type MarkdownMediaAlias =
+  | string
+  | {
+      url: string;
+      posterUrl?: string | null;
+    };
+
+export type MarkdownMediaAliases = Record<string, MarkdownMediaAlias>;
+
 function parseShortcodeAttributes(input: string): Record<string, string> {
   const attrs: Record<string, string> = {};
   const attrRegex = /([a-zA-Z][a-zA-Z0-9-]*)=(?:"([^"]*)"|'([^']*)'|([^\s"']+))/g;
@@ -113,6 +122,16 @@ function isHlsManifestPath(pathOrUrl: string): boolean {
   } catch {
     return pathOrUrl.split(/[?#]/)[0]?.toLowerCase().endsWith(".m3u8") ?? false;
   }
+}
+
+function getMediaAliasUrl(alias: MarkdownMediaAlias | undefined): string | null {
+  if (!alias) return null;
+  return typeof alias === "string" ? alias : alias.url;
+}
+
+function getMediaAliasPosterUrl(alias: MarkdownMediaAlias | undefined): string | null {
+  if (!alias || typeof alias === "string") return null;
+  return alias.posterUrl ?? null;
 }
 
 function renderWidgetShortcode(target: string, attrs: Record<string, string>): string {
@@ -170,7 +189,8 @@ function renderPdfShortcode(target: string, attrs: Record<string, string>): stri
 function renderHlsShortcode(
   target: string,
   attrs: Record<string, string>,
-  aliases?: Record<string, string>,
+  aliases?: MarkdownMediaAliases,
+  fallbackPoster?: string | null,
 ): string {
   const src = getSafeSiteAssetPath(target);
   if (!src || !isHlsManifestPath(src)) {
@@ -180,7 +200,9 @@ function renderHlsShortcode(
   const title = attrs.title?.trim();
   const caption = attrs.caption?.trim();
   const aspectRatio = getSafeAspectRatio(attrs.aspect);
-  const posterTarget = attrs.poster ? (aliases?.[attrs.poster] ?? attrs.poster) : undefined;
+  const posterTarget = attrs.poster
+    ? (getMediaAliasUrl(aliases?.[attrs.poster]) ?? attrs.poster)
+    : fallbackPoster;
   const poster = posterTarget ? getSafeSiteAssetPath(posterTarget) : null;
   const titleAttr = title
     ? ` title="${escapeHtmlAttribute(title)}" aria-label="${escapeHtmlAttribute(title)}"`
@@ -189,8 +211,9 @@ function renderHlsShortcode(
   const styleAttr = aspectRatio
     ? ` style="--md-video-aspect-ratio:${escapeHtmlAttribute(aspectRatio)};"`
     : "";
+  const maximizeButton = `<button class="md-video-maximize" type="button" aria-label="Video vergrößern" data-hls-maximize><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" /></svg></button>`;
   const video = `<video class="js-hls-player" data-hls-src="${escapeHtmlAttribute(src)}" controls playsinline preload="metadata"${titleAttr}${posterAttr}><a href="${escapeHtmlAttribute(src)}" target="_blank" rel="noopener noreferrer">Video öffnen</a></video>`;
-  const frame = `<div class="md-video-frame">${video}</div>`;
+  const frame = `<div class="md-video-frame">${video}${maximizeButton}</div>`;
 
   if (!caption) {
     return `<figure class="md-video"${styleAttr}>${frame}</figure>`;
@@ -201,7 +224,7 @@ function renderHlsShortcode(
 
 function extractShortcodes(
   content: string,
-  aliases?: Record<string, string>,
+  aliases?: MarkdownMediaAliases,
 ): { content: string; tokens: MarkdownShortcodeToken[] } {
   const tokens: MarkdownShortcodeToken[] = [];
   let index = 0;
@@ -209,8 +232,10 @@ function extractShortcodes(
   const nextContent = content.replace(
     /\[\[(widget|image|pdf|hls):([^\]\s]+)([^\]]*)\]\]/g,
     (_match, kind: MarkdownShortcodeKind, rawTarget: string, attrsInput: string) => {
-      const target = (kind !== "widget" && aliases?.[rawTarget]) || rawTarget;
+      const alias = kind !== "widget" ? aliases?.[rawTarget] : undefined;
+      const target = getMediaAliasUrl(alias) ?? rawTarget;
       const attrs = parseShortcodeAttributes(attrsInput);
+      const fallbackPoster = kind === "hls" ? getMediaAliasPosterUrl(alias) : null;
       const placeholder = `LMAA_SHORTCODE_${index}_TOKEN`;
       index += 1;
 
@@ -221,7 +246,7 @@ function extractShortcodes(
             ? renderImageShortcode(target, attrs)
             : kind === "pdf"
               ? renderPdfShortcode(target, attrs)
-              : renderHlsShortcode(target, attrs, aliases);
+              : renderHlsShortcode(target, attrs, aliases, fallbackPoster);
 
       tokens.push({ placeholder, html });
       return `\n\n${placeholder}\n\n`;
@@ -268,7 +293,7 @@ const markedSafe = new Marked({
  */
 export async function renderMarkdown(
   content: string,
-  aliases: Record<string, string> = {},
+  aliases: MarkdownMediaAliases = {},
 ): Promise<string> {
   const normalized = normalizeFootnoteSourceHeadings(content);
   const { content: withShortcodes, tokens } = extractShortcodes(normalized, aliases);

@@ -14,7 +14,7 @@ import {
   getManagedPublicFormConfig,
   getManagedPublicFormConfigBySlug,
 } from "../services/admin-form-config.js";
-import { getMediaAliasMap } from "../services/admin-media.js";
+import { getMediaAliasMap, getMediaShortcodeAssetMap } from "../services/admin-media.js";
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
@@ -457,6 +457,13 @@ publicRoutes.get("/filter-options", publicReadLimit, async (c) => {
 // GET /api/media-aliases – alias → public URL map for markdown shortcodes
 publicRoutes.get("/media-aliases", publicReadLimit, async (c) => {
   const map = await getMediaAliasMap();
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, map);
+});
+
+// GET /api/media-shortcode-assets - alias to public media metadata for markdown shortcodes
+publicRoutes.get("/media-shortcode-assets", publicReadLimit, async (c) => {
+  const map = await getMediaShortcodeAssetMap();
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, map);
 });
