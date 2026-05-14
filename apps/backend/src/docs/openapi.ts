@@ -312,7 +312,7 @@ const apiReferenceContentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
   "font-src 'self' data:",
   "img-src 'self' data: https://cdn.jsdelivr.net",
-  "connect-src 'self' https://lmaa.space",
+  "connect-src 'self' https://lmaa.space https://api.lmaa.space",
   "frame-ancestors 'none'",
 ].join("; ");
 
