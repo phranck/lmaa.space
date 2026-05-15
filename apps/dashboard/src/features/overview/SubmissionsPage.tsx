@@ -1,12 +1,6 @@
-import {
-  ClockIcon,
-  PauseCircleIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { ClockIcon, PauseCircleIcon, XCircleIcon } from "@phosphor-icons/react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams, useSearchParams } from "react-router";
-
-import { type SubmissionStatus } from "@lmaa/shared";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
 import { type DropdownOption } from "@/components/ui/Dropdown.tsx";
@@ -24,6 +18,13 @@ import {
   useImportSubmissions,
 } from "@/features/overview/hooks/useSubmissions.ts";
 import { ShopReportsTab } from "@/features/overview/ShopReportsTab.tsx";
+import {
+  applySuggestionsStatusFilterSearchParam,
+  parseSuggestionsStatusFilter,
+  readStoredSuggestionsStatusFilter,
+  type SuggestionsStatusFilter,
+  writeStoredSuggestionsStatusFilter,
+} from "@/features/overview/submission-status-filter.ts";
 import { SuggestionsTab } from "@/features/overview/SuggestionsTab.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
 import {
@@ -33,7 +34,6 @@ import {
 } from "@/lib/table-sort-storage.ts";
 
 type Tab = "suggestions" | "dead-links" | "shop-reports";
-type SuggestionsStatusFilter = Extract<SubmissionStatus, "pending" | "onhold" | "rejected">;
 type ReportTabParam = Tab | undefined;
 const SUGGESTIONS_SORTABLE_COLUMNS = new Set(["shop", "submitted", "rejectedAt"]);
 const DEFAULT_SUGGESTIONS_SORT: SortState = { id: "shop", dir: "asc" };
@@ -62,7 +62,6 @@ export function SubmissionsPage() {
   const { user } = useAuth();
   const submissionsMessages = messages.submissions;
   const tab = resolveInitialTab(tabParam, location.search);
-  const [statusFilter, setStatusFilter] = useState<SuggestionsStatusFilter>("pending");
   const [importError, setImportError] = useState<string | null>(null);
   const importMutation = useImportSubmissions();
   const statusLabels = submissionsMessages.status;
@@ -70,6 +69,9 @@ export function SubmissionsPage() {
     user?.id,
     "submissions:suggestions:status",
   );
+  const urlStatusFilter = parseSuggestionsStatusFilter(searchParams.get("status"));
+  const [storedStatusFilter, setStoredStatusFilter] = useState<SuggestionsStatusFilter>("pending");
+  const statusFilter = urlStatusFilter ?? storedStatusFilter;
   const suggestionsSortStorageKey = getSegmentedStorageKey(
     user?.id,
     "submissions:suggestions:sort",
@@ -85,6 +87,19 @@ export function SubmissionsPage() {
   const { data: pendingSubmissions = [] } = useAdminSubmissions("pending");
   const { data: onholdSubmissions = [] } = useAdminSubmissions("onhold");
   const { data: rejectedSubmissions = [] } = useAdminSubmissions("rejected");
+
+  useEffect(() => {
+    if (urlStatusFilter) {
+      setStoredStatusFilter(urlStatusFilter);
+      writeStoredSuggestionsStatusFilter(suggestionsStatusStorageKey, urlStatusFilter);
+      return;
+    }
+
+    const stored = readStoredSuggestionsStatusFilter(suggestionsStatusStorageKey);
+    if (stored) {
+      setStoredStatusFilter(stored);
+    }
+  }, [suggestionsStatusStorageKey, urlStatusFilter]);
 
   const filterOptions = useMemo<DropdownOption<SuggestionsStatusFilter>[]>(
     () => [
@@ -143,14 +158,18 @@ export function SubmissionsPage() {
     reader.readAsText(file);
   }
 
+  function handleStatusFilterChange(nextStatus: SuggestionsStatusFilter) {
+    setStoredStatusFilter(nextStatus);
+    writeStoredSuggestionsStatusFilter(suggestionsStatusStorageKey, nextStatus);
+    setSearchParams(applySuggestionsStatusFilterSearchParam(searchParams, nextStatus), {
+      replace: true,
+    });
+  }
+
   function handleSuggestionsSortChange(nextSort: SortState | null) {
     const nextParams = new URLSearchParams(searchParams);
     if (nextSort) {
-      writeStoredTableSort(
-        suggestionsSortStorageKey,
-        nextSort,
-        SUGGESTIONS_SORTABLE_COLUMNS,
-      );
+      writeStoredTableSort(suggestionsSortStorageKey, nextSort, SUGGESTIONS_SORTABLE_COLUMNS);
       nextParams.set("sort", nextSort.id);
       nextParams.set("dir", nextSort.dir);
     } else {
@@ -167,9 +186,8 @@ export function SubmissionsPage() {
           <>
             <FilterDropdown
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={handleStatusFilterChange}
               options={filterOptions}
-              storageKey={suggestionsStatusStorageKey}
             />
             <ImportButton
               onFileSelected={handleImportFile}
