@@ -7,7 +7,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { BrowsersIcon, FileIcon, NotebookIcon, SquareHalfBottomIcon } from "@phosphor-icons/react";
-import { forwardRef, useEffect, useImperativeHandle, useReducer, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useReducer, useRef, useState, type Ref } from "react";
 
 import type { NavId } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
@@ -27,7 +27,6 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import { useContentPages } from "@/features/content/hooks/useAdminContent.ts";
 import { useAdminNav, useSaveNav } from "@/features/system/hooks/useAdminNav.ts";
 import { useFormConfigs } from "@/features/templates/hooks/useFormConfig.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 const NAV_TEXT = {
   de: {
@@ -173,12 +172,10 @@ export interface NavColumnHandle {
 interface NavColumnProps {
   navId: NavId;
   onDirtyChange?: (dirty: boolean) => void;
+  ref?: Ref<NavColumnHandle>;
 }
 
-const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn(
-  { navId, onDirtyChange },
-  ref,
-) {
+function NavColumn({ navId, onDirtyChange, ref }: NavColumnProps) {
   const { locale } = useI18n();
   const text = NAV_TEXT[locale];
   const staticRoutes = text.staticRoutes;
@@ -218,6 +215,11 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
     dispatch({ items: typeof updater === "function" ? updater(items) : updater });
   };
 
+  function setDirty(dirty: boolean) {
+    dispatch({ dirty });
+    onDirtyChange?.(dirty);
+  }
+
   useEffect(() => {
     dispatch({
       items: serverItems.map((si) => ({
@@ -242,17 +244,17 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
       const newIndex = prev.findIndex((i) => i.id === over.id);
       return arrayMove(prev, oldIndex, newIndex);
     });
-    dispatch({ dirty: true });
+    setDirty(true);
   }
 
   function handleRemove(id: number) {
     setItems((prev) => prev.filter((i) => i.id !== id));
-    dispatch({ dirty: true });
+    setDirty(true);
   }
 
   function handleLabelChange(id: number, label: string) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, label } : i)));
-    dispatch({ dirty: true });
+    setDirty(true);
   }
 
   function handleAddPage() {
@@ -276,7 +278,7 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
         },
       ]);
       dispatch({ addPageSlug: "" });
-      dispatch({ dirty: true });
+      setDirty(true);
       return;
     }
     const page = allPages.find((p) => p.slug === addPageSlug);
@@ -294,7 +296,7 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
       },
     ]);
     dispatch({ addPageSlug: "" });
-    dispatch({ dirty: true });
+    setDirty(true);
   }
 
   function handleAddUrl() {
@@ -316,7 +318,8 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
         label: derivedLabel,
       },
     ]);
-    dispatch({ addUrl: "", addLabel: "", addTarget: "_self", dirty: true });
+    dispatch({ addUrl: "", addLabel: "", addTarget: "_self" });
+    setDirty(true);
   }
 
   function handleAddStatic(route: { label: string; url: string }) {
@@ -332,7 +335,7 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
         label: "",
       },
     ]);
-    dispatch({ dirty: true });
+    setDirty(true);
   }
 
   async function handleSave(): Promise<boolean> {
@@ -346,16 +349,12 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
           target: i.target,
         })),
       );
-      dispatch({ dirty: false });
+      setDirty(false);
       return true;
     } catch {
       return false;
     }
   }
-
-  useEffect(() => {
-    onDirtyChange?.(dirty);
-  }, [dirty, onDirtyChange]);
 
   useImperativeHandle(
     ref,
@@ -426,7 +425,7 @@ const NavColumn = forwardRef<NavColumnHandle, NavColumnProps>(function NavColumn
       />
     </div>
   );
-});
+}
 
 interface NavColumnAddSectionProps {
   addType: "page" | "url" | "form";
@@ -587,8 +586,6 @@ export function NavManagerPage() {
     setIsSaving(false);
     if (headerOk && footerOk) showSaved();
   }
-
-  useKeyboardSave(handleSave, isDirty && !isSaving);
 
   return (
     <>

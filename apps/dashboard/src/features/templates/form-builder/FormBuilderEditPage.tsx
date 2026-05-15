@@ -44,7 +44,6 @@ import {
   useSaveFormConfig,
   useSetFormConfigActive,
 } from "@/features/templates/hooks/useFormConfig.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 /**
  * Returns the default human-readable label for a given field type.
@@ -130,6 +129,79 @@ function makeNewRow(field: FormField): FormRow {
   return { id: crypto.randomUUID(), fields: [field] };
 }
 
+type BuilderActiveDrag = {
+  id: string;
+  field?: FormField;
+  row?: FormRow;
+  paletteType?: FieldType;
+} | null;
+
+interface FormBuilderFormState {
+  rows: FormRow[];
+  slug: string;
+  submissionConfig: SubmissionConfig | undefined;
+  isDirty: boolean;
+}
+
+interface BuilderUIState {
+  selectedFieldId: string | null;
+  saveStatus: "idle" | "saved" | "error" | "slug_conflict";
+  showExportWarning: boolean;
+  activeDrag: BuilderActiveDrag;
+}
+
+const FIELD_CONFIG_EXCLUDED_TYPES = new Set<FieldType>([
+  "button",
+  "richtext",
+  "headline",
+  "separator",
+  "paragraph",
+]);
+
+const SUBMISSION_CONFIG_EXCLUDED_TYPES = new Set<FieldType>([
+  "button",
+  "headline",
+  "separator",
+  "paragraph",
+]);
+
+function getFieldOptions(
+  rows: FormRow[],
+  excludedTypes: ReadonlySet<FieldType>,
+  excludedFieldId?: string,
+  useNameAsId = false,
+) {
+  const options: Array<{ id: string; label: string }> = [];
+
+  for (const row of rows) {
+    for (const field of row.fields) {
+      if (field.id === excludedFieldId || excludedTypes.has(field.type)) continue;
+      options.push({
+        id: useNameAsId ? field.name || field.id : field.id,
+        label: field.label || field.name || field.id,
+      });
+    }
+  }
+
+  return options;
+}
+
+function removeFieldFromRows(rows: FormRow[], rowId: string, fieldId: string) {
+  const nextRows: FormRow[] = [];
+
+  for (const row of rows) {
+    if (row.id !== rowId) {
+      nextRows.push(row);
+      continue;
+    }
+
+    const fields = row.fields.filter((field) => field.id !== fieldId);
+    if (fields.length > 0) nextRows.push({ ...row, fields });
+  }
+
+  return nextRows;
+}
+
 /**
  * Form builder edit page — loads a form by name from the URL parameter.
  *
@@ -149,24 +221,12 @@ export function FormBuilderEditPage() {
   const saveMutation = useSaveFormConfig(formName);
   const setActive = useSetFormConfigActive();
 
-  const [formState, setFormState] = useState<{
-    rows: FormRow[];
-    slug: string;
-    submissionConfig: SubmissionConfig | undefined;
-    isDirty: boolean;
-  }>({ rows: [], slug: "", submissionConfig: undefined, isDirty: false });
-  interface BuilderUIState {
-    selectedFieldId: string | null;
-    saveStatus: "idle" | "saved" | "error" | "slug_conflict";
-    showExportWarning: boolean;
-    activeDrag: {
-      id: string;
-      field?: FormField;
-      row?: FormRow;
-      paletteType?: FieldType;
-    } | null;
-  }
-
+  const [formState, setFormState] = useState<FormBuilderFormState>({
+    rows: [],
+    slug: "",
+    submissionConfig: undefined,
+    isDirty: false,
+  });
   const [uiState, dispatchUI] = useReducer(
     (prev: BuilderUIState, action: Partial<BuilderUIState>): BuilderUIState => ({
       ...prev,
@@ -221,8 +281,6 @@ export function FormBuilderEditPage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
-
-  const sensors = useDashboardSortableSensors({ activationDistance: 6 });
 
   const selectedField =
     selectedFieldId !== null
@@ -334,14 +392,7 @@ export function FormBuilderEditPage() {
 
   function handleDeleteField(rowId: string, fieldId: string) {
     if (selectedFieldId === fieldId) dispatchUI({ selectedFieldId: null });
-    setRows((prev) =>
-      prev
-        .map((row) => {
-          if (row.id !== rowId) return row;
-          return { ...row, fields: row.fields.filter((f) => f.id !== fieldId) };
-        })
-        .filter((row) => row.fields.length > 0),
-    );
+    setRows((prev) => removeFieldFromRows(prev, rowId, fieldId));
     setIsDirty(true);
   }
 
@@ -380,8 +431,6 @@ export function FormBuilderEditPage() {
     );
   }
 
-  useKeyboardSave(handleSave, !isLoading && !saveMutation.isPending);
-
   function handleExport() {
     if (!config) return;
     if (isDirty) {
@@ -394,15 +443,11 @@ export function FormBuilderEditPage() {
 
   if (isLoading) {
     return (
-      <div>
-        <PageHeader
-          title={m.title}
-          leading={<HeaderBackButton label={m.listTitle} onClick={() => navigate("/forms")} />}
-        />
-        <div className="flex items-center justify-center py-24">
-          <div className="size-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-        </div>
-      </div>
+      <BuilderLoadingPage
+        title={m.title}
+        backLabel={m.listTitle}
+        onBack={() => navigate("/forms")}
+      />
     );
   }
 
@@ -425,125 +470,38 @@ export function FormBuilderEditPage() {
         />
       </PageHeader>
 
-      {/* Slug editor */}
-      <div className="pb-3 flex items-center gap-3">
-        <label htmlFor="form-slug" className="text-sm text-[var(--ds-text-muted)] shrink-0">
-          {m.slugLabel}:
-        </label>
-        <div className="flex items-center gap-1">
-          <span className="text-sm text-[var(--ds-text-muted)] font-mono">/</span>
-          <div className="w-48">
-            <DashboardInput
-              id="form-slug"
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-              placeholder={m.slugPlaceholder}
-              className="font-mono"
-            />
-          </div>
-        </div>
-        {config && (
-          <div className="ml-auto flex items-center gap-2">
-            <label htmlFor="form-active-toggle" className="text-sm text-[var(--ds-text-muted)]">
-              {m.status.active}
-            </label>
-            <ToggleSwitch
-              checked={config.isActive}
-              onChange={(checked) => setActive.mutate({ name: formName, isActive: checked })}
-              disabled={setActive.isPending}
-            />
-          </div>
-        )}
-      </div>
+      <BuilderSlugBar
+        slug={slug}
+        isActive={config?.isActive}
+        isSavingActive={setActive.isPending}
+        onSlugChange={setSlug}
+        onActiveChange={(checked) => setActive.mutate({ name: formName, isActive: checked })}
+        m={m}
+      />
 
-      <div>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={() => dispatchUI({ activeDrag: null })}
-        >
-          <div className="flex gap-4 items-start">
-            <div className="shrink-0">
-              <FieldPalette />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <BuilderCanvas
-                rows={rows}
-                selectedFieldId={selectedFieldId}
-                onSelectField={handleSelectField}
-                onDeleteField={handleDeleteField}
-              />
-            </div>
-
-            <div className="shrink-0 w-72">
-              <DashboardSection>
-                <DashboardSection.Header
-                  icon={
-                    selectedField !== null ? (
-                      <FieldTypeIcon type={selectedField.type} />
-                    ) : (
-                      <GearIcon weight="duotone" className="size-4" />
-                    )
-                  }
-                  title={
-                    selectedField !== null
-                      ? fieldTypeLabel(
-                          selectedField.type,
-                          m.fieldTypes as unknown as Record<string, string>,
-                        )
-                      : m.preferencesTitle
-                  }
-                />
-                {selectedField !== null ? (
-                  <DashboardSection.Body>
-                    <FieldConfigPanel
-                      field={selectedField}
-                      onChange={handleFieldChange}
-                      allFields={rows
-                        .flatMap((r) => r.fields)
-                        .filter(
-                          (f) =>
-                            f.id !== selectedField.id &&
-                            f.type !== "button" &&
-                            f.type !== "richtext" &&
-                            f.type !== "headline" &&
-                            f.type !== "separator" &&
-                            f.type !== "paragraph",
-                        )
-                        .map((f) => ({ id: f.id, label: f.label || f.name || f.id }))}
-                    />
-                  </DashboardSection.Body>
-                ) : (
-                  <ContentUnavailableView
-                    className="h-64"
-                    icon={<HandTapIcon weight="duotone" aria-hidden />}
-                    title={messages.formBuilder.noFieldSelected}
-                    subtitle={messages.formBuilder.noFieldSelectedHint}
-                  />
-                )}
-              </DashboardSection>
-            </div>
-          </div>
-
-          <DragOverlay>
-            <BuilderDragOverlayContent activeDrag={activeDrag} fieldTypes={m.fieldTypes} />
-          </DragOverlay>
-        </DndContext>
-      </div>
+      <BuilderWorkspace
+        rows={rows}
+        selectedField={selectedField}
+        selectedFieldId={selectedFieldId}
+        activeDrag={activeDrag}
+        fieldTypes={m.fieldTypes}
+        preferencesTitle={m.preferencesTitle}
+        noFieldSelectedTitle={messages.formBuilder.noFieldSelected}
+        noFieldSelectedHint={messages.formBuilder.noFieldSelectedHint}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => dispatchUI({ activeDrag: null })}
+        onSelectField={handleSelectField}
+        onDeleteField={handleDeleteField}
+        onFieldChange={handleFieldChange}
+      />
 
       <FlowConnector />
 
-      <SubmissionConfigPanel
+      <BuilderSubmissionConfigPanel
         config={submissionConfig}
         onChange={setSubmissionConfig}
-        fields={rows
-          .flatMap((r) => r.fields)
-          .filter((f) => !["button", "headline", "separator", "paragraph"].includes(f.type))
-          .map((f) => ({ id: f.name || f.id, label: f.label || f.name || f.id }))}
+        rows={rows}
       />
 
       <TextTokensHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
@@ -554,6 +512,197 @@ export function FormBuilderEditPage() {
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+function BuilderLoadingPage({
+  title,
+  backLabel,
+  onBack,
+}: {
+  title: string;
+  backLabel: string;
+  onBack: () => void;
+}) {
+  return (
+    <div>
+      <PageHeader title={title} leading={<HeaderBackButton label={backLabel} onClick={onBack} />} />
+      <div className="flex items-center justify-center py-24">
+        <div className="size-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+      </div>
+    </div>
+  );
+}
+
+interface BuilderSlugBarProps {
+  slug: string;
+  isActive: boolean | undefined;
+  isSavingActive: boolean;
+  onSlugChange: (value: string) => void;
+  onActiveChange: (checked: boolean) => void;
+  m: ReturnType<typeof useI18n>["messages"]["formBuilder"];
+}
+
+function BuilderSlugBar({
+  slug,
+  isActive,
+  isSavingActive,
+  onSlugChange,
+  onActiveChange,
+  m,
+}: BuilderSlugBarProps) {
+  return (
+    <div className="pb-3 flex items-center gap-3">
+      <label htmlFor="form-slug" className="text-sm text-[var(--ds-text-muted)] shrink-0">
+        {m.slugLabel}:
+      </label>
+      <div className="flex items-center gap-1">
+        <span className="text-sm text-[var(--ds-text-muted)] font-mono">/</span>
+        <div className="w-48">
+          <DashboardInput
+            id="form-slug"
+            type="text"
+            value={slug}
+            onChange={(event) =>
+              onSlugChange(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+            }
+            placeholder={m.slugPlaceholder}
+            className="font-mono"
+          />
+        </div>
+      </div>
+      {isActive !== undefined && (
+        <div className="ml-auto flex items-center gap-2">
+          <label htmlFor="form-active-toggle" className="text-sm text-[var(--ds-text-muted)]">
+            {m.status.active}
+          </label>
+          <ToggleSwitch checked={isActive} onChange={onActiveChange} disabled={isSavingActive} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface BuilderWorkspaceProps {
+  rows: FormRow[];
+  selectedField: FormField | null;
+  selectedFieldId: string | null;
+  activeDrag: BuilderActiveDrag;
+  fieldTypes: Record<string, string>;
+  preferencesTitle: string;
+  noFieldSelectedTitle: string;
+  noFieldSelectedHint: string;
+  onDragStart: (event: DragStartEvent) => void;
+  onDragEnd: (event: DragEndEvent) => void;
+  onDragCancel: () => void;
+  onSelectField: (fieldId: string) => void;
+  onDeleteField: (rowId: string, fieldId: string) => void;
+  onFieldChange: (field: FormField) => void;
+}
+
+function BuilderWorkspace({
+  rows,
+  selectedField,
+  selectedFieldId,
+  activeDrag,
+  fieldTypes,
+  preferencesTitle,
+  noFieldSelectedTitle,
+  noFieldSelectedHint,
+  onDragStart,
+  onDragEnd,
+  onDragCancel,
+  onSelectField,
+  onDeleteField,
+  onFieldChange,
+}: BuilderWorkspaceProps) {
+  const sensors = useDashboardSortableSensors({ activationDistance: 6 });
+
+  return (
+    <div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragCancel={onDragCancel}
+      >
+        <div className="flex gap-4 items-start">
+          <div className="shrink-0">
+            <FieldPalette />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <BuilderCanvas
+              rows={rows}
+              selectedFieldId={selectedFieldId}
+              onSelectField={onSelectField}
+              onDeleteField={onDeleteField}
+            />
+          </div>
+
+          <div className="shrink-0 w-72">
+            <DashboardSection>
+              <DashboardSection.Header
+                icon={
+                  selectedField !== null ? (
+                    <FieldTypeIcon type={selectedField.type} />
+                  ) : (
+                    <GearIcon weight="duotone" className="size-4" />
+                  )
+                }
+                title={
+                  selectedField !== null
+                    ? fieldTypeLabel(
+                        selectedField.type,
+                        fieldTypes as unknown as Record<string, string>,
+                      )
+                    : preferencesTitle
+                }
+              />
+              {selectedField !== null ? (
+                <DashboardSection.Body>
+                  <FieldConfigPanel
+                    field={selectedField}
+                    onChange={onFieldChange}
+                    allFields={getFieldOptions(rows, FIELD_CONFIG_EXCLUDED_TYPES, selectedField.id)}
+                  />
+                </DashboardSection.Body>
+              ) : (
+                <ContentUnavailableView
+                  className="h-64"
+                  icon={<HandTapIcon weight="duotone" aria-hidden />}
+                  title={noFieldSelectedTitle}
+                  subtitle={noFieldSelectedHint}
+                />
+              )}
+            </DashboardSection>
+          </div>
+        </div>
+
+        <DragOverlay>
+          <BuilderDragOverlayContent activeDrag={activeDrag} fieldTypes={fieldTypes} />
+        </DragOverlay>
+      </DndContext>
+    </div>
+  );
+}
+
+function BuilderSubmissionConfigPanel({
+  config,
+  onChange,
+  rows,
+}: {
+  config: SubmissionConfig | undefined;
+  onChange: (config: SubmissionConfig | undefined) => void;
+  rows: FormRow[];
+}) {
+  return (
+    <SubmissionConfigPanel
+      config={config}
+      onChange={onChange}
+      fields={getFieldOptions(rows, SUBMISSION_CONFIG_EXCLUDED_TYPES, undefined, true)}
+    />
+  );
+}
 
 interface BuilderHeaderActionsProps {
   showExportWarning: boolean;
