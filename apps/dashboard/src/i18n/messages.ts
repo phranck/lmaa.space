@@ -1199,6 +1199,9 @@ export interface DashboardMessages {
       columnOccurredAt: string;
       columnStatus: string;
       resolveAction: string;
+      deleteAction: string;
+      deleteConfirmTitle: string;
+      deleteConfirmDescription: string;
       statusOpen: string;
       statusResolved: string;
       noErrors: string;
@@ -2466,6 +2469,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         columnOccurredAt: "Zeitpunkt",
         columnStatus: "Status",
         resolveAction: "Lösen",
+        deleteAction: "Löschen",
+        deleteConfirmTitle: "Hintergrundfehler löschen",
+        deleteConfirmDescription:
+          "Der Hintergrundfehler aus {source} wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
         statusOpen: "Offen",
         statusResolved: "Gelöst",
         noErrors: "Keine Fehler vorhanden",
@@ -3720,6 +3727,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         columnOccurredAt: "Occurred at",
         columnStatus: "Status",
         resolveAction: "Resolve",
+        deleteAction: "Delete",
+        deleteConfirmTitle: "Delete background error",
+        deleteConfirmDescription:
+          "The background error from {source} will be permanently deleted. This action cannot be undone.",
         statusOpen: "Open",
         statusResolved: "Resolved",
         noErrors: "No errors found",

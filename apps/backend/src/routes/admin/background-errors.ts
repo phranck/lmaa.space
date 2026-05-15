@@ -4,6 +4,7 @@ import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables } from "../../middleware/auth.js";
 import {
+  deleteBackgroundError,
   listBackgroundErrors,
   resolveBackgroundError,
 } from "../../repositories/background-errors.js";
@@ -22,8 +23,7 @@ export const backgroundErrorsRoutes = new Hono<{ Variables: AuthVariables }>();
 backgroundErrorsRoutes.get("/background-errors", async (c) => {
   const { resolved: resolvedParam, source, limit: limitParam, offset: offsetParam } = c.req.query();
 
-  const resolved =
-    resolvedParam === "true" ? true : resolvedParam === "false" ? false : undefined;
+  const resolved = resolvedParam === "true" ? true : resolvedParam === "false" ? false : undefined;
   const limit = limitParam ? Math.min(Math.max(Number(limitParam) || 100, 1), 500) : 100;
   const offset = offsetParam ? Math.max(Number(offsetParam) || 0, 0) : 0;
 
@@ -45,4 +45,19 @@ backgroundErrorsRoutes.post("/background-errors/:id/resolve", async (c) => {
   if (!updated) return fail(c, 404, "Background error not found");
 
   return ok(c, updated);
+});
+
+/**
+ * DELETE /background-errors/:id
+ *
+ * Permanently deletes an error entry.
+ */
+backgroundErrorsRoutes.delete("/background-errors/:id", async (c) => {
+  const id = parseId(c.req.param("id"));
+  if (!id) return fail(c, 400, "Invalid ID");
+
+  const deleted = await deleteBackgroundError(id);
+  if (!deleted) return fail(c, 404, "Background error not found");
+
+  return ok(c, deleted);
 });

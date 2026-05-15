@@ -35,8 +35,7 @@ export function useBackgroundErrors(filters?: BackgroundErrorFilters) {
 
   return useQuery({
     queryKey: [...BACKGROUND_ERRORS_KEY, qs],
-    queryFn: () =>
-      api.get<BackgroundErrorRow[]>(`/admin/background-errors${qs ? `?${qs}` : ""}`),
+    queryFn: () => api.get<BackgroundErrorRow[]>(`/admin/background-errors${qs ? `?${qs}` : ""}`),
     refetchInterval: 30_000,
   });
 }
@@ -49,6 +48,17 @@ export function useResolveBackgroundError() {
   return useMutation({
     mutationFn: (id: number) =>
       api.post<BackgroundErrorRow>(`/admin/background-errors/${id}/resolve`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: BACKGROUND_ERRORS_KEY }),
+  });
+}
+
+/**
+ * Permanently deletes a single background error by id.
+ */
+export function useDeleteBackgroundError() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete<BackgroundErrorRow>(`/admin/background-errors/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: BACKGROUND_ERRORS_KEY }),
   });
 }

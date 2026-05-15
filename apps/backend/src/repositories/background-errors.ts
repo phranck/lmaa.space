@@ -46,3 +46,8 @@ export async function resolveBackgroundError(
     .returning();
   return result[0] ?? null;
 }
+
+export async function deleteBackgroundError(id: number): Promise<BackgroundError | null> {
+  const result = await db.delete(backgroundErrors).where(eq(backgroundErrors.id, id)).returning();
+  return result[0] ?? null;
+}

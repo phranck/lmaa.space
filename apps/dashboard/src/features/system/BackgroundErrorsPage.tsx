@@ -1,8 +1,9 @@
-import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, TrashIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { DashboardCombobox, DashboardInput } from "@/components/ui/DashboardControls.tsx";
+import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { DataTable, type ColumnDef } from "@/components/ui/Table.tsx";
@@ -11,6 +12,7 @@ import { useI18n } from "@/context/I18nContext.tsx";
 import {
   type BackgroundErrorRow,
   useBackgroundErrors,
+  useDeleteBackgroundError,
   useResolveBackgroundError,
 } from "@/features/system/hooks/useBackgroundErrors.ts";
 
@@ -20,6 +22,7 @@ export function BackgroundErrorsPage() {
 
   const [sourceFilter, setSourceFilter] = useState("");
   const [resolvedFilter, setResolvedFilter] = useState<"all" | "unresolved" | "resolved">("all");
+  const [deleteTarget, setDeleteTarget] = useState<BackgroundErrorRow | null>(null);
 
   const resolved =
     resolvedFilter === "all" ? undefined : resolvedFilter === "resolved" ? true : false;
@@ -30,6 +33,7 @@ export function BackgroundErrorsPage() {
   });
 
   const resolve = useResolveBackgroundError();
+  const deleteError = useDeleteBackgroundError();
 
   const columns: ColumnDef<BackgroundErrorRow>[] = [
     {
@@ -81,19 +85,27 @@ export function BackgroundErrorsPage() {
     {
       id: "actions",
       header: "",
-      cell: (row) =>
-        row.resolvedAt ? null : (
-          <div className="flex justify-end">
+      cell: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          {!row.resolvedAt && (
             <TableActionButton
               variant="success"
               icon={<CheckCircleIcon weight="duotone" className="size-3.5" />}
               label={t.resolveAction}
-              disabled={resolve.isPending}
+              disabled={resolve.isPending || deleteError.isPending}
               onClick={() => resolve.mutate(row.id)}
             />
-          </div>
-        ),
-      cellClassName: "w-32",
+          )}
+          <TableActionButton
+            variant="danger"
+            icon={<TrashIcon weight="duotone" className="size-3.5" />}
+            label={t.deleteAction}
+            disabled={deleteError.isPending}
+            onClick={() => setDeleteTarget(row)}
+          />
+        </div>
+      ),
+      cellClassName: "w-56",
     },
   ];
 
@@ -137,6 +149,26 @@ export function BackgroundErrorsPage() {
           />
         )}
       </PageBody>
+
+      <DeleteConfirmDialog
+        open={deleteTarget !== null}
+        title={t.deleteConfirmTitle}
+        description={
+          deleteTarget
+            ? t.deleteConfirmDescription.replace("{source}", deleteTarget.source)
+            : undefined
+        }
+        cancelLabel={messages.common.cancel}
+        deleteLabel={messages.common.delete}
+        isPending={deleteError.isPending}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteError.mutate(deleteTarget.id, {
+            onSuccess: () => setDeleteTarget(null),
+          });
+        }}
+      />
     </PageLayout>
   );
 }

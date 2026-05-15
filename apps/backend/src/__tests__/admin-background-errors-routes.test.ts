@@ -15,6 +15,7 @@ const repoMocks = vi.hoisted(() => ({
   listBackgroundErrors: vi.fn(),
   getBackgroundErrorById: vi.fn(),
   resolveBackgroundError: vi.fn(),
+  deleteBackgroundError: vi.fn(),
 }));
 
 vi.mock("../repositories/background-errors.js", () => repoMocks);
@@ -59,7 +60,7 @@ describe("GET /background-errors", () => {
     const res = await app.request("/background-errors");
 
     expect(res.status).toBe(200);
-    const body = await res.json() as { data: unknown[] };
+    const body = (await res.json()) as { data: unknown[] };
     expect(body.data).toHaveLength(2);
     expect(repoMocks.listBackgroundErrors).toHaveBeenCalledWith(
       expect.objectContaining({ limit: 100, offset: 0 }),
@@ -115,13 +116,50 @@ describe("POST /background-errors/:id/resolve", () => {
     const res = await app.request("/background-errors/999/resolve", { method: "POST" });
 
     expect(res.status).toBe(404);
-    const body = await res.json() as { error: { message: string } };
+    const body = (await res.json()) as { error: { message: string } };
     expect(body.error.message).toMatch(/not found/i);
   });
 
   it("returns 400 for a non-numeric id", async () => {
     const app = makeApp();
     const res = await app.request("/background-errors/abc/resolve", { method: "POST" });
+
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("DELETE /background-errors/:id", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("deletes an existing error and returns the deleted row", async () => {
+    const row = makeRow();
+    repoMocks.deleteBackgroundError.mockResolvedValue(row);
+
+    const app = makeApp();
+    const res = await app.request("/background-errors/1", { method: "DELETE" });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { id: number } };
+    expect(body.data.id).toBe(1);
+    expect(repoMocks.deleteBackgroundError).toHaveBeenCalledWith(1);
+  });
+
+  it("returns 404 when the error does not exist", async () => {
+    repoMocks.deleteBackgroundError.mockResolvedValue(null);
+
+    const app = makeApp();
+    const res = await app.request("/background-errors/999", { method: "DELETE" });
+
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { error: { message: string } };
+    expect(body.error.message).toMatch(/not found/i);
+  });
+
+  it("returns 400 for a non-numeric id", async () => {
+    const app = makeApp();
+    const res = await app.request("/background-errors/abc", { method: "DELETE" });
 
     expect(res.status).toBe(400);
   });
