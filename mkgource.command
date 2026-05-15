@@ -3,7 +3,7 @@
 --hls-output ~/Desktop/lmaa-history \
 --poster-time 5 \
 --no-key \
---viewport 4k \
+--viewport 1440p \
 --audio-fade-in 0.25 \
 --audio-fade-out 3.5 \
 --animation-font "Roboto" \
@@ -19,12 +19,12 @@
 --crossfade 5 \
 --outro-title "Thanks for watching" \
 --outro-title-font Orbitron \
---outro-hold 6 \
---outro-fade-out 1.5 \
+--outro-hold 8 \
+--outro-fade-out 1.75 \
 --outro-crossfade 0.75 \
 --elapsed-time \
 --elapsed-time-font Roboto \
---elapsed-time-color FFFFFF@0.25 \
---elapsed-time-font-size 17 \
+--elapsed-time-color FFFFFF@0.35 \
+--elapsed-time-font-size 18 \
 --elapsed-time-margin 10
 
