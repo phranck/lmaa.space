@@ -2,7 +2,7 @@
  * Dialog management: open/close/dismiss dialogs with optional exit animation.
  */
 
-export function closeDialog(dialog: HTMLDialogElement): void {
+function closeDialog(dialog: HTMLDialogElement): void {
   if (!("animated" in dialog.dataset)) {
     dialog.close();
     return;

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useReducer } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
 
@@ -18,11 +18,27 @@ interface FilterableCategoryShopsProps {
   initialFilters: ShopFilters;
 }
 
-function buildShopDetailHref(
-  shopId: number,
-  slug: string,
-  filters: ShopFilters,
-): string {
+interface CategoryShopsState {
+  showFilter: boolean;
+  shops: Shop[];
+  filtersActive: boolean;
+  currentFilters: ShopFilters;
+}
+
+type CategoryShopsAction = Partial<CategoryShopsState>;
+
+function categoryShopsReducer(
+  state: CategoryShopsState,
+  action: CategoryShopsAction,
+): CategoryShopsState {
+  return { ...state, ...action };
+}
+
+function hasActiveShopFilters(filters: ShopFilters): boolean {
+  return filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
+}
+
+function buildShopDetailHref(shopId: number, slug: string, filters: ShopFilters): string {
   const filterQuery = buildFilterQuery(filters);
   const base = `/shop/${encodeShopToken(shopId)}?from=category&slug=${slug}`;
   return filterQuery ? `${base}&${filterQuery}` : base;
@@ -39,28 +55,23 @@ export default function FilterableCategoryShops({
   shops: initialShops,
   initialFilters,
 }: FilterableCategoryShopsProps) {
-  const hasInitialFilters =
-    initialFilters.city !== "" ||
-    initialFilters.country.length > 0 ||
-    initialFilters.region.length > 0;
-
-  const [showFilter, setShowFilter] = useState(hasInitialFilters);
-  const [shops, setShops] = useState<Shop[]>(initialShops);
-  const [filtersActive, setFiltersActive] = useState(hasInitialFilters);
-  // Intentional: initialFilters is an SSR hydration value that never changes from the parent.
-  const [currentFilters, setCurrentFilters] =
-    useState<ShopFilters>(initialFilters);
+  const hasInitialFilters = hasActiveShopFilters(initialFilters);
+  const [{ showFilter, shops, filtersActive, currentFilters }, dispatch] = useReducer(
+    categoryShopsReducer,
+    {
+      showFilter: hasInitialFilters,
+      shops: initialShops,
+      filtersActive: hasInitialFilters,
+      currentFilters: initialFilters,
+    },
+  );
   const gridRef = useGridAnimation();
 
   const fetchFiltered = useCallback(
     (filters: ShopFilters) => {
-      const hasFilters =
-        filters.city !== "" ||
-        filters.country.length > 0 ||
-        filters.region.length > 0;
+      const hasFilters = hasActiveShopFilters(filters);
 
-      setFiltersActive(hasFilters);
-      setCurrentFilters(filters);
+      dispatch({ filtersActive: hasFilters, currentFilters: filters });
 
       // Update URL without reload
       const query = buildFilterQuery(filters);
@@ -68,14 +79,14 @@ export default function FilterableCategoryShops({
       window.history.replaceState(null, "", newUrl);
 
       if (!hasFilters) {
-        setShops(initialShops);
+        dispatch({ shops: initialShops });
         return;
       }
 
       fetchJson<{ shops: Shop[] }>(`/filtered/categories/${slug}?${query}`)
         .then((data) => {
           if (data.shops) {
-            setShops(data.shops);
+            dispatch({ shops: data.shops });
           }
         })
         .catch(() => {});
@@ -90,14 +101,18 @@ export default function FilterableCategoryShops({
       {/* Breadcrumb + Filter toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
         <nav className="flex items-center gap-1.5 text-sm text-stone-400" aria-label="Breadcrumb">
-          <a href="/" className="hover:text-amber-700 transition-colors">Start</a>
-          <span className="text-stone-300" aria-hidden="true">›</span>
+          <a href="/" className="hover:text-amber-700 transition-colors">
+            Start
+          </a>
+          <span className="text-stone-300" aria-hidden="true">
+            ›
+          </span>
           <span className="text-stone-600">{categoryName}</span>
         </nav>
         <FilterToggleButton
           showFilter={showFilter}
           filtersActive={filtersActive}
-          onClick={() => setShowFilter((v) => !v)}
+          onClick={() => dispatch({ showFilter: !showFilter })}
         />
       </div>
 
@@ -109,10 +124,7 @@ export default function FilterableCategoryShops({
       >
         <div className="overflow-hidden">
           <div className="mb-6">
-            <ShopFilterBar
-              initialFilters={currentFilters}
-              onFilterChange={handleFilterChange}
-            />
+            <ShopFilterBar initialFilters={currentFilters} onFilterChange={handleFilterChange} />
           </div>
         </div>
       </div>
@@ -146,7 +158,9 @@ export default function FilterableCategoryShops({
               url={shop.url}
               categories={shop.categories}
               detailHref={buildShopDetailHref(shop.id, slug, currentFilters)}
-              hasCoordinates={shop.headquarters?.latitude != null && shop.headquarters?.longitude != null}
+              hasCoordinates={
+                shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
+              }
             />
           ))}
         </div>

@@ -8,10 +8,7 @@ import type { Category } from "@lmaa/shared";
 import { CharCounter } from "@lmaa/ui/char-counter";
 import { createDefaultRegionOptions } from "@lmaa/ui/region-select";
 
-import {
-  fieldKey,
-  type SimpleFields,
-} from "@/components/islands/dynamic-form-utils";
+import { fieldKey, type SimpleFields } from "@/components/islands/dynamic-form-utils";
 import LazyButtonIcon from "@/components/islands/LazyButtonIcon.tsx";
 import { useMarkdownHtml } from "@/hooks/useMarkdownHtml";
 import { API_BASE } from "@/lib/client-api";
@@ -144,7 +141,7 @@ function TextInputField({ field, control, error }: TextInputFieldProps) {
         {field.required && (
           <SealWarningIcon
             weight="duotone"
-            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+            className="inline-block ml-1 size-3.5 text-[var(--ds-danger-text)] align-middle"
           />
         )}
       </label>
@@ -188,7 +185,7 @@ function TextareaField({ field, control, error }: TextareaFieldProps) {
         {field.required && (
           <SealWarningIcon
             weight="duotone"
-            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+            className="inline-block ml-1 size-3.5 text-[var(--ds-danger-text)] align-middle"
           />
         )}
       </label>
@@ -254,7 +251,7 @@ function UrlField({ field, control, error }: UrlFieldProps) {
         {field.required && (
           <SealWarningIcon
             weight="duotone"
-            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+            className="inline-block ml-1 size-3.5 text-[var(--ds-danger-text)] align-middle"
           />
         )}
       </label>
@@ -288,7 +285,7 @@ function SelectField({ field, register, error }: SelectFieldProps) {
         {field.required && (
           <SealWarningIcon
             weight="duotone"
-            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+            className="inline-block ml-1 size-3.5 text-[var(--ds-danger-text)] align-middle"
           />
         )}
       </label>
@@ -319,7 +316,7 @@ interface MultiSelectDropdownProps {
 function CustomCheckbox({ checked }: { checked: boolean }) {
   return (
     <span
-      className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+      className={`shrink-0 size-5 rounded border-2 flex items-center justify-center transition-colors ${
         checked
           ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
           : "bg-white border-[var(--ds-border)]"
@@ -352,6 +349,13 @@ function MultiSelectDropdown({
 }: MultiSelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectedValues = new Set(selected);
+  const selectedOptions = [];
+  for (const option of options) {
+    if (selectedValues.has(option.value)) {
+      selectedOptions.push(option);
+    }
+  }
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -371,7 +375,7 @@ function MultiSelectDropdown({
     }
   }
 
-  const allSelected = options.length > 0 && options.every((o) => selected.includes(o.value));
+  const allSelected = options.length > 0 && options.every((o) => selectedValues.has(o.value));
 
   function toggleAll() {
     if (allSelected) {
@@ -388,7 +392,7 @@ function MultiSelectDropdown({
         {required && (
           <SealWarningIcon
             weight="duotone"
-            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+            className="inline-block ml-1 size-3.5 text-[var(--ds-danger-text)] align-middle"
           />
         )}
       </span>
@@ -405,28 +409,26 @@ function MultiSelectDropdown({
               {placeholder ?? "—"}
             </span>
           ) : (
-            options
-              .filter((o) => selected.includes(o.value))
-              .map((o) => (
-                <span
-                  key={o.value}
-                  className="flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] text-xs text-[var(--ds-text)]"
+            selectedOptions.map((o) => (
+              <span
+                key={o.value}
+                className="flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full border border-[var(--ds-border)] bg-[var(--ds-surface-alt)] text-xs text-[var(--ds-text)]"
+              >
+                {o.flag && <span className="leading-none">{o.flag}</span>}
+                {o.label}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle(o.value);
+                  }}
+                  className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
+                  aria-label={`${o.label} entfernen`}
                 >
-                  {o.flag && <span className="leading-none">{o.flag}</span>}
-                  {o.label}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggle(o.value);
-                    }}
-                    className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors leading-none"
-                    aria-label={`${o.label} entfernen`}
-                  >
-                    <XCircleIcon weight="duotone" width={13} height={13} />
-                  </button>
-                </span>
-              ))
+                  <XCircleIcon weight="duotone" width={13} height={13} />
+                </button>
+              </span>
+            ))
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-auto self-stretch py-2">
@@ -447,14 +449,11 @@ function MultiSelectDropdown({
             </>
           )}
           {open ? (
-            <CaretUpIcon
-              weight="duotone"
-              className="shrink-0 w-4 h-4 text-[var(--ds-text-muted)]"
-            />
+            <CaretUpIcon weight="duotone" className="shrink-0 size-4 text-[var(--ds-text-muted)]" />
           ) : (
             <CaretDownIcon
               weight="duotone"
-              className="shrink-0 w-4 h-4 text-[var(--ds-text-muted)]"
+              className="shrink-0 size-4 text-[var(--ds-text-muted)]"
             />
           )}
         </div>
@@ -589,7 +588,7 @@ function StaticMultiSelect({ field, selected, onChange, error }: StaticMultiSele
         {field.required && (
           <SealWarningIcon
             weight="duotone"
-            className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+            className="inline-block ml-1 size-3.5 text-[var(--ds-danger-text)] align-middle"
           />
         )}
       </span>
@@ -676,7 +675,11 @@ function ButtonField({
   const btnWidth = field.buttonWidth ?? "automatic";
   const btnAlign = field.buttonAlign ?? "left";
   const alignClass =
-    btnAlign === "center" ? "justify-center" : btnAlign === "right" ? "justify-end" : "justify-start";
+    btnAlign === "center"
+      ? "justify-center"
+      : btnAlign === "right"
+        ? "justify-end"
+        : "justify-start";
   const displayMode = field.buttonIcon ? (field.buttonDisplay ?? "both") : "text";
 
   const isCheckShopAction = field.buttonAction?.type === "check-shop";
@@ -764,7 +767,9 @@ function ButtonField({
           <LazyButtonIcon name={field.buttonIcon} width={18} height={18} />
         )}
         {displayMode !== "icon" && (
-          <span className="truncate">{isSubmit && submitting ? "Wird gesendet…" : field.label}</span>
+          <span className="truncate">
+            {isSubmit && submitting ? "Wird gesendet…" : field.label}
+          </span>
         )}
       </button>
     </div>
@@ -870,7 +875,7 @@ export function FieldRenderer({
             {field.required && (
               <SealWarningIcon
                 weight="duotone"
-                className="inline-block ml-1 w-3.5 h-3.5 text-[var(--ds-danger-text)] align-middle"
+                className="inline-block ml-1 size-3.5 text-[var(--ds-danger-text)] align-middle"
               />
             )}
           </label>

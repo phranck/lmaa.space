@@ -61,25 +61,19 @@ export default function ShopCardReact({
       className="relative block bg-white rounded-2xl border border-stone-200 p-2 sm:p-4 hover:border-stone-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
       {liked && (
-        <span
-          className="absolute -right-2 -top-2 text-red-500 z-10"
-          aria-hidden="true"
-        >
-          <HeartIcon weight="duotone" className="w-5 h-5" />
+        <span className="absolute -right-2 -top-2 text-red-500 z-10" aria-hidden="true">
+          <HeartIcon weight="duotone" className="size-5" />
         </span>
       )}
       {hasCoordinates && (
-        <span
-          className="absolute top-2 right-2 text-stone-300"
-          title="Standort verfügbar"
-        >
-          <MapPinLineIcon weight="duotone" className="w-3.5 h-3.5" />
+        <span className="absolute top-2 right-2 text-stone-300" title="Standort verfügbar">
+          <MapPinLineIcon weight="duotone" className="size-3.5" />
         </span>
       )}
       <div className="flex items-center gap-3">
         {/* Avatar */}
         <div
-          className="shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-stone-100 flex items-center justify-center"
+          className="shrink-0 size-12 rounded-lg overflow-hidden border border-stone-100 flex items-center justify-center"
           style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
         >
           {ogImage ? (
@@ -90,12 +84,10 @@ export default function ShopCardReact({
               loading="lazy"
               width={48}
               height={48}
-              className="w-full h-full object-contain"
+              className="size-full object-contain"
             />
           ) : (
-            <span className="text-lg font-bold text-stone-300 select-none">
-              {letter}
-            </span>
+            <span className="text-lg font-bold text-stone-300 select-none">{letter}</span>
           )}
         </div>
 

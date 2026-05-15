@@ -89,20 +89,11 @@ function getZoomTargetRect(sourceRect: Rect): Rect {
 }
 
 function setFrameRect(frame: HTMLElement, rect: Rect) {
-  frame.style.left = `${rect.left}px`;
-  frame.style.top = `${rect.top}px`;
-  frame.style.width = `${rect.width}px`;
-  frame.style.height = `${rect.height}px`;
+  frame.style.cssText += `left: ${rect.left}px; top: ${rect.top}px; width: ${rect.width}px; height: ${rect.height}px;`;
 }
 
 function clearFrameInlineStyles(frame: HTMLElement) {
-  frame.style.position = "";
-  frame.style.left = "";
-  frame.style.top = "";
-  frame.style.width = "";
-  frame.style.height = "";
-  frame.style.margin = "";
-  frame.style.maxWidth = "";
+  frame.removeAttribute("style");
 }
 
 function finishZoomClose(zoom: ActiveZoom, timeoutId: number) {
@@ -153,9 +144,7 @@ function openVideoZoom(frame: HTMLElement) {
 
   const sourceRect = frame.getBoundingClientRect();
   const placeholder = document.createElement("div");
-  placeholder.style.width = `${sourceRect.width}px`;
-  placeholder.style.height = `${sourceRect.height}px`;
-  placeholder.style.maxWidth = "100%";
+  placeholder.style.cssText = `width: ${sourceRect.width}px; height: ${sourceRect.height}px; max-width: 100%;`;
 
   const overlay = document.createElement("div");
   overlay.className = "md-video-zoom-overlay";
@@ -169,9 +158,7 @@ function openVideoZoom(frame: HTMLElement) {
   frame.append(closeButton);
 
   frame.classList.add("is-zoomed");
-  frame.style.position = "fixed";
-  frame.style.margin = "0";
-  frame.style.maxWidth = "none";
+  frame.style.cssText = "position: fixed; margin: 0; max-width: none;";
   setFrameRect(frame, sourceRect);
   document.documentElement.classList.add("md-video-zoom-lock");
 

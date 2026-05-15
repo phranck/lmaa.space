@@ -74,7 +74,7 @@ type MarkdownShortcodeToken = {
 
 type MarkdownShortcodeKind = "widget" | "image" | "pdf" | "hls";
 
-export type MarkdownMediaAlias =
+type MarkdownMediaAlias =
   | string
   | {
       url: string;

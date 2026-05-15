@@ -14,7 +14,7 @@ export function SuccessScreen({ onReset, headline, message }: SuccessScreenProps
 
   return (
     <div className="max-w-lg mx-auto px-4 py-24 text-center">
-      <div className="w-16 h-16 rounded-full bg-[var(--ds-accent-subtle)] flex items-center justify-center mx-auto mb-6">
+      <div className="size-16 rounded-full bg-[var(--ds-accent-subtle)] flex items-center justify-center mx-auto mb-6">
         <svg
           width="32"
           height="32"

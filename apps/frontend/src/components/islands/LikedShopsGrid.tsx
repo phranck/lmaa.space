@@ -53,14 +53,10 @@ function ImportDialog({
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">
-          Shops importieren
-        </h2>
+        <h2 className="font-serif text-xl font-semibold text-stone-900 mb-1">Shops importieren</h2>
         <p className="text-sm text-stone-500 mb-5">
           {importCount} {importCount === 1 ? "Shop wird" : "Shops werden"} importiert.
-          {hasExisting
-            ? " Du hast bereits gelikte Shops auf diesem Gerät."
-            : ""}
+          {hasExisting ? " Du hast bereits gelikte Shops auf diesem Gerät." : ""}
         </p>
 
         <div className="flex flex-col gap-2">
@@ -187,7 +183,8 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
           Shops synchronisieren
         </h2>
         <p className="text-sm text-stone-500 mb-5">
-          Scanne den QR-Code oder teile den Link, um deine gelikten Shops auf ein anderes Gerät zu übertragen.
+          Scanne den QR-Code oder teile den Link, um deine gelikten Shops auf ein anderes Gerät zu
+          übertragen.
         </p>
 
         <div ref={qrRef} className="rounded-lg overflow-hidden mx-auto mb-5" />
@@ -198,7 +195,7 @@ function SyncDialog({ onClose }: { onClose: () => void }) {
             onClick={handleShare}
             className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl text-sm font-medium bg-stone-900 text-white hover:bg-stone-800 transition-colors cursor-pointer"
           >
-            <ShareNetworkIcon weight="duotone" className="w-4 h-4" />
+            <ShareNetworkIcon weight="duotone" className="size-4" />
             {copied ? "Link kopiert!" : "Link teilen"}
           </button>
           <button
@@ -294,9 +291,7 @@ export default function LikedShopsGrid() {
   }
 
   if (loading && !importData) {
-    return (
-      <p className="text-sm text-stone-400 text-center py-12">Lade deine Shops...</p>
-    );
+    return <p className="text-sm text-stone-400 text-center py-12">Lade deine Shops…</p>;
   }
 
   return (
@@ -324,36 +319,40 @@ export default function LikedShopsGrid() {
             Klicke auf das Herz-Symbol auf einer Shop-Detailseite, um Shops hier zu sammeln.
           </p>
         </div>
-      ) : shops.length > 0 && (
-        <>
-          <div className="flex justify-end mb-4">
-            <button
-              type="button"
-              onClick={() => dispatch({ showSync: true })}
-              className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-medium text-stone-600 border border-stone-200 hover:bg-stone-100 transition-colors cursor-pointer"
-            >
-              <QrCodeIcon weight="duotone" className="w-4 h-4" />
-              Sync
-            </button>
-          </div>
+      ) : (
+        shops.length > 0 && (
+          <>
+            <div className="flex justify-end mb-4">
+              <button
+                type="button"
+                onClick={() => dispatch({ showSync: true })}
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-medium text-stone-600 border border-stone-200 hover:bg-stone-100 transition-colors cursor-pointer"
+              >
+                <QrCodeIcon weight="duotone" className="size-4" />
+                Sync
+              </button>
+            </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-            {shops.map((shop) => (
-              <ShopCardReact
-                key={shop.id}
-                shopId={shop.id}
-                name={shop.name}
-                ogImage={shop.ogImage}
-                logoBackgroundColor={shop.logoBackgroundColor}
-                url={shop.url}
-                categories={shop.categories}
-                detailHref={`/shop/${encodeShopToken(shop.id)}?from=likes`}
-                hasCoordinates={shop.headquarters?.latitude != null && shop.headquarters?.longitude != null}
-                hideLikeIndicator
-              />
-            ))}
-          </div>
-        </>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+              {shops.map((shop) => (
+                <ShopCardReact
+                  key={shop.id}
+                  shopId={shop.id}
+                  name={shop.name}
+                  ogImage={shop.ogImage}
+                  logoBackgroundColor={shop.logoBackgroundColor}
+                  url={shop.url}
+                  categories={shop.categories}
+                  detailHref={`/shop/${encodeShopToken(shop.id)}?from=likes`}
+                  hasCoordinates={
+                    shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
+                  }
+                  hideLikeIndicator
+                />
+              ))}
+            </div>
+          </>
+        )
       )}
 
       {showSync && <SyncDialog onClose={() => dispatch({ showSync: false })} />}

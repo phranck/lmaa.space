@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "astro.config.mjs",
+    "src/layouts/BaseLayout.astro",
+    "src/pages/**/*.astro",
+    "src/scripts/hls-video.ts",
+    "src/scripts/shop-actions.ts",
+    "src/scripts/site-analytics.ts"
+  ]
+}

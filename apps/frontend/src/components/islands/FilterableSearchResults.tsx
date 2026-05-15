@@ -1,5 +1,5 @@
 import { XCircleIcon } from "@phosphor-icons/react";
-import { useCallback, useState } from "react";
+import { useCallback, useReducer } from "react";
 
 import { encodeShopToken, type Shop } from "@lmaa/shared";
 
@@ -7,11 +7,7 @@ import ShopCardReact from "@/components/ShopCardReact";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 import { useGridAnimation } from "@/hooks/useGridAnimation";
 import { fetchJson } from "@/lib/fetch-json";
-import {
-  type ShopFilters,
-  buildCategoryHref,
-  buildFilterQuery,
-} from "@/lib/filter-query";
+import { type ShopFilters, buildCategoryHref, buildFilterQuery } from "@/lib/filter-query";
 
 import ShopFilterBar from "./ShopFilterBar";
 
@@ -34,11 +30,32 @@ interface FilterableSearchResultsProps {
   initialFilters: ShopFilters;
 }
 
-function buildShopDetailHref(
-  shopId: number,
-  query: string,
-  filters: ShopFilters,
-): string {
+interface SearchResultsState {
+  query: string;
+  results: SearchResults;
+  currentFilters: ShopFilters;
+}
+
+type SearchResultsAction =
+  | { type: "query"; query: string }
+  | { type: "filters"; filters: ShopFilters }
+  | { type: "results"; results: SearchResults };
+
+function searchResultsReducer(
+  state: SearchResultsState,
+  action: SearchResultsAction,
+): SearchResultsState {
+  switch (action.type) {
+    case "query":
+      return { ...state, query: action.query };
+    case "filters":
+      return { ...state, currentFilters: action.filters };
+    case "results":
+      return { ...state, results: action.results };
+  }
+}
+
+function buildShopDetailHref(shopId: number, query: string, filters: ShopFilters): string {
   const filterQuery = buildFilterQuery(filters);
   const base = `/shop/${encodeShopToken(shopId)}?from=search&q=${encodeURIComponent(query)}`;
   return filterQuery ? `${base}&${filterQuery}` : base;
@@ -55,55 +72,55 @@ export default function FilterableSearchResults({
   initialResults,
   initialFilters,
 }: FilterableSearchResultsProps) {
-  // Intentional: initial* props are SSR hydration values that never change from the parent.
-  const [query, setQuery] = useState(initialQuery);
-  const [results, setResults] = useState<SearchResults>(initialResults);
-  const [currentFilters, setCurrentFilters] =
-    useState<ShopFilters>(initialFilters);
+  const [{ query, results, currentFilters }, dispatch] = useReducer(searchResultsReducer, {
+    query: initialQuery,
+    results: initialResults,
+    currentFilters: initialFilters,
+  });
   const shopGridRef = useGridAnimation();
 
-  const fetchResults = useCallback(
-    (q: string, filters: ShopFilters) => {
-      setCurrentFilters(filters);
+  const fetchResults = useCallback((q: string, filters: ShopFilters) => {
+    dispatch({ type: "filters", filters });
 
-      // Update URL
-      const filterQuery = buildFilterQuery(filters);
-      const params = new URLSearchParams();
-      if (q) params.set("q", q);
-      if (filterQuery) {
-        for (const [k, v] of new URLSearchParams(filterQuery)) {
-          params.set(k, v);
-        }
+    // Update URL
+    const filterQuery = buildFilterQuery(filters);
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (filterQuery) {
+      for (const [k, v] of new URLSearchParams(filterQuery)) {
+        params.set(k, v);
       }
-      const qs = params.toString();
-      window.history.replaceState(null, "", qs ? `/search?${qs}` : "/search");
+    }
+    const qs = params.toString();
+    window.history.replaceState(null, "", qs ? `/search?${qs}` : "/search");
 
-      if (q.length < 2) {
-        setResults({ shops: [], categories: [], total: 0 });
-        return;
-      }
+    if (q.length < 2) {
+      dispatch({ type: "results", results: { shops: [], categories: [], total: 0 } });
+      return;
+    }
 
-      const apiParams = new URLSearchParams(filterQuery);
-      apiParams.set("q", q);
+    const apiParams = new URLSearchParams(filterQuery);
+    apiParams.set("q", q);
 
-      fetchJson<SearchResults>(`/filtered/search?${apiParams}`)
-        .then((data) => {
-          setResults({
+    fetchJson<SearchResults>(`/filtered/search?${apiParams}`)
+      .then((data) => {
+        dispatch({
+          type: "results",
+          results: {
             shops: data.shops ?? [],
             categories: data.categories ?? [],
             total: data.total ?? 0,
-          });
-        })
-        .catch(() => {});
-    },
-    [],
-  );
+          },
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const scheduleSearch = useDebouncedCallback(fetchResults);
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setQuery(val);
+    dispatch({ type: "query", query: val });
     scheduleSearch(val.trim(), currentFilters);
   };
 
@@ -125,10 +142,7 @@ export default function FilterableSearchResults({
   return (
     <>
       {/* Search form */}
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col items-center mb-6"
-      >
+      <form onSubmit={handleSubmit} className="flex flex-col items-center mb-6">
         <div className="relative w-full max-w-xl">
           <input
             type="text"
@@ -142,13 +156,13 @@ export default function FilterableSearchResults({
             <button
               type="button"
               onClick={() => {
-                setQuery("");
+                dispatch({ type: "query", query: "" });
                 scheduleSearch("", currentFilters);
               }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors"
               aria-label="Suchfeld löschen"
             >
-              <XCircleIcon weight="duotone" className="w-5 h-5" />
+              <XCircleIcon weight="duotone" className="size-5" />
             </button>
           )}
         </div>
@@ -156,10 +170,7 @@ export default function FilterableSearchResults({
 
       {/* Filter bar (always visible) */}
       <div className="mb-8">
-        <ShopFilterBar
-          initialFilters={currentFilters}
-          onFilterChange={handleFilterChange}
-        />
+        <ShopFilterBar initialFilters={currentFilters} onFilterChange={handleFilterChange} />
       </div>
 
       {/* Status line */}
@@ -202,9 +213,7 @@ export default function FilterableSearchResults({
               >
                 {cat.name}
                 {cat.shopCount !== undefined && (
-                  <span className="ml-1.5 text-stone-400">
-                    ({cat.shopCount})
-                  </span>
+                  <span className="ml-1.5 text-stone-400">({cat.shopCount})</span>
                 )}
               </a>
             ))}
@@ -228,12 +237,10 @@ export default function FilterableSearchResults({
                 logoBackgroundColor={shop.logoBackgroundColor}
                 url={shop.url}
                 categories={shop.categories}
-                hasCoordinates={shop.headquarters?.latitude != null && shop.headquarters?.longitude != null}
-                detailHref={buildShopDetailHref(
-                  shop.id,
-                  query.trim(),
-                  currentFilters,
-                )}
+                hasCoordinates={
+                  shop.headquarters?.latitude != null && shop.headquarters?.longitude != null
+                }
+                detailHref={buildShopDetailHref(shop.id, query.trim(), currentFilters)}
               />
             ))}
           </div>

@@ -49,7 +49,9 @@ export function DynamicFormRows({
   submitting,
   onCheckShopResult,
 }: DynamicFormRowsProps) {
-  const hasRequiredFields = formConfig.rows.some((row) => row.fields.some((field) => field.required));
+  const hasRequiredFields = formConfig.rows.some((row) =>
+    row.fields.some((field) => field.required),
+  );
   let legendRendered = false;
 
   return formConfig.rows.map((row) => {
@@ -59,17 +61,20 @@ export function DynamicFormRows({
     const showLegend = isSubmitRow && hasRequiredFields && !legendRendered;
     if (showLegend) legendRendered = true;
 
-    const linkedFieldIds = new Set(
-      row.fields
-        .filter((field) => field.type === "button" && field.buttonAction?.sourceFieldId)
-        .map((field) => field.buttonAction!.sourceFieldId),
-    );
-    const linkedFields = row.fields.filter(
-      (field) =>
-        (field.type === "button" && !!field.buttonAction?.sourceFieldId) ||
-        linkedFieldIds.has(field.id),
-    );
-    const linkedTotal = linkedFields.reduce((sum, field) => sum + (field.span ?? 12), 0);
+    const linkedFieldIds = new Set<string>();
+    for (const field of row.fields) {
+      if (field.type === "button" && field.buttonAction?.sourceFieldId) {
+        linkedFieldIds.add(field.buttonAction.sourceFieldId);
+      }
+    }
+
+    let linkedTotal = 0;
+    for (const field of row.fields) {
+      const hasLinkedButton = field.type === "button" && !!field.buttonAction?.sourceFieldId;
+      if (hasLinkedButton || linkedFieldIds.has(field.id)) {
+        linkedTotal += field.span ?? 12;
+      }
+    }
     const scale = linkedTotal > 0 && linkedTotal < 12 ? 12 / linkedTotal : 1;
 
     return (
@@ -78,16 +83,16 @@ export function DynamicFormRows({
           <p className="flex items-center gap-1.5 text-xs text-[var(--ds-text-subtle)] mb-6 px-1">
             <SealWarningIcon
               weight="duotone"
-              className="shrink-0 w-3.5 h-3.5 text-[var(--ds-danger-text)]"
+              className="shrink-0 size-3.5 text-[var(--ds-danger-text)]"
             />
-            Mit diesem Symbol gekennzeichnete Felder sind Pflichtfelder und müssen ausgefüllt werden.
+            Mit diesem Symbol gekennzeichnete Felder sind Pflichtfelder und müssen ausgefüllt
+            werden.
           </p>
         )}
         <div className="grid grid-cols-12 gap-4">
           {row.fields.map((field) => {
             const span = field.span ?? 12;
-            const hasLinkedButton =
-              field.type === "button" && !!field.buttonAction?.sourceFieldId;
+            const hasLinkedButton = field.type === "button" && !!field.buttonAction?.sourceFieldId;
             const isLinked = hasLinkedButton || linkedFieldIds.has(field.id);
             const mobileSpan = isLinked ? Math.round(span * scale) : 12;
             const style: MobileSpanStyle = {

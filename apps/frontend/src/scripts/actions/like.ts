@@ -92,9 +92,7 @@ function spawnHeartBubbles(btn: HTMLElement): void {
     const xOffset = Math.random() * 28 - 14;
     const delay = Math.random() * 150;
     const scale = 0.5 + Math.random() * 0.6;
-    bubble.style.left = `calc(50% + ${xOffset}px)`;
-    bubble.style.animationDelay = `${delay}ms`;
-    bubble.style.setProperty("--bubble-scale", String(scale));
+    bubble.style.cssText = `left: calc(50% + ${xOffset}px); animation-delay: ${delay}ms; --bubble-scale: ${scale};`;
     btn.appendChild(bubble);
     // Clean up after animation
     bubble.addEventListener("animationend", () => bubble.remove());
