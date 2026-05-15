@@ -38,10 +38,13 @@ if (typeof window !== "undefined") {
 // Sorted numeric IDs -> delta-encoded -> base36 -> joined with "-"
 
 export function encodeLikedIds(ids: string[]): string {
-  const nums = ids
-    .map(Number)
-    .filter((n) => n > 0)
-    .sort((a, b) => a - b);
+  const nums: number[] = [];
+  for (const id of ids) {
+    const n = Number(id);
+    if (n > 0) nums.push(n);
+  }
+  nums.sort((a, b) => a - b);
+
   if (nums.length === 0) return "";
   const deltas: number[] = [nums[0]];
   for (let i = 1; i < nums.length; i++) {
@@ -50,7 +53,7 @@ export function encodeLikedIds(ids: string[]): string {
   return deltas.map((d) => d.toString(36)).join("-");
 }
 
-export function decodeLikedIds(encoded: string): string[] {
+function decodeLikedIds(encoded: string): string[] {
   if (!encoded) return [];
   const deltas = encoded.split("-").map((s) => Number.parseInt(s, 36));
   if (deltas.some((d) => Number.isNaN(d))) return [];

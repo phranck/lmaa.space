@@ -47,13 +47,8 @@ async function loadFilterCountries(signal: AbortSignal): Promise<FilterCountry[]
  * regions. Fetches available country options from the API on mount.
  * Calls `onFilterChange` on every filter update.
  */
-export default function ShopFilterBar({
-  initialFilters,
-  onFilterChange,
-}: ShopFilterBarProps) {
-  const [filters, setFilters] = useState<ShopFilters>(() =>
-    parseInitialFilters(initialFilters),
-  );
+export default function ShopFilterBar({ initialFilters, onFilterChange }: ShopFilterBarProps) {
+  const [filters, setFilters] = useState<ShopFilters>(() => parseInitialFilters(initialFilters));
   const [countries, setCountries] = useState<FilterCountry[]>([]);
   const [customRadius, setCustomRadius] = useState("");
 
@@ -82,9 +77,7 @@ export default function ShopFilterBar({
   }, [onFilterChange]);
 
   const hasActiveFilters =
-    filters.city !== "" ||
-    filters.country.length > 0 ||
-    filters.region.length > 0;
+    filters.city !== "" || filters.country.length > 0 || filters.region.length > 0;
 
   return (
     <div className="relative rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-5">
@@ -97,15 +90,12 @@ export default function ShopFilterBar({
         aria-label="Filter zurucksetzen"
         title="Filter zurucksetzen"
       >
-        <XCircleIcon weight="duotone" className="w-5 h-5" />
+        <XCircleIcon weight="duotone" className="size-5" />
       </button>
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-3">
         {/* City / PLZ */}
         <div className="flex-1 min-w-[180px]">
-          <label
-            htmlFor="filter-city"
-            className="block text-xs font-medium text-stone-500 mb-1"
-          >
+          <label htmlFor="filter-city" className="block text-xs font-medium text-stone-500 mb-1">
             Stadt / PLZ
           </label>
           <div className="relative">
@@ -124,7 +114,7 @@ export default function ShopFilterBar({
                 className="absolute right-1.5 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-500 transition-colors"
                 aria-label="Stadt/PLZ loschen"
               >
-                <XCircleIcon weight="duotone" className="w-5 h-5" />
+                <XCircleIcon weight="duotone" className="size-5" />
               </button>
             )}
           </div>
@@ -132,20 +122,13 @@ export default function ShopFilterBar({
 
         {/* Radius */}
         <div className="w-full sm:w-auto min-w-[140px]">
-          <label
-            htmlFor="filter-radius"
-            className="block text-xs font-medium text-stone-500 mb-1"
-          >
+          <label htmlFor="filter-radius" className="block text-xs font-medium text-stone-500 mb-1">
             Umkreis (km)
           </label>
           <div className="flex gap-1.5">
             <select
               id="filter-radius"
-              value={
-                RADIUS_PRESETS.includes(filters.radius)
-                  ? filters.radius
-                  : "custom"
-              }
+              value={RADIUS_PRESETS.includes(filters.radius) ? filters.radius : "custom"}
               onChange={(e) => {
                 const val = e.target.value;
                 if (val === "custom") return;

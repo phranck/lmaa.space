@@ -2,6 +2,8 @@ import { CaretDownIcon, CaretUpIcon, CheckIcon, XCircleIcon } from "@phosphor-ic
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+const REGION_NAMES = new Intl.DisplayNames(["de"], { type: "region" });
+
 export interface FilterCountry {
   code: string;
   name: string;
@@ -14,11 +16,7 @@ function countryFlag(code: string): string {
 }
 
 function countryName(code: string): string {
-  try {
-    return new Intl.DisplayNames(["de"], { type: "region" }).of(code) ?? code;
-  } catch {
-    return code;
-  }
+  return REGION_NAMES.of(code) ?? code;
 }
 
 interface CountryMultiSelectProps {
@@ -74,58 +72,54 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
     value.length === 0
       ? null
       : value.length <= 2
-        ? value
-            .map((code) => `${countryFlag(code)} ${countryName(code)}`)
-            .join(", ")
+        ? value.map((code) => `${countryFlag(code)} ${countryName(code)}`).join(", ")
         : `${value.length} Lander`;
 
   const dropdown =
-    open && rect
-      ? (
-          <div
-            ref={portalRef}
-            style={{
-              position: "fixed",
-              top: rect.bottom + 4,
-              left: rect.left,
-              minWidth: Math.max(rect.width, 220),
-              zIndex: 9999,
-              backgroundColor: "var(--ds-surface)",
-            }}
-            className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
-          >
-            <div className="max-h-[300px] overflow-y-auto">
-              {options.map(({ code }) => {
-                const checked = value.includes(code);
-                return (
-                  <button
-                    key={code}
-                    type="button"
-                    onClick={() => toggle(code)}
-                    className={`w-full flex items-center px-3 py-1.5 text-sm text-left transition-colors hover:bg-[var(--ds-bg-elevated)] ${
-                      checked
-                        ? "bg-[var(--color-primary)]/5 text-[var(--ds-text)]"
-                        : "text-[var(--ds-text-muted)]"
-                    }`}
-                  >
-                    <span
-                      className={`w-4 h-4 shrink-0 flex items-center justify-center rounded border transition-colors mr-3 ${
-                        checked
-                          ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
-                          : "border-[var(--ds-border-strong)]"
-                      }`}
-                    >
-                      {checked && <CheckIcon weight="bold" className="w-2.5 h-2.5 text-white" />}
-                    </span>
-                    <span className="mr-2">{countryFlag(code)}</span>
-                    <span className="whitespace-nowrap">{countryName(code)}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )
-      : null;
+    open && rect ? (
+      <div
+        ref={portalRef}
+        style={{
+          position: "fixed",
+          top: rect.bottom + 4,
+          left: rect.left,
+          minWidth: Math.max(rect.width, 220),
+          zIndex: 40,
+          backgroundColor: "var(--ds-surface)",
+        }}
+        className="border border-[var(--ds-border)] rounded-control shadow-lg overflow-hidden"
+      >
+        <div className="max-h-[300px] overflow-y-auto">
+          {options.map(({ code }) => {
+            const checked = value.includes(code);
+            return (
+              <button
+                key={code}
+                type="button"
+                onClick={() => toggle(code)}
+                className={`w-full flex items-center px-3 py-1.5 text-sm text-left transition-colors hover:bg-[var(--ds-bg-elevated)] ${
+                  checked
+                    ? "bg-[var(--color-primary)]/5 text-[var(--ds-text)]"
+                    : "text-[var(--ds-text-muted)]"
+                }`}
+              >
+                <span
+                  className={`size-4 shrink-0 flex items-center justify-center rounded border transition-colors mr-3 ${
+                    checked
+                      ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
+                      : "border-[var(--ds-border-strong)]"
+                  }`}
+                >
+                  {checked && <CheckIcon weight="bold" className="size-2.5 text-white" />}
+                </span>
+                <span className="mr-2">{countryFlag(code)}</span>
+                <span className="whitespace-nowrap">{countryName(code)}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ) : null;
 
   return (
     <div>
@@ -134,12 +128,12 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
         type="button"
         onClick={handleToggle}
         className={`w-full flex items-center justify-between px-3 py-1.5 border rounded-control text-sm text-left bg-[var(--ds-input-bg)] transition-colors h-9 rounded-lg border-stone-300 bg-white hover:border-stone-400 ${
-          open
-            ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
-            : ""
+          open ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20" : ""
         }`}
       >
-        <span className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}>
+        <span
+          className={`truncate ${label ? "text-[var(--ds-text)]" : "text-[var(--ds-text-subtle)]"}`}
+        >
           {label ?? "Alle"}
         </span>
         <div className="flex items-center shrink-0 ml-2 gap-0.5">
@@ -155,21 +149,25 @@ export default function CountryMultiSelect({ value, onChange, options }: Country
                   onChange([]);
                 }}
               >
-                <XCircleIcon weight="duotone" className="w-4 h-4" />
+                <XCircleIcon weight="duotone" className="size-4" />
               </button>
               <div className="w-px h-4 bg-[var(--ds-border)] mx-0.5" />
             </>
           )}
           {open ? (
-            <CaretUpIcon weight="duotone" className="shrink-0 ml-2 w-4 h-4 text-[var(--ds-text-subtle)]" />
+            <CaretUpIcon
+              weight="duotone"
+              className="shrink-0 ml-2 size-4 text-[var(--ds-text-subtle)]"
+            />
           ) : (
-            <CaretDownIcon weight="duotone" className="shrink-0 ml-2 w-4 h-4 text-[var(--ds-text-subtle)]" />
+            <CaretDownIcon
+              weight="duotone"
+              className="shrink-0 ml-2 size-4 text-[var(--ds-text-subtle)]"
+            />
           )}
         </div>
       </button>
-      {typeof document !== "undefined" && dropdown
-        ? createPortal(dropdown, document.body)
-        : null}
+      {typeof document !== "undefined" && dropdown ? createPortal(dropdown, document.body) : null}
     </div>
   );
 }

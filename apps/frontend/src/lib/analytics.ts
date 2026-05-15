@@ -19,9 +19,9 @@ declare global {
 }
 
 /** Minimum number of characters required to trigger a search. */
-export const SEARCH_QUERY_MIN_LENGTH = 2;
+const SEARCH_QUERY_MIN_LENGTH = 2;
 /** Maximum number of characters accepted in a search query. */
-export const SEARCH_QUERY_MAX_LENGTH = 120;
+const SEARCH_QUERY_MAX_LENGTH = 120;
 
 /**
  * Trims and normalizes a raw search input value.

@@ -3,9 +3,12 @@
  * e.g. "fair-fashion" → "Fair Fashion"
  */
 export function slugToTitle(slug: string): string {
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(" ");
+  const segments: string[] = [];
+
+  for (const segment of slug.split("-")) {
+    if (!segment) continue;
+    segments.push(segment.charAt(0).toUpperCase() + segment.slice(1));
+  }
+
+  return segments.join(" ");
 }
