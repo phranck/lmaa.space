@@ -1,0 +1,29 @@
+./mkgource \
+--hls-only \
+--hls-output ~/Desktop/lmaa-history \
+--poster-time 5 \
+--no-key \
+--audio-fade-in 0.25 \
+--audio-fade-out 3.5 \
+--animation-font "Roboto" \
+--title "LMAA SPACE" \
+--title-font Orbitron \
+--title-fade-in 5 \
+--subtitle "a visualized development history" \
+--subtitle-font Orbitron \
+--subtitle-font-size 24 \
+--subtitle-delay 4.25 \
+--subtitle-fade-in 1.75 \
+--intro-hold 9.4 \
+--crossfade 5 \
+--outro-title "Thanks for watching" \
+--outro-title-font Orbitron \
+--outro-hold 6 \
+--outro-fade-out 1.5 \
+--outro-crossfade 0.75 \
+--elapsed-time \
+--elapsed-time-font Roboto \
+--elapsed-time-color FFFFFF@0.25 \
+--elapsed-time-font-size 17 \
+--elapsed-time-margin 10
+

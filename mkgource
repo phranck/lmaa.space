@@ -1,0 +1,1735 @@
+#!/usr/bin/env bash
+# Renders Gource animation of the lmaa.space WebApp repo and exports MP4 + HLS.
+# If .gource/background.mp3 (or .m4a/.wav/.ogg) exists, it's mixed in as audio.
+#
+# Output: .gource/lmaa-history.mp4
+# HLS:    .gource/lmaa-history-hls/index.m3u8
+# Poster: .gource/lmaa-history-hls/poster.jpg
+#
+# Usage: ./mkgource [options]
+
+set -euo pipefail
+
+VERSION="1.2.0"
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd -P)"
+SCRIPT_PATH="$SCRIPT_DIR/$(basename "$SCRIPT_SOURCE")"
+
+cd "$SCRIPT_DIR"
+
+CONFIG_FILE=".gource.conf"
+AVATAR_DIR="$SCRIPT_DIR/.gource/avatars"
+OUTPUT=".gource/lmaa-history.mp4"
+SILENT=".gource/lmaa-history-silent.mp4"
+HLS_DIR=".gource/lmaa-history-hls"
+HLS_SEGMENT_SECONDS=6
+POSTER_TIME_SECONDS=3
+AUDIO_VOLUME=0.6
+RENDER_RESOLUTION="2560x1440"
+AUDIO_CROSSFADE_SECONDS=4
+AUDIO_FADE_IN_SECONDS=3
+AUDIO_FADE_OUT_SECONDS=3
+GOURCE_BIN="${GOURCE_BIN:-}"
+FFMPEG_BIN="${FFMPEG_BIN:-}"
+FFPROBE_BIN="${FFPROBE_BIN:-}"
+FFMPEG_CMD=""
+FFPROBE_CMD=""
+FFMPEG_QUIET_ARGS=(-hide_banner -loglevel error -nostats)
+GENERATE_HLS=1
+HLS_ONLY=0
+USE_AUDIO=1
+AUDIO=""
+HLS_FROM=""
+KEY_OVERRIDE=""
+ANIMATION_FONT=""
+ANIMATION_FONT_FILE=""
+ANIMATION_FONT_COLOR=""
+ANIMATION_FILENAME_COLOR=""
+ANIMATION_DIR_COLOR=""
+ANIMATION_HIGHLIGHT_COLOR=""
+ANIMATION_SELECTION_COLOR=""
+ANIMATION_FONT_SIZE=""
+GOURCE_TITLE_OVERRIDE=""
+GOURCE_TITLE_OVERRIDE_SET=0
+RENDER_DURATION=""
+OUTPUT_SET=0
+TEMP_DIR=""
+
+INTRO_ENABLED=1
+INTRO_TITLE="LMAA.SPACE"
+INTRO_SUBTITLE="a visualized development history"
+INTRO_TITLE_FONT="Audiowide"
+INTRO_SUBTITLE_FONT="Helvetica Neue"
+INTRO_TITLE_FONT_SIZE=72
+INTRO_SUBTITLE_FONT_SIZE=28
+INTRO_TITLE_COLOR="FFFFFF"
+INTRO_SUBTITLE_COLOR="CCCCCC"
+INTRO_TITLE_FADE_IN=0.75
+INTRO_SUBTITLE_DELAY=2.5
+INTRO_SUBTITLE_FADE_IN=0.75
+INTRO_HOLD=2
+INTRO_TEXT_FADE_OUT=0
+INTRO_CROSSFADE=1
+
+OUTRO_ENABLED=0
+OUTRO_TITLE=""
+OUTRO_SUBTITLE=""
+OUTRO_TITLE_FONT="Audiowide"
+OUTRO_SUBTITLE_FONT="Helvetica Neue"
+OUTRO_TITLE_FONT_SIZE=72
+OUTRO_SUBTITLE_FONT_SIZE=28
+OUTRO_TITLE_COLOR="FFFFFF"
+OUTRO_SUBTITLE_COLOR="CCCCCC"
+OUTRO_TITLE_FADE_IN=0.75
+OUTRO_SUBTITLE_DELAY=2.5
+OUTRO_SUBTITLE_FADE_IN=0.75
+OUTRO_HOLD=2
+OUTRO_TEXT_FADE_OUT=0
+OUTRO_CROSSFADE=1
+
+ELAPSED_TIME_ENABLED=0
+ELAPSED_TIME_FONT="Helvetica Neue"
+ELAPSED_TIME_FONT_SIZE=28
+ELAPSED_TIME_COLOR="FFFFFF@0.65"
+ELAPSED_TIME_POSITION="bottom-right"
+ELAPSED_TIME_MARGIN=48
+
+cleanup_temp_files() {
+  if [[ -n "$TEMP_DIR" && -d "$TEMP_DIR" ]]; then
+    rm -rf "$TEMP_DIR"
+  fi
+}
+
+trap cleanup_temp_files EXIT
+
+print_help_row() {
+  local label="$1"
+  local description="$2"
+
+  printf '  %-31s %s\n' "$label" "$description"
+}
+
+print_help() {
+  cat <<'EOF'
+Usage:
+  ./mkgource [options]
+  ./mkgource render [options]
+  ./mkgource hls [options]
+  ./mkgource help
+  ./mkgource version
+
+Commands:
+EOF
+  print_help_row "render" "Render MP4 and package HLS output. Default command."
+  print_help_row "hls" "Render HLS only, or package --from MP4 as HLS."
+  print_help_row "help" "Show this help text and exit."
+  print_help_row "version" "Show wrapper version and exit."
+
+  printf '\nOptions:\n'
+  print_help_row "-h, --help" "Show this help text and exit."
+  print_help_row "-V, --version" "Show wrapper version and exit."
+  print_help_row "-c, --config FILE" "Gource config file. Default: .gource.conf"
+  print_help_row "-o, --output FILE" "MP4 output file. Default: .gource/lmaa-history.mp4"
+  print_help_row "-a, --audio FILE" "Background audio file."
+  print_help_row "" "Default: first .gource/background.{mp3,m4a,wav,ogg}"
+  print_help_row "-N, --no-audio" "Render without background audio."
+  print_help_row "-H, --hls" "Generate HLS after rendering. Default."
+  print_help_row "-L, --hls-only" "Generate HLS without keeping a final MP4."
+  print_help_row "-F, --from FILE" "Existing MP4 to package as HLS without rendering."
+  print_help_row "-n, --no-hls" "Skip HLS packaging."
+  print_help_row "-O, --hls-output DIR" "HLS output directory. Default: .gource/lmaa-history-hls"
+  print_help_row "-d, --hls-dir DIR" "Alias for --hls-output."
+  print_help_row "-t, --hls-time SECONDS" "HLS segment length. Default: 6"
+  print_help_row "-p, --poster-time SECONDS" "Timestamp for HLS poster.jpg. Default: 3"
+  print_help_row "-K, --key, --legend" "Show the file extension legend for this run."
+  print_help_row "--no-key, --no-legend" "Hide the file extension legend for this run."
+  print_help_row "-C, --crossfade SECONDS" "Audio loop crossfade duration. Default: 4"
+  print_help_row "-f, --fade SECONDS" "Audio fade-in and fade-out duration. Default: 3"
+  print_help_row "--audio-fade-in SECONDS" "Audio fade-in duration. Default: 3"
+  print_help_row "--audio-fade-out SECONDS" "Audio fade-out duration. Default: 3"
+  print_help_row "-v, --volume NUMBER" "Audio volume multiplier. Default: 0.6"
+  print_help_row "-G, --gource-bin FILE" "Path to the real Gource binary."
+  print_help_row "--ffmpeg-bin FILE" "Path to ffmpeg."
+  print_help_row "" "Defaults to ffmpeg-full when text overlays are enabled and"
+  print_help_row "" "regular ffmpeg lacks drawtext."
+  print_help_row "--ffprobe-bin FILE" "Path to ffprobe."
+  print_help_row "--duration SECONDS" "Final video length, including intro/outro."
+  print_help_row "" "Useful for title timing tests."
+  print_help_row "--*-color HEX" "Colour values use hex without 0x, e.g. FFAA00."
+  print_help_row "--animation-font FONT" "Font name or font file used by Gource animation text."
+  print_help_row "--animation-font-size PX" "Gource date/title font size."
+  print_help_row "--animation-font-color HEX" "Gource date/title text colour."
+  print_help_row "--animation-title TEXT" "Bottom-left Gource title text."
+  print_help_row "--no-animation-title" "Hide the bottom-left Gource title."
+  print_help_row "--animation-title-font FONT" "Alias for --animation-font."
+  print_help_row "--animation-title-font-size PX" "Alias for --animation-font-size."
+  print_help_row "--animation-title-color HEX" "Alias for --animation-font-color."
+  print_help_row "--animation-filename-color HEX" "Gource filename text colour."
+  print_help_row "--animation-dir-color HEX" "Gource directory text colour."
+  print_help_row "--animation-highlight-color HEX" "Gource highlighted user text colour."
+  print_help_row "--animation-selection-color HEX" "Gource selected user/file text colour."
+
+  printf '\nElapsed time overlay:\n'
+  print_help_row "--elapsed-time" "Show elapsed video time from 00:00:00."
+  print_help_row "--no-elapsed-time" "Disable elapsed video time overlay. Default."
+  print_help_row "--elapsed-time-font FONT" "Elapsed time font. Default: Helvetica Neue"
+  print_help_row "--elapsed-time-font-size PX" "Elapsed time font size. Default: 28"
+  print_help_row "--elapsed-time-color HEX[@A]" "Elapsed time colour. Default: FFFFFF@0.65"
+  print_help_row "--elapsed-time-position POS" "top-left, top-right, bottom-left, bottom-right."
+  print_help_row "" "Default: bottom-right"
+  print_help_row "--elapsed-time-margin PX" "Elapsed time edge margin. Default: 48"
+
+  printf '\nIntro title screen:\n'
+  print_help_row "--no-intro" "Disable intro title screen."
+  print_help_row "--title TEXT" "Intro title text. Default: LMAA.SPACE"
+  print_help_row "--subtitle TEXT" "Intro subtitle text."
+  print_help_row "--title-font FONT" "Intro title font. Default: Audiowide"
+  print_help_row "--subtitle-font FONT" "Intro subtitle font. Default: Helvetica Neue"
+  print_help_row "--title-font-size PX" "Intro title font size. Default: 72"
+  print_help_row "--subtitle-font-size PX" "Intro subtitle font size. Default: 28"
+  print_help_row "--title-color HEX[@A]" "Intro title colour. Default: FFFFFF"
+  print_help_row "--subtitle-color HEX[@A]" "Intro subtitle colour. Default: CCCCCC"
+  print_help_row "--title-fade-in SEC" "Intro title fade-in duration. Default: 0.75"
+  print_help_row "--subtitle-delay SEC" "Intro subtitle start time. Default: 2.5"
+  print_help_row "--subtitle-fade-in SEC" "Intro subtitle fade-in duration. Default: 0.75"
+  print_help_row "--intro-hold SEC" "Time after subtitle is fully visible before fading."
+  print_help_row "" "Default: 2"
+  print_help_row "--intro-fade-out SEC" "Optional text fade-out before crossfade. Default: 0"
+  print_help_row "--intro-crossfade SEC" "Crossfade from intro to animation. Default: 1"
+
+  printf '\nOutro title screen:\n'
+  print_help_row "--outro" "Enable outro using the intro title/subtitle text."
+  print_help_row "--no-outro" "Disable outro title screen. Default."
+  print_help_row "--outro-title TEXT" "Outro title text; enables outro."
+  print_help_row "--outro-subtitle TEXT" "Outro subtitle text; enables outro."
+  print_help_row "--outro-title-font FONT" "Outro title font. Default: Audiowide"
+  print_help_row "--outro-subtitle-font FONT" "Outro subtitle font. Default: Helvetica Neue"
+  print_help_row "--outro-title-font-size PX" "Outro title font size. Default: 72"
+  print_help_row "--outro-subtitle-font-size PX" "Outro subtitle font size. Default: 28"
+  print_help_row "--outro-title-color HEX[@A]" "Outro title colour. Default: FFFFFF"
+  print_help_row "--outro-subtitle-color HEX[@A]" "Outro subtitle colour. Default: CCCCCC"
+  print_help_row "--outro-title-fade-in SEC" "Outro title fade-in duration. Default: 0.75"
+  print_help_row "--outro-subtitle-delay SEC" "Outro subtitle start time. Default: 2.5"
+  print_help_row "--outro-subtitle-fade-in SEC" "Outro subtitle fade-in duration. Default: 0.75"
+  print_help_row "--outro-hold SEC" "Time after outro subtitle is fully visible. Default: 2"
+  print_help_row "--outro-fade-out SEC" "Optional outro text fade-out. Default: 0"
+  print_help_row "--outro-crossfade SEC" "Crossfade from animation to outro. Default: 1"
+
+  cat <<'EOF'
+
+Examples:
+  ./mkgource
+  ./mkgource --no-hls
+  ./mkgource --no-legend
+  ./mkgource --duration 20 --no-hls -o gource-preview-20s.mp4
+  ./mkgource --title "LMAA.SPACE" --subtitle "a visualized development history"
+  ./mkgource --outro-title "LMAA.SPACE" --outro-subtitle "thanks for watching"
+  ./mkgource --hls-only
+  ./mkgource hls
+  ./mkgource hls --from .gource/lmaa-history.mp4 --hls-output .gource/lmaa-history-hls
+EOF
+}
+
+print_version() {
+  printf "lmaa gource renderer %s\n" "$VERSION"
+}
+
+log_step() {
+  printf "%s\n" "$*"
+}
+
+run_ffmpeg_capture() {
+  local emit_errors="$1"
+  local label="$2"
+  local log_file=""
+  local status=0
+
+  shift 2
+  ensure_temp_dir
+  log_file="$(mktemp "$TEMP_DIR/ffmpeg.XXXXXX.log")"
+
+  if "$FFMPEG_CMD" "${FFMPEG_QUIET_ARGS[@]}" "$@" 2>"$log_file"; then
+    rm -f "$log_file"
+    return 0
+  fi
+
+  status=$?
+  if [[ "$emit_errors" -eq 1 && -s "$log_file" ]]; then
+    printf "ffmpeg failed during %s:\n" "$label" >&2
+    cat "$log_file" >&2
+  fi
+
+  return "$status"
+}
+
+run_ffmpeg() {
+  run_ffmpeg_capture 1 "$@"
+}
+
+try_ffmpeg() {
+  run_ffmpeg_capture 0 "$@"
+}
+
+die() {
+  printf "Error: %s\n" "$*" >&2
+  printf "Run './mkgource --help' for usage.\n" >&2
+  exit 1
+}
+
+require_value() {
+  local flag="$1"
+  local value="${2-}"
+
+  if [[ -z "$value" || "$value" == -* ]]; then
+    die "$flag requires a value"
+  fi
+}
+
+resolve_path() {
+  local path="$1"
+  local dir=""
+  local base=""
+
+  if [[ "$path" != */* ]]; then
+    path="$(command -v "$path" 2>/dev/null || printf "%s" "$path")"
+  fi
+
+  dir="$(cd "$(dirname "$path")" 2>/dev/null && pwd -P)" || return 1
+  base="$(basename "$path")"
+  printf "%s/%s\n" "$dir" "$base"
+}
+
+find_gource_binary() {
+  local candidate=""
+  local resolved_candidate=""
+
+  if [[ -n "$GOURCE_BIN" ]]; then
+    [[ -x "$GOURCE_BIN" ]] || die "Gource binary is not executable: $GOURCE_BIN"
+    printf "%s\n" "$GOURCE_BIN"
+    return
+  fi
+
+  while IFS= read -r candidate; do
+    [[ -z "$candidate" ]] && continue
+    resolved_candidate="$(resolve_path "$candidate" || true)"
+    [[ -z "$resolved_candidate" ]] && continue
+
+    if [[ "$resolved_candidate" != "$SCRIPT_PATH" ]]; then
+      printf "%s\n" "$candidate"
+      return
+    fi
+  done < <(type -P -a gource 2>/dev/null || true)
+
+  die "Could not find the real Gource binary. Install gource or pass --gource-bin FILE."
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"
+}
+
+ffmpeg_supports_drawtext() {
+  "$1" -hide_banner -filters 2>/dev/null | awk '/ drawtext / { found = 1 } END { exit !found }'
+}
+
+find_ffmpeg_binary() {
+  local drawtext_required="$1"
+  local candidate=""
+  local candidates=()
+
+  if [[ -n "$FFMPEG_BIN" ]]; then
+    [[ -x "$FFMPEG_BIN" ]] || die "ffmpeg binary is not executable: $FFMPEG_BIN"
+    if [[ "$drawtext_required" -eq 1 ]] && ! ffmpeg_supports_drawtext "$FFMPEG_BIN"; then
+      die "ffmpeg binary does not support drawtext: $FFMPEG_BIN"
+    fi
+    printf "%s\n" "$FFMPEG_BIN"
+    return
+  fi
+
+  if command -v ffmpeg >/dev/null 2>&1; then
+    candidates+=("$(command -v ffmpeg)")
+  fi
+  candidates+=("/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg")
+
+  for candidate in "${candidates[@]}"; do
+    [[ -x "$candidate" ]] || continue
+    if [[ "$drawtext_required" -eq 0 ]] || ffmpeg_supports_drawtext "$candidate"; then
+      printf "%s\n" "$candidate"
+      return
+    fi
+  done
+
+  if [[ "$drawtext_required" -eq 1 ]]; then
+    die "Could not find an ffmpeg binary with drawtext support. Install ffmpeg-full or pass --ffmpeg-bin FILE."
+  fi
+
+  die "Required command not found: ffmpeg"
+}
+
+find_ffprobe_binary() {
+  local ffmpeg_binary="$1"
+  local sibling=""
+
+  if [[ -n "$FFPROBE_BIN" ]]; then
+    [[ -x "$FFPROBE_BIN" ]] || die "ffprobe binary is not executable: $FFPROBE_BIN"
+    printf "%s\n" "$FFPROBE_BIN"
+    return
+  fi
+
+  sibling="$(dirname "$ffmpeg_binary")/ffprobe"
+  if [[ -x "$sibling" ]]; then
+    printf "%s\n" "$sibling"
+    return
+  fi
+
+  command -v ffprobe 2>/dev/null || die "Required command not found: ffprobe"
+}
+
+number_gt() {
+  awk -v value="$1" -v limit="$2" 'BEGIN { exit !(value > limit) }'
+}
+
+number_add() {
+  awk -v left="$1" -v right="$2" 'BEGIN { printf "%.3f", left + right }'
+}
+
+number_subtract() {
+  awk -v left="$1" -v right="$2" 'BEGIN { printf "%.3f", left - right }'
+}
+
+number_max() {
+  awk -v left="$1" -v right="$2" 'BEGIN {
+    max = left;
+    if (right > max) max = right;
+    printf "%.3f", max;
+  }'
+}
+
+validate_number() {
+  local name="$1"
+  local value="$2"
+
+  awk -v value="$value" 'BEGIN { exit !(value ~ /^[0-9]+([.][0-9]+)?$/) }' ||
+    die "$name must be a non-negative number: $value"
+}
+
+normalize_hex_color() {
+  local name="$1"
+  local value="$2"
+  local allow_alpha="$3"
+  local color="$value"
+  local alpha=""
+  local normalized=""
+
+  [[ -n "$color" ]] || return 0
+
+  if [[ "$color" == *"@"* ]]; then
+    alpha="${color#*@}"
+    color="${color%@*}"
+    [[ "$allow_alpha" -eq 1 ]] || die "$name does not support alpha: $value"
+    awk -v value="$alpha" 'BEGIN { exit !(value ~ /^([0-9]+([.][0-9]+)?|[.][0-9]+)$/ && value >= 0 && value <= 1) }' ||
+      die "$name alpha must be between 0 and 1: $value"
+  fi
+
+  color="${color#0x}"
+  color="${color#0X}"
+  normalized="$(printf "%s" "$color" | tr '[:lower:]' '[:upper:]')"
+  awk -v value="$normalized" 'BEGIN { exit !(value ~ /^[0-9A-F]{6}$/) }' ||
+    die "$name must be a 6-digit hex colour without 0x: $value"
+
+  if [[ -n "$alpha" ]]; then
+    printf "%s@%s\n" "$normalized" "$alpha"
+  else
+    printf "%s\n" "$normalized"
+  fi
+}
+
+normalize_optional_hex_color() {
+  local name="$1"
+  local value="$2"
+
+  [[ -n "$value" ]] || return 0
+  normalize_hex_color "$name" "$value" 0
+}
+
+drawtext_color() {
+  local value="$1"
+  local color="$value"
+  local alpha=""
+
+  if [[ "$color" == *"@"* ]]; then
+    alpha="@${color#*@}"
+    color="${color%@*}"
+  fi
+
+  printf "0x%s%s\n" "$color" "$alpha"
+}
+
+resolve_font_file() {
+  local font="$1"
+  local resolved=""
+
+  [[ -n "$font" ]] || return
+
+  if [[ -f "$font" ]]; then
+    resolve_path "$font"
+    return
+  fi
+
+  if command -v fc-match >/dev/null 2>&1; then
+    resolved="$(fc-match -f '%{file}\n' "$font" | head -n 1)"
+    if [[ -n "$resolved" && -f "$resolved" ]]; then
+      printf "%s\n" "$resolved"
+      return
+    fi
+  fi
+
+  die "Could not resolve font to a file: $font"
+}
+
+ensure_temp_dir() {
+  if [[ -z "$TEMP_DIR" || ! -d "$TEMP_DIR" ]]; then
+    TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lmaa-gource.XXXXXX")"
+  fi
+}
+
+build_effective_gource_config() {
+  local effective_config=""
+  local needs_effective_config=0
+
+  [[ -f "$CONFIG_FILE" ]] || die "Gource config not found: $CONFIG_FILE"
+
+  if [[ -n "$KEY_OVERRIDE" ||
+    -n "$ANIMATION_FONT_FILE" ||
+    -n "$ANIMATION_FONT_SIZE" ||
+    -n "$ANIMATION_FONT_COLOR" ||
+    -n "$ANIMATION_FILENAME_COLOR" ||
+    -n "$ANIMATION_DIR_COLOR" ||
+    -n "$ANIMATION_HIGHLIGHT_COLOR" ||
+    -n "$ANIMATION_SELECTION_COLOR" ||
+    "$GOURCE_TITLE_OVERRIDE_SET" -eq 1 ]]; then
+    needs_effective_config=1
+  fi
+
+  if [[ "$needs_effective_config" -eq 0 ]]; then
+    printf "%s\n" "$CONFIG_FILE"
+    return
+  fi
+
+  ensure_temp_dir
+  effective_config="$TEMP_DIR/gource.conf"
+
+  awk \
+    -v key="$KEY_OVERRIDE" \
+    -v font_file="$ANIMATION_FONT_FILE" \
+    -v font_size="$ANIMATION_FONT_SIZE" \
+    -v font_colour="$ANIMATION_FONT_COLOR" \
+    -v filename_colour="$ANIMATION_FILENAME_COLOR" \
+    -v dir_colour="$ANIMATION_DIR_COLOR" \
+    -v highlight_colour="$ANIMATION_HIGHLIGHT_COLOR" \
+    -v selection_colour="$ANIMATION_SELECTION_COLOR" \
+    -v title="$GOURCE_TITLE_OVERRIDE" \
+    -v title_set="$GOURCE_TITLE_OVERRIDE_SET" '
+    function has_override(name) {
+      if (name == "key") return key != "";
+      if (name == "font-file") return font_file != "";
+      if (name == "font-size") return font_size != "";
+      if (name == "font-colour") return font_colour != "";
+      if (name == "filename-colour") return filename_colour != "";
+      if (name == "dir-colour") return dir_colour != "";
+      if (name == "highlight-colour") return highlight_colour != "";
+      if (name == "selection-colour") return selection_colour != "";
+      if (name == "title") return title_set == 1 && title != "";
+      return 0;
+    }
+    function override_value(name) {
+      if (name == "key") return key;
+      if (name == "font-file") return font_file;
+      if (name == "font-size") return font_size;
+      if (name == "font-colour") return font_colour;
+      if (name == "filename-colour") return filename_colour;
+      if (name == "dir-colour") return dir_colour;
+      if (name == "highlight-colour") return highlight_colour;
+      if (name == "selection-colour") return selection_colour;
+      if (name == "title") return title;
+      return "";
+    }
+    function print_override(name) {
+      if (has_override(name) && !replaced[name]) {
+        print name "=" override_value(name);
+        replaced[name] = 1;
+      }
+    }
+    function print_pending_overrides() {
+      print_override("key");
+      print_override("title");
+      print_override("font-file");
+      print_override("font-size");
+      print_override("font-colour");
+      print_override("filename-colour");
+      print_override("dir-colour");
+      print_override("highlight-colour");
+      print_override("selection-colour");
+    }
+    function replace_if_needed(name) {
+      pattern = "^[[:space:]]*" name "[[:space:]]*=";
+      if ($0 ~ pattern) {
+        if (name == "title" && title_set == 1 && title == "") {
+          replaced[name] = 1;
+          return 1;
+        }
+        if (has_override(name) && !replaced[name]) {
+          print name "=" override_value(name);
+          replaced[name] = 1;
+        }
+        return 1;
+      }
+      return 0;
+    }
+    BEGIN {
+      in_gource = 0;
+    }
+    /^\[.*\]$/ {
+      if (in_gource) {
+        print_pending_overrides();
+      }
+      in_gource = ($0 == "[gource]");
+      print;
+      next;
+    }
+    in_gource && replace_if_needed("key") {
+      next;
+    }
+    in_gource && replace_if_needed("title") {
+      next;
+    }
+    in_gource && replace_if_needed("font-file") {
+      next;
+    }
+    in_gource && replace_if_needed("font-size") {
+      next;
+    }
+    in_gource && replace_if_needed("font-colour") {
+      next;
+    }
+    in_gource && replace_if_needed("filename-colour") {
+      next;
+    }
+    in_gource && replace_if_needed("dir-colour") {
+      next;
+    }
+    in_gource && replace_if_needed("highlight-colour") {
+      next;
+    }
+    in_gource && replace_if_needed("selection-colour") {
+      next;
+    }
+    {
+      print;
+    }
+    END {
+      if (in_gource) {
+        print_pending_overrides();
+      }
+    }
+  ' "$CONFIG_FILE" > "$effective_config"
+
+  printf "%s\n" "$effective_config"
+}
+
+parse_args() {
+  while (($#)); do
+    case "$1" in
+      render)
+        HLS_ONLY=0
+        shift
+        ;;
+      hls)
+        HLS_ONLY=1
+        GENERATE_HLS=1
+        shift
+        ;;
+      help)
+        print_help
+        exit 0
+        ;;
+      version)
+        print_version
+        exit 0
+        ;;
+      -h | --help)
+        print_help
+        exit 0
+        ;;
+      -V | --version)
+        print_version
+        exit 0
+        ;;
+      -c | --config)
+        require_value "$1" "${2-}"
+        CONFIG_FILE="$2"
+        shift 2
+        ;;
+      -o | --output)
+        require_value "$1" "${2-}"
+        OUTPUT="$2"
+        OUTPUT_SET=1
+        shift 2
+        ;;
+      -a | --audio)
+        require_value "$1" "${2-}"
+        AUDIO="$2"
+        USE_AUDIO=1
+        shift 2
+        ;;
+      -N | --no-audio)
+        USE_AUDIO=0
+        AUDIO=""
+        shift
+        ;;
+      -H | --hls)
+        GENERATE_HLS=1
+        shift
+        ;;
+      -L | --hls-only)
+        HLS_ONLY=1
+        GENERATE_HLS=1
+        shift
+        ;;
+      -F | --from)
+        require_value "$1" "${2-}"
+        HLS_FROM="$2"
+        HLS_ONLY=1
+        GENERATE_HLS=1
+        shift 2
+        ;;
+      -n | --no-hls)
+        GENERATE_HLS=0
+        shift
+        ;;
+      -O | --hls-output | -d | --hls-dir)
+        require_value "$1" "${2-}"
+        HLS_DIR="$2"
+        shift 2
+        ;;
+      -t | --hls-time)
+        require_value "$1" "${2-}"
+        HLS_SEGMENT_SECONDS="$2"
+        shift 2
+        ;;
+      -p | --poster-time)
+        require_value "$1" "${2-}"
+        POSTER_TIME_SECONDS="$2"
+        shift 2
+        ;;
+      -K | --key | --legend)
+        KEY_OVERRIDE="true"
+        shift
+        ;;
+      --no-key | --no-legend)
+        KEY_OVERRIDE="false"
+        shift
+        ;;
+      -C | --crossfade)
+        require_value "$1" "${2-}"
+        AUDIO_CROSSFADE_SECONDS="$2"
+        shift 2
+        ;;
+      -f | --fade)
+        require_value "$1" "${2-}"
+        AUDIO_FADE_IN_SECONDS="$2"
+        AUDIO_FADE_OUT_SECONDS="$2"
+        shift 2
+        ;;
+      --audio-fade-in)
+        require_value "$1" "${2-}"
+        AUDIO_FADE_IN_SECONDS="$2"
+        shift 2
+        ;;
+      --audio-fade-out)
+        require_value "$1" "${2-}"
+        AUDIO_FADE_OUT_SECONDS="$2"
+        shift 2
+        ;;
+      -v | --volume)
+        require_value "$1" "${2-}"
+        AUDIO_VOLUME="$2"
+        shift 2
+        ;;
+      --duration | --video-duration)
+        require_value "$1" "${2-}"
+        RENDER_DURATION="$2"
+        shift 2
+        ;;
+      --animation-font)
+        require_value "$1" "${2-}"
+        ANIMATION_FONT="$2"
+        shift 2
+        ;;
+      --animation-font-size)
+        require_value "$1" "${2-}"
+        ANIMATION_FONT_SIZE="$2"
+        shift 2
+        ;;
+      --animation-font-color | --animation-font-colour)
+        require_value "$1" "${2-}"
+        ANIMATION_FONT_COLOR="$2"
+        shift 2
+        ;;
+      --animation-title | --gource-title)
+        require_value "$1" "${2-}"
+        GOURCE_TITLE_OVERRIDE="$2"
+        GOURCE_TITLE_OVERRIDE_SET=1
+        shift 2
+        ;;
+      --no-animation-title | --no-gource-title)
+        GOURCE_TITLE_OVERRIDE=""
+        GOURCE_TITLE_OVERRIDE_SET=1
+        shift
+        ;;
+      --animation-title-font | --gource-title-font)
+        require_value "$1" "${2-}"
+        ANIMATION_FONT="$2"
+        shift 2
+        ;;
+      --animation-title-font-size | --gource-title-font-size)
+        require_value "$1" "${2-}"
+        ANIMATION_FONT_SIZE="$2"
+        shift 2
+        ;;
+      --animation-title-color | --animation-title-colour | --gource-title-color | --gource-title-colour)
+        require_value "$1" "${2-}"
+        ANIMATION_FONT_COLOR="$2"
+        shift 2
+        ;;
+      --animation-filename-color | --animation-filename-colour)
+        require_value "$1" "${2-}"
+        ANIMATION_FILENAME_COLOR="$2"
+        shift 2
+        ;;
+      --animation-dir-color | --animation-dir-colour)
+        require_value "$1" "${2-}"
+        ANIMATION_DIR_COLOR="$2"
+        shift 2
+        ;;
+      --animation-highlight-color | --animation-highlight-colour)
+        require_value "$1" "${2-}"
+        ANIMATION_HIGHLIGHT_COLOR="$2"
+        shift 2
+        ;;
+      --animation-selection-color | --animation-selection-colour)
+        require_value "$1" "${2-}"
+        ANIMATION_SELECTION_COLOR="$2"
+        shift 2
+        ;;
+      --elapsed-time)
+        ELAPSED_TIME_ENABLED=1
+        shift
+        ;;
+      --no-elapsed-time)
+        ELAPSED_TIME_ENABLED=0
+        shift
+        ;;
+      --elapsed-time-font)
+        require_value "$1" "${2-}"
+        ELAPSED_TIME_FONT="$2"
+        shift 2
+        ;;
+      --elapsed-time-font-size)
+        require_value "$1" "${2-}"
+        ELAPSED_TIME_FONT_SIZE="$2"
+        shift 2
+        ;;
+      --elapsed-time-color | --elapsed-time-colour)
+        require_value "$1" "${2-}"
+        ELAPSED_TIME_COLOR="$2"
+        shift 2
+        ;;
+      --elapsed-time-position)
+        require_value "$1" "${2-}"
+        ELAPSED_TIME_POSITION="$2"
+        shift 2
+        ;;
+      --elapsed-time-margin)
+        require_value "$1" "${2-}"
+        ELAPSED_TIME_MARGIN="$2"
+        shift 2
+        ;;
+      --no-intro)
+        INTRO_ENABLED=0
+        shift
+        ;;
+      --intro)
+        INTRO_ENABLED=1
+        shift
+        ;;
+      --title | --intro-title)
+        require_value "$1" "${2-}"
+        INTRO_TITLE="$2"
+        shift 2
+        ;;
+      --subtitle | --intro-subtitle)
+        require_value "$1" "${2-}"
+        INTRO_SUBTITLE="$2"
+        shift 2
+        ;;
+      --title-font | --intro-title-font)
+        require_value "$1" "${2-}"
+        INTRO_TITLE_FONT="$2"
+        shift 2
+        ;;
+      --subtitle-font | --intro-subtitle-font)
+        require_value "$1" "${2-}"
+        INTRO_SUBTITLE_FONT="$2"
+        shift 2
+        ;;
+      --title-font-size | --intro-title-font-size)
+        require_value "$1" "${2-}"
+        INTRO_TITLE_FONT_SIZE="$2"
+        shift 2
+        ;;
+      --subtitle-font-size | --intro-subtitle-font-size)
+        require_value "$1" "${2-}"
+        INTRO_SUBTITLE_FONT_SIZE="$2"
+        shift 2
+        ;;
+      --title-color | --title-colour | --intro-title-color | --intro-title-colour)
+        require_value "$1" "${2-}"
+        INTRO_TITLE_COLOR="$2"
+        shift 2
+        ;;
+      --subtitle-color | --subtitle-colour | --intro-subtitle-color | --intro-subtitle-colour)
+        require_value "$1" "${2-}"
+        INTRO_SUBTITLE_COLOR="$2"
+        shift 2
+        ;;
+      --title-fade-in | --intro-title-fade-in)
+        require_value "$1" "${2-}"
+        INTRO_TITLE_FADE_IN="$2"
+        shift 2
+        ;;
+      --subtitle-delay | --intro-subtitle-delay)
+        require_value "$1" "${2-}"
+        INTRO_SUBTITLE_DELAY="$2"
+        shift 2
+        ;;
+      --subtitle-fade-in | --intro-subtitle-fade-in)
+        require_value "$1" "${2-}"
+        INTRO_SUBTITLE_FADE_IN="$2"
+        shift 2
+        ;;
+      --intro-hold)
+        require_value "$1" "${2-}"
+        INTRO_HOLD="$2"
+        shift 2
+        ;;
+      --intro-fade-out)
+        require_value "$1" "${2-}"
+        INTRO_TEXT_FADE_OUT="$2"
+        shift 2
+        ;;
+      --intro-crossfade)
+        require_value "$1" "${2-}"
+        INTRO_CROSSFADE="$2"
+        shift 2
+        ;;
+      --outro)
+        OUTRO_ENABLED=1
+        shift
+        ;;
+      --no-outro)
+        OUTRO_ENABLED=0
+        shift
+        ;;
+      --outro-title)
+        require_value "$1" "${2-}"
+        OUTRO_TITLE="$2"
+        OUTRO_ENABLED=1
+        shift 2
+        ;;
+      --outro-subtitle)
+        require_value "$1" "${2-}"
+        OUTRO_SUBTITLE="$2"
+        OUTRO_ENABLED=1
+        shift 2
+        ;;
+      --outro-title-font)
+        require_value "$1" "${2-}"
+        OUTRO_TITLE_FONT="$2"
+        shift 2
+        ;;
+      --outro-subtitle-font)
+        require_value "$1" "${2-}"
+        OUTRO_SUBTITLE_FONT="$2"
+        shift 2
+        ;;
+      --outro-title-font-size)
+        require_value "$1" "${2-}"
+        OUTRO_TITLE_FONT_SIZE="$2"
+        shift 2
+        ;;
+      --outro-subtitle-font-size)
+        require_value "$1" "${2-}"
+        OUTRO_SUBTITLE_FONT_SIZE="$2"
+        shift 2
+        ;;
+      --outro-title-color | --outro-title-colour)
+        require_value "$1" "${2-}"
+        OUTRO_TITLE_COLOR="$2"
+        shift 2
+        ;;
+      --outro-subtitle-color | --outro-subtitle-colour)
+        require_value "$1" "${2-}"
+        OUTRO_SUBTITLE_COLOR="$2"
+        shift 2
+        ;;
+      --outro-title-fade-in)
+        require_value "$1" "${2-}"
+        OUTRO_TITLE_FADE_IN="$2"
+        shift 2
+        ;;
+      --outro-subtitle-delay)
+        require_value "$1" "${2-}"
+        OUTRO_SUBTITLE_DELAY="$2"
+        shift 2
+        ;;
+      --outro-subtitle-fade-in)
+        require_value "$1" "${2-}"
+        OUTRO_SUBTITLE_FADE_IN="$2"
+        shift 2
+        ;;
+      --outro-hold)
+        require_value "$1" "${2-}"
+        OUTRO_HOLD="$2"
+        shift 2
+        ;;
+      --outro-fade-out)
+        require_value "$1" "${2-}"
+        OUTRO_TEXT_FADE_OUT="$2"
+        shift 2
+        ;;
+      --outro-crossfade)
+        require_value "$1" "${2-}"
+        OUTRO_CROSSFADE="$2"
+        shift 2
+        ;;
+      -G | --gource-bin)
+        require_value "$1" "${2-}"
+        GOURCE_BIN="$2"
+        shift 2
+        ;;
+      --ffmpeg-bin)
+        require_value "$1" "${2-}"
+        FFMPEG_BIN="$2"
+        shift 2
+        ;;
+      --ffprobe-bin)
+        require_value "$1" "${2-}"
+        FFPROBE_BIN="$2"
+        shift 2
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        die "Unknown option: $1"
+        ;;
+      *)
+        die "Unknown command or argument: $1"
+        ;;
+    esac
+  done
+}
+
+title_card_has_content() {
+  [[ -n "$1" || -n "$2" ]]
+}
+
+title_cards_require_drawtext() {
+  if [[ "$INTRO_ENABLED" -eq 1 ]] && title_card_has_content "$INTRO_TITLE" "$INTRO_SUBTITLE"; then
+    return 0
+  fi
+
+  if [[ "$OUTRO_ENABLED" -eq 1 ]] && title_card_has_content "$OUTRO_TITLE" "$OUTRO_SUBTITLE"; then
+    return 0
+  fi
+
+  if [[ "$ELAPSED_TIME_ENABLED" -eq 1 ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+validate_timing_options() {
+  local pairs=(
+    "duration:$RENDER_DURATION"
+    "audio crossfade:$AUDIO_CROSSFADE_SECONDS"
+    "audio fade-in:$AUDIO_FADE_IN_SECONDS"
+    "audio fade-out:$AUDIO_FADE_OUT_SECONDS"
+    "audio volume:$AUDIO_VOLUME"
+    "animation font size:$ANIMATION_FONT_SIZE"
+    "elapsed time font size:$ELAPSED_TIME_FONT_SIZE"
+    "elapsed time margin:$ELAPSED_TIME_MARGIN"
+    "intro title font size:$INTRO_TITLE_FONT_SIZE"
+    "intro subtitle font size:$INTRO_SUBTITLE_FONT_SIZE"
+    "intro title fade-in:$INTRO_TITLE_FADE_IN"
+    "intro subtitle delay:$INTRO_SUBTITLE_DELAY"
+    "intro subtitle fade-in:$INTRO_SUBTITLE_FADE_IN"
+    "intro hold:$INTRO_HOLD"
+    "intro fade-out:$INTRO_TEXT_FADE_OUT"
+    "intro crossfade:$INTRO_CROSSFADE"
+    "outro title font size:$OUTRO_TITLE_FONT_SIZE"
+    "outro subtitle font size:$OUTRO_SUBTITLE_FONT_SIZE"
+    "outro title fade-in:$OUTRO_TITLE_FADE_IN"
+    "outro subtitle delay:$OUTRO_SUBTITLE_DELAY"
+    "outro subtitle fade-in:$OUTRO_SUBTITLE_FADE_IN"
+    "outro hold:$OUTRO_HOLD"
+    "outro fade-out:$OUTRO_TEXT_FADE_OUT"
+    "outro crossfade:$OUTRO_CROSSFADE"
+  )
+  local pair=""
+  local name=""
+  local value=""
+
+  for pair in "${pairs[@]}"; do
+    name="${pair%%:*}"
+    value="${pair#*:}"
+    [[ -z "$value" ]] && continue
+    validate_number "$name" "$value"
+  done
+
+  case "$ELAPSED_TIME_POSITION" in
+    top-left | top-right | bottom-left | bottom-right)
+      ;;
+    *)
+      die "elapsed time position must be one of: top-left, top-right, bottom-left, bottom-right"
+      ;;
+  esac
+}
+
+prepare_text_options() {
+  if [[ "$OUTRO_ENABLED" -eq 1 && -z "$OUTRO_TITLE" && -z "$OUTRO_SUBTITLE" ]]; then
+    OUTRO_TITLE="$INTRO_TITLE"
+    OUTRO_SUBTITLE="$INTRO_SUBTITLE"
+  fi
+
+  INTRO_TITLE_COLOR="$(normalize_hex_color "intro title colour" "$INTRO_TITLE_COLOR" 1)"
+  INTRO_SUBTITLE_COLOR="$(normalize_hex_color "intro subtitle colour" "$INTRO_SUBTITLE_COLOR" 1)"
+  OUTRO_TITLE_COLOR="$(normalize_hex_color "outro title colour" "$OUTRO_TITLE_COLOR" 1)"
+  OUTRO_SUBTITLE_COLOR="$(normalize_hex_color "outro subtitle colour" "$OUTRO_SUBTITLE_COLOR" 1)"
+  ELAPSED_TIME_COLOR="$(normalize_hex_color "elapsed time colour" "$ELAPSED_TIME_COLOR" 1)"
+  ANIMATION_FONT_COLOR="$(normalize_optional_hex_color "animation font colour" "$ANIMATION_FONT_COLOR")"
+  ANIMATION_FILENAME_COLOR="$(normalize_optional_hex_color "animation filename colour" "$ANIMATION_FILENAME_COLOR")"
+  ANIMATION_DIR_COLOR="$(normalize_optional_hex_color "animation directory colour" "$ANIMATION_DIR_COLOR")"
+  ANIMATION_HIGHLIGHT_COLOR="$(normalize_optional_hex_color "animation highlight colour" "$ANIMATION_HIGHLIGHT_COLOR")"
+  ANIMATION_SELECTION_COLOR="$(normalize_optional_hex_color "animation selection colour" "$ANIMATION_SELECTION_COLOR")"
+
+  if [[ -n "$ANIMATION_FONT" ]]; then
+    ANIMATION_FONT_FILE="$(resolve_font_file "$ANIMATION_FONT")"
+  fi
+}
+
+resolve_media_tools() {
+  local drawtext_required=0
+
+  if title_cards_require_drawtext; then
+    drawtext_required=1
+  fi
+
+  FFMPEG_CMD="$(find_ffmpeg_binary "$drawtext_required")"
+  FFPROBE_CMD="$(find_ffprobe_binary "$FFMPEG_CMD")"
+}
+
+detect_background_audio() {
+  local ext=""
+
+  if [[ "$USE_AUDIO" -eq 0 ]]; then
+    return
+  fi
+
+  if [[ -n "$AUDIO" ]]; then
+    [[ -f "$AUDIO" ]] || die "Audio file not found: $AUDIO"
+    return
+  fi
+
+  for ext in mp3 m4a wav ogg; do
+    if [[ -f ".gource/background.$ext" ]]; then
+      AUDIO=".gource/background.$ext"
+      return
+    fi
+  done
+}
+
+get_media_duration() {
+  "$FFPROBE_CMD" -v error -show_entries format=duration -of csv=p=0 "$1"
+}
+
+clamp_fade_duration() {
+  local media_duration="$1"
+  local requested_duration="$2"
+
+  awk -v media="$media_duration" -v requested="$requested_duration" 'BEGIN {
+    fade = requested;
+    max = media / 2;
+    if (fade > max) fade = max;
+    if (fade < 0) fade = 0;
+    printf "%.3f", fade;
+  }'
+}
+
+clamp_duration_to_media() {
+  local media_duration="$1"
+  local requested_duration="$2"
+
+  awk -v media="$media_duration" -v requested="$requested_duration" 'BEGIN {
+    duration = requested;
+    if (duration > media) duration = media;
+    if (duration < 0) duration = 0;
+    printf "%.3f", duration;
+  }'
+}
+
+calculate_audio_repeats() {
+  local video_duration="$1"
+  local audio_duration="$2"
+  local crossfade_duration="$3"
+
+  awk -v video="$video_duration" -v audio="$audio_duration" -v fade="$crossfade_duration" 'BEGIN {
+    if (video <= audio) {
+      print 1;
+      exit;
+    }
+
+    step = audio - fade;
+    if (step <= 0) step = audio;
+
+    repeats = 1;
+    duration = audio;
+    while (duration < video) {
+      repeats += 1;
+      duration += step;
+    }
+
+    print repeats;
+  }'
+}
+
+build_audio_filter() {
+  local video_duration="$1"
+  local repeat_count="$2"
+  local crossfade_duration="$3"
+  local fade_in_duration="$4"
+  local fade_out_duration="$5"
+  local fade_out_start="$6"
+
+  local filter=""
+  local previous_label=""
+  local next_label=""
+  local i=0
+
+  for ((i = 0; i < repeat_count; i++)); do
+    filter+="[$((i + 1)):a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume=${AUDIO_VOLUME}[a${i}];"
+  done
+
+  previous_label="a0"
+  for ((i = 1; i < repeat_count; i++)); do
+    next_label="xf${i}"
+    filter+="[${previous_label}][a${i}]acrossfade=d=${crossfade_duration}:c1=tri:c2=tri[${next_label}];"
+    previous_label="$next_label"
+  done
+
+  filter+="[${previous_label}]atrim=0:${video_duration},asetpts=N/SR/TB"
+  if awk -v fade="$fade_in_duration" 'BEGIN { exit !(fade > 0) }'; then
+    filter+=",afade=t=in:d=${fade_in_duration}"
+  fi
+  if awk -v fade="$fade_out_duration" 'BEGIN { exit !(fade > 0) }'; then
+    filter+=",afade=t=out:st=${fade_out_start}:d=${fade_out_duration}"
+  fi
+  filter+="[audio]"
+
+  printf "%s" "$filter"
+}
+
+text_ready_time() {
+  local title="$1"
+  local subtitle="$2"
+  local title_fade_in="$3"
+  local subtitle_delay="$4"
+  local subtitle_fade_in="$5"
+  local title_ready=0
+  local subtitle_ready=0
+
+  if [[ -n "$title" ]]; then
+    title_ready="$title_fade_in"
+  fi
+
+  if [[ -n "$subtitle" ]]; then
+    subtitle_ready="$(number_add "$subtitle_delay" "$subtitle_fade_in")"
+  fi
+
+  number_max "$title_ready" "$subtitle_ready"
+}
+
+title_card_visible_duration() {
+  local title="$1"
+  local subtitle="$2"
+  local title_fade_in="$3"
+  local subtitle_delay="$4"
+  local subtitle_fade_in="$5"
+  local hold_duration="$6"
+  local fade_out_duration="$7"
+  local ready=""
+  local with_hold=""
+
+  ready="$(text_ready_time "$title" "$subtitle" "$title_fade_in" "$subtitle_delay" "$subtitle_fade_in")"
+  with_hold="$(number_add "$ready" "$hold_duration")"
+  number_add "$with_hold" "$fade_out_duration"
+}
+
+build_text_alpha_expression() {
+  local delay="$1"
+  local fade_in="$2"
+  local fade_out="$3"
+  local duration="$4"
+  local full_at=""
+  local fade_out_start=""
+  local base=""
+
+  full_at="$(number_add "$delay" "$fade_in")"
+
+  if number_gt "$fade_in" 0; then
+    if number_gt "$delay" 0; then
+      base="if(lt(t\\,$delay)\\,0\\,if(lt(t\\,$full_at)\\,(t-$delay)/$fade_in\\,1))"
+    else
+      base="if(lt(t\\,$fade_in)\\,t/$fade_in\\,1)"
+    fi
+  elif number_gt "$delay" 0; then
+    base="if(lt(t\\,$delay)\\,0\\,1)"
+  else
+    base="1"
+  fi
+
+  if number_gt "$fade_out" 0; then
+    fade_out_start="$(number_subtract "$duration" "$fade_out")"
+    printf "if(lt(t\\,%s)\\,%s\\,min(%s\\,(%s-t)/%s))" \
+      "$fade_out_start" "$base" "$base" "$duration" "$fade_out"
+  else
+    printf "%s" "$base"
+  fi
+}
+
+generate_title_card() {
+  local output="$1"
+  local title="$2"
+  local subtitle="$3"
+  local title_font="$4"
+  local subtitle_font="$5"
+  local title_font_size="$6"
+  local subtitle_font_size="$7"
+  local title_color="$8"
+  local subtitle_color="$9"
+  local title_fade_in="${10}"
+  local subtitle_delay="${11}"
+  local subtitle_fade_in="${12}"
+  local hold_duration="${13}"
+  local text_fade_out="${14}"
+  local card_duration="${15}"
+  local title_file=""
+  local subtitle_file=""
+  local title_alpha=""
+  local title_drawtext_color=""
+  local subtitle_alpha=""
+  local subtitle_drawtext_color=""
+  local filters=()
+  local filter=""
+
+  title_file="$TEMP_DIR/title-$(basename "$output").txt"
+  subtitle_file="$TEMP_DIR/subtitle-$(basename "$output").txt"
+
+  if [[ -n "$title" ]]; then
+    printf "%s" "$title" > "$title_file"
+    title_alpha="$(build_text_alpha_expression 0 "$title_fade_in" "$text_fade_out" "$card_duration")"
+    title_drawtext_color="$(drawtext_color "$title_color")"
+    filters+=("drawtext=font='$title_font':textfile='$title_file':fontcolor=$title_drawtext_color:fontsize=$title_font_size:x=(w-text_w)/2:y=(h-text_h)/2-26:alpha='$title_alpha'")
+  fi
+
+  if [[ -n "$subtitle" ]]; then
+    printf "%s" "$subtitle" > "$subtitle_file"
+    subtitle_alpha="$(build_text_alpha_expression "$subtitle_delay" "$subtitle_fade_in" "$text_fade_out" "$card_duration")"
+    subtitle_drawtext_color="$(drawtext_color "$subtitle_color")"
+    filters+=("drawtext=font='$subtitle_font':textfile='$subtitle_file':fontcolor=$subtitle_drawtext_color:fontsize=$subtitle_font_size:x=(w-text_w)/2:y=(h-text_h)/2+44:alpha='$subtitle_alpha'")
+  fi
+
+  if ((${#filters[@]})); then
+    IFS=,
+    filter="${filters[*]}"
+    unset IFS
+  else
+    filter="null"
+  fi
+
+  run_ffmpeg "title card" -y \
+    -f lavfi \
+    -i "color=c=black:s=${RENDER_RESOLUTION}:r=60:d=${card_duration}" \
+    -vf "$filter" \
+    -an \
+    -c:v libx264 -preset medium -pix_fmt yuv420p -crf 18 \
+    -g 120 -keyint_min 120 -sc_threshold 0 \
+    "$output"
+}
+
+limit_video_duration() {
+  local input="$1"
+  local output="$2"
+
+  if [[ -z "$RENDER_DURATION" ]]; then
+    if [[ "$input" != "$output" ]]; then
+      mv "$input" "$output"
+    fi
+    return
+  fi
+
+  run_ffmpeg "duration limit" -y -i "$input" \
+    -vf "tpad=stop_mode=clone:stop_duration=2,trim=duration=${RENDER_DURATION},setpts=PTS-STARTPTS" \
+    -an \
+    -c:v libx264 -preset medium -pix_fmt yuv420p -crf 18 \
+    -g 120 -keyint_min 120 -sc_threshold 0 \
+    "$output"
+}
+
+compose_video_with_title_cards() {
+  local raw_video="$1"
+  local output="$2"
+  local current_video="$raw_video"
+  local intro_video=""
+  local outro_video=""
+  local intro_offset=""
+  local intro_duration=""
+  local outro_duration=""
+  local current_duration=""
+  local outro_offset=""
+
+  if [[ "$INTRO_ENABLED" -eq 1 ]] && title_card_has_content "$INTRO_TITLE" "$INTRO_SUBTITLE"; then
+    log_step "Compositing intro title screen..."
+    intro_offset="$(title_card_visible_duration "$INTRO_TITLE" "$INTRO_SUBTITLE" "$INTRO_TITLE_FADE_IN" "$INTRO_SUBTITLE_DELAY" "$INTRO_SUBTITLE_FADE_IN" "$INTRO_HOLD" "$INTRO_TEXT_FADE_OUT")"
+    intro_duration="$(number_add "$intro_offset" "$INTRO_CROSSFADE")"
+    generate_title_card "$TEMP_DIR/intro.mp4" "$INTRO_TITLE" "$INTRO_SUBTITLE" "$INTRO_TITLE_FONT" "$INTRO_SUBTITLE_FONT" "$INTRO_TITLE_FONT_SIZE" "$INTRO_SUBTITLE_FONT_SIZE" "$INTRO_TITLE_COLOR" "$INTRO_SUBTITLE_COLOR" "$INTRO_TITLE_FADE_IN" "$INTRO_SUBTITLE_DELAY" "$INTRO_SUBTITLE_FADE_IN" "$INTRO_HOLD" "$INTRO_TEXT_FADE_OUT" "$intro_duration"
+    intro_video="$TEMP_DIR/with-intro.mp4"
+    run_ffmpeg "intro crossfade" -y \
+      -i "$TEMP_DIR/intro.mp4" \
+      -i "$current_video" \
+      -filter_complex "[0:v][1:v]xfade=transition=fade:duration=${INTRO_CROSSFADE}:offset=${intro_offset},format=yuv420p[v]" \
+      -map "[v]" \
+      -an \
+      -c:v libx264 -preset medium -pix_fmt yuv420p -crf 18 \
+      -g 120 -keyint_min 120 -sc_threshold 0 \
+      "$intro_video"
+    current_video="$intro_video"
+  fi
+
+  if [[ "$OUTRO_ENABLED" -eq 1 ]] && title_card_has_content "$OUTRO_TITLE" "$OUTRO_SUBTITLE"; then
+    log_step "Compositing outro title screen..."
+    outro_duration="$(title_card_visible_duration "$OUTRO_TITLE" "$OUTRO_SUBTITLE" "$OUTRO_TITLE_FADE_IN" "$OUTRO_SUBTITLE_DELAY" "$OUTRO_SUBTITLE_FADE_IN" "$OUTRO_HOLD" "$OUTRO_TEXT_FADE_OUT")"
+    current_duration="$(get_media_duration "$current_video")"
+    outro_offset="$(number_subtract "$current_duration" "$OUTRO_CROSSFADE")"
+    if ! number_gt "$outro_offset" 0; then
+      die "Outro crossfade (${OUTRO_CROSSFADE}s) is longer than the rendered video (${current_duration}s)"
+    fi
+    generate_title_card "$TEMP_DIR/outro.mp4" "$OUTRO_TITLE" "$OUTRO_SUBTITLE" "$OUTRO_TITLE_FONT" "$OUTRO_SUBTITLE_FONT" "$OUTRO_TITLE_FONT_SIZE" "$OUTRO_SUBTITLE_FONT_SIZE" "$OUTRO_TITLE_COLOR" "$OUTRO_SUBTITLE_COLOR" "$OUTRO_TITLE_FADE_IN" "$OUTRO_SUBTITLE_DELAY" "$OUTRO_SUBTITLE_FADE_IN" "$OUTRO_HOLD" "$OUTRO_TEXT_FADE_OUT" "$outro_duration"
+    outro_video="$TEMP_DIR/with-outro.mp4"
+    run_ffmpeg "outro crossfade" -y \
+      -i "$current_video" \
+      -i "$TEMP_DIR/outro.mp4" \
+      -filter_complex "[0:v][1:v]xfade=transition=fade:duration=${OUTRO_CROSSFADE}:offset=${outro_offset},format=yuv420p[v]" \
+      -map "[v]" \
+      -an \
+      -c:v libx264 -preset medium -pix_fmt yuv420p -crf 18 \
+      -g 120 -keyint_min 120 -sc_threshold 0 \
+      "$outro_video"
+    current_video="$outro_video"
+  fi
+
+  limit_video_duration "$current_video" "$output"
+}
+
+elapsed_time_x_expression() {
+  case "$ELAPSED_TIME_POSITION" in
+    top-left | bottom-left)
+      printf "%s" "$ELAPSED_TIME_MARGIN"
+      ;;
+    top-right | bottom-right)
+      printf "w-text_w-%s" "$ELAPSED_TIME_MARGIN"
+      ;;
+  esac
+}
+
+elapsed_time_y_expression() {
+  case "$ELAPSED_TIME_POSITION" in
+    top-left | top-right)
+      printf "%s" "$ELAPSED_TIME_MARGIN"
+      ;;
+    bottom-left | bottom-right)
+      printf "h-text_h-%s" "$ELAPSED_TIME_MARGIN"
+      ;;
+  esac
+}
+
+apply_elapsed_time_overlay() {
+  local input="$1"
+  local output="$2"
+  local x_expression=""
+  local y_expression=""
+  local time_text=""
+  local elapsed_drawtext_color=""
+  local filter=""
+
+  x_expression="$(elapsed_time_x_expression)"
+  y_expression="$(elapsed_time_y_expression)"
+  elapsed_drawtext_color="$(drawtext_color "$ELAPSED_TIME_COLOR")"
+  time_text="%{eif\\:floor(t/3600)\\:d\\:2}\\:%{eif\\:floor(mod(t\\,3600)/60)\\:d\\:2}\\:%{eif\\:floor(mod(t\\,60))\\:d\\:2}"
+  filter="setpts=PTS-STARTPTS,drawtext=font='$ELAPSED_TIME_FONT':text='$time_text':fontcolor=$elapsed_drawtext_color:fontsize=$ELAPSED_TIME_FONT_SIZE:x=$x_expression:y=$y_expression:shadowcolor=black@0.70:shadowx=2:shadowy=2"
+
+  run_ffmpeg "elapsed time overlay" -y -i "$input" \
+    -vf "$filter" \
+    -an \
+    -c:v libx264 -preset medium -pix_fmt yuv420p -crf 18 \
+    -g 120 -keyint_min 120 -sc_threshold 0 \
+    "$output"
+}
+
+calculate_intro_duration_for_limit() {
+  local intro_offset=0
+
+  if [[ "$INTRO_ENABLED" -eq 1 ]] && title_card_has_content "$INTRO_TITLE" "$INTRO_SUBTITLE"; then
+    intro_offset="$(title_card_visible_duration "$INTRO_TITLE" "$INTRO_SUBTITLE" "$INTRO_TITLE_FADE_IN" "$INTRO_SUBTITLE_DELAY" "$INTRO_SUBTITLE_FADE_IN" "$INTRO_HOLD" "$INTRO_TEXT_FADE_OUT")"
+  fi
+
+  printf "%s" "$intro_offset"
+}
+
+calculate_outro_extension_for_limit() {
+  local outro_duration=0
+
+  if [[ "$OUTRO_ENABLED" -eq 1 ]] && title_card_has_content "$OUTRO_TITLE" "$OUTRO_SUBTITLE"; then
+    outro_duration="$(title_card_visible_duration "$OUTRO_TITLE" "$OUTRO_SUBTITLE" "$OUTRO_TITLE_FADE_IN" "$OUTRO_SUBTITLE_DELAY" "$OUTRO_SUBTITLE_FADE_IN" "$OUTRO_HOLD" "$OUTRO_TEXT_FADE_OUT")"
+    number_subtract "$outro_duration" "$OUTRO_CROSSFADE"
+    return
+  fi
+
+  printf "%s" "$outro_duration"
+}
+
+calculate_gource_stop_time() {
+  local intro_duration=""
+  local outro_extension=""
+  local remaining=""
+
+  [[ -n "$RENDER_DURATION" ]] || return
+
+  intro_duration="$(calculate_intro_duration_for_limit)"
+  outro_extension="$(calculate_outro_extension_for_limit)"
+  remaining="$(awk -v total="$RENDER_DURATION" -v intro="$intro_duration" -v outro="$outro_extension" 'BEGIN {
+    value = total - intro - outro;
+    printf "%.3f", value;
+  }')"
+
+  if ! number_gt "$remaining" 0; then
+    die "Duration ${RENDER_DURATION}s is too short for the configured intro/outro timing"
+  fi
+
+  printf "%s" "$remaining"
+}
+
+generate_hls_output() {
+  local input="$1"
+  local playlist="$HLS_DIR/index.m3u8"
+  local poster="$HLS_DIR/poster.jpg"
+
+  rm -rf "$HLS_DIR"
+  mkdir -p "$HLS_DIR"
+
+  log_step "Packaging HLS segments..."
+  run_ffmpeg "HLS packaging" -y -i "$input" \
+    -map 0:v:0 -map "0:a?" \
+    -c:v copy -c:a copy \
+    -hls_time "$HLS_SEGMENT_SECONDS" \
+    -hls_playlist_type vod \
+    -hls_flags independent_segments \
+    -hls_segment_filename "$HLS_DIR/segment_%03d.ts" \
+    "$playlist"
+
+  log_step "Generating HLS poster..."
+  if ! try_ffmpeg "HLS poster seek" -y -ss "$POSTER_TIME_SECONDS" -i "$input" -frames:v 1 -q:v 2 "$poster" ||
+    [[ ! -s "$poster" ]]; then
+    rm -f "$poster"
+    run_ffmpeg "HLS poster fallback" -y -i "$input" -frames:v 1 -q:v 2 "$poster"
+  fi
+
+  [[ -s "$poster" ]] || die "Failed to generate HLS poster: $poster"
+}
+
+render_video() {
+  local gource_binary="$1"
+  local effective_config=""
+  local raw_video=""
+  local gource_stop_time=""
+  local gource_args=()
+  local ffmpeg_duration_args=()
+  local pipeline_status=0
+  local video_duration=""
+  local audio_duration=""
+  local crossfade_duration=""
+  local fade_in_duration=""
+  local fade_out_duration=""
+  local fade_out_start=""
+  local audio_repeats=""
+  local audio_filter=""
+  local audio_inputs=()
+  local i=0
+
+  [[ -f "$CONFIG_FILE" ]] || die "Gource config not found: $CONFIG_FILE"
+  [[ -d "$AVATAR_DIR" ]] || die "Avatar directory not found: $AVATAR_DIR"
+  ensure_temp_dir
+  effective_config="$(build_effective_gource_config)"
+  raw_video="$TEMP_DIR/gource-raw.mp4"
+
+  gource_args=(
+    --load-config "$effective_config"
+    "-$RENDER_RESOLUTION"
+    --user-image-dir "$AVATAR_DIR"
+    --disable-input
+  )
+
+  if [[ -n "$RENDER_DURATION" ]]; then
+    gource_stop_time="$(calculate_gource_stop_time)"
+    gource_args+=(--stop-at-time "$gource_stop_time")
+    log_step "Rendering ${RENDER_DURATION}s video at $RENDER_RESOLUTION..."
+  else
+    gource_args+=(--stop-at-end)
+    log_step "Rendering repo history at $RENDER_RESOLUTION..."
+  fi
+
+  if [[ -n "$gource_stop_time" ]]; then
+    ffmpeg_duration_args=(-t "$gource_stop_time")
+    set +o pipefail
+  fi
+
+  set +e
+  "$gource_binary" "${gource_args[@]}" -o - \
+  | run_ffmpeg "Gource video stream" -y -r 60 -f image2pipe -vcodec ppm -i - \
+      "${ffmpeg_duration_args[@]}" \
+      -vcodec libx264 -preset medium -pix_fmt yuv420p -crf 18 \
+      -g 120 -keyint_min 120 -sc_threshold 0 \
+      "$raw_video"
+  pipeline_status=$?
+  set -e
+
+  if [[ -n "$gource_stop_time" ]]; then
+    set -o pipefail
+  fi
+
+  [[ "$pipeline_status" -eq 0 ]] || die "Failed to render Gource video stream"
+  [[ -s "$raw_video" ]] || die "Gource raw video was not created: $raw_video"
+
+  compose_video_with_title_cards "$raw_video" "$SILENT"
+
+  if [[ "$ELAPSED_TIME_ENABLED" -eq 1 ]]; then
+    log_step "Adding elapsed time overlay..."
+    apply_elapsed_time_overlay "$SILENT" "$TEMP_DIR/with-elapsed-time.mp4"
+    mv "$TEMP_DIR/with-elapsed-time.mp4" "$SILENT"
+  fi
+
+  if [[ -n "$AUDIO" ]]; then
+    log_step "Mixing audio..."
+    video_duration="$(get_media_duration "$SILENT")"
+    audio_duration="$(get_media_duration "$AUDIO")"
+    crossfade_duration="$(clamp_fade_duration "$audio_duration" "$AUDIO_CROSSFADE_SECONDS")"
+    fade_in_duration="$(clamp_duration_to_media "$video_duration" "$AUDIO_FADE_IN_SECONDS")"
+    fade_out_duration="$(clamp_duration_to_media "$video_duration" "$AUDIO_FADE_OUT_SECONDS")"
+    fade_out_start="$(awk -v video="$video_duration" -v fade="$fade_out_duration" 'BEGIN {
+      start = video - fade;
+      if (start < 0) start = 0;
+      printf "%.3f", start;
+    }')"
+    audio_repeats="$(calculate_audio_repeats "$video_duration" "$audio_duration" "$crossfade_duration")"
+    audio_filter="$(build_audio_filter "$video_duration" "$audio_repeats" "$crossfade_duration" "$fade_in_duration" "$fade_out_duration" "$fade_out_start")"
+
+    for ((i = 0; i < audio_repeats; i++)); do
+      audio_inputs+=(-i "$AUDIO")
+    done
+
+    run_ffmpeg "audio mix" -y -i "$SILENT" "${audio_inputs[@]}" \
+      -filter_complex "$audio_filter" \
+      -map 0:v:0 -map "[audio]" \
+      -c:v copy -c:a aac -b:a 192k \
+      -shortest -movflags +faststart \
+      "$OUTPUT"
+  else
+    log_step "Writing final MP4..."
+    run_ffmpeg "final MP4 write" -y -i "$SILENT" -c copy -movflags +faststart "$OUTPUT"
+  fi
+
+  rm "$SILENT"
+}
+
+main() {
+  local gource_binary=""
+  local hls_playlist=""
+  local hls_poster=""
+  local hls_input=""
+  local final_mp4_output=""
+
+  parse_args "$@"
+  validate_timing_options
+  prepare_text_options
+  resolve_media_tools
+  final_mp4_output="$OUTPUT"
+
+  if [[ "$HLS_ONLY" -eq 1 && "$GENERATE_HLS" -eq 0 ]]; then
+    die "hls/--hls-only cannot be combined with --no-hls"
+  fi
+
+  if [[ "$HLS_ONLY" -eq 1 && "$OUTPUT_SET" -eq 1 ]]; then
+    die "--output writes a final MP4. Use --from FILE for an existing HLS source, or omit --output for HLS-only rendering."
+  fi
+
+  if [[ -n "$HLS_FROM" ]]; then
+    [[ -f "$HLS_FROM" ]] || die "HLS source MP4 not found: $HLS_FROM"
+    hls_input="$HLS_FROM"
+  elif [[ "$HLS_ONLY" -eq 1 ]]; then
+    detect_background_audio
+    gource_binary="$(find_gource_binary)"
+    TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lmaa-gource-hls.XXXXXX")"
+    OUTPUT="$TEMP_DIR/render.mp4"
+    render_video "$gource_binary"
+    hls_input="$OUTPUT"
+  else
+    detect_background_audio
+    gource_binary="$(find_gource_binary)"
+    render_video "$gource_binary"
+    hls_input="$OUTPUT"
+  fi
+
+  if [[ "$GENERATE_HLS" -eq 1 ]]; then
+    log_step "Generating HLS output..."
+    generate_hls_output "$hls_input"
+    hls_playlist="$HLS_DIR/index.m3u8"
+    hls_poster="$HLS_DIR/poster.jpg"
+  fi
+
+  if [[ "$HLS_ONLY" -eq 0 ]]; then
+    echo "MP4  -> $final_mp4_output"
+  elif [[ -n "$HLS_FROM" ]]; then
+    echo "MP4 source -> $HLS_FROM"
+  else
+    echo "MP4  -> not kept (--hls-only)"
+  fi
+
+  if [[ "$GENERATE_HLS" -eq 1 ]]; then
+    echo "HLS  -> $hls_playlist"
+    echo "Poster -> $hls_poster"
+  fi
+}
+
+main "$@"
