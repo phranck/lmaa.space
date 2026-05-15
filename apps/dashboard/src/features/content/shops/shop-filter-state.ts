@@ -4,7 +4,6 @@ import type { SortState } from "@/components/ui/Table.tsx";
 import { parseTableSortFromSearchParams } from "@/lib/table-sort-storage.ts";
 
 export type VisibilityFilter = "all" | ShopVisibility;
-export type GeoFilter = "all" | "with" | "without" | "needsReview";
 
 export const SHOP_SORTABLE_COLUMNS = new Set(["name", "region", "likes"]);
 export const DEFAULT_SHOPS_VISIBILITY_FILTER: VisibilityFilter = "public";
@@ -21,7 +20,6 @@ export type ExportLimit = (typeof EXPORT_LIMITS)[number];
 export type ShopsFilterState = {
   categoryFilter: string;
   visibilityFilter: VisibilityFilter;
-  geoFilter: GeoFilter;
   exportLimit: ExportLimit;
   importError: string | null;
 };
@@ -29,14 +27,12 @@ export type ShopsFilterState = {
 export type ShopsFilterAction =
   | { type: "setCategoryFilter"; value: string }
   | { type: "setVisibilityFilter"; value: VisibilityFilter }
-  | { type: "setGeoFilter"; value: GeoFilter }
   | { type: "setExportLimit"; value: ExportLimit }
   | { type: "setImportError"; value: string | null };
 
 export const INITIAL_FILTER_STATE: ShopsFilterState = {
   categoryFilter: "all",
   visibilityFilter: DEFAULT_SHOPS_VISIBILITY_FILTER,
-  geoFilter: "all",
   exportLimit: 50,
   importError: null,
 };
@@ -89,8 +85,6 @@ export function shopsFilterReducer(state: ShopsFilterState, action: ShopsFilterA
       return { ...state, categoryFilter: action.value };
     case "setVisibilityFilter":
       return { ...state, visibilityFilter: action.value };
-    case "setGeoFilter":
-      return { ...state, geoFilter: action.value };
     case "setExportLimit":
       return { ...state, exportLimit: action.value };
     case "setImportError":

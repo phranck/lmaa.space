@@ -1,9 +1,7 @@
 import {
   EyeIcon,
   MagnifyingGlassIcon,
-  MapPinIcon,
   PauseCircleIcon,
-  SealWarningIcon,
   SquaresFourIcon,
   StorefrontIcon,
   TrashIcon,
@@ -33,7 +31,6 @@ import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.
 import {
   EXPORT_LIMITS,
   type ExportLimit,
-  type GeoFilter,
   INITIAL_FILTER_STATE,
   SHOP_SORTABLE_COLUMNS,
   type VisibilityFilter,
@@ -64,15 +61,10 @@ type ShopVisibilityCounts = Record<VisibilityFilter, number>;
 function useShopFilterOptions({
   categories,
   counts,
-  shops,
   shopsMessages,
 }: {
   categories: ShopCategoryOption[];
   counts?: ShopVisibilityCounts;
-  shops: Array<{
-    headquarters?: { latitude?: number | null; longitude?: number | null } | null;
-    needsReview?: boolean;
-  }>;
   shopsMessages: ShopsMessages;
 }) {
   const countsKey = counts
@@ -114,44 +106,6 @@ function useShopFilterOptions({
     [shopsMessages, countsKey, counts],
   );
 
-  const geoFilterOptions = useMemo<DropdownOption<GeoFilter>[]>(
-    () => {
-      const withGeo = shops.filter(
-        (s) => s.headquarters?.latitude != null && s.headquarters?.longitude != null,
-      ).length;
-      const withoutGeo = shops.filter(
-        (s) => s.headquarters?.latitude == null || s.headquarters?.longitude == null,
-      ).length;
-      const needsReviewCount = shops.filter((s) => s.needsReview).length;
-      return [
-        {
-          value: "all",
-          label: shopsMessages.geoFilter.all,
-          icon: <SquaresFourIcon weight="duotone" className="size-3.5" />,
-        },
-        {
-          value: "with",
-          label: shopsMessages.geoFilter.withGeo,
-          icon: <MapPinIcon weight="duotone" className="size-3.5" />,
-          count: withGeo,
-        },
-        {
-          value: "without",
-          label: shopsMessages.geoFilter.withoutGeo,
-          icon: <MapPinIcon weight="duotone" className="size-3.5" />,
-          count: withoutGeo,
-        },
-        {
-          value: "needsReview",
-          label: shopsMessages.geoFilter.needsReview,
-          icon: <SealWarningIcon weight="duotone" className="size-3.5" />,
-          count: needsReviewCount,
-        },
-      ];
-    },
-    [shopsMessages, shops],
-  );
-
   const categoryFilterOptions = useMemo<DropdownOption<string>[]>(
     () => [
       {
@@ -167,7 +121,7 @@ function useShopFilterOptions({
     [shopsMessages, categories],
   );
 
-  return { categoryFilterOptions, filterOptions, geoFilterOptions };
+  return { categoryFilterOptions, filterOptions };
 }
 
 function ShopsHeaderActions({
@@ -175,8 +129,6 @@ function ShopsHeaderActions({
   categoryFilterOptions,
   exportDisabled,
   exportLimit,
-  geoFilter,
-  geoFilterOptions,
   importPending,
   shopsMessages,
   visibilityFilter,
@@ -184,7 +136,6 @@ function ShopsHeaderActions({
   onCategoryFilterChange,
   onExport,
   onExportLimitChange,
-  onGeoFilterChange,
   onImportFile,
   onVisibilityFilterChange,
 }: {
@@ -192,8 +143,6 @@ function ShopsHeaderActions({
   categoryFilterOptions: DropdownOption<string>[];
   exportDisabled: boolean;
   exportLimit: ExportLimit;
-  geoFilter: GeoFilter;
-  geoFilterOptions: DropdownOption<GeoFilter>[];
   importPending: boolean;
   shopsMessages: ShopsMessages;
   visibilityFilter: VisibilityFilter;
@@ -201,7 +150,6 @@ function ShopsHeaderActions({
   onCategoryFilterChange: (value: string) => void;
   onExport: () => void;
   onExportLimitChange: (value: ExportLimit) => void;
-  onGeoFilterChange: (value: GeoFilter) => void;
   onImportFile: (file: File) => void;
   onVisibilityFilterChange: (value: VisibilityFilter) => void;
 }) {
@@ -214,13 +162,6 @@ function ShopsHeaderActions({
         storageKey="shops-filter-category"
         searchable
         searchPlaceholder={shopsMessages.searchPlaceholder}
-      />
-
-      <FilterDropdown
-        value={geoFilter}
-        onChange={onGeoFilterChange}
-        options={geoFilterOptions}
-        storageKey="shops-filter-geo"
       />
 
       <FilterDropdown
@@ -327,7 +268,7 @@ export function ShopsPage() {
         initialState.visibilityFilter,
     }),
   );
-  const { categoryFilter, visibilityFilter, geoFilter, exportLimit, importError } = filterState;
+  const { categoryFilter, visibilityFilter, exportLimit, importError } = filterState;
   const importMutation = useImportShopReviewResults();
 
   useEffect(() => {
@@ -396,24 +337,17 @@ export function ShopsPage() {
         if (categoryFilter !== "all") {
           if (!s.categories.some((c) => c.slug === categoryFilter)) return false;
         }
-        if (geoFilter === "with")
-          return s.headquarters?.latitude != null && s.headquarters?.longitude != null;
-        if (geoFilter === "without")
-          return s.headquarters?.latitude == null || s.headquarters?.longitude == null;
-        if (geoFilter === "needsReview") return s.needsReview === true;
         return true;
       }),
-    [shops, searchLower, categoryFilter, geoFilter],
+    [shops, searchLower, categoryFilter],
   );
 
   const {
     categoryFilterOptions,
     filterOptions,
-    geoFilterOptions,
   } = useShopFilterOptions({
     categories,
     counts,
-    shops,
     shopsMessages,
   });
   const activeVisibilityLabel =
@@ -482,8 +416,6 @@ export function ShopsPage() {
           categoryFilterOptions={categoryFilterOptions}
           exportDisabled={filtered.length === 0}
           exportLimit={exportLimit}
-          geoFilter={geoFilter}
-          geoFilterOptions={geoFilterOptions}
           importPending={importMutation.isPending}
           shopsMessages={shopsMessages}
           visibilityFilter={visibilityFilter}
@@ -491,7 +423,6 @@ export function ShopsPage() {
           onCategoryFilterChange={(value) => dispatch({ type: "setCategoryFilter", value })}
           onExport={handleExport}
           onExportLimitChange={(value) => dispatch({ type: "setExportLimit", value })}
-          onGeoFilterChange={(value) => dispatch({ type: "setGeoFilter", value })}
           onImportFile={handleImportFile}
           onVisibilityFilterChange={handleVisibilityFilterChange}
         />
