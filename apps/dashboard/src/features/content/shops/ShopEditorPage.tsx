@@ -1,6 +1,5 @@
 import {
   ArrowCounterClockwiseIcon,
-  DownloadIcon,
   FileTextIcon,
   HeartIcon,
   SealCheckIcon,
@@ -11,6 +10,7 @@ import {
 import { useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
+import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
@@ -67,7 +67,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const showReject = controller.canReject && !isRejected;
   const showEditRejection = isRejected;
   const showDelete = !controller.isNew;
-  const showAcceptReview = !controller.isNew && (controller.activeShop?.needsReview === true);
+  const showAcceptReview = !controller.isNew && controller.activeShop?.needsReview === true;
   const backLabel = messages.layout.sidebar.shops;
   const returnTo =
     typeof location.state === "object" &&
@@ -80,7 +80,10 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
   const saveLabel = controller.common.save;
 
   const isActionPending =
-    controller.isPending || visibilityMutation.isPending || deleteMutation.isPending || acceptReviewMutation.isPending;
+    controller.isPending ||
+    visibilityMutation.isPending ||
+    deleteMutation.isPending ||
+    acceptReviewMutation.isPending;
 
   return (
     <>
@@ -206,7 +209,7 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               </EditorToolbarButton>
             )}
 
-            <EditorToolbarButton
+            <SaveActionButton
               onClick={() =>
                 void controller.handleSaveSafely({
                   onSuccess: (saved) => {
@@ -223,10 +226,9 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
               }
               disabled={!controller.canSave || isActionPending}
               variant="primary"
-              icon={<DownloadIcon weight="duotone" className="size-3.5" />}
-            >
-              {saveLabel}
-            </EditorToolbarButton>
+              label={saveLabel}
+              keyboardShortcut={!controller.rejectStateIsOpen}
+            />
           </div>
         }
       >

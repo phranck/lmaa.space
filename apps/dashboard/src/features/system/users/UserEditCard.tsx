@@ -5,10 +5,7 @@ import { type ChangeEvent, useEffect, useReducer, useRef } from "react";
 import type { AdminLocale, AdminUser } from "@lmaa/shared";
 
 import { AlertDialog } from "@/components/ui/AlertDialog.tsx";
-import {
-  CancelActionButton,
-  SaveActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { CancelActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
@@ -29,7 +26,6 @@ import {
 import { UserAvatarEditor } from "@/features/system/users/UserAvatarEditor.tsx";
 import { UserProfileFields } from "@/features/system/users/UserProfileFields.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 interface UserEditCardProps {
   userId: number;
@@ -196,10 +192,6 @@ function UserEditCardForm({
     }
   }
 
-  useKeyboardSave(() => {
-    if (hasChanges) void handleSave(false);
-  });
-
   return (
     <OverlayCard
       open
@@ -245,10 +237,7 @@ function UserEditCardForm({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <CancelActionButton
-          label={common.cancel}
-          onClick={onClose}
-        />
+        <CancelActionButton label={common.cancel} onClick={onClose} />
         <SaveActionButton
           onClick={() => void handleSave()}
           disabled={!canSave}

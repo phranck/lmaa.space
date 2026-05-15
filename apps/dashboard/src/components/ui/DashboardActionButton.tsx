@@ -15,10 +15,11 @@ import {
   XCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import type { ComponentType, ReactNode } from "react";
+import { useCallback, useRef, type ComponentType, type ReactNode, type Ref } from "react";
 
 import { useI18n } from "@/context/I18nContext.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
+import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 import {
   DashboardButton,
@@ -36,9 +37,7 @@ export type DashboardActionColorRole =
   | "warning"
   | "danger"
   | "ghost";
-export type DashboardActionAriaBehavior =
-  | "visible-label"
-  | "icon-only-label";
+export type DashboardActionAriaBehavior = "visible-label" | "icon-only-label";
 export type DashboardActionLabelKey =
   `common.${Extract<keyof DashboardMessages["common"], string>}`;
 export type DashboardActionIcon = ComponentType<IconProps>;
@@ -172,26 +171,35 @@ export const DASHBOARD_ACTIONS = {
 
 export type DashboardActionId = keyof typeof DASHBOARD_ACTIONS;
 
-export interface DashboardActionButtonProps
-  extends Omit<
-    DashboardButtonProps,
-    "children" | "leadingIcon" | "size" | "variant"
-  > {
+export interface DashboardActionButtonProps extends Omit<
+  DashboardButtonProps,
+  "children" | "leadingIcon" | "size" | "variant"
+> {
   action: DashboardActionId;
   busy?: boolean;
   children?: ReactNode;
   icon?: ReactNode | false;
   iconOnly?: boolean;
+  keyboardShortcut?: boolean;
   label?: string;
   size?: DashboardButtonSize;
   status?: DashboardActionStatus;
   variant?: DashboardButtonVariant;
 }
 
-type SpecificDashboardActionButtonProps = Omit<
-  DashboardActionButtonProps,
-  "action"
->;
+type SpecificDashboardActionButtonProps = Omit<DashboardActionButtonProps, "action">;
+type SaveActionButtonProps = Omit<SpecificDashboardActionButtonProps, "icon">;
+
+function assignForwardedButtonRef(
+  ref: Ref<HTMLButtonElement> | undefined,
+  value: HTMLButtonElement | null,
+) {
+  if (typeof ref === "function") {
+    ref(value);
+    return;
+  }
+  if (ref) ref.current = value;
+}
 
 export function DashboardActionButton({
   action,
@@ -199,7 +207,9 @@ export function DashboardActionButton({
   children,
   icon,
   iconOnly,
+  keyboardShortcut: _keyboardShortcut,
   label,
+  ref,
   size,
   status = "idle",
   variant,
@@ -213,20 +223,16 @@ export function DashboardActionButton({
     getActionLabelKey(definition, resolvedStatus),
   );
   const resolvedLabel = label ?? resolvedActionLabel;
-  const shouldRenderIconOnly =
-    iconOnly ?? definition.ariaBehavior === "icon-only-label";
+  const shouldRenderIconOnly = iconOnly ?? definition.ariaBehavior === "icon-only-label";
   const renderedIcon = renderActionIcon(definition, icon);
-  const {
-    "aria-busy": ariaBusy,
-    "aria-label": ariaLabel,
-    ...restButtonProps
-  } = buttonProps;
+  const { "aria-busy": ariaBusy, "aria-label": ariaLabel, ...restButtonProps } = buttonProps;
 
   if (shouldRenderIconOnly) {
     return (
       <DashboardIconButton
         aria-busy={ariaBusy ?? (busy || undefined)}
         aria-label={ariaLabel ?? resolvedLabel}
+        ref={ref}
         size={size ?? definition.size}
         variant={variant ?? definition.colorRole}
         {...restButtonProps}
@@ -240,6 +246,7 @@ export function DashboardActionButton({
     <DashboardButton
       aria-busy={ariaBusy ?? (busy || undefined)}
       aria-label={ariaLabel}
+      ref={ref}
       leadingIcon={renderedIcon}
       size={size ?? definition.size}
       variant={variant ?? definition.colorRole}
@@ -250,8 +257,27 @@ export function DashboardActionButton({
   );
 }
 
-export function SaveActionButton(props: SpecificDashboardActionButtonProps) {
-  return <DashboardActionButton action="save" {...props} />;
+export function SaveActionButton({
+  keyboardShortcut = true,
+  ref,
+  ...props
+}: SaveActionButtonProps) {
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const mergedRef = useCallback(
+    (value: HTMLButtonElement | null) => {
+      buttonRef.current = value;
+      assignForwardedButtonRef(ref, value);
+    },
+    [ref],
+  );
+  const shortcutEnabled =
+    keyboardShortcut !== false && !props.disabled && !props.busy && props.status !== "busy";
+
+  useKeyboardSave(() => {
+    buttonRef.current?.click();
+  }, shortcutEnabled);
+
+  return <DashboardActionButton ref={mergedRef} action="save" {...props} />;
 }
 
 export function DeleteActionButton(props: SpecificDashboardActionButtonProps) {
@@ -306,9 +332,7 @@ export function HoldActionButton(props: SpecificDashboardActionButtonProps) {
   return <DashboardActionButton action="hold" {...props} />;
 }
 
-export function OverwriteActionButton(
-  props: SpecificDashboardActionButtonProps,
-) {
+export function OverwriteActionButton(props: SpecificDashboardActionButtonProps) {
   return <DashboardActionButton action="overwrite" {...props} />;
 }
 
@@ -316,10 +340,7 @@ export function SkipActionButton(props: SpecificDashboardActionButtonProps) {
   return <DashboardActionButton action="skip" {...props} />;
 }
 
-function getActionLabelKey(
-  definition: DashboardActionDefinition,
-  status: DashboardActionStatus,
-) {
+function getActionLabelKey(definition: DashboardActionDefinition, status: DashboardActionStatus) {
   if (status === "busy" && definition.statusLabelKeys?.busy) {
     return definition.statusLabelKeys.busy;
   }
@@ -327,10 +348,7 @@ function getActionLabelKey(
   return definition.labelKey;
 }
 
-function getDashboardActionLabel(
-  messages: DashboardMessages,
-  labelKey: DashboardActionLabelKey,
-) {
+function getDashboardActionLabel(messages: DashboardMessages, labelKey: DashboardActionLabelKey) {
   const commonKey = labelKey.slice("common.".length) as Extract<
     keyof DashboardMessages["common"],
     string

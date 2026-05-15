@@ -12,6 +12,7 @@ import {
   CancelActionButton,
   CopyActionButton,
   DashboardActionButton,
+  SaveActionButton,
 } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardCombobox } from "@/components/ui/DashboardControls.tsx";
 import { dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
@@ -204,13 +205,21 @@ export function RejectDialog({
 
       <OverlayCard.Footer className="flex justify-end gap-2">
         <CancelActionButton label={messages.cancel} onClick={onClose} />
-        <DashboardActionButton
-          action={isDanger ? "reject" : "approve"}
-          onClick={onSubmit}
-          disabled={isPending}
-          icon={submitIcon}
-          label={isPending ? "…" : submitLabel}
-        />
+        {isDanger ? (
+          <DashboardActionButton
+            action="reject"
+            onClick={onSubmit}
+            disabled={isPending}
+            icon={submitIcon}
+            label={isPending ? "…" : submitLabel}
+          />
+        ) : (
+          <SaveActionButton
+            onClick={onSubmit}
+            disabled={isPending}
+            label={isPending ? "…" : submitLabel}
+          />
+        )}
       </OverlayCard.Footer>
     </OverlayCard>
   );

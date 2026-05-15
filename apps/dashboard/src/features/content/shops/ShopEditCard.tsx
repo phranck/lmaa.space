@@ -90,10 +90,7 @@ function ShopEditCardLayout({
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
-        <CancelActionButton
-          onClick={onClose}
-          label={controller.common.cancel}
-        />
+        <CancelActionButton onClick={onClose} label={controller.common.cancel} />
         {controller.canReject && (
           <RejectActionButton
             onClick={() => controller.handleOpenRejectCard(false)}
@@ -110,6 +107,7 @@ function ShopEditCardLayout({
           }
           disabled={!controller.canSave}
           busy={controller.isPending}
+          keyboardShortcut={!controller.rejectStateIsOpen}
           label={controller.isPending ? controller.common.saving : controller.common.save}
         />
       </OverlayCard.Footer>

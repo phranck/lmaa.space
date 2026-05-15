@@ -3,10 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
 import { Card } from "@/components/ui/Card.tsx";
-import {
-  CreateActionButton,
-  SaveActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
+import { CreateActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import {
   PageBody,
@@ -18,7 +15,6 @@ import {
 import { useI18n } from "@/context/I18nContext.tsx";
 import { createEmptyWidget } from "@/features/system/widget-utils.ts";
 import { WidgetEditorPanel } from "@/features/system/WidgetEditorPanel.tsx";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 import { useMarkdownWidgets, useSaveMarkdownWidgets } from "./hooks/useMarkdownWidgets.ts";
 
@@ -94,8 +90,6 @@ export function MarkdownWidgetsPage() {
     });
   }
 
-  useKeyboardSave(handleSave, Boolean(config) && !save.isPending);
-
   return (
     <PageLayout>
       <PageHeader title={widgetMessages.title}>
@@ -126,10 +120,7 @@ export function MarkdownWidgetsPage() {
                       {widgetMessages.widgetsHint}
                     </p>
                   </div>
-                  <CreateActionButton
-                    onClick={handleAddWidget}
-                    label={widgetMessages.newWidget}
-                  />
+                  <CreateActionButton onClick={handleAddWidget} label={widgetMessages.newWidget} />
                 </div>
 
                 <div className="space-y-2">
