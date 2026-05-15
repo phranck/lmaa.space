@@ -28,64 +28,75 @@ export async function dispatchTemplateAssignments(
   assignments: TemplateAssignment[],
   context: PostContext,
 ): Promise<void> {
-  for (const assignment of assignments) {
-    try {
-      await upsertChoice(adminUserId, assignment.accountId, assignment.templateId, scope);
-    } catch (err) {
-      await recordBackgroundError("template-choice-upsert", err, {
-        adminUserId,
-        accountId: assignment.accountId,
-        scope,
-      });
-    }
+  await Promise.all(
+    assignments.map((assignment) =>
+      dispatchTemplateAssignment(adminUserId, scope, assignment, context),
+    ),
+  );
+}
 
-    if (assignment.templateId === null) continue;
+async function dispatchTemplateAssignment(
+  adminUserId: number,
+  scope: SocialMediaPostTemplateScope,
+  assignment: TemplateAssignment,
+  context: PostContext,
+): Promise<void> {
+  try {
+    await upsertChoice(adminUserId, assignment.accountId, assignment.templateId, scope);
+  } catch (err) {
+    await recordBackgroundError("template-choice-upsert", err, {
+      adminUserId,
+      accountId: assignment.accountId,
+      scope,
+    });
+  }
 
-    try {
-      const account = await getAccountById(assignment.accountId);
-      if (!account || !account.isActive) {
-        logger.warn(
-          { accountId: assignment.accountId, scope },
-          "templateAssignments: account not found or inactive, skipping",
-        );
-        continue;
-      }
-      const template = await getSocialMediaPostTemplateById(assignment.templateId);
-      if (!template) {
-        await recordBackgroundError(
-          `${account.platform}-post`,
-          new Error(`templateId ${assignment.templateId} not found`),
-          { accountId: account.id, scope },
-        );
-        continue;
-      }
-      if (!template.scopes.includes(scope)) {
-        await recordBackgroundError(
-          `${account.platform}-post`,
-          new Error(`template ${template.id} does not cover scope ${scope}`),
-          { accountId: account.id, templateId: template.id, scope },
-        );
-        continue;
-      }
-      if (!template.platforms.includes(account.platform)) {
-        await recordBackgroundError(
-          `${account.platform}-post`,
-          new Error(`template ${template.id} does not cover platform ${account.platform}`),
-          { accountId: account.id, templateId: template.id, scope },
-        );
-        continue;
-      }
-      if (account.platform === "mastodon") {
-        await postToMastodonAccount(account, template, context);
-      } else {
-        await postToBlueskyAccount(account, template, context);
-      }
-    } catch (err) {
-      await recordBackgroundError("social-media-post", err, {
-        accountId: assignment.accountId,
-        templateId: assignment.templateId,
-        scope,
-      });
+  if (assignment.templateId === null) return;
+
+  try {
+    const account = await getAccountById(assignment.accountId);
+    if (!account || !account.isActive) {
+      logger.warn(
+        { accountId: assignment.accountId, scope },
+        "templateAssignments: account not found or inactive, skipping",
+      );
+      return;
     }
+    const template = await getSocialMediaPostTemplateById(assignment.templateId);
+    if (!template) {
+      await recordBackgroundError(
+        `${account.platform}-post`,
+        new Error(`templateId ${assignment.templateId} not found`),
+        { accountId: account.id, scope },
+      );
+      return;
+    }
+    if (!new Set(template.scopes).has(scope)) {
+      await recordBackgroundError(
+        `${account.platform}-post`,
+        new Error(`template ${template.id} does not cover scope ${scope}`),
+        { accountId: account.id, templateId: template.id, scope },
+      );
+      return;
+    }
+    if (!new Set(template.platforms).has(account.platform)) {
+      await recordBackgroundError(
+        `${account.platform}-post`,
+        new Error(`template ${template.id} does not cover platform ${account.platform}`),
+        { accountId: account.id, templateId: template.id, scope },
+      );
+      return;
+    }
+    if (account.platform === "mastodon") {
+      await postToMastodonAccount(account, template, context);
+    } else {
+      await postToBlueskyAccount(account, template, context);
+    }
+  } catch (err) {
+    await recordBackgroundError("social-media-post", err, {
+      accountId: assignment.accountId,
+      templateId: assignment.templateId,
+      scope,
+    });
   }
 }

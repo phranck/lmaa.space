@@ -4,7 +4,7 @@ import { createMiddleware } from "hono/factory";
 
 import type { AdminRole } from "@lmaa/shared";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { adminUsers, sessions } from "../db/schema.js";
 import { fail } from "../lib/http.js";
 
@@ -40,15 +40,14 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async 
     .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, now)))
     .limit(1);
 
-  if (!session) {
-    return fail(c, 401, "Session expired");
-  }
-
-  c.set("adminId", session.adminId);
-  c.set("role", session.role as AdminRole);
-  c.set("isOwner", session.role === "owner");
-
-  await next();
+  return session
+    ? await (async () => {
+        c.set("adminId", session.adminId);
+        c.set("role", session.role as AdminRole);
+        c.set("isOwner", session.role === "owner");
+        await next();
+      })()
+    : fail(c, 401, "Session expired");
 });
 
 /**

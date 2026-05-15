@@ -17,11 +17,12 @@ function getNextCustomRemindAt(reminder: DueReminder): Date {
   const unit = reminder.recurrenceUnit ?? "days";
 
   if (unit === "weeks" && reminder.recurrenceDaysOfWeek) {
-    const days = reminder.recurrenceDaysOfWeek
-      .split(",")
-      .map(Number)
-      .filter((d) => d >= 1 && d <= 7)
-      .sort((a, b) => a - b);
+    const days: number[] = [];
+    for (const value of reminder.recurrenceDaysOfWeek.split(",")) {
+      const day = Number(value);
+      if (day >= 1 && day <= 7) days.push(day);
+    }
+    days.sort((a, b) => a - b);
 
     if (days.length > 0) {
       const jsDay = base.getDay();
@@ -96,7 +97,7 @@ function buildReminderHtml(reminder: DueReminder): string {
     ? `<p style="margin:12px 0"><strong>Notiz:</strong> ${reminder.note.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`
     : "";
   const recurrenceLabel =
-    reminder.recurrence !== "never" ? RECURRENCE_LABELS[reminder.recurrence] ?? "" : "";
+    reminder.recurrence !== "never" ? (RECURRENCE_LABELS[reminder.recurrence] ?? "") : "";
   const recurrenceBlock = recurrenceLabel
     ? `<p style="color:#888;font-size:12px">Wiederholung: ${recurrenceLabel}</p>`
     : "";
@@ -123,30 +124,32 @@ async function sendReminderEmail(reminder: DueReminder): Promise<boolean> {
 
 async function processReminders(): Promise<void> {
   const due = await getDueReminders();
-  for (const reminder of due) {
-    const emailSent = await sendReminderEmail(reminder);
-    if (!emailSent) {
-      logger.warn({ shopId: reminder.shopId }, "reminder: email failed, will retry next tick");
-      continue;
-    }
+  await Promise.all(due.map(processReminder));
+}
 
-    await sendPushNotification(reminder.adminId, {
-      title: `Erinnerung: ${reminder.shopName}`,
-      body: reminder.note ?? `Shop "${reminder.shopName}" prüfen`,
-      url: `/shops/${reminder.shopId}`,
-    });
+async function processReminder(reminder: DueReminder): Promise<void> {
+  const emailSent = await sendReminderEmail(reminder);
+  if (!emailSent) {
+    logger.warn({ shopId: reminder.shopId }, "reminder: email failed, will retry next tick");
+    return;
+  }
 
-    const nextDate = getNextRemindAt(reminder);
-    if (nextDate) {
-      await advanceReminderDate(reminder.id, nextDate);
-      logger.info(
-        { shopId: reminder.shopId, nextRemindAt: nextDate },
-        "reminder: processed, advanced to next occurrence",
-      );
-    } else {
-      await deleteReminderById(reminder.id);
-      logger.info({ shopId: reminder.shopId }, "reminder: processed and deleted");
-    }
+  await sendPushNotification(reminder.adminId, {
+    title: `Erinnerung: ${reminder.shopName}`,
+    body: reminder.note ?? `Shop "${reminder.shopName}" prüfen`,
+    url: `/shops/${reminder.shopId}`,
+  });
+
+  const nextDate = getNextRemindAt(reminder);
+  if (nextDate) {
+    await advanceReminderDate(reminder.id, nextDate);
+    logger.info(
+      { shopId: reminder.shopId, nextRemindAt: nextDate },
+      "reminder: processed, advanced to next occurrence",
+    );
+  } else {
+    await deleteReminderById(reminder.id);
+    logger.info({ shopId: reminder.shopId }, "reminder: processed and deleted");
   }
 }
 

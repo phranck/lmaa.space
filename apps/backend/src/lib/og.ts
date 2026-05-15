@@ -20,13 +20,7 @@ const MAX_INLINE_IMG_CANDIDATES = 12;
 const LOGO_NAME_PATTERN = /(^|[^a-z])(logo|brand|wordmark|signet)([^a-z]|$)/i;
 const THEME_ASSET_PATH_PATTERN = /\/(theme|themes|template|templates|skin|skins|assets|static)\//i;
 
-type CandidateKind =
-  | "apple-touch"
-  | "og"
-  | "manifest"
-  | "icon"
-  | "inline-logo"
-  | "inline-other";
+type CandidateKind = "apple-touch" | "og" | "manifest" | "icon" | "inline-logo" | "inline-other";
 
 const KIND_PRIORITY: CandidateKind[] = [
   "apple-touch",
@@ -122,35 +116,42 @@ export async function fetchExternalResource(
   if (!isExternalUrl(url)) return null;
 
   try {
-    let currentUrl = url;
-
-    for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
-      const response = await fetch(currentUrl, { ...init, redirect: "manual" });
-
-      if (!isRedirectStatus(response.status)) {
-        return { response, finalUrl: currentUrl };
-      }
-
-      const location = response.headers.get("location");
-      const nextUrl = location ? resolveRedirectUrl(location, currentUrl) : null;
-
-      if (!nextUrl || !isExternalUrl(nextUrl)) {
-        logger.warn({ currentUrl, location }, "blocked redirect while resolving external resource");
-        return null;
-      }
-
-      currentUrl = nextUrl;
-    }
-
-    logger.warn(
-      { url, maxRedirects: MAX_REDIRECTS },
-      "too many redirects while resolving external resource",
-    );
-    return null;
+    return fetchExternalResourceHop(url, init, MAX_REDIRECTS, url);
   } catch (err) {
     logger.error({ err }, "external resource fetch failed");
     return null;
   }
+}
+
+async function fetchExternalResourceHop(
+  currentUrl: string,
+  init: RequestInit,
+  remainingRedirects: number,
+  originalUrl: string,
+): Promise<{ response: Response; finalUrl: string } | null> {
+  const response = await fetch(currentUrl, { ...init, redirect: "manual" });
+
+  if (!isRedirectStatus(response.status)) {
+    return { response, finalUrl: currentUrl };
+  }
+
+  if (remainingRedirects <= 0) {
+    logger.warn(
+      { url: originalUrl, maxRedirects: MAX_REDIRECTS },
+      "too many redirects while resolving external resource",
+    );
+    return null;
+  }
+
+  const location = response.headers.get("location");
+  const nextUrl = location ? resolveRedirectUrl(location, currentUrl) : null;
+
+  if (!nextUrl || !isExternalUrl(nextUrl)) {
+    logger.warn({ currentUrl, location }, "blocked redirect while resolving external resource");
+    return null;
+  }
+
+  return fetchExternalResourceHop(nextUrl, init, remainingRedirects - 1, originalUrl);
 }
 
 async function fetchHtml(url: string): Promise<string | null> {
@@ -367,14 +368,8 @@ function collectMetaImage(
 ): void {
   const propPattern = property.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const patterns = [
-    new RegExp(
-      `<meta\\b[^>]*${attr}=["']${propPattern}["'][^>]*content=["']([^"']+)["']`,
-      "gi",
-    ),
-    new RegExp(
-      `<meta\\b[^>]*content=["']([^"']+)["'][^>]*${attr}=["']${propPattern}["']`,
-      "gi",
-    ),
+    new RegExp(`<meta\\b[^>]*${attr}=["']${propPattern}["'][^>]*content=["']([^"']+)["']`, "gi"),
+    new RegExp(`<meta\\b[^>]*content=["']([^"']+)["'][^>]*${attr}=["']${propPattern}["']`, "gi"),
   ];
   for (const pattern of patterns) {
     for (const match of html.matchAll(pattern)) {
@@ -383,12 +378,7 @@ function collectMetaImage(
   }
 }
 
-function collectLinkIcons(
-  html: string,
-  base: string,
-  out: Candidate[],
-  seen: Set<string>,
-): void {
+function collectLinkIcons(html: string, base: string, out: Candidate[], seen: Set<string>): void {
   for (const [, attrs] of html.matchAll(/<link\b([^>]+)>/gi)) {
     const relMatch = attrs.match(/\brel=["']([^"']+)["']/i);
     if (!relMatch) continue;
@@ -563,9 +553,11 @@ export async function fetchPreviewImage(
   const urlsToTry =
     shopUrl !== `${homepage}/` && shopUrl !== homepage ? [shopUrl, `${homepage}/`] : [shopUrl];
 
+  const htmlEntries = await Promise.all(
+    urlsToTry.map(async (url) => ({ url, html: await fetchHtml(url) })),
+  );
   const htmlMap = new Map<string, string>();
-  for (const url of urlsToTry) {
-    const html = await fetchHtml(url);
+  for (const { url, html } of htmlEntries) {
     if (html) htmlMap.set(url, html);
   }
 
@@ -584,16 +576,7 @@ export async function fetchPreviewImage(
       candidates,
       seen,
     );
-    collectMetaImage(
-      html,
-      baseUrl,
-      "og:image:url",
-      "property",
-      "og",
-      "og:image",
-      candidates,
-      seen,
-    );
+    collectMetaImage(html, baseUrl, "og:image:url", "property", "og", "og:image", candidates, seen);
     collectMetaImage(
       html,
       baseUrl,
@@ -618,20 +601,17 @@ export async function fetchPreviewImage(
     collectJsonLdBlocks(html, baseUrl, candidates, seen);
   }
 
-  for (const [baseUrl, html] of htmlMap) {
-    const manifestUrl = extractManifestHref(html, baseUrl);
-    if (!manifestUrl) continue;
-    const icons = await fetchManifestIcons(manifestUrl, manifestUrl);
+  const manifestIconEntries = await Promise.all(
+    Array.from(htmlMap).map(async ([baseUrl, html]) => {
+      const manifestUrl = extractManifestHref(html, baseUrl);
+      return manifestUrl ? fetchManifestIcons(manifestUrl, manifestUrl) : [];
+    }),
+  );
+  for (const icons of manifestIconEntries) {
     for (const icon of icons) pushCandidate(candidates, seen, icon, "manifest", "manifest");
   }
 
-  pushCandidate(
-    candidates,
-    seen,
-    `${homepage}/apple-touch-icon.png`,
-    "apple-touch",
-    "well-known",
-  );
+  pushCandidate(candidates, seen, `${homepage}/apple-touch-icon.png`, "apple-touch", "well-known");
   pushCandidate(
     candidates,
     seen,

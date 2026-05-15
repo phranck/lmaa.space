@@ -2,7 +2,7 @@ import { and, desc, eq, isNotNull } from "drizzle-orm";
 
 import type { MediaKind } from "@lmaa/shared";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { adminUsers, mediaAssets } from "../db/schema.js";
 
 const MEDIA_SELECT_FIELDS = {
@@ -30,7 +30,7 @@ export async function listMediaAssets() {
     .orderBy(desc(mediaAssets.createdAt), desc(mediaAssets.id));
 }
 
-export async function getMediaAssetById(id: number) {
+async function getMediaAssetById(id: number) {
   const [asset] = await db
     .select(MEDIA_SELECT_FIELDS)
     .from(mediaAssets)
@@ -114,13 +114,10 @@ export async function listMediaAliases() {
 }
 
 export async function deleteMediaAsset(id: number) {
-  const [deleted] = await db
-    .delete(mediaAssets)
-    .where(eq(mediaAssets.id, id))
-    .returning({
-      id: mediaAssets.id,
-      storedFilename: mediaAssets.storedFilename,
-    });
+  const [deleted] = await db.delete(mediaAssets).where(eq(mediaAssets.id, id)).returning({
+    id: mediaAssets.id,
+    storedFilename: mediaAssets.storedFilename,
+  });
 
   return deleted ?? null;
 }

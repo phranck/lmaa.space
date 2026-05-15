@@ -1,6 +1,6 @@
 import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { type BackgroundError, backgroundErrors } from "../db/schema.js";
 
 export async function insertBackgroundError(input: {
@@ -33,15 +33,6 @@ export async function listBackgroundErrors(opts: {
 
   if (conditions.length === 0) return query;
   return query.where(and(...conditions));
-}
-
-export async function getBackgroundErrorById(id: number): Promise<BackgroundError | null> {
-  const [row] = await db
-    .select()
-    .from(backgroundErrors)
-    .where(eq(backgroundErrors.id, id))
-    .limit(1);
-  return row ?? null;
 }
 
 export async function resolveBackgroundError(

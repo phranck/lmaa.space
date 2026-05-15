@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { appSettings } from "../db/schema.js";
 
 export async function getSetting(key: string): Promise<string | null> {
@@ -14,12 +14,13 @@ export async function getSetting(key: string): Promise<string | null> {
 
 export async function getSettings(keys: string[]): Promise<Record<string, string>> {
   if (keys.length === 0) return {};
+  const keySet = new Set(keys);
   const rows = await db
     .select({ key: appSettings.key, value: appSettings.value })
     .from(appSettings);
   const result: Record<string, string> = {};
   for (const row of rows) {
-    if (keys.includes(row.key)) {
+    if (keySet.has(row.key)) {
       result[row.key] = row.value;
     }
   }

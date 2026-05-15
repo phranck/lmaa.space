@@ -1,6 +1,6 @@
 import type { FooterConfig } from "@lmaa/contracts";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { footerConfig } from "../db/schema.js";
 
 const DEFAULT_CONFIG: FooterConfig = { columns: [] };

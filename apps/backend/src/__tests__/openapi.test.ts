@@ -101,7 +101,7 @@ function getRegisteredPublicRouteKeys(): string[] {
     if (route.method === "ALL") continue;
     keys.add(`${route.method} ${normalizeHonoRoutePath(route.path)}`);
   }
-  return [...keys].sort();
+  return Array.from(keys).sort();
 }
 
 function collectDocumentRouteKeys(): string[] {
@@ -131,11 +131,11 @@ function componentNameFromRef(schemaRef: string): string | null {
 
 function collectTransitiveSchemaNames(doc: ReturnType<typeof buildOpenApiDocument>): string[] {
   const schemas = doc.components.schemas as Record<string, unknown>;
-  const schemaNames = new Set(
-    collectRefs({ paths: doc.paths })
-      .map(componentNameFromRef)
-      .filter((name): name is string => Boolean(name)),
-  );
+  const schemaNames = new Set<string>();
+  for (const ref of collectRefs({ paths: doc.paths })) {
+    const name = componentNameFromRef(ref);
+    if (name) schemaNames.add(name);
+  }
 
   let hasNewRefs = true;
   while (hasNewRefs) {
@@ -150,7 +150,7 @@ function collectTransitiveSchemaNames(doc: ReturnType<typeof buildOpenApiDocumen
     }
   }
 
-  return [...schemaNames].sort();
+  return Array.from(schemaNames).sort();
 }
 
 describe("OpenAPI document", () => {

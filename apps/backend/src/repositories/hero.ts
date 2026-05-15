@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 
-import { db } from "../db/index.js";
-import { type HeroImage, type UnsplashImage, heroImages, unsplashImages } from "../db/schema.js";
+import { db } from "../db/client.js";
+import { type HeroImage, heroImages } from "../db/schema.js";
 
 /**
  * Lists all hero images ordered by sort_order, then id.
@@ -60,26 +60,6 @@ export async function setHeroImageSelected(id: number, selected: boolean): Promi
     .where(eq(heroImages.id, id))
     .returning();
   return row;
-}
-
-/**
- * Lists all hero images with joined unsplash_images metadata.
- */
-export async function listHeroImagesWithUnsplash(): Promise<
-  Array<{ heroId: number; unsplash: UnsplashImage | null }>
-> {
-  const rows = await db
-    .select({
-      heroId: heroImages.id,
-      unsplash: unsplashImages,
-    })
-    .from(heroImages)
-    .leftJoin(unsplashImages, eq(heroImages.unsplashImageId, unsplashImages.id));
-
-  return rows.map((r) => ({
-    heroId: r.heroId,
-    unsplash: r.unsplash?.id ? r.unsplash : null,
-  }));
 }
 
 /**

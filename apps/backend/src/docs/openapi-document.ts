@@ -674,7 +674,7 @@ const schemas: Record<string, SchemaObject> = {
   },
 };
 
-export const publicOpenApiOperations: OpenApiOperation[] = [
+const publicOpenApiOperations: OpenApiOperation[] = [
   {
     method: "get",
     path: "/api/v1/shops",
@@ -907,7 +907,7 @@ export const excludedPublicRouteKeys = [
   "GET /api/v1/hero",
 ] as const;
 
-export function operationKey(operation: Pick<OpenApiOperation, "method" | "path">): string {
+function operationKey(operation: Pick<OpenApiOperation, "method" | "path">): string {
   return `${operation.method.toUpperCase()} ${operation.path}`;
 }
 

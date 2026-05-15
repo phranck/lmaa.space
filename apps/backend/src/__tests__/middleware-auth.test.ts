@@ -17,10 +17,14 @@ const dbMock = vi.hoisted(() => {
   };
 });
 
-vi.mock("../db/index.js", () => dbMock);
+vi.mock("../db/client.js", () => dbMock);
 vi.mock("../db/schema.js", () => ({
   adminUsers: { id: "adminUsers.id", role: "adminUsers.role" },
-  sessions: { id: "sessions.id", adminUserId: "sessions.adminUserId", expiresAt: "sessions.expiresAt" },
+  sessions: {
+    id: "sessions.id",
+    adminUserId: "sessions.adminUserId",
+    expiresAt: "sessions.expiresAt",
+  },
 }));
 vi.mock("../config/env.js", () => ({
   env: { NODE_ENV: "development" },

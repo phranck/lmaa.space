@@ -49,17 +49,17 @@ function toText(value: unknown): string {
 function normalizeEventValueRows(raw: unknown): UmamiEventValueRow[] {
   if (!Array.isArray(raw)) return [];
 
-  return raw
-    .map((entry) => {
-      if (!isRecord(entry)) return null;
+  const rows: UmamiEventValueRow[] = [];
+  for (const entry of raw) {
+    if (!isRecord(entry)) continue;
 
-      const value = toText(entry.x ?? entry.value).trim();
-      const total = toNumber(entry.y ?? entry.total);
-      if (value === "" || total <= 0) return null;
+    const value = toText(entry.x ?? entry.value).trim();
+    const total = toNumber(entry.y ?? entry.total);
+    if (value === "" || total <= 0) continue;
 
-      return { value, total };
-    })
-    .filter((row): row is UmamiEventValueRow => row !== null);
+    rows.push({ value, total });
+  }
+  return rows;
 }
 
 function extractEventPropertyTotal(raw: unknown, propertyName: string): number {

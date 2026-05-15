@@ -2,7 +2,7 @@ import { eq, sql } from "drizzle-orm";
 
 import type { SocialMediaPostTemplateScope } from "@lmaa/contracts";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import {
   type SocialMediaPostTemplate,
   type SocialMediaPostTemplateInsert,

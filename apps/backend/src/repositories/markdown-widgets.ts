@@ -1,6 +1,6 @@
 import type { MarkdownWidget, MarkdownWidgetsConfig } from "@lmaa/contracts";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { markdownWidgets } from "../db/schema.js";
 
 const DEFAULT_CONFIG: MarkdownWidgetsConfig = { widgets: [] };

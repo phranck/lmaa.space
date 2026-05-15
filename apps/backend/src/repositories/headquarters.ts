@@ -2,7 +2,7 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import type { ShopHeadquarters } from "@lmaa/shared";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import {
   shopGeoCities,
   shopGeoCountries,
@@ -33,7 +33,9 @@ function cleanCountryCode(value: string | null | undefined) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function normalizeHeadquartersInput(input: HeadquartersInput | null | undefined): ShopHeadquarters | null {
+function normalizeHeadquartersInput(
+  input: HeadquartersInput | null | undefined,
+): ShopHeadquarters | null {
   const countryCode = cleanCountryCode(input?.countryCode);
   const street = cleanText(input?.street);
   const postalCode = cleanText(input?.postalCode);
@@ -73,11 +75,10 @@ async function ensureCountry(tx: DbLike, countryCode: string) {
     .where(eq(shopGeoCountries.code, countryCode))
     .limit(1);
 
-  if (existing) {
-    return countryCode;
+  if (!existing) {
+    await tx.insert(shopGeoCountries).values({ code: countryCode, name: countryCode });
   }
 
-  await tx.insert(shopGeoCountries).values({ code: countryCode, name: countryCode });
   return countryCode;
 }
 
@@ -92,18 +93,23 @@ async function ensureRegion(tx: DbLike, countryCode: string, state: string | nul
     .where(and(eq(shopGeoRegions.countryCode, countryCode), eq(shopGeoRegions.name, state)))
     .limit(1);
 
-  if (existing) {
-    return existing.id;
-  }
-
-  const [inserted] = await tx
-    .insert(shopGeoRegions)
-    .values({ countryCode, name: state })
-    .returning({ id: shopGeoRegions.id });
-  return inserted.id;
+  return (
+    existing?.id ??
+    (
+      await tx
+        .insert(shopGeoRegions)
+        .values({ countryCode, name: state })
+        .returning({ id: shopGeoRegions.id })
+    )[0].id
+  );
 }
 
-async function ensureCity(tx: DbLike, countryCode: string, regionId: number | null, city: string | null) {
+async function ensureCity(
+  tx: DbLike,
+  countryCode: string,
+  regionId: number | null,
+  city: string | null,
+) {
   if (!city) {
     return null;
   }
@@ -126,15 +132,15 @@ async function ensureCity(tx: DbLike, countryCode: string, regionId: number | nu
     )
     .limit(1);
 
-  if (existing) {
-    return existing.id;
-  }
-
-  const [inserted] = await tx
-    .insert(shopGeoCities)
-    .values({ countryCode, regionId, name: city })
-    .returning({ id: shopGeoCities.id });
-  return inserted.id;
+  return (
+    existing?.id ??
+    (
+      await tx
+        .insert(shopGeoCities)
+        .values({ countryCode, regionId, name: city })
+        .returning({ id: shopGeoCities.id })
+    )[0].id
+  );
 }
 
 async function resolveReferences(tx: DbLike, input: ShopHeadquarters) {
@@ -155,9 +161,10 @@ export async function upsertShopHeadquarters(
     return;
   }
 
-  const { regionId, cityId } = await resolveReferences(tx, normalized);
-
-  await tx.delete(shopHeadquarters).where(eq(shopHeadquarters.shopId, shopId));
+  const [{ regionId, cityId }] = await Promise.all([
+    resolveReferences(tx, normalized),
+    tx.delete(shopHeadquarters).where(eq(shopHeadquarters.shopId, shopId)),
+  ]);
   await tx.insert(shopHeadquarters).values({
     shopId,
     countryCode: normalized.countryCode,
@@ -184,11 +191,10 @@ export async function upsertSubmissionHeadquarters(
     return;
   }
 
-  const { regionId, cityId } = await resolveReferences(tx, normalized);
-
-  await tx
-    .delete(submissionHeadquarters)
-    .where(eq(submissionHeadquarters.submissionId, submissionId));
+  const [{ regionId, cityId }] = await Promise.all([
+    resolveReferences(tx, normalized),
+    tx.delete(submissionHeadquarters).where(eq(submissionHeadquarters.submissionId, submissionId)),
+  ]);
   await tx.insert(submissionHeadquarters).values({
     submissionId,
     countryCode: normalized.countryCode,
@@ -202,7 +208,11 @@ export async function upsertSubmissionHeadquarters(
   });
 }
 
-export async function copySubmissionHeadquartersToShop(tx: DbLike, submissionId: number, shopId: number) {
+export async function copySubmissionHeadquartersToShop(
+  tx: DbLike,
+  submissionId: number,
+  shopId: number,
+) {
   const [row] = await tx
     .select({
       countryCode: submissionHeadquarters.countryCode,
@@ -234,12 +244,17 @@ export async function copySubmissionHeadquartersToShop(tx: DbLike, submissionId:
 
 type HeadquartersTable = typeof shopHeadquarters | typeof submissionHeadquarters;
 
-async function loadHeadquartersMap(table: HeadquartersTable, ids: number[], idColumn: "shopId" | "submissionId") {
+async function loadHeadquartersMap(
+  table: HeadquartersTable,
+  ids: number[],
+  idColumn: "shopId" | "submissionId",
+) {
   if (ids.length === 0) {
     return new Map<number, ShopHeadquarters>();
   }
 
-  const tableIdColumn = idColumn === "shopId" ? shopHeadquarters.shopId : submissionHeadquarters.submissionId;
+  const tableIdColumn =
+    idColumn === "shopId" ? shopHeadquarters.shopId : submissionHeadquarters.submissionId;
   const rows = await db
     .select({
       entityId: tableIdColumn,

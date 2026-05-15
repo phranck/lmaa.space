@@ -9,7 +9,7 @@ import {
   loadSubmissionHeadquartersMap,
   upsertSubmissionHeadquarters,
 } from "./headquarters.js";
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import {
   type Shop,
   type Submission,
@@ -89,12 +89,7 @@ export async function getAdminSubmissionById(
 ): Promise<(Submission & { categoryIds: number[] }) | null> {
   const [submission] = await db.select().from(submissions).where(eq(submissions.id, id));
 
-  if (!submission) {
-    return null;
-  }
-
-  const [hydrated] = await hydrateSubmissionCategoryIds([submission]);
-  return hydrated ?? null;
+  return submission ? ((await hydrateSubmissionCategoryIds([submission]))[0] ?? null) : null;
 }
 
 async function hydrateSubmissionCategoryIds(
@@ -156,93 +151,97 @@ export async function reviewSubmission(
   data: SubmissionReviewData,
 ): Promise<SubmissionReviewResult> {
   return db.transaction(async (tx) => {
+    const emptyResult: SubmissionReviewResult = { submission: null, newShop: null, conflict: null };
+
+    async function findApprovalConflict(current: Pick<Submission, "shopUrl">) {
+      if (data.status !== "approved") return null;
+
+      const domain = getDomain(current.shopUrl);
+      if (!domain) return null;
+
+      const existingRows = await tx.execute<{ id: number; name: string; url: string }>(sql`
+        SELECT id, name, url FROM shops
+        WHERE url LIKE ${"%" + domain + "%"}
+          AND visibility = 'public'
+        LIMIT 10
+      `);
+      const conflict = existingRows.find((row) => getDomain(row.url) === domain);
+      return conflict ? { existingShopId: conflict.id, existingShopName: conflict.name } : null;
+    }
+
+    async function createApprovedShop(submission: Submission): Promise<SubmissionReviewResult> {
+      const [categoryRows, [shop]] = await Promise.all([
+        tx
+          .select({ categoryId: submissionCategories.categoryId })
+          .from(submissionCategories)
+          .where(eq(submissionCategories.submissionId, data.id)),
+        tx
+          .insert(shops)
+          .values({
+            name: submission.shopName,
+            url: submission.shopUrl,
+            region: submission.region,
+            pickup: submission.pickup,
+            shipping: submission.shipping,
+            description: submission.description,
+            ogImage: submission.ogImage,
+            logoBackgroundColor: submission.logoBackgroundColor,
+            contactEmail: submission.contactEmail,
+            shopCheckNotes: submission.shopCheckNotes,
+            socialMedia: submission.socialMedia,
+          })
+          .returning({ id: shops.id, url: shops.url }),
+      ]);
+
+      if (categoryRows.length > 0) {
+        await tx
+          .insert(shopCategories)
+          .values(categoryRows.map((row) => ({ shopId: shop.id, categoryId: row.categoryId })));
+      }
+
+      await copySubmissionHeadquartersToShop(tx, submission.id, shop.id);
+
+      return { submission, newShop: shop, conflict: null };
+    }
+
+    async function applyReviewUpdate(): Promise<SubmissionReviewResult> {
+      const [submission] = await tx
+        .update(submissions)
+        .set({
+          status: data.status,
+          adminNote: data.adminNote ?? null,
+          rejectionLongText: data.status === "rejected" ? (data.rejectionLongText ?? null) : null,
+          rejectionToken: data.status === "rejected" ? (data.rejectionToken ?? null) : null,
+          readyForReview: false,
+          reviewedBy: data.adminId,
+          reviewedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(submissions.id, data.id))
+        .returning();
+
+      return submission
+        ? data.status === "approved"
+          ? createApprovedShop(submission)
+          : { submission, newShop: null, conflict: null }
+        : emptyResult;
+    }
+
+    async function reviewCurrentSubmission(
+      current: Pick<Submission, "status" | "shopUrl">,
+    ): Promise<SubmissionReviewResult> {
+      const conflict = await findApprovalConflict(current);
+      return conflict ? { submission: null, newShop: null, conflict } : applyReviewUpdate();
+    }
+
     const [current] = await tx
       .select({ status: submissions.status, shopUrl: submissions.shopUrl })
       .from(submissions)
       .where(eq(submissions.id, data.id));
 
-    if (!current) {
-      return { submission: null, newShop: null, conflict: null };
-    }
-
-    if (current.status === "approved" || current.status === "rejected") {
-      return { submission: null, newShop: null, conflict: null };
-    }
-
-    if (data.status === "approved") {
-      const domain = getDomain(current.shopUrl);
-      if (domain) {
-        const existingRows = await tx.execute<{ id: number; name: string; url: string }>(sql`
-          SELECT id, name, url FROM shops
-          WHERE url LIKE ${"%" + domain + "%"}
-            AND visibility = 'public'
-          LIMIT 10
-        `);
-        const conflict = existingRows.find((row) => getDomain(row.url) === domain);
-        if (conflict) {
-          return {
-            submission: null,
-            newShop: null,
-            conflict: { existingShopId: conflict.id, existingShopName: conflict.name },
-          };
-        }
-      }
-    }
-
-    const [submission] = await tx
-      .update(submissions)
-      .set({
-        status: data.status,
-        adminNote: data.adminNote ?? null,
-        rejectionLongText: data.status === "rejected" ? (data.rejectionLongText ?? null) : null,
-        rejectionToken: data.status === "rejected" ? (data.rejectionToken ?? null) : null,
-        readyForReview: false,
-        reviewedBy: data.adminId,
-        reviewedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(submissions.id, data.id))
-      .returning();
-
-    if (!submission) {
-      return { submission: null, newShop: null, conflict: null };
-    }
-
-    if (data.status !== "approved") {
-      return { submission, newShop: null, conflict: null };
-    }
-
-    const categoryRows = await tx
-      .select({ categoryId: submissionCategories.categoryId })
-      .from(submissionCategories)
-      .where(eq(submissionCategories.submissionId, data.id));
-
-    const [shop] = await tx
-      .insert(shops)
-      .values({
-        name: submission.shopName,
-        url: submission.shopUrl,
-        region: submission.region,
-        pickup: submission.pickup,
-        shipping: submission.shipping,
-        description: submission.description,
-        ogImage: submission.ogImage,
-        logoBackgroundColor: submission.logoBackgroundColor,
-        contactEmail: submission.contactEmail,
-        shopCheckNotes: submission.shopCheckNotes,
-        socialMedia: submission.socialMedia,
-      })
-      .returning({ id: shops.id, url: shops.url });
-
-    if (categoryRows.length > 0) {
-      await tx
-        .insert(shopCategories)
-        .values(categoryRows.map((row) => ({ shopId: shop.id, categoryId: row.categoryId })));
-    }
-
-    await copySubmissionHeadquartersToShop(tx, submission.id, shop.id);
-
-    return { submission, newShop: shop, conflict: null };
+    return current && current.status !== "approved" && current.status !== "rejected"
+      ? reviewCurrentSubmission(current)
+      : emptyResult;
   });
 }
 
@@ -280,23 +279,21 @@ export async function editSubmission(
       .where(eq(submissions.id, id))
       .returning();
 
-    if (!submission) {
-      return null;
+    if (submission) {
+      await tx.delete(submissionCategories).where(eq(submissionCategories.submissionId, id));
+
+      if (data.categoryIds.length > 0) {
+        await tx
+          .insert(submissionCategories)
+          .values(data.categoryIds.map((categoryId) => ({ submissionId: id, categoryId })));
+      }
+
+      if (data.headquarters !== undefined) {
+        await upsertSubmissionHeadquarters(tx, id, data.headquarters);
+      }
     }
 
-    await tx.delete(submissionCategories).where(eq(submissionCategories.submissionId, id));
-
-    if (data.categoryIds.length > 0) {
-      await tx
-        .insert(submissionCategories)
-        .values(data.categoryIds.map((categoryId) => ({ submissionId: id, categoryId })));
-    }
-
-    if (data.headquarters !== undefined) {
-      await upsertSubmissionHeadquarters(tx, id, data.headquarters);
-    }
-
-    return submission;
+    return submission ?? null;
   });
 }
 
@@ -345,9 +342,13 @@ export async function createSubmissionFromFormData(data: Record<string, unknown>
   const str = (key: string) => (data[key] != null ? String(data[key]) : "");
   const strOrNull = (key: string) => (data[key] != null ? String(data[key]) : null);
   const region = Array.isArray(data.region) ? (data.region as string[]) : [];
-  const categoryIds = Array.isArray(data.submissionCategories)
-    ? (data.submissionCategories as unknown[]).map(Number).filter((n) => !Number.isNaN(n))
-    : [];
+  const categoryIds: number[] = [];
+  if (Array.isArray(data.submissionCategories)) {
+    for (const categoryId of data.submissionCategories) {
+      const normalizedCategoryId = Number(categoryId);
+      if (!Number.isNaN(normalizedCategoryId)) categoryIds.push(normalizedCategoryId);
+    }
+  }
 
   return db.transaction(async (tx) => {
     const [row] = await tx

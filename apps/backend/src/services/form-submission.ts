@@ -26,32 +26,41 @@ export async function executeSubmissionChain(
   data: Record<string, unknown>,
   formConfig: { id: number; name: string },
 ): Promise<void> {
-  for (const step of config.steps) {
-    switch (step.type) {
-      case "store":
-        await handleStore(formConfig.id, data);
-        break;
-      case "create-shop-suggestion": {
-        const submissionId = await createSubmissionFromFormData(data);
-        void notifyOwnerOfNewShopSubmission(submissionId, data);
-        break;
-      }
-      case "email": {
-        const to =
-          step.toFieldId && typeof data[step.toFieldId] === "string"
-            ? (data[step.toFieldId] as string)
-            : step.to;
-        logger.debug({ toFieldId: step.toFieldId, resolvedTo: to }, "email step resolve");
-        await handleEmail(
-          to,
-          step.subject,
-          step.replyToFieldId,
-          data,
-          formConfig.name,
-          step.templateId,
-        );
-        break;
-      }
+  await config.steps.reduce(
+    (previous, step) => previous.then(() => executeSubmissionStep(step, data, formConfig)),
+    Promise.resolve(),
+  );
+}
+
+async function executeSubmissionStep(
+  step: SubmissionConfig["steps"][number],
+  data: Record<string, unknown>,
+  formConfig: { id: number; name: string },
+): Promise<void> {
+  switch (step.type) {
+    case "store":
+      await handleStore(formConfig.id, data);
+      break;
+    case "create-shop-suggestion": {
+      const submissionId = await createSubmissionFromFormData(data);
+      void notifyOwnerOfNewShopSubmission(submissionId, data);
+      break;
+    }
+    case "email": {
+      const to =
+        step.toFieldId && typeof data[step.toFieldId] === "string"
+          ? (data[step.toFieldId] as string)
+          : step.to;
+      logger.debug({ toFieldId: step.toFieldId, resolvedTo: to }, "email step resolve");
+      await handleEmail(
+        to,
+        step.subject,
+        step.replyToFieldId,
+        data,
+        formConfig.name,
+        step.templateId,
+      );
+      break;
     }
   }
 }

@@ -42,7 +42,7 @@ vi.mock("../repositories/admin-shops.js", () => repoMocks);
 vi.mock("../services/preview-images.js", () => previewMocks);
 vi.mock("../services/public.js", () => publicServiceMocks);
 vi.mock("../middleware/cache.js", () => cacheMocks);
-vi.mock("../db/index.js", () => dbMock);
+vi.mock("../db/client.js", () => dbMock);
 vi.mock("../db/schema.js", () => schemaMock);
 vi.mock("../lib/shopjson-mapper.js", () => mapperMock);
 vi.mock("../lib/result.js", async (importOriginal) => importOriginal());
@@ -91,7 +91,10 @@ describe("createManagedAdminShop", () => {
     const callback = previewMocks.hydrateShopOgImageInBackground.mock.calls[0][1];
     await callback("https://cdn.example.com/og.png");
 
-    expect(repoMocks.setAdminShopOgImage).toHaveBeenCalledWith(42, "https://cdn.example.com/og.png");
+    expect(repoMocks.setAdminShopOgImage).toHaveBeenCalledWith(
+      42,
+      "https://cdn.example.com/og.png",
+    );
   });
 
   it("blocks creation when a pending submission for the same domain exists", async () => {

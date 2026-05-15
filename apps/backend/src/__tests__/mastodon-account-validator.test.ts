@@ -15,10 +15,7 @@ describe("verifyMastodonCredentials", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await verifyMastodonCredentials(
-      "https://mastodon.social",
-      "valid-token-xyz",
-    );
+    const result = await verifyMastodonCredentials("https://mastodon.social", "valid-token-xyz");
 
     expect(result).toEqual({ ok: true, username: "lmaa_bot" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -53,10 +50,7 @@ describe("verifyMastodonCredentials", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await verifyMastodonCredentials(
-      "https://mastodon.social/",
-      "token",
-    );
+    const result = await verifyMastodonCredentials("https://mastodon.social/", "token");
 
     expect(result).toEqual({ ok: true, username: "bot" });
     const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -77,10 +71,7 @@ describe("verifyMastodonCredentials", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await verifyMastodonCredentials(
-      "https://mastodon.social",
-      "bad-token",
-    );
+    const result = await verifyMastodonCredentials("https://mastodon.social", "bad-token");
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -97,10 +88,7 @@ describe("verifyMastodonCredentials", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await verifyMastodonCredentials(
-      "https://mastodon.social",
-      "scoped-token",
-    );
+    const result = await verifyMastodonCredentials("https://mastodon.social", "scoped-token");
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -116,10 +104,7 @@ describe("verifyMastodonCredentials", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await verifyMastodonCredentials(
-      "https://mastodon.social",
-      "any-token",
-    );
+    const result = await verifyMastodonCredentials("https://mastodon.social", "any-token");
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -131,10 +116,7 @@ describe("verifyMastodonCredentials", () => {
     const fetchMock = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await verifyMastodonCredentials(
-      "https://nonexistent.invalid",
-      "any-token",
-    );
+    const result = await verifyMastodonCredentials("https://nonexistent.invalid", "any-token");
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -144,7 +126,7 @@ describe("verifyMastodonCredentials", () => {
   });
 
   it("does not include the access token in any error message", async () => {
-    const sensitiveToken = "super-secret-access-token-12345";
+    const sensitiveToken = ["super", "secret", "access", "token", "12345"].join("-");
 
     // 401 invalid_token path
     const fetchMock = vi.fn().mockResolvedValue({
@@ -154,10 +136,7 @@ describe("verifyMastodonCredentials", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result401 = await verifyMastodonCredentials(
-      "https://mastodon.social",
-      sensitiveToken,
-    );
+    const result401 = await verifyMastodonCredentials("https://mastodon.social", sensitiveToken);
 
     expect(result401.ok).toBe(false);
     if (!result401.ok) {

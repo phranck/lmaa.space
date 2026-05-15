@@ -10,7 +10,10 @@ import {
   setHeroImageFocalPoint,
   setHeroImageSelected,
 } from "../repositories/hero.js";
-import { updateUnsplashImageLocation, upsertUnsplashImage } from "../repositories/unsplash-images.js";
+import {
+  updateUnsplashImageLocation,
+  upsertUnsplashImage,
+} from "../repositories/unsplash-images.js";
 
 export type { HeroImage };
 
@@ -49,7 +52,7 @@ export async function setHeroRotationInterval(interval: number): Promise<void> {
 // Per-visitor state (passed via query param, stored as cookie by Astro)
 // -----------------------------------------------------------------------
 
-export interface VisitorState {
+interface VisitorState {
   /** Total page-load count for this visitor. */
   v: number;
   /** Currently displayed image id (0 = none). */
@@ -195,14 +198,14 @@ export async function removeHeroImage(id: number): Promise<void> {
   await deleteHeroImage(id);
 }
 
-export async function updateHeroImageFocalPoint(id: number, focalPointY: number): Promise<HeroImage> {
+export async function updateHeroImageFocalPoint(
+  id: number,
+  focalPointY: number,
+): Promise<HeroImage> {
   return setHeroImageFocalPoint(id, Math.max(0, Math.min(100, Math.round(focalPointY))));
 }
 
-export async function toggleHeroImageSelected(
-  id: number,
-  selected: boolean,
-): Promise<HeroImage> {
+export async function toggleHeroImageSelected(id: number, selected: boolean): Promise<HeroImage> {
   if (selected) {
     const rotationEnabled = await getHeroRotationEnabled();
     if (!rotationEnabled) {

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import type { AdminUserRow } from "./admin-users.js";
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { adminUsers, sessions } from "../db/schema.js";
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24h

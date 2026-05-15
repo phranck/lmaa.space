@@ -1,6 +1,6 @@
 import { count, desc, eq, max, ne } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { deadLinkReports, shops } from "../db/schema.js";
 
 /**

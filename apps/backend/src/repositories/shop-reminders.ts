@@ -1,6 +1,6 @@
 import { and, eq, lte } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { adminUsers, emailTemplates, shopReminders, shops } from "../db/schema.js";
 import type { EmailTemplate, ShopReminderRow } from "../db/schema.js";
 
