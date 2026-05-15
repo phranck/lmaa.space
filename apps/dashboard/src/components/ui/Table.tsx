@@ -45,9 +45,7 @@ function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTableSection
 }
 
 function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return (
-    <tr className={`hover:bg-[var(--ds-row-hover)] ${className}`} {...props} />
-  );
+  return <tr className={`hover:bg-[var(--ds-row-hover)] ${className}`} {...props} />;
 }
 
 function Th({ className = "", ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
@@ -99,6 +97,7 @@ interface DataTableProps<T> {
   groups?: DataTableGroup<T>[];
   getRowKey: (row: T) => string | number;
   getRowClassName?: (row: T) => string;
+  getRowProps?: (row: T) => HTMLAttributes<HTMLTableRowElement>;
   /** Keeps the header visible while scrolling. Requires the app header height as top offset. */
   stickyHeader?: boolean;
   /** Optional default sort applied on first render. */
@@ -126,16 +125,14 @@ export function DataTable<T>({
   groups,
   getRowKey,
   getRowClassName,
+  getRowProps,
   stickyHeader = false,
   initialSort = null,
   sort: controlledSort,
   onSortChange,
   allowUnsorted = true,
 }: DataTableProps<T>) {
-  const [uncontrolledSort, setUncontrolledSort] = useReducer(
-    updateSortState,
-    initialSort,
-  );
+  const [uncontrolledSort, setUncontrolledSort] = useReducer(updateSortState, initialSort);
   const prevInitialSortRef = useRef(initialSort);
   if (initialSort !== prevInitialSortRef.current) {
     prevInitialSortRef.current = initialSort;
@@ -195,15 +192,12 @@ export function DataTable<T>({
       >
         <TableRow className="hover:bg-transparent">
           {columns.map((col) => {
-            const sortDirection: TableSortDirection =
-              sort?.id === col.id ? sort.dir : null;
+            const sortDirection: TableSortDirection = sort?.id === col.id ? sort.dir : null;
 
             return (
               <Th
                 key={col.id}
-                aria-sort={
-                  col.sortKey ? getTableSortAriaSort(sortDirection) : undefined
-                }
+                aria-sort={col.sortKey ? getTableSortAriaSort(sortDirection) : undefined}
                 className={`${col.headerClassName ?? col.className ?? ""} ${col.sortKey ? "select-none" : ""}`}
               >
                 {col.sortKey ? (
@@ -226,9 +220,7 @@ export function DataTable<T>({
               let stripeIndex = 0;
               return sortedGroups.map((group) => (
                 <React.Fragment key={group.id}>
-                  <tr
-                    className="bg-[var(--ds-surface-inset)] hover:bg-transparent"
-                  >
+                  <tr className="bg-[var(--ds-surface-inset)] hover:bg-transparent">
                     <td
                       colSpan={columns.length}
                       className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--ds-text-muted)]"
@@ -238,10 +230,14 @@ export function DataTable<T>({
                   </tr>
                   {group.rows.map((row) => {
                     const idx = stripeIndex++;
+                    const rowProps = getRowProps?.(row) ?? {};
+                    const { className: rowClassName, ...restRowProps } = rowProps;
+
                     return (
                       <TableRow
+                        {...restRowProps}
                         key={getRowKey(row)}
-                        className={`${idx % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""}`}
+                        className={`${idx % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""} ${rowClassName ?? ""}`}
                       >
                         {columns.map((col) => (
                           <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
@@ -254,18 +250,24 @@ export function DataTable<T>({
                 </React.Fragment>
               ));
             })()
-          : sorted.map((row, index) => (
-              <TableRow
-                key={getRowKey(row)}
-                className={`${index % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""}`}
-              >
-                {columns.map((col) => (
-                  <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
-                    {col.cell(row)}
-                  </Td>
-                ))}
-              </TableRow>
-            ))}
+          : sorted.map((row, index) => {
+              const rowProps = getRowProps?.(row) ?? {};
+              const { className: rowClassName, ...restRowProps } = rowProps;
+
+              return (
+                <TableRow
+                  {...restRowProps}
+                  key={getRowKey(row)}
+                  className={`${index % 2 === 1 ? "bg-[var(--ds-row-stripe)]" : ""} ${getRowClassName?.(row) ?? ""} ${rowClassName ?? ""}`}
+                >
+                  {columns.map((col) => (
+                    <Td key={col.id} className={col.cellClassName ?? col.className ?? ""}>
+                      {col.cell(row)}
+                    </Td>
+                  ))}
+                </TableRow>
+              );
+            })}
       </TableBody>
     </Table>
   );

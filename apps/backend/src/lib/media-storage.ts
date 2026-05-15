@@ -5,6 +5,7 @@ import {
   CopyObjectCommand,
   DeleteObjectCommand,
   DeleteObjectsCommand,
+  GetObjectCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -90,6 +91,16 @@ type StoreMediaSuccess = {
 export interface StoreHlsBundleFile {
   file: unknown;
   relativePath: string;
+}
+
+export interface StagedHlsBundleFile {
+  relativePath: string;
+  sizeBytes: number;
+}
+
+interface StoreMediaOptions {
+  alias?: string | null;
+  displayName?: string;
 }
 
 const s3 = new S3Client({
@@ -185,6 +196,14 @@ function hlsBundlePrefixFromManifest(storedFilename: string): string | null {
   return storedFilename.slice(0, slashIndex + 1);
 }
 
+function normalizeUploadSessionId(sessionId: string): string | null {
+  return /^[a-f0-9-]{36}$/i.test(sessionId) ? sessionId.toLowerCase() : null;
+}
+
+function hlsUploadStagingPrefix(sessionId: string): string {
+  return `.uploads/hls/${sessionId}/`;
+}
+
 export function isHlsManifestKey(storedFilename: string): boolean {
   return storedFilename.toLowerCase().endsWith(".m3u8");
 }
@@ -218,6 +237,13 @@ function buildS3Metadata(meta: S3MediaMeta): Record<string, string> {
   return m;
 }
 
+function buildCopySource(storedFilename: string): string {
+  return `${encodeURIComponent(env.S3_BUCKET ?? "")}/${storedFilename
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/")}`;
+}
+
 function parseS3Metadata(raw: Record<string, string> | undefined): Partial<S3MediaMeta> {
   if (!raw) return {};
   return {
@@ -235,6 +261,7 @@ function parseS3Metadata(raw: Record<string, string> | undefined): Partial<S3Med
  */
 export async function storeUploadedMedia(
   file: unknown,
+  options: StoreMediaOptions = {},
 ): Promise<StoreMediaFailure | StoreMediaSuccess> {
   if (!(file instanceof File)) {
     return { ok: false, reason: "missing_file" };
@@ -246,6 +273,7 @@ export async function storeUploadedMedia(
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const originalName = sanitizeDisplayName(file.name || "file");
+  const displayName = sanitizeDisplayName(options.displayName ?? originalName);
   const imageType = detectImageType(buffer);
 
   let kind: MediaKind;
@@ -303,9 +331,9 @@ export async function storeUploadedMedia(
       Body: buffer,
       ContentType: mimeType,
       Metadata: buildS3Metadata({
-        displayName: originalName,
+        displayName,
         originalName,
-        alias: null,
+        alias: options.alias ?? null,
         kind,
         width,
         height,
@@ -316,7 +344,7 @@ export async function storeUploadedMedia(
   return {
     ok: true,
     created: {
-      displayName: originalName,
+      displayName,
       originalName,
       storedFilename,
       posterStoredFilename: null,
@@ -333,6 +361,7 @@ export async function storeUploadedMedia(
  * Uploads a self-contained HLS bundle to S3-compatible object storage.
  */
 export async function storeUploadedHlsBundle(input: {
+  alias?: string | null;
   displayName: string;
   files: StoreHlsBundleFile[];
 }): Promise<StoreMediaFailure | StoreMediaSuccess> {
@@ -355,7 +384,8 @@ export async function storeUploadedHlsBundle(input: {
     }
 
     const relativePath = normalizeBundlePath(item.relativePath || item.file.name);
-    if (!relativePath || seenPaths.has(relativePath)) {
+    const pathKey = relativePath?.toLowerCase();
+    if (!relativePath || !pathKey || seenPaths.has(pathKey)) {
       return { ok: false, reason: "invalid_bundle" };
     }
 
@@ -371,7 +401,7 @@ export async function storeUploadedHlsBundle(input: {
       return { ok: false, reason: "too_large" };
     }
 
-    seenPaths.add(relativePath);
+    seenPaths.add(pathKey);
     prepared.push({
       file: item.file,
       relativePath,
@@ -436,7 +466,7 @@ export async function storeUploadedHlsBundle(input: {
             Metadata: buildS3Metadata({
               displayName,
               originalName: displayName,
-              alias: null,
+              alias: input.alias ?? null,
               kind: "video",
               width: null,
               height: null,
@@ -454,6 +484,227 @@ export async function storeUploadedHlsBundle(input: {
     await removeStoredMediaPrefix(prefix);
     throw error;
   }
+
+  return {
+    ok: true,
+    created: {
+      displayName,
+      originalName: displayName,
+      storedFilename,
+      posterStoredFilename,
+      mimeType: HLS_MANIFEST_MIME_TYPE,
+      kind: "video",
+      sizeBytes: totalSize,
+      width: null,
+      height: null,
+    },
+  };
+}
+
+export async function stageUploadedHlsBundleFiles(input: {
+  files: StoreHlsBundleFile[];
+  sessionId: string;
+}): Promise<StoreMediaFailure | { ok: true; uploaded: number }> {
+  const sessionId = normalizeUploadSessionId(input.sessionId);
+  if (!sessionId) {
+    return { ok: false, reason: "invalid_bundle" };
+  }
+  if (input.files.length === 0) {
+    return { ok: false, reason: "missing_file" };
+  }
+
+  const prefix = hlsUploadStagingPrefix(sessionId);
+  const seenPaths = new Set<string>();
+  const prepared: Array<{
+    file: File;
+    mimeType: string;
+    relativePath: string;
+  }> = [];
+
+  for (const item of input.files) {
+    if (!(item.file instanceof File)) {
+      return { ok: false, reason: "missing_file" };
+    }
+    if (item.file.size > MEDIA_UPLOAD_MAX_BYTES) {
+      return { ok: false, reason: "too_large" };
+    }
+
+    const relativePath = normalizeBundlePath(item.relativePath || item.file.name);
+    const pathKey = relativePath?.toLowerCase();
+    if (!relativePath || !pathKey || seenPaths.has(pathKey)) {
+      return { ok: false, reason: "invalid_bundle" };
+    }
+
+    const hlsExtension = inferHlsExtension(relativePath);
+    const posterMimeType = hlsExtension ? null : inferHlsPosterMimeType(relativePath);
+    const mimeType = hlsExtension ? HLS_MIME_BY_EXTENSION[hlsExtension] : posterMimeType;
+    if (!mimeType) {
+      return { ok: false, reason: "invalid_bundle" };
+    }
+
+    seenPaths.add(pathKey);
+    prepared.push({ file: item.file, mimeType, relativePath });
+  }
+
+  await Promise.all(
+    prepared.map(async (item) => {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: env.S3_BUCKET,
+          Key: `${prefix}${item.relativePath}`,
+          Body: Buffer.from(await item.file.arrayBuffer()),
+          ContentType: item.mimeType,
+        }),
+      );
+    }),
+  );
+
+  return { ok: true, uploaded: prepared.length };
+}
+
+export async function completeStagedHlsBundle(input: {
+  alias?: string | null;
+  displayName: string;
+  files: StagedHlsBundleFile[];
+  sessionId: string;
+}): Promise<StoreMediaFailure | StoreMediaSuccess> {
+  const sessionId = normalizeUploadSessionId(input.sessionId);
+  if (!sessionId) {
+    return { ok: false, reason: "invalid_bundle" };
+  }
+  if (input.files.length === 0) {
+    return { ok: false, reason: "missing_file" };
+  }
+
+  const stagingPrefix = hlsUploadStagingPrefix(sessionId);
+  const seenPaths = new Set<string>();
+  const prepared: Array<{
+    relativePath: string;
+    role: "manifest" | "segment" | "poster";
+    mimeType: string;
+    sizeBytes: number;
+    stagedKey: string;
+  }> = [];
+  let totalSize = 0;
+
+  for (const item of input.files) {
+    const relativePath = normalizeBundlePath(item.relativePath);
+    const pathKey = relativePath?.toLowerCase();
+    if (!relativePath || !pathKey || seenPaths.has(pathKey) || item.sizeBytes < 0) {
+      return { ok: false, reason: "invalid_bundle" };
+    }
+
+    const hlsExtension = inferHlsExtension(relativePath);
+    const posterMimeType = hlsExtension ? null : inferHlsPosterMimeType(relativePath);
+    const mimeType = hlsExtension ? HLS_MIME_BY_EXTENSION[hlsExtension] : posterMimeType;
+    if (!mimeType) {
+      return { ok: false, reason: "invalid_bundle" };
+    }
+
+    seenPaths.add(pathKey);
+    totalSize += item.sizeBytes;
+    prepared.push({
+      relativePath,
+      role: hlsExtension === ".m3u8" ? "manifest" : hlsExtension === ".ts" ? "segment" : "poster",
+      mimeType,
+      sizeBytes: item.sizeBytes,
+      stagedKey: `${stagingPrefix}${relativePath}`,
+    });
+  }
+
+  const manifests = prepared.filter((item) => item.role === "manifest");
+  const segmentCount = prepared.filter((item) => item.role === "segment").length;
+  const posters = prepared.filter((item) => item.role === "poster");
+  if (manifests.length !== 1 || segmentCount === 0 || posters.length > 1) {
+    return { ok: false, reason: "invalid_bundle" };
+  }
+
+  const stagedHeads = await Promise.all(
+    prepared.map(async (item) => {
+      try {
+        return await s3.send(
+          new HeadObjectCommand({
+            Bucket: env.S3_BUCKET,
+            Key: item.stagedKey,
+          }),
+        );
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  if (
+    stagedHeads.some(
+      (head, index) => !head || (head.ContentLength ?? -1) !== prepared[index].sizeBytes,
+    )
+  ) {
+    return { ok: false, reason: "invalid_bundle" };
+  }
+
+  const manifest = manifests[0];
+  const manifestBuffer = await readStoredObjectBuffer(manifest.stagedKey);
+  const manifestText = manifestBuffer.toString("utf8");
+  if (!manifestText.trimStart().startsWith("#EXTM3U")) {
+    return { ok: false, reason: "invalid_bundle" };
+  }
+
+  const preparedByPath = new Map(prepared.map((item) => [item.relativePath, item]));
+  const manifestReferences: Array<string | null> = [];
+  for (const rawLine of manifestText.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (line.length > 0 && !line.startsWith("#")) {
+      manifestReferences.push(resolveManifestReference(manifest.relativePath, line));
+    }
+  }
+
+  if (
+    manifestReferences.length === 0 ||
+    manifestReferences.some((reference) => {
+      if (!reference) return true;
+      return preparedByPath.get(reference)?.role !== "segment";
+    })
+  ) {
+    return { ok: false, reason: "invalid_bundle" };
+  }
+
+  const displayName = sanitizeDisplayName(input.displayName);
+  const finalPrefix = `${crypto.randomUUID()}-${slugifyBase(displayName) || "hls-bundle"}/`;
+  const storedFilename = `${finalPrefix}${manifest.relativePath}`;
+  const posterStoredFilename = posters[0] ? `${finalPrefix}${posters[0].relativePath}` : null;
+  const metadata = buildS3Metadata({
+    displayName,
+    originalName: displayName,
+    alias: input.alias ?? null,
+    kind: "video",
+    width: null,
+    height: null,
+  });
+
+  try {
+    await Promise.all(
+      prepared.map(async (item) => {
+        await s3.send(
+          new CopyObjectCommand({
+            Bucket: env.S3_BUCKET,
+            Key: `${finalPrefix}${item.relativePath}`,
+            CopySource: buildCopySource(item.stagedKey),
+            ContentType: item.mimeType,
+            Metadata: metadata,
+            MetadataDirective: "REPLACE",
+          }),
+        );
+      }),
+    );
+  } catch (error) {
+    await Promise.allSettled([
+      removeStoredMediaPrefix(finalPrefix),
+      removeStoredMediaPrefix(stagingPrefix),
+    ]);
+    throw error;
+  }
+
+  await removeStoredMediaPrefix(stagingPrefix);
 
   return {
     ok: true,
@@ -557,12 +808,26 @@ export async function updateStoredMediaMeta(storedFilename: string, meta: S3Medi
     new CopyObjectCommand({
       Bucket: env.S3_BUCKET,
       Key: storedFilename,
-      CopySource: `${env.S3_BUCKET}/${storedFilename}`,
+      CopySource: buildCopySource(storedFilename),
       ContentType: headResp.ContentType,
       Metadata: buildS3Metadata(meta),
       MetadataDirective: "REPLACE",
     }),
   );
+}
+
+async function readStoredObjectBuffer(storedFilename: string): Promise<Buffer> {
+  const response = await s3.send(
+    new GetObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: storedFilename,
+    }),
+  );
+  const body = response.Body as { transformToByteArray?: () => Promise<Uint8Array> } | undefined;
+  if (!body?.transformToByteArray) {
+    throw new Error("Stored object body is not readable");
+  }
+  return Buffer.from(await body.transformToByteArray());
 }
 
 /** A single S3 object entry as returned by `listAllStoredMedia`. */

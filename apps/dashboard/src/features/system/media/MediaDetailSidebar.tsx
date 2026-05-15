@@ -83,6 +83,52 @@ interface MediaDetailSidebarProps {
   common: ReturnType<typeof useI18n>["messages"]["common"];
 }
 
+interface MediaSelectionSidebarProps {
+  assets: MediaAsset[];
+  onDelete: () => void;
+  isDeleting: boolean;
+  locale: DashboardLocale;
+  mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
+}
+
+export function MediaSelectionSidebar({
+  assets,
+  onDelete,
+  isDeleting,
+  locale,
+  mediaMessages,
+}: MediaSelectionSidebarProps) {
+  const totalSize = assets.reduce((sum, asset) => sum + asset.sizeBytes, 0);
+
+  return (
+    <DashboardSection>
+      <DashboardSection.Header
+        icon={<FileIcon weight="duotone" className="size-4" />}
+        title={mediaMessages.selectionTitle}
+      />
+      <DashboardSection.Body>
+        <div className="space-y-3 text-sm">
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.selectedCount}</p>
+            <p className="text-[var(--ds-text)]">{assets.length}</p>
+          </div>
+          <div>
+            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.selectedSize}</p>
+            <p className="text-[var(--ds-text)]">{formatBytes(totalSize, locale)}</p>
+          </div>
+        </div>
+
+        <DeleteActionButton
+          onClick={onDelete}
+          disabled={isDeleting}
+          className="w-full"
+          label={mediaMessages.deleteSelected}
+        />
+      </DashboardSection.Body>
+    </DashboardSection>
+  );
+}
+
 export function MediaDetailSidebar({
   asset,
   draft,

@@ -15,7 +15,7 @@ import {
 interface MediaGridItemProps {
   asset: MediaAsset;
   selected: boolean;
-  onSelect: (id: number) => void;
+  onSelect: (id: number, event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps) {
@@ -28,8 +28,10 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
     <button
       type="button"
       data-media-asset-item
-      onClick={() => onSelect(asset.id)}
-      className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors text-center"
+      data-media-asset-id={asset.id}
+      aria-pressed={selected}
+      onClick={(event) => onSelect(asset.id, event)}
+      className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-colors text-center select-none"
     >
       <div
         className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
@@ -47,11 +49,11 @@ export function MediaGridItem({ asset, selected, onSelect }: MediaGridItemProps)
         ) : (
           <div className="size-full bg-[var(--ds-bg-elevated)] flex flex-col items-center justify-center text-[var(--ds-text-subtle)] gap-2">
             {videoAsset ? (
-              <VideoCameraIcon weight="duotone" className="size-10" />
+              <VideoCameraIcon weight="duotone" className="size-7" />
             ) : (
-              <FileIcon weight="duotone" className="size-10" />
+              <FileIcon weight="duotone" className="size-7" />
             )}
-            <span className="text-[10px] font-semibold tracking-wide">
+            <span className="text-[9px] font-semibold tracking-wide">
               {getMediaTypeLabel(asset)}
             </span>
           </div>

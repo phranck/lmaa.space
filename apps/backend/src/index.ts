@@ -30,6 +30,7 @@ const DEFAULT_BODY_LIMIT_BYTES = 10 * 1024 * 1024;
 const DEFAULT_BODY_LIMIT_LABEL = "10 MB";
 const ADMIN_MEDIA_UPLOAD_PATH = "/api/v1/admin/media";
 const ADMIN_HLS_BUNDLE_UPLOAD_PATH = "/api/v1/admin/media/bundles/hls";
+const ADMIN_HLS_BUNDLE_CHUNK_UPLOAD_PATH = "/api/v1/admin/media/bundles/hls/chunks";
 const FRONTEND_PUBLIC_ASSETS_ROOT = existsSync("apps/frontend/public")
   ? "apps/frontend/public"
   : "../frontend/public";
@@ -67,7 +68,9 @@ if (env.NODE_ENV === "production") {
 app.use("*", (c, next) => {
   if (
     c.req.method === "POST" &&
-    (c.req.path === ADMIN_MEDIA_UPLOAD_PATH || c.req.path === ADMIN_HLS_BUNDLE_UPLOAD_PATH)
+    (c.req.path === ADMIN_MEDIA_UPLOAD_PATH ||
+      c.req.path === ADMIN_HLS_BUNDLE_UPLOAD_PATH ||
+      c.req.path === ADMIN_HLS_BUNDLE_CHUNK_UPLOAD_PATH)
   ) {
     return adminMediaBodyLimit(c, next);
   }

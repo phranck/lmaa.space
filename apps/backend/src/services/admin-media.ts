@@ -5,13 +5,16 @@ import {
 } from "@lmaa/shared";
 
 import {
+  completeStagedHlsBundle,
   type S3MediaMeta,
+  type StagedHlsBundleFile,
   type StoreHlsBundleFile,
   getMediaPublicUrl,
   isHlsManifestKey,
   listAllStoredMedia,
   removeStoredMedia,
   removeStoredMediaAsset,
+  stageUploadedHlsBundleFiles,
   storeUploadedMedia,
   storeUploadedHlsBundle,
   updateStoredMediaMeta,
@@ -20,8 +23,10 @@ import {
   createMediaAsset,
   deleteMediaAsset,
   deleteMediaAssetByFilename,
+  findMediaAssetByDisplayNameInsensitive,
   listMediaAliases,
   listMediaAssets,
+  replaceMediaAssetStorage,
   updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
 
@@ -60,29 +65,102 @@ function mapMediaAsset(row: {
   };
 }
 
+function sanitizeUploadDisplayName(raw: string): string {
+  const cleaned = raw.replace(/[/\\]/g, " ").replace(/\s+/g, " ").trim().slice(0, 200);
+  return cleaned || "file";
+}
+
+function isManagedMediaStorageKey(key: string): boolean {
+  return !key.startsWith(".") && !key.startsWith("unsplash/");
+}
+
+async function findUploadNameConflict(displayName: string) {
+  return findMediaAssetByDisplayNameInsensitive(sanitizeUploadDisplayName(displayName));
+}
+
+async function persistStoredUpload(input: {
+  adminId: number;
+  created: {
+    displayName: string;
+    originalName: string;
+    storedFilename: string;
+    posterStoredFilename: string | null;
+    mimeType: string;
+    kind: MediaKind;
+    sizeBytes: number;
+    width: number | null;
+    height: number | null;
+  };
+  overwriteTarget: Awaited<ReturnType<typeof findMediaAssetByDisplayNameInsensitive>>;
+}) {
+  const { adminId, created, overwriteTarget } = input;
+
+  if (overwriteTarget) {
+    const previousStoredFilename = overwriteTarget.storedFilename;
+    const asset = await replaceMediaAssetStorage(overwriteTarget.id, {
+      ...created,
+      alias: overwriteTarget.alias,
+      createdBy: adminId,
+    });
+
+    if (!asset) {
+      await removeStoredMediaAsset(created.storedFilename);
+      return { ok: false as const, reason: "save_failed" as const };
+    }
+
+    try {
+      await removeStoredMediaAsset(previousStoredFilename);
+    } catch {
+      // Best effort: the DB already points at the replacement object.
+    }
+    return { ok: true as const, asset: mapMediaAsset(asset) };
+  }
+
+  const asset = await createMediaAsset({
+    ...created,
+    createdBy: adminId,
+  });
+
+  if (!asset) {
+    await removeStoredMediaAsset(created.storedFilename);
+    return { ok: false as const, reason: "save_failed" as const };
+  }
+
+  return { ok: true as const, asset: mapMediaAsset(asset) };
+}
+
 export async function listManagedMediaAssets(): Promise<SharedMediaAsset[]> {
   const assets = await listMediaAssets();
   return assets.map(mapMediaAsset);
 }
 
-export async function uploadManagedMediaAsset(input: { file: unknown; adminId: number }) {
-  const stored = await storeUploadedMedia(input.file);
+export async function uploadManagedMediaAsset(input: {
+  adminId: number;
+  displayName?: string;
+  file: unknown;
+  overwrite?: boolean;
+}) {
+  const requestedDisplayName =
+    input.displayName ?? (input.file instanceof File && input.file.name ? input.file.name : "file");
+  const conflict = await findUploadNameConflict(requestedDisplayName);
+  if (conflict && !input.overwrite) {
+    return { ok: false as const, reason: "name_conflict" as const, asset: mapMediaAsset(conflict) };
+  }
+
+  const stored = await storeUploadedMedia(input.file, {
+    alias: conflict?.alias ?? null,
+    displayName: requestedDisplayName,
+  });
   if (!stored.ok) {
     return stored;
   }
 
   try {
-    const asset = await createMediaAsset({
-      ...stored.created,
-      createdBy: input.adminId,
+    return await persistStoredUpload({
+      adminId: input.adminId,
+      created: stored.created,
+      overwriteTarget: input.overwrite ? conflict : null,
     });
-
-    if (!asset) {
-      await removeStoredMedia(stored.created.storedFilename);
-      return { ok: false as const, reason: "save_failed" as const };
-    }
-
-    return { ok: true as const, asset: mapMediaAsset(asset) };
   } catch (error) {
     await removeStoredMedia(stored.created.storedFilename);
     throw error;
@@ -90,11 +168,18 @@ export async function uploadManagedMediaAsset(input: { file: unknown; adminId: n
 }
 
 export async function uploadManagedHlsBundle(input: {
+  adminId: number;
   displayName: string;
   files: StoreHlsBundleFile[];
-  adminId: number;
+  overwrite?: boolean;
 }) {
+  const conflict = await findUploadNameConflict(input.displayName);
+  if (conflict && !input.overwrite) {
+    return { ok: false as const, reason: "name_conflict" as const, asset: mapMediaAsset(conflict) };
+  }
+
   const stored = await storeUploadedHlsBundle({
+    alias: conflict?.alias ?? null,
     displayName: input.displayName,
     files: input.files,
   });
@@ -103,17 +188,55 @@ export async function uploadManagedHlsBundle(input: {
   }
 
   try {
-    const asset = await createMediaAsset({
-      ...stored.created,
-      createdBy: input.adminId,
+    return await persistStoredUpload({
+      adminId: input.adminId,
+      created: stored.created,
+      overwriteTarget: input.overwrite ? conflict : null,
     });
+  } catch (error) {
+    await removeStoredMediaAsset(stored.created.storedFilename);
+    throw error;
+  }
+}
 
-    if (!asset) {
-      await removeStoredMediaAsset(stored.created.storedFilename);
-      return { ok: false as const, reason: "save_failed" as const };
-    }
+export async function uploadManagedHlsBundleChunk(input: {
+  files: StoreHlsBundleFile[];
+  sessionId: string;
+}) {
+  return stageUploadedHlsBundleFiles({
+    files: input.files,
+    sessionId: input.sessionId,
+  });
+}
 
-    return { ok: true as const, asset: mapMediaAsset(asset) };
+export async function completeManagedHlsBundleUpload(input: {
+  adminId: number;
+  displayName: string;
+  files: StagedHlsBundleFile[];
+  overwrite?: boolean;
+  sessionId: string;
+}) {
+  const conflict = await findUploadNameConflict(input.displayName);
+  if (conflict && !input.overwrite) {
+    return { ok: false as const, reason: "name_conflict" as const, asset: mapMediaAsset(conflict) };
+  }
+
+  const stored = await completeStagedHlsBundle({
+    alias: conflict?.alias ?? null,
+    displayName: input.displayName,
+    files: input.files,
+    sessionId: input.sessionId,
+  });
+  if (!stored.ok) {
+    return stored;
+  }
+
+  try {
+    return await persistStoredUpload({
+      adminId: input.adminId,
+      created: stored.created,
+      overwriteTarget: input.overwrite ? conflict : null,
+    });
   } catch (error) {
     await removeStoredMediaAsset(stored.created.storedFilename);
     throw error;
@@ -195,7 +318,8 @@ export async function syncMediaFromStorage(): Promise<{
   updated: number;
   removed: number;
 }> {
-  const [s3Objects, dbAssets] = await Promise.all([listAllStoredMedia(), listMediaAssets()]);
+  const [allS3Objects, dbAssets] = await Promise.all([listAllStoredMedia(), listMediaAssets()]);
+  const s3Objects = allS3Objects.filter((obj) => isManagedMediaStorageKey(obj.key));
 
   const dbByFilename = new Map(dbAssets.map((a) => [a.storedFilename, a]));
   const s3Keys = new Set(s3Objects.map((o) => o.key));

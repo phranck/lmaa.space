@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { z } from "zod";
 
 import { mediaUpdateSchema } from "@lmaa/contracts";
 import { MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
@@ -8,9 +9,11 @@ import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
+  completeManagedHlsBundleUpload,
   deleteManagedMediaAsset,
   listManagedMediaAssets,
   syncMediaFromStorage,
+  uploadManagedHlsBundleChunk,
   uploadManagedHlsBundle,
   updateManagedMediaAsset,
   uploadManagedMediaAsset,
@@ -21,6 +24,20 @@ import {
  */
 export const mediaRoutes = new Hono<{ Variables: AuthVariables }>();
 
+const hlsBundleCompleteSchema = z.object({
+  files: z
+    .array(
+      z.object({
+        relativePath: z.string().min(1),
+        sizeBytes: z.number().int().nonnegative(),
+      }),
+    )
+    .min(1),
+  name: z.string().min(1).max(200),
+  overwrite: z.boolean().optional(),
+  sessionId: z.string().min(1),
+});
+
 mediaRoutes.get("/media", requireAdmin, async (c) => {
   const assets = await listManagedMediaAssets();
   return ok(c, assets);
@@ -29,11 +46,20 @@ mediaRoutes.get("/media", requireAdmin, async (c) => {
 mediaRoutes.post("/media", requireAdmin, async (c) => {
   const formData = await c.req.formData();
   const file = formData.get("file");
+  const displayName = formData.get("displayName");
+  const overwrite = formData.get("overwrite") === "true";
   const adminId = c.get("adminId");
 
-  const result = await uploadManagedMediaAsset({ file, adminId });
+  const result = await uploadManagedMediaAsset({
+    file,
+    adminId,
+    displayName: typeof displayName === "string" ? displayName : undefined,
+    overwrite,
+  });
   if (!result.ok) {
     if (result.reason === "missing_file") return fail(c, 400, "No file provided");
+    if (result.reason === "name_conflict")
+      return fail(c, 409, "Media asset name already exists", "MEDIA_NAME_CONFLICT");
     if (result.reason === "too_large")
       return fail(c, 413, `File too large (max ${MEDIA_UPLOAD_MAX_LABEL})`, "PAYLOAD_TOO_LARGE");
     if (result.reason === "invalid_file")
@@ -53,6 +79,7 @@ mediaRoutes.post("/media/bundles/hls", requireAdmin, async (c) => {
   const displayName = formData.get("name");
   const files = formData.getAll("files");
   const paths = formData.getAll("paths");
+  const overwrite = formData.get("overwrite") === "true";
   const adminId = c.get("adminId");
 
   if (files.length === 0 || files.length !== paths.length) {
@@ -66,10 +93,13 @@ mediaRoutes.post("/media/bundles/hls", requireAdmin, async (c) => {
       relativePath: typeof paths[index] === "string" ? paths[index] : "",
     })),
     adminId,
+    overwrite,
   });
 
   if (!result.ok) {
     if (result.reason === "missing_file") return fail(c, 400, "No files provided");
+    if (result.reason === "name_conflict")
+      return fail(c, 409, "Media asset name already exists", "MEDIA_NAME_CONFLICT");
     if (result.reason === "too_large")
       return fail(c, 413, `Bundle too large (max ${MEDIA_UPLOAD_MAX_LABEL})`, "PAYLOAD_TOO_LARGE");
     if (result.reason === "invalid_bundle")
@@ -89,6 +119,79 @@ mediaRoutes.post("/media/bundles/hls", requireAdmin, async (c) => {
 
   return ok(c, result.asset, 201);
 });
+
+mediaRoutes.post("/media/bundles/hls/chunks", requireAdmin, async (c) => {
+  const formData = await c.req.formData();
+  const sessionId = formData.get("sessionId");
+  const files = formData.getAll("files");
+  const paths = formData.getAll("paths");
+
+  if (typeof sessionId !== "string" || files.length === 0 || files.length !== paths.length) {
+    return fail(c, 400, "Invalid HLS bundle chunk upload");
+  }
+
+  const result = await uploadManagedHlsBundleChunk({
+    sessionId,
+    files: files.map((file, index) => ({
+      file,
+      relativePath: typeof paths[index] === "string" ? paths[index] : "",
+    })),
+  });
+
+  if (!result.ok) {
+    if (result.reason === "missing_file") return fail(c, 400, "No files provided");
+    if (result.reason === "too_large")
+      return fail(c, 413, `Chunk too large (max ${MEDIA_UPLOAD_MAX_LABEL})`, "PAYLOAD_TOO_LARGE");
+    if (result.reason === "invalid_bundle" || result.reason === "invalid_file")
+      return fail(
+        c,
+        400,
+        "Unsupported bundle file type. Allowed: .m3u8, .ts, poster.jpg/.jpeg/.png/.webp",
+      );
+    return fail(c, 500, "Failed to stage HLS bundle chunk");
+  }
+
+  return ok(c, result);
+});
+
+mediaRoutes.post(
+  "/media/bundles/hls/complete",
+  requireAdmin,
+  zValidator("json", hlsBundleCompleteSchema),
+  async (c) => {
+    const payload = c.req.valid("json");
+    const adminId = c.get("adminId");
+
+    const result = await completeManagedHlsBundleUpload({
+      adminId,
+      displayName: payload.name,
+      files: payload.files,
+      overwrite: payload.overwrite,
+      sessionId: payload.sessionId,
+    });
+
+    if (!result.ok) {
+      if (result.reason === "missing_file") return fail(c, 400, "No files provided");
+      if (result.reason === "name_conflict")
+        return fail(c, 409, "Media asset name already exists", "MEDIA_NAME_CONFLICT");
+      if (result.reason === "invalid_bundle")
+        return fail(
+          c,
+          400,
+          "Invalid HLS bundle. Required: one .m3u8 manifest, referenced .ts segments, optional poster.jpg/.jpeg/.png/.webp",
+        );
+      if (result.reason === "invalid_file")
+        return fail(
+          c,
+          400,
+          "Unsupported bundle file type. Allowed: .m3u8, .ts, poster.jpg/.jpeg/.png/.webp",
+        );
+      return fail(c, 500, "Failed to finalize HLS bundle");
+    }
+
+    return ok(c, result.asset, 201);
+  },
+);
 
 mediaRoutes.patch("/media/:id", requireAdmin, zValidator("json", mediaUpdateSchema), async (c) => {
   const id = parseId(c.req.param("id"));
