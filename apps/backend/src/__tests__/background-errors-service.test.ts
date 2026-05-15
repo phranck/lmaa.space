@@ -30,7 +30,9 @@ describe("recordBackgroundError", () => {
     const { recordBackgroundError } = await loadService();
     const err = new Error("something went wrong");
 
-    await expect(recordBackgroundError("mastodon-post", err, { accountId: 5 })).resolves.toBeUndefined();
+    await expect(
+      recordBackgroundError("mastodon-post", err, { accountId: 5 }),
+    ).resolves.toBeUndefined();
 
     expect(loggerMock.error).toHaveBeenCalledWith(
       expect.objectContaining({ err, source: "mastodon-post", accountId: 5 }),
@@ -52,6 +54,61 @@ describe("recordBackgroundError", () => {
 
     expect(insertBackgroundErrorMock).toHaveBeenCalledWith(
       expect.objectContaining({ message: "plain string error" }),
+    );
+  });
+
+  it("stores structured provider errors as readable messages with details", async () => {
+    insertBackgroundErrorMock.mockResolvedValue(undefined);
+
+    const { recordBackgroundError } = await loadService();
+
+    await recordBackgroundError(
+      "email",
+      {
+        name: "validation_error",
+        message: "Invalid `from` field.",
+        statusCode: 403,
+      },
+      { to: "owner@example.test", subject: "Neue Einreichung" },
+    );
+
+    expect(insertBackgroundErrorMock).toHaveBeenCalledWith({
+      source: "email",
+      message: "validation_error: Invalid `from` field. (403)",
+      context: {
+        to: "owner@example.test",
+        subject: "Neue Einreichung",
+        error: {
+          name: "validation_error",
+          message: "Invalid `from` field.",
+          statusCode: 403,
+        },
+      },
+    });
+  });
+
+  it("redacts sensitive values before persisting context and structured errors", async () => {
+    insertBackgroundErrorMock.mockResolvedValue(undefined);
+
+    const { recordBackgroundError } = await loadService();
+
+    await recordBackgroundError(
+      "email",
+      { message: "Request failed", apiKey: "re_secret" },
+      { accessToken: "secret-token", safe: "visible" },
+    );
+
+    expect(insertBackgroundErrorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: {
+          accessToken: "[redacted]",
+          safe: "visible",
+          error: {
+            message: "Request failed",
+            apiKey: "[redacted]",
+          },
+        },
+      }),
     );
   });
 
