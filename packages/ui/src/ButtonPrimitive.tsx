@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 
 import { cx } from "./classNames.ts";
 
@@ -18,6 +18,7 @@ export interface ButtonPrimitiveProps extends ComponentPropsWithoutRef<"button">
   variant?: ButtonPrimitiveVariant;
   size?: ButtonPrimitiveSize;
   leadingIcon?: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
   trailingIcon?: ReactNode;
 }
 
@@ -28,6 +29,7 @@ type IconButtonPrimitiveAccessibleName =
 export type IconButtonPrimitiveProps = Omit<ComponentPropsWithoutRef<"button">, "children"> &
   IconButtonPrimitiveAccessibleName & {
     children: ReactNode;
+    ref?: Ref<HTMLButtonElement>;
     variant?: ButtonPrimitiveVariant;
     size?: ButtonPrimitiveSize;
   };
@@ -70,6 +72,7 @@ export function ButtonPrimitive({
   children,
   className,
   leadingIcon,
+  ref,
   size = "action",
   trailingIcon,
   type = "button",
@@ -79,6 +82,7 @@ export function ButtonPrimitive({
   return (
     <button
       {...buttonProps}
+      ref={ref}
       type={type}
       className={cx(buttonBaseClass, buttonSizeClass[size], buttonVariantClass[variant], className)}
     >
@@ -92,6 +96,7 @@ export function ButtonPrimitive({
 export function IconButtonPrimitive({
   children,
   className,
+  ref,
   size = "action",
   type = "button",
   variant = "ghost",
@@ -100,6 +105,7 @@ export function IconButtonPrimitive({
   return (
     <button
       {...buttonProps}
+      ref={ref}
       type={type}
       className={cx(
         buttonBaseClass,

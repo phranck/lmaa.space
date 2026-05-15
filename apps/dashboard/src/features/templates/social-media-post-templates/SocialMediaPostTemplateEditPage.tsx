@@ -36,7 +36,6 @@ import {
   useSocialMediaPostTemplate,
   useUpdateSocialMediaPostTemplate,
 } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 const MarkdownEditor = lazy(() =>
   import("@lmaa/ui/markdown-editor").then((m) => ({ default: m.MarkdownEditor })),
@@ -194,7 +193,6 @@ export function SocialMediaPostTemplateEditPage() {
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-  useKeyboardSave(handleSave, !isPending);
 
   if (!isNew && isLoading) {
     return (

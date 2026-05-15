@@ -7,7 +7,6 @@ import { useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAdminCategories } from "@/features/content/hooks/useAdminCategories.ts";
 import { useEditSubmission } from "@/features/overview/hooks/useSubmissions.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
 import {
@@ -282,10 +281,6 @@ export function useShopEditorController({
   function handleImportJsonText(jsonText: string): void {
     importJsonHandlerRef.current?.(jsonText);
   }
-
-  useKeyboardSave(() => {
-    if (canSave) void handleSaveSafely();
-  });
 
   function handleChangeLogoBackground(value: string | null) {
     setForm({ ...form, logoBackgroundColor: value });

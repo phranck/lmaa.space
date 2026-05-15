@@ -1,4 +1,4 @@
-import { ClockIcon, EnvelopeSimpleIcon, TrashIcon } from "@phosphor-icons/react";
+import { EnvelopeSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import { useReducer } from "react";
 
 import type { ReminderRecurrence, ShopReminder } from "@lmaa/shared";
@@ -6,8 +6,7 @@ import { AlertDialog } from "@lmaa/ui/alert-dialog";
 import { FormLabel } from "@lmaa/ui/form-primitives";
 import { ToggleSwitch } from "@lmaa/ui/toggle-switch";
 
-import { DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
-import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
+import { DeleteActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import {
   DashboardCombobox,
   DashboardNumberInput,
@@ -306,15 +305,14 @@ export function ReminderForm({
 
       {/* Actions */}
       <div className="flex items-center gap-2 w-full">
-        <DashboardButton
+        <SaveActionButton
           disabled={isPending}
+          busy={isPending}
           onClick={saveReminder}
           className="flex-1"
-          leadingIcon={<ClockIcon weight="duotone" className="size-3.5" />}
+          label={isPending ? "Wird gespeichert…" : "Erinnerung setzen"}
           variant="neutral"
-        >
-          {isPending ? "Wird gespeichert\u2026" : "Erinnerung setzen"}
-        </DashboardButton>
+        />
         {onDelete && (
           <DeleteActionButton
             disabled={isDeleting}

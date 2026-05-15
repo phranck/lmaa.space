@@ -1,7 +1,6 @@
 import {
   ArrowCounterClockwiseIcon,
   CheckCircleIcon,
-  DownloadIcon,
   FileTextIcon,
   InfoIcon,
   PauseCircleIcon,
@@ -11,6 +10,7 @@ import {
 
 import type { Submission } from "@lmaa/shared";
 
+import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import type { DashboardMessages } from "@/i18n/messages.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
@@ -19,6 +19,7 @@ interface SubmissionToolbarProps {
   submission: Submission;
   isActionPending: boolean;
   canSave: boolean;
+  keyboardShortcut?: boolean;
   saveLabel: string;
   messages: DashboardMessages["submissions"];
   onApprove: () => void;
@@ -32,6 +33,7 @@ export function SubmissionToolbar({
   submission,
   isActionPending,
   canSave,
+  keyboardShortcut,
   saveLabel,
   messages: submissionsMessages,
   onApprove,
@@ -53,7 +55,7 @@ export function SubmissionToolbar({
             onClick={() => onSetStatus("onhold")}
             disabled={isActionPending}
             variant="warning"
-            icon={<PauseCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<PauseCircleIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.onhold}
           </EditorToolbarButton>
@@ -61,7 +63,7 @@ export function SubmissionToolbar({
             onClick={() => onReject(false)}
             disabled={isActionPending}
             variant="danger"
-            icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<XCircleIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.reject}
           </EditorToolbarButton>
@@ -69,7 +71,7 @@ export function SubmissionToolbar({
             onClick={onDelete}
             disabled={isActionPending}
             variant="danger"
-            icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<TrashIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.delete}
           </EditorToolbarButton>
@@ -78,7 +80,7 @@ export function SubmissionToolbar({
             onClick={onApprove}
             disabled={isActionPending}
             variant="success"
-            icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<CheckCircleIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.approve}
           </EditorToolbarButton>
@@ -91,7 +93,7 @@ export function SubmissionToolbar({
             onClick={() => onSetStatus("pending")}
             disabled={isActionPending}
             variant="success"
-            icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<ArrowCounterClockwiseIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.restore}
           </EditorToolbarButton>
@@ -99,7 +101,7 @@ export function SubmissionToolbar({
             onClick={() => onReject(false)}
             disabled={isActionPending}
             variant="danger"
-            icon={<XCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<XCircleIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.reject}
           </EditorToolbarButton>
@@ -112,7 +114,7 @@ export function SubmissionToolbar({
             onClick={onApprove}
             disabled={isActionPending}
             variant="success"
-            icon={<CheckCircleIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<CheckCircleIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.approve}
           </EditorToolbarButton>
@@ -121,7 +123,7 @@ export function SubmissionToolbar({
             onClick={() => onReject(true)}
             disabled={isActionPending}
             variant="neutral"
-            icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
+            icon={<FileTextIcon weight="duotone" className="size-3.5" />}
           >
             {submissionsMessages.suggestions.editRejectionInfo}
           </EditorToolbarButton>
@@ -129,14 +131,11 @@ export function SubmissionToolbar({
           {submission.rejectionToken ? (
             <EditorToolbarButton
               onClick={() =>
-                window.open(
-                  `${FRONTEND_URL}/rejected/${submission.rejectionToken}`,
-                  "_blank",
-                )
+                window.open(`${FRONTEND_URL}/rejected/${submission.rejectionToken}`, "_blank")
               }
               disabled={isActionPending}
               variant="warning"
-              icon={<InfoIcon weight="duotone" className="h-3.5 w-3.5" />}
+              icon={<InfoIcon weight="duotone" className="size-3.5" />}
             >
               {submissionsMessages.suggestions.info}
             </EditorToolbarButton>
@@ -145,7 +144,7 @@ export function SubmissionToolbar({
               onClick={() => onSetStatus("pending")}
               disabled={isActionPending}
               variant="success"
-              icon={<ArrowCounterClockwiseIcon weight="duotone" className="h-3.5 w-3.5" />}
+              icon={<ArrowCounterClockwiseIcon weight="duotone" className="size-3.5" />}
             >
               {submissionsMessages.suggestions.setToOpen}
             </EditorToolbarButton>
@@ -158,20 +157,19 @@ export function SubmissionToolbar({
           onClick={onDelete}
           disabled={isActionPending}
           variant="danger"
-          icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
+          icon={<TrashIcon weight="duotone" className="size-3.5" />}
         >
           {submissionsMessages.suggestions.delete}
         </EditorToolbarButton>
       )}
 
-      <EditorToolbarButton
+      <SaveActionButton
         onClick={onSave}
         disabled={!canSave || isActionPending}
         variant="primary"
-        icon={<DownloadIcon weight="duotone" className="h-3.5 w-3.5" />}
-      >
-        {saveLabel}
-      </EditorToolbarButton>
+        label={saveLabel}
+        keyboardShortcut={keyboardShortcut}
+      />
     </div>
   );
 }

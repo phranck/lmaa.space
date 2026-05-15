@@ -290,6 +290,7 @@ function LoadedSubmissionEditorPage({
             submission={submission}
             isActionPending={isActionPending}
             canSave={controller.canSave}
+            keyboardShortcut={reviewState.reviewMode === null}
             saveLabel={saveLabel}
             messages={submissionsMessages}
             onApprove={openApproveReview}
