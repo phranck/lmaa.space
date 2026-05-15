@@ -4,7 +4,6 @@ import {
   FileTextIcon,
   HeartIcon,
   InfoIcon,
-  MapPinIcon,
   PauseCircleIcon,
   SealWarningIcon,
   TrashIcon,
@@ -97,9 +96,6 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
               >
                 {shop.name}
               </p>
-              {shop.headquarters?.latitude != null && shop.headquarters?.longitude != null && (
-                <MapPinIcon weight="duotone" className="size-3.5 shrink-0 text-[var(--color-primary)]" />
-              )}
               {shop.needsReview && (
                 <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--ds-badge-review-bg)] text-[var(--ds-badge-review-text)]">
                   <SealWarningIcon weight="duotone" className="size-3" />
@@ -154,7 +150,8 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
         cell: (shop) =>
           shop.region?.length ? (
             <div className="flex items-center gap-1.5">
-              {[...shop.region]
+              {shop.region
+                .slice()
                 .sort((a, b) => REGION_CODES.indexOf(a) - REGION_CODES.indexOf(b))
                 .map((code) => {
                   const opt = regionOptions.find((o) => o.code === code);

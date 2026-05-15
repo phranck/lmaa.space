@@ -205,12 +205,6 @@ export interface DashboardMessages {
       deleted: string;
       rejected: string;
     };
-    geoFilter: {
-      all: string;
-      withGeo: string;
-      withoutGeo: string;
-      needsReview: string;
-    };
     categoryFilter: {
       all: string;
     };
@@ -1425,12 +1419,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         onhold: "Zurückgestellt",
         deleted: "Gelöscht markiert",
         rejected: "Abgelehnt",
-      },
-      geoFilter: {
-        all: "Geo: Alle",
-        withGeo: "Mit Koordinaten",
-        withoutGeo: "Ohne Koordinaten",
-        needsReview: "Review ausstehend",
       },
       categoryFilter: {
         all: "Alle Kategorien",
@@ -2693,12 +2681,6 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         onhold: "On hold",
         deleted: "Marked as deleted",
         rejected: "Rejected",
-      },
-      geoFilter: {
-        all: "Geo: All",
-        withGeo: "With coordinates",
-        withoutGeo: "Without coordinates",
-        needsReview: "Review pending",
       },
       categoryFilter: {
         all: "All Categories",
