@@ -37,8 +37,12 @@ import {
   INITIAL_FILTER_STATE,
   SHOP_SORTABLE_COLUMNS,
   type VisibilityFilter,
+  applyShopsVisibilityFilterSearchParam,
   parseShopsSort,
+  parseShopsVisibilityFilter,
+  readStoredShopsVisibilityFilter,
   shopsFilterReducer,
+  writeStoredShopsVisibilityFilter,
 } from "@/features/content/shops/shop-filter-state.ts";
 import { ShopTable } from "@/features/content/shops/ShopTable.tsx";
 import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
@@ -53,77 +57,24 @@ import {
   useShopVisibilityCounts,
 } from "./hooks/useAdminShops.ts";
 
-/**
- * Shop management route with filters and moderation actions.
- *
- * @returns Shops administration page.
- */
-export function ShopsPage() {
-  const { messages } = useI18n();
-  const shopsMessages = messages.shops;
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { data: categories = [] } = useAdminCategories();
-  const search = searchParams.get("q") ?? "";
-  const [filterState, dispatch] = useReducer(shopsFilterReducer, INITIAL_FILTER_STATE);
-  const { categoryFilter, visibilityFilter, geoFilter, exportLimit, importError } = filterState;
-  const importMutation = useImportShopReviewResults();
+type ShopsMessages = ReturnType<typeof useI18n>["messages"]["shops"];
+type ShopCategoryOption = { name: string; slug: string };
+type ShopVisibilityCounts = Record<VisibilityFilter, number>;
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "k" && e.metaKey) {
-        e.preventDefault();
-        document.getElementById("shops-search")?.focus();
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-  const sortStorageKey = getSegmentedStorageKey(user?.id, "shops:list:sort");
-  const sort = useMemo(() => {
-    const urlSort = parseShopsSort(searchParams);
-    if (urlSort) return urlSort;
-    const storedSort = readStoredTableSort(sortStorageKey, SHOP_SORTABLE_COLUMNS);
-    return storedSort === undefined ? null : storedSort;
-  }, [searchParams, sortStorageKey]);
-
-  function setSearch(value: string) {
-    const next = new URLSearchParams(searchParams);
-    if (value) {
-      next.set("q", value);
-    } else {
-      next.delete("q");
-    }
-    setSearchParams(next, { replace: true });
-  }
-
-  const { data: shops = [], isLoading } = useAdminShops(
-    visibilityFilter === "all" ? undefined : visibilityFilter,
-  );
-  const { data: counts } = useShopVisibilityCounts();
-
-  const searchLower = search.toLowerCase();
-  const filtered = useMemo(
-    () =>
-      shops.filter((s) => {
-        const matchesSearch =
-          s.name.toLowerCase().includes(searchLower) || s.url.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-        if (categoryFilter !== "all") {
-          if (!s.categories.some((c) => c.slug === categoryFilter)) return false;
-        }
-        if (geoFilter === "with")
-          return s.headquarters?.latitude != null && s.headquarters?.longitude != null;
-        if (geoFilter === "without")
-          return s.headquarters?.latitude == null || s.headquarters?.longitude == null;
-        if (geoFilter === "needsReview") return s.needsReview === true;
-        return true;
-      }),
-    [shops, searchLower, categoryFilter, geoFilter],
-  );
-
+function useShopFilterOptions({
+  categories,
+  counts,
+  shops,
+  shopsMessages,
+}: {
+  categories: ShopCategoryOption[];
+  counts?: ShopVisibilityCounts;
+  shops: Array<{
+    headquarters?: { latitude?: number | null; longitude?: number | null } | null;
+    needsReview?: boolean;
+  }>;
+  shopsMessages: ShopsMessages;
+}) {
   const countsKey = counts
     ? `${counts.all}-${counts.public}-${counts.onhold}-${counts.deleted}-${counts.rejected}`
     : "";
@@ -216,6 +167,265 @@ export function ShopsPage() {
     [shopsMessages, categories],
   );
 
+  return { categoryFilterOptions, filterOptions, geoFilterOptions };
+}
+
+function ShopsHeaderActions({
+  categoryFilter,
+  categoryFilterOptions,
+  exportDisabled,
+  exportLimit,
+  geoFilter,
+  geoFilterOptions,
+  importPending,
+  shopsMessages,
+  visibilityFilter,
+  visibilityFilterOptions,
+  onCategoryFilterChange,
+  onExport,
+  onExportLimitChange,
+  onGeoFilterChange,
+  onImportFile,
+  onVisibilityFilterChange,
+}: {
+  categoryFilter: string;
+  categoryFilterOptions: DropdownOption<string>[];
+  exportDisabled: boolean;
+  exportLimit: ExportLimit;
+  geoFilter: GeoFilter;
+  geoFilterOptions: DropdownOption<GeoFilter>[];
+  importPending: boolean;
+  shopsMessages: ShopsMessages;
+  visibilityFilter: VisibilityFilter;
+  visibilityFilterOptions: DropdownOption<VisibilityFilter>[];
+  onCategoryFilterChange: (value: string) => void;
+  onExport: () => void;
+  onExportLimitChange: (value: ExportLimit) => void;
+  onGeoFilterChange: (value: GeoFilter) => void;
+  onImportFile: (file: File) => void;
+  onVisibilityFilterChange: (value: VisibilityFilter) => void;
+}) {
+  return (
+    <>
+      <FilterDropdown
+        value={categoryFilter}
+        onChange={onCategoryFilterChange}
+        options={categoryFilterOptions}
+        storageKey="shops-filter-category"
+        searchable
+        searchPlaceholder={shopsMessages.searchPlaceholder}
+      />
+
+      <FilterDropdown
+        value={geoFilter}
+        onChange={onGeoFilterChange}
+        options={geoFilterOptions}
+        storageKey="shops-filter-geo"
+      />
+
+      <FilterDropdown
+        value={visibilityFilter}
+        onChange={onVisibilityFilterChange}
+        options={visibilityFilterOptions}
+      />
+
+      <ImportButton
+        onFileSelected={onImportFile}
+        disabled={importPending}
+        tooltip={shopsMessages.importTooltip}
+        label={shopsMessages.importLabel}
+      />
+
+      <ExportButton
+        onClick={onExport}
+        disabled={exportDisabled}
+        tooltip={shopsMessages.exportTooltip}
+        label={shopsMessages.exportLabel}
+      >
+        <DashboardCombobox
+          aria-label="Anzahl zu exportierender Shops"
+          value={String(exportLimit)}
+          onValueChange={(value) => onExportLimitChange(Number(value) as ExportLimit)}
+          className="h-full w-20 shrink-0 rounded-none border-y-0 border-l-0 border-r border-[var(--ds-btn-primary-border)] bg-[var(--ds-surface)]"
+          matchTriggerWidth={false}
+          options={EXPORT_LIMITS.map((limit) => ({
+            value: String(limit),
+            label: String(limit),
+          }))}
+        />
+      </ExportButton>
+    </>
+  );
+}
+
+function ShopsFooterSearch({
+  placeholder,
+  search,
+  onSearchChange,
+}: {
+  placeholder: string;
+  search: string;
+  onSearchChange: (value: string) => void;
+}) {
+  return (
+    <PageFooter>
+      <div className="flex-1 flex justify-center">
+        <div className="relative">
+          <DashboardInput
+            id="shops-search"
+            type="text"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={placeholder}
+            className="w-104 pr-8"
+          />
+          {search ? (
+            <DashboardIconButton
+              aria-label="Suche leeren"
+              onClick={() => onSearchChange("")}
+              className="absolute right-1 top-1/2 -translate-y-1/2 border-transparent"
+              variant="ghost"
+            >
+              <XCircleIcon weight="duotone" className="size-3.5" />
+            </DashboardIconButton>
+          ) : (
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">
+              <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">&#8984;</kbd>
+              <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">K</kbd>
+            </span>
+          )}
+        </div>
+      </div>
+    </PageFooter>
+  );
+}
+
+/**
+ * Shop management route with filters and moderation actions.
+ *
+ * @returns Shops administration page.
+ */
+export function ShopsPage() {
+  const { messages } = useI18n();
+  const shopsMessages = messages.shops;
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { data: categories = [] } = useAdminCategories();
+  const search = searchParams.get("q") ?? "";
+  const visibilityStorageKey = getSegmentedStorageKey(user?.id, "shops:list:visibility");
+  const urlVisibilityFilter = parseShopsVisibilityFilter(searchParams.get("visibility"));
+  const [filterState, dispatch] = useReducer(
+    shopsFilterReducer,
+    INITIAL_FILTER_STATE,
+    (initialState) => ({
+      ...initialState,
+      visibilityFilter:
+        urlVisibilityFilter ??
+        readStoredShopsVisibilityFilter(visibilityStorageKey) ??
+        initialState.visibilityFilter,
+    }),
+  );
+  const { categoryFilter, visibilityFilter, geoFilter, exportLimit, importError } = filterState;
+  const importMutation = useImportShopReviewResults();
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "k" && e.metaKey) {
+        e.preventDefault();
+        document.getElementById("shops-search")?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (urlVisibilityFilter) {
+      dispatch({ type: "setVisibilityFilter", value: urlVisibilityFilter });
+      writeStoredShopsVisibilityFilter(visibilityStorageKey, urlVisibilityFilter);
+      return;
+    }
+
+    const stored = readStoredShopsVisibilityFilter(visibilityStorageKey);
+    if (stored) {
+      dispatch({ type: "setVisibilityFilter", value: stored });
+    }
+  }, [urlVisibilityFilter, visibilityStorageKey]);
+
+  const sortStorageKey = getSegmentedStorageKey(user?.id, "shops:list:sort");
+  const sort = useMemo(() => {
+    const urlSort = parseShopsSort(searchParams);
+    if (urlSort) return urlSort;
+    const storedSort = readStoredTableSort(sortStorageKey, SHOP_SORTABLE_COLUMNS);
+    return storedSort === undefined ? null : storedSort;
+  }, [searchParams, sortStorageKey]);
+
+  function setSearch(value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value) {
+      next.set("q", value);
+    } else {
+      next.delete("q");
+    }
+    setSearchParams(next, { replace: true });
+  }
+
+  function handleVisibilityFilterChange(nextVisibilityFilter: VisibilityFilter) {
+    dispatch({ type: "setVisibilityFilter", value: nextVisibilityFilter });
+    writeStoredShopsVisibilityFilter(visibilityStorageKey, nextVisibilityFilter);
+    setSearchParams(
+      applyShopsVisibilityFilterSearchParam(searchParams, nextVisibilityFilter),
+      { replace: true },
+    );
+  }
+
+  const { data: shops = [], isLoading } = useAdminShops(
+    visibilityFilter === "all" ? undefined : visibilityFilter,
+  );
+  const { data: counts } = useShopVisibilityCounts();
+
+  const searchLower = search.toLowerCase();
+  const filtered = useMemo(
+    () =>
+      shops.filter((s) => {
+        const matchesSearch =
+          s.name.toLowerCase().includes(searchLower) || s.url.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+        if (categoryFilter !== "all") {
+          if (!s.categories.some((c) => c.slug === categoryFilter)) return false;
+        }
+        if (geoFilter === "with")
+          return s.headquarters?.latitude != null && s.headquarters?.longitude != null;
+        if (geoFilter === "without")
+          return s.headquarters?.latitude == null || s.headquarters?.longitude == null;
+        if (geoFilter === "needsReview") return s.needsReview === true;
+        return true;
+      }),
+    [shops, searchLower, categoryFilter, geoFilter],
+  );
+
+  const {
+    categoryFilterOptions,
+    filterOptions,
+    geoFilterOptions,
+  } = useShopFilterOptions({
+    categories,
+    counts,
+    shops,
+    shopsMessages,
+  });
+  const activeVisibilityLabel =
+    filterOptions.find((option) => option.value === visibilityFilter)?.label ??
+    shopsMessages.filters.public;
+  const emptyShopsTitle =
+    visibilityFilter === "all"
+      ? shopsMessages.noShops
+      : `${shopsMessages.noFilteredShopsPrefix} „${activeVisibilityLabel}“.`;
+  const emptyShopsHint =
+    visibilityFilter === "all" ? shopsMessages.noShopsHint : shopsMessages.noFilteredShopsHint;
+
   function handleSortChange(nextSort: SortState | null) {
     writeStoredTableSort(sortStorageKey, nextSort, SHOP_SORTABLE_COLUMNS);
     const nextParams = new URLSearchParams(searchParams);
@@ -267,60 +477,24 @@ export function ShopsPage() {
   return (
     <PageLayout className="min-h-auto">
       <PageHeader title={shopsMessages.title}>
-        <FilterDropdown
-          value={categoryFilter}
-          onChange={(v: string) => dispatch({ type: "setCategoryFilter", value: v })}
-          options={categoryFilterOptions}
-          storageKey="shops-filter-category"
-          searchable
-          searchPlaceholder={shopsMessages.searchPlaceholder}
+        <ShopsHeaderActions
+          categoryFilter={categoryFilter}
+          categoryFilterOptions={categoryFilterOptions}
+          exportDisabled={filtered.length === 0}
+          exportLimit={exportLimit}
+          geoFilter={geoFilter}
+          geoFilterOptions={geoFilterOptions}
+          importPending={importMutation.isPending}
+          shopsMessages={shopsMessages}
+          visibilityFilter={visibilityFilter}
+          visibilityFilterOptions={filterOptions}
+          onCategoryFilterChange={(value) => dispatch({ type: "setCategoryFilter", value })}
+          onExport={handleExport}
+          onExportLimitChange={(value) => dispatch({ type: "setExportLimit", value })}
+          onGeoFilterChange={(value) => dispatch({ type: "setGeoFilter", value })}
+          onImportFile={handleImportFile}
+          onVisibilityFilterChange={handleVisibilityFilterChange}
         />
-
-        <FilterDropdown
-          value={geoFilter}
-          onChange={(v: GeoFilter) => dispatch({ type: "setGeoFilter", value: v })}
-          options={geoFilterOptions}
-          storageKey="shops-filter-geo"
-        />
-
-        <FilterDropdown
-          value={visibilityFilter}
-          onChange={(v: VisibilityFilter) => dispatch({ type: "setVisibilityFilter", value: v })}
-          options={filterOptions}
-          storageKey="shops-filter-visibility"
-        />
-
-        <ImportButton
-          onFileSelected={handleImportFile}
-          disabled={importMutation.isPending}
-          tooltip={shopsMessages.importTooltip}
-          label={shopsMessages.importLabel}
-        />
-
-        <ExportButton
-          onClick={handleExport}
-          disabled={filtered.length === 0}
-          tooltip={shopsMessages.exportTooltip}
-          label={shopsMessages.exportLabel}
-        >
-          <DashboardCombobox
-            aria-label="Anzahl zu exportierender Shops"
-            value={String(exportLimit)}
-            onValueChange={(value) =>
-              dispatch({
-                type: "setExportLimit",
-                value: Number(value) as ExportLimit,
-              })
-            }
-            className="h-full w-20 shrink-0 rounded-none border-y-0 border-l-0 border-r border-[var(--ds-btn-primary-border)] bg-[var(--ds-surface)]"
-            matchTriggerWidth={false}
-            options={EXPORT_LIMITS.map((limit) => ({
-              value: String(limit),
-              label: String(limit),
-            }))}
-          />
-        </ExportButton>
-
       </PageHeader>
 
       <AlertDialog
@@ -348,8 +522,8 @@ export function ShopsPage() {
           <ContentUnavailableView
             chromeless
             icon={<StorefrontIcon weight="duotone" aria-hidden />}
-            title={shopsMessages.noShops}
-            subtitle={shopsMessages.noShopsHint}
+            title={emptyShopsTitle}
+            subtitle={emptyShopsHint}
             className="flex-1 min-h-0"
           />
         )}
@@ -380,35 +554,11 @@ export function ShopsPage() {
         )}
       </PageBody>
 
-      <PageFooter>
-        <div className="flex-1 flex justify-center">
-          <div className="relative">
-            <DashboardInput
-              id="shops-search"
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={shopsMessages.searchPlaceholder}
-              className="w-104 pr-8"
-            />
-            {search ? (
-              <DashboardIconButton
-                aria-label="Suche leeren"
-                onClick={() => setSearch("")}
-                className="absolute right-1 top-1/2 -translate-y-1/2 border-transparent"
-                variant="ghost"
-              >
-                <XCircleIcon weight="duotone" className="size-3.5" />
-              </DashboardIconButton>
-            ) : (
-              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] text-[var(--ds-text-subtle)]">
-                <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">&#8984;</kbd>
-                <kbd className="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded border border-[var(--ds-border)] bg-[var(--ds-surface)] px-1 font-sans leading-none">K</kbd>
-              </span>
-            )}
-          </div>
-        </div>
-      </PageFooter>
+      <ShopsFooterSearch
+        placeholder={shopsMessages.searchPlaceholder}
+        search={search}
+        onSearchChange={setSearch}
+      />
     </PageLayout>
   );
 }
