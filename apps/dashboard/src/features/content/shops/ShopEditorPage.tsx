@@ -1,22 +1,26 @@
 import {
   ArrowCounterClockwiseIcon,
+  ArrowSquareOutIcon,
   FileTextIcon,
   HeartIcon,
   SealCheckIcon,
   TrashIcon,
-  UploadSimpleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
+
+import { encodeShopToken } from "@lmaa/shared";
 
 import { SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
+import { EditorPageTitleDetails } from "@/components/ui/EditorPageTitleDetails.tsx";
 import { EditorToolbarButton } from "@/components/ui/EditorToolbarButton.tsx";
 import { SaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { ShopDeleteReasonCard } from "@/features/content/shops/ShopDeleteReasonCard.tsx";
+import { FRONTEND_URL } from "@/lib/env.ts";
 
 import { useAcceptShopReview, useDeleteShop, useSetShopVisibility } from "./hooks/useAdminShops.ts";
 import { useShopEditorController } from "./hooks/useShopEditorController.ts";
@@ -48,14 +52,13 @@ export function ShopEditorPage() {
 }
 
 function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const visibilityMutation = useSetShopVisibility();
   const deleteMutation = useDeleteShop();
   const acceptReviewMutation = useAcceptShopReview();
-  const jsonFileInputRef = useRef<HTMLInputElement>(null);
 
   const controller = useShopEditorController({ shopId });
 
@@ -78,54 +81,69 @@ function ResolvedShopEditorPage({ shopId }: { shopId: number | "new" }) {
       : "/shops";
 
   const saveLabel = controller.common.save;
+  const activeShop = controller.activeShop;
+  const shopHeaderTitle = controller.isNew
+    ? controller.title
+    : activeShop?.name || controller.name.trim() || controller.title;
+  const shopPublishedAt =
+    !controller.isNew && activeShop && "createdAt" in activeShop && activeShop.createdAt
+      ? new Date(activeShop.createdAt).toLocaleString(locale, {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+  const shopHeaderSubtitle = shopPublishedAt
+    ? `${controller.shopsMessages.editCard.publishedAt}: ${shopPublishedAt}`
+    : null;
+  const shopHeaderLikes =
+    !controller.isNew && activeShop?.likeCount != null ? (
+      <span className="inline-flex items-center gap-1 text-sm font-normal text-red-400">
+        <HeartIcon weight="duotone" className="size-4" />
+        {activeShop.likeCount}
+      </span>
+    ) : null;
 
   const isActionPending =
     controller.isPending ||
     visibilityMutation.isPending ||
     deleteMutation.isPending ||
     acceptReviewMutation.isPending;
+  const shopDetailUrl =
+    !controller.isNew && activeShop?.visibility === "public" && typeof activeShop.id === "number"
+      ? `${FRONTEND_URL}/shop/${encodeShopToken(activeShop.id)}`
+      : null;
 
   return (
     <>
       <EditorPageShell
-        title={controller.title}
+        title={shopHeaderTitle}
         titleContent={
-          !controller.isNew && controller.activeShop?.likeCount != null ? (
-            <span className="inline-flex items-center gap-1 text-sm text-red-400 font-normal">
-              <HeartIcon weight="duotone" className="size-4" />
-              {controller.activeShop.likeCount}
-            </span>
-          ) : undefined
+          controller.isNew ? undefined : (
+            <EditorPageTitleDetails
+              title={shopHeaderTitle}
+              subtitle={shopHeaderSubtitle}
+              trailing={shopHeaderLikes}
+            />
+          )
         }
         backLabel={backLabel}
         onBack={() => navigate(returnTo)}
         headerContent={
           <div className="flex items-center gap-3">
             <SaveNotification phase={controller.savedPhase} label={controller.common.saved} />
-            <DashboardButton
-              onClick={() => jsonFileInputRef.current?.click()}
-              disabled={isActionPending}
-              leadingIcon={<UploadSimpleIcon weight="duotone" className="size-3.5" />}
-              variant="success"
-            >
-              {controller.shopFormI18n.messages.jsonImportFileLabel}
-            </DashboardButton>
-            <input
-              ref={jsonFileInputRef}
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = () => {
-                  controller.handleImportJsonText(reader.result as string);
-                };
-                reader.readAsText(file);
-                e.target.value = "";
-              }}
-            />
+            {shopDetailUrl ? (
+              <DashboardButton
+                onClick={() => window.open(shopDetailUrl, "_blank", "noopener,noreferrer")}
+                disabled={isActionPending}
+                leadingIcon={<ArrowSquareOutIcon weight="duotone" className="size-3.5" />}
+                variant="success"
+              >
+                {controller.shopsMessages.editCard.openDetailPage}
+              </DashboardButton>
+            ) : null}
           </div>
         }
         toolbar={

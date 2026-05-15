@@ -87,11 +87,6 @@ export function ShopEditorFormContent({ controller }: { controller: ShopEditorCo
     }
   }
 
-  controller.importJsonHandlerRef.current = (jsonText: string) => {
-    setShopCheckJson(jsonText);
-    applyShopCheckJson(jsonText, { showErrors: true });
-  };
-
   function handleShopCheckJsonPaste(event: ClipboardEvent) {
     const pastedText = event.clipboardData?.getData("text/plain")?.trim();
     if (!pastedText) return;
