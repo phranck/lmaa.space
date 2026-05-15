@@ -60,6 +60,11 @@ const LAYERS = [
   },
 ] as const;
 
+type MapPrefs = {
+  zoom: number;
+  layer: string;
+};
+
 // ---------------------------------------------------------------------------
 // Scoped CSS
 // ---------------------------------------------------------------------------
@@ -212,25 +217,33 @@ function parseCoordinate(
     : null;
 }
 
-function loadPrefs(): { zoom: number; layer: string } {
+function getDefaultPrefs(): MapPrefs {
+  return { zoom: DETAIL_ZOOM, layer: "osm" };
+}
+
+function loadPrefs(): MapPrefs {
   try {
-    if (typeof window === "undefined")
-      return { zoom: DETAIL_ZOOM, layer: "osm" };
+    if (typeof window === "undefined") return getDefaultPrefs();
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { zoom: DETAIL_ZOOM, layer: "osm" };
+    if (!raw) return getDefaultPrefs();
     const prefs = JSON.parse(raw);
+    const fallback = getDefaultPrefs();
     return {
-      zoom: typeof prefs.zoom === "number" ? prefs.zoom : DETAIL_ZOOM,
-      layer: typeof prefs.layer === "string" ? prefs.layer : "osm",
+      zoom: typeof prefs.zoom === "number" ? prefs.zoom : fallback.zoom,
+      layer: typeof prefs.layer === "string" ? prefs.layer : fallback.layer,
     };
   } catch {
-    return { zoom: DETAIL_ZOOM, layer: "osm" };
+    return getDefaultPrefs();
   }
 }
 
-function savePrefs(zoom: number, layer: string) {
+function savePrefs(nextPrefs: Partial<MapPrefs>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ zoom, layer }));
+    if (typeof window === "undefined") return;
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...loadPrefs(), ...nextPrefs }),
+    );
   } catch {}
 }
 
@@ -334,25 +347,32 @@ function FullscreenControl() {
   return null;
 }
 
-function PreferencePersist({ layerId }: { layerId: string }) {
+function PreferencePersist({
+  layerId,
+  persistZoom,
+}: {
+  layerId: string;
+  persistZoom: boolean;
+}) {
   const map = useMap();
-  const layerRef = React.useRef(layerId);
-  layerRef.current = layerId;
+  const persistZoomRef = React.useRef(persistZoom);
+  persistZoomRef.current = persistZoom;
 
   React.useEffect(() => {
     function onZoomEnd() {
-      savePrefs(map.getZoom(), layerRef.current);
+      if (persistZoomRef.current) {
+        savePrefs({ zoom: map.getZoom() });
+      }
     }
     map.on("zoomend", onZoomEnd);
     return () => {
       map.off("zoomend", onZoomEnd);
-      savePrefs(map.getZoom(), layerRef.current);
     };
   }, [map]);
 
   React.useEffect(() => {
-    savePrefs(map.getZoom(), layerId);
-  }, [map, layerId]);
+    savePrefs({ layer: layerId });
+  }, [layerId]);
 
   return null;
 }
@@ -393,6 +413,7 @@ function LayerSwitcher({
 
   return (
     <div
+      role="presentation"
       className="slm-switcher"
       onMouseDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
@@ -502,7 +523,7 @@ export function ShopLocationMap({
         <ResizeSync />
         <ViewportSync position={markerPosition} />
         <FullscreenControl />
-        <PreferencePersist layerId={activeLayerId} />
+        <PreferencePersist layerId={activeLayerId} persistZoom={markerPosition !== null} />
         {markerPosition && (
           <Marker position={markerPosition} icon={markerIcon}>
             {name && <Popup>{name}</Popup>}
