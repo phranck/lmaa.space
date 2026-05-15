@@ -247,6 +247,8 @@ export interface DashboardMessages {
       titleSubmissionEdit: string;
       titleNew: string;
       titleEdit: string;
+      publishedAt: string;
+      openDetailPage: string;
       previewImage: string;
       noImage: string;
       openImage: string;
@@ -1450,6 +1452,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         titleSubmissionEdit: "Vorschlag bearbeiten",
         titleNew: "Neuer Shop",
         titleEdit: "Shop bearbeiten",
+        publishedAt: "freigeschaltet am",
+        openDetailPage: "Detailseite öffnen",
         previewImage: "Vorschaubild",
         noImage: "Kein Bild gesetzt",
         openImage: "Bild in neuem Tab öffnen",
@@ -2696,6 +2700,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         titleSubmissionEdit: "Edit suggestion",
         titleNew: "New shop",
         titleEdit: "Edit shop",
+        publishedAt: "published at",
+        openDetailPage: "Open detail page",
         previewImage: "Preview image",
         noImage: "No image set",
         openImage: "Open image in new tab",

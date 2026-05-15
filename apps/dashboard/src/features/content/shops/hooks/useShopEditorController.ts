@@ -73,7 +73,6 @@ export function useShopEditorController({
   );
   const [rejectState, setRejectState] = useState<RejectState>(() => getEmptyRejectState());
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
-  const importJsonHandlerRef = useRef<((jsonText: string) => void) | null>(null);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShopEditFormValue, string>>>(
     {},
   );
@@ -278,10 +277,6 @@ export function useShopEditorController({
     setOgImageMutation.mutate(nextOgImage);
   }
 
-  function handleImportJsonText(jsonText: string): void {
-    importJsonHandlerRef.current?.(jsonText);
-  }
-
   function handleChangeLogoBackground(value: string | null) {
     setForm({ ...form, logoBackgroundColor: value });
   }
@@ -341,8 +336,6 @@ export function useShopEditorController({
     clearSaveError() {
       setSaveErrorMessage(null);
     },
-    handleImportJsonText,
-    importJsonHandlerRef,
     handleSaveSafely,
   };
 }

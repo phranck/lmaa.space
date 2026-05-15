@@ -4,6 +4,7 @@ import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { type Submission, generateRejectionToken } from "@lmaa/shared";
 
 import { EditorPageShell } from "@/components/ui/EditorPageShell.tsx";
+import { EditorPageTitleDetails } from "@/components/ui/EditorPageTitleDetails.tsx";
 import { SaveNotification, useSaveNotification } from "@/components/ui/SaveNotification.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useShopEditorController } from "@/features/content/shops/hooks/useShopEditorController.ts";
@@ -268,16 +269,7 @@ function LoadedSubmissionEditorPage({
     <>
       <EditorPageShell
         title={pageTitle}
-        titleContent={
-          <div className="pointer-events-none min-w-0 leading-tight">
-            <p className="truncate text-lg font-semibold leading-tight text-[var(--ds-text)]">
-              {pageTitle}
-            </p>
-            <p className="truncate text-[13px] leading-tight text-[var(--ds-text-muted)]">
-              {pageSubtitle}
-            </p>
-          </div>
-        }
+        titleContent={<EditorPageTitleDetails title={pageTitle} subtitle={pageSubtitle} />}
         backLabel={headerBackLabel}
         onBack={navigateBack}
         headerContent={
