@@ -31,7 +31,6 @@ import {
   useSaveContentPage,
 } from "@/features/content/hooks/useAdminContent.ts";
 import { FRONTEND_URL } from "@/lib/env.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 const FONT_SIZE_KEY = "content-editor-source-font-size";
 const FONT_SIZE_MIN = 10;
@@ -131,13 +130,19 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
 }
 
 interface EditorHeaderActionsProps {
-  sourceFontSize: number;
-  canIncreaseFont: boolean;
-  canDecreaseFont: boolean;
-  confirmDelete: boolean;
-  isDeleting: boolean;
-  isSaving: boolean;
-  saved: boolean;
+  fontControls: {
+    sourceFontSize: number;
+    canIncrease: boolean;
+    canDecrease: boolean;
+  };
+  deleteState: {
+    confirming: boolean;
+    isDeleting: boolean;
+  };
+  saveState: {
+    isSaving: boolean;
+    saved: boolean;
+  };
   common: {
     cancel: string;
   };
@@ -160,13 +165,9 @@ interface EditorHeaderActionsProps {
 }
 
 function EditorHeaderActions({
-  sourceFontSize,
-  canIncreaseFont,
-  canDecreaseFont,
-  confirmDelete,
-  isDeleting,
-  isSaving,
-  saved,
+  fontControls,
+  deleteState,
+  saveState,
   common,
   editorMessages,
   onDecreaseFont,
@@ -183,7 +184,7 @@ function EditorHeaderActions({
         <span className="text-xs font-medium mr-1 select-none">Aa</span>
         <DashboardIconButton
           onClick={onDecreaseFont}
-          disabled={!canDecreaseFont}
+          disabled={!fontControls.canDecrease}
           className="size-5"
           size="action"
           title={editorMessages.decreaseFontSize}
@@ -192,10 +193,12 @@ function EditorHeaderActions({
         >
           <MinusCircleIcon weight="duotone" className="size-3.5" />
         </DashboardIconButton>
-        <span className="w-8 text-center text-xs tabular-nums select-none">{sourceFontSize}px</span>
+        <span className="w-8 text-center text-xs tabular-nums select-none">
+          {fontControls.sourceFontSize}px
+        </span>
         <DashboardIconButton
           onClick={onIncreaseFont}
-          disabled={!canIncreaseFont}
+          disabled={!fontControls.canIncrease}
           className="size-5"
           size="action"
           title={editorMessages.increaseFontSize}
@@ -217,13 +220,13 @@ function EditorHeaderActions({
 
       <SaveActionButton
         onClick={onSave}
-        disabled={isSaving}
-        busy={isSaving}
-        label={saved ? editorMessages.saved : undefined}
+        disabled={saveState.isSaving}
+        busy={saveState.isSaving}
+        label={saveState.saved ? editorMessages.saved : undefined}
         size="control"
       />
 
-      {!confirmDelete ? (
+      {!deleteState.confirming ? (
         <DeleteActionButton
           onClick={onOpenDelete}
           title={editorMessages.deletePage}
@@ -238,7 +241,7 @@ function EditorHeaderActions({
           </span>
           <DeleteActionButton
             onClick={onConfirmDelete}
-            disabled={isDeleting}
+            disabled={deleteState.isDeleting}
             label={editorMessages.confirmDeleteAction}
           />
           <CancelActionButton onClick={onCancelDelete} label={common.cancel} />
@@ -319,9 +322,12 @@ function EditorMetadataBar({
               }}
               className="w-48 text-xs"
             />
-            <DashboardButton onClick={onSaveTitle} className="px-2" variant="ghost">
-              {editorMessages.ok}
-            </DashboardButton>
+            <SaveActionButton
+              onClick={onSaveTitle}
+              className="px-2"
+              label={editorMessages.ok}
+              variant="ghost"
+            />
             <DashboardButton onClick={onCancelTitle} className="px-2" variant="ghost">
               {common.cancel}
             </DashboardButton>
@@ -353,9 +359,12 @@ function EditorMetadataBar({
               pattern="[a-z0-9-]+"
               className="w-40 font-mono text-xs"
             />
-            <DashboardButton onClick={onSaveSlug} className="px-2" variant="ghost">
-              {editorMessages.ok}
-            </DashboardButton>
+            <SaveActionButton
+              onClick={onSaveSlug}
+              className="px-2"
+              label={editorMessages.ok}
+              variant="ghost"
+            />
             <DashboardButton onClick={onCancelSlug} className="px-2" variant="ghost">
               {common.cancel}
             </DashboardButton>
@@ -453,8 +462,6 @@ export function ContentEditorPage() {
     });
   };
 
-  useKeyboardSave(handleSave);
-
   useEffect(() => {
     if (!state.saved) return;
     const timer = setTimeout(() => dispatch({ type: "setSaved", value: false }), 2000);
@@ -511,13 +518,19 @@ export function ContentEditorPage() {
         }
       >
         <EditorHeaderActions
-          sourceFontSize={state.sourceFontSize}
-          canIncreaseFont={state.sourceFontSize < FONT_SIZE_MAX}
-          canDecreaseFont={state.sourceFontSize > FONT_SIZE_MIN}
-          confirmDelete={state.confirmDelete}
-          isDeleting={deletePage.isPending}
-          isSaving={save.isPending}
-          saved={state.saved}
+          fontControls={{
+            sourceFontSize: state.sourceFontSize,
+            canIncrease: state.sourceFontSize < FONT_SIZE_MAX,
+            canDecrease: state.sourceFontSize > FONT_SIZE_MIN,
+          }}
+          deleteState={{
+            confirming: state.confirmDelete,
+            isDeleting: deletePage.isPending,
+          }}
+          saveState={{
+            isSaving: save.isPending,
+            saved: state.saved,
+          }}
           common={common}
           editorMessages={editorMessages}
           onDecreaseFont={() => changeFontSize(-1)}

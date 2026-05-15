@@ -28,7 +28,6 @@ import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { FRONTEND_URL } from "@/lib/env.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 
 import { FooterBlockConfigPanel } from "./FooterBlockConfigPanel.tsx";
 import { FooterCanvas } from "./FooterCanvas.tsx";
@@ -113,6 +112,99 @@ export function FooterBuilderPage() {
   const { messages } = useI18n();
   const common = messages.common;
   const footerMessages = messages.content.footerBuilder;
+  const controller = useFooterBuilderController(footerMessages);
+  const {
+    activeDrag,
+    config,
+    isLoading,
+    isPreviewPending,
+    previewUrl,
+    save,
+    savedOk,
+    selectedBlock,
+    selectedBlockId,
+    selection,
+    showStyle,
+    handleAddColumn,
+    handleBlockUpdate,
+    handleChangeSpan,
+    handleDeleteBlock,
+    handleDragEnd,
+    handleDragOver,
+    handleDragStart,
+    handleOpenStyle,
+    handleReloadPreview,
+    handleRemoveColumn,
+    handleSave,
+    handleSelectBlock,
+    handleStyleChange,
+    resetActiveDrag,
+  } = controller;
+
+  if (isLoading || config === null) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="size-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  const previewHeightPx = resolveFooterHeightPx(config.style);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <PageHeader title={footerMessages.title}>
+        <FooterHeaderActions
+          isError={save.isError}
+          savedOk={savedOk}
+          isSaving={save.isPending}
+          saveErrorLabel={footerMessages.saveError}
+          savedLabel={common.saved}
+          savingLabel={common.saving}
+          saveLabel={common.save}
+          onSave={handleSave}
+        />
+      </PageHeader>
+
+      <FooterBuilderWorkspace
+        config={config}
+        selection={selection}
+        selectedBlockId={selectedBlockId}
+        selectedBlock={selectedBlock}
+        activeDrag={activeDrag}
+        columnsTitle={footerMessages.columnsTitle}
+        addColumnLabel={footerMessages.addColumn}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDragCancel={resetActiveDrag}
+        onAddColumn={handleAddColumn}
+        onSelectBlock={handleSelectBlock}
+        onDeleteBlock={handleDeleteBlock}
+        onChangeSpan={handleChangeSpan}
+        onRemoveColumn={handleRemoveColumn}
+        onBlockUpdate={handleBlockUpdate}
+        onStyleChange={handleStyleChange}
+      />
+
+      <FooterPreviewSection
+        showStyle={showStyle}
+        previewUrl={previewUrl}
+        previewHeightPx={previewHeightPx}
+        isPreviewPending={isPreviewPending}
+        previewTitle={footerMessages.previewTitle}
+        styleLabel={footerMessages.styleTitle}
+        reloadLabel={footerMessages.reloadPreview}
+        onOpenStyle={handleOpenStyle}
+        onReload={handleReloadPreview}
+      />
+    </div>
+  );
+}
+
+function useFooterBuilderController(
+  footerMessages: ReturnType<typeof useI18n>["messages"]["content"]["footerBuilder"],
+) {
   const { data: loaded, isLoading } = useFooterConfig();
   const save = useSaveFooterConfig();
   const { mutate: createPreviewSession, isPending: isPreviewPending } = useFooterPreview();
@@ -146,8 +238,6 @@ export function FooterBuilderPage() {
       });
     }
   }, [loaded, config, createPreviewSession]);
-
-  const sensors = useDashboardSortableSensors({ activationDistance: 6 });
 
   function handleChange(updated: FooterConfig) {
     dispatch({ config: updated });
@@ -209,10 +299,6 @@ export function FooterBuilderPage() {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // DnD handlers
-  // ---------------------------------------------------------------------------
-
   function handleDragStart(event: DragStartEvent) {
     const id = String(event.active.id);
     if (id.startsWith("palette:")) {
@@ -241,7 +327,6 @@ export function FooterBuilderPage() {
     if (!over || !config) return;
     const activeId = String(active.id);
 
-    // Column reordering — live feedback
     if (activeId.startsWith("col:")) {
       const overId = String(over.id);
       if (!overId.startsWith("col:")) return;
@@ -261,7 +346,6 @@ export function FooterBuilderPage() {
     const target = parseTargetId(String(over.id));
     if (!target || target.colId === fromColId) return;
 
-    // Cross-column movement — update state immediately for live feedback
     const fromCol = config.columns.find((c) => c.id === fromColId);
     const toCol = config.columns.find((c) => c.id === target.colId);
     if (!fromCol || !toCol) return;
@@ -297,14 +381,12 @@ export function FooterBuilderPage() {
     const activeId = String(active.id);
     const overId = String(over.id);
 
-    // Column reorder — handled by dragOver, just persist
     if (activeId.startsWith("col:")) {
       const current = configRef.current;
       if (current) handleChange(current);
       return;
     }
 
-    // Palette drop → create new block in target column
     if (activeId.startsWith("palette:")) {
       const type = activeId.replace("palette:", "") as FooterBlockType;
       const target = parseTargetId(overId);
@@ -327,13 +409,10 @@ export function FooterBuilderPage() {
       return;
     }
 
-    // Block drag — within-column reorder (cross-column handled by dragOver)
     if (activeId.startsWith("block:")) {
       const [, fromColId, blockId] = activeId.split(":");
       const target = parseTargetId(overId);
-
       if (!target || target.colId !== fromColId) return;
-
       if (!target.blockId || target.blockId === blockId) return;
 
       const col = config.columns.find((c) => c.id === fromColId);
@@ -360,132 +439,203 @@ export function FooterBuilderPage() {
     });
   }
 
-  useKeyboardSave(handleSave, config !== null && !save.isPending);
-
-  if (isLoading || config === null) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="size-6 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
   const selectedBlockId = selection?.kind === "block" ? selection.id : null;
   const showStyle = selection?.kind === "style";
   const selectedBlock = selectedBlockId
-    ? (config.columns.flatMap((c) => c.blocks).find((b) => b.id === selectedBlockId) ?? null)
+    ? (config?.columns.flatMap((c) => c.blocks).find((b) => b.id === selectedBlockId) ?? null)
     : null;
-  const previewHeightPx = resolveFooterHeightPx(config.style);
 
-  return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title={footerMessages.title}>
-        <div className="flex items-center gap-2">
-          {save.isError && <span className="text-xs text-red-500">{footerMessages.saveError}</span>}
-          {savedOk && <span className="text-xs text-green-500">{common.saved}</span>}
-          <SaveActionButton
-            onClick={handleSave}
-            disabled={save.isPending}
-            busy={save.isPending}
-            label={save.isPending ? common.saving : common.save}
-          />
-        </div>
-      </PageHeader>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => dispatch({ activeDrag: null })}
-      >
-        <div className="grid items-start gap-4 xl:grid-cols-[11rem_minmax(0,1fr)_18rem]">
-          <FooterPalette />
-
-          <DashboardSection className="min-w-0 overflow-hidden">
-            <DashboardSection.Header
-              icon={<ColumnsPlusRightIcon weight="duotone" className="size-4" />}
-              title={footerMessages.columnsTitle}
-              addOn={
-                <DashboardButton
-                  onClick={handleAddColumn}
-                  className="whitespace-nowrap border-dashed"
-                  leadingIcon={<PlusCircleIcon weight="duotone" className="size-4" />}
-                  variant="neutral"
-                >
-                  {footerMessages.addColumn}
-                </DashboardButton>
-              }
-            />
-            <DashboardSection.Body className="!gap-0">
-              <div className="flex min-w-0 gap-3 overflow-x-auto pb-1">
-                <SortableContext
-                  items={config.columns.map((c) => `col:${c.id}`)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {config.columns.map((col) => (
-                    <FooterCanvas
-                      key={col.id}
-                      column={col}
-                      selectedBlockId={selectedBlockId}
-                      onSelectBlock={(id) =>
-                        dispatch({
-                          selection:
-                            selection?.kind === "block" && selection.id === id
-                              ? null
-                              : { kind: "block", id },
-                        })
-                      }
-                      onDeleteBlock={(blockId) => handleDeleteBlock(col.id, blockId)}
-                      onChangeSpan={(span) => handleChangeSpan(col.id, span)}
-                      onRemoveColumn={() => handleRemoveColumn(col.id)}
-                    />
-                  ))}
-                </SortableContext>
-              </div>
-            </DashboardSection.Body>
-          </DashboardSection>
-
-          <div className="min-w-0">
-            {selectedBlock !== null ? (
-              <FooterBlockConfigPanel block={selectedBlock} onChange={handleBlockUpdate} />
-            ) : (
-              <FooterStylePane
-                style={{ ...FOOTER_STYLE_DEFAULTS, ...config.style }}
-                onChange={handleStyleChange}
-              />
-            )}
-          </div>
-        </div>
-
-        <DragOverlay>
-          {activeDrag && (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm shadow-xl cursor-grabbing">
-              <span className="font-medium text-[var(--ds-text)]">{activeDrag.label}</span>
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
-
-      <FooterPreviewSection
-        showStyle={showStyle}
-        previewUrl={previewUrl}
-        previewHeightPx={previewHeightPx}
-        isPreviewPending={isPreviewPending}
-        previewTitle={footerMessages.previewTitle}
-        styleLabel={footerMessages.styleTitle}
-        reloadLabel={footerMessages.reloadPreview}
-        onOpenStyle={() => dispatch({ selection: { kind: "style" } })}
-        onReload={handleReloadPreview}
-      />
-    </div>
-  );
+  return {
+    activeDrag,
+    config,
+    isLoading,
+    isPreviewPending,
+    previewUrl,
+    save,
+    savedOk,
+    selectedBlock,
+    selectedBlockId,
+    selection,
+    showStyle,
+    handleAddColumn,
+    handleBlockUpdate,
+    handleChangeSpan,
+    handleDeleteBlock,
+    handleDragEnd,
+    handleDragOver,
+    handleDragStart,
+    handleOpenStyle: () => dispatch({ selection: { kind: "style" } }),
+    handleReloadPreview,
+    handleRemoveColumn,
+    handleSave,
+    handleSelectBlock: (id: string) =>
+      dispatch({
+        selection:
+          selection?.kind === "block" && selection.id === id ? null : { kind: "block", id },
+      }),
+    handleStyleChange,
+    resetActiveDrag: () => dispatch({ activeDrag: null }),
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+interface FooterHeaderActionsProps {
+  isError: boolean;
+  savedOk: boolean;
+  isSaving: boolean;
+  saveErrorLabel: string;
+  savedLabel: string;
+  savingLabel: string;
+  saveLabel: string;
+  onSave: () => void;
+}
+
+function FooterHeaderActions({
+  isError,
+  savedOk,
+  isSaving,
+  saveErrorLabel,
+  savedLabel,
+  savingLabel,
+  saveLabel,
+  onSave,
+}: FooterHeaderActionsProps) {
+  return (
+    <div className="flex items-center gap-2">
+      {isError && <span className="text-xs text-red-500">{saveErrorLabel}</span>}
+      {savedOk && <span className="text-xs text-green-500">{savedLabel}</span>}
+      <SaveActionButton
+        onClick={onSave}
+        disabled={isSaving}
+        busy={isSaving}
+        label={isSaving ? savingLabel : saveLabel}
+      />
+    </div>
+  );
+}
+
+interface FooterBuilderWorkspaceProps {
+  config: FooterConfig;
+  selection: Selection;
+  selectedBlockId: string | null;
+  selectedBlock: FooterBlock | null;
+  activeDrag: { label: string } | null;
+  columnsTitle: string;
+  addColumnLabel: string;
+  onDragStart: (event: DragStartEvent) => void;
+  onDragOver: (event: DragOverEvent) => void;
+  onDragEnd: (event: DragEndEvent) => void;
+  onDragCancel: () => void;
+  onAddColumn: () => void;
+  onSelectBlock: (id: string) => void;
+  onDeleteBlock: (colId: string, blockId: string) => void;
+  onChangeSpan: (colId: string, span: number) => void;
+  onRemoveColumn: (colId: string) => void;
+  onBlockUpdate: (block: FooterBlock) => void;
+  onStyleChange: (style: FooterStyle) => void;
+}
+
+function FooterBuilderWorkspace({
+  config,
+  selectedBlockId,
+  selectedBlock,
+  activeDrag,
+  columnsTitle,
+  addColumnLabel,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  onDragCancel,
+  onAddColumn,
+  onSelectBlock,
+  onDeleteBlock,
+  onChangeSpan,
+  onRemoveColumn,
+  onBlockUpdate,
+  onStyleChange,
+}: FooterBuilderWorkspaceProps) {
+  const sensors = useDashboardSortableSensors({ activationDistance: 6 });
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
+    >
+      <div className="grid items-start gap-4 xl:grid-cols-[11rem_minmax(0,1fr)_18rem]">
+        <FooterPalette />
+
+        <DashboardSection className="min-w-0 overflow-hidden">
+          <DashboardSection.Header
+            icon={<ColumnsPlusRightIcon weight="duotone" className="size-4" />}
+            title={columnsTitle}
+            addOn={
+              <DashboardButton
+                onClick={onAddColumn}
+                className="whitespace-nowrap border-dashed"
+                leadingIcon={<PlusCircleIcon weight="duotone" className="size-4" />}
+                variant="neutral"
+              >
+                {addColumnLabel}
+              </DashboardButton>
+            }
+          />
+          <DashboardSection.Body className="!gap-0">
+            <div className="flex min-w-0 gap-3 overflow-x-auto pb-1">
+              <SortableContext
+                items={config.columns.map((c) => `col:${c.id}`)}
+                strategy={horizontalListSortingStrategy}
+              >
+                {config.columns.map((col) => (
+                  <FooterCanvas
+                    key={col.id}
+                    column={col}
+                    selectedBlockId={selectedBlockId}
+                    onSelectBlock={onSelectBlock}
+                    onDeleteBlock={(blockId) => onDeleteBlock(col.id, blockId)}
+                    onChangeSpan={(span) => onChangeSpan(col.id, span)}
+                    onRemoveColumn={() => onRemoveColumn(col.id)}
+                  />
+                ))}
+              </SortableContext>
+            </div>
+          </DashboardSection.Body>
+        </DashboardSection>
+
+        <div className="min-w-0">
+          {selectedBlock !== null ? (
+            <FooterBlockConfigPanel block={selectedBlock} onChange={onBlockUpdate} />
+          ) : (
+            <FooterStylePane
+              style={{ ...FOOTER_STYLE_DEFAULTS, ...config.style }}
+              onChange={onStyleChange}
+            />
+          )}
+        </div>
+      </div>
+
+      <FooterDragOverlay activeDrag={activeDrag} />
+    </DndContext>
+  );
+}
+
+function FooterDragOverlay({ activeDrag }: { activeDrag: { label: string } | null }) {
+  return (
+    <DragOverlay>
+      {activeDrag && (
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-control border border-[var(--color-primary)] bg-[var(--ds-nav-active-bg)] text-sm shadow-xl cursor-grabbing">
+          <span className="font-medium text-[var(--ds-text)]">{activeDrag.label}</span>
+        </div>
+      )}
+    </DragOverlay>
+  );
+}
 
 interface FooterPreviewSectionProps {
   showStyle: boolean;

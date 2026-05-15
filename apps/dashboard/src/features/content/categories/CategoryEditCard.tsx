@@ -1,5 +1,13 @@
 import { MagnifyingGlassIcon, TagIcon, TrashIcon, TrayArrowUpIcon } from "@phosphor-icons/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  type ChangeEvent,
+  type ComponentProps,
+  type RefObject,
+} from "react";
 
 import type { TemplateAssignment } from "@lmaa/contracts";
 import { FocalPointOverlay, useFocalPointDrag } from "@lmaa/ui/focal-point-overlay";
@@ -26,13 +34,67 @@ import type {
 } from "@/features/content/hooks/useAdminCategories.ts";
 import { TemplateAssignmentsSection } from "@/features/social/components/TemplateAssignmentsSection.tsx";
 import { useSocialMediaPostTemplates } from "@/features/templates/hooks/useSocialMediaPostTemplates.ts";
-import { useKeyboardSave } from "@/lib/hooks/useKeyboardSave.ts";
 import { usePersistedTextareaHeight } from "@/lib/hooks/usePersistedTextareaHeight.ts";
 
 interface CategoryEditCardProps {
   categoryId: number | "new";
   onClose: () => void;
   onSaved: () => void;
+}
+
+interface CategoryEditState {
+  showUnsplash: boolean;
+  form: CategoryFormData;
+  image: CategoryImageState;
+  templateAssignments: TemplateAssignment[];
+  hasPostOverflow: boolean;
+}
+
+type CategoryEditAction =
+  | Partial<CategoryEditState>
+  | ((state: CategoryEditState) => CategoryEditState);
+
+interface CategoryUnsplashPhoto {
+  unsplashId: string;
+  url: string;
+  urlSmall: string;
+  photographer: string;
+  photographerUrl: string;
+  downloadLocation: string;
+  width: number;
+  height: number;
+  color: string | null;
+  blurHash: string | null;
+  description: string | null;
+  altDescription: string | null;
+  likes: number;
+  createdAt: string;
+}
+
+function createInitialCategoryEditState(): CategoryEditState {
+  return {
+    showUnsplash: false,
+    form: { name: "", slug: "", description: "" },
+    image: {
+      previewUrl: null,
+      photographer: null,
+      photographerUrl: null,
+      pendingFile: null,
+      pendingUnsplashUrl: null,
+      pendingUnsplashData: null,
+      deleted: false,
+      loadError: false,
+    },
+    templateAssignments: [],
+    hasPostOverflow: false,
+  };
+}
+
+function categoryEditReducer(
+  state: CategoryEditState,
+  action: CategoryEditAction,
+): CategoryEditState {
+  return typeof action === "function" ? action(state) : { ...state, ...action };
 }
 
 /**
@@ -78,7 +140,12 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   const isNew = categoryId === "new";
   const { phase: savedPhase, show: showSaved } = useSaveNotification();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showUnsplash, setShowUnsplash] = useState(false);
+  const [state, dispatchEdit] = useReducer(
+    categoryEditReducer,
+    undefined,
+    createInitialCategoryEditState,
+  );
+  const { showUnsplash, form, image, templateAssignments, hasPostOverflow } = state;
 
   const { data: categories = [] } = useAdminCategories(!isNew);
   const category = isNew ? undefined : categories.find((c) => c.id === categoryId);
@@ -96,19 +163,6 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     startDrag: startFocalDrag,
   } = useFocalPointDrag(category?.imageFocalPointY ?? 50, handleFocalCommit);
 
-  const [form, setForm] = useState<CategoryFormData>({ name: "", slug: "", description: "" });
-  const [image, setImage] = useState<CategoryImageState>({
-    previewUrl: null,
-    photographer: null,
-    photographerUrl: null,
-    pendingFile: null,
-    pendingUnsplashUrl: null,
-    pendingUnsplashData: null,
-    deleted: false,
-    loadError: false,
-  });
-  const [templateAssignments, setTemplateAssignments] = useState<TemplateAssignment[]>([]);
-  const [hasPostOverflow, setHasPostOverflow] = useState(false);
   const { data: categoryTemplates = [] } = useSocialMediaPostTemplates(
     isNew ? "category" : undefined,
   );
@@ -117,20 +171,22 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
   // biome-ignore lint/correctness/useExhaustiveDependencies: category?.id intentionally used -- sync only when category changes, not on every property update
   useEffect(() => {
     if (category) {
-      setForm({
-        name: category.name,
-        slug: category.slug,
-        description: category.description ?? "",
-      });
-      setImage({
-        previewUrl: category.imageUrl ?? null,
-        photographer: category.imagePhotographer ?? null,
-        photographerUrl: category.imagePhotographerUrl ?? null,
-        pendingFile: null,
-        pendingUnsplashUrl: null,
-        pendingUnsplashData: null,
-        deleted: false,
-        loadError: false,
+      dispatchEdit({
+        form: {
+          name: category.name,
+          slug: category.slug,
+          description: category.description ?? "",
+        },
+        image: {
+          previewUrl: category.imageUrl ?? null,
+          photographer: category.imagePhotographer ?? null,
+          photographerUrl: category.imagePhotographerUrl ?? null,
+          pendingFile: null,
+          pendingUnsplashUrl: null,
+          pendingUnsplashData: null,
+          deleted: false,
+          loadError: false,
+        },
       });
     }
   }, [category?.id]);
@@ -151,69 +207,59 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
     );
   }
 
-  useKeyboardSave(() => {
-    if (canSave) handleSave(false);
-  });
-
   function handleNameChange(name: string) {
-    setForm((f) => ({ ...f, name, slug: isNew ? slugify(name) : f.slug }));
+    dispatchEdit((current) => ({
+      ...current,
+      form: { ...current.form, name, slug: isNew ? slugify(name) : current.form.slug },
+    }));
   }
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
-    setImage({
-      previewUrl: url,
-      photographer: null,
-      photographerUrl: null,
-      pendingFile: file,
-      pendingUnsplashUrl: null,
-      pendingUnsplashData: null,
-      deleted: false,
-      loadError: false,
+    dispatchEdit({
+      image: {
+        previewUrl: url,
+        photographer: null,
+        photographerUrl: null,
+        pendingFile: file,
+        pendingUnsplashUrl: null,
+        pendingUnsplashData: null,
+        deleted: false,
+        loadError: false,
+      },
     });
   }
 
-  function handleUnsplashSelect(photo: {
-    unsplashId: string;
-    url: string;
-    urlSmall: string;
-    photographer: string;
-    photographerUrl: string;
-    downloadLocation: string;
-    width: number;
-    height: number;
-    color: string | null;
-    blurHash: string | null;
-    description: string | null;
-    altDescription: string | null;
-    likes: number;
-    createdAt: string;
-  }) {
-    setImage({
-      previewUrl: photo.url,
-      photographer: photo.photographer,
-      photographerUrl: photo.photographerUrl,
-      pendingFile: null,
-      pendingUnsplashUrl: photo.url,
-      pendingUnsplashData: photo,
-      deleted: false,
-      loadError: false,
+  function handleUnsplashSelect(photo: CategoryUnsplashPhoto) {
+    dispatchEdit({
+      image: {
+        previewUrl: photo.url,
+        photographer: photo.photographer,
+        photographerUrl: photo.photographerUrl,
+        pendingFile: null,
+        pendingUnsplashUrl: photo.url,
+        pendingUnsplashData: photo,
+        deleted: false,
+        loadError: false,
+      },
+      showUnsplash: false,
     });
-    setShowUnsplash(false);
   }
 
   function handleDeleteImage() {
-    setImage({
-      previewUrl: null,
-      photographer: null,
-      photographerUrl: null,
-      pendingFile: null,
-      pendingUnsplashUrl: null,
-      pendingUnsplashData: null,
-      deleted: true,
-      loadError: false,
+    dispatchEdit({
+      image: {
+        previewUrl: null,
+        photographer: null,
+        photographerUrl: null,
+        pendingFile: null,
+        pendingUnsplashUrl: null,
+        pendingUnsplashData: null,
+        deleted: true,
+        loadError: false,
+      },
     });
   }
 
@@ -239,176 +285,318 @@ export function CategoryEditCard({ categoryId, onClose, onSaved }: CategoryEditC
         className="grid grid-cols-2"
         onEscape={handleEscape}
       >
-        {/* Image Panel -- 50 % */}
-        <div
-          ref={imageContainerRef}
-          className="group relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]"
-        >
-          {displayImageUrl && !image.loadError ? (
-            <>
-              <img
-                src={displayImageUrl}
-                alt=""
-                className="absolute inset-0 size-full object-cover"
-                draggable={false}
-                onError={() => setImage((prev) => ({ ...prev, loadError: true }))}
-              />
-              {!isNew && <FocalPointOverlay focalY={focalY} onMouseDown={startFocalDrag} />}
-            </>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
-              <MagnifyingGlassIcon weight="duotone" className="size-10" />
-            </div>
-          )}
+        <CategoryImagePanel
+          containerRef={imageContainerRef}
+          fileInputRef={fileInputRef}
+          displayImageUrl={displayImageUrl}
+          imageLoadError={image.loadError}
+          isNew={isNew}
+          focalY={focalY}
+          labels={categoriesMessages.editCard}
+          onFocalMouseDown={startFocalDrag}
+          onImageLoadError={() =>
+            dispatchEdit((current) => ({
+              ...current,
+              image: { ...current.image, loadError: true },
+            }))
+          }
+          onDeleteImage={handleDeleteImage}
+          onOpenUnsplash={() => dispatchEdit({ showUnsplash: true })}
+          onFileSelect={handleFileSelect}
+        />
 
-          {/* Image action buttons */}
-          <div className="absolute bottom-0 inset-x-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/50 to-transparent">
-            {displayImageUrl && !image.loadError && (
-              <DashboardButton
-                onClick={handleDeleteImage}
-                className="w-full"
-                leadingIcon={<TrashIcon weight="duotone" className="size-3" />}
-                variant="danger"
-              >
-                {categoriesMessages.editCard.deleteImage}
-              </DashboardButton>
-            )}
-            <DashboardButton
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full"
-              leadingIcon={<TrayArrowUpIcon weight="duotone" className="size-3" />}
-              variant="neutral"
-            >
-              {categoriesMessages.editCard.upload}
-            </DashboardButton>
-            <DashboardButton
-              onClick={() => setShowUnsplash(true)}
-              className="w-full"
-              leadingIcon={<span className="text-[10px] font-semibold leading-none">U</span>}
-              variant="neutral"
-            >
-              {categoriesMessages.editCard.unsplash}
-            </DashboardButton>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handleFileSelect}
-          />
-        </div>
-
-        {/* Form Panel -- 50 % */}
-        <div className="flex flex-col p-3 min-w-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <TagIcon weight="duotone" className={dialogHeaderIconClass} />
-              <h2 id="category-edit-title" className="text-lg font-semibold text-[var(--ds-text)]">
-                {isNew
-                  ? categoriesMessages.editCard.titleNew
-                  : categoriesMessages.editCard.titleEdit}
-              </h2>
-            </div>
-            <SaveNotification phase={savedPhase} label={common.saved} />
-          </div>
-
-          <div className="flex flex-col gap-3 flex-1">
-            <div>
-              <FormLabel htmlFor="cat-name">{categoriesMessages.editCard.name}</FormLabel>
-              <DashboardInput
-                id="cat-name"
-                type="text"
-                value={form.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <FormLabel htmlFor="cat-slug">{categoriesMessages.editCard.slug}</FormLabel>
-              <DashboardInput
-                id="cat-slug"
-                type="text"
-                value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: slugifyInput(e.target.value) }))}
-                onBlur={(e) => setForm((f) => ({ ...f, slug: slugify(e.target.value) }))}
-              />
-            </div>
-
-            <div>
-              <FormLabel htmlFor="cat-description">
-                {categoriesMessages.editCard.description}
-              </FormLabel>
-              <DashboardTextarea
-                id="cat-description"
-                rows={4}
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className="resize-y"
-              />
-            </div>
-
-            {isNew && categoryTemplates.length > 0 && (
-              <TemplateAssignmentsSection
-                templates={categoryTemplates}
-                scope="category"
-                assignments={templateAssignments}
-                onChange={setTemplateAssignments}
-                open
-                previewBody={(template, platform) =>
-                  renderCategoryPostPreview(
-                    platform === "mastodon" ? template.bodyMastodon : template.bodyBluesky,
-                    {
-                      category: {
-                        name: form.name,
-                        slug: form.slug,
-                        description: form.description,
-                        imageUrl: image.previewUrl,
-                      },
-                    },
-                  )
-                }
-                onOverflowChange={setHasPostOverflow}
-              />
-            )}
-          </div>
-
-          <AlertDialog
-            open={saveMutation.isError}
-            title={categoriesMessages.editCard.errorSaving}
-            onClose={() => saveMutation.reset()}
-          >
-            {saveMutation.error instanceof Error
-              ? saveMutation.error.message
-              : categoriesMessages.editCard.errorSaving}
-          </AlertDialog>
-
-          {/* Footer buttons */}
-          <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
-            {hasPostOverflow && (
-              <span className="mr-auto text-xs text-red-500">
-                {messages.socialMedia.approve.approveBlockedHint}
-              </span>
-            )}
-            <CancelActionButton label={common.cancel} onClick={onClose} />
-            <SaveActionButton
-              onClick={() => handleSave()}
-              disabled={!canSave}
-              busy={saveMutation.isPending}
-              label={saveMutation.isPending ? common.saving : common.save}
-            />
-          </div>
-        </div>
+        <CategoryFormPanel
+          mode={isNew ? "create" : "edit"}
+          form={form}
+          image={image}
+          categoryTemplates={categoryTemplates}
+          templateAssignments={templateAssignments}
+          savedPhase={savedPhase}
+          saveState={{
+            hasPostOverflow,
+            canSave: Boolean(canSave),
+            isSaving: saveMutation.isPending,
+            errorOpen: saveMutation.isError,
+            errorMessage:
+              saveMutation.error instanceof Error
+                ? saveMutation.error.message
+                : categoriesMessages.editCard.errorSaving,
+          }}
+          labels={categoriesMessages.editCard}
+          common={common}
+          savedLabel={common.saved}
+          approveBlockedHint={messages.socialMedia.approve.approveBlockedHint}
+          onClose={onClose}
+          onSave={() => handleSave()}
+          onResetSaveError={() => saveMutation.reset()}
+          onNameChange={handleNameChange}
+          onSlugInput={(value) =>
+            dispatchEdit((current) => ({
+              ...current,
+              form: { ...current.form, slug: slugifyInput(value) },
+            }))
+          }
+          onSlugBlur={(value) =>
+            dispatchEdit((current) => ({
+              ...current,
+              form: { ...current.form, slug: slugify(value) },
+            }))
+          }
+          onDescriptionChange={(value) =>
+            dispatchEdit((current) => ({
+              ...current,
+              form: { ...current.form, description: value },
+            }))
+          }
+          onTemplateAssignmentsChange={(next) => dispatchEdit({ templateAssignments: next })}
+          onOverflowChange={(hasPostOverflow) => dispatchEdit({ hasPostOverflow })}
+        />
       </OverlayCard>
 
       {showUnsplash && (
         <UnsplashBrowser
           defaultQuery={form.name}
           onSelect={handleUnsplashSelect}
-          onClose={() => setShowUnsplash(false)}
+          onClose={() => dispatchEdit({ showUnsplash: false })}
         />
       )}
     </>
+  );
+}
+
+type CategoryEditLabels = ReturnType<typeof useI18n>["messages"]["categories"]["editCard"];
+type CommonLabels = ReturnType<typeof useI18n>["messages"]["common"];
+
+interface CategoryImagePanelProps {
+  containerRef: RefObject<HTMLDivElement | null>;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+  displayImageUrl: string | null;
+  imageLoadError: boolean;
+  isNew: boolean;
+  focalY: number;
+  labels: CategoryEditLabels;
+  onFocalMouseDown: ComponentProps<typeof FocalPointOverlay>["onMouseDown"];
+  onImageLoadError: () => void;
+  onDeleteImage: () => void;
+  onOpenUnsplash: () => void;
+  onFileSelect: (event: ChangeEvent<HTMLInputElement>) => void;
+}
+
+function CategoryImagePanel({
+  containerRef,
+  fileInputRef,
+  displayImageUrl,
+  imageLoadError,
+  isNew,
+  focalY,
+  labels,
+  onFocalMouseDown,
+  onImageLoadError,
+  onDeleteImage,
+  onOpenUnsplash,
+  onFileSelect,
+}: CategoryImagePanelProps) {
+  return (
+    <div
+      ref={containerRef}
+      className="group relative bg-[var(--ds-bg-elevated)] flex flex-col min-h-[420px]"
+    >
+      {displayImageUrl && !imageLoadError ? (
+        <>
+          <img
+            src={displayImageUrl}
+            alt=""
+            className="absolute inset-0 size-full object-cover"
+            draggable={false}
+            onError={onImageLoadError}
+          />
+          {!isNew && <FocalPointOverlay focalY={focalY} onMouseDown={onFocalMouseDown} />}
+        </>
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-[var(--ds-text-subtle)]">
+          <MagnifyingGlassIcon weight="duotone" className="size-10" />
+        </div>
+      )}
+
+      <div className="absolute bottom-0 inset-x-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/50 to-transparent">
+        {displayImageUrl && !imageLoadError && (
+          <DashboardButton
+            onClick={onDeleteImage}
+            className="w-full"
+            leadingIcon={<TrashIcon weight="duotone" className="size-3" />}
+            variant="danger"
+          >
+            {labels.deleteImage}
+          </DashboardButton>
+        )}
+        <DashboardButton
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full"
+          leadingIcon={<TrayArrowUpIcon weight="duotone" className="size-3" />}
+          variant="neutral"
+        >
+          {labels.upload}
+        </DashboardButton>
+        <DashboardButton
+          onClick={onOpenUnsplash}
+          className="w-full"
+          leadingIcon={<span className="text-[10px] font-semibold leading-none">U</span>}
+          variant="neutral"
+        >
+          {labels.unsplash}
+        </DashboardButton>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={onFileSelect}
+      />
+    </div>
+  );
+}
+
+interface CategoryFormPanelProps {
+  mode: "create" | "edit";
+  form: CategoryFormData;
+  image: CategoryImageState;
+  categoryTemplates: ComponentProps<typeof TemplateAssignmentsSection>["templates"];
+  templateAssignments: TemplateAssignment[];
+  savedPhase: ComponentProps<typeof SaveNotification>["phase"];
+  saveState: {
+    hasPostOverflow: boolean;
+    canSave: boolean;
+    isSaving: boolean;
+    errorOpen: boolean;
+    errorMessage: string;
+  };
+  labels: CategoryEditLabels;
+  common: CommonLabels;
+  savedLabel: string;
+  approveBlockedHint: string;
+  onClose: () => void;
+  onSave: () => void;
+  onResetSaveError: () => void;
+  onNameChange: (value: string) => void;
+  onSlugInput: (value: string) => void;
+  onSlugBlur: (value: string) => void;
+  onDescriptionChange: (value: string) => void;
+  onTemplateAssignmentsChange: (next: TemplateAssignment[]) => void;
+  onOverflowChange: (hasPostOverflow: boolean) => void;
+}
+
+function CategoryFormPanel({
+  mode,
+  form,
+  image,
+  categoryTemplates,
+  templateAssignments,
+  savedPhase,
+  saveState,
+  labels,
+  common,
+  savedLabel,
+  approveBlockedHint,
+  onClose,
+  onSave,
+  onResetSaveError,
+  onNameChange,
+  onSlugInput,
+  onSlugBlur,
+  onDescriptionChange,
+  onTemplateAssignmentsChange,
+  onOverflowChange,
+}: CategoryFormPanelProps) {
+  const isCreate = mode === "create";
+
+  return (
+    <div className="flex flex-col p-3 min-w-0">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <TagIcon weight="duotone" className={dialogHeaderIconClass} />
+          <h2 id="category-edit-title" className="text-lg font-semibold text-[var(--ds-text)]">
+            {isCreate ? labels.titleNew : labels.titleEdit}
+          </h2>
+        </div>
+        <SaveNotification phase={savedPhase} label={savedLabel} />
+      </div>
+
+      <div className="flex flex-col gap-3 flex-1">
+        <div>
+          <FormLabel htmlFor="cat-name">{labels.name}</FormLabel>
+          <DashboardInput
+            id="cat-name"
+            type="text"
+            value={form.name}
+            onChange={(event) => onNameChange(event.target.value)}
+          />
+        </div>
+
+        <div>
+          <FormLabel htmlFor="cat-slug">{labels.slug}</FormLabel>
+          <DashboardInput
+            id="cat-slug"
+            type="text"
+            value={form.slug}
+            onChange={(event) => onSlugInput(event.target.value)}
+            onBlur={(event) => onSlugBlur(event.target.value)}
+          />
+        </div>
+
+        <div>
+          <FormLabel htmlFor="cat-description">{labels.description}</FormLabel>
+          <DashboardTextarea
+            id="cat-description"
+            rows={4}
+            value={form.description}
+            onChange={(event) => onDescriptionChange(event.target.value)}
+            className="resize-y"
+          />
+        </div>
+
+        {isCreate && categoryTemplates.length > 0 && (
+          <TemplateAssignmentsSection
+            templates={categoryTemplates}
+            scope="category"
+            assignments={templateAssignments}
+            onChange={onTemplateAssignmentsChange}
+            open
+            previewBody={(template, platform) =>
+              renderCategoryPostPreview(
+                platform === "mastodon" ? template.bodyMastodon : template.bodyBluesky,
+                {
+                  category: {
+                    name: form.name,
+                    slug: form.slug,
+                    description: form.description,
+                    imageUrl: image.previewUrl,
+                  },
+                },
+              )
+            }
+            onOverflowChange={onOverflowChange}
+          />
+        )}
+      </div>
+
+      <AlertDialog open={saveState.errorOpen} title={labels.errorSaving} onClose={onResetSaveError}>
+        {saveState.errorMessage}
+      </AlertDialog>
+
+      <div className="flex justify-end items-center gap-2 mt-4 pt-3 border-t border-[var(--ds-border-subtle)]">
+        {saveState.hasPostOverflow && (
+          <span className="mr-auto text-xs text-red-500">{approveBlockedHint}</span>
+        )}
+        <CancelActionButton label={common.cancel} onClick={onClose} />
+        <SaveActionButton
+          onClick={onSave}
+          disabled={!saveState.canSave}
+          busy={saveState.isSaving}
+          label={saveState.isSaving ? common.saving : common.save}
+        />
+      </div>
+    </div>
   );
 }

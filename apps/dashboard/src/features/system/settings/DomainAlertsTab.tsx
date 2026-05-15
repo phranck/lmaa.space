@@ -1,6 +1,6 @@
 import { PencilSimpleIcon, TrashIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { nanoid } from "nanoid";
-import { memo, Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, Suspense, lazy, useCallback, useMemo, useReducer } from "react";
 
 import {
   domainAlertRuleSchema,
@@ -40,6 +40,25 @@ interface DomainAlertsTabProps {
 type DomainAlertDialogTarget =
   | { mode: "create"; rule: DomainAlertRule }
   | { mode: "edit"; rule: DomainAlertRule };
+
+interface DomainAlertsState {
+  sourceRaw: string | undefined;
+  rules: DomainAlertRule[];
+  dialogTarget: DomainAlertDialogTarget | null;
+  showValidationError: boolean;
+  saveError: string | null;
+  savingDialog: boolean;
+  deletingRuleId: string | null;
+}
+
+type DomainAlertsAction = Partial<DomainAlertsState>;
+
+function domainAlertsReducer(
+  state: DomainAlertsState,
+  action: DomainAlertsAction,
+): DomainAlertsState {
+  return { ...state, ...action };
+}
 
 function parseStoredConfig(raw: string | undefined): DomainAlertRulesConfig {
   if (!raw) return { rules: [] };
@@ -106,11 +125,23 @@ function getRuleErrors(
 }
 
 interface DomainAlertRuleDialogProps {
-  target: DomainAlertDialogTarget | null;
+  target: DomainAlertDialogTarget;
   onClose: () => void;
   onSave: (target: DomainAlertDialogTarget) => Promise<boolean>;
   isSaving: boolean;
   saveError: string | null;
+}
+
+interface DomainAlertRuleDialogState {
+  draft: DomainAlertRule;
+  showValidationError: boolean;
+}
+
+function domainAlertRuleDialogReducer(
+  state: DomainAlertRuleDialogState,
+  action: Partial<DomainAlertRuleDialogState>,
+): DomainAlertRuleDialogState {
+  return { ...state, ...action };
 }
 
 function DomainAlertRuleDialog({
@@ -123,19 +154,16 @@ function DomainAlertRuleDialog({
   const { messages } = useI18n();
   const t = messages.system.settings.domainAlerts;
   const common = messages.common;
-  const [draft, setDraft] = useState<DomainAlertRule | null>(target?.rule ?? null);
-  const [showValidationError, setShowValidationError] = useState(false);
-
-  useEffect(() => {
-    setDraft(target?.rule ?? null);
-    setShowValidationError(false);
-  }, [target]);
+  const [{ draft, showValidationError }, dispatchDialog] = useReducer(
+    domainAlertRuleDialogReducer,
+    { draft: target.rule, showValidationError: false },
+  );
 
   const handleSave = useCallback(async () => {
-    if (!target || !draft || isSaving) return;
+    if (isSaving) return;
     const parsed = domainAlertRuleSchema.safeParse(draft);
     if (!parsed.success) {
-      setShowValidationError(true);
+      dispatchDialog({ showValidationError: true });
       return;
     }
 
@@ -144,29 +172,13 @@ function DomainAlertRuleDialog({
     if (saved) onClose();
   }, [draft, isSaving, onClose, onSave, target]);
 
-  useEffect(() => {
-    if (!target) return;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() !== "s" || (!event.metaKey && !event.ctrlKey)) return;
-
-      event.preventDefault();
-      void handleSave();
-    }
-
-    window.addEventListener("keydown", handleKeyDown, true);
-    return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [handleSave, target]);
-
-  if (!target || !draft) return null;
-
   const errors = getRuleErrors(draft, t);
   const displayName = draft.name.trim() || t.defaultName;
   const titleTemplate = target.mode === "create" ? t.dialogCreateTitle : t.dialogEditTitle;
   const title = titleTemplate.replace("{name}", displayName);
 
   function updateDraft(patch: Partial<DomainAlertRule>) {
-    setDraft((current) => (current ? { ...current, ...patch } : current));
+    dispatchDialog({ draft: { ...draft, ...patch } });
   }
 
   return (
@@ -275,25 +287,33 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
     () => parseStoredConfig(rawDomainAlertRulesSetting),
     [rawDomainAlertRulesSetting],
   );
-  const [rules, setRules] = useState<DomainAlertRule[]>(initialConfig.rules);
-  const [dialogTarget, setDialogTarget] = useState<DomainAlertDialogTarget | null>(null);
-  const [showValidationError, setShowValidationError] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [savingDialog, setSavingDialog] = useState(false);
-  const [deletingRuleId, setDeletingRuleId] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(domainAlertsReducer, {
+    sourceRaw: rawDomainAlertRulesSetting,
+    rules: initialConfig.rules,
+    dialogTarget: null,
+    showValidationError: false,
+    saveError: null,
+    savingDialog: false,
+    deletingRuleId: null,
+  });
+  const { rules, dialogTarget, showValidationError, saveError, savingDialog, deletingRuleId } =
+    state;
 
-  useEffect(() => {
-    setRules(initialConfig.rules);
-    setDialogTarget(null);
-    setShowValidationError(false);
-    setSaveError(null);
-  }, [initialConfig]);
+  if (state.sourceRaw !== rawDomainAlertRulesSetting) {
+    dispatch({
+      sourceRaw: rawDomainAlertRulesSetting,
+      rules: initialConfig.rules,
+      dialogTarget: null,
+      showValidationError: false,
+      saveError: null,
+    });
+  }
 
   const persistRules = useCallback(
     async (nextRules: DomainAlertRule[]) => {
       const parsed = domainAlertRulesConfigSchema.safeParse({ rules: nextRules });
       if (!parsed.success) {
-        setShowValidationError(true);
+        dispatch({ showValidationError: true });
         return false;
       }
 
@@ -302,12 +322,14 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
           key: SETTINGS_KEYS.DOMAIN_ALERT_RULES,
           value: serializeConfig(parsed.data),
         });
-        setRules(parsed.data.rules);
-        setShowValidationError(false);
-        setSaveError(null);
+        dispatch({
+          rules: parsed.data.rules,
+          showValidationError: false,
+          saveError: null,
+        });
         return true;
       } catch {
-        setSaveError(t.saveError);
+        dispatch({ saveError: t.saveError });
         return false;
       }
     },
@@ -315,9 +337,11 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
   );
 
   const handleAddRule = useCallback(() => {
-    setDialogTarget({ mode: "create", rule: createEmptyRule(t.defaultName) });
-    setShowValidationError(false);
-    setSaveError(null);
+    dispatch({
+      dialogTarget: { mode: "create", rule: createEmptyRule(t.defaultName) },
+      showValidationError: false,
+      saveError: null,
+    });
   }, [t.defaultName]);
 
   const handleSaveRule = useCallback(
@@ -330,11 +354,11 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
           ? [...rules, parsed.data]
           : rules.map((rule) => (rule.id === parsed.data.id ? parsed.data : rule));
 
-      setSavingDialog(true);
+      dispatch({ savingDialog: true });
       try {
         return await persistRules(nextRules);
       } finally {
-        setSavingDialog(false);
+        dispatch({ savingDialog: false });
       }
     },
     [persistRules, rules],
@@ -343,17 +367,17 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
   const handleDeleteRule = useCallback(
     async (id: string) => {
       const nextRules = rules.filter((rule) => rule.id !== id);
-      setDeletingRuleId(id);
+      dispatch({ deletingRuleId: id });
       try {
         const saved = await persistRules(nextRules);
         if (saved) {
-          setDialogTarget((current) => (current?.rule.id === id ? null : current));
+          dispatch({ dialogTarget: dialogTarget?.rule.id === id ? null : dialogTarget });
         }
       } finally {
-        setDeletingRuleId(null);
+        dispatch({ deletingRuleId: null });
       }
     },
-    [persistRules, rules],
+    [dialogTarget, persistRules, rules],
   );
 
   const columns: ColumnDef<DomainAlertRule>[] = useMemo(
@@ -411,8 +435,7 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
               icon={<PencilSimpleIcon weight="duotone" className="size-3.5" />}
               label={t.editRule}
               onClick={() => {
-                setSaveError(null);
-                setDialogTarget({ mode: "edit", rule: { ...row } });
+                dispatch({ saveError: null, dialogTarget: { mode: "edit", rule: { ...row } } });
               }}
               disabled={savingDialog || deletingRuleId !== null}
             />
@@ -461,13 +484,16 @@ export const DomainAlertsTab = memo(function DomainAlertsTab({ active }: DomainA
         </PageFooter>
       ) : null}
 
-      <DomainAlertRuleDialog
-        target={dialogTarget}
-        onClose={() => setDialogTarget(null)}
-        onSave={handleSaveRule}
-        isSaving={savingDialog}
-        saveError={saveError}
-      />
+      {dialogTarget ? (
+        <DomainAlertRuleDialog
+          key={`${dialogTarget.mode}:${dialogTarget.rule.id}`}
+          target={dialogTarget}
+          onClose={() => dispatch({ dialogTarget: null })}
+          onSave={handleSaveRule}
+          isSaving={savingDialog}
+          saveError={saveError}
+        />
+      ) : null}
     </div>
   );
 });
