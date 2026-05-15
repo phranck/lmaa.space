@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-VERSION="1.2.0"
+VERSION="1.3.0"
 SCRIPT_SOURCE="${BASH_SOURCE[0]}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd -P)"
 SCRIPT_PATH="$SCRIPT_DIR/$(basename "$SCRIPT_SOURCE")"
@@ -25,7 +25,8 @@ HLS_DIR=".gource/lmaa-history-hls"
 HLS_SEGMENT_SECONDS=6
 POSTER_TIME_SECONDS=3
 AUDIO_VOLUME=0.6
-RENDER_RESOLUTION="2560x1440"
+GOURCE_VIEWPORT="2560x1440"
+GOURCE_VIEWPORT_SET=0
 AUDIO_CROSSFADE_SECONDS=4
 AUDIO_FADE_IN_SECONDS=3
 AUDIO_FADE_OUT_SECONDS=3
@@ -130,6 +131,10 @@ EOF
   print_help_row "-V, --version" "Show wrapper version and exit."
   print_help_row "-c, --config FILE" "Gource config file. Default: .gource.conf"
   print_help_row "-o, --output FILE" "MP4 output file. Default: .gource/lmaa-history.mp4"
+  print_help_row "--viewport SIZE" "Gource viewport. Default: 1440p"
+  print_help_row "" "Named: 720p, 1080p, 1440p, 4k, 5k"
+  print_help_row "" "Aliases: hd, fhd, qhd, wqhd, 2k, uhd, 2160p"
+  print_help_row "" "Custom: WIDTHxHEIGHT"
   print_help_row "-a, --audio FILE" "Background audio file."
   print_help_row "" "Default: first .gource/background.{mp3,m4a,wav,ogg}"
   print_help_row "-N, --no-audio" "Render without background audio."
@@ -220,6 +225,8 @@ EOF
 Examples:
   ./mkgource
   ./mkgource --no-hls
+  ./mkgource --viewport 1080p
+  ./mkgource --viewport 3840x2160
   ./mkgource --no-legend
   ./mkgource --duration 20 --no-hls -o gource-preview-20s.mp4
   ./mkgource --title "LMAA.SPACE" --subtitle "a visualized development history"
@@ -451,6 +458,36 @@ normalize_optional_hex_color() {
   normalize_hex_color "$name" "$value" 0
 }
 
+normalize_viewport() {
+  local value="$1"
+  local normalized=""
+
+  normalized="$(printf "%s" "$value" | tr '[:upper:]' '[:lower:]')"
+
+  case "$normalized" in
+    720p | hd)
+      printf "1280x720\n"
+      ;;
+    1080p | fhd)
+      printf "1920x1080\n"
+      ;;
+    1440p | qhd | wqhd | 2k)
+      printf "2560x1440\n"
+      ;;
+    2160p | uhd | 4k)
+      printf "3840x2160\n"
+      ;;
+    5k)
+      printf "5120x2880\n"
+      ;;
+    *)
+      awk -v value="$normalized" 'BEGIN { exit !(value ~ /^[1-9][0-9]*x[1-9][0-9]*$/) }' ||
+        die "viewport must be one of 720p, 1080p, 1440p, 4k, 5k, or WIDTHxHEIGHT: $value"
+      printf "%s\n" "$normalized"
+      ;;
+  esac
+}
+
 drawtext_color() {
   local value="$1"
   local color="$value"
@@ -498,7 +535,8 @@ build_effective_gource_config() {
 
   [[ -f "$CONFIG_FILE" ]] || die "Gource config not found: $CONFIG_FILE"
 
-  if [[ -n "$KEY_OVERRIDE" ||
+  if [[ "$GOURCE_VIEWPORT_SET" -eq 1 ||
+    -n "$KEY_OVERRIDE" ||
     -n "$ANIMATION_FONT_FILE" ||
     -n "$ANIMATION_FONT_SIZE" ||
     -n "$ANIMATION_FONT_COLOR" ||
@@ -519,6 +557,8 @@ build_effective_gource_config() {
   effective_config="$TEMP_DIR/gource.conf"
 
   awk \
+    -v viewport="$GOURCE_VIEWPORT" \
+    -v viewport_set="$GOURCE_VIEWPORT_SET" \
     -v key="$KEY_OVERRIDE" \
     -v font_file="$ANIMATION_FONT_FILE" \
     -v font_size="$ANIMATION_FONT_SIZE" \
@@ -529,6 +569,34 @@ build_effective_gource_config() {
     -v selection_colour="$ANIMATION_SELECTION_COLOR" \
     -v title="$GOURCE_TITLE_OVERRIDE" \
     -v title_set="$GOURCE_TITLE_OVERRIDE_SET" '
+    function has_display_override(name) {
+      if (name == "viewport") return viewport_set == 1;
+      return 0;
+    }
+    function display_override_value(name) {
+      if (name == "viewport") return viewport;
+      return "";
+    }
+    function print_display_override(name) {
+      if (has_display_override(name) && !replaced_display[name]) {
+        print name "=" display_override_value(name);
+        replaced_display[name] = 1;
+      }
+    }
+    function print_pending_display_overrides() {
+      print_display_override("viewport");
+    }
+    function replace_display_if_needed(name) {
+      pattern = "^[[:space:]]*" name "[[:space:]]*=";
+      if ($0 ~ pattern) {
+        if (has_display_override(name) && !replaced_display[name]) {
+          print name "=" display_override_value(name);
+          replaced_display[name] = 1;
+        }
+        return 1;
+      }
+      return 0;
+    }
     function has_override(name) {
       if (name == "key") return key != "";
       if (name == "font-file") return font_file != "";
@@ -586,14 +654,22 @@ build_effective_gource_config() {
       return 0;
     }
     BEGIN {
+      in_display = 0;
       in_gource = 0;
     }
     /^\[.*\]$/ {
+      if (in_display) {
+        print_pending_display_overrides();
+      }
       if (in_gource) {
         print_pending_overrides();
       }
+      in_display = ($0 == "[display]");
       in_gource = ($0 == "[gource]");
       print;
+      next;
+    }
+    in_display && replace_display_if_needed("viewport") {
       next;
     }
     in_gource && replace_if_needed("key") {
@@ -627,6 +703,9 @@ build_effective_gource_config() {
       print;
     }
     END {
+      if (in_display) {
+        print_pending_display_overrides();
+      }
       if (in_gource) {
         print_pending_overrides();
       }
@@ -673,6 +752,12 @@ parse_args() {
         require_value "$1" "${2-}"
         OUTPUT="$2"
         OUTPUT_SET=1
+        shift 2
+        ;;
+      --viewport)
+        require_value "$1" "${2-}"
+        GOURCE_VIEWPORT="$(normalize_viewport "$2")"
+        GOURCE_VIEWPORT_SET=1
         shift 2
         ;;
       -a | --audio)
@@ -1371,7 +1456,7 @@ generate_title_card() {
 
   run_ffmpeg "title card" -y \
     -f lavfi \
-    -i "color=c=black:s=${RENDER_RESOLUTION}:r=60:d=${card_duration}" \
+    -i "color=c=black:s=${GOURCE_VIEWPORT}:r=60:d=${card_duration}" \
     -vf "$filter" \
     -an \
     -c:v libx264 -preset medium -pix_fmt yuv420p -crf 18 \
@@ -1596,7 +1681,7 @@ render_video() {
 
   gource_args=(
     --load-config "$effective_config"
-    "-$RENDER_RESOLUTION"
+    "-$GOURCE_VIEWPORT"
     --user-image-dir "$AVATAR_DIR"
     --disable-input
   )
@@ -1604,10 +1689,10 @@ render_video() {
   if [[ -n "$RENDER_DURATION" ]]; then
     gource_stop_time="$(calculate_gource_stop_time)"
     gource_args+=(--stop-at-time "$gource_stop_time")
-    log_step "Rendering ${RENDER_DURATION}s video at $RENDER_RESOLUTION..."
+    log_step "Rendering ${RENDER_DURATION}s video at $GOURCE_VIEWPORT..."
   else
     gource_args+=(--stop-at-end)
-    log_step "Rendering repo history at $RENDER_RESOLUTION..."
+    log_step "Rendering repo history at $GOURCE_VIEWPORT..."
   fi
 
   if [[ -n "$gource_stop_time" ]]; then

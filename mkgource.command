@@ -3,6 +3,7 @@
 --hls-output ~/Desktop/lmaa-history \
 --poster-time 5 \
 --no-key \
+--viewport 4k \
 --audio-fade-in 0.25 \
 --audio-fade-out 3.5 \
 --animation-font "Roboto" \
