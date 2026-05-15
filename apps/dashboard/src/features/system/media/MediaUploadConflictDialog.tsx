@@ -44,6 +44,7 @@ export function MediaUploadConflictDialog({
 }: MediaUploadConflictDialogProps) {
   return (
     <Dialog
+      maxWidth="md"
       open={conflict !== null}
       title={mediaMessages.uploadNameConflictTitle}
       titleIcon={<FileIcon weight="duotone" className={dialogHeaderIconClass} />}
@@ -57,19 +58,24 @@ export function MediaUploadConflictDialog({
           )}
         </p>
         <DashboardInput
-          autoFocus
           error={draftConflict ? mediaMessages.uploadNameConflictNameTaken : undefined}
           label={mediaMessages.uploadNameConflictNameLabel}
           onChange={(event) => onDraftNameChange(event.currentTarget.value)}
           value={draftName}
         />
       </div>
-      <Dialog.Footer>
-        <CancelActionButton label={common.cancel} onClick={onCancel} />
-        <DashboardButton disabled={!canRename} onClick={onRename} variant="primary">
+      <Dialog.Footer className="grid grid-cols-3 gap-3">
+        <CancelActionButton className="w-full" label={common.cancel} onClick={onCancel} />
+        <DashboardButton
+          className="w-full"
+          disabled={!canRename}
+          onClick={onRename}
+          variant="primary"
+        >
           {mediaMessages.uploadNameConflictRename}
         </DashboardButton>
         <OverwriteActionButton
+          className="w-full"
           label={mediaMessages.uploadNameConflictOverwrite}
           onClick={onOverwrite}
         />

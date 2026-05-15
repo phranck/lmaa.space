@@ -1610,8 +1610,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         "Es gibt bereits ein Media-Asset mit dem Namen {name}. Wähle einen neuen Namen oder überschreibe das vorhandene Asset.",
       uploadNameConflictNameLabel: "Neuer Name",
       uploadNameConflictNameTaken: "Dieser Name ist bereits vergeben.",
-      uploadNameConflictRename: "Mit neuem Namen hochladen",
-      uploadNameConflictOverwrite: "Vorhandenes Asset überschreiben",
+      uploadNameConflictRename: "Umbenennen",
+      uploadNameConflictOverwrite: "Überschreiben",
       directoryUploadUnsupported:
         "Der Ordner konnte nicht gelesen werden. Zieh den HLS-Ordner direkt aus Finder oder Explorer in den Media-Bereich.",
       emptyFolderUpload: "{name} enthält keine lesbaren Dateien.",
@@ -2870,8 +2870,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         "A media asset named {name} already exists. Choose a new name or overwrite the existing asset.",
       uploadNameConflictNameLabel: "New name",
       uploadNameConflictNameTaken: "This name is already taken.",
-      uploadNameConflictRename: "Upload with new name",
-      uploadNameConflictOverwrite: "Overwrite existing asset",
+      uploadNameConflictRename: "Rename",
+      uploadNameConflictOverwrite: "Overwrite",
       directoryUploadUnsupported:
         "The folder could not be read. Drag the HLS folder directly from Finder or Explorer into the media area.",
       emptyFolderUpload: "{name} does not contain readable files.",
