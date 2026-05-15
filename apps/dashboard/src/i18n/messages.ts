@@ -194,6 +194,8 @@ export interface DashboardMessages {
     searchPlaceholder: string;
     noShops: string;
     noShopsHint: string;
+    noFilteredShopsPrefix: string;
+    noFilteredShopsHint: string;
     noResultsPrefix: string;
     noResultsHint: string;
     filters: {
@@ -1413,6 +1415,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       searchPlaceholder: "Suchen…",
       noShops: "Keine Shops gefunden.",
       noShopsHint: "Füge deinen ersten Shop über den +-Button hinzu.",
+      noFilteredShopsPrefix: "Keine Shops für",
+      noFilteredShopsHint: "Wähle einen anderen Statusfilter.",
       noResultsPrefix: "Keine Treffer für",
       noResultsHint: "Versuche einen anderen Suchbegriff.",
       filters: {
@@ -2679,6 +2683,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       searchPlaceholder: "Search…",
       noShops: "No shops found.",
       noShopsHint: "Add your first shop using the + button.",
+      noFilteredShopsPrefix: "No shops for",
+      noFilteredShopsHint: "Choose a different visibility filter.",
       noResultsPrefix: "No results for",
       noResultsHint: "Try a different search term.",
       filters: {

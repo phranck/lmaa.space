@@ -1,4 +1,4 @@
-import type { ShopVisibility } from "@lmaa/shared";
+import { SHOP_VISIBILITIES, type ShopVisibility } from "@lmaa/shared";
 
 import type { SortState } from "@/components/ui/Table.tsx";
 import { parseTableSortFromSearchParams } from "@/lib/table-sort-storage.ts";
@@ -7,6 +7,9 @@ export type VisibilityFilter = "all" | ShopVisibility;
 export type GeoFilter = "all" | "with" | "without" | "needsReview";
 
 export const SHOP_SORTABLE_COLUMNS = new Set(["name", "region", "likes"]);
+export const DEFAULT_SHOPS_VISIBILITY_FILTER: VisibilityFilter = "public";
+
+const SHOP_VISIBILITY_FILTER_VALUES = new Set<VisibilityFilter>(["all", ...SHOP_VISIBILITIES]);
 
 export function parseShopsSort(searchParams: URLSearchParams): SortState | null {
   return parseTableSortFromSearchParams(searchParams, SHOP_SORTABLE_COLUMNS);
@@ -32,11 +35,53 @@ export type ShopsFilterAction =
 
 export const INITIAL_FILTER_STATE: ShopsFilterState = {
   categoryFilter: "all",
-  visibilityFilter: "public",
+  visibilityFilter: DEFAULT_SHOPS_VISIBILITY_FILTER,
   geoFilter: "all",
   exportLimit: 50,
   importError: null,
 };
+
+export function parseShopsVisibilityFilter(value: string | null): VisibilityFilter | null {
+  if (!value) return null;
+  return SHOP_VISIBILITY_FILTER_VALUES.has(value as VisibilityFilter)
+    ? (value as VisibilityFilter)
+    : null;
+}
+
+export function readStoredShopsVisibilityFilter(storageKey: string): VisibilityFilter | null {
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    const parsed = parseShopsVisibilityFilter(stored);
+    if (stored !== null && parsed === null) {
+      window.localStorage.removeItem(storageKey);
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function writeStoredShopsVisibilityFilter(
+  storageKey: string,
+  value: VisibilityFilter,
+): void {
+  try {
+    window.localStorage.setItem(storageKey, value);
+  } catch {}
+}
+
+export function applyShopsVisibilityFilterSearchParam(
+  searchParams: URLSearchParams,
+  value: VisibilityFilter,
+): URLSearchParams {
+  const nextParams = new URLSearchParams(searchParams);
+  if (value === DEFAULT_SHOPS_VISIBILITY_FILTER) {
+    nextParams.delete("visibility");
+  } else {
+    nextParams.set("visibility", value);
+  }
+  return nextParams;
+}
 
 export function shopsFilterReducer(state: ShopsFilterState, action: ShopsFilterAction): ShopsFilterState {
   switch (action.type) {
