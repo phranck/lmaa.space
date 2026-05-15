@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 
 import type { MediaKind } from "@lmaa/shared";
 
@@ -36,6 +36,20 @@ async function getMediaAssetById(id: number) {
     .from(mediaAssets)
     .leftJoin(adminUsers, eq(mediaAssets.createdBy, adminUsers.id))
     .where(eq(mediaAssets.id, id))
+    .limit(1);
+
+  return asset ?? null;
+}
+
+export async function findMediaAssetByDisplayNameInsensitive(displayName: string) {
+  const normalized = displayName.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const [asset] = await db
+    .select(MEDIA_SELECT_FIELDS)
+    .from(mediaAssets)
+    .leftJoin(adminUsers, eq(mediaAssets.createdBy, adminUsers.id))
+    .where(sql`lower(${mediaAssets.displayName}) = ${normalized}`)
     .limit(1);
 
   return asset ?? null;
@@ -96,6 +110,44 @@ export async function updateMediaAssetMeta(
   const [updated] = await db
     .update(mediaAssets)
     .set(updateData)
+    .where(eq(mediaAssets.id, id))
+    .returning({ id: mediaAssets.id });
+
+  return updated ? getMediaAssetById(updated.id) : null;
+}
+
+export async function replaceMediaAssetStorage(
+  id: number,
+  data: {
+    alias?: string | null;
+    createdBy: number | null;
+    displayName: string;
+    height: number | null;
+    kind: MediaKind;
+    mimeType: string;
+    originalName: string;
+    posterStoredFilename?: string | null;
+    sizeBytes: number;
+    storedFilename: string;
+    width: number | null;
+  },
+) {
+  const [updated] = await db
+    .update(mediaAssets)
+    .set({
+      alias: data.alias ?? null,
+      createdBy: data.createdBy,
+      displayName: data.displayName,
+      height: data.height,
+      kind: data.kind,
+      mimeType: data.mimeType,
+      originalName: data.originalName,
+      posterStoredFilename: data.posterStoredFilename ?? null,
+      sizeBytes: data.sizeBytes,
+      storedFilename: data.storedFilename,
+      updatedAt: new Date(),
+      width: data.width,
+    })
     .where(eq(mediaAssets.id, id))
     .returning({ id: mediaAssets.id });
 

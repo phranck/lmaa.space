@@ -359,11 +359,20 @@ export interface DashboardMessages {
     uploadProgressUnknown: string;
     processingUpload: string;
     processingUploadHint: string;
+    uploadNameConflictTitle: string;
+    uploadNameConflictDescription: string;
+    uploadNameConflictNameLabel: string;
+    uploadNameConflictNameTaken: string;
+    uploadNameConflictRename: string;
+    uploadNameConflictOverwrite: string;
     directoryUploadUnsupported: string;
     emptyFolderUpload: string;
     empty: string;
     emptyHint: string;
     selectPrompt: string;
+    selectionTitle: string;
+    selectedCount: string;
+    selectedSize: string;
     detailsTitle: string;
     previewTitle: string;
     infoTitle: string;
@@ -388,7 +397,10 @@ export interface DashboardMessages {
     uploadTooLarge: string;
     unsupportedPreview: string;
     deleteTitle: string;
+    deleteSelected: string;
+    deleteSelectedTitle: string;
     deleteDescription: string;
+    deleteSelectedDescription: string;
     table: {
       name: string;
       type: string;
@@ -1582,7 +1594,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Media",
       upload: "Dateien hochladen",
       uploading: "Lade hoch…",
-      uploadHint: `Erlaubt: Bilder, MP4-Video, HLS-Ordner mit optionalem Poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) bis ${MEDIA_UPLOAD_MAX_LABEL}`,
+      uploadHint: `Erlaubt: Bilder, MP4-Video, HLS-Ordner mit optionalem Poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X). Einzelfiles bis ${MEDIA_UPLOAD_MAX_LABEL}; HLS-Bundles werden bei Bedarf in Chunks hochgeladen.`,
       dropTitle: "Loslassen zum Hochladen",
       hlsBundleFallbackName: "HLS-Ordner",
       readingHlsFolder: "HLS-Ordner wird gelesen…",
@@ -1593,6 +1605,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploadProgressUnknown: "Upload läuft…",
       processingUpload: "Upload wird verarbeitet…",
       processingUploadHint: "Der Server validiert und speichert die Dateien.",
+      uploadNameConflictTitle: "Name bereits vorhanden",
+      uploadNameConflictDescription:
+        "Es gibt bereits ein Media-Asset mit dem Namen {name}. Wähle einen neuen Namen oder überschreibe das vorhandene Asset.",
+      uploadNameConflictNameLabel: "Neuer Name",
+      uploadNameConflictNameTaken: "Dieser Name ist bereits vergeben.",
+      uploadNameConflictRename: "Mit neuem Namen hochladen",
+      uploadNameConflictOverwrite: "Vorhandenes Asset überschreiben",
       directoryUploadUnsupported:
         "Der Ordner konnte nicht gelesen werden. Zieh den HLS-Ordner direkt aus Finder oder Explorer in den Media-Bereich.",
       emptyFolderUpload: "{name} enthält keine lesbaren Dateien.",
@@ -1600,6 +1619,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       emptyHint:
         "Lade Bilder, Videos oder Dokumente hoch, damit sie in Pages und anderen Inhalten nutzbar sind.",
       selectPrompt: "Wähle links eine Datei aus, um Metadaten und die interne URL zu sehen.",
+      selectionTitle: "Auswahl",
+      selectedCount: "Ausgewählte Dateien",
+      selectedSize: "Gesamtgröße",
       detailsTitle: "Metadaten",
       previewTitle: "Vorschau",
       infoTitle: "Datei-Infos",
@@ -1624,8 +1646,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploadTooLarge: "{name} ist zu groß. Maximal erlaubt sind {max}.",
       unsupportedPreview: "Für diesen Dateityp ist keine Vorschau verfügbar.",
       deleteTitle: "Datei löschen?",
+      deleteSelected: "Auswahl löschen",
+      deleteSelectedTitle: "Auswahl löschen?",
       deleteDescription:
         "wird dauerhaft gelöscht und ist unter der internen URL nicht mehr erreichbar. Bei Bundles wird der gesamte Inhalt entfernt.",
+      deleteSelectedDescription:
+        "{count} Dateien werden dauerhaft gelöscht und sind unter ihren internen URLs nicht mehr erreichbar. Bundles werden mit dem gesamten Inhalt entfernt.",
       table: {
         name: "Name",
         type: "Typ",
@@ -2828,7 +2854,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       title: "Media",
       upload: "Upload files",
       uploading: "Uploading…",
-      uploadHint: `Allowed: images, MP4 video, HLS folders with optional poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X) up to ${MEDIA_UPLOAD_MAX_LABEL}`,
+      uploadHint: `Allowed: images, MP4 video, HLS folders with optional poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X). Single files up to ${MEDIA_UPLOAD_MAX_LABEL}; HLS bundles are uploaded in chunks when needed.`,
       dropTitle: "Release to upload",
       hlsBundleFallbackName: "HLS folder",
       readingHlsFolder: "Reading HLS folder…",
@@ -2839,6 +2865,13 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploadProgressUnknown: "Upload in progress…",
       processingUpload: "Processing upload…",
       processingUploadHint: "The server is validating and storing the files.",
+      uploadNameConflictTitle: "Name already exists",
+      uploadNameConflictDescription:
+        "A media asset named {name} already exists. Choose a new name or overwrite the existing asset.",
+      uploadNameConflictNameLabel: "New name",
+      uploadNameConflictNameTaken: "This name is already taken.",
+      uploadNameConflictRename: "Upload with new name",
+      uploadNameConflictOverwrite: "Overwrite existing asset",
       directoryUploadUnsupported:
         "The folder could not be read. Drag the HLS folder directly from Finder or Explorer into the media area.",
       emptyFolderUpload: "{name} does not contain readable files.",
@@ -2846,6 +2879,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       emptyHint:
         "Upload images, videos or documents so they can be reused in pages and other content.",
       selectPrompt: "Select a file on the left to view metadata and the internal URL.",
+      selectionTitle: "Selection",
+      selectedCount: "Selected files",
+      selectedSize: "Total size",
       detailsTitle: "Metadata",
       previewTitle: "Preview",
       infoTitle: "File info",
@@ -2870,8 +2906,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploadTooLarge: "{name} is too large. The maximum is {max}.",
       unsupportedPreview: "No preview is available for this file type.",
       deleteTitle: "Delete file?",
+      deleteSelected: "Delete selection",
+      deleteSelectedTitle: "Delete selection?",
       deleteDescription:
         "will be permanently deleted and will no longer be reachable via its internal URL. Bundles are removed with all contents.",
+      deleteSelectedDescription:
+        "{count} files will be permanently deleted and will no longer be reachable via their internal URLs. Bundles are removed with all contents.",
       table: {
         name: "Name",
         type: "Type",
