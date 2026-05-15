@@ -3,6 +3,7 @@ import type { ShopCheckNotes } from "@lmaa/shared";
 import type { HeadquartersInput } from "../repositories/headquarters.js";
 
 const REGION_CODES = ["DE", "AT", "CH", "EU", "WORLD"] as const;
+const REGION_CODE_SET = new Set<string>(REGION_CODES);
 
 function getString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
@@ -10,7 +11,12 @@ function getString(value: unknown): string | null {
 
 function getStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.map((entry) => getString(entry)).filter((entry): entry is string => entry !== null);
+  const result: string[] = [];
+  for (const entry of value) {
+    const normalized = getString(entry);
+    if (normalized !== null) result.push(normalized);
+  }
+  return result;
 }
 
 function getRecord(value: unknown): Record<string, unknown> | null {
@@ -72,15 +78,19 @@ export function mapShopJsonToShopData(
   const shopCheckNotes = mapShopCheckNotes(shopJson.notes);
 
   const categoryNames = getStringArray(shopJson.categories);
-  const categoryIds = categoryNames
-    .map((n) => categoryNameToId.get(n.trim().toLocaleLowerCase("de-DE")) ?? null)
-    .filter((id): id is number => id !== null);
+  const categoryIds: number[] = [];
+  for (const name of categoryNames) {
+    const categoryId = categoryNameToId.get(name.trim().toLocaleLowerCase("de-DE"));
+    if (categoryId !== undefined) categoryIds.push(categoryId);
+  }
 
-  const shippingRegions = getStringArray(shopJson.shippingRegions)
-    .map((r) => r.toUpperCase())
-    .filter((r): r is (typeof REGION_CODES)[number] =>
-      REGION_CODES.includes(r as (typeof REGION_CODES)[number]),
-    );
+  const shippingRegions: (typeof REGION_CODES)[number][] = [];
+  for (const region of getStringArray(shopJson.shippingRegions)) {
+    const normalizedRegion = region.toUpperCase();
+    if (REGION_CODE_SET.has(normalizedRegion)) {
+      shippingRegions.push(normalizedRegion as (typeof REGION_CODES)[number]);
+    }
+  }
 
   const socialMediaRaw = getRecord(shopJson.socialMedia);
   const socialMedia: Record<string, string> = {};

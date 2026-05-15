@@ -1,6 +1,6 @@
 import { and, asc, eq } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import {
   type SocialMediaAccount,
   type SocialMediaAccountInsert,
@@ -24,7 +24,12 @@ export async function listAccounts(filter: ListAccountsFilter = {}): Promise<Soc
   if (filter.showInFooter !== undefined) {
     conditions.push(eq(socialMediaAccounts.showInFooter, filter.showInFooter));
   }
-  const where = conditions.length === 0 ? undefined : conditions.length === 1 ? conditions[0] : and(...conditions);
+  const where =
+    conditions.length === 0
+      ? undefined
+      : conditions.length === 1
+        ? conditions[0]
+        : and(...conditions);
   return db
     .select()
     .from(socialMediaAccounts)

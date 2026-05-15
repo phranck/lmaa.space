@@ -166,21 +166,23 @@ async function runDoctor() {
   }
 
   const pending = repoMigrations.slice(applied.length);
-  const pendingColumns = [
-    ...new Map(
-      pending
-        .flatMap((migration) => migration.createdColumns)
-        .map((column) => [`${column.tableName}.${column.columnName}`, column]),
-    ).values(),
-  ];
+  const pendingColumnsByKey = new Map<string, { tableName: string; columnName: string }>();
+  for (const migration of pending) {
+    for (const column of migration.createdColumns) {
+      pendingColumnsByKey.set(`${column.tableName}.${column.columnName}`, column);
+    }
+  }
+  const pendingColumns = [...pendingColumnsByKey.values()];
   const pendingTables = [...new Set(pending.flatMap((migration) => migration.createdTables))];
   const pendingIndexes = [...new Set(pending.flatMap((migration) => migration.createdIndexes))];
 
-  const [existingPendingTables, existingPendingIndexes, existingPendingColumns] = await Promise.all([
-    loadExistingObjectNames(databaseUrl, "tables", pendingTables),
-    loadExistingObjectNames(databaseUrl, "indexes", pendingIndexes),
-    loadExistingColumns(databaseUrl, pendingColumns),
-  ]);
+  const [existingPendingTables, existingPendingIndexes, existingPendingColumns] = await Promise.all(
+    [
+      loadExistingObjectNames(databaseUrl, "tables", pendingTables),
+      loadExistingObjectNames(databaseUrl, "indexes", pendingIndexes),
+      loadExistingColumns(databaseUrl, pendingColumns),
+    ],
+  );
 
   if (
     existingPendingTables.length > 0 ||

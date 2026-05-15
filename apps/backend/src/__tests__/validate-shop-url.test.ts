@@ -227,8 +227,10 @@ describe("validateShopUrl", () => {
         : null,
     );
 
-    const apex = await validateShopUrl("https://goodkarmacoffee.de");
-    const www = await validateShopUrl("https://www.goodkarmacoffee.de");
+    const [apex, www] = await Promise.all([
+      validateShopUrl("https://goodkarmacoffee.de"),
+      validateShopUrl("https://www.goodkarmacoffee.de"),
+    ]);
     expect(apex.status).toBe("pending");
     expect(www.status).toBe("pending");
   });

@@ -1,6 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { adminUsers, contentPages } from "../db/schema.js";
 
 /**

@@ -86,11 +86,6 @@ export async function listFooterSocialMediaAccounts(): Promise<
   }));
 }
 
-export async function getSocialMediaAccount(id: number): Promise<SocialMediaAccount | null> {
-  const row = await getAccountById(id);
-  return row ? rowToSocialMediaAccount(row) : null;
-}
-
 async function buildInsertable(
   input: SocialMediaAccountCreateInput,
 ): Promise<{ ok: true; data: SocialMediaAccountInsert } | { ok: false; result: CreateResult }> {
@@ -130,7 +125,8 @@ async function buildInsertable(
         ok: false,
         result: {
           ok: false,
-          reason: verify.reason === "invalid_token" ? "credential_invalid" : "credential_unreachable",
+          reason:
+            verify.reason === "invalid_token" ? "credential_invalid" : "credential_unreachable",
           message: verify.message,
         },
       };
@@ -166,7 +162,9 @@ async function buildInsertable(
         result: {
           ok: false,
           reason:
-            verify.reason === "invalid_credentials" ? "credential_invalid" : "credential_unreachable",
+            verify.reason === "invalid_credentials"
+              ? "credential_invalid"
+              : "credential_unreachable",
           message: verify.message,
         },
       };
@@ -239,8 +237,10 @@ export async function updateSocialMediaAccount(
   const credentialsChanging =
     merged.canPost &&
     POSTING_PLATFORMS.has(merged.platform) &&
-    (input.accessToken !== undefined || input.appPassword !== undefined ||
-      input.instanceUrl !== undefined || input.handle !== undefined);
+    (input.accessToken !== undefined ||
+      input.appPassword !== undefined ||
+      input.instanceUrl !== undefined ||
+      input.handle !== undefined);
 
   let nextValues: Partial<SocialMediaAccountInsert>;
 

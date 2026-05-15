@@ -4,7 +4,7 @@ import { eq, lt } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 
 import { env } from "../config/env.js";
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { rateLimitEntries } from "../db/schema.js";
 import { fail } from "../lib/http.js";
 import { logger } from "../lib/logger.js";
@@ -68,8 +68,7 @@ class DatabaseRateLimitStore implements RateLimitStore {
       .from(rateLimitEntries)
       .where(eq(rateLimitEntries.key, key))
       .limit(1);
-    if (!row) return undefined;
-    return { count: row.count, resetAt: row.resetAt.getTime() };
+    return row ? { count: row.count, resetAt: row.resetAt.getTime() } : undefined;
   }
 
   async set(key: string, entry: RateLimitEntry) {
@@ -116,7 +115,10 @@ export function resolveClientIp(
   if (env.NODE_ENV === "production") {
     const ip = headers.get("CF-Connecting-IP")?.trim() || "";
     if (ip && isIP(ip)) return ip;
-    logger.warn({ trustedHeader: "cf-connecting-ip" }, "missing or invalid trusted proxy IP header");
+    logger.warn(
+      { trustedHeader: "cf-connecting-ip" },
+      "missing or invalid trusted proxy IP header",
+    );
     return "unknown";
   }
 
@@ -135,10 +137,11 @@ export function resolveClientIp(
       const xForwardedFor = headers.get("X-Forwarded-For");
       if (!xForwardedFor) return "unknown";
 
-      const hops = xForwardedFor
-        .split(",")
-        .map((part) => part.trim())
-        .filter((part) => part && isIP(part));
+      const hops: string[] = [];
+      for (const part of xForwardedFor.split(",")) {
+        const ip = part.trim();
+        if (ip && isIP(ip)) hops.push(ip);
+      }
       if (hops.length === 0) return "unknown";
 
       const trustedIndex = Math.max(0, hops.length - config.trustedHops - 1);
@@ -162,11 +165,10 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
   const timer = setInterval(() => {
     const now = Date.now();
     void (async () => {
-      const purged =
-        defaultRateLimitStore.purgeExpired
-          ? await defaultRateLimitStore.purgeExpired(now)
-          : defaultRateLimitStore instanceof MemoryRateLimitStore
-            ? (() => {
+      const purged = defaultRateLimitStore.purgeExpired
+        ? await defaultRateLimitStore.purgeExpired(now)
+        : defaultRateLimitStore instanceof MemoryRateLimitStore
+          ? (() => {
               let removed = 0;
               for (const [key, entry] of defaultRateLimitStore.entries()) {
                 if (entry.resetAt < now) {
@@ -175,8 +177,8 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
                 }
               }
               return removed;
-              })()
-            : 0;
+            })()
+          : 0;
 
       if (purged > 0) {
         logger.info({ purged }, "rate-limit cleanup: purged expired entries");

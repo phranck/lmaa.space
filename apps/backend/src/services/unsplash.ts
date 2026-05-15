@@ -24,7 +24,7 @@ interface UnsplashPhotoDetail extends UnsplashPhoto {
   } | null;
 }
 
-export type UnsplashSearchResultItem = {
+type UnsplashSearchResultItem = {
   id: string;
   urls: { small: string; regular: string };
   user: { name: string; link: string };
@@ -124,61 +124,6 @@ export async function fetchUnsplashPhotoDetail(photoId: string): Promise<{
     lng: photo.location.position?.longitude ?? null,
   };
 }
-
-/**
- * Fetches full photo data from Unsplash /photos/:id including all metadata and location.
- * Used for re-fetching metadata of existing images.
- */
-export async function fetchFullUnsplashPhoto(photoId: string): Promise<{
-  urlSmall: string;
-  urlRegular: string;
-  width: number;
-  height: number;
-  color: string | null;
-  blurHash: string | null;
-  description: string | null;
-  altDescription: string | null;
-  likes: number;
-  photographerName: string;
-  photographerUrl: string;
-  downloadLocation: string;
-  createdAtUnsplash: string;
-  locationCity: string | null;
-  locationCountry: string | null;
-  locationLat: number | null;
-  locationLng: number | null;
-} | null> {
-  const key = env.UNSPLASH_ACCESS_KEY;
-  if (!key) return null;
-
-  const url = `https://api.unsplash.com/photos/${photoId}`;
-  const response = await fetch(url, { headers: { Authorization: `Client-ID ${key}` } });
-
-  if (!response.ok) return null;
-
-  const photo = (await response.json()) as UnsplashPhotoDetail;
-
-  return {
-    urlSmall: photo.urls.small,
-    urlRegular: photo.urls.regular,
-    width: photo.width,
-    height: photo.height,
-    color: photo.color,
-    blurHash: photo.blur_hash,
-    description: photo.description,
-    altDescription: photo.alt_description,
-    likes: photo.likes,
-    photographerName: photo.user.name,
-    photographerUrl: photo.user.links.html,
-    downloadLocation: photo.links.download_location,
-    createdAtUnsplash: photo.created_at,
-    locationCity: photo.location?.city ?? null,
-    locationCountry: photo.location?.country ?? null,
-    locationLat: photo.location?.position?.latitude ?? null,
-    locationLng: photo.location?.position?.longitude ?? null,
-  };
-}
-
 
 /**
  * Calls Unsplash download-tracking endpoint.

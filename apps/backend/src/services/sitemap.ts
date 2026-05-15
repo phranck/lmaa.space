@@ -1,4 +1,4 @@
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { categories } from "../db/schema.js";
 
 const BASE = "https://lmaa.space";

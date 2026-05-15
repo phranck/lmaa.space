@@ -19,10 +19,12 @@ export type ShopFilterParams = z.infer<typeof shopFilterSchema>;
  */
 export function parseRegionFilter(raw: string | undefined): string[] {
   if (!raw) return [];
-  return raw
-    .split(",")
-    .map((r) => r.trim().toUpperCase())
-    .filter(Boolean);
+  const regions: string[] = [];
+  for (const value of raw.split(",")) {
+    const region = value.trim().toUpperCase();
+    if (region) regions.push(region);
+  }
+  return regions;
 }
 
 /**
@@ -30,8 +32,10 @@ export function parseRegionFilter(raw: string | undefined): string[] {
  */
 export function parseCountryFilter(raw: string | undefined): string[] {
   if (!raw) return [];
-  return raw
-    .split(",")
-    .map((c) => c.trim().toUpperCase())
-    .filter((c) => c.length === 2);
+  const countries: string[] = [];
+  for (const value of raw.split(",")) {
+    const country = value.trim().toUpperCase();
+    if (country.length === 2) countries.push(country);
+  }
+  return countries;
 }

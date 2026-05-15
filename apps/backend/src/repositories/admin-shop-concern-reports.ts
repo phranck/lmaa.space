@@ -1,6 +1,6 @@
 import { and, desc, eq, ne } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { shopConcernReports, shops } from "../db/schema.js";
 
 /**

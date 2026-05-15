@@ -19,7 +19,7 @@ async function loadRepositoryModule() {
   where.mockReturnValue({ orderBy });
   orderBy.mockResolvedValue([]);
 
-  vi.doMock("../db/index.js", () => ({
+  vi.doMock("../db/client.js", () => ({
     db: {
       select,
     },

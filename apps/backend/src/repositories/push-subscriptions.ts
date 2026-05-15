@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { pushSubscriptions } from "../db/schema.js";
 
 export async function upsertPushSubscription(
@@ -26,10 +26,7 @@ export async function upsertPushSubscription(
 }
 
 export async function getPushSubscriptionsByAdminId(adminId: number) {
-  return db
-    .select()
-    .from(pushSubscriptions)
-    .where(eq(pushSubscriptions.adminId, adminId));
+  return db.select().from(pushSubscriptions).where(eq(pushSubscriptions.adminId, adminId));
 }
 
 export async function deletePushSubscriptionByEndpoint(

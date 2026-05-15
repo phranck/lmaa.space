@@ -10,7 +10,7 @@ import type {
 
 import type { HeadquartersInput } from "./headquarters.js";
 import { loadShopHeadquartersMap, upsertShopHeadquarters } from "./headquarters.js";
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { adminUsers, deadLinkReports, shopCategories, shops } from "../db/schema.js";
 import type { Shop as DbShop } from "../db/schema.js";
 
@@ -140,15 +140,13 @@ export async function getAdminShopById(id: number): Promise<SharedShop | null> {
     GROUP BY s.id
   `);
 
-  if (!shop) {
-    return null;
-  }
-
-  const headquartersByShopId = await loadShopHeadquartersMap([id]);
-  return {
-    ...shop,
-    headquarters: headquartersByShopId.get(id) ?? null,
-  };
+  const headquartersByShopId = shop ? await loadShopHeadquartersMap([id]) : null;
+  return shop
+    ? {
+        ...shop,
+        headquarters: headquartersByShopId?.get(id) ?? null,
+      }
+    : null;
 }
 
 /**
@@ -218,25 +216,23 @@ export async function updateAdminShop(
       .where(eq(shops.id, id))
       .returning();
 
-    if (!shop) {
-      return null;
-    }
+    if (shop) {
+      if (categoryIds !== undefined) {
+        await tx.delete(shopCategories).where(eq(shopCategories.shopId, id));
 
-    if (categoryIds !== undefined) {
-      await tx.delete(shopCategories).where(eq(shopCategories.shopId, id));
+        if (categoryIds.length > 0) {
+          await tx
+            .insert(shopCategories)
+            .values(categoryIds.map((categoryId) => ({ shopId: id, categoryId })));
+        }
+      }
 
-      if (categoryIds.length > 0) {
-        await tx
-          .insert(shopCategories)
-          .values(categoryIds.map((categoryId) => ({ shopId: id, categoryId })));
+      if (headquarters !== undefined) {
+        await upsertShopHeadquarters(tx, id, headquarters);
       }
     }
 
-    if (headquarters !== undefined) {
-      await upsertShopHeadquarters(tx, id, headquarters);
-    }
-
-    return shop;
+    return shop ?? null;
   });
 }
 
@@ -260,17 +256,6 @@ export async function getShopVisibilityCounts(): Promise<Record<ShopVisibility |
     counts.all += row.count;
   }
   return counts as Record<ShopVisibility | "all", number>;
-}
-
-/**
- * Checks whether a shop exists.
- *
- * @param id - Shop id.
- * @returns `true` if a row is present.
- */
-export async function shopExists(id: number): Promise<boolean> {
-  const [row] = await db.select({ id: shops.id }).from(shops).where(eq(shops.id, id)).limit(1);
-  return Boolean(row);
 }
 
 /**

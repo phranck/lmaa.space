@@ -8,7 +8,7 @@ import {
   submissionStatusFilterSchema,
 } from "@lmaa/contracts";
 
-import { db } from "../../db/index.js";
+import { db } from "../../db/client.js";
 import { categories } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { mapShopJsonToShopData } from "../../lib/shopjson-mapper.js";
@@ -165,32 +165,37 @@ submissionsRoutes.post(
       allCategories.map((cat) => [cat.name.trim().toLocaleLowerCase("de-DE"), cat.id] as const),
     );
 
-    let imported = 0;
-    let skipped = 0;
-    const errors: string[] = [];
+    const results = await Promise.all(
+      entries.map(async (item) => {
+        const { submissionId, ...shopJson } = item;
 
-    for (const item of entries) {
-      const { submissionId, ...shopJson } = item;
+        const submission = await getAdminSubmissionById(submissionId);
+        if (!submission || (submission.status !== "pending" && submission.status !== "onhold")) {
+          return { imported: 0, skipped: 1, error: null } as const;
+        }
 
-      const submission = await getAdminSubmissionById(submissionId);
-      if (!submission || (submission.status !== "pending" && submission.status !== "onhold")) {
-        skipped += 1;
-        continue;
-      }
+        try {
+          const editData = mapShopJsonToSubmissionEditData(
+            shopJson as Record<string, unknown>,
+            categoryNameToId,
+          );
+          await editSubmission(submissionId, editData);
+          await setReadyForReview(submissionId, true);
+          return { imported: 1, skipped: 0, error: null } as const;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return {
+            imported: 0,
+            skipped: 0,
+            error: `Submission ${submissionId}: ${message}`,
+          } as const;
+        }
+      }),
+    );
 
-      try {
-        const editData = mapShopJsonToSubmissionEditData(
-          shopJson as Record<string, unknown>,
-          categoryNameToId,
-        );
-        await editSubmission(submissionId, editData);
-        await setReadyForReview(submissionId, true);
-        imported += 1;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        errors.push(`Submission ${submissionId}: ${message}`);
-      }
-    }
+    const imported = results.reduce((sum, result) => sum + result.imported, 0);
+    const skipped = results.reduce((sum, result) => sum + result.skipped, 0);
+    const errors = results.flatMap((result) => (result.error ? [result.error] : []));
 
     return ok(c, { imported, skipped, errors });
   },

@@ -7,7 +7,7 @@ import { z } from "zod";
 import { acceptInviteSchema, loginSchema, setupSchema } from "@lmaa/contracts";
 
 import { env } from "../../config/env.js";
-import { db } from "../../db/index.js";
+import { db } from "../../db/client.js";
 import { adminUsers } from "../../db/schema.js";
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAuth } from "../../middleware/auth.js";
@@ -134,9 +134,14 @@ const uiPreferencesSchema = z.object({
 });
 
 // PATCH /api/admin/me/preferences
-authRoutes.patch("/me/preferences", requireAuth, zValidator("json", uiPreferencesSchema), async (c) => {
-  const adminId = c.get("adminId");
-  const prefs = c.req.valid("json");
-  await db.update(adminUsers).set({ uiPreferences: prefs }).where(eq(adminUsers.id, adminId));
-  return ok(c, null);
-});
+authRoutes.patch(
+  "/me/preferences",
+  requireAuth,
+  zValidator("json", uiPreferencesSchema),
+  async (c) => {
+    const adminId = c.get("adminId");
+    const prefs = c.req.valid("json");
+    await db.update(adminUsers).set({ uiPreferences: prefs }).where(eq(adminUsers.id, adminId));
+    return ok(c, null);
+  },
+);

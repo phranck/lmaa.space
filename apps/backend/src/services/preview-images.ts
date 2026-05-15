@@ -2,16 +2,6 @@ import { logger } from "../lib/logger.js";
 import { extractHomepage, fetchPreviewImage } from "../lib/og.js";
 
 /**
- * Fetches a preview image for a shop URL.
- *
- * @param url - Target URL to scan.
- * @returns Preview image descriptor or `null`.
- */
-export async function fetchShopPreviewImage(url: string) {
-  return fetchPreviewImage(url);
-}
-
-/**
  * Fetches a preview image for the homepage of a URL.
  *
  * @param url - Arbitrary URL used to derive homepage origin.

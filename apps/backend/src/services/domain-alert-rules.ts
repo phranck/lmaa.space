@@ -11,7 +11,10 @@ import { getSetting } from "../repositories/app-settings.js";
 const EMPTY_DOMAIN_ALERT_RULES_CONFIG: DomainAlertRulesConfig = { rules: [] };
 
 function normalizeHostname(input: string): string {
-  return input.trim().toLowerCase().replace(/^\.+|\.+$/g, "");
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/^\.+|\.+$/g, "");
 }
 
 function getUrlHostname(urlRaw: string): string | null {
@@ -30,7 +33,7 @@ function getUrlHostname(urlRaw: string): string | null {
  *
  * @returns Persisted config, or an empty config when the setting is absent or invalid.
  */
-export async function getManagedDomainAlertRulesConfig(): Promise<DomainAlertRulesConfig> {
+async function getManagedDomainAlertRulesConfig(): Promise<DomainAlertRulesConfig> {
   const raw = await getSetting(SETTINGS_KEYS.DOMAIN_ALERT_RULES);
   if (!raw) return EMPTY_DOMAIN_ALERT_RULES_CONFIG;
 
@@ -58,9 +61,8 @@ export function matchesDomainAlertRule(
   if (!rule.isActive) return false;
 
   const configuredDomains = parseDomainAlertDomains(rule.domainsText);
-  const candidates = [hostname, registeredDomain]
-    .filter((candidate): candidate is string => Boolean(candidate))
-    .map(normalizeHostname);
+  const candidates = [normalizeHostname(hostname)];
+  if (registeredDomain) candidates.push(normalizeHostname(registeredDomain));
 
   return configuredDomains.some((domain) =>
     candidates.some((candidate) => candidate === domain || candidate.endsWith(`.${domain}`)),

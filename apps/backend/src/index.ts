@@ -12,7 +12,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { MEDIA_UPLOAD_MAX_BYTES, MEDIA_UPLOAD_MAX_LABEL } from "@lmaa/shared";
 
 import { env } from "./config/env.js";
-import { client, db } from "./db/index.js";
+import { client, db } from "./db/client.js";
 import { runMigrations } from "./db/run-migrations.js";
 import { serveApiReference, serveOpenApiJson } from "./docs/openapi.js";
 import { fail, getErrorResponse } from "./lib/http.js";
@@ -20,7 +20,7 @@ import { logger } from "./lib/logger.js";
 import { startCacheCleanupJob } from "./middleware/cache.js";
 import { startRateLimitCleanupJob } from "./middleware/rate-limit.js";
 import { requestId } from "./middleware/request-id.js";
-import { adminRoutes } from "./routes/admin/index.js";
+import { adminRoutes } from "./routes/admin/routes.js";
 import { publicRoutes } from "./routes/public.js";
 import { sitemapRoutes } from "./routes/sitemap.js";
 import { startSessionCleanupJob } from "./services/sessions.js";

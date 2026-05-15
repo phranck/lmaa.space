@@ -49,14 +49,12 @@ function mapSummary(
  */
 export async function getManagedContentPages(): Promise<ContentPageSummary[]> {
   const pages = await listContentPageSummaries();
-  const ids = [
-    ...new Set(
-      pages
-        .flatMap((page) => [page.createdBy, page.updatedBy])
-        .filter((id): id is number => id != null),
-    ),
-  ];
-  const usernames = await getAdminUsernamesByIds(ids);
+  const ids = new Set<number>();
+  for (const page of pages) {
+    if (page.createdBy != null) ids.add(page.createdBy);
+    if (page.updatedBy != null) ids.add(page.updatedBy);
+  }
+  const usernames = await getAdminUsernamesByIds(Array.from(ids));
   return pages.map((page) => mapSummary(page, usernames));
 }
 
@@ -79,14 +77,15 @@ export async function createManagedContentPage(input: {
     return failure("slug_conflict");
   }
 
-  const page = await createContentPage({
-    slug: input.slug,
-    title: input.title,
-    status: input.status ?? "draft",
-    createdBy: input.adminId,
-  });
-
-  const creatorUsername = await getAdminUsernameById(input.adminId);
+  const [page, creatorUsername] = await Promise.all([
+    createContentPage({
+      slug: input.slug,
+      title: input.title,
+      status: input.status ?? "draft",
+      createdBy: input.adminId,
+    }),
+    getAdminUsernameById(input.adminId),
+  ]);
 
   return success({
     page: {

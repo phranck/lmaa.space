@@ -204,6 +204,7 @@ export async function syncMediaFromStorage(): Promise<{
   );
   const hlsBundleChildren = new Set<string>();
   const hlsBundleObjectsByManifest = new Map<string, typeof s3Objects>();
+  const hlsPosterByManifest = new Map<string, string | null>();
 
   for (const manifest of hlsManifests) {
     const prefix = manifest.key.slice(0, manifest.key.lastIndexOf("/") + 1);
@@ -212,78 +213,87 @@ export async function syncMediaFromStorage(): Promise<{
       : [manifest];
 
     hlsBundleObjectsByManifest.set(manifest.key, bundleObjects);
+    let posterStoredFilename: string | null = null;
     for (const obj of bundleObjects) {
       if (obj.key !== manifest.key) {
         hlsBundleChildren.add(obj.key);
       }
-    }
-  }
-
-  let created = 0;
-  let updated = 0;
-  let removed = 0;
-
-  // Create or update DB entries from S3 objects
-  for (const obj of s3Objects) {
-    if (hlsBundleChildren.has(obj.key)) continue;
-
-    const existing = dbByFilename.get(obj.key);
-    const meta = obj.metadata;
-    const bundleObjects = hlsBundleObjectsByManifest.get(obj.key);
-    const isHlsBundle = bundleObjects !== undefined;
-    const kind = isHlsBundle
-      ? "video"
-      : (meta.kind as MediaKind) || inferKindFromContentType(obj.contentType);
-    const displayName = meta.displayName || obj.key;
-    const originalName = meta.originalName || obj.key;
-    const alias = meta.alias || null;
-    const sizeBytes = bundleObjects?.reduce((sum, item) => sum + item.size, 0) ?? obj.size;
-    const mimeType = isHlsBundle ? HLS_MANIFEST_MIME_TYPE : obj.contentType;
-    const posterStoredFilename = isHlsBundle
-      ? (bundleObjects?.find((item) => /\/poster\.(?:jpe?g|png|webp)$/i.test(`/${item.key}`))
-          ?.key ?? null)
-      : null;
-
-    if (!existing) {
-      await createMediaAsset({
-        displayName,
-        originalName,
-        storedFilename: obj.key,
-        mimeType,
-        kind,
-        sizeBytes,
-        width: meta.width ?? null,
-        height: meta.height ?? null,
-        createdBy: null,
-        alias,
-        posterStoredFilename,
-      });
-      created += 1;
-    } else {
-      // Update DB from S3 metadata if S3 has richer data
-      const needsUpdate =
-        (meta.displayName && meta.displayName !== existing.displayName) ||
-        (meta.alias !== undefined && meta.alias !== existing.alias) ||
-        posterStoredFilename !== existing.posterStoredFilename;
-
-      if (needsUpdate) {
-        await updateMediaAssetMeta(existing.id, {
-          displayName: meta.displayName || existing.displayName,
-          alias: meta.alias !== undefined ? meta.alias : existing.alias,
-          posterStoredFilename,
-        });
-        updated += 1;
+      if (/\/poster\.(?:jpe?g|png|webp)$/i.test(`/${obj.key}`)) {
+        posterStoredFilename = obj.key;
       }
     }
+    hlsPosterByManifest.set(manifest.key, posterStoredFilename);
   }
 
-  // Remove DB entries for files no longer in S3
-  for (const asset of dbAssets) {
-    if (hlsBundleChildren.has(asset.storedFilename) || !s3Keys.has(asset.storedFilename)) {
-      await deleteMediaAssetByFilename(asset.storedFilename);
-      removed += 1;
-    }
-  }
+  const [syncResults, removalResults] = await Promise.all([
+    Promise.all(
+      s3Objects.map(async (obj) => {
+        if (hlsBundleChildren.has(obj.key)) return { created: 0, updated: 0 };
+
+        const existing = dbByFilename.get(obj.key);
+        const meta = obj.metadata;
+        const bundleObjects = hlsBundleObjectsByManifest.get(obj.key);
+        const isHlsBundle = bundleObjects !== undefined;
+        const kind = isHlsBundle
+          ? "video"
+          : (meta.kind as MediaKind) || inferKindFromContentType(obj.contentType);
+        const displayName = meta.displayName || obj.key;
+        const originalName = meta.originalName || obj.key;
+        const alias = meta.alias || null;
+        const sizeBytes = bundleObjects?.reduce((sum, item) => sum + item.size, 0) ?? obj.size;
+        const mimeType = isHlsBundle ? HLS_MANIFEST_MIME_TYPE : obj.contentType;
+        const posterStoredFilename = isHlsBundle
+          ? (hlsPosterByManifest.get(obj.key) ?? null)
+          : null;
+
+        if (!existing) {
+          await createMediaAsset({
+            displayName,
+            originalName,
+            storedFilename: obj.key,
+            mimeType,
+            kind,
+            sizeBytes,
+            width: meta.width ?? null,
+            height: meta.height ?? null,
+            createdBy: null,
+            alias,
+            posterStoredFilename,
+          });
+          return { created: 1, updated: 0 };
+        }
+
+        const needsUpdate =
+          (meta.displayName && meta.displayName !== existing.displayName) ||
+          (meta.alias !== undefined && meta.alias !== existing.alias) ||
+          posterStoredFilename !== existing.posterStoredFilename;
+
+        if (needsUpdate) {
+          await updateMediaAssetMeta(existing.id, {
+            displayName: meta.displayName || existing.displayName,
+            alias: meta.alias !== undefined ? meta.alias : existing.alias,
+            posterStoredFilename,
+          });
+          return { created: 0, updated: 1 };
+        }
+
+        return { created: 0, updated: 0 };
+      }),
+    ),
+    Promise.all(
+      dbAssets.map(async (asset): Promise<number> => {
+        if (hlsBundleChildren.has(asset.storedFilename) || !s3Keys.has(asset.storedFilename)) {
+          await deleteMediaAssetByFilename(asset.storedFilename);
+          return 1;
+        }
+        return 0;
+      }),
+    ),
+  ]);
+
+  const created = syncResults.reduce((sum, result) => sum + result.created, 0);
+  const updated = syncResults.reduce((sum, result) => sum + result.updated, 0);
+  const removed = removalResults.reduce((sum, result) => sum + result, 0);
 
   return { created, updated, removed };
 }

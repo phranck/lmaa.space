@@ -27,7 +27,7 @@ const dbMock = vi.hoisted(() => ({
 
 vi.mock("../repositories/admin-submissions.js", () => repoMocks);
 vi.mock("../services/admin-submissions.js", () => serviceMocks);
-vi.mock("../db/index.js", () => dbMock);
+vi.mock("../db/client.js", () => dbMock);
 vi.mock("../db/schema.js", () => ({
   categories: { id: "categories.id", name: "categories.name" },
 }));

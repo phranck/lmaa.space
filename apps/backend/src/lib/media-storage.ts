@@ -398,11 +398,13 @@ export async function storeUploadedHlsBundle(input: {
     return { ok: false, reason: "invalid_bundle" };
   }
 
-  const manifestReferences = manifestText
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith("#"))
-    .map((line) => resolveManifestReference(manifest.relativePath, line));
+  const manifestReferences: Array<string | null> = [];
+  for (const rawLine of manifestText.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (line.length > 0 && !line.startsWith("#")) {
+      manifestReferences.push(resolveManifestReference(manifest.relativePath, line));
+    }
+  }
 
   if (
     manifestReferences.length === 0 ||
@@ -420,26 +422,33 @@ export async function storeUploadedHlsBundle(input: {
   const posterStoredFilename = posters[0] ? `${prefix}${posters[0].relativePath}` : null;
 
   try {
-    for (const item of prepared) {
-      const buffer =
-        item === manifest ? manifestBuffer : Buffer.from(await item.file.arrayBuffer());
+    const results = await Promise.allSettled(
+      prepared.map(async (item) => {
+        const buffer =
+          item === manifest ? manifestBuffer : Buffer.from(await item.file.arrayBuffer());
 
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: env.S3_BUCKET,
-          Key: `${prefix}${item.relativePath}`,
-          Body: buffer,
-          ContentType: item.mimeType,
-          Metadata: buildS3Metadata({
-            displayName,
-            originalName: displayName,
-            alias: null,
-            kind: "video",
-            width: null,
-            height: null,
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: env.S3_BUCKET,
+            Key: `${prefix}${item.relativePath}`,
+            Body: buffer,
+            ContentType: item.mimeType,
+            Metadata: buildS3Metadata({
+              displayName,
+              originalName: displayName,
+              alias: null,
+              kind: "video",
+              width: null,
+              height: null,
+            }),
           }),
-        }),
-      );
+        );
+      }),
+    );
+
+    const rejected = results.find((result) => result.status === "rejected");
+    if (rejected) {
+      throw rejected.reason;
     }
   } catch (error) {
     await removeStoredMediaPrefix(prefix);
@@ -484,36 +493,41 @@ export async function removeStoredMedia(storedFilename: string) {
 /**
  * Deletes all stored media objects below a prefix from S3-compatible object storage.
  */
-export async function removeStoredMediaPrefix(prefix: string) {
+async function removeStoredMediaPrefix(prefix: string) {
   if (!prefix) return;
 
-  let continuationToken: string | undefined;
-  do {
-    const listResp = await s3.send(
-      new ListObjectsV2Command({
+  await removeStoredMediaPrefixPage(prefix);
+}
+
+async function removeStoredMediaPrefixPage(
+  prefix: string,
+  continuationToken?: string,
+): Promise<void> {
+  const listResp = await s3.send(
+    new ListObjectsV2Command({
+      Bucket: env.S3_BUCKET,
+      Prefix: prefix,
+      ContinuationToken: continuationToken,
+    }),
+  );
+
+  const objects: Array<{ Key: string }> = [];
+  for (const obj of listResp.Contents ?? []) {
+    if (obj.Key) objects.push({ Key: obj.Key });
+  }
+
+  if (objects.length > 0) {
+    await s3.send(
+      new DeleteObjectsCommand({
         Bucket: env.S3_BUCKET,
-        Prefix: prefix,
-        ContinuationToken: continuationToken,
+        Delete: { Objects: objects },
       }),
     );
+  }
 
-    const objects = (listResp.Contents ?? [])
-      .map((obj) => obj.Key)
-      .filter((key): key is string => Boolean(key));
-
-    if (objects.length > 0) {
-      await s3.send(
-        new DeleteObjectsCommand({
-          Bucket: env.S3_BUCKET,
-          Delete: {
-            Objects: objects.map((Key) => ({ Key })),
-          },
-        }),
-      );
-    }
-
-    continuationToken = listResp.IsTruncated ? listResp.NextContinuationToken : undefined;
-  } while (continuationToken);
+  if (listResp.IsTruncated && listResp.NextContinuationToken) {
+    await removeStoredMediaPrefixPage(prefix, listResp.NextContinuationToken);
+  }
 }
 
 /**
@@ -564,31 +578,41 @@ export interface S3ObjectEntry {
  */
 export async function listAllStoredMedia(): Promise<S3ObjectEntry[]> {
   const entries: S3ObjectEntry[] = [];
-  let continuationToken: string | undefined;
+  await listStoredMediaPage(entries);
+  return entries;
+}
 
-  do {
-    const listResp = await s3.send(
-      new ListObjectsV2Command({
-        Bucket: env.S3_BUCKET,
-        ContinuationToken: continuationToken,
-      }),
-    );
+async function listStoredMediaPage(
+  entries: S3ObjectEntry[],
+  continuationToken?: string,
+): Promise<void> {
+  const listResp = await s3.send(
+    new ListObjectsV2Command({
+      Bucket: env.S3_BUCKET,
+      ContinuationToken: continuationToken,
+    }),
+  );
 
-    for (const obj of listResp.Contents ?? []) {
-      if (!obj.Key || !obj.Size) continue;
+  const pageEntries = await Promise.all(
+    (listResp.Contents ?? []).map(async (obj): Promise<S3ObjectEntry | null> => {
+      if (!obj.Key || !obj.Size) return null;
 
       const head = await s3.send(new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: obj.Key }));
 
-      entries.push({
+      return {
         key: obj.Key,
         size: obj.Size,
         contentType: head.ContentType ?? "application/octet-stream",
         metadata: parseS3Metadata(head.Metadata),
-      });
-    }
+      };
+    }),
+  );
 
-    continuationToken = listResp.IsTruncated ? listResp.NextContinuationToken : undefined;
-  } while (continuationToken);
+  for (const entry of pageEntries) {
+    if (entry) entries.push(entry);
+  }
 
-  return entries;
+  if (listResp.IsTruncated && listResp.NextContinuationToken) {
+    await listStoredMediaPage(entries, listResp.NextContinuationToken);
+  }
 }

@@ -16,7 +16,11 @@ import {
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
-import { getAdminShopById, getShopVisibilityCounts, listAdminShops } from "../../repositories/admin-shops.js";
+import {
+  getAdminShopById,
+  getShopVisibilityCounts,
+  listAdminShops,
+} from "../../repositories/admin-shops.js";
 import {
   acceptShopReview,
   changeManagedAdminShopVisibility,
@@ -186,25 +190,25 @@ shopsRoutes.post(
   async (c) => {
     const entries = c.req.valid("json");
 
-    let imported = 0;
-    let skipped = 0;
-    const errors: string[] = [];
+    const results = await Promise.all(
+      entries.map(async (item) => {
+        const { shopId, ...shopJson } = item;
 
-    for (const item of entries) {
-      const { shopId, ...shopJson } = item;
-
-      try {
-        const result = await stageShopReviewData(shopId, shopJson as Record<string, unknown>);
-        if (!result.ok) {
-          skipped += 1;
-        } else {
-          imported += 1;
+        try {
+          const result = await stageShopReviewData(shopId, shopJson as Record<string, unknown>);
+          return result.ok
+            ? ({ imported: 1, skipped: 0, error: null } as const)
+            : ({ imported: 0, skipped: 1, error: null } as const);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return { imported: 0, skipped: 0, error: `Shop ${shopId}: ${message}` } as const;
         }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        errors.push(`Shop ${shopId}: ${message}`);
-      }
-    }
+      }),
+    );
+
+    const imported = results.reduce((sum, result) => sum + result.imported, 0);
+    const skipped = results.reduce((sum, result) => sum + result.skipped, 0);
+    const errors = results.flatMap((result) => (result.error ? [result.error] : []));
 
     return ok(c, { imported, skipped, errors });
   },

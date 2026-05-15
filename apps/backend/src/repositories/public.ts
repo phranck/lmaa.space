@@ -2,7 +2,7 @@ import { and, asc, count, eq, isNull, or, sql } from "drizzle-orm";
 
 import type { Shop, ShopCategory } from "@lmaa/shared";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import {
   categories,
   contentPages,
@@ -12,7 +12,6 @@ import {
   shopConcernReports,
   shopLikes,
   shops,
-  submissionCategories,
   submissions,
 } from "../db/schema.js";
 
@@ -307,15 +306,16 @@ export async function searchPublicCategoriesByEscapedQuery(escapedQuery: string)
  * @returns Matching shop row or `null`.
  */
 export async function findShopByDomain(domain: string) {
-  const { getDomain } = await import("tldts");
-
-  const candidates = await db.execute<ShopByDomainRow & Record<string, unknown>>(sql`
-    SELECT s.id, s.name, s.url, s.visibility, s.rejection_token AS "rejectionToken"
-    FROM shops s
-    WHERE s.url LIKE ${"%" + domain + "%"}
-      AND s.visibility IN ('public', 'rejected')
-    LIMIT 10
-  `);
+  const [{ getDomain }, candidates] = await Promise.all([
+    import("tldts"),
+    db.execute<ShopByDomainRow & Record<string, unknown>>(sql`
+      SELECT s.id, s.name, s.url, s.visibility, s.rejection_token AS "rejectionToken"
+      FROM shops s
+      WHERE s.url LIKE ${"%" + domain + "%"}
+        AND s.visibility IN ('public', 'rejected')
+      LIMIT 10
+    `),
+  ]);
 
   return candidates.find((row) => getDomain(row.url) === domain) ?? null;
 }
@@ -336,15 +336,16 @@ interface RejectedSubmissionRow {
  * @returns Matching submission row or `null`.
  */
 export async function findRejectedSubmissionByDomain(domain: string) {
-  const { getDomain } = await import("tldts");
-
-  const candidates = await db.execute<RejectedSubmissionRow & Record<string, unknown>>(sql`
-    SELECT s.id, s.shop_name AS "shopName", s.shop_url AS "shopUrl", s.rejection_token AS "rejectionToken"
-    FROM submissions s
-    WHERE s.shop_url LIKE ${"%" + domain + "%"}
-      AND s.status = 'rejected'
-    LIMIT 10
-  `);
+  const [{ getDomain }, candidates] = await Promise.all([
+    import("tldts"),
+    db.execute<RejectedSubmissionRow & Record<string, unknown>>(sql`
+      SELECT s.id, s.shop_name AS "shopName", s.shop_url AS "shopUrl", s.rejection_token AS "rejectionToken"
+      FROM submissions s
+      WHERE s.shop_url LIKE ${"%" + domain + "%"}
+        AND s.status = 'rejected'
+      LIMIT 10
+    `),
+  ]);
 
   return candidates.find((row) => getDomain(row.shopUrl) === domain) ?? null;
 }
@@ -367,64 +368,18 @@ interface PendingSubmissionRow {
  * @returns Matching submission row or `null`.
  */
 export async function findPendingSubmissionByDomain(domain: string) {
-  const { getDomain } = await import("tldts");
-
-  const candidates = await db.execute<PendingSubmissionRow & Record<string, unknown>>(sql`
-    SELECT s.id, s.shop_name AS "shopName", s.shop_url AS "shopUrl"
-    FROM submissions s
-    WHERE s.shop_url LIKE ${"%" + domain + "%"}
-      AND s.status IN ('pending', 'onhold')
-    LIMIT 10
-  `);
+  const [{ getDomain }, candidates] = await Promise.all([
+    import("tldts"),
+    db.execute<PendingSubmissionRow & Record<string, unknown>>(sql`
+      SELECT s.id, s.shop_name AS "shopName", s.shop_url AS "shopUrl"
+      FROM submissions s
+      WHERE s.shop_url LIKE ${"%" + domain + "%"}
+        AND s.status IN ('pending', 'onhold')
+      LIMIT 10
+    `),
+  ]);
 
   return candidates.find((row) => getDomain(row.shopUrl) === domain) ?? null;
-}
-
-/**
- * Submission payload accepted from the public website.
- */
-interface CreatePublicSubmissionInput {
-  shopName: string;
-  shopUrl: string;
-  categorySuggestion: string | null;
-  region: string[];
-  shipping: string;
-  description: string;
-  submitterEmail: string | null;
-  submitterNote: string | null;
-}
-
-/**
- * Inserts a new public shop submission.
- *
- * @param input - Validated submission payload.
- * @returns New submission id.
- */
-export async function createPublicSubmission(input: CreatePublicSubmissionInput): Promise<number> {
-  const [submission] = await db.insert(submissions).values(input).returning({ id: submissions.id });
-  return submission.id;
-}
-
-/**
- * Inserts submission↔category links.
- *
- * Hidden behavior: no-op for empty category arrays.
- *
- * @param submissionId - Parent submission id.
- * @param categoryIds - Category ids to link.
- * @returns Resolves when links are persisted.
- */
-export async function addSubmissionCategoryLinks(
-  submissionId: number,
-  categoryIds: number[],
-): Promise<void> {
-  if (categoryIds.length === 0) {
-    return;
-  }
-
-  await db
-    .insert(submissionCategories)
-    .values(categoryIds.map((categoryId) => ({ submissionId, categoryId })));
 }
 
 /**
@@ -505,31 +460,30 @@ export async function getPublishedContentPageBySlug(slug: string) {
  * @returns `{ shopName, shopUrl, rejectionLongText, reviewedAt }` or `null` if not found.
  */
 export async function getRejectionPageByToken(token: string) {
-  const [submissionRow] = await db
-    .select({
-      shopName: submissions.shopName,
-      shopUrl: submissions.shopUrl,
-      rejectionLongText: submissions.rejectionLongText,
-      reviewedAt: submissions.reviewedAt,
-    })
-    .from(submissions)
-    .where(and(eq(submissions.rejectionToken, token), eq(submissions.status, "rejected")))
-    .limit(1);
+  const [[submissionRow], [shopRow]] = await Promise.all([
+    db
+      .select({
+        shopName: submissions.shopName,
+        shopUrl: submissions.shopUrl,
+        rejectionLongText: submissions.rejectionLongText,
+        reviewedAt: submissions.reviewedAt,
+      })
+      .from(submissions)
+      .where(and(eq(submissions.rejectionToken, token), eq(submissions.status, "rejected")))
+      .limit(1),
+    db
+      .select({
+        shopName: shops.name,
+        shopUrl: shops.url,
+        rejectionLongText: shops.rejectionLongText,
+        reviewedAt: shops.updatedAt,
+      })
+      .from(shops)
+      .where(and(eq(shops.rejectionToken, token), eq(shops.visibility, "rejected")))
+      .limit(1),
+  ]);
 
-  if (submissionRow) return submissionRow;
-
-  const [shopRow] = await db
-    .select({
-      shopName: shops.name,
-      shopUrl: shops.url,
-      rejectionLongText: shops.rejectionLongText,
-      reviewedAt: shops.updatedAt,
-    })
-    .from(shops)
-    .where(and(eq(shops.rejectionToken, token), eq(shops.visibility, "rejected")))
-    .limit(1);
-
-  return shopRow ?? null;
+  return submissionRow ?? shopRow ?? null;
 }
 
 /**
@@ -602,23 +556,9 @@ export async function insertDeadLinkReport(shopId: number, ipHash: string): Prom
     .where(and(eq(deadLinkReports.shopId, shopId), eq(deadLinkReports.ipHash, ipHash)))
     .limit(1);
 
-  if (existing) return;
-
-  await db.insert(deadLinkReports).values({ shopId, ipHash });
-}
-
-/**
- * Counts dead-link reports for one shop.
- *
- * @param shopId - Shop id.
- * @returns Number of reports.
- */
-export async function countDeadLinkReportsForShop(shopId: number): Promise<number> {
-  const [row] = await db
-    .select({ reportCount: count(deadLinkReports.id) })
-    .from(deadLinkReports)
-    .where(eq(deadLinkReports.shopId, shopId));
-  return row?.reportCount ?? 0;
+  if (!existing) {
+    await db.insert(deadLinkReports).values({ shopId, ipHash });
+  }
 }
 
 /**
@@ -656,43 +596,47 @@ export async function setShopLikeState(
   liked: boolean,
 ): Promise<ShopLikeTransition> {
   return db.transaction(async (tx) => {
-    const [shop] = await tx
-      .select({ id: shops.id })
-      .from(shops)
-      .where(and(eq(shops.id, shopId), eq(shops.visibility, "public")))
-      .limit(1);
-
-    if (!shop) return "not_found";
-
-    if (liked) {
+    async function applyLikedState(): Promise<ShopLikeTransition> {
       const inserted = await tx
         .insert(shopLikes)
         .values({ shopId, visitorKey })
         .onConflictDoNothing()
         .returning({ shopId: shopLikes.shopId });
 
-      if (inserted.length === 0) return "unchanged";
+      const changed = inserted.length > 0;
+      if (changed) {
+        await tx
+          .update(shops)
+          .set({ likeCount: sql`like_count + 1` })
+          .where(eq(shops.id, shopId));
+      }
 
-      await tx
-        .update(shops)
-        .set({ likeCount: sql`like_count + 1` })
-        .where(eq(shops.id, shopId));
-
-      return "liked";
+      return changed ? "liked" : "unchanged";
     }
 
-    const deleted = await tx
-      .delete(shopLikes)
-      .where(and(eq(shopLikes.shopId, shopId), eq(shopLikes.visitorKey, visitorKey)))
-      .returning({ shopId: shopLikes.shopId });
+    async function applyUnlikedState(): Promise<ShopLikeTransition> {
+      const deleted = await tx
+        .delete(shopLikes)
+        .where(and(eq(shopLikes.shopId, shopId), eq(shopLikes.visitorKey, visitorKey)))
+        .returning({ shopId: shopLikes.shopId });
 
-    if (deleted.length === 0) return "unchanged";
+      const changed = deleted.length > 0;
+      if (changed) {
+        await tx
+          .update(shops)
+          .set({ likeCount: sql`GREATEST(like_count - 1, 0)` })
+          .where(eq(shops.id, shopId));
+      }
 
-    await tx
-      .update(shops)
-      .set({ likeCount: sql`GREATEST(like_count - 1, 0)` })
-      .where(eq(shops.id, shopId));
+      return changed ? "unliked" : "unchanged";
+    }
 
-    return "unliked";
+    const [shop] = await tx
+      .select({ id: shops.id })
+      .from(shops)
+      .where(and(eq(shops.id, shopId), eq(shops.visibility, "public")))
+      .limit(1);
+
+    return shop ? (liked ? applyLikedState() : applyUnlikedState()) : "not_found";
   });
 }

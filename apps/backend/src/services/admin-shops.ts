@@ -5,7 +5,7 @@ import {
   hydrateShopOgImageInBackground,
 } from "./preview-images.js";
 import { validateShopUrl } from "./public.js";
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { categories } from "../db/schema.js";
 import { failure, success } from "../lib/result.js";
 import { mapShopJsonToShopData } from "../lib/shopjson-mapper.js";

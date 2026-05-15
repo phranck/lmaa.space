@@ -1,6 +1,6 @@
 import { count, eq, getTableColumns } from "drizzle-orm";
 
-import { db } from "../db/index.js";
+import { db } from "../db/client.js";
 import { type Category, categories, shopCategories, shops } from "../db/schema.js";
 
 /**
@@ -98,22 +98,16 @@ export async function categoryExists(id: number): Promise<boolean> {
   return Boolean(category);
 }
 
-export async function setAdminCategoryFocalPoint(id: number, focalPointY: number): Promise<Category | null> {
+export async function setAdminCategoryFocalPoint(
+  id: number,
+  focalPointY: number,
+): Promise<Category | null> {
   const [category] = await db
     .update(categories)
     .set({ imageFocalPointY: focalPointY, updatedAt: new Date() })
     .where(eq(categories.id, id))
     .returning();
   return category ?? null;
-}
-
-export async function getCategoryUnsplashImageId(id: number): Promise<number | null> {
-  const [row] = await db
-    .select({ unsplashImageId: categories.unsplashImageId })
-    .from(categories)
-    .where(eq(categories.id, id))
-    .limit(1);
-  return row?.unsplashImageId ?? null;
 }
 
 /**
