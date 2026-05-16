@@ -55,4 +55,46 @@ describe("renderMarkdown", () => {
     expect(html).toContain("[[hls:/uploads/movie.mp4]]");
     expect(html).not.toContain("js-hls-player");
   });
+
+  it("renders YouTube shortcodes from short URLs", async () => {
+    const html = await renderMarkdown(
+      '[[youtube:https://youtu.be/dQw4w9WgXcQ title="Launch video" caption="Watch this" aspect="9/16"]]',
+    );
+
+    expect(html).toContain('class="md-video md-youtube"');
+    expect(html).toContain('class="md-youtube-frame"');
+    expect(html).toContain('class="md-youtube-player"');
+    expect(html).toContain('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"');
+    expect(html).toContain('title="Launch video"');
+    expect(html).toContain('allowfullscreen');
+    expect(html).toContain('style="--md-video-aspect-ratio:9 / 16;"');
+    expect(html).toContain("<figcaption>Watch this</figcaption>");
+  });
+
+  it("renders YouTube shortcodes from watch and embed URLs", async () => {
+    const watchHtml = await renderMarkdown(
+      "[[youtube:https://www.youtube.com/watch?v=dQw4w9WgXcQ&si=share]]",
+    );
+    const embedHtml = await renderMarkdown(
+      "[[youtube:https://www.youtube.com/embed/dQw4w9WgXcQ]]",
+    );
+
+    expect(watchHtml).toContain('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"');
+    expect(embedHtml).toContain('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"');
+  });
+
+  it("renders YouTube shortcodes with media aliases", async () => {
+    const html = await renderMarkdown("[[youtube:launch-video]]", {
+      "launch-video": "https://www.youtube.com/shorts/dQw4w9WgXcQ",
+    });
+
+    expect(html).toContain('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"');
+  });
+
+  it("does not render unsafe YouTube URLs", async () => {
+    const html = await renderMarkdown("[[youtube:https://example.com/watch?v=dQw4w9WgXcQ]]");
+
+    expect(html).toContain("[[youtube:https://example.com/watch?v=dQw4w9WgXcQ]]");
+    expect(html).not.toContain("md-youtube-player");
+  });
 });
