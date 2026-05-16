@@ -116,7 +116,8 @@ dialog[data-animated].is-closing > div {
   margin: 2rem 0;
 }
 
-.md-video-frame {
+.md-video-frame,
+.md-youtube-frame {
   position: relative;
   width: 100%;
   max-width: 100%;
@@ -129,13 +130,18 @@ dialog[data-animated].is-closing > div {
     0 4px 16px rgba(8, 13, 28, 0.1);
 }
 
-.md-video video {
+.md-video video,
+.md-youtube-player {
   display: block;
   width: 100%;
   height: 100%;
   margin: 0;
+  border: 0;
   border-radius: inherit;
   background: #080a14;
+}
+
+.md-video video {
   object-fit: cover;
 }
 

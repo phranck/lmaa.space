@@ -72,7 +72,7 @@ type MarkdownShortcodeToken = {
   html: string;
 };
 
-type MarkdownShortcodeKind = "widget" | "image" | "pdf" | "hls";
+type MarkdownShortcodeKind = "widget" | "image" | "pdf" | "hls" | "youtube";
 
 type MarkdownMediaAlias =
   | string
@@ -122,6 +122,41 @@ function isHlsManifestPath(pathOrUrl: string): boolean {
   } catch {
     return pathOrUrl.split(/[?#]/)[0]?.toLowerCase().endsWith(".m3u8") ?? false;
   }
+}
+
+function getYoutubeVideoId(raw: string): string | null {
+  const value = raw.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(value)) {
+    return value;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return null;
+  }
+
+  if (parsed.protocol !== "https:") return null;
+
+  const hostname = parsed.hostname.toLowerCase();
+  const pathSegments = parsed.pathname.split("/").filter(Boolean);
+  const candidate =
+    hostname === "youtu.be"
+      ? pathSegments[0]
+      : hostname === "youtube-nocookie.com" || hostname.endsWith(".youtube-nocookie.com")
+        ? pathSegments[0] === "embed"
+          ? pathSegments[1]
+          : null
+        : hostname === "youtube.com" || hostname.endsWith(".youtube.com")
+          ? parsed.pathname === "/watch"
+            ? parsed.searchParams.get("v")
+            : pathSegments[0] === "embed" || pathSegments[0] === "shorts"
+              ? pathSegments[1]
+              : null
+          : null;
+
+  return candidate && /^[a-zA-Z0-9_-]{11}$/.test(candidate) ? candidate : null;
 }
 
 function getMediaAliasUrl(alias: MarkdownMediaAlias | undefined): string | null {
@@ -222,6 +257,34 @@ function renderHlsShortcode(
   return `<figure class="md-video"${styleAttr}>${frame}<figcaption>${escapeHtml(caption)}</figcaption></figure>`;
 }
 
+function renderYoutubeShortcode(
+  target: string,
+  attrs: Record<string, string>,
+  aliases?: MarkdownMediaAliases,
+): string {
+  const srcTarget = getMediaAliasUrl(aliases?.[target]) ?? target;
+  const videoId = getYoutubeVideoId(srcTarget);
+  if (!videoId) {
+    return escapeHtml(`[[youtube:${target}]]`);
+  }
+
+  const title = attrs.title?.trim() || "YouTube video";
+  const caption = attrs.caption?.trim();
+  const aspectRatio = getSafeAspectRatio(attrs.aspect);
+  const styleAttr = aspectRatio
+    ? ` style="--md-video-aspect-ratio:${escapeHtmlAttribute(aspectRatio)};"`
+    : "";
+  const embedSrc = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+  const iframe = `<iframe class="md-youtube-player" src="${embedSrc}" title="${escapeHtmlAttribute(title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  const frame = `<div class="md-youtube-frame">${iframe}</div>`;
+
+  if (!caption) {
+    return `<figure class="md-video md-youtube"${styleAttr}>${frame}</figure>`;
+  }
+
+  return `<figure class="md-video md-youtube"${styleAttr}>${frame}<figcaption>${escapeHtml(caption)}</figcaption></figure>`;
+}
+
 function extractShortcodes(
   content: string,
   aliases?: MarkdownMediaAliases,
@@ -230,7 +293,7 @@ function extractShortcodes(
   let index = 0;
 
   const nextContent = content.replace(
-    /\[\[(widget|image|pdf|hls):([^\]\s]+)([^\]]*)\]\]/g,
+    /\[\[(widget|image|pdf|hls|youtube):([^\]\s]+)([^\]]*)\]\]/g,
     (_match, kind: MarkdownShortcodeKind, rawTarget: string, attrsInput: string) => {
       const alias = kind !== "widget" ? aliases?.[rawTarget] : undefined;
       const target = getMediaAliasUrl(alias) ?? rawTarget;
@@ -246,7 +309,9 @@ function extractShortcodes(
             ? renderImageShortcode(target, attrs)
             : kind === "pdf"
               ? renderPdfShortcode(target, attrs)
-              : renderHlsShortcode(target, attrs, aliases, fallbackPoster);
+              : kind === "hls"
+                ? renderHlsShortcode(target, attrs, aliases, fallbackPoster)
+                : renderYoutubeShortcode(rawTarget, attrs, aliases);
 
       tokens.push({ placeholder, html });
       return `\n\n${placeholder}\n\n`;

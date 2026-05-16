@@ -180,6 +180,7 @@ function HintsBar() {
         <span className="font-mono">[[image:/uploads/...]]</span>
         <span className="font-mono">[[pdf:/uploads/...]]</span>
         <span className="font-mono">[[hls:alias]]</span>
+        <span className="font-mono">[[youtube:url]]</span>
       </div>
     </div>
   );
