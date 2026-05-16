@@ -9,13 +9,14 @@
 import { defineMiddleware } from "astro:middleware";
 
 const STORAGE_CSP_ORIGIN = "https://storage-prg1.zerops.io";
+const YOUTUBE_EMBED_CSP_ORIGIN = "https://www.youtube-nocookie.com";
 
 const WEBSITE_CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "frame-src 'self'",
+  `frame-src 'self' ${YOUTUBE_EMBED_CSP_ORIGIN}`,
   "script-src 'self' 'unsafe-inline' https://umami.layered.work https://unpkg.com",
   "style-src 'self' 'unsafe-inline' https://unpkg.com",
   "img-src 'self' data: https:",
