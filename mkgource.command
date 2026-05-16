@@ -7,8 +7,8 @@
 --audio-fade-in 0.25 \
 --audio-fade-out 3.5 \
 --animation-font "Roboto" \
---animation-font-size 17 \
---animation-font-color 999999 \
+--animation-font-size 10 \
+--animation-font-color 55555 \
 --date-format "%A, %d.%m.%Y %R" \
 --title "LMAA SPACE" \
 --title-font Orbitron \
@@ -27,7 +27,7 @@
 --outro-crossfade 0.75 \
 --elapsed-time \
 --elapsed-time-font Roboto \
---elapsed-time-color FFFFFF@0.35 \
+--elapsed-time-color 555555 \
 --elapsed-time-font-size 18 \
 --elapsed-time-margin 10
 
