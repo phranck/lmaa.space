@@ -1,12 +1,15 @@
 ./mkgource \
---hls-only \
---hls-output ~/Desktop/lmaa-history \
+--output ~/Desktop/lmaa-history.mp4 \
+--no-hls \
 --poster-time 5 \
 --no-key \
---viewport 1440p \
+--viewport 2160p \
 --audio-fade-in 0.25 \
 --audio-fade-out 3.5 \
 --animation-font "Roboto" \
+--animation-font-size 17 \
+--animation-font-color 999999 \
+--date-format "%A, %d.%m.%Y %R" \
 --title "LMAA SPACE" \
 --title-font Orbitron \
 --title-fade-in 5 \
