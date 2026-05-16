@@ -155,29 +155,32 @@ dialog[data-animated].is-closing > div {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   cursor: pointer;
-}
-
-.md-video-maximize {
-  top: 0.75rem;
-  right: 0.75rem;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-0.25rem) scale(0.96);
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
   transition:
     opacity 180ms ease,
     transform 180ms ease,
     background-color 180ms ease;
 }
 
-.md-video-frame:hover .md-video-maximize,
-.md-video-frame:focus-within .md-video-maximize {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0) scale(1);
+.md-video-maximize {
+  top: 0.75rem;
+  right: 0.75rem;
 }
 
-@media (hover: none) {
-  .md-video-maximize {
+@media (hover: hover) and (pointer: fine) {
+  .md-video-maximize,
+  .md-video-close {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-0.25rem) scale(0.96);
+  }
+
+  .md-video-frame:hover .md-video-maximize,
+  .md-video-maximize:focus-visible,
+  .md-video-frame.is-zoomed:hover .md-video-close,
+  .md-video-close:focus-visible {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0) scale(1);

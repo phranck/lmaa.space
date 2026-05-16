@@ -136,6 +136,51 @@ function closeVideoZoom() {
   );
 }
 
+function isEditableShortcutTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  const tagName = target.tagName;
+  return (
+    target.isContentEditable ||
+    tagName === "INPUT" ||
+    tagName === "TEXTAREA" ||
+    tagName === "SELECT"
+  );
+}
+
+function isVideoZoomToggleKey(event: KeyboardEvent) {
+  return (
+    event.key.toLowerCase() === "f" &&
+    !event.altKey &&
+    !event.ctrlKey &&
+    !event.metaKey
+  );
+}
+
+function getVideoZoomFrameForShortcut(target: EventTarget | null) {
+  if (target instanceof Element) {
+    const focusedFrame = target.closest<HTMLElement>(".md-video-frame");
+    if (focusedFrame) return focusedFrame;
+  }
+
+  return document.querySelector<HTMLElement>(".md-video-frame:hover");
+}
+
+function handleVideoZoomShortcut(event: KeyboardEvent) {
+  if (!isVideoZoomToggleKey(event) || isEditableShortcutTarget(event.target)) return;
+
+  if (activeZoom) {
+    event.preventDefault();
+    closeVideoZoom();
+    return;
+  }
+
+  const frame = getVideoZoomFrameForShortcut(event.target);
+  if (!frame) return;
+
+  event.preventDefault();
+  openVideoZoom(frame);
+}
+
 function openVideoZoom(frame: HTMLElement) {
   if (activeZoom) {
     closeVideoZoom();
@@ -219,6 +264,8 @@ if (document.readyState === "loading") {
   initHlsPlayers();
   initVideoZoomControls();
 }
+
+window.addEventListener("keydown", handleVideoZoomShortcut);
 
 document.addEventListener("astro:page-load", () => {
   initHlsPlayers();
