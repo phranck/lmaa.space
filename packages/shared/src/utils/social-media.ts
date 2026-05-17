@@ -73,6 +73,58 @@ function isXHost(host: string): boolean {
   return host === "x.com" || host === "twitter.com" || host.endsWith(".x.com") || host.endsWith(".twitter.com");
 }
 
+function isTumblrHost(host: string): boolean {
+  return host === "tumblr.com" || host.endsWith(".tumblr.com");
+}
+
+const LINKEDIN_RESERVED_PATHS = new Set([
+  "in",
+  "company",
+  "school",
+  "groups",
+  "learning",
+  "jobs",
+  "posts",
+  "pulse",
+  "feed",
+  "me",
+  "notifications",
+  "messaging",
+  "mynetwork",
+  "events",
+  "services",
+  "pages",
+  "help",
+  "pricing",
+  "login",
+  "signup",
+  "news",
+  "careers",
+  "legal",
+  "terms",
+  "policies",
+  "products",
+  "ads",
+  "marketing",
+  "premium",
+  "recruiter",
+  "search",
+  "profile",
+  "settings",
+  "security",
+  "privacy",
+  "account",
+  "today",
+  "showcase",
+  "influencer",
+  "talent",
+  "business",
+  "sales",
+  "mobile",
+  "pub",
+  "public-profile",
+]);
+
 function extractPathUser(url: URL): string {
   return stripTrailingSlash(url.pathname).split("/").pop() ?? "";
 }
@@ -236,15 +288,24 @@ function normalizeTumblr(input: string): string | null {
   const url = tryParseUrl(trimmed);
   if (url) {
     const host = stripWww(url.hostname);
+
+    // Subdomain form: <user>.tumblr.com (canonical Tumblr profile URL)
+    if (host.endsWith(".tumblr.com")) {
+      const user = host.slice(0, -".tumblr.com".length);
+      if (!user) return null;
+      return `https://${user}.tumblr.com`;
+    }
+
+    // Path form: tumblr.com/<user> → normalize to subdomain form
     if (host !== "tumblr.com") return null;
     const user = extractPathUser(url);
     if (!user) return null;
-    return `https://tumblr.com/${user}`;
+    return `https://${user}.tumblr.com`;
   }
 
   const handle = stripLeadingAt(trimmed);
-  if (!handle || handle.includes("/")) return null;
-  return `https://tumblr.com/${handle}`;
+  if (!handle || handle.includes("/") || handle.includes(".")) return null;
+  return `https://${handle}.tumblr.com`;
 }
 
 function normalizeLinkedin(input: string): string | null {
@@ -260,6 +321,12 @@ function normalizeLinkedin(input: string): string | null {
     // /in/slug or /company/slug
     if (path.startsWith("/in/") || path.startsWith("/company/")) {
       return `https://linkedin.com${path}`;
+    }
+
+    // Vanity path: linkedin.com/<slug> → linkedin.com/in/<slug>
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length === 1 && !LINKEDIN_RESERVED_PATHS.has(segments[0].toLowerCase())) {
+      return `https://linkedin.com/in/${segments[0]}`;
     }
     return null;
   }
@@ -554,6 +621,7 @@ export function detectPlatformFromUrl(input: string): SocialPlatformKey | null {
   if (isFacebookHost(host)) return "facebook";
   if (isLinkedinHost(host)) return "linkedin";
   if (isXHost(host)) return "x";
+  if (isTumblrHost(host)) return "tumblr";
 
   if (isPinterestHost(host)) return "pinterest";
 
