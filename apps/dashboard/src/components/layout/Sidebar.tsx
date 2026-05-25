@@ -868,6 +868,15 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
+                  <NavLink to="/system/redirect-urls" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<LinkIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.redirectUrls}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
                   <NavLink to="/social-media/accounts" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item

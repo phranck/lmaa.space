@@ -34,3 +34,5 @@ export * from "./footer-config";
 export * from "./admin-markdown-widgets";
 /** Submission domain alert rule schemas. */
 export * from "./domain-alert-rules";
+/** Public redirect URL schemas. */
+export * from "./redirect-urls";

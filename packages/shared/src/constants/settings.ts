@@ -5,6 +5,7 @@ export const SETTINGS_KEYS = {
   NOTIFY_SHOP_SUBMISSION_ENABLED: "notifications.newShopSubmission.enabled",
   NOTIFY_SHOP_SUBMISSION_TEMPLATE_ID: "notifications.newShopSubmission.templateId",
   DOMAIN_ALERT_RULES: "submission.domainAlertRules",
+  REDIRECT_URLS: "system.redirectUrls",
 } as const;
 
 export type SettingsKey = (typeof SETTINGS_KEYS)[keyof typeof SETTINGS_KEYS];
@@ -18,8 +19,12 @@ export const SYSTEM_NOTIFICATION_SETTINGS_KEYS = [
 /** Submission-related system settings keys. */
 export const SYSTEM_SUBMISSION_SETTINGS_KEYS = [SETTINGS_KEYS.DOMAIN_ALERT_RULES] as const;
 
+/** Redirect-related system settings keys. */
+export const SYSTEM_REDIRECT_SETTINGS_KEYS = [SETTINGS_KEYS.REDIRECT_URLS] as const;
+
 /** All keys exposed to the system settings UI. */
 export const SYSTEM_SETTINGS_KEYS = [
   ...SYSTEM_NOTIFICATION_SETTINGS_KEYS,
   ...SYSTEM_SUBMISSION_SETTINGS_KEYS,
+  ...SYSTEM_REDIRECT_SETTINGS_KEYS,
 ] as const;

@@ -140,19 +140,19 @@ const EmailTemplateEditPage = lazy(() =>
 );
 
 const SocialMediaPostTemplateListPage = lazy(() =>
-  import(
-    "@/features/templates/social-media-post-templates/SocialMediaPostTemplateListPage.tsx"
-  ).then((m) => ({
-    default: m.SocialMediaPostTemplateListPage,
-  })),
+  import("@/features/templates/social-media-post-templates/SocialMediaPostTemplateListPage.tsx").then(
+    (m) => ({
+      default: m.SocialMediaPostTemplateListPage,
+    }),
+  ),
 );
 
 const SocialMediaPostTemplateEditPage = lazy(() =>
-  import(
-    "@/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx"
-  ).then((m) => ({
-    default: m.SocialMediaPostTemplateEditPage,
-  })),
+  import("@/features/templates/social-media-post-templates/SocialMediaPostTemplateEditPage.tsx").then(
+    (m) => ({
+      default: m.SocialMediaPostTemplateEditPage,
+    }),
+  ),
 );
 
 const FooterBuilderPage = lazy(() =>
@@ -170,6 +170,12 @@ const SystemSettingsPage = lazy(() =>
 const BackgroundErrorsPage = lazy(() =>
   import("@/features/system/BackgroundErrorsPage.tsx").then((m) => ({
     default: m.BackgroundErrorsPage,
+  })),
+);
+
+const RedirectUrlsPage = lazy(() =>
+  import("@/features/system/RedirectUrlsPage.tsx").then((m) => ({
+    default: m.RedirectUrlsPage,
   })),
 );
 
@@ -422,6 +428,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <SystemSettingsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="system/redirect-urls"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <RedirectUrlsPage />
                   </Suspense>
                 }
               />
