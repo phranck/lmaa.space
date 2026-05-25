@@ -66,6 +66,7 @@ export interface DashboardMessages {
       footerBuilder: string;
       markdownWidgets: string;
       systemSettings: string;
+      redirectUrls: string;
       socialMediaAccounts: string;
       backgroundErrors: string;
       expandAll: string;
@@ -1188,6 +1189,39 @@ export interface DashboardMessages {
         tableColumnActions: string;
       };
     };
+    redirectUrls: {
+      title: string;
+      hint: string;
+      newRedirect: string;
+      emptyTitle: string;
+      emptyHint: string;
+      active: string;
+      inactive: string;
+      defaultName: string;
+      nameLabel: string;
+      nameHint: string;
+      targetUrlLabel: string;
+      targetUrlHint: string;
+      publicUrlLabel: string;
+      enabledLabel: string;
+      deleteRedirect: string;
+      editRedirect: string;
+      copyPublicUrl: string;
+      validationError: string;
+      nameRequired: string;
+      nameDuplicate: string;
+      targetUrlInvalid: string;
+      createRedirect: string;
+      saveRedirect: string;
+      saveError: string;
+      dialogCreateTitle: string;
+      dialogEditTitle: string;
+      tableColumnName: string;
+      tableColumnPublicUrl: string;
+      tableColumnTargetUrl: string;
+      tableColumnStatus: string;
+      tableColumnActions: string;
+    };
     backgroundErrors: {
       title: string;
       columnSource: string;
@@ -1280,6 +1314,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer-Builder",
         markdownWidgets: "Markdown Widgets",
         systemSettings: "Einstellungen",
+        redirectUrls: "Redirect URLs",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Hintergrundfehler",
         expandAll: "Alles aufklappen",
@@ -2454,6 +2489,39 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           tableColumnActions: "",
         },
       },
+      redirectUrls: {
+        title: "Redirect URLs",
+        hint: "Lege kurze interne URLs an, die öffentlich unter /r/name auf eine Ziel-URL weiterleiten.",
+        newRedirect: "Neue Redirect URL",
+        emptyTitle: "Noch keine Redirect URLs.",
+        emptyHint: "Lege die erste interne URL mit Ziel-URL an.",
+        active: "aktiv",
+        inactive: "aus",
+        defaultName: "neue-redirect-url",
+        nameLabel: "Interner URL-Name",
+        nameHint: "Kleinbuchstaben, Zahlen und Bindestriche. Wird als /r/name veröffentlicht.",
+        targetUrlLabel: "Ziel-URL",
+        targetUrlHint: "Absolute http(s)-URL, z.B. https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        publicUrlLabel: "Öffentliche Redirect-URL",
+        enabledLabel: "Aktiviert",
+        deleteRedirect: "Löschen",
+        editRedirect: "Bearbeiten",
+        copyPublicUrl: "Redirect-URL kopieren",
+        validationError: "Bitte prüfe die markierten Angaben vor dem Speichern.",
+        nameRequired: "Bitte einen gültigen internen URL-Namen angeben.",
+        nameDuplicate: "Dieser interne URL-Name wird bereits verwendet.",
+        targetUrlInvalid: "Bitte eine gültige http(s)-Ziel-URL angeben.",
+        createRedirect: "Anlegen",
+        saveRedirect: "Speichern",
+        saveError: "Fehler beim Speichern. Bitte erneut versuchen.",
+        dialogCreateTitle: "{name} anlegen",
+        dialogEditTitle: "{name} bearbeiten",
+        tableColumnName: "Name",
+        tableColumnPublicUrl: "Redirect URL",
+        tableColumnTargetUrl: "Ziel-URL",
+        tableColumnStatus: "Status",
+        tableColumnActions: "",
+      },
       backgroundErrors: {
         title: "Hintergrundfehler",
         columnSource: "Quelle",
@@ -2542,6 +2610,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         footerBuilder: "Footer Builder",
         markdownWidgets: "Markdown Widgets",
         systemSettings: "Settings",
+        redirectUrls: "Redirect URLs",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Background Errors",
         expandAll: "Expand all",
@@ -3707,6 +3776,39 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           tableColumnStatus: "Status",
           tableColumnActions: "",
         },
+      },
+      redirectUrls: {
+        title: "Redirect URLs",
+        hint: "Create short internal URLs that publicly redirect from /r/name to a target URL.",
+        newRedirect: "New Redirect URL",
+        emptyTitle: "No Redirect URLs yet.",
+        emptyHint: "Create the first internal URL with a target URL.",
+        active: "active",
+        inactive: "off",
+        defaultName: "new-redirect-url",
+        nameLabel: "Internal URL name",
+        nameHint: "Lowercase letters, numbers and hyphens. Published as /r/name.",
+        targetUrlLabel: "Target URL",
+        targetUrlHint: "Absolute http(s) URL, e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        publicUrlLabel: "Public redirect URL",
+        enabledLabel: "Enabled",
+        deleteRedirect: "Delete",
+        editRedirect: "Edit",
+        copyPublicUrl: "Copy redirect URL",
+        validationError: "Please check the highlighted fields before saving.",
+        nameRequired: "Please enter a valid internal URL name.",
+        nameDuplicate: "This internal URL name is already in use.",
+        targetUrlInvalid: "Please enter a valid http(s) target URL.",
+        createRedirect: "Create",
+        saveRedirect: "Save",
+        saveError: "Error saving. Please try again.",
+        dialogCreateTitle: "Create {name}",
+        dialogEditTitle: "Edit {name}",
+        tableColumnName: "Name",
+        tableColumnPublicUrl: "Redirect URL",
+        tableColumnTargetUrl: "Target URL",
+        tableColumnStatus: "Status",
+        tableColumnActions: "",
       },
       backgroundErrors: {
         title: "Background Errors",

@@ -30,9 +30,7 @@ function resolveDashboardOriginForCsp(): string {
   const explicit = process.env.DASHBOARD_URL?.trim();
   if (explicit) return explicit;
   if (process.env.NODE_ENV === "production") return "https://dashboard.lmaa.space";
-  throw new Error(
-    "Missing DASHBOARD_URL. Define it in .env.local — manually or via pewee.",
-  );
+  throw new Error("Missing DASHBOARD_URL. Define it in .env.local — manually or via pewee.");
 }
 
 function buildFooterPreviewCsp(): string {
@@ -63,8 +61,7 @@ function isLoopbackHost(hostname: string): boolean {
 }
 
 function resolveBackendOrigin(): string {
-  const value =
-    process.env.BACKEND_URL?.trim() || process.env.API_URL?.trim();
+  const value = process.env.BACKEND_URL?.trim() || process.env.API_URL?.trim();
 
   if (!value) {
     throw new Error(
@@ -105,7 +102,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 
   if (!shouldProxy(pathname)) {
-    const response = await next();
+    const originalResponse = await next();
+    const response = new Response(originalResponse.body, originalResponse);
     if (!response.headers.has("Content-Security-Policy")) {
       response.headers.set(
         "Content-Security-Policy",
