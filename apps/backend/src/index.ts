@@ -22,6 +22,7 @@ import { startRateLimitCleanupJob } from "./middleware/rate-limit.js";
 import { requestId } from "./middleware/request-id.js";
 import { adminRoutes } from "./routes/admin/routes.js";
 import { publicRoutes } from "./routes/public.js";
+import { redirectUrlRoutes } from "./routes/redirect-urls.js";
 import { sitemapRoutes } from "./routes/sitemap.js";
 import { startSessionCleanupJob } from "./services/sessions.js";
 import { startReminderScheduler } from "./services/shop-reminders.js";
@@ -93,6 +94,7 @@ app.use("*", async (c, next) => {
 });
 
 app.route("/", sitemapRoutes);
+app.route("/internal", redirectUrlRoutes);
 app.route("/api/v1", publicRoutes);
 app.route("/api/v1/admin", adminRoutes);
 

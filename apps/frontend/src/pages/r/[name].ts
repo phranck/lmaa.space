@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-import { apiGet } from "@/lib/api";
+import { apiGetInternal } from "@/lib/api";
 
 interface RedirectUrlResponse {
   targetUrl: string;
@@ -13,8 +13,8 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   try {
-    const redirect = await apiGet<RedirectUrlResponse>(
-      `/redirect-urls/${encodeURIComponent(name)}`,
+    const redirect = await apiGetInternal<RedirectUrlResponse>(
+      `/internal/redirect-urls/${encodeURIComponent(name)}`,
     );
     return Response.redirect(redirect.targetUrl, 302);
   } catch {

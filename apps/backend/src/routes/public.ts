@@ -41,7 +41,6 @@ import {
   searchFilteredPublicCatalog,
   toggleShopLike,
 } from "../services/public.js";
-import { resolveManagedRedirectUrl } from "../services/redirect-urls.js";
 import { listFooterSocialMediaAccounts } from "../services/social-media-accounts.js";
 
 /**
@@ -112,15 +111,6 @@ publicRoutes.get("/search", publicReadLimit, async (c) => {
 publicRoutes.get("/check-url", publicReadLimit, async (c) => {
   const result = await validateShopUrl(c.req.query("url"));
   return ok(c, result);
-});
-
-// GET /api/redirect-urls/:name – resolve a managed public redirect URL
-publicRoutes.get("/redirect-urls/:name", publicReadLimit, async (c) => {
-  const targetUrl = await resolveManagedRedirectUrl(c.req.param("name"));
-  if (!targetUrl) return fail(c, 404, "Redirect URL not found");
-
-  c.header("Cache-Control", "no-store");
-  return ok(c, { targetUrl });
 });
 
 // POST /api/form/:slug/submit — generic form submission

@@ -50,17 +50,12 @@ const footerPreviewMocks = vi.hoisted(() => ({
   getFooterPreviewSession: vi.fn(),
 }));
 
-const redirectUrlMocks = vi.hoisted(() => ({
-  resolveManagedRedirectUrl: vi.fn(),
-}));
-
 vi.mock("../services/public.js", () => publicServiceMocks);
 vi.mock("../services/admin-form-config.js", () => formConfigMocks);
 vi.mock("../services/admin-media.js", () => mediaMocks);
 vi.mock("../repositories/footer-config.js", () => footerMocks);
 vi.mock("../repositories/markdown-widgets.js", () => markdownMocks);
 vi.mock("../services/footer-preview-store.js", () => footerPreviewMocks);
-vi.mock("../services/redirect-urls.js", () => redirectUrlMocks);
 vi.mock("../services/form-submission.js", () => ({
   executeSubmissionChain: vi.fn(),
 }));
@@ -171,27 +166,6 @@ describe("publicRoutes", () => {
 
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ data: { status: "available" } });
-    });
-  });
-
-  describe("GET /redirect-urls/:name", () => {
-    it("resolves a managed redirect URL", async () => {
-      redirectUrlMocks.resolveManagedRedirectUrl.mockResolvedValue("https://youtu.be/dQw4w9WgXcQ");
-
-      const res = await app.request("/redirect-urls/amazon");
-
-      expect(res.status).toBe(200);
-      expect(res.headers.get("Cache-Control")).toBe("no-store");
-      expect(redirectUrlMocks.resolveManagedRedirectUrl).toHaveBeenCalledWith("amazon");
-      expect(await res.json()).toEqual({ data: { targetUrl: "https://youtu.be/dQw4w9WgXcQ" } });
-    });
-
-    it("returns 404 for unknown managed redirects", async () => {
-      redirectUrlMocks.resolveManagedRedirectUrl.mockResolvedValue(null);
-
-      const res = await app.request("/redirect-urls/missing");
-
-      expect(res.status).toBe(404);
     });
   });
 
