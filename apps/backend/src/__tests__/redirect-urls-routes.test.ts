@@ -19,14 +19,19 @@ describe("redirectUrlRoutes", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("resolves a managed redirect URL", async () => {
-    redirectUrlMocks.resolveManagedRedirectUrl.mockResolvedValue("https://youtu.be/dQw4w9WgXcQ");
+    redirectUrlMocks.resolveManagedRedirectUrl.mockResolvedValue({
+      openInNewWindow: true,
+      targetUrl: "https://youtu.be/dQw4w9WgXcQ",
+    });
 
     const res = await app.request("/internal/redirect-urls/amazon");
 
     expect(res.status).toBe(200);
     expect(res.headers.get("Cache-Control")).toBe("no-store");
     expect(redirectUrlMocks.resolveManagedRedirectUrl).toHaveBeenCalledWith("amazon");
-    expect(await res.json()).toEqual({ data: { targetUrl: "https://youtu.be/dQw4w9WgXcQ" } });
+    expect(await res.json()).toEqual({
+      data: { openInNewWindow: true, targetUrl: "https://youtu.be/dQw4w9WgXcQ" },
+    });
   });
 
   it("returns 404 for unknown managed redirects", async () => {

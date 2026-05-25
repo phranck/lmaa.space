@@ -9,6 +9,11 @@ import { getSetting } from "../repositories/app-settings.js";
 
 const EMPTY_REDIRECT_URLS_CONFIG: RedirectUrlsConfig = { redirects: [] };
 
+export interface ResolvedRedirectUrl {
+  openInNewWindow: boolean;
+  targetUrl: string;
+}
+
 /**
  * Loads the managed public redirect URL config from app settings.
  *
@@ -32,11 +37,18 @@ async function getManagedRedirectUrlsConfig(): Promise<RedirectUrlsConfig> {
  * @param nameRaw - Raw route parameter from `/r/:name`.
  * @returns Active target URL, or `null` when no redirect exists.
  */
-export async function resolveManagedRedirectUrl(nameRaw: string): Promise<string | null> {
+export async function resolveManagedRedirectUrl(
+  nameRaw: string,
+): Promise<ResolvedRedirectUrl | null> {
   const name = normalizeRedirectUrlName(nameRaw);
   if (!name) return null;
 
   const config = await getManagedRedirectUrlsConfig();
   const redirect = config.redirects.find((entry) => entry.isActive && entry.name === name);
-  return redirect?.targetUrl ?? null;
+  if (!redirect) return null;
+
+  return {
+    openInNewWindow: redirect.openInNewWindow,
+    targetUrl: redirect.targetUrl,
+  };
 }

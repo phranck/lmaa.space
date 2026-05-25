@@ -39,6 +39,7 @@ export const redirectUrlEntrySchema = z.object({
   targetUrl: z.string().trim().max(2048).refine(isHttpUrl, {
     message: "Target URL must be an absolute http(s) URL.",
   }),
+  openInNewWindow: z.boolean().default(false),
   isActive: z.boolean().default(true),
 });
 

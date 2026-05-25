@@ -1203,6 +1203,8 @@ export interface DashboardMessages {
       targetUrlLabel: string;
       targetUrlHint: string;
       publicUrlLabel: string;
+      openInNewWindowLabel: string;
+      openInNewWindowDescription: string;
       enabledLabel: string;
       deleteRedirect: string;
       editRedirect: string;
@@ -1219,8 +1221,11 @@ export interface DashboardMessages {
       tableColumnName: string;
       tableColumnPublicUrl: string;
       tableColumnTargetUrl: string;
+      tableColumnWindow: string;
       tableColumnStatus: string;
       tableColumnActions: string;
+      sameWindow: string;
+      newWindow: string;
     };
     backgroundErrors: {
       title: string;
@@ -2503,6 +2508,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         targetUrlLabel: "Ziel-URL",
         targetUrlHint: "Absolute http(s)-URL, z.B. https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         publicUrlLabel: "Öffentliche Redirect-URL",
+        openInNewWindowLabel: "In neuem Fenster öffnen",
+        openInNewWindowDescription:
+          "Versucht beim Aufruf der Redirect-URL, das Ziel in einem neuen Fenster zu öffnen.",
         enabledLabel: "Aktiviert",
         deleteRedirect: "Löschen",
         editRedirect: "Bearbeiten",
@@ -2519,8 +2527,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         tableColumnName: "Name",
         tableColumnPublicUrl: "Redirect URL",
         tableColumnTargetUrl: "Ziel-URL",
+        tableColumnWindow: "Fenster",
         tableColumnStatus: "Status",
         tableColumnActions: "",
+        sameWindow: "Selbes Fenster",
+        newWindow: "Neues Fenster",
       },
       backgroundErrors: {
         title: "Hintergrundfehler",
@@ -3791,6 +3802,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         targetUrlLabel: "Target URL",
         targetUrlHint: "Absolute http(s) URL, e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         publicUrlLabel: "Public redirect URL",
+        openInNewWindowLabel: "Open in new window",
+        openInNewWindowDescription:
+          "Attempts to open the target in a new window when the redirect URL is requested.",
         enabledLabel: "Enabled",
         deleteRedirect: "Delete",
         editRedirect: "Edit",
@@ -3807,8 +3821,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         tableColumnName: "Name",
         tableColumnPublicUrl: "Redirect URL",
         tableColumnTargetUrl: "Target URL",
+        tableColumnWindow: "Window",
         tableColumnStatus: "Status",
         tableColumnActions: "",
+        sameWindow: "Same window",
+        newWindow: "New window",
       },
       backgroundErrors: {
         title: "Background Errors",
