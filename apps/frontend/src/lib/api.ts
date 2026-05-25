@@ -11,19 +11,17 @@ function normalizeApiBase(input: string): string {
 }
 
 function resolveApiBase(): string {
-  const value =
-    process.env.BACKEND_URL?.trim() || process.env.API_URL?.trim();
+  const value = process.env.BACKEND_URL?.trim() || process.env.API_URL?.trim();
 
   if (!value) {
-    throw new Error(
-      "Missing BACKEND_URL/API_URL runtime env for frontend server.",
-    );
+    throw new Error("Missing BACKEND_URL/API_URL runtime env for frontend server.");
   }
 
   return normalizeApiBase(value);
 }
 
 const API_BASE = resolveApiBase();
+const BACKEND_ORIGIN = new URL(API_BASE).origin;
 
 /**
  * Executes a typed GET request against the backend API.
@@ -34,7 +32,20 @@ const API_BASE = resolveApiBase();
  * @throws Error when the request fails or the API answers non-2xx.
  */
 export async function apiGet<T>(path: string): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  return getJson<T>(`${API_BASE}${path}`, `API ${path}`, API_BASE);
+}
+
+/**
+ * Executes a typed GET request against a website-internal backend route.
+ *
+ * Internal routes are intentionally outside `/api/v1` and the external OpenAPI
+ * surface. Use this only from server-side Astro code.
+ */
+export async function apiGetInternal<T>(path: string): Promise<T> {
+  return getJson<T>(`${BACKEND_ORIGIN}${path}`, `Internal API ${path}`, BACKEND_ORIGIN);
+}
+
+async function getJson<T>(url: string, label: string, configuredBase: string): Promise<T> {
   const timeoutMs = import.meta.env.DEV ? DEV_FETCH_TIMEOUT_MS : PROD_FETCH_TIMEOUT_MS;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -44,13 +55,13 @@ export async function apiGet<T>(path: string): Promise<T> {
     res = await fetch(url, { signal: controller.signal });
   } catch (err) {
     throw new Error(
-      `API fetch failed for ${url} — is API_URL set correctly? (current: ${API_BASE})\n${err}`,
+      `API fetch failed for ${url} — is API_URL set correctly? (current: ${configuredBase})\n${err}`,
     );
   } finally {
     clearTimeout(timeoutId);
   }
 
-  if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
+  if (!res.ok) throw new Error(`${label}: ${res.status}`);
   const json = await res.json();
   return json.data as T;
 }
