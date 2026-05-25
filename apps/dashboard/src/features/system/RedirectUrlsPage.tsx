@@ -79,6 +79,7 @@ function createEmptyRedirect(name: string): RedirectUrlEntry {
     id: createId(),
     name: normalizeRedirectUrlName(name),
     targetUrl: "",
+    openInNewWindow: false,
     isActive: true,
   };
 }
@@ -226,6 +227,14 @@ function RedirectUrlDialog({
         />
 
         <DashboardInput label={t.publicUrlLabel} readOnly value={resolvedPublicUrl} />
+
+        <DashboardSwitchField
+          checked={draft.openInNewWindow}
+          onCheckedChange={(checked) => updateDraft({ openInNewWindow: checked })}
+          aria-label={t.openInNewWindowLabel}
+          label={t.openInNewWindowLabel}
+          description={t.openInNewWindowDescription}
+        />
       </OverlayCard.Body>
 
       <OverlayCard.Footer className="flex justify-end gap-2">
@@ -391,6 +400,15 @@ export const RedirectUrlsPage = memo(function RedirectUrlsPage() {
             title={row.targetUrl}
           >
             {row.targetUrl}
+          </span>
+        ),
+      },
+      {
+        id: "window",
+        header: t.tableColumnWindow,
+        cell: (row) => (
+          <span className="text-xs text-[var(--ds-text-muted)]">
+            {row.openInNewWindow ? t.newWindow : t.sameWindow}
           </span>
         ),
       },

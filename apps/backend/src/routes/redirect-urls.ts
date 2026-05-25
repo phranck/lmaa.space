@@ -16,9 +16,9 @@ const redirectReadLimit = rateLimit({ max: 100, windowMs: 60 * 1000 });
 
 // GET /internal/redirect-urls/:name – resolve a managed public redirect URL
 redirectUrlRoutes.get("/redirect-urls/:name", redirectReadLimit, async (c) => {
-  const targetUrl = await resolveManagedRedirectUrl(c.req.param("name"));
-  if (!targetUrl) return fail(c, 404, "Redirect URL not found");
+  const redirect = await resolveManagedRedirectUrl(c.req.param("name"));
+  if (!redirect) return fail(c, 404, "Redirect URL not found");
 
   c.header("Cache-Control", "no-store");
-  return ok(c, { targetUrl });
+  return ok(c, redirect);
 });
