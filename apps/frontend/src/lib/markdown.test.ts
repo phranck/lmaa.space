@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { renderMarkdown } from "./markdown";
+import { renderMarkdown, stripMarkdown } from "./markdown";
 
 describe("renderMarkdown", () => {
   it("renders HLS shortcodes with media aliases", async () => {
@@ -96,5 +96,31 @@ describe("renderMarkdown", () => {
 
     expect(html).toContain("[[youtube:https://example.com/watch?v=dQw4w9WgXcQ]]");
     expect(html).not.toContain("md-youtube-player");
+  });
+});
+
+describe("stripMarkdown", () => {
+  it("removes inline footnote references from plain text", () => {
+    expect(stripMarkdown("Dieses Projekt ist eine Herzenssache.[^1] [^2]")).toBe(
+      "Dieses Projekt ist eine Herzenssache.",
+    );
+  });
+
+  it("removes footnote definitions from plain text", () => {
+    const text = stripMarkdown(`Intro text with a source.[^source]
+
+[^source]: https://example.com/reference
+[^other]: Continued note
+  with extra details
+
+Outro text.`);
+
+    expect(text).toBe("Intro text with a source. Outro text.");
+  });
+
+  it("keeps regular markdown text readable", () => {
+    expect(stripMarkdown("## Title\n\n**Strong** [Link](https://example.com) `code`")).toBe(
+      "Title Strong Link code",
+    );
   });
 });
