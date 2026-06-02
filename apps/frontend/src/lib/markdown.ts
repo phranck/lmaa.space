@@ -414,5 +414,40 @@ const markedPlainText = new Marked({
  * Strips Markdown syntax via marked, returning plain text.
  */
 export function stripMarkdown(content: string): string {
-  return (markedPlainText.parse(content) as string).replace(/\s+/g, " ").trim();
+  const withoutFootnotes = stripFootnotes(content);
+  return (markedPlainText.parse(withoutFootnotes) as string).replace(/\s+/g, " ").trim();
+}
+
+function stripFootnotes(content: string): string {
+  const lines = content.split(/\r?\n/);
+  const normalized: string[] = [];
+  let inFence = false;
+  let skippingFootnoteDefinition = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (/^(```|~~~)/.test(trimmed)) {
+      inFence = !inFence;
+      normalized.push(line);
+      continue;
+    }
+
+    if (!inFence && /^\[\^[^\]]+\]:/.test(trimmed)) {
+      skippingFootnoteDefinition = true;
+      continue;
+    }
+
+    if (skippingFootnoteDefinition) {
+      if (trimmed === "" || /^(?:\s{2,}|\t)/.test(line)) {
+        continue;
+      }
+
+      skippingFootnoteDefinition = false;
+    }
+
+    normalized.push(line);
+  }
+
+  return normalized.join("\n").replace(/\[\^[^\]]+\]/g, "");
 }

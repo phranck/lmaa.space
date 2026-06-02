@@ -2,6 +2,7 @@
 import DynamicForm from "@/components/islands/DynamicForm";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
+import { stripMarkdown } from "@/lib/markdown";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
 import type { FormConfig } from "@lmaa/contracts";
 import type { Category } from "@lmaa/shared";
@@ -50,15 +51,7 @@ let description = "";
 
 if (page) {
   html = await renderMarkdown(page.content);
-  description = page.content
-    .replace(/#{1,6}\s+/g, "")
-    .replace(/\*\*(.+?)\*\*/g, "$1")
-    .replace(/\*(.+?)\*/g, "$1")
-    .replace(/\[(.+?)\]\(.+?\)/g, "$1")
-    .replace(/`(.+?)`/g, "$1")
-    .replace(/\n+/g, " ")
-    .trim()
-    .slice(0, 160);
+  description = stripMarkdown(page.content).slice(0, 160);
 }
 ---
 
