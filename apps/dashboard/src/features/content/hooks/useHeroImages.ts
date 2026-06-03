@@ -9,7 +9,6 @@ export interface HeroImage {
   photographerUrl: string;
   downloadLocation: string;
   isSelected: boolean;
-  isSocialPreview: boolean;
   focalPointY: number;
   sortOrder: number;
   createdAt: string;
@@ -69,15 +68,6 @@ export function useToggleHeroImageSelected() {
   return useMutation({
     mutationFn: ({ id, selected }: { id: number; selected: boolean }) =>
       api.patch<HeroImage>(`/admin/hero-images/${id}/select`, { selected }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
-  });
-}
-
-export function useToggleHeroImageSocialPreview() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, selected }: { id: number; selected: boolean }) =>
-      api.patch<HeroImage>(`/admin/hero-images/${id}/social-preview`, { selected }),
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
   });
 }

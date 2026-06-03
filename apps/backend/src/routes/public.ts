@@ -18,7 +18,7 @@ import { getMediaAliasMap, getMediaShortcodeAssetMap } from "../services/admin-m
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
-import { getCurrentHeroImage, getSocialPreviewImage } from "../services/hero.js";
+import { getCurrentHeroImage } from "../services/hero.js";
 import {
   validateShopUrl,
   createManagedDeadLinkReport,
@@ -42,6 +42,7 @@ import {
   toggleShopLike,
 } from "../services/public.js";
 import { listFooterSocialMediaAccounts } from "../services/social-media-accounts.js";
+import { getSocialPreviewImage } from "../services/social-preview-images.js";
 
 /**
  * Public API routes consumed by the website and external clients.

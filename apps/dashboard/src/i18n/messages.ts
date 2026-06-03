@@ -67,6 +67,7 @@ export interface DashboardMessages {
       markdownWidgets: string;
       systemSettings: string;
       redirectUrls: string;
+      socialPreview: string;
       socialMediaAccounts: string;
       backgroundErrors: string;
       expandAll: string;
@@ -414,13 +415,9 @@ export interface DashboardMessages {
       imagePoolEmpty: string;
       imagePoolHint: string;
       selectedBadge: string;
-      socialPreviewBadge: string;
       markSelected: string;
       markDeselected: string;
       markActive: string;
-      markSocialPreview: string;
-      clearSocialPreview: string;
-      socialPreviewHint: string;
       removeImage: string;
       removeConfirmTitle: string;
       removeConfirmDescription: string;
@@ -1231,6 +1228,57 @@ export interface DashboardMessages {
       sameWindow: string;
       newWindow: string;
     };
+    socialPreview: {
+      title: string;
+      editorTitle: string;
+      chooseBackground: string;
+      addText: string;
+      addImage: string;
+      keyboardHint: string;
+      savedTitle: string;
+      emptyTitle: string;
+      emptyHint: string;
+      activeBadge: string;
+      setActive: string;
+      openImage: string;
+      deleteImage: string;
+      outputTitle: string;
+      nameLabel: string;
+      formatLabel: string;
+      qualityLabel: string;
+      targetSizeLabel: string;
+      targetSizeHint: string;
+      targetSizePngHint: string;
+      previewMeta: string;
+      selectionTitle: string;
+      backgroundColor: string;
+      backgroundZoom: string;
+      backgroundOffsetX: string;
+      backgroundOffsetY: string;
+      noSelection: string;
+      textLayer: string;
+      imageLayer: string;
+      deleteLayer: string;
+      width: string;
+      height: string;
+      rotation: string;
+      opacity: string;
+      textContent: string;
+      fontFamily: string;
+      textColor: string;
+      fontSize: string;
+      fontWeight: string;
+      fontStyle: string;
+      align: string;
+      alignLeft: string;
+      alignCenter: string;
+      alignRight: string;
+      lineHeight: string;
+      letterSpacing: string;
+      saveAndActivate: string;
+      deleteConfirmTitle: string;
+      deleteConfirmDescription: string;
+    };
     backgroundErrors: {
       title: string;
       columnSource: string;
@@ -1324,6 +1372,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
+        socialPreview: "Social Media Preview",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Hintergrundfehler",
         expandAll: "Alles aufklappen",
@@ -1611,14 +1660,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imagePoolHint:
           "Füge Bilder aus Unsplash hinzu. Markierte Bilder werden auf der Startseite rotiert.",
         selectedBadge: "Aktiv",
-        socialPreviewBadge: "Social Preview",
         markSelected: "Für Rotation aktivieren",
         markDeselected: "Aus Rotation entfernen",
         markActive: "Als aktives Bild setzen",
-        markSocialPreview: "Als Social-Preview setzen",
-        clearSocialPreview: "Social-Preview entfernen",
-        socialPreviewHint:
-          "Das Social-Preview-Bild wird als Open-Graph- und Twitter-Bild verwendet, wenn ein Link zur Website geteilt wird.",
         removeImage: "Entfernen",
         removeConfirmTitle: "Bild entfernen?",
         removeConfirmDescription: "Das Bild wird aus der Sammlung gelöscht.",
@@ -2542,6 +2586,60 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         sameWindow: "Selbes Fenster",
         newWindow: "Neues Fenster",
       },
+      socialPreview: {
+        title: "Social Media Preview",
+        editorTitle: "Editor",
+        chooseBackground: "Grundbild wählen",
+        addText: "Text hinzufügen",
+        addImage: "Bild hinzufügen",
+        keyboardHint:
+          "Ausgewählte Objekte lassen sich per Pfeiltasten bewegen. Shift + Pfeiltaste bewegt in größeren Schritten.",
+        savedTitle: "Gespeicherte Preview-Bilder",
+        emptyTitle: "Noch keine Social-Media-Previews gespeichert.",
+        emptyHint: "Erstelle ein fixes Preview-Bild und aktiviere es für Open Graph und Twitter.",
+        activeBadge: "Aktiv",
+        setActive: "Aktiv setzen",
+        openImage: "Öffnen",
+        deleteImage: "Löschen",
+        outputTitle: "Export",
+        nameLabel: "Name",
+        formatLabel: "Format",
+        qualityLabel: "Qualität",
+        targetSizeLabel: "Zielgröße KB",
+        targetSizeHint:
+          "0 deaktiviert die Zielgröße. JPEG/WebP werden bei Bedarf kleiner gerechnet.",
+        targetSizePngHint: "PNG ignoriert Qualitäts- und Zielgrößensteuerung.",
+        previewMeta: "Live-Vorschau: {size}, effektive Qualität {quality}%",
+        selectionTitle: "Auswahl und Attribute",
+        backgroundColor: "Hintergrundfarbe",
+        backgroundZoom: "Grundbild-Zoom",
+        backgroundOffsetX: "Grundbild X",
+        backgroundOffsetY: "Grundbild Y",
+        noSelection: "Wähle ein Text- oder Bildobjekt im Editor aus.",
+        textLayer: "Textobjekt",
+        imageLayer: "Bildobjekt",
+        deleteLayer: "Objekt löschen",
+        width: "Breite",
+        height: "Höhe",
+        rotation: "Rotation",
+        opacity: "Deckkraft",
+        textContent: "Text",
+        fontFamily: "Font",
+        textColor: "Textfarbe",
+        fontSize: "Schriftgröße",
+        fontWeight: "Schriftstärke",
+        fontStyle: "Schriftstil",
+        align: "Ausrichtung",
+        alignLeft: "Links",
+        alignCenter: "Zentriert",
+        alignRight: "Rechts",
+        lineHeight: "Zeilenhöhe",
+        letterSpacing: "Zeichenabstand",
+        saveAndActivate: "Speichern und aktivieren",
+        deleteConfirmTitle: "Preview-Bild löschen?",
+        deleteConfirmDescription:
+          "Dieses Social-Media-Preview-Bild wird aus der Auswahl entfernt. Das gerenderte Media-Asset bleibt in der Mediathek erhalten.",
+      },
       backgroundErrors: {
         title: "Hintergrundfehler",
         columnSource: "Quelle",
@@ -2631,6 +2729,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         markdownWidgets: "Markdown Widgets",
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",
+        socialPreview: "Social Media Preview",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Background Errors",
         expandAll: "Expand all",
@@ -2916,14 +3015,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imagePoolEmpty: "No images collected yet.",
         imagePoolHint: "Add images from Unsplash. Marked images will be rotated on the homepage.",
         selectedBadge: "Active",
-        socialPreviewBadge: "Social preview",
         markSelected: "Activate for rotation",
         markDeselected: "Remove from rotation",
         markActive: "Set as active image",
-        markSocialPreview: "Set as social preview",
-        clearSocialPreview: "Remove social preview",
-        socialPreviewHint:
-          "The social preview image is used as the Open Graph and Twitter image when a website link is shared.",
         removeImage: "Remove",
         removeConfirmTitle: "Remove image?",
         removeConfirmDescription: "This image will be deleted from the collection.",
@@ -3840,6 +3934,59 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         tableColumnActions: "",
         sameWindow: "Same window",
         newWindow: "New window",
+      },
+      socialPreview: {
+        title: "Social Media Preview",
+        editorTitle: "Editor",
+        chooseBackground: "Choose base image",
+        addText: "Add text",
+        addImage: "Add image",
+        keyboardHint:
+          "Selected objects can be moved with the arrow keys. Shift + arrow key moves in larger steps.",
+        savedTitle: "Saved preview images",
+        emptyTitle: "No social media previews saved yet.",
+        emptyHint: "Create a fixed preview image and activate it for Open Graph and Twitter.",
+        activeBadge: "Active",
+        setActive: "Set active",
+        openImage: "Open",
+        deleteImage: "Delete",
+        outputTitle: "Export",
+        nameLabel: "Name",
+        formatLabel: "Format",
+        qualityLabel: "Quality",
+        targetSizeLabel: "Target size KB",
+        targetSizeHint: "0 disables the target size. JPEG/WebP are recompressed when needed.",
+        targetSizePngHint: "PNG ignores quality and target-size controls.",
+        previewMeta: "Live preview: {size}, effective quality {quality}%",
+        selectionTitle: "Selection and attributes",
+        backgroundColor: "Background color",
+        backgroundZoom: "Base image zoom",
+        backgroundOffsetX: "Base image X",
+        backgroundOffsetY: "Base image Y",
+        noSelection: "Select a text or image object in the editor.",
+        textLayer: "Text object",
+        imageLayer: "Image object",
+        deleteLayer: "Delete object",
+        width: "Width",
+        height: "Height",
+        rotation: "Rotation",
+        opacity: "Opacity",
+        textContent: "Text",
+        fontFamily: "Font",
+        textColor: "Text color",
+        fontSize: "Font size",
+        fontWeight: "Font weight",
+        fontStyle: "Font style",
+        align: "Alignment",
+        alignLeft: "Left",
+        alignCenter: "Center",
+        alignRight: "Right",
+        lineHeight: "Line height",
+        letterSpacing: "Letter spacing",
+        saveAndActivate: "Save and activate",
+        deleteConfirmTitle: "Delete preview image?",
+        deleteConfirmDescription:
+          "This social media preview image will be removed from the selectable previews. The rendered media asset remains in the media library.",
       },
       backgroundErrors: {
         title: "Background Errors",

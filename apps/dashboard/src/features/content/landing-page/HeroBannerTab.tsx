@@ -5,7 +5,6 @@ import {
   ImageIcon,
   ImagesIcon,
   PlusIcon,
-  ShareNetworkIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
@@ -35,17 +34,14 @@ import {
   useHeroRotationInterval,
   useSetHeroImageFocalPoint,
   useToggleHeroImageSelected,
-  useToggleHeroImageSocialPreview,
 } from "@/features/content/hooks/useHeroImages.ts";
 
 interface HeroImageCardProps {
   image: HeroImage;
   rotationEnabled: boolean;
   onToggleSelect: () => void;
-  onToggleSocialPreview: () => void;
   onDelete: () => void;
   togglePending: boolean;
-  socialPreviewPending: boolean;
   deletePending: boolean;
   m: ReturnType<typeof useI18n>["messages"]["landingPage"]["heroBanner"];
 }
@@ -54,10 +50,8 @@ function HeroImageCard({
   image,
   rotationEnabled,
   onToggleSelect,
-  onToggleSocialPreview,
   onDelete,
   togglePending,
-  socialPreviewPending,
   deletePending,
   m,
 }: HeroImageCardProps) {
@@ -92,14 +86,6 @@ function HeroImageCard({
         </div>
       )}
 
-      {/* Social preview badge */}
-      {image.isSocialPreview && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 bg-white/95 text-stone-900 text-[10px] font-semibold px-2 py-0.5 rounded-full z-10 shadow-sm">
-          <ShareNetworkIcon weight="fill" className="size-3" />
-          {m.socialPreviewBadge}
-        </div>
-      )}
-
       {/* Photographer credit */}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 z-10">
         <p className="text-white text-[10px] truncate">
@@ -127,17 +113,6 @@ function HeroImageCard({
           }
         >
           {image.isSelected ? m.markDeselected : rotationEnabled ? m.markSelected : m.markActive}
-        </DashboardButton>
-        <DashboardButton
-          onClick={onToggleSocialPreview}
-          disabled={socialPreviewPending}
-          className="bg-white text-stone-900 hover:bg-stone-100"
-          title={image.isSocialPreview ? m.clearSocialPreview : m.markSocialPreview}
-          size="control"
-          variant="neutral"
-          leadingIcon={<ShareNetworkIcon weight="duotone" className="size-3.5" />}
-        >
-          {image.isSocialPreview ? m.clearSocialPreview : m.markSocialPreview}
         </DashboardButton>
         <DashboardButton
           onClick={onDelete}
@@ -169,7 +144,6 @@ export function HeroBannerTab() {
   const addMutation = useAddHeroImage();
   const deleteMutation = useDeleteHeroImage();
   const toggleMutation = useToggleHeroImageSelected();
-  const socialPreviewMutation = useToggleHeroImageSocialPreview();
   const rotation = useHeroRotation();
   const intervalConfig = useHeroRotationInterval();
 
@@ -253,12 +227,6 @@ export function HeroBannerTab() {
                 </p>
               )}
 
-              {!isLoading && images.length > 0 && (
-                <p className="text-sm text-[var(--ds-text-subtle)] bg-[var(--ds-bg-elevated)] border border-[var(--ds-border-subtle)] rounded-control px-4 py-3">
-                  {m.socialPreviewHint}
-                </p>
-              )}
-
               {/* Empty state */}
               {!isLoading && images.length === 0 && (
                 <ContentUnavailableView
@@ -279,15 +247,8 @@ export function HeroBannerTab() {
                       onToggleSelect={() =>
                         toggleMutation.mutate({ id: image.id, selected: !image.isSelected })
                       }
-                      onToggleSocialPreview={() =>
-                        socialPreviewMutation.mutate({
-                          id: image.id,
-                          selected: !image.isSocialPreview,
-                        })
-                      }
                       onDelete={() => setDeleteTarget(image.id)}
                       togglePending={toggleMutation.isPending}
-                      socialPreviewPending={socialPreviewMutation.isPending}
                       deletePending={deleteMutation.isPending}
                       m={m}
                     />

@@ -52,6 +52,9 @@ const footerPreviewMocks = vi.hoisted(() => ({
 
 const heroMocks = vi.hoisted(() => ({
   getCurrentHeroImage: vi.fn(),
+}));
+
+const socialPreviewMocks = vi.hoisted(() => ({
   getSocialPreviewImage: vi.fn(),
 }));
 
@@ -62,6 +65,7 @@ vi.mock("../repositories/footer-config.js", () => footerMocks);
 vi.mock("../repositories/markdown-widgets.js", () => markdownMocks);
 vi.mock("../services/footer-preview-store.js", () => footerPreviewMocks);
 vi.mock("../services/hero.js", () => heroMocks);
+vi.mock("../services/social-preview-images.js", () => socialPreviewMocks);
 vi.mock("../services/form-submission.js", () => ({
   executeSubmissionChain: vi.fn(),
 }));
@@ -350,7 +354,9 @@ describe("publicRoutes", () => {
 
   describe("GET /social-preview-image", () => {
     it("returns the configured social preview image", async () => {
-      heroMocks.getSocialPreviewImage.mockResolvedValue({ url: "https://img.example/social.jpg" });
+      socialPreviewMocks.getSocialPreviewImage.mockResolvedValue({
+        url: "https://img.example/social.jpg",
+      });
 
       const res = await app.request("/social-preview-image");
 

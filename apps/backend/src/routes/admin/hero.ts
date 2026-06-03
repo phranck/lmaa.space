@@ -13,7 +13,6 @@ import {
   setHeroRotationEnabled,
   setHeroRotationInterval,
   toggleHeroImageSelected,
-  toggleHeroImageSocialPreview,
   updateHeroImageFocalPoint,
 } from "../../services/hero.js";
 
@@ -43,10 +42,6 @@ const addHeroImageSchema = z.object({
 });
 
 const toggleSelectedSchema = z.object({
-  selected: z.boolean(),
-});
-
-const toggleSocialPreviewSchema = z.object({
   selected: z.boolean(),
 });
 
@@ -135,22 +130,6 @@ heroRoutes.patch("/hero-images/:id/select", zValidator("json", toggleSelectedSch
     return respondError(c, error);
   }
 });
-
-heroRoutes.patch(
-  "/hero-images/:id/social-preview",
-  zValidator("json", toggleSocialPreviewSchema),
-  async (c) => {
-    const id = Number(c.req.param("id"));
-    if (Number.isNaN(id)) return respondError(c, new Error("Invalid id"));
-    const { selected } = c.req.valid("json");
-    try {
-      const image = await toggleHeroImageSocialPreview({ id, selected });
-      return ok(c, image);
-    } catch (error) {
-      return respondError(c, error);
-    }
-  },
-);
 
 heroRoutes.patch(
   "/hero-images/:id/focal-point",
