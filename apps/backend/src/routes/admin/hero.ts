@@ -13,6 +13,7 @@ import {
   setHeroRotationEnabled,
   setHeroRotationInterval,
   toggleHeroImageSelected,
+  toggleHeroImageSocialPreview,
   updateHeroImageFocalPoint,
 } from "../../services/hero.js";
 
@@ -42,6 +43,10 @@ const addHeroImageSchema = z.object({
 });
 
 const toggleSelectedSchema = z.object({
+  selected: z.boolean(),
+});
+
+const toggleSocialPreviewSchema = z.object({
   selected: z.boolean(),
 });
 
@@ -79,19 +84,15 @@ heroRoutes.get("/hero-rotation-interval", async (c) => {
   }
 });
 
-heroRoutes.put(
-  "/hero-rotation-interval",
-  zValidator("json", rotationIntervalSchema),
-  async (c) => {
-    const { interval } = c.req.valid("json");
-    try {
-      await setHeroRotationInterval(interval);
-      return ok(c, { interval });
-    } catch (error) {
-      return respondError(c, error);
-    }
-  },
-);
+heroRoutes.put("/hero-rotation-interval", zValidator("json", rotationIntervalSchema), async (c) => {
+  const { interval } = c.req.valid("json");
+  try {
+    await setHeroRotationInterval(interval);
+    return ok(c, { interval });
+  } catch (error) {
+    return respondError(c, error);
+  }
+});
 
 heroRoutes.get("/hero-images", async (c) => {
   try {
@@ -123,15 +124,27 @@ heroRoutes.delete("/hero-images/:id", async (c) => {
   }
 });
 
+heroRoutes.patch("/hero-images/:id/select", zValidator("json", toggleSelectedSchema), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (Number.isNaN(id)) return respondError(c, new Error("Invalid id"));
+  const { selected } = c.req.valid("json");
+  try {
+    const image = await toggleHeroImageSelected(id, selected);
+    return ok(c, image);
+  } catch (error) {
+    return respondError(c, error);
+  }
+});
+
 heroRoutes.patch(
-  "/hero-images/:id/select",
-  zValidator("json", toggleSelectedSchema),
+  "/hero-images/:id/social-preview",
+  zValidator("json", toggleSocialPreviewSchema),
   async (c) => {
     const id = Number(c.req.param("id"));
     if (Number.isNaN(id)) return respondError(c, new Error("Invalid id"));
     const { selected } = c.req.valid("json");
     try {
-      const image = await toggleHeroImageSelected(id, selected);
+      const image = await toggleHeroImageSocialPreview({ id, selected });
       return ok(c, image);
     } catch (error) {
       return respondError(c, error);

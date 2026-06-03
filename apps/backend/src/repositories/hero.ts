@@ -22,6 +22,14 @@ export async function listSelectedHeroImages(): Promise<HeroImage[]> {
 }
 
 /**
+ * Returns a hero image by id, or null when it does not exist.
+ */
+export async function getHeroImageById(id: number): Promise<HeroImage | null> {
+  const [row] = await db.select().from(heroImages).where(eq(heroImages.id, id)).limit(1);
+  return row ?? null;
+}
+
+/**
  * Adds a new hero image to the pool.
  */
 export async function createHeroImage(data: {
