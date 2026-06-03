@@ -36,3 +36,5 @@ export * from "./admin-markdown-widgets";
 export * from "./domain-alert-rules";
 /** Public redirect URL schemas. */
 export * from "./redirect-urls";
+/** Admin social preview image schemas. */
+export * from "./admin-social-preview";

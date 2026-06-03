@@ -179,6 +179,12 @@ const RedirectUrlsPage = lazy(() =>
   })),
 );
 
+const SocialPreviewPage = lazy(() =>
+  import("@/features/system/SocialPreviewPage.tsx").then((m) => ({
+    default: m.SocialPreviewPage,
+  })),
+);
+
 const SocialMediaAccountsPage = lazy(() =>
   import("@/features/social/SocialMediaAccountsPage.tsx").then((m) => ({
     default: m.SocialMediaAccountsPage,
@@ -436,6 +442,14 @@ function AppRoutes() {
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
                     <RedirectUrlsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="system/social-preview"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SocialPreviewPage />
                   </Suspense>
                 }
               />

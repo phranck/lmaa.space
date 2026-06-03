@@ -877,6 +877,15 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
+                  <NavLink to="/system/social-preview" onClick={onItemClick} className="contents">
+                    {({ isActive }) => (
+                      <DashboardSection.Item
+                        icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+                        label={sidebarMessages.socialPreview}
+                        active={isActive}
+                      />
+                    )}
+                  </NavLink>
                   <NavLink to="/social-media/accounts" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item

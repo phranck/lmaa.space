@@ -15,7 +15,13 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import type { FooterConfig, FormConfigPayload, MarkdownWidgetsConfig } from "@lmaa/contracts";
+import type {
+  FooterConfig,
+  FormConfigPayload,
+  MarkdownWidgetsConfig,
+  SocialPreviewComposition,
+  SocialPreviewFormat,
+} from "@lmaa/contracts";
 import type { MediaKind, ShopCheckNotes } from "@lmaa/shared";
 
 function quotedTextSql(values: readonly string[]) {
@@ -708,10 +714,7 @@ export const socialMediaPostTemplates = pgTable(
       "social_media_post_templates_body_bluesky_when_selected",
       sql`array_position(${table.platforms}, 'bluesky') IS NULL OR ${table.bodyBluesky} IS NOT NULL`,
     ),
-    check(
-      "social_media_post_templates_scopes_nonempty",
-      sql`cardinality(${table.scopes}) >= 1`,
-    ),
+    check("social_media_post_templates_scopes_nonempty", sql`cardinality(${table.scopes}) >= 1`),
     check(
       "social_media_post_templates_scopes_valid",
       sql`${table.scopes} <@ ARRAY[${SOCIAL_MEDIA_POST_TEMPLATE_SCOPE_SQL}]::text[]`,
@@ -845,6 +848,40 @@ export const heroImages = pgTable("hero_images", {
 export type HeroImage = typeof heroImages.$inferSelect;
 
 /**
+ * Rendered global Open Graph/Twitter preview images managed from the dashboard.
+ */
+export const socialPreviewImages = pgTable(
+  "social_preview_images",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    imageUrl: text("image_url").notNull(),
+    mediaAssetId: integer("media_asset_id").references(() => mediaAssets.id, {
+      onDelete: "set null",
+    }),
+    composition: jsonb("composition").$type<SocialPreviewComposition>().notNull(),
+    width: integer("width").notNull().default(1200),
+    height: integer("height").notNull().default(630),
+    format: text("format").$type<SocialPreviewFormat>().notNull().default("image/jpeg"),
+    quality: integer("quality").notNull().default(90),
+    sizeBytes: integer("size_bytes").notNull().default(0),
+    createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_social_preview_images_created_at").on(table.createdAt),
+    check(
+      "social_preview_images_format_check",
+      sql`${table.format} IN ('image/jpeg', 'image/png', 'image/webp')`,
+    ),
+  ],
+);
+
+export type SocialPreviewImage = typeof socialPreviewImages.$inferSelect;
+export type SocialPreviewImageInsert = typeof socialPreviewImages.$inferInsert;
+
+/**
  * Daily hero rotation schedule -- one row per day, lazy-generated on first request.
  */
 export const heroDailySchedule = pgTable("hero_daily_schedule", {
@@ -901,10 +938,7 @@ export const adminUserAccountTemplateChoice = pgTable(
     socialMediaAccountId: integer("social_media_account_id")
       .notNull()
       .references(() => socialMediaAccounts.id, { onDelete: "cascade" }),
-    scope: text("scope")
-      .$type<"submission" | "category">()
-      .notNull()
-      .default("submission"),
+    scope: text("scope").$type<"submission" | "category">().notNull().default("submission"),
     templateId: integer("template_id").references(() => socialMediaPostTemplates.id, {
       onDelete: "set null",
     }),

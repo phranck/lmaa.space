@@ -20,6 +20,7 @@ import { shopRemindersRoutes } from "./shop-reminders.js";
 import { shopsRoutes } from "./shops.js";
 import { socialMediaAccountRoutes } from "./social-media-accounts.js";
 import { socialMediaPostTemplateRoutes } from "./social-media-post-templates.js";
+import { socialPreviewImageRoutes } from "./social-preview-images.js";
 import { statsRoutes } from "./stats.js";
 import { submissionsRoutes } from "./submissions.js";
 import { umamiRoutes } from "./umami.js";
@@ -63,6 +64,7 @@ protectedRoutes.route("/", shopRemindersRoutes);
 protectedRoutes.route("/", pushRoutes);
 protectedRoutes.route("/", settingsRoutes);
 protectedRoutes.route("/", socialMediaAccountRoutes);
+protectedRoutes.route("/", socialPreviewImageRoutes);
 protectedRoutes.route("/", meTemplateChoicesRoutes);
 protectedRoutes.route("/", backgroundErrorsRoutes);
 
