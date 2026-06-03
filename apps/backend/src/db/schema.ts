@@ -848,6 +848,25 @@ export const heroImages = pgTable("hero_images", {
 export type HeroImage = typeof heroImages.$inferSelect;
 
 /**
+ * Editable social preview projects managed from the dashboard.
+ */
+export const socialPreviewProjects = pgTable(
+  "social_preview_projects",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    composition: jsonb("composition").$type<SocialPreviewComposition>().notNull(),
+    createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("idx_social_preview_projects_created_at").on(table.createdAt)],
+);
+
+export type SocialPreviewProject = typeof socialPreviewProjects.$inferSelect;
+export type SocialPreviewProjectInsert = typeof socialPreviewProjects.$inferInsert;
+
+/**
  * Rendered global Open Graph/Twitter preview images managed from the dashboard.
  */
 export const socialPreviewImages = pgTable(

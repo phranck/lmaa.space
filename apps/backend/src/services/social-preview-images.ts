@@ -1,12 +1,19 @@
-import type { SocialPreviewImageEntry } from "@lmaa/contracts";
+import type { SocialPreviewImageEntry, SocialPreviewProjectEntry } from "@lmaa/contracts";
 
 import { deleteSetting, getSetting, putSetting } from "../repositories/app-settings.js";
 import {
   createSocialPreviewImage,
+  createSocialPreviewProject,
   deleteSocialPreviewImage,
+  deleteSocialPreviewProject,
   getSocialPreviewImageById,
+  getSocialPreviewProjectById,
   listSocialPreviewImages,
+  listSocialPreviewProjects,
+  updateSocialPreviewProject,
   type SocialPreviewImageCreateData,
+  type SocialPreviewProjectCreateData,
+  type SocialPreviewProjectUpdateData,
 } from "../repositories/social-preview-images.js";
 
 const ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY = "socialPreview.activeImageId";
@@ -16,6 +23,19 @@ async function getActiveSocialPreviewImageId(): Promise<number | null> {
   if (!value) return null;
   const id = Number.parseInt(value, 10);
   return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function mapSocialPreviewProject(
+  row: Awaited<ReturnType<typeof listSocialPreviewProjects>>[number],
+): SocialPreviewProjectEntry {
+  return {
+    id: row.id,
+    name: row.name,
+    composition: row.composition,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    createdByUsername: row.createdByUsername,
+  };
 }
 
 function mapSocialPreviewImage(
@@ -38,6 +58,42 @@ function mapSocialPreviewImage(
     updatedAt: row.updatedAt.toISOString(),
     createdByUsername: row.createdByUsername,
   };
+}
+
+export async function listManagedSocialPreviewProjects(): Promise<SocialPreviewProjectEntry[]> {
+  const rows = await listSocialPreviewProjects();
+  return rows.map(mapSocialPreviewProject);
+}
+
+export async function createManagedSocialPreviewProject(
+  data: SocialPreviewProjectCreateData,
+): Promise<SocialPreviewProjectEntry> {
+  const row = await createSocialPreviewProject(data);
+  if (!row) {
+    throw new Error("Failed to create social preview project");
+  }
+  return mapSocialPreviewProject(row);
+}
+
+export async function updateManagedSocialPreviewProject(
+  id: number,
+  data: SocialPreviewProjectUpdateData,
+) {
+  const current = await getSocialPreviewProjectById(id);
+  if (!current) return { ok: false as const, reason: "not_found" as const };
+
+  const row = await updateSocialPreviewProject(id, data);
+  if (!row) {
+    throw new Error("Failed to update social preview project");
+  }
+  return { ok: true as const, project: mapSocialPreviewProject(row) };
+}
+
+export async function deleteManagedSocialPreviewProject(id: number) {
+  const deleted = await deleteSocialPreviewProject(id);
+  if (!deleted) return { ok: false as const, reason: "not_found" as const };
+
+  return { ok: true as const };
 }
 
 export async function listManagedSocialPreviewImages(): Promise<SocialPreviewImageEntry[]> {

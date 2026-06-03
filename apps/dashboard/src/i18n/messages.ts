@@ -1234,6 +1234,11 @@ export interface DashboardMessages {
       chooseBackground: string;
       addText: string;
       addImage: string;
+      addShape: string;
+      saveProject: string;
+      loadProject: string;
+      savedProjectsTitle: string;
+      projectLayer: string;
       keyboardHint: string;
       savedTitle: string;
       emptyTitle: string;
@@ -1242,6 +1247,7 @@ export interface DashboardMessages {
       setActive: string;
       openImage: string;
       deleteImage: string;
+      imageGridSizeLabel: string;
       outputTitle: string;
       nameLabel: string;
       formatLabel: string;
@@ -1250,6 +1256,7 @@ export interface DashboardMessages {
       targetSizeHint: string;
       targetSizePngHint: string;
       previewMeta: string;
+      estimatedSizeLabel: string;
       selectionTitle: string;
       backgroundColor: string;
       backgroundZoom: string;
@@ -1258,7 +1265,22 @@ export interface DashboardMessages {
       noSelection: string;
       textLayer: string;
       imageLayer: string;
+      shapeLayer: string;
       deleteLayer: string;
+      shapeKind: string;
+      shapeRectangle: string;
+      shapeCircle: string;
+      shapeEllipse: string;
+      shapePolygon: string;
+      shapeStar: string;
+      cornerRadius: string;
+      radius: string;
+      sides: string;
+      points: string;
+      border: string;
+      borderColor: string;
+      borderThickness: string;
+      borderOpacity: string;
       width: string;
       height: string;
       rotation: string;
@@ -2592,6 +2614,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         chooseBackground: "Grundbild wählen",
         addText: "Text hinzufügen",
         addImage: "Bild hinzufügen",
+        addShape: "Form hinzufügen",
+        saveProject: "Projekt speichern",
+        loadProject: "Projekt laden",
+        savedProjectsTitle: "Gespeicherte Projekte",
+        projectLayer: "Projekt",
         keyboardHint:
           "Ausgewählte Objekte lassen sich per Pfeiltasten bewegen. Shift + Pfeiltaste bewegt in größeren Schritten.",
         savedTitle: "Gespeicherte Preview-Bilder",
@@ -2601,6 +2628,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setActive: "Aktiv setzen",
         openImage: "Öffnen",
         deleteImage: "Löschen",
+        imageGridSizeLabel: "Bildgröße",
         outputTitle: "Export",
         nameLabel: "Name",
         formatLabel: "Format",
@@ -2610,6 +2638,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
           "0 deaktiviert die Zielgröße. JPEG/WebP werden bei Bedarf kleiner gerechnet.",
         targetSizePngHint: "PNG ignoriert Qualitäts- und Zielgrößensteuerung.",
         previewMeta: "Live-Vorschau: {size}, effektive Qualität {quality}%",
+        estimatedSizeLabel: "Dateigröße",
         selectionTitle: "Auswahl und Attribute",
         backgroundColor: "Hintergrundfarbe",
         backgroundZoom: "Grundbild-Zoom",
@@ -2618,7 +2647,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noSelection: "Wähle ein Text- oder Bildobjekt im Editor aus.",
         textLayer: "Textobjekt",
         imageLayer: "Bildobjekt",
+        shapeLayer: "Formobjekt",
         deleteLayer: "Objekt löschen",
+        shapeKind: "Form",
+        shapeRectangle: "Rechteck",
+        shapeCircle: "Kreis",
+        shapeEllipse: "Ellipse",
+        shapePolygon: "Vieleck",
+        shapeStar: "Stern",
+        cornerRadius: "Eckenradius",
+        radius: "Radius",
+        sides: "Anzahl Ecken",
+        points: "Anzahl Strahlen",
+        border: "Rahmen",
+        borderColor: "Rahmenfarbe",
+        borderThickness: "Rahmenstärke",
+        borderOpacity: "Rahmendeckkraft",
         width: "Breite",
         height: "Höhe",
         rotation: "Rotation",
@@ -3941,6 +3985,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         chooseBackground: "Choose base image",
         addText: "Add text",
         addImage: "Add image",
+        addShape: "Add shape",
+        saveProject: "Save project",
+        loadProject: "Load project",
+        savedProjectsTitle: "Saved projects",
+        projectLayer: "Project",
         keyboardHint:
           "Selected objects can be moved with the arrow keys. Shift + arrow key moves in larger steps.",
         savedTitle: "Saved preview images",
@@ -3950,6 +3999,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setActive: "Set active",
         openImage: "Open",
         deleteImage: "Delete",
+        imageGridSizeLabel: "Image size",
         outputTitle: "Export",
         nameLabel: "Name",
         formatLabel: "Format",
@@ -3958,6 +4008,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         targetSizeHint: "0 disables the target size. JPEG/WebP are recompressed when needed.",
         targetSizePngHint: "PNG ignores quality and target-size controls.",
         previewMeta: "Live preview: {size}, effective quality {quality}%",
+        estimatedSizeLabel: "Estimated size",
         selectionTitle: "Selection and attributes",
         backgroundColor: "Background color",
         backgroundZoom: "Base image zoom",
@@ -3966,7 +4017,22 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noSelection: "Select a text or image object in the editor.",
         textLayer: "Text object",
         imageLayer: "Image object",
+        shapeLayer: "Shape object",
         deleteLayer: "Delete object",
+        shapeKind: "Shape",
+        shapeRectangle: "Rectangle",
+        shapeCircle: "Circle",
+        shapeEllipse: "Ellipse",
+        shapePolygon: "Polygon",
+        shapeStar: "Star",
+        cornerRadius: "Corner radius",
+        radius: "Radius",
+        sides: "Corners",
+        points: "Rays",
+        border: "Border",
+        borderColor: "Border color",
+        borderThickness: "Border thickness",
+        borderOpacity: "Border opacity",
         width: "Width",
         height: "Height",
         rotation: "Rotation",
