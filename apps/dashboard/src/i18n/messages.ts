@@ -1268,6 +1268,8 @@ export interface DashboardMessages {
       noSelection: string;
       textLayer: string;
       imageLayer: string;
+      imageTintColor: string;
+      imageTintOpacity: string;
       shapeLayer: string;
       deleteLayer: string;
       shapeKind: string;
@@ -2653,6 +2655,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noSelection: "Wähle ein Text- oder Bildobjekt im Editor aus.",
         textLayer: "Textobjekt",
         imageLayer: "Bildobjekt",
+        imageTintColor: "Bildfarbe",
+        imageTintOpacity: "Einfärbung",
         shapeLayer: "Formobjekt",
         deleteLayer: "Objekt löschen",
         shapeKind: "Form",
@@ -2685,7 +2689,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         alignRight: "Rechts",
         lineHeight: "Zeilenhöhe",
         letterSpacing: "Zeichenabstand",
-        saveAndActivate: "Speichern und aktivieren",
+        saveAndActivate: "Preview speichern",
         deleteConfirmTitle: "Preview-Bild löschen?",
         deleteConfirmDescription:
           "Dieses Social-Media-Preview-Bild wird aus der Auswahl entfernt. Das gerenderte Media-Asset bleibt in der Mediathek erhalten.",
@@ -4026,6 +4030,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noSelection: "Select a text or image object in the editor.",
         textLayer: "Text object",
         imageLayer: "Image object",
+        imageTintColor: "Image tint",
+        imageTintOpacity: "Tint opacity",
         shapeLayer: "Shape object",
         deleteLayer: "Delete object",
         shapeKind: "Shape",
@@ -4058,7 +4064,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         alignRight: "Right",
         lineHeight: "Line height",
         letterSpacing: "Letter spacing",
-        saveAndActivate: "Save and activate",
+        saveAndActivate: "Save preview",
         deleteConfirmTitle: "Delete preview image?",
         deleteConfirmDescription:
           "This social media preview image will be removed from the selectable previews. The rendered media asset remains in the media library.",

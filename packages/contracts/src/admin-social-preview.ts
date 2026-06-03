@@ -62,6 +62,8 @@ export const socialPreviewImageLayerSchema = socialPreviewBaseLayerSchema.extend
   zoom: z.number().min(0.1).max(10).optional(),
   offsetX: z.number().optional(),
   offsetY: z.number().optional(),
+  tintColor: z.string().max(40).optional(),
+  tintOpacity: z.number().min(0).max(1).optional(),
 });
 
 export const socialPreviewShapeLayerSchema = socialPreviewBaseLayerSchema.extend({
