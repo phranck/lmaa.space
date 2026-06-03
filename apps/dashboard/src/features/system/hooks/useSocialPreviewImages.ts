@@ -4,17 +4,57 @@ import type {
   SocialPreviewComposition,
   SocialPreviewFormat,
   SocialPreviewImageEntry,
+  SocialPreviewProjectEntry,
 } from "@lmaa/contracts";
 import type { MediaAsset } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
 const QUERY_KEY = ["social-preview-images"] as const;
+const PROJECT_QUERY_KEY = ["social-preview-projects"] as const;
+
+export function useSocialPreviewProjects() {
+  return useQuery<SocialPreviewProjectEntry[]>({
+    queryKey: PROJECT_QUERY_KEY,
+    queryFn: () => api.get<SocialPreviewProjectEntry[]>("/admin/social-preview-projects"),
+  });
+}
 
 export function useSocialPreviewImages() {
   return useQuery<SocialPreviewImageEntry[]>({
     queryKey: QUERY_KEY,
     queryFn: () => api.get<SocialPreviewImageEntry[]>("/admin/social-preview-images"),
+  });
+}
+
+export function useCreateSocialPreviewProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; composition: SocialPreviewComposition }) =>
+      api.post<SocialPreviewProjectEntry>("/admin/social-preview-projects", data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PROJECT_QUERY_KEY }),
+  });
+}
+
+export function useUpdateSocialPreviewProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { name?: string; composition?: SocialPreviewComposition };
+    }) => api.patch<SocialPreviewProjectEntry>(`/admin/social-preview-projects/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PROJECT_QUERY_KEY }),
+  });
+}
+
+export function useDeleteSocialPreviewProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/admin/social-preview-projects/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: PROJECT_QUERY_KEY }),
   });
 }
 

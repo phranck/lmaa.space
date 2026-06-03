@@ -4,6 +4,13 @@ export const SOCIAL_PREVIEW_FORMATS = ["image/jpeg", "image/png", "image/webp"] 
 export type SocialPreviewFormat = (typeof SOCIAL_PREVIEW_FORMATS)[number];
 
 export const socialPreviewTextAlignSchema = z.enum(["left", "center", "right"]);
+export const socialPreviewShapeKindSchema = z.enum([
+  "rectangle",
+  "circle",
+  "ellipse",
+  "polygon",
+  "star",
+]);
 
 const socialPreviewBaseLayerSchema = z.object({
   id: z.string().min(1).max(100),
@@ -15,6 +22,12 @@ const socialPreviewBaseLayerSchema = z.object({
   opacity: z.number().min(0).max(1),
 });
 
+export const socialPreviewTextColorRangeSchema = z.object({
+  start: z.number().int().nonnegative(),
+  end: z.number().int().positive(),
+  color: z.string().max(40),
+});
+
 export const socialPreviewTextLayerSchema = socialPreviewBaseLayerSchema.extend({
   type: z.literal("text"),
   text: z.string().max(2000),
@@ -23,6 +36,7 @@ export const socialPreviewTextLayerSchema = socialPreviewBaseLayerSchema.extend(
   fontWeight: z.string().max(40),
   fontStyle: z.string().max(40),
   color: z.string().max(40),
+  colorRanges: z.array(socialPreviewTextColorRangeSchema).max(200).optional(),
   align: socialPreviewTextAlignSchema,
   lineHeight: z.number().positive().max(4),
   letterSpacing: z.number().min(-20).max(100),
@@ -32,11 +46,29 @@ export const socialPreviewImageLayerSchema = socialPreviewBaseLayerSchema.extend
   type: z.literal("image"),
   src: z.string().url().max(2000),
   alt: z.string().max(300).nullable().optional(),
+  zoom: z.number().min(0.1).max(10).optional(),
+  offsetX: z.number().optional(),
+  offsetY: z.number().optional(),
+});
+
+export const socialPreviewShapeLayerSchema = socialPreviewBaseLayerSchema.extend({
+  type: z.literal("shape"),
+  shape: socialPreviewShapeKindSchema,
+  cornerRadius: z.number().min(0).max(1000),
+  radius: z.number().positive().max(4096),
+  sides: z.number().int().min(3).max(20),
+  points: z.number().int().min(3).max(20),
+  color: z.string().max(40),
+  border: z.boolean(),
+  borderColor: z.string().max(40),
+  borderThickness: z.number().min(0).max(200),
+  borderOpacity: z.number().min(0).max(1),
 });
 
 export const socialPreviewLayerSchema = z.discriminatedUnion("type", [
   socialPreviewTextLayerSchema,
   socialPreviewImageLayerSchema,
+  socialPreviewShapeLayerSchema,
 ]);
 
 export const socialPreviewCompositionSchema = z.object({
@@ -57,6 +89,17 @@ export type SocialPreviewComposition = z.infer<typeof socialPreviewCompositionSc
 export type SocialPreviewLayer = z.infer<typeof socialPreviewLayerSchema>;
 export type SocialPreviewTextLayer = z.infer<typeof socialPreviewTextLayerSchema>;
 export type SocialPreviewImageLayer = z.infer<typeof socialPreviewImageLayerSchema>;
+export type SocialPreviewShapeLayer = z.infer<typeof socialPreviewShapeLayerSchema>;
+export type SocialPreviewShapeKind = z.infer<typeof socialPreviewShapeKindSchema>;
+
+export interface SocialPreviewProjectEntry {
+  id: number;
+  name: string;
+  composition: SocialPreviewComposition;
+  createdAt: string;
+  updatedAt: string;
+  createdByUsername: string | null;
+}
 
 export interface SocialPreviewImageEntry {
   id: number;
@@ -74,6 +117,18 @@ export interface SocialPreviewImageEntry {
   updatedAt: string;
   createdByUsername: string | null;
 }
+
+export const socialPreviewProjectCreateSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  composition: socialPreviewCompositionSchema,
+});
+
+export const socialPreviewProjectUpdateSchema = socialPreviewProjectCreateSchema
+  .partial()
+  .refine(
+    (value) => value.name !== undefined || value.composition !== undefined,
+    "At least one field must be provided",
+  );
 
 export const socialPreviewCreateSchema = z.object({
   name: z.string().trim().min(1).max(200),

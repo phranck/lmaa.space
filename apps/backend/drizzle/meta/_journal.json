@@ -421,6 +421,13 @@
       "when": 1780499799001,
       "tag": "0059_third_clea",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1780510466362,
+      "tag": "0060_chemical_nekra",
+      "breakpoints": true
     }
   ]
 }

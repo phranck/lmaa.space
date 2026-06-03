@@ -3,6 +3,7 @@ import type {
   SocialPreviewFormat,
   SocialPreviewImageLayer,
   SocialPreviewLayer,
+  SocialPreviewShapeLayer,
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
 
@@ -43,7 +44,7 @@ export function createTextLayer(): SocialPreviewTextLayer {
     height: 120,
     rotation: 0,
     opacity: 1,
-    fontFamily: "Barlow Condensed, Inter, system-ui, sans-serif",
+    fontFamily: "Barlow Condensed",
     fontSize: 72,
     fontWeight: "700",
     fontStyle: "normal",
@@ -66,6 +67,32 @@ export function createImageLayer(src: string, alt?: string | null): SocialPrevie
     height: 220,
     rotation: 0,
     opacity: 1,
+    zoom: 1,
+    offsetX: 0,
+    offsetY: 0,
+  };
+}
+
+export function createShapeLayer(): SocialPreviewShapeLayer {
+  return {
+    id: createId("shape"),
+    type: "shape",
+    shape: "rectangle",
+    x: 180,
+    y: 160,
+    width: 280,
+    height: 180,
+    rotation: 0,
+    opacity: 1,
+    cornerRadius: 0,
+    radius: 90,
+    sides: 5,
+    points: 5,
+    color: "#ffffff",
+    border: true,
+    borderColor: "#111827",
+    borderThickness: 4,
+    borderOpacity: 1,
   };
 }
 
@@ -120,52 +147,84 @@ function drawLayerFrame(
   ctx.restore();
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const lines: string[] = [];
-  for (const rawLine of text.split("\n")) {
-    const words = rawLine.split(/\s+/);
-    let line = "";
-    for (const word of words) {
-      const candidate = line ? `${line} ${word}` : word;
-      if (ctx.measureText(candidate).width <= maxWidth || !line) {
-        line = candidate;
-      } else {
-        lines.push(line);
-        line = word;
-      }
+interface WrappedTextLine {
+  chars: Array<{ char: string; index: number }>;
+  width: number;
+}
+
+function getTextColorAt(layer: SocialPreviewTextLayer, index: number) {
+  const range = layer.colorRanges?.find((entry) => index >= entry.start && index < entry.end);
+  return range?.color ?? layer.color;
+}
+
+function measureChars(
+  ctx: CanvasRenderingContext2D,
+  chars: Array<{ char: string; index: number }>,
+  letterSpacing: number,
+) {
+  return (
+    chars.reduce((sum, entry) => sum + ctx.measureText(entry.char).width, 0) +
+    Math.max(0, chars.length - 1) * letterSpacing
+  );
+}
+
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  letterSpacing: number,
+): WrappedTextLine[] {
+  const lines: WrappedTextLine[] = [];
+  let current: Array<{ char: string; index: number }> = [];
+
+  const pushLine = () => {
+    lines.push({ chars: current, width: measureChars(ctx, current, letterSpacing) });
+    current = [];
+  };
+
+  Array.from(text).forEach((char, index) => {
+    if (char === "\n") {
+      pushLine();
+      return;
     }
-    lines.push(line);
-  }
+
+    const candidate = [...current, { char, index }];
+    if (current.length > 0 && measureChars(ctx, candidate, letterSpacing) > maxWidth) {
+      pushLine();
+    }
+    current.push({ char, index });
+  });
+
+  pushLine();
   return lines;
+}
+
+async function loadCanvasFont(layer: SocialPreviewTextLayer) {
+  if (!("fonts" in document)) return;
+  await document.fonts.load(
+    `${layer.fontStyle} ${layer.fontWeight} ${layer.fontSize}px "${layer.fontFamily}"`,
+  );
 }
 
 function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
   drawLayerFrame(ctx, layer, () => {
-    ctx.font = `${layer.fontStyle} ${layer.fontWeight} ${layer.fontSize}px ${layer.fontFamily}`;
-    ctx.fillStyle = layer.color;
+    ctx.font = `${layer.fontStyle} ${layer.fontWeight} ${layer.fontSize}px "${layer.fontFamily}"`;
     ctx.textBaseline = "top";
-    ctx.textAlign = layer.align;
-    const lines = wrapText(ctx, layer.text, layer.width);
+    ctx.textAlign = "left";
+    const lines = wrapText(ctx, layer.text, layer.width, layer.letterSpacing);
     const lineHeightPx = layer.fontSize * layer.lineHeight;
-    const x =
-      layer.align === "center" ? layer.width / 2 : layer.align === "right" ? layer.width : 0;
 
-    lines.forEach((line, index) => {
-      if (layer.letterSpacing === 0) {
-        ctx.fillText(line, x, index * lineHeightPx, layer.width);
-        return;
-      }
-
-      let cursor = x;
-      const chars = Array.from(line);
-      const totalWidth =
-        chars.reduce((sum, char) => sum + ctx.measureText(char).width, 0) +
-        Math.max(0, chars.length - 1) * layer.letterSpacing;
-      if (layer.align === "center") cursor -= totalWidth / 2;
-      if (layer.align === "right") cursor -= totalWidth;
-      for (const char of chars) {
-        ctx.fillText(char, cursor, index * lineHeightPx);
-        cursor += ctx.measureText(char).width + layer.letterSpacing;
+    lines.forEach((line, lineIndex) => {
+      let cursor =
+        layer.align === "center"
+          ? (layer.width - line.width) / 2
+          : layer.align === "right"
+            ? layer.width - line.width
+            : 0;
+      for (const entry of line.chars) {
+        ctx.fillStyle = getTextColorAt(layer, entry.index);
+        ctx.fillText(entry.char, cursor, lineIndex * lineHeightPx);
+        cursor += ctx.measureText(entry.char).width + layer.letterSpacing;
       }
     });
   });
@@ -174,7 +233,119 @@ function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLa
 async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewImageLayer) {
   const image = await loadImage(layer.src);
   drawLayerFrame(ctx, layer, () => {
-    drawCoverImage(ctx, image, 0, 0, layer.width, layer.height);
+    drawCoverImage(
+      ctx,
+      image,
+      0,
+      0,
+      layer.width,
+      layer.height,
+      layer.zoom ?? 1,
+      layer.offsetX ?? 0,
+      layer.offsetY ?? 0,
+    );
+  });
+}
+
+function roundedRectPath(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.moveTo(r, 0);
+  ctx.lineTo(width - r, 0);
+  ctx.quadraticCurveTo(width, 0, width, r);
+  ctx.lineTo(width, height - r);
+  ctx.quadraticCurveTo(width, height, width - r, height);
+  ctx.lineTo(r, height);
+  ctx.quadraticCurveTo(0, height, 0, height - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+}
+
+function regularPolygonPath(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  radius: number,
+  points: number,
+) {
+  for (let index = 0; index < points; index++) {
+    const angle = -Math.PI / 2 + (index / points) * Math.PI * 2;
+    const x = centerX + Math.cos(angle) * radius;
+    const y = centerY + Math.sin(angle) * radius;
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function starPath(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  centerY: number,
+  outerRadius: number,
+  points: number,
+) {
+  const innerRadius = outerRadius * 0.45;
+  const total = points * 2;
+  for (let index = 0; index < total; index++) {
+    const angle = -Math.PI / 2 + (index / total) * Math.PI * 2;
+    const radius = index % 2 === 0 ? outerRadius : innerRadius;
+    const x = centerX + Math.cos(angle) * radius;
+    const y = centerY + Math.sin(angle) * radius;
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function buildShapePath(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
+  const radius = Math.min(layer.radius, layer.width / 2, layer.height / 2);
+  ctx.beginPath();
+  switch (layer.shape) {
+    case "circle":
+      ctx.arc(layer.width / 2, layer.height / 2, radius, 0, Math.PI * 2);
+      break;
+    case "ellipse":
+      ctx.ellipse(
+        layer.width / 2,
+        layer.height / 2,
+        layer.width / 2,
+        layer.height / 2,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      break;
+    case "polygon":
+      regularPolygonPath(ctx, layer.width / 2, layer.height / 2, radius, layer.sides);
+      break;
+    case "star":
+      starPath(ctx, layer.width / 2, layer.height / 2, radius, layer.points);
+      break;
+    case "rectangle":
+      roundedRectPath(ctx, layer.width, layer.height, layer.cornerRadius);
+      break;
+  }
+  ctx.closePath();
+}
+
+function drawShapeLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewShapeLayer) {
+  drawLayerFrame(ctx, layer, () => {
+    buildShapePath(ctx, layer);
+    ctx.fillStyle = layer.color;
+    ctx.fill();
+    if (layer.border && layer.borderThickness > 0) {
+      ctx.save();
+      ctx.globalAlpha = layer.borderOpacity;
+      ctx.strokeStyle = layer.borderColor;
+      ctx.lineWidth = layer.borderThickness;
+      ctx.stroke();
+      ctx.restore();
+    }
   });
 }
 
@@ -205,9 +376,12 @@ export async function renderSocialPreviewToCanvas(composition: SocialPreviewComp
 
   for (const layer of composition.layers) {
     if (layer.type === "text") {
+      await loadCanvasFont(layer);
       drawTextLayer(ctx, layer);
-    } else {
+    } else if (layer.type === "image") {
       await drawImageLayer(ctx, layer);
+    } else {
+      drawShapeLayer(ctx, layer);
     }
   }
 
