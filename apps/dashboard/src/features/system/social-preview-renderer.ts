@@ -70,6 +70,8 @@ export function createImageLayer(src: string, alt?: string | null): SocialPrevie
     zoom: 1,
     offsetX: 0,
     offsetY: 0,
+    tintColor: "#ffffff",
+    tintOpacity: 0,
   };
 }
 
@@ -297,8 +299,14 @@ function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLa
 async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewImageLayer) {
   const image = await loadImage(layer.src);
   drawLayerFrame(ctx, layer, () => {
+    const layerCanvas = document.createElement("canvas");
+    layerCanvas.width = Math.max(1, Math.round(layer.width));
+    layerCanvas.height = Math.max(1, Math.round(layer.height));
+    const layerCtx = layerCanvas.getContext("2d");
+    if (!layerCtx) return;
+
     drawCoverImage(
-      ctx,
+      layerCtx,
       image,
       0,
       0,
@@ -308,6 +316,17 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
       layer.offsetX ?? 0,
       layer.offsetY ?? 0,
     );
+
+    if ((layer.tintOpacity ?? 0) > 0) {
+      layerCtx.save();
+      layerCtx.globalCompositeOperation = "source-atop";
+      layerCtx.globalAlpha = layer.tintOpacity ?? 0;
+      layerCtx.fillStyle = layer.tintColor ?? "#ffffff";
+      layerCtx.fillRect(0, 0, layer.width, layer.height);
+      layerCtx.restore();
+    }
+
+    ctx.drawImage(layerCanvas, 0, 0, layer.width, layer.height);
   });
 }
 

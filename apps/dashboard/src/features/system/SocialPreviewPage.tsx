@@ -130,6 +130,7 @@ type DragState =
       originY: number;
       originWidth: number;
       originHeight: number;
+      originRadius?: number;
     }
   | {
       mode: "layer-rotate";
@@ -169,6 +170,14 @@ function getImageOffsetX(layer: SocialPreviewImageLayer) {
 
 function getImageOffsetY(layer: SocialPreviewImageLayer) {
   return layer.offsetY ?? 0;
+}
+
+function getImageTintColor(layer: SocialPreviewImageLayer) {
+  return layer.tintColor ?? "#ffffff";
+}
+
+function getImageTintOpacity(layer: SocialPreviewImageLayer) {
+  return layer.tintOpacity ?? 0;
 }
 
 type TextStylePatch = Partial<
@@ -389,11 +398,26 @@ function getPointerAngle(
   return (Math.atan2(position.y - y, position.x - x) * 180) / Math.PI;
 }
 
+function loadImageDimensions(src: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => reject(new Error(`Image could not be loaded: ${src}`));
+    image.src = src;
+  });
+}
+
+function isCornerHandle(handle: ResizeHandle) {
+  return handle.length === 2;
+}
+
 function resizeLayer(
   layer: SocialPreviewLayer,
   handle: ResizeHandle,
   deltaX: number,
   deltaY: number,
+  proportional = false,
 ) {
   let x = layer.x;
   let y = layer.y;
@@ -411,6 +435,24 @@ function resizeLayer(
     height -= deltaY;
   }
 
+  if (proportional && isCornerHandle(handle)) {
+    const aspectRatio = layer.width / layer.height;
+    const widthChange = Math.abs(width - layer.width) / layer.width;
+    const heightChange = Math.abs(height - layer.height) / layer.height;
+    if (widthChange >= heightChange) {
+      height = Math.max(1, width / aspectRatio);
+    } else {
+      width = Math.max(1, height * aspectRatio);
+    }
+
+    if (handle.includes("w")) {
+      x = layer.x + layer.width - width;
+    }
+    if (handle.includes("n")) {
+      y = layer.y + layer.height - height;
+    }
+  }
+
   const minSize = 24;
   if (width < minSize) {
     if (handle.includes("w")) x -= minSize - width;
@@ -422,6 +464,21 @@ function resizeLayer(
   }
 
   return { x, y, width, height };
+}
+
+function getResizedShapeRadius(
+  layer: SocialPreviewShapeLayer,
+  patch: { width: number; height: number },
+  originWidth: number,
+  originHeight: number,
+  originRadius: number,
+) {
+  if (layer.shape !== "circle" && layer.shape !== "polygon" && layer.shape !== "star") {
+    return undefined;
+  }
+
+  const scale = Math.min(patch.width / originWidth, patch.height / originHeight);
+  return Math.max(1, originRadius * scale);
 }
 
 function snapResizeLayer(
@@ -684,8 +741,17 @@ export function SocialPreviewPage() {
     setEditingTextLayerId(null);
   }
 
-  function addImageLayer(url: string, alt?: string | null) {
+  async function addImageLayer(url: string, alt?: string | null) {
     const layer = createImageLayer(url, alt);
+    try {
+      const dimensions = await loadImageDimensions(url);
+      layer.width = dimensions.width;
+      layer.height = dimensions.height;
+      layer.x = (composition.width - dimensions.width) / 2;
+      layer.y = (composition.height - dimensions.height) / 2;
+    } catch {
+      // Keep renderer fallback dimensions when the browser cannot read the image metadata.
+    }
     commitComposition((current) => ({ ...current, layers: [...current.layers, layer] }));
     setSelection({ type: "layer", id: layer.id });
     setActiveTool("image");
@@ -697,7 +763,7 @@ export function SocialPreviewPage() {
     const baseName = file.name.replace(/\.[^.]+$/, "") || t.addImage;
     try {
       const media = await uploadPreview.mutateAsync({ blob: file, name: baseName });
-      addImageLayer(media.url, file.name);
+      await addImageLayer(media.url, file.name);
     } catch (error) {
       setRenderError(error instanceof Error ? error.message : common.unknownError);
     }
@@ -791,6 +857,7 @@ export function SocialPreviewPage() {
       originY: layer.y,
       originWidth: layer.width,
       originHeight: layer.height,
+      originRadius: layer.type === "shape" ? layer.radius : undefined,
     });
   }
 
@@ -858,15 +925,35 @@ export function SocialPreviewPage() {
         width: dragState.originWidth,
         height: dragState.originHeight,
       } as SocialPreviewLayer;
+      const proportionalResize = event.shiftKey && isCornerHandle(dragState.handle);
       const resized = resizeLayer(
         shadowLayer,
         dragState.handle,
         position.x - dragState.startX,
         position.y - dragState.startY,
+        proportionalResize,
       );
-      const snapped = snapResizeLayer(composition, active, dragState.handle, resized);
+      const snapped = proportionalResize
+        ? { patch: resized, guides: [] }
+        : snapResizeLayer(composition, active, dragState.handle, resized);
+      const radius =
+        active.type === "shape" && dragState.originRadius !== undefined
+          ? getResizedShapeRadius(
+              active,
+              snapped.patch,
+              dragState.originWidth,
+              dragState.originHeight,
+              dragState.originRadius,
+            )
+          : undefined;
       setGuides(snapped.guides);
-      setComposition((current) => updateLayer(current, dragState.id, snapped.patch));
+      setComposition((current) =>
+        updateLayer(
+          current,
+          dragState.id,
+          radius === undefined ? snapped.patch : { ...snapped.patch, radius },
+        ),
+      );
       return;
     }
 
@@ -1026,7 +1113,7 @@ export function SocialPreviewPage() {
       format,
       quality: rendered.effectiveQuality,
       sizeBytes: rendered.blob.size,
-      activate: true,
+      activate: false,
     });
   }
 
@@ -1063,15 +1150,13 @@ export function SocialPreviewPage() {
           <div className="flex items-center justify-end gap-1">
             <TableActionButton
               type="button"
-              aria-label={t.loadProject}
-              title={t.loadProject}
               onClick={() => handleLoadProject(project)}
               icon={<FileTextIcon weight="duotone" className="size-3.5" />}
+              label={t.loadProject}
             />
             <DeleteActionButton
-              iconOnly
-              aria-label={common.delete}
-              title={common.delete}
+              size="action"
+              label={common.delete}
               disabled={deleteProject.isPending}
               onClick={() => setDeleteProjectTargetId(project.id)}
             />
@@ -1439,12 +1524,14 @@ export function SocialPreviewPage() {
         <UnsplashBrowser
           defaultQuery=""
           onSelect={(photo) => {
-            if (browserMode === "background") {
-              selectUnsplashAsBackground(photo.url);
-            } else {
-              addImageLayer(photo.url, photo.altDescription);
-            }
-            setBrowserMode(null);
+            void (async () => {
+              if (browserMode === "background") {
+                selectUnsplashAsBackground(photo.url);
+              } else {
+                await addImageLayer(photo.url, photo.altDescription);
+              }
+              setBrowserMode(null);
+            })();
           }}
           onClose={() => setBrowserMode(null)}
         />
@@ -1892,17 +1979,35 @@ function LayerContent({
     return <ShapeLayerContent layer={layer} />;
   }
 
+  const imageTransform = `translate(${getImageOffsetX(layer)}px, ${getImageOffsetY(layer)}px) scale(${getImageZoom(layer)})`;
+
   return (
-    <div className="size-full overflow-hidden">
+    <div className="relative size-full overflow-hidden">
       <img
         src={layer.src}
         alt={layer.alt ?? ""}
         className="size-full object-cover"
         draggable={false}
-        style={{
-          transform: `translate(${getImageOffsetX(layer)}px, ${getImageOffsetY(layer)}px) scale(${getImageZoom(layer)})`,
-        }}
+        style={{ transform: imageTransform }}
       />
+      {getImageTintOpacity(layer) > 0 ? (
+        <div
+          className="pointer-events-none absolute inset-0 size-full"
+          style={{
+            backgroundColor: getImageTintColor(layer),
+            maskImage: `url(${layer.src})`,
+            maskPosition: "center",
+            maskRepeat: "no-repeat",
+            maskSize: "cover",
+            opacity: getImageTintOpacity(layer),
+            transform: imageTransform,
+            WebkitMaskImage: `url(${layer.src})`,
+            WebkitMaskPosition: "center",
+            WebkitMaskRepeat: "no-repeat",
+            WebkitMaskSize: "cover",
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -2028,7 +2133,7 @@ function AttributeBar({
   const layerForTool = selectedLayer?.type === activeTool ? selectedLayer : null;
 
   return (
-    <div className="mb-2 flex min-h-10 flex-wrap items-center gap-2 px-0 py-1.5 text-xs text-[var(--ds-text-muted)]">
+    <div className="mb-2 flex h-[4.75rem] flex-wrap content-start items-start gap-2 overflow-y-auto px-0 py-1.5 text-xs text-[var(--ds-text-muted)]">
       {activeTool === "background" ? (
         <BackgroundAttributes
           messages={messages}
@@ -2506,22 +2611,55 @@ function ImageLayerAttributes({
   onChange: (patch: Partial<SocialPreviewLayer>) => void;
 }) {
   return (
-    <AttributeLabel
-      title={messages.backgroundZoom}
-      icon={<CornersOutIcon weight="duotone" className="size-4" />}
-    >
-      <span className="w-9 text-right tabular-nums">{getImageZoom(layer).toFixed(2)}</span>
-      <AttributeInput
-        aria-label={messages.backgroundZoom}
-        type="range"
-        min={0.1}
-        max={10}
-        step={0.05}
-        value={getImageZoom(layer)}
-        className="w-24 px-0"
-        onChange={(event) => onChange({ zoom: Number(event.currentTarget.value) || 1 })}
-      />
-    </AttributeLabel>
+    <>
+      <AttributeLabel
+        title={messages.backgroundZoom}
+        icon={<CornersOutIcon weight="duotone" className="size-4" />}
+      >
+        <span className="w-9 text-right tabular-nums">{getImageZoom(layer).toFixed(2)}</span>
+        <AttributeInput
+          aria-label={messages.backgroundZoom}
+          type="range"
+          min={0.1}
+          max={10}
+          step={0.05}
+          value={getImageZoom(layer)}
+          className="w-24 px-0"
+          onChange={(event) => onChange({ zoom: Number(event.currentTarget.value) || 1 })}
+        />
+      </AttributeLabel>
+      <AttributeLabel
+        title={messages.imageTintColor}
+        icon={<PaletteIcon weight="duotone" className="size-4" />}
+      >
+        <AttributeInput
+          aria-label={messages.imageTintColor}
+          type="color"
+          value={getImageTintColor(layer)}
+          className="w-9 px-1"
+          onChange={(event) => onChange({ tintColor: event.currentTarget.value })}
+        />
+      </AttributeLabel>
+      <AttributeLabel
+        title={messages.imageTintOpacity}
+        icon={<DropIcon weight="duotone" className="size-4" />}
+      >
+        <span className="w-8 text-right tabular-nums">
+          {Math.round(getImageTintOpacity(layer) * 100)}
+        </span>
+        <AttributeInput
+          aria-label={messages.imageTintOpacity}
+          type="range"
+          min={0}
+          max={100}
+          value={Math.round(getImageTintOpacity(layer) * 100)}
+          className="w-20 px-0"
+          onChange={(event) =>
+            onChange({ tintOpacity: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 1) })
+          }
+        />
+      </AttributeLabel>
+    </>
   );
 }
 
