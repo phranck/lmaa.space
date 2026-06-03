@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Status Layered Work Monitoring Plan</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --panel-soft: #f1f5f9;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: #dbe3ee;
+        --accent: #2563eb;
+        --good: #16a34a;
+        --warn: #d97706;
+        --bad: #dc2626;
+        --unknown: #7c3aed;
+        --code-bg: #eef2f7;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #020617;
+          --panel: #0f172a;
+          --panel-soft: #111c33;
+          --text: #e5eefb;
+          --muted: #9fb0c7;
+          --border: #243047;
+          --accent: #60a5fa;
+          --good: #4ade80;
+          --warn: #fbbf24;
+          --bad: #f87171;
+          --unknown: #c084fc;
+          --code-bg: #07101f;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 48px 24px 88px;
+      }
+
+      header {
+        margin-bottom: 32px;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        line-height: 1.2;
+        margin: 0 0 14px;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 5vw, 4rem);
+        letter-spacing: -0.04em;
+      }
+
+      h2 {
+        font-size: clamp(1.45rem, 3vw, 2.1rem);
+        margin-top: 44px;
+      }
+
+      h3 {
+        font-size: 1.2rem;
+        margin-top: 28px;
+      }
+
+      p {
+        margin: 0 0 16px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      code {
+        padding: 0.12rem 0.35rem;
+        border-radius: 6px;
+        background: var(--code-bg);
+      }
+
+      pre {
+        overflow-x: auto;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--code-bg);
+      }
+
+      ul,
+      ol {
+        margin-top: 0;
+        padding-left: 1.5rem;
+      }
+
+      li {
+        margin-bottom: 6px;
+      }
+
+      .lead {
+        max-width: 880px;
+        color: var(--muted);
+        font-size: 1.13rem;
+      }
+
+      .meta,
+      .grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .meta {
+        margin-top: 18px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 12px;
+        background: var(--panel-soft);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        margin: 18px 0 28px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--panel);
+        padding: 20px;
+      }
+
+      .card h3,
+      .card h4 {
+        margin-top: 0;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--panel);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 820px;
+      }
+
+      th,
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 650;
+        background: var(--panel-soft);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 16px 18px;
+        color: var(--muted);
+      }
+
+      .warning {
+        border-left-color: var(--warn);
+      }
+
+      .danger {
+        border-left-color: var(--bad);
+      }
+
+      .done {
+        color: var(--good);
+        font-weight: 700;
+      }
+
+      .open {
+        color: var(--warn);
+        font-weight: 700;
+      }
+
+      .blocked {
+        color: var(--bad);
+        font-weight: 700;
+      }
+
+      .status-key {
+        display: grid;
+        gap: 10px;
+      }
+
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+      }
+
+      .dot.good {
+        background: var(--good);
+      }
+
+      .dot.warn {
+        background: var(--warn);
+      }
+
+      .dot.bad {
+        background: var(--bad);
+      }
+
+      .dot.unknown {
+        background: var(--unknown);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Status Layered Work Monitoring Plan</h1>
+        <p class="lead">
+          Umsetzungsplan für eine unabhängige Status-Website unter
+          <strong>status.layered.work</strong>. Der erste Schritt kommt bewusst ohne Zerops API aus:
+          Projekte, Services und Endpoints werden statisch konfiguriert. Die Website unterstützt
+          Light/Dark Mode automatisch nach Systempräferenz und manuell per Theme-Toggle. Die
+          aktuelle Umsetzung nutzt React, Vite, Tailwind CSS und eigene Design-Tokens ohne shadcn.
+        </p>
+        <div class="meta">
+          <span class="pill">Stand: 2026-05-26</span>
+          <span class="pill">Domain: status.layered.work</span>
+          <span class="pill">UI: React/Vite/Tailwind, ohne shadcn</span>
+          <span class="pill">Theme: system, light, dark</span>
+          <span class="pill">Phase 1: ohne Zerops API</span>
+          <span class="pill">X-Status-Token: Pflicht</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>1. Zielbild</h2>
+        <p>
+          Die Status-Website soll projektübergreifend anzeigen, ob öffentliche und interne Services
+          funktionieren. Sie soll nicht nur HTTP-Status anzeigen, sondern auch Antwortzeiten,
+          Prozess-Uptime, Dependency-Checks und historische Uptime-Werte darstellen.
+        </p>
+        <ul>
+          <li>Einheitliche Status-Endpunkte pro öffentlich erreichbarem Service.</li>
+          <li>
+            Interne Dienste wie Datenbanken, Object Storage und GeoDB werden nicht direkt öffentlich
+            gemacht.
+          </li>
+          <li>
+            Die Status-Website misst externe Response-Zeiten und berechnet historische Uptime
+            selbst.
+          </li>
+          <li>Services liefern ihren lokalen Zustand und Dependency-Checks über JSON.</li>
+          <li>
+            Die UI verwendet eigene React-Komponenten, Tailwind CSS, CSS Design-Tokens und
+            unterstützt Light/Dark Mode automatisch und manuell.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2. Abgrenzung für Phase 1</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>In Scope</h3>
+            <ul>
+              <li>Statische Projekt- und Service-Konfiguration.</li>
+              <li>Status-Endpunkte <code>/_status/live</code> und <code>/_status/ready</code>.</li>
+              <li>Status-Website mit eigenen React-Komponenten, Cards, Badges und Theme-Toggle.</li>
+              <li>Ping-Zeiten, letzter Check, Prozess-Uptime und historische Uptime.</li>
+              <li>
+                Schutz der Status-Endpunkte per <code>X-Status-Token</code> ist sofort Pflicht.
+              </li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Out of Scope für Phase 1</h3>
+            <ul>
+              <li>Automatische Inventarisierung über Zerops API.</li>
+              <li>Automatische Domain-Erkennung aus Zerops.</li>
+              <li>Direkte öffentliche Checks auf Postgres, GeoDB oder Object Storage.</li>
+              <li>Vollständiges Incident-Management mit Eskalationen.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Status-Endpunkt-Konvention</h2>
+        <p>Jeder öffentlich erreichbare Service bekommt zwei konsistente Endpunkte:</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Endpoint</th>
+                <th>Zweck</th>
+                <th>Dependencies</th>
+                <th>HTTP-Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>GET /_status/live</code></td>
+                <td>Prozess oder Webserver erreichbar.</td>
+                <td>Keine externen Dependencies.</td>
+                <td><code>200</code>, wenn der Service antwortet.</td>
+              </tr>
+              <tr>
+                <td><code>GET /_status/ready</code></td>
+                <td>Service ist betriebsbereit.</td>
+                <td>Prüft relevante Dependencies, z. B. DB, Backend, Storage oder GeoDB.</td>
+                <td><code>200</code> bei ok, <code>503</code> bei degraded/down.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note warning">
+          Pflicht: Status-only Endpunkte müssen <code>X-Status-Token</code> validieren. Ohne
+          gültigen Token gibt der Service <code>404</code> zurück, damit die Endpunkte nicht als
+          öffentliche API sichtbar werden. Der Token bleibt ausschließlich serverseitig im Poller
+          oder Worker. Bestehende Public-Routen wie Website-Startseiten, API-Smoke-Routen oder
+          API-Dokumentation bleiben öffentliche Reachability-Checks und dürfen durch diese Regel
+          nicht für normale Nutzer gesperrt werden.
+        </div>
+      </section>
+
+      <section>
+        <h2>4. Service-Antwortformat</h2>
+        <p>
+          Die Services liefern Momentaufnahmen ihres lokalen Zustands. Externe Ping-Zeit und
+          historische Uptime werden von der Status-Website oder einem Poller berechnet.
+        </p>
+        <pre><code>{
+  "schemaVersion": 1,
+  "project": "lmaa.space",
+  "service": "backend",
+  "environment": "production",
+  "status": "ok",
+  "checkedAt": "2026-05-26T18:45:00.000Z",
+  "startedAt": "2026-05-26T12:00:00.000Z",
+  "uptimeSeconds": 24300,
+  "version": {
+    "gitSha": "optional",
+    "buildId": "optional"
+  },
+  "checks": {
+    "database": {
+      "status": "ok",
+      "latencyMs": 14
+    },
+    "storage": {
+      "status": "ok",
+      "latencyMs": 32
+    }
+  }
+}</code></pre>
+        <p>Statuswerte auf Service-Ebene:</p>
+        <div class="grid">
+          <article class="card status-key">
+            <div class="status-item">
+              <span class="dot good"></span
+              ><span><strong>ok</strong> - alle relevanten Checks grün</span>
+            </div>
+            <div class="status-item">
+              <span class="dot warn"></span
+              ><span><strong>degraded</strong> - Teilstörung oder langsame Dependency</span>
+            </div>
+            <div class="status-item">
+              <span class="dot bad"></span
+              ><span><strong>down</strong> - kritische Dependency oder Service down</span>
+            </div>
+            <div class="status-item">
+              <span class="dot unknown"></span
+              ><span
+                ><strong>unknown</strong> - Check fehlt, ist veraltet oder nicht auswertbar</span
+              >
+            </div>
+          </article>
+          <article class="card">
+            <h3>Keine Secrets</h3>
+            <p>
+              Die Antwort enthält keine Connection Strings, internen Hostnames, Tokens,
+              Bucket-Namen, Stacktraces oder rohen Fehlermeldungen. Fehler werden auf stabile Codes
+              gemappt.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>5. Status-Website-Datenmodell</h2>
+        <p>
+          Die Status-Website arbeitet mit einer statischen Konfiguration und einer laufend
+          aktualisierten Statusdatei. Uptime und Ping-Zeiten gehören in die gemessenen Daten der
+          Status-Website, nicht allein in die Service-Antworten.
+        </p>
+        <h3><code>status.config.json</code></h3>
+        <pre><code>{
+  "auth": {
+    "headerName": "X-Status-Token",
+    "tokenEnv": "STATUS_MONITOR_TOKEN",
+    "requiredForStatusOnlyEndpoints": true,
+    "missingTokenStatus": 404
+  },
+  "projects": [
+    {
+      "id": "musiccloud.io",
+      "website": "https://musiccloud.io/",
+      "dashboard": "https://dashboard.musiccloud.io/",
+      "backend": "https://api.musiccloud.io/health",
+      "database": "https://api.musiccloud.io/health/ready",
+      "apiDocs": "https://api.musiccloud.io/docs",
+      "publicApiSmoke": "https://api.musiccloud.io/api/v1/services/active",
+      "dashboardApiSmoke": "https://dashboard.musiccloud.io/api/admin/auth/setup-status"
+    },
+    {
+      "id": "lmaa.space",
+      "website": "https://lmaa.space/",
+      "dashboard": "https://dashboard.lmaa.space/",
+      "backend": "https://api.lmaa.space/health",
+      "database": "https://api.lmaa.space/health",
+      "apiDocs": "https://api.lmaa.space/docs",
+      "publicApiSmoke": "https://api.lmaa.space/api/v1/stats",
+      "dashboardApiSmoke": "https://dashboard.lmaa.space/api/v1/admin/auth/setup-status"
+    }
+  ]
+}</code></pre>
+        <h3><code>status.json</code></h3>
+        <pre><code>{
+  "generatedAt": "2026-05-26T18:45:00.000Z",
+  "retention": {
+    "historyMonths": 3,
+    "historyDays": 90
+  },
+  "overall": "degraded",
+  "projects": [
+    {
+      "id": "lmaa-space",
+      "status": "degraded",
+      "uptime": {
+        "last24h": 99.95,
+        "last7d": 99.8,
+        "last30d": 99.7,
+        "last90d": 99.6
+      },
+      "services": [
+        {
+          "id": "backend",
+          "status": "ok",
+          "httpStatus": 200,
+          "responseTimeMs": 84,
+          "serviceUptimeSeconds": 24300,
+          "checkedAt": "2026-05-26T18:45:00.000Z",
+          "uptime": {
+            "last24h": 100,
+            "last7d": 99.9,
+            "last30d": 99.8,
+            "last90d": 99.7
+          }
+        }
+      ]
+    }
+  ]
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>6. Ping-Zeiten und Uptime</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Vom Poller gemessen</h3>
+            <ul>
+              <li><code>responseTimeMs</code>: Zeit von Request-Start bis Response-Ende.</li>
+              <li><code>httpStatus</code>: tatsächlicher HTTP-Code.</li>
+              <li><code>tlsValid</code>: optionales TLS-Ergebnis.</li>
+              <li><code>dnsResolved</code>: optionales DNS-Ergebnis.</li>
+              <li><code>checkedAt</code>: Zeitpunkt des externen Checks.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Vom Service geliefert</h3>
+            <ul>
+              <li><code>uptimeSeconds</code>: Laufzeit des aktuellen Prozesses.</li>
+              <li><code>startedAt</code>: Startzeit des aktuellen Prozesses.</li>
+              <li><code>checks.*.latencyMs</code>: interne Dependency-Latenz.</li>
+              <li><code>checks.*.status</code>: Zustand einzelner Dependencies.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Historisch berechnet</h3>
+            <ul>
+              <li>Uptime 24h, 7d, 30d und 90d aus Check-Historie.</li>
+              <li>Degraded zählt separat von Down.</li>
+              <li>Timeout, DNS, TLS und 5xx zählen als Down.</li>
+              <li>HTTP 200 mit Service-Status <code>degraded</code> zählt als Degraded.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>7. Projekte und Checks in Phase 1</h2>
+        <p>
+          Phase 1 verwendet die folgenden statisch gepflegten Check-URLs. Diese URLs sind die
+          operative Grundlage für <code>status.config.json</code>. Neue Status-only Endpunkte werden
+          zusätzlich nach der Konvention aus Abschnitt 3 eingeführt und müssen ab dem ersten
+          Implementierungsschritt <code>X-Status-Token</code> erzwingen.
+        </p>
+
+        <h3>musiccloud.io</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Check</th>
+                <th>URL</th>
+                <th>Zweck</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>website</td>
+                <td><code>https://musiccloud.io/</code></td>
+                <td>Öffentliche Website erreichbar.</td>
+              </tr>
+              <tr>
+                <td>dashboard</td>
+                <td><code>https://dashboard.musiccloud.io/</code></td>
+                <td>Dashboard-Origin erreichbar.</td>
+              </tr>
+              <tr>
+                <td>backend</td>
+                <td><code>https://api.musiccloud.io/health</code></td>
+                <td>Backend-Liveness.</td>
+              </tr>
+              <tr>
+                <td>database</td>
+                <td><code>https://api.musiccloud.io/health/ready</code></td>
+                <td>Backend-Readiness inklusive Datenbank.</td>
+              </tr>
+              <tr>
+                <td>apiDocs</td>
+                <td><code>https://api.musiccloud.io/docs</code></td>
+                <td>API-Dokumentation erreichbar.</td>
+              </tr>
+              <tr>
+                <td>publicApiSmoke</td>
+                <td><code>https://api.musiccloud.io/api/v1/services/active</code></td>
+                <td>Öffentliche API-Smoke-Route.</td>
+              </tr>
+              <tr>
+                <td>dashboardApiSmoke</td>
+                <td><code>https://dashboard.musiccloud.io/api/admin/auth/setup-status</code></td>
+                <td>Dashboard-API-Smoke-Route.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>lmaa.space</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Check</th>
+                <th>URL</th>
+                <th>Zweck</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>website</td>
+                <td><code>https://lmaa.space/</code></td>
+                <td>Öffentliche Website erreichbar.</td>
+              </tr>
+              <tr>
+                <td>dashboard</td>
+                <td><code>https://dashboard.lmaa.space/</code></td>
+                <td>Dashboard-Origin erreichbar.</td>
+              </tr>
+              <tr>
+                <td>backend</td>
+                <td><code>https://api.lmaa.space/health</code></td>
+                <td>Backend-Liveness.</td>
+              </tr>
+              <tr>
+                <td>database</td>
+                <td><code>https://api.lmaa.space/health</code></td>
+                <td>Aktueller Backend-Health-Check inklusive Datenbankprüfung.</td>
+              </tr>
+              <tr>
+                <td>apiDocs</td>
+                <td><code>https://api.lmaa.space/docs</code></td>
+                <td>API-Dokumentation erreichbar.</td>
+              </tr>
+              <tr>
+                <td>publicApiSmoke</td>
+                <td><code>https://api.lmaa.space/api/v1/stats</code></td>
+                <td>Öffentliche API-Smoke-Route.</td>
+              </tr>
+              <tr>
+                <td>dashboardApiSmoke</td>
+                <td><code>https://dashboard.lmaa.space/api/v1/admin/auth/setup-status</code></td>
+                <td>Dashboard-API-Smoke-Route.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>8. Status-Website UI</h2>
+        <p>
+          Die Status-Website wird als React/Vite-App oder kompatible statische App aufgebaut und
+          nutzt Tailwind CSS, eigene React-Komponenten und semantische CSS Design-Tokens. shadcn/ui
+          wird in der aktuellen Umsetzung bewusst nicht verwendet.
+        </p>
+        <div class="grid">
+          <article class="card">
+            <h3>Komponenten</h3>
+            <ul>
+              <li>Eigene Projekt-, Service-, History-, Incident- und Badge-Komponenten.</li>
+              <li>Projektwechsel über Tabs/Buttons.</li>
+              <li>Servicekarten mit Status, HTTP-Code, Response-Zeit und Uptime.</li>
+              <li>History-Ansicht als kompakte 30-Tage-Balkenmatrix.</li>
+              <li>Lucide Icons für Service-Typen und UI-Aktionen.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Light/Dark Mode</h3>
+            <ul>
+              <li>Theme-Modi: <code>system</code>, <code>light</code>, <code>dark</code>.</li>
+              <li>Automatisch über <code>prefers-color-scheme</code>.</li>
+              <li>Manuell über eigenen Theme-Toggle.</li>
+              <li>Persistenz über <code>localStorage</code>.</li>
+              <li>Dark Mode orientiert sich an GitHub Dark Dimmed.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Darstellung</h3>
+            <ul>
+              <li>Kein Hero und keine globale Summary, sondern direkter Einstieg mit Projekten.</li>
+              <li>Projektkarte mit Status und Uptime 24h/7d/30d.</li>
+              <li>Servicekarten ohne öffentlich sichtbare Check-URLs.</li>
+              <li>Cards, Innenflächen, Farben, Radien und Einzüge laufen über Design-Tokens.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>9. Polling und Datenaktualisierung</h2>
+        <p>
+          Da Phase 1 ohne Zerops API startet, wird ein Poller mit statischer Config verwendet. Der
+          Poller läuft in der aktuellen Zielarchitektur als GitHub Action.
+        </p>
+        <ol>
+          <li><code>status.config.json</code> lesen.</li>
+          <li>
+            <code>X-Status-Token</code> aus <code>STATUS_MONITOR_TOKEN</code> laden und bei
+            Status-only Checks mitsenden.
+          </li>
+          <li>Alle konfigurierten Check-URLs mit Timeout prüfen.</li>
+          <li>Response-Zeit, HTTP-Status, JSON-Body und Fehlerklasse erfassen.</li>
+          <li>Status je Service und Projekt aggregieren.</li>
+          <li>Historie aktualisieren und Uptime-Fenster berechnen.</li>
+          <li><code>status.json</code> und <code>history.json</code> veröffentlichen.</li>
+        </ol>
+        <pre><code>status-site/
+  index.html
+  assets/
+  status.config.json
+  status.json
+  history.json
+  incidents.json
+  CNAME</code></pre>
+      </section>
+
+      <section>
+        <h2>10. GitHub Pages Implementierung</h2>
+        <p>
+          Der Codeberg-/Forgejo-Weg wurde verworfen, weil Forgejo Actions auf Codeberg einen eigenen
+          Runner oder Codeberg-Woodpecker-Onboarding erfordern. Die Status-Website wird stattdessen
+          über GitHub Actions und GitHub Pages veröffentlicht.
+        </p>
+        <div class="note">
+          GitHub Pages wird auf <code>Source: GitHub Actions</code> konfiguriert. Der Workflow baut
+          die statische App, lädt <code>dist/</code> als Pages-Artefakt hoch und deployed dieses
+          Artefakt direkt zu GitHub Pages. Ein separater <code>pages</code>-Branch ist nicht nötig.
+        </div>
+
+        <h3>Empfohlenes Repository-Modell</h3>
+        <p>
+          Für die Status-Seite wird das öffentliche GitHub-Repository
+          <code>phranck/status</code> verwendet.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Element</th>
+                <th>Wert für diesen Plan</th>
+                <th>Begründung</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Repository</td>
+                <td>
+                  <code>phranck/status</code><br /><code>git@github.com:phranck/status.git</code>
+                </td>
+                <td>Eigenes Status-Repo, sauber getrennt von App-Repositories.</td>
+              </tr>
+              <tr>
+                <td>Publishing Source</td>
+                <td><code>GitHub Actions</code></td>
+                <td>Build-Artefakt wird per <code>actions/deploy-pages</code> veröffentlicht.</td>
+              </tr>
+              <tr>
+                <td>Default URL</td>
+                <td><code>https://phranck.github.io/status/</code></td>
+                <td>GitHub-Pages-URL vor oder neben der Custom Domain.</td>
+              </tr>
+              <tr>
+                <td>Custom Domain</td>
+                <td><code>https://status.layered.work</code></td>
+                <td>Öffentliche Status-Domain.</td>
+              </tr>
+              <tr>
+                <td>DNS-Ziel</td>
+                <td><code>phranck.github.io</code></td>
+                <td>
+                  GitHub Pages verlangt bei Subdomains einen CNAME auf die User-/Org-Pages-Domain,
+                  ohne Repository-Name.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>GitHub-Konfiguration</h3>
+        <ol>
+          <li>Repository <code>https://github.com/phranck/status</code> verwenden.</li>
+          <li>Remote: <code>git@github.com:phranck/status.git</code>.</li>
+          <li>GitHub Pages in den Repository Settings auf <code>GitHub Actions</code> stellen.</li>
+          <li>Custom Domain <code>status.layered.work</code> in den Pages Settings setzen.</li>
+          <li>Nach DNS-Aktivierung <code>Enforce HTTPS</code> aktivieren.</li>
+        </ol>
+        <pre><code>status.layered.work</code></pre>
+        <p>
+          Die Datei <code>public/CNAME</code> enthält diese Domain und wird in den Build-Output
+          kopiert. Die Custom Domain muss trotzdem in den GitHub Pages Settings gesetzt werden.
+        </p>
+
+        <h3>DNS für <code>status.layered.work</code></h3>
+        <p>
+          Da <code>status.layered.work</code> eine Subdomain ist, ist ein CNAME der empfohlene und
+          einfachste Weg, sofern auf dieser Subdomain keine anderen Dienste wie E-Mail betrieben
+          werden.
+        </p>
+        <pre><code>status.layered.work.  CNAME  phranck.github.io.</code></pre>
+
+        <h3>Deployment-Flow für Phase 1</h3>
+        <ol>
+          <li>GitHub Actions Workflow auf Push, Schedule und manuell starten.</li>
+          <li><code>npm ci</code> ausführen.</li>
+          <li><code>npm run collect</code> ausführen.</li>
+          <li><code>npm run build</code> ausführen.</li>
+          <li><code>dist/</code> als Pages-Artefakt hochladen.</li>
+          <li>Artefakt mit <code>actions/deploy-pages</code> veröffentlichen.</li>
+          <li>
+            Nach dem Deploy prüfen: <code>https://status.layered.work/</code>,
+            <code>/status.json</code> und <code>/history.json</code>.
+          </li>
+        </ol>
+
+        <h3>Quellen</h3>
+        <ul>
+          <li>
+            <a
+              href="https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site"
+              >GitHub Pages: Publishing with a custom Actions workflow</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site"
+              >GitHub Pages: Managing a custom domain</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule"
+              >GitHub Actions: schedule event</a
+            >
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>11. Security</h2>
+        <div class="note danger">
+          In öffentlichen Statusdaten dürfen keine Secrets, internen Hostnames, Connection Strings,
+          Bucket-Namen, rohen Exceptions oder Stacktraces landen.
+        </div>
+        <ul>
+          <li><code>X-Status-Token</code> ist für Status-only Endpunkte sofort Pflicht.</li>
+          <li><code>X-Status-Token</code> nur serverseitig im Poller speichern.</li>
+          <li>
+            Ohne Token muss ein Status-only Endpoint <code>404</code> liefern, nicht
+            <code>401</code>.
+          </li>
+          <li>Fehler als stabile Codes ausgeben, z. B. <code>database_unreachable</code>.</li>
+          <li>Public UI zeigt nur aggregierte und sanitisierten Daten.</li>
+          <li>
+            History auf 3 Monate begrenzen. Ältere Detaildaten werden gelöscht oder nur noch
+            aggregiert gehalten.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>12. Umsetzungsschritte</h2>
+        <p>
+          Status dieses Abschnitts: <span class="done">erledigt</span>,
+          <span class="open">offen</span> oder <span class="blocked">extern/blockiert</span>.
+        </p>
+        <ol>
+          <li>
+            <span class="done">erledigt:</span> Status-Endpunkt-Schema mit verpflichtendem
+            <code>X-Status-Token</code> finalisieren.
+          </li>
+          <li>
+            <span class="done">erledigt:</span>
+            <code>status.config.json</code> mit den festgelegten musiccloud.io- und lmaa.space-URLs
+            anlegen.
+          </li>
+          <li>
+            <span class="open">offen:</span>
+            Backend-Status-Endpunkte für <code>lmaa.space</code> ergänzen:
+            <code>/_status/live</code> und <code>/_status/ready</code>.
+          </li>
+          <li>
+            <span class="open">offen:</span> Website-Status-Endpunkte für
+            <code>lmaa.space</code> ergänzen.
+          </li>
+          <li>
+            <span class="open">offen:</span> Dashboard-Nginx-Status-Endpunkte für
+            <code>lmaa.space</code> ergänzen.
+          </li>
+          <li>
+            <span class="open">offen:</span> Entsprechende Endpunkte später analog in
+            <code>musiccloud.io</code> ergänzen.
+          </li>
+          <li>
+            <span class="done">erledigt:</span>
+            Poller bauen, der statische Config liest, Response-Zeiten misst und
+            <code>status.json</code> erzeugt.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Status-Website mit React/Vite/Tailwind und eigenen
+            Komponenten aufbauen, ohne shadcn.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Theme-Toggle und System-Theme-Unterstützung
+            einbauen.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Uptime-Berechnung für 24h, 7d, 30d und 90d
+            implementieren.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> History mit 90-Tage-Retention, Tagesdaten, Projekt-
+            und Service-Historie implementieren.
+          </li>
+          <li>
+            <span class="blocked">extern/blockiert:</span>
+            GitHub Repository <code>phranck/status</code>, GitHub Pages und Custom Domain
+            konfigurieren.
+          </li>
+          <li>
+            <span class="blocked">extern/blockiert:</span>
+            DNS-CNAME für <code>status.layered.work</code> auf
+            <code>phranck.github.io</code> setzen.
+          </li>
+          <li>
+            <span class="open">offen:</span> Smoke-Tests für Status-Endpunkte und API-Dokumentation
+            ergänzen.
+          </li>
+          <li>
+            <span class="done">erledigt:</span>
+            Deployment für <code>status.layered.work</code> über GitHub Pages vorbereiten:
+            GitHub-Actions-Workflow, Build-Output und Pages-Artefakt.
+          </li>
+          <li>
+            <span class="open">offen:</span> Später Phase 2 planen: Zerops API Integration für
+            automatische Inventarisierung.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>13. Offene Entscheidungen</h2>
+        <ul>
+          <li>
+            Final prüfen, ob <code>https://github.com/phranck/status</code> öffentlich ist und
+            GitHub Pages per <code>GitHub Actions</code> deployed.
+          </li>
+
+          <li>
+            Ob Object Storage bei lmaa.space sofort in <code>backend/_status/ready</code> geprüft
+            wird.
+          </li>
+
+          <li>
+            Welches Alerting in Phase 1 gewünscht ist: keine Alerts, E-Mail, Webhook oder Issues.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>14. Aktueller Umsetzungsstand</h2>
+        <p>
+          Dieser Abschnitt dokumentiert den Stand nach der lokalen Umsetzung am 2026-05-26 und ist
+          als Einstiegspunkt für eine neue Session gedacht.
+        </p>
+
+        <h3>Lokales Projekt</h3>
+        <ul>
+          <li>
+            <span class="done">erledigt:</span> Projektverzeichnis:
+            <code>/Users/phranck/Sites/status.layered.work</code>.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> React/Vite/TypeScript-App mit Tailwind CSS 4 und
+            Lucide Icons.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Eigene Komponenten: <code>Header</code>,
+            <code>ProjectPanel</code>, <code>ServiceGrid</code>, <code>HistoryTimeline</code>,
+            <code>IncidentList</code>, <code>StatusBadge</code>.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Content-Font <code>Roboto</code>, Headline-Font
+            <code>Barlow Condensed</code>.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> UI wurde nach Feedback angepasst: Hero/Summary
+            entfernt, GitHub-Dark-Mode-Anmutung, Service-URLs ausgeblendet, redundante Labels
+            entfernt, Service-Icons ohne blaue Fläche, größer und weiß im Dark Mode.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Design-Tokens in <code>src/styles.css</code>,
+            inklusive <code>--radius-card</code> und <code>--space-card-heading-indent</code>.
+          </li>
+        </ul>
+
+        <h3>Daten und Poller</h3>
+        <ul>
+          <li>
+            <span class="done">erledigt:</span> <code>public/status.config.json</code> enthält die
+            Checks für <code>musiccloud.io</code> und <code>lmaa.space</code>.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> <code>scripts/collect-status.ts</code> liest die
+            Config, prüft alle Endpoints mit Timeout, misst Response-Zeiten, erfasst HTTP-Status und
+            wertet JSON-Statusfelder aus.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Fehler werden klassifiziert, u. a.
+            <code>timeout</code>, <code>dns_error</code>, <code>tls_error</code>,
+            <code>connection_refused</code> und <code>unexpected_status</code>.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> <code>statusOnly</code>-Checks bekommen serverseitig
+            den Header aus <code>STATUS_MONITOR_TOKEN</code>, sofern sie in der Config markiert
+            werden.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> <code>status.json</code> wird aus aktuellen Checks
+            generiert.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> <code>history.json</code> wird täglich fortgeführt,
+            auf 90 Tage begrenzt und enthält Projekt- sowie Service-Historien.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Uptime-Fenster für 24h, 7d, 30d und 90d werden aus
+            der Historie berechnet. <code>degraded</code> zählt als halbe Verfügbarkeit,
+            <code>down</code> und <code>unknown</code> als nicht verfügbar.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Der Poller kann per <code>STATUS_HISTORY_URL</code>
+            die zuletzt veröffentlichte Historie von
+            <code>https://status.layered.work/history.json</code> übernehmen und fällt sonst auf die
+            lokale Seed-Datei zurück.
+          </li>
+        </ul>
+
+        <h3>GitHub Pages und Deployment</h3>
+        <ul>
+          <li>
+            <span class="done">erledigt:</span> <code>public/CNAME</code> enthält
+            <code>status.layered.work</code> und wird vom Vite-Build nach <code>dist/</code>
+            kopiert.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> <code>.github/workflows/status.yml</code> ist
+            vorbereitet. Trigger: Push auf <code>main</code>, Cron
+            <code>7,22,37,52 * * * *</code> und manuell.
+          </li>
+          <li>
+            <span class="done">erledigt:</span> Workflow-Schritte: <code>npm ci</code>,
+            <code>npm run collect</code>, <code>npm run build</code>, dann Publish von
+            <code>dist/</code> per GitHub Pages Artefakt.
+          </li>
+          <li>
+            <span class="blocked">extern/blockiert:</span> GitHub-Repo
+            <code>phranck/status</code> muss als Remote verbunden und gepusht werden.
+          </li>
+          <li>
+            <span class="blocked">extern/blockiert:</span> GitHub Pages muss in den Repository
+            Settings auf <code>GitHub Actions</code> gestellt werden.
+          </li>
+          <li>
+            <span class="open">offen:</span> Optionales Secret
+            <code>STATUS_MONITOR_TOKEN</code> setzen, sobald Status-only Endpoints produktiv genutzt
+            werden.
+          </li>
+          <li>
+            <span class="blocked">extern/blockiert:</span> DNS-CNAME setzen:
+            <code>status.layered.work. CNAME phranck.github.io.</code>
+          </li>
+        </ul>
+
+        <h3>Aktuelle bekannte Laufzeitbefunde</h3>
+        <ul>
+          <li>
+            <span class="done">erledigt:</span> Lokal verifiziert: <code>npm run collect</code>,
+            <code>npm run build</code> und Browserprüfung auf
+            <code>http://localhost:4174/</code> laufen ohne Console Errors.
+          </li>
+          <li>
+            <span class="open">offen:</span> <code>api.lmaa.space</code>-Checks liefern aktuell
+            <code>tls_error</code>, solange die API-Domain bzw. Dokumentationsroute noch repariert
+            wird.
+          </li>
+          <li>
+            <span class="open">offen:</span> Der Dashboard-API-Smoke-Check für
+            <code>lmaa.space</code> kann aktuell <code>502</code> liefern und muss nach
+            Stabilisierung erneut geprüft werden.
+          </li>
+        </ul>
+
+        <h3>Nächste sinnvolle Schritte</h3>
+        <ol>
+          <li>
+            <span class="open">offen:</span> Remote auf
+            <code>git@github.com:phranck/status.git</code> umstellen, committen und nach
+            <code>main</code> pushen.
+          </li>
+          <li>
+            <span class="open">offen:</span> GitHub Pages Source auf <code>GitHub Actions</code>
+            stellen und Custom Domain konfigurieren.
+          </li>
+          <li>
+            <span class="open">offen:</span> Nach erstem Push den Build- und Publish-Workflow
+            überwachen und <code>https://status.layered.work/</code>, <code>/status.json</code> und
+            <code>/history.json</code> verifizieren.
+          </li>
+          <li>
+            <span class="open">offen:</span> <code>/_status/live</code> und
+            <code>/_status/ready</code> in lmaa.space und danach musiccloud.io ergänzen, mit
+            <code>X-Status-Token</code> und <code>404</code> bei fehlendem Token.
+          </li>
+          <li>
+            <span class="open">offen:</span> <code>status.config.json</code> auf die neuen
+            Status-only Endpoints umstellen, sobald sie produktiv verfügbar sind.
+          </li>
+          <li>
+            <span class="open">offen:</span> Alerting-Entscheidung treffen: keine Alerts, E-Mail,
+            Webhook oder Issues.
+          </li>
+        </ol>
+      </section>
+    </main>
+  </body>
+</html>

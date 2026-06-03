@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mollie API — Deep-Dive</title>
+    <style>
+      :root {
+        --bg: #f6f5f2;
+        --card: #ffffff;
+        --ink: #1c1c28;
+        --muted: #5a5a6e;
+        --accent: #4338ca;
+        --accent-soft: #ecebfb;
+        --line: #e3e2dd;
+        --code-bg: #1e1e2e;
+        --code-ink: #e6e6f0;
+        --ok: #0f7a4d;
+        --ok-bg: #e4f4ec;
+        --warn: #9a6400;
+        --warn-bg: #fbf0d8;
+        --info: #1f5fa8;
+        --info-bg: #e5eef9;
+        --danger: #b3261e;
+        --danger-bg: #fbe6e4;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.65 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 48px 24px 96px;
+      }
+      header.doc {
+        border-left: 5px solid var(--accent);
+        padding: 8px 0 8px 22px;
+        margin-bottom: 36px;
+      }
+      header.doc h1 {
+        font-size: 2.1rem;
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+      }
+      header.doc .sub {
+        color: var(--muted);
+        font-size: 1.02rem;
+      }
+      header.doc .meta {
+        margin-top: 14px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      header.doc .meta b {
+        color: var(--ink);
+      }
+
+      h2 {
+        font-size: 1.45rem;
+        margin: 52px 0 14px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--line);
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        font-size: 1.12rem;
+        margin: 30px 0 10px;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 22px 0 6px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+      }
+      p {
+        margin: 10px 0;
+      }
+      a {
+        color: var(--accent);
+      }
+
+      .toc {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px 26px;
+        margin-bottom: 8px;
+      }
+      .toc h2 {
+        margin: 0 0 12px;
+        border: 0;
+        font-size: 1.1rem;
+      }
+      .toc ol {
+        margin: 0;
+        padding-left: 22px;
+        columns: 2;
+        column-gap: 36px;
+      }
+      .toc li {
+        margin: 4px 0;
+        break-inside: avoid;
+      }
+      .toc a {
+        text-decoration: none;
+      }
+      .toc a:hover {
+        text-decoration: underline;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 0.93rem;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 9px 13px;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody tr:nth-child(even) {
+        background: #faf9f7;
+      }
+      td code {
+        white-space: nowrap;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.88em;
+        background: #eceae4;
+        padding: 1px 6px;
+        border-radius: 5px;
+      }
+      pre {
+        background: var(--code-bg);
+        color: var(--code-ink);
+        padding: 16px 18px;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: 0.84rem;
+        line-height: 1.55;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        font-size: inherit;
+        color: inherit;
+      }
+      .cmt {
+        color: #9a9ab5;
+      }
+      .kw {
+        color: #c4a7ff;
+      }
+      .str {
+        color: #a3e0a3;
+      }
+
+      .callout {
+        border-left: 4px solid var(--info);
+        background: var(--info-bg);
+        padding: 12px 18px;
+        border-radius: 0 8px 8px 0;
+        margin: 16px 0;
+        font-size: 0.95rem;
+      }
+      .callout.tip {
+        border-color: var(--ok);
+        background: var(--ok-bg);
+      }
+      .callout.warn {
+        border-color: var(--warn);
+        background: var(--warn-bg);
+      }
+      .callout.danger {
+        border-color: var(--danger);
+        background: var(--danger-bg);
+      }
+      .callout .lbl {
+        font-weight: 700;
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .pill {
+        display: inline-block;
+        font-size: 0.74rem;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 999px;
+        letter-spacing: 0.02em;
+        vertical-align: middle;
+      }
+      .pill.ok {
+        background: var(--ok-bg);
+        color: var(--ok);
+      }
+      .pill.warn {
+        background: var(--warn-bg);
+        color: var(--warn);
+      }
+      .pill.neutral {
+        background: #e8e8ee;
+        color: var(--muted);
+      }
+      .pill.dep {
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px 20px;
+      }
+      .panel h4 {
+        margin-top: 0;
+      }
+
+      ul.tight {
+        margin: 8px 0;
+        padding-left: 22px;
+      }
+      ul.tight li {
+        margin: 5px 0;
+      }
+
+      footer.doc {
+        margin-top: 64px;
+        padding-top: 20px;
+        border-top: 2px solid var(--line);
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+      footer.doc ul {
+        padding-left: 20px;
+      }
+      footer.doc a {
+        word-break: break-all;
+      }
+
+      @media (max-width: 640px) {
+        .toc ol {
+          columns: 1;
+        }
+        .grid2 {
+          grid-template-columns: 1fr;
+        }
+        header.doc h1 {
+          font-size: 1.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="doc">
+        <h1>Mollie API — Deep-Dive</h1>
+        <div class="sub">
+          Recherche-Dokument für das geplante Spenden-Feature auf lmaa.space &amp; musiccloud
+        </div>
+        <div class="meta">
+          <b>Stand:</b> 21. Mai 2026 &nbsp;·&nbsp; <b>Quelle:</b> Live-Dokumentation docs.mollie.com
+          (an diesem Tag abgerufen) &nbsp;·&nbsp; <b>API-Version:</b> v2
+        </div>
+      </header>
+
+      <nav class="toc">
+        <h2>Inhalt</h2>
+        <ol>
+          <li><a href="#grundlagen">Grundlagen &amp; Aufbau</a></li>
+          <li><a href="#auth">Authentifizierung</a></li>
+          <li><a href="#ressourcen">API-Ressourcen im Überblick</a></li>
+          <li><a href="#payments">Payments API</a></li>
+          <li><a href="#webhooks">Webhooks — der Rückkanal</a></li>
+          <li><a href="#paymentlinks">Payment Links API</a></li>
+          <li><a href="#sepa">SEPA im Detail</a></li>
+          <li><a href="#recurring">Recurring: Customers, Mandates, Subscriptions</a></li>
+          <li><a href="#geld">Refunds, Chargebacks, Captures</a></li>
+          <li><a href="#buchhaltung">Settlements, Balances, Payouts</a></li>
+          <li><a href="#idempotenz">Idempotenz</a></li>
+          <li><a href="#testing">Testing</a></li>
+          <li><a href="#aktuell">Aktuelle Entwicklungen 2025/2026</a></li>
+          <li><a href="#empfehlung">Einordnung für lmaa.space &amp; musiccloud</a></li>
+        </ol>
+      </nav>
+
+      <p>
+        Mollie ist ein in den Niederlanden (Amsterdam) ansässiger Payment-Service-Provider. Dieses
+        Dokument fasst zusammen, was die Mollie-API leisten kann — mit Fokus auf den für ein
+        Spenden-Feature entscheidenden Punkt: den <b>Bestätigungs-Rückkanal</b>, den der reine
+        GiroCode/EPC-QR-Code nicht liefern kann.
+      </p>
+
+      <h2 id="grundlagen">1. Grundlagen &amp; Aufbau</h2>
+      <p>
+        Die Mollie-API ist eine geradlinige REST-API: alle Endpunkte erzeugen, lesen oder
+        aktualisieren Objekte. Sie ist nach Ressourcen gegliedert und gibt JSON zurück.
+      </p>
+      <table>
+        <tbody>
+          <tr>
+            <th>Base URL</th>
+            <td><code>https://api.mollie.com/v2/</code></td>
+          </tr>
+          <tr>
+            <th>Version</th>
+            <td>v2 (im URL-Pfad). Aktive, gepflegte Version.</td>
+          </tr>
+          <tr>
+            <th>Format</th>
+            <td>
+              JSON. Antworten folgen dem HAL-Stil: Verweise stehen unter <code>_links</code>,
+              eingebettete Listen unter <code>_embedded</code>.
+            </td>
+          </tr>
+          <tr>
+            <th>Listen</th>
+            <td>
+              Cursor-basierte Pagination über <code>_links.next</code> /
+              <code>_links.previous</code>.
+            </td>
+          </tr>
+          <tr>
+            <th>Beträge</th>
+            <td>
+              Immer als Objekt <code>{ "currency": "EUR", "value": "25.00" }</code> —
+              <code>value</code> ist ein <em>String</em> mit fixen Nachkommastellen, nie eine Zahl.
+            </td>
+          </tr>
+          <tr>
+            <th>Fehler</th>
+            <td>
+              Standard-HTTP-Codes; Fehlerantworten enthalten <code>status</code>,
+              <code>title</code>, <code>detail</code> und einen Doku-Link.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <span class="lbl">Offizielle SDKs</span>
+        Mollie pflegt eigene Client-Libraries u.a. für Node.js (<code>@mollie/api-client</code>),
+        PHP, Python. Für ein Hono/Node-Backend wie das von lmaa.space ist der Node-Client die
+        naheliegende Wahl — er kapselt Auth, Pagination und die Webhook-Signaturprüfung.
+      </div>
+
+      <h2 id="auth">2. Authentifizierung</h2>
+      <p>
+        Mollie kennt drei Auth-Mechanismen. Alle laufen über den <code>Authorization</code>-Header.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Methode</th>
+            <th>Wofür</th>
+            <th>Eigenschaften</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>API-Keys</b></td>
+            <td>Standard-Zahlungsabwicklung im eigenen Account</td>
+            <td>
+              Getrennte Keys mit Präfix <code>test_</code> und <code>live_</code>, pro
+              Website-Profil. Nur einmal bei Erstellung sichtbar. Mehrere Keys pro Profil möglich
+              (Rotation).
+            </td>
+          </tr>
+          <tr>
+            <td><b>Advanced / Organization Access Tokens</b></td>
+            <td>Organisationsweite Admin-Ressourcen, mehrere verbundene Accounts</td>
+            <td>
+              Benötigen Admin-Rolle. Nur einmal sichtbar. Unterstützen den
+              <code>testmode</code>-Parameter im Request.
+            </td>
+          </tr>
+          <tr>
+            <td><b>OAuth2 (Mollie Connect)</b></td>
+            <td>Apps, die im Namen <em>fremder</em> Mollie-Accounts handeln</td>
+            <td>
+              Autorisierungs-Flow mit Nutzer-Consent. App-Access-Tokens. Für
+              Plattform-/Marktplatz-Szenarien.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout tip">
+        <span class="lbl">Für lmaa.space relevant</span>
+        Ein klassischer API-Key (<code>test_</code> beim Bauen, <code>live_</code> in Produktion)
+        reicht vollständig. OAuth/Organization-Tokens braucht nur, wer Zahlungen für Dritte
+        abwickelt.
+      </div>
+
+      <h2 id="ressourcen">3. API-Ressourcen im Überblick</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Ressource</th>
+            <th>Zweck</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Payments</b></td>
+            <td>Kern der API. Einzelzahlungen erzeugen, lesen, aktualisieren, abbrechen.</td>
+          </tr>
+          <tr>
+            <td><b>Methods</b></td>
+            <td>
+              Verfügbare Zahlungsmethoden abfragen (z.B. um die Auswahl im eigenen Checkout zu
+              rendern).
+            </td>
+          </tr>
+          <tr>
+            <td><b>Payment Links</b></td>
+            <td>Lang lebende, teilbare Bezahl-Links — ohne eigenen Checkout-Code.</td>
+          </tr>
+          <tr>
+            <td><b>Refunds</b></td>
+            <td>Voll- und Teilrückerstattungen zu einer Zahlung.</td>
+          </tr>
+          <tr>
+            <td><b>Chargebacks</b></td>
+            <td>Rückbuchungen lesen (read-only).</td>
+          </tr>
+          <tr>
+            <td><b>Captures</b></td>
+            <td>Autorisierte Beträge einziehen (bei <code>captureMode: manual</code>).</td>
+          </tr>
+          <tr>
+            <td><b>Customers</b></td>
+            <td>Kundenobjekte für wiederkehrende Zahlungen.</td>
+          </tr>
+          <tr>
+            <td><b>Mandates</b></td>
+            <td>Einzugsermächtigungen — Basis für Recurring.</td>
+          </tr>
+          <tr>
+            <td><b>Subscriptions</b></td>
+            <td>Automatisch wiederkehrende Zahlungen in festen Intervallen.</td>
+          </tr>
+          <tr>
+            <td><b>Orders</b> <span class="pill dep">deprecated</span></td>
+            <td>Bestell-Objekte mit Positionen. Nicht mehr empfohlen — siehe Kasten unten.</td>
+          </tr>
+          <tr>
+            <td><b>Settlements</b></td>
+            <td>Auszahlungs-Sammelposten — welche Transaktionen in welcher Auszahlung steckten.</td>
+          </tr>
+          <tr>
+            <td><b>Balances</b></td>
+            <td>Kontostände und Buchungen je Währung.</td>
+          </tr>
+          <tr>
+            <td><b>Payouts</b></td>
+            <td>Auszahlungen auf das eigene Bankkonto.</td>
+          </tr>
+          <tr>
+            <td><b>Invoices</b></td>
+            <td>Mollies Rechnungen an dich (Gebührenabrechnung).</td>
+          </tr>
+          <tr>
+            <td><b>Profiles</b></td>
+            <td>Website-Profile (pro Profil eigener API-Key, eigene vIBAN).</td>
+          </tr>
+          <tr>
+            <td><b>Organizations</b></td>
+            <td>Organisations-Stammdaten.</td>
+          </tr>
+          <tr>
+            <td><b>Terminals</b></td>
+            <td>Point-of-Sale-Terminals (physische Kartenzahlung).</td>
+          </tr>
+          <tr>
+            <td><b>Webhooks &amp; Webhook Events</b></td>
+            <td>Next-Gen-Webhooks: dauerhafte Event-Abos + Event-Historie. Siehe Abschnitt 5.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <span class="lbl">Orders API ist deprecated</span>
+        Mollie empfiehlt die Orders API nicht mehr und verweist auf die Payments API. Die Payments
+        API unterstützt inzwischen <code>lines</code> (Positionen), allerdings
+        <em>unveränderlich</em> nach dem Anlegen. Einzige Ausnahme: Pay-after-delivery-Methoden
+        (Klarna „Pay later", Billie, Riverty) brauchen weiterhin die Orders API. Für ein
+        Spenden-Feature ist das irrelevant — dort wird ausschließlich die Payments API gebraucht.
+      </div>
+
+      <h2 id="payments">4. Payments API</h2>
+      <p>Die Payments API ist das Herz von Mollie. Der Grundablauf hat drei Schritte:</p>
+      <ol>
+        <li>Zahlung per <code>POST /v2/payments</code> erzeugen.</li>
+        <li>
+          Kunden auf die zurückgegebene <code>_links.checkout</code>-URL leiten
+          (Mollie-Hosted-Checkout).
+        </li>
+        <li>Bei Statuswechsel ruft Mollie deinen Webhook — du holst den finalen Status per API.</li>
+      </ol>
+
+      <h3>Zahlungs-Status</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Bedeutung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>open</code></td>
+            <td>Erstellt, Kunde hat noch nicht bezahlt.</td>
+          </tr>
+          <tr>
+            <td><code>pending</code></td>
+            <td>
+              Zahlung läuft, Ergebnis noch offen — z.B. eine SEPA-Überweisung, die unterwegs ist.
+            </td>
+          </tr>
+          <tr>
+            <td><code>authorized</code></td>
+            <td>
+              Betrag autorisiert, aber noch nicht eingezogen (bei <code>captureMode: manual</code>).
+            </td>
+          </tr>
+          <tr>
+            <td><span class="pill ok">paid</span></td>
+            <td>Erfolgreich bezahlt — Geld ist eingegangen. <b>Der Zielzustand.</b></td>
+          </tr>
+          <tr>
+            <td><code>canceled</code></td>
+            <td>Vom Kunden oder von dir abgebrochen.</td>
+          </tr>
+          <tr>
+            <td><code>expired</code></td>
+            <td>Session abgelaufen, ohne dass bezahlt wurde.</td>
+          </tr>
+          <tr>
+            <td><code>failed</code></td>
+            <td>Zahlung fehlgeschlagen.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Wichtige Parameter bei <code>POST /v2/payments</code></h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Feld</th>
+            <th>Beschreibung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>amount</code> <span class="pill warn">pflicht</span></td>
+            <td>Objekt aus <code>currency</code> + <code>value</code> (String).</td>
+          </tr>
+          <tr>
+            <td><code>description</code> <span class="pill warn">pflicht</span></td>
+            <td>Erscheint auf dem Kontoauszug des Kunden, max. 255 Zeichen.</td>
+          </tr>
+          <tr>
+            <td><code>redirectUrl</code></td>
+            <td>Wohin der Kunde nach dem Bezahlvorgang zurückkehrt.</td>
+          </tr>
+          <tr>
+            <td><code>cancelUrl</code></td>
+            <td>Eigene Rücksprung-URL, wenn der Kunde aktiv abbricht.</td>
+          </tr>
+          <tr>
+            <td><code>webhookUrl</code></td>
+            <td>
+              <b>Der Rückkanal.</b> Öffentlich erreichbare URL, die Mollie bei jedem Statuswechsel
+              aufruft.
+            </td>
+          </tr>
+          <tr>
+            <td><code>method</code></td>
+            <td>
+              Eine Methode oder ein Array — z.B. <code>banktransfer</code>, <code>ideal</code>,
+              <code>creditcard</code>, <code>paypal</code>, <code>bancontact</code>,
+              <code>applepay</code>. Über 35 Methoden verfügbar.
+            </td>
+          </tr>
+          <tr>
+            <td><code>metadata</code></td>
+            <td>
+              Beliebige eigene Daten (String oder JSON) — Mollie speichert sie am Objekt. Ideal für
+              eine eigene Spenden-ID.
+            </td>
+          </tr>
+          <tr>
+            <td><code>locale</code></td>
+            <td>Sprache der Hosted-Checkout-Seite, z.B. <code>de_DE</code>.</td>
+          </tr>
+          <tr>
+            <td><code>sequenceType</code></td>
+            <td>
+              <code>oneoff</code> · <code>first</code> · <code>recurring</code> — steuert Einmal-
+              vs. wiederkehrende Zahlung.
+            </td>
+          </tr>
+          <tr>
+            <td><code>customerId</code> / <code>mandateId</code></td>
+            <td>Verknüpfung für wiederkehrende Zahlungen.</td>
+          </tr>
+          <tr>
+            <td><code>captureMode</code> / <code>captureDelay</code></td>
+            <td>
+              <code>automatic</code> (Standard) oder <code>manual</code>; optionaler Einzug-Verzug
+              (max. 7 Tage).
+            </td>
+          </tr>
+          <tr>
+            <td><code>dueDate</code></td>
+            <td>Fälligkeitsdatum (<code>YYYY-MM-DD</code>) — relevant für Überweisungen.</td>
+          </tr>
+          <tr>
+            <td><code>lines</code>, <code>billingAddress</code>, <code>shippingAddress</code></td>
+            <td>Positionen/Adressen; für manche Methoden Pflicht, für eine Spende nicht nötig.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Beispiel — Spende anlegen</h3>
+      <pre><code><span class="cmt"># Einmalige 25-EUR-Spende per SEPA-Überweisung</span>
+curl -X POST https://api.mollie.com/v2/payments \
+  -H <span class="str">"Authorization: Bearer test_xxxxxxxxxxxxxxxxxxxx"</span> \
+  -H <span class="str">"Idempotency-Key: 6f7a1c4e-..."</span> \
+  -d <span class="str">"amount[currency]=EUR"</span> \
+  -d <span class="str">"amount[value]=25.00"</span> \
+  -d <span class="str">"description=Spende lmaa.space"</span> \
+  -d <span class="str">"method=banktransfer"</span> \
+  -d <span class="str">"redirectUrl=https://lmaa.space/spende/danke"</span> \
+  -d <span class="str">"webhookUrl=https://api.lmaa.space/webhooks/mollie"</span> \
+  -d <span class="str">"metadata[donationId]=dn_2026_0042"</span></code></pre>
+
+      <h2 id="webhooks">5. Webhooks — der Rückkanal</h2>
+      <p>
+        Genau das, was der GiroCode nicht kann: Mollie meldet aktiv zurück, wenn sich der
+        Zahlungsstatus ändert. Es gibt zwei Generationen, die parallel existieren.
+      </p>
+
+      <h3>5.1 Klassische Webhooks (pro Ressource)</h3>
+      <p>
+        Diese sind das primäre Mittel, um über <em>eine einzelne Zahlung</em> informiert zu werden —
+        also der direkte Weg für die Spenden-Bestätigung.
+      </p>
+      <table>
+        <tbody>
+          <tr>
+            <th>Registrierung</th>
+            <td>
+              Über den <code>webhookUrl</code>-Parameter beim Anlegen der Zahlung (bzw. Subscription
+              / Payment Link).
+            </td>
+          </tr>
+          <tr>
+            <th>Payload</th>
+            <td>
+              Minimaler <code>POST</code> — <em>nur</em> die ID, z.B.
+              <code>id=tr_5B8cwPMGnU6qLbRvo7qEZo</code>.
+              <b>Der Status wird bewusst NICHT mitgeschickt.</b>
+            </td>
+          </tr>
+          <tr>
+            <th>Antwort</th>
+            <td>
+              Dein Endpunkt muss <code>200 OK</code> zurückgeben. Jeder andere Code löst einen Retry
+              aus.
+            </td>
+          </tr>
+          <tr>
+            <th>Statusabruf</th>
+            <td>
+              Du musst mit der ID die API zurückrufen (<code>GET /v2/payments/{id}</code>) und den
+              echten Status holen.
+            </td>
+          </tr>
+          <tr>
+            <th>Retries</th>
+            <td>
+              Bis zu 10 Versuche über 26 Stunden, exponentielles Backoff (1, 2, 4, … Minuten).
+              Timeout je Aufruf: 15 Sekunden.
+            </td>
+          </tr>
+          <tr>
+            <th>Unterstützt von</th>
+            <td>Payments, Orders, Subscriptions (je generierte Zahlung), Payment Links.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <span class="lbl">Warum der Payload „dumm" ist — und warum das gut ist</span>
+        Weil der Webhook keinen Status transportiert, kann ein gefälschter Webhook-Aufruf nichts
+        auslösen: Er enthält ja keine vertrauenswürdige Information. Du fragst <em>immer</em> bei
+        Mollie nach. Damit braucht der klassische Webhook keine Signaturprüfung — Sicherheit
+        entsteht durch den authentifizierten API-Rückruf.
+      </div>
+
+      <h3>5.2 Next-Gen-Webhooks (account-weite Events)</h3>
+      <p>
+        Die neuere Generation: dauerhafte Abonnements auf bestimmte <em>Event-Typen</em> der ganzen
+        Organisation, statt einer URL pro einzelner Ressource.
+      </p>
+      <table>
+        <tbody>
+          <tr>
+            <th>Mechanik</th>
+            <td>
+              Du abonnierst Event-Typen einmalig. Mollie schickt strukturierte Event-Objekte per
+              <code>POST</code>.
+            </td>
+          </tr>
+          <tr>
+            <th>Payload-Wahl</th>
+            <td>
+              Entweder voller Snapshot mit kompletten Ressourcendaten <em>oder</em> minimal (nur IDs
+              + Event-Typ).
+            </td>
+          </tr>
+          <tr>
+            <th>Signatur</th>
+            <td>
+              HMAC-SHA256 im Header <code>X-Mollie-Signature: sha256=…</code> — verifizierbar mit
+              einem Signing-Secret. <b>Hier ist Signaturprüfung Pflicht.</b>
+            </td>
+          </tr>
+          <tr>
+            <th>Event-Typen</th>
+            <td>
+              U.a. <code>payment-link.paid</code>, <code>payout.*</code>,
+              <code>sales-invoice.*</code>, <code>balance-transaction.created</code>,
+              <code>business-account-transfer.*</code>, oder <code>*</code> für alle.
+            </td>
+          </tr>
+          <tr>
+            <th>Zusatz-APIs</th>
+            <td>
+              <b>Webhooks API</b> (Abos verwalten) und <b>Webhook Events API</b> (Event-Historie
+              nachladen / Echtheit prüfen).
+            </td>
+          </tr>
+          <tr>
+            <th>Limits</th>
+            <td>
+              Testmodus: 1 aktives Abo. Live: bis zu 3 Abos. Empfehlung: eine URL für alle
+              relevanten Event-Typen.
+            </td>
+          </tr>
+          <tr>
+            <th>Secret-Rotation</th>
+            <td>Im Dashboard „Roll secret" — das alte Secret läuft innerhalb eines Tages ab.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <span class="lbl">Wichtige Unterscheidung für die Spenden-Bestätigung</span>
+        Die Next-Gen-Events decken aktuell vor allem <em>account-weite</em> Vorgänge ab (Payment
+        Links, Payouts, Rechnungen, Kontobuchungen). Für die Bestätigung einer
+        <em>konkreten Einzelzahlung</em> bleibt der klassische <code>webhookUrl</code> am Payment
+        der direkte Weg. Wenn ihr mit der <b>Payment Links API</b> arbeitet, ist
+        <code>payment-link.paid</code> als signiertes Next-Gen-Event hingegen sehr attraktiv.
+      </div>
+
+      <h3>5.3 Webhook-Handler — Skizze (Hono/Node)</h3>
+      <pre><code>app.post(<span class="str">'/webhooks/mollie'</span>, async (c) => {
+  <span class="cmt">// 1. Payload enthält nur die ID — niemals dem Payload trauen.</span>
+  const { id } = await c.req.parseBody();
+
+  <span class="cmt">// 2. Echten Status frisch von Mollie holen (authentifiziert).</span>
+  const payment = await mollieClient.payments.get(id);
+
+  <span class="cmt">// 3. Idempotent verbuchen: Webhook kann mehrfach feuern.</span>
+  if (payment.status === <span class="str">'paid'</span>) {
+    await recordDonationOnce(payment.id, payment.amount, payment.metadata);
+  }
+
+  <span class="cmt">// 4. Schnell mit 200 antworten (Timeout 15 s).</span>
+  return c.body(null, 200);
+});</code></pre>
+
+      <h2 id="paymentlinks">6. Payment Links API</h2>
+      <p>
+        Payment Links sind <em>lang lebende</em>, teilbare Bezahl-Links — im Gegensatz zu den
+        kurzlebigen Checkout-URLs der Payments API. Ideal, wenn der Spender „irgendwann" zahlen
+        soll, oder wenn man möglichst wenig eigenen Checkout-Code schreiben will.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspekt</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Felder</td>
+            <td>
+              <code>amount</code> (optional — ohne Betrag gibt der Zahler ihn selbst ein),
+              <code>description</code>, <code>redirectUrl</code>, <code>webhookUrl</code>,
+              <code>expiresAt</code>, <code>reusable</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>reusable</code></td>
+            <td>
+              Erlaubt, denselben Link für mehrere Zahlungen zu verwenden — perfekt für einen
+              dauerhaften „Jetzt spenden"-Link.
+            </td>
+          </tr>
+          <tr>
+            <td>Endpunkte</td>
+            <td>
+              Create, Get, List, Update, Delete sowie „List payment link payments" (die einzelnen
+              Zahlungen zu einem Link).
+            </td>
+          </tr>
+          <tr>
+            <td>Rückkanal</td>
+            <td>
+              Eigener <code>webhookUrl</code> am Link <em>plus</em> das Next-Gen-Event
+              <code>payment-link.paid</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout tip">
+        <span class="lbl">Spannend für ein Spenden-Feature</span>
+        Ein <code>reusable</code> Payment Link ohne festen Betrag ist faktisch eine fertige,
+        gehostete Spendenseite — mit Betragseingabe durch den Spender und Bestätigung per Webhook,
+        ganz ohne eigenen Checkout.
+      </div>
+
+      <h2 id="sepa">7. SEPA im Detail</h2>
+      <p>
+        Mollie bietet zwei SEPA-Wege. Sie unterscheiden sich grundlegend — vor allem beim
+        Rückbuchungsrisiko, was für anonyme Spenden entscheidend ist.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>&nbsp;</th>
+            <th>SEPA-Überweisung <code>banktransfer</code></th>
+            <th>SEPA-Lastschrift <code>directdebit</code></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Prinzip</b></td>
+            <td>Kunde überweist selbst aus seiner Banking-App (Push).</td>
+            <td>Mollie zieht den Betrag vom Konto ein (Pull).</td>
+          </tr>
+          <tr>
+            <td><b>Rückbuchungsrisiko</b></td>
+            <td><span class="pill ok">keines</span> Kein Chargeback-Risiko.</td>
+            <td>
+              <span class="pill dep">hoch</span> Widerruf 8 Wochen ohne Begründung; bei
+              „unautorisiert" bis 13 Monate.
+            </td>
+          </tr>
+          <tr>
+            <td><b>Recurring</b></td>
+            <td>Nein.</td>
+            <td>Ja — Standard für wiederkehrende Euro-Zahlungen, auch monatliche Spenden.</td>
+          </tr>
+          <tr>
+            <td><b>Währung / Betrag</b></td>
+            <td>nur EUR · 0,01 – 1.000.000,00</td>
+            <td>nur EUR · 0,01 – 1.000,00 (Standardlimit)</td>
+          </tr>
+          <tr>
+            <td><b>Session</b></td>
+            <td>12 (+2) Tage — Zeit, in der der Kunde überweisen kann.</td>
+            <td>60 bzw. 15 Minuten.</td>
+          </tr>
+          <tr>
+            <td><b>Settlement</b></td>
+            <td>2 Werktage</td>
+            <td>9 Werktage</td>
+          </tr>
+          <tr>
+            <td><b>Refund-Fenster</b></td>
+            <td>365 Tage (voll &amp; teilweise)</td>
+            <td>365 Tage (voll &amp; teilweise)</td>
+          </tr>
+          <tr>
+            <td><b>Mandat nötig</b></td>
+            <td>Nein.</td>
+            <td>Ja — siehe Abschnitt 8.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Wie die Überweisung abläuft</h3>
+      <ul class="tight">
+        <li>
+          Mollie zeigt dem Kunden die Zahldaten direkt am Bildschirm oder per E-Mail — inklusive
+          QR-Code, der die Bankdaten in der Banking-App vorausfüllt.
+        </li>
+        <li>
+          <b>Lokalisierte virtuelle IBAN (vIBAN):</b> Mollie hat eigene Bankkonten für DE, NL, BE,
+          FR. Ein deutscher Spender überweist also auf eine deutsche IBAN — das senkt Abbruchraten
+          deutlich. Die vIBAN wird pro Website-Profil erzeugt.
+        </li>
+        <li>
+          Auf dem Kontoauszug des Spenders erscheint der Trade-Name des Profils + „via Mollie".
+        </li>
+        <li>
+          Statusverlauf: <code>open</code> → (Geld unterwegs) → <code>paid</code>, sobald der
+          Eingang erkannt wird. Genau dann feuert der Webhook.
+        </li>
+        <li>
+          Standard-SEPA dauert 1–2 Werktage; <b>SEPA Instant</b> settled in ~10 Sekunden, 24/7 — mit
+          Echtzeit-Webhook.
+        </li>
+      </ul>
+      <p>Verfügbar für Zahler aus EU/EEA, UK und der Schweiz; Händler-Sitz: EEA, UK, Schweiz.</p>
+
+      <h2 id="recurring">8. Recurring: Customers, Mandates, Subscriptions</h2>
+      <p>Wiederkehrende Zahlungen (z.B. monatliche Dauerspenden) bauen auf drei Objekten auf:</p>
+      <div class="grid2">
+        <div class="panel">
+          <h4>Customer</h4>
+          <p>Ein Kundenobjekt, an dem Mandate und Zahlungen hängen.</p>
+        </div>
+        <div class="panel">
+          <h4>Mandate</h4>
+          <p>
+            Die Einzugsermächtigung — „der Kunde erlaubt dir, sein Konto/seine Karte wiederholt zu
+            belasten". Entsteht automatisch bei der ersten Zahlung (<code>sequenceType: first</code
+            >) oder direkt über die Mandates API.
+          </p>
+        </div>
+      </div>
+      <p style="margin-top: 16px">
+        <b>Subscription:</b> plant automatische Zahlungen in festen Intervallen
+        (<code>interval</code>, <code>times</code>, <code>startDate</code>). Jede generierte Zahlung
+        ruft den hinterlegten Webhook. Hinweis: Die Subscriptions API ist <em>nicht</em> zwingend —
+        wiederkehrende Zahlungen lassen sich auch selbst über die Payments API mit gespeichertem
+        Mandat steuern.
+      </p>
+      <div class="callout">
+        <span class="lbl">Erstzahlung erklärt das Mandat</span>
+        Bei der ersten Lastschrift-Zahlung sieht der Kunde Infos über deine Organisation und
+        bestätigt mit dem Konto, das künftig belastet wird. Folgezahlungen laufen dann ohne erneute
+        Interaktion über das Mandat (<code>sequenceType: recurring</code>).
+      </div>
+
+      <h2 id="geld">9. Refunds, Chargebacks, Captures</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>API</th>
+            <th>Was sie tut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Refunds</b></td>
+            <td>
+              Voll- oder Teilrückerstattung einer Zahlung über einen Betrag. Mehrere Teil-Refunds
+              möglich. Refund-Fenster bei SEPA: 365 Tage.
+            </td>
+          </tr>
+          <tr>
+            <td><b>Chargebacks</b></td>
+            <td>
+              Read-only: Rückbuchungen einsehen (vor allem bei Karte und Lastschrift relevant).
+            </td>
+          </tr>
+          <tr>
+            <td><b>Captures</b></td>
+            <td>
+              Bei <code>captureMode: manual</code> autorisierte Beträge einziehen. Capture erfolgt
+              betragsbasiert, nur für Zahlungen im Status <code>authorized</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="buchhaltung">10. Settlements, Balances, Payouts &amp; Invoices</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>API</th>
+            <th>Zweck</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Balances</b></td>
+            <td>
+              Kontostände je Währung + Buchungsliste + Balance-Report. Zeitbasierte Buchhaltung.
+            </td>
+          </tr>
+          <tr>
+            <td><b>Settlements</b></td>
+            <td>
+              Auszahlungs-Sammelposten: welche Zahlungen, Refunds, Chargebacks in welcher Auszahlung
+              enthalten waren. Inklusive „open" und „next" settlement.
+            </td>
+          </tr>
+          <tr>
+            <td><b>Payouts</b></td>
+            <td>Auszahlungen aufs eigene Bankkonto anstoßen/lesen/abbrechen.</td>
+          </tr>
+          <tr>
+            <td><b>Invoices</b></td>
+            <td>Mollies Gebührenrechnungen an dich.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="idempotenz">11. Idempotenz</h2>
+      <table>
+        <tbody>
+          <tr>
+            <th>Header</th>
+            <td>
+              <code>Idempotency-Key</code> — wird bei allen <code>POST</code>-Endpunkten akzeptiert.
+            </td>
+          </tr>
+          <tr>
+            <th>Verhalten</th>
+            <td>
+              Gleicher Key innerhalb <b>einer Stunde</b> → Mollie liefert die gecachte Erstantwort
+              statt neu zu verarbeiten.
+            </td>
+          </tr>
+          <tr>
+            <th>Erkennung</th>
+            <td>Replay erkennbar am Antwort-Header <code>Idempotent-Replayed: true</code>.</td>
+          </tr>
+          <tr>
+            <th>Ablauf</th>
+            <td>
+              Keys älter als 1 Stunde fallen aus dem Cache — danach gilt der Key als neue Anfrage.
+            </td>
+          </tr>
+          <tr>
+            <th>Fehler</th>
+            <td>
+              <code>400</code> bei abweichendem Request zum selben Key; <code>409</code> bei
+              gleichzeitigen Requests mit identischem Key.
+            </td>
+          </tr>
+          <tr>
+            <th>Empfehlung</th>
+            <td>
+              UUID4 als Key. Besonders wichtig bei Recurring, Subscriptions und Teil-Refunds — dort
+              führt ein blinder Retry sonst zu Doppelbelastungen.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="testing">12. Testing</h2>
+      <ul class="tight">
+        <li>
+          <b>Testmodus</b> über einen <code>test_</code>-API-Key oder den
+          <code>testmode</code>-Parameter (bei Org-/App-Tokens). Testdaten sind vollständig von
+          Live-Daten isoliert.
+        </li>
+        <li>
+          Testzahlungen haben eine eigene Test-Checkout-Seite — der Bezahlvorgang lässt sich ohne
+          echtes Geld durchlaufen.
+        </li>
+        <li>
+          <b>„Magic Amounts"</b> erzwingen Fehlerszenarien bei Karten: z.B. <code>1001.00</code> =
+          ungültige Kartennummer, <code>1004.00</code> = Karte abgelaufen, <code>1007.00</code> =
+          unzureichende Deckung.
+        </li>
+        <li>Testkartennummern für Visa/Mastercard/Amex (beliebiges Ablaufdatum/CVV).</li>
+        <li>
+          Wiederkehrende Testzahlungen liefern eine <code>changePaymentState</code>-URL zum
+          manuellen Umschalten des Status.
+        </li>
+      </ul>
+      <div class="callout warn">
+        <span class="lbl">Webhooks lokal testen</span>
+        Mollie kann <code>localhost</code> nicht erreichen. Für lokale Webhook-Tests braucht es
+        einen Tunnel (z.B. <code>cloudflared</code>) mit öffentlicher HTTPS-URL. Auf Zerops ist der
+        Backend-Endpunkt ohnehin öffentlich erreichbar.
+      </div>
+
+      <h2 id="aktuell">13. Aktuelle Entwicklungen 2025/2026</h2>
+      <ul class="tight">
+        <li>
+          <b>Alle 35+ Zahlungsmethoden auf der Payments API</b> (April 2025) — auch Klarna, Billie,
+          Riverty laufen jetzt über die Payments API.
+        </li>
+        <li>
+          <b>Orders API deprecated</b> — Migration auf die Payments API empfohlen;
+          <code>lines</code> dort unveränderlich.
+        </li>
+        <li>
+          <b>Next-Gen-Webhooks</b> mit signierten Events (HMAC-SHA256), Event-Abos und
+          Event-Historie.
+        </li>
+        <li>
+          <b>Karten im Checkout speichern</b> über die Payments API — eingebettete 1-Click-Zahlung
+          ohne Redirect.
+        </li>
+        <li>
+          <b>Mollie Outbound Payments</b> — API-first-Lösung für ausgehende
+          Instant-SEPA-Überweisungen (Auszahlungen an eigene Nutzer).
+        </li>
+        <li>
+          <b>Google Pay</b> über alle drei Interfaces (Checkout, Components, API);
+          <b>Multiple Currency Balances</b>; <b>Terminal Pairing Codes</b> per API;
+          <b>Mollie Insights</b>-Dashboard.
+        </li>
+        <li>
+          <b>Vereinheitlichung der API-Identifier</b> — Mollie standardisiert seine Ressourcen-IDs
+          (Payment- und Order-IDs betroffen).
+        </li>
+      </ul>
+
+      <h2 id="empfehlung">14. Einordnung für lmaa.space &amp; musiccloud</h2>
+      <p>Für das geplante Spenden-Feature lassen sich die Bausteine konkret zuordnen:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Baustein</th>
+            <th>Empfehlung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>API</td>
+            <td>Payments API. Die Orders API wird nicht gebraucht.</td>
+          </tr>
+          <tr>
+            <td>Methode</td>
+            <td>
+              <code>banktransfer</code> als Default für anonyme Einzelspenden —
+              <b>kein Rückbuchungsrisiko</b>. Karte/iDEAL/PayPal optional zusätzlich. Lastschrift
+              nur bewusst für Dauerspenden.
+            </td>
+          </tr>
+          <tr>
+            <td>Rückkanal</td>
+            <td>
+              Klassischer <code>webhookUrl</code> am Payment. Handler holt Status per
+              <code>GET</code>, verbucht <code>paid</code> idempotent.
+            </td>
+          </tr>
+          <tr>
+            <td>Alternative ohne Checkout-Code</td>
+            <td>
+              Ein <code>reusable</code> Payment Link ohne festen Betrag = fertige gehostete
+              Spendenseite, Bestätigung via <code>payment-link.paid</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Auth</td>
+            <td>Ein API-Key je Umgebung (<code>test_</code> / <code>live_</code>).</td>
+          </tr>
+          <tr>
+            <td>Robustheit</td>
+            <td>
+              <code>Idempotency-Key</code> beim Anlegen; Webhook-Handler idempotent (Status prüfen,
+              bevor verbucht wird).
+            </td>
+          </tr>
+          <tr>
+            <td>Betrieb</td>
+            <td>
+              Webhook-Endpunkt öffentlich + HTTPS (Zerops-Backend passt). Lokal: Tunnel. Eigene
+              Spenden-ID in <code>metadata</code> ablegen.
+            </td>
+          </tr>
+          <tr>
+            <td>Cross-Projekt</td>
+            <td>
+              „Payment anlegen + Webhook verarbeiten" ist in lmaa.space und musiccloud dieselbe
+              Form. Ein gemeinsames Package lohnt nur, falls beide im selben Monorepo liegen — sonst
+              pro Projekt dünn nachbauen.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Der GiroCode/EPC-QR-Code bleibt sinnvoll als provider- und gebührenfreier Default. Mollie
+        ergänzt genau das fehlende Stück: die automatische Bestätigung, dass eine Spende angekommen
+        ist.
+      </p>
+
+      <footer class="doc">
+        <p><b>Quellen</b> — Live-Dokumentation, abgerufen am 21. Mai 2026:</p>
+        <ul>
+          <li>
+            <a href="https://docs.mollie.com/reference/overview"
+              >docs.mollie.com/reference/overview</a
+            >
+            — API-Überblick
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/reference/authentication">/reference/authentication</a>
+            — Authentifizierung
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/reference/payments-api">/reference/payments-api</a>
+            &amp; <a href="https://docs.mollie.com/reference/create-payment">/create-payment</a>
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/reference/webhooks">/reference/webhooks</a>,
+            <a href="https://docs.mollie.com/reference/webhooks-new">/webhooks-new</a>,
+            <a href="https://docs.mollie.com/reference/webhooks-best-practices"
+              >/webhooks-best-practices</a
+            >
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/reference/payment-links-api"
+              >/reference/payment-links-api</a
+            >
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/docs/bank-transfer">/docs/bank-transfer</a> &amp;
+            <a href="https://docs.mollie.com/docs/sepa-direct-debit">/docs/sepa-direct-debit</a>
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/reference/subscriptions-api"
+              >/reference/subscriptions-api</a
+            >
+            &amp; <a href="https://docs.mollie.com/reference/mandates-api">/mandates-api</a>
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/reference/api-idempotency"
+              >/reference/api-idempotency</a
+            >
+            &amp; <a href="https://docs.mollie.com/reference/testing">/testing</a>
+          </li>
+          <li>
+            <a href="https://docs.mollie.com/changelog">docs.mollie.com/changelog</a> &amp;
+            <a href="https://docs.mollie.com/docs/migrating-from-orders-to-payments"
+              >/docs/migrating-from-orders-to-payments</a
+            >
+          </li>
+        </ul>
+        <p>
+          Erstellt als Recherchegrundlage — kein Implementierungsplan. Vor einer Umsetzung sollten
+          die Referenzen erneut gegen die dann aktuelle Mollie-Doku geprüft werden.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
