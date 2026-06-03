@@ -147,52 +147,98 @@ function drawLayerFrame(
   ctx.restore();
 }
 
-interface WrappedTextLine {
-  chars: Array<{ char: string; index: number }>;
+interface ResolvedTextStyle {
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: string;
+  fontStyle: string;
+  color: string;
+  lineHeight: number;
+  letterSpacing: number;
+}
+
+interface WrappedTextChar {
+  char: string;
+  index: number;
+  style: ResolvedTextStyle;
   width: number;
 }
 
-function getTextColorAt(layer: SocialPreviewTextLayer, index: number) {
-  const range = layer.colorRanges?.find((entry) => index >= entry.start && index < entry.end);
-  return range?.color ?? layer.color;
+interface WrappedTextLine {
+  chars: WrappedTextChar[];
+  width: number;
+  height: number;
 }
 
-function measureChars(
-  ctx: CanvasRenderingContext2D,
-  chars: Array<{ char: string; index: number }>,
-  letterSpacing: number,
-) {
-  return (
-    chars.reduce((sum, entry) => sum + ctx.measureText(entry.char).width, 0) +
-    Math.max(0, chars.length - 1) * letterSpacing
-  );
-}
-
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  letterSpacing: number,
-): WrappedTextLine[] {
-  const lines: WrappedTextLine[] = [];
-  let current: Array<{ char: string; index: number }> = [];
-
-  const pushLine = () => {
-    lines.push({ chars: current, width: measureChars(ctx, current, letterSpacing) });
-    current = [];
+function getTextStyleAt(layer: SocialPreviewTextLayer, index: number): ResolvedTextStyle {
+  const style: ResolvedTextStyle = {
+    fontFamily: layer.fontFamily,
+    fontSize: layer.fontSize,
+    fontWeight: layer.fontWeight,
+    fontStyle: layer.fontStyle,
+    color: layer.color,
+    lineHeight: layer.lineHeight,
+    letterSpacing: layer.letterSpacing,
   };
 
-  Array.from(text).forEach((char, index) => {
+  const legacyColorRange = layer.colorRanges?.find(
+    (entry) => index >= entry.start && index < entry.end,
+  );
+  if (legacyColorRange) {
+    style.color = legacyColorRange.color;
+  }
+
+  for (const range of layer.styleRanges ?? []) {
+    if (index < range.start || index >= range.end) continue;
+    if (range.fontFamily !== undefined) style.fontFamily = range.fontFamily;
+    if (range.fontSize !== undefined) style.fontSize = range.fontSize;
+    if (range.fontWeight !== undefined) style.fontWeight = range.fontWeight;
+    if (range.fontStyle !== undefined) style.fontStyle = range.fontStyle;
+    if (range.color !== undefined) style.color = range.color;
+    if (range.lineHeight !== undefined) style.lineHeight = range.lineHeight;
+    if (range.letterSpacing !== undefined) style.letterSpacing = range.letterSpacing;
+  }
+
+  return style;
+}
+
+function setCanvasTextStyle(ctx: CanvasRenderingContext2D, style: ResolvedTextStyle) {
+  ctx.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize}px "${style.fontFamily}"`;
+}
+
+function measureStyledChar(ctx: CanvasRenderingContext2D, char: string, style: ResolvedTextStyle) {
+  setCanvasTextStyle(ctx, style);
+  return ctx.measureText(char).width;
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer): WrappedTextLine[] {
+  const lines: WrappedTextLine[] = [];
+  let current: WrappedTextChar[] = [];
+  let currentWidth = 0;
+  let currentHeight = layer.fontSize * layer.lineHeight;
+
+  const pushLine = () => {
+    lines.push({ chars: current, width: currentWidth, height: currentHeight });
+    current = [];
+    currentWidth = 0;
+    currentHeight = layer.fontSize * layer.lineHeight;
+  };
+
+  Array.from(layer.text).forEach((char, index) => {
     if (char === "\n") {
       pushLine();
       return;
     }
 
-    const candidate = [...current, { char, index }];
-    if (current.length > 0 && measureChars(ctx, candidate, letterSpacing) > maxWidth) {
+    const style = getTextStyleAt(layer, index);
+    const width = measureStyledChar(ctx, char, style);
+    const spacing = current.length > 0 ? style.letterSpacing : 0;
+    if (current.length > 0 && currentWidth + spacing + width > layer.width) {
       pushLine();
     }
-    current.push({ char, index });
+    current.push({ char, index, style, width });
+    currentWidth += (current.length > 1 ? spacing : 0) + width;
+    currentHeight = Math.max(currentHeight, style.fontSize * style.lineHeight);
   });
 
   pushLine();
@@ -201,20 +247,36 @@ function wrapText(
 
 async function loadCanvasFont(layer: SocialPreviewTextLayer) {
   if (!("fonts" in document)) return;
-  await document.fonts.load(
-    `${layer.fontStyle} ${layer.fontWeight} ${layer.fontSize}px "${layer.fontFamily}"`,
+  const styles = new Map<string, ResolvedTextStyle>();
+  const addStyle = (style: ResolvedTextStyle) => {
+    styles.set(
+      `${style.fontStyle}-${style.fontWeight}-${style.fontSize}-${style.fontFamily}`,
+      style,
+    );
+  };
+
+  addStyle(getTextStyleAt(layer, 0));
+  for (let index = 0; index < layer.text.length; index++) {
+    addStyle(getTextStyleAt(layer, index));
+  }
+
+  await Promise.all(
+    Array.from(styles.values()).map((style) =>
+      document.fonts.load(
+        `${style.fontStyle} ${style.fontWeight} ${style.fontSize}px "${style.fontFamily}"`,
+      ),
+    ),
   );
 }
 
 function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLayer) {
   drawLayerFrame(ctx, layer, () => {
-    ctx.font = `${layer.fontStyle} ${layer.fontWeight} ${layer.fontSize}px "${layer.fontFamily}"`;
     ctx.textBaseline = "top";
     ctx.textAlign = "left";
-    const lines = wrapText(ctx, layer.text, layer.width, layer.letterSpacing);
-    const lineHeightPx = layer.fontSize * layer.lineHeight;
+    const lines = wrapText(ctx, layer);
+    let y = 0;
 
-    lines.forEach((line, lineIndex) => {
+    for (const line of lines) {
       let cursor =
         layer.align === "center"
           ? (layer.width - line.width) / 2
@@ -222,11 +284,13 @@ function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLa
             ? layer.width - line.width
             : 0;
       for (const entry of line.chars) {
-        ctx.fillStyle = getTextColorAt(layer, entry.index);
-        ctx.fillText(entry.char, cursor, lineIndex * lineHeightPx);
-        cursor += ctx.measureText(entry.char).width + layer.letterSpacing;
+        setCanvasTextStyle(ctx, entry.style);
+        ctx.fillStyle = entry.style.color;
+        ctx.fillText(entry.char, cursor, y);
+        cursor += entry.width + entry.style.letterSpacing;
       }
-    });
+      y += line.height;
+    }
   });
 }
 

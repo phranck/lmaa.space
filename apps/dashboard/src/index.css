@@ -109,6 +109,10 @@
   text-transform: inherit;
 }
 
+.social-preview-projects-table .section-header {
+  padding-block: 0.35rem;
+}
+
 /* Button hover states */
 .btn-edit:hover {
   border-color: var(--ds-border-strong);

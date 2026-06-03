@@ -1234,9 +1234,12 @@ export interface DashboardMessages {
       chooseBackground: string;
       addText: string;
       addImage: string;
+      imageSourceUnsplash: string;
+      imageSourceComputer: string;
       addShape: string;
       saveProject: string;
       loadProject: string;
+      updatedAtLabel: string;
       savedProjectsTitle: string;
       projectLayer: string;
       keyboardHint: string;
@@ -2614,9 +2617,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         chooseBackground: "Grundbild wählen",
         addText: "Text hinzufügen",
         addImage: "Bild hinzufügen",
+        imageSourceUnsplash: "Unsplash",
+        imageSourceComputer: "Computer",
         addShape: "Form hinzufügen",
         saveProject: "Projekt speichern",
-        loadProject: "Projekt laden",
+        loadProject: "Bearbeiten",
+        updatedAtLabel: "Aktualisiert",
         savedProjectsTitle: "Gespeicherte Projekte",
         projectLayer: "Projekt",
         keyboardHint:
@@ -3985,9 +3991,12 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         chooseBackground: "Choose base image",
         addText: "Add text",
         addImage: "Add image",
+        imageSourceUnsplash: "Unsplash",
+        imageSourceComputer: "Computer",
         addShape: "Add shape",
         saveProject: "Save project",
-        loadProject: "Load project",
+        loadProject: "Edit",
+        updatedAtLabel: "Updated",
         savedProjectsTitle: "Saved projects",
         projectLayer: "Project",
         keyboardHint:
