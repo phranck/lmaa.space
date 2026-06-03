@@ -24,11 +24,14 @@ const {
   jsonLd,
 } = Astro.props;
 
-const siteTitle = title ? `${title} · lmaa.space` : "lmaa.space – Lokale Märkte. Alternative Anbieter.";
+const siteTitle = title
+  ? `${title} · lmaa.space`
+  : "lmaa.space – Lokale Märkte. Alternative Anbieter.";
 const publicSite = Astro.site ?? new URL("https://lmaa.space");
 const canonical =
   canonicalUrl ?? new URL(`${Astro.url.pathname}${Astro.url.search}`, publicSite).href;
-const resolvedOgImage = ogImage ?? new URL("/og-image.jpg", publicSite).href;
+const defaultOgImage = new URL("/og-image.jpg", publicSite).href;
+let resolvedOgImage = ogImage ?? defaultOgImage;
 
 let headerNav: NavItem[] = [];
 let footerNav: NavItem[] = [];
@@ -42,7 +45,18 @@ try {
     apiGet<SocialMediaProfile[]>("/social-media-accounts/footer"),
   ]);
 } catch {
-  // Nav items, footer config, and social profiles optional – graceful degradation
+  // Nav items, footer config, and social profiles optional, graceful degradation.
+}
+
+try {
+  const socialPreviewImage = !ogImage
+    ? await apiGet<{ url: string } | null>("/social-preview-image")
+    : null;
+  if (socialPreviewImage?.url) {
+    resolvedOgImage = socialPreviewImage.url;
+  }
+} catch {
+  // The social preview image is optional, fall back to /og-image.jpg.
 }
 ---
 

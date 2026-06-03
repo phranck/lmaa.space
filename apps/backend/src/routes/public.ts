@@ -18,7 +18,7 @@ import { getMediaAliasMap, getMediaShortcodeAssetMap } from "../services/admin-m
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
-import { getCurrentHeroImage } from "../services/hero.js";
+import { getCurrentHeroImage, getSocialPreviewImage } from "../services/hero.js";
 import {
   validateShopUrl,
   createManagedDeadLinkReport,
@@ -345,6 +345,13 @@ publicRoutes.get("/social-media-accounts/footer", publicReadLimit, async (c) => 
   const accounts = await listFooterSocialMediaAccounts();
   c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
   return ok(c, accounts);
+});
+
+// GET /api/social-preview-image – global Open Graph/Twitter preview image
+publicRoutes.get("/social-preview-image", publicReadLimit, async (c) => {
+  const image = await getSocialPreviewImage();
+  c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+  return ok(c, image);
 });
 
 // GET /api/markdown-widgets/:key

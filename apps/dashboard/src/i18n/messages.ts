@@ -414,9 +414,13 @@ export interface DashboardMessages {
       imagePoolEmpty: string;
       imagePoolHint: string;
       selectedBadge: string;
+      socialPreviewBadge: string;
       markSelected: string;
       markDeselected: string;
       markActive: string;
+      markSocialPreview: string;
+      clearSocialPreview: string;
+      socialPreviewHint: string;
       removeImage: string;
       removeConfirmTitle: string;
       removeConfirmDescription: string;
@@ -1607,9 +1611,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imagePoolHint:
           "Füge Bilder aus Unsplash hinzu. Markierte Bilder werden auf der Startseite rotiert.",
         selectedBadge: "Aktiv",
+        socialPreviewBadge: "Social Preview",
         markSelected: "Für Rotation aktivieren",
         markDeselected: "Aus Rotation entfernen",
         markActive: "Als aktives Bild setzen",
+        markSocialPreview: "Als Social-Preview setzen",
+        clearSocialPreview: "Social-Preview entfernen",
+        socialPreviewHint:
+          "Das Social-Preview-Bild wird als Open-Graph- und Twitter-Bild verwendet, wenn ein Link zur Website geteilt wird.",
         removeImage: "Entfernen",
         removeConfirmTitle: "Bild entfernen?",
         removeConfirmDescription: "Das Bild wird aus der Sammlung gelöscht.",
@@ -2907,9 +2916,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imagePoolEmpty: "No images collected yet.",
         imagePoolHint: "Add images from Unsplash. Marked images will be rotated on the homepage.",
         selectedBadge: "Active",
+        socialPreviewBadge: "Social preview",
         markSelected: "Activate for rotation",
         markDeselected: "Remove from rotation",
         markActive: "Set as active image",
+        markSocialPreview: "Set as social preview",
+        clearSocialPreview: "Remove social preview",
+        socialPreviewHint:
+          "The social preview image is used as the Open Graph and Twitter image when a website link is shared.",
         removeImage: "Remove",
         removeConfirmTitle: "Remove image?",
         removeConfirmDescription: "This image will be deleted from the collection.",

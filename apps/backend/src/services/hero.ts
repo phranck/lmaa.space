@@ -1,10 +1,12 @@
 import { fetchUnsplashPhotoDetail } from "./unsplash.js";
 import type { HeroImage } from "../db/schema.js";
-import { getSetting, putSetting } from "../repositories/app-settings.js";
+import { HttpError } from "../lib/http.js";
+import { deleteSetting, getSetting, putSetting } from "../repositories/app-settings.js";
 import {
   clearHeroImageSelections,
   createHeroImage,
   deleteHeroImage,
+  getHeroImageById,
   listHeroImages,
   listSelectedHeroImages,
   setHeroImageFocalPoint,
@@ -14,6 +16,8 @@ import {
   updateUnsplashImageLocation,
   upsertUnsplashImage,
 } from "../repositories/unsplash-images.js";
+
+export type AdminHeroImage = HeroImage & { isSocialPreview: boolean };
 
 export type { HeroImage };
 
@@ -37,6 +41,24 @@ export async function setHeroRotationEnabled(enabled: boolean): Promise<void> {
 // -----------------------------------------------------------------------
 
 const INTERVAL_KEY = "hero.rotation.interval";
+const SOCIAL_PREVIEW_IMAGE_KEY = "hero.socialPreviewImageId";
+
+async function getSocialPreviewImageId(): Promise<number | null> {
+  const value = await getSetting(SOCIAL_PREVIEW_IMAGE_KEY);
+  if (!value) return null;
+  const id = Number.parseInt(value, 10);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function markSocialPreviewImage(
+  images: HeroImage[],
+  socialPreviewImageId: number | null,
+): AdminHeroImage[] {
+  return images.map((image) => ({
+    ...image,
+    isSocialPreview: image.id === socialPreviewImageId,
+  }));
+}
 
 export async function getHeroRotationInterval(): Promise<number> {
   const value = await getSetting(INTERVAL_KEY);
@@ -135,8 +157,12 @@ function pickHeroImage(
 // Public API (called from routes)
 // -----------------------------------------------------------------------
 
-export async function getAdminHeroImages(): Promise<HeroImage[]> {
-  return listHeroImages();
+export async function getAdminHeroImages(): Promise<AdminHeroImage[]> {
+  const [images, socialPreviewImageId] = await Promise.all([
+    listHeroImages(),
+    getSocialPreviewImageId(),
+  ]);
+  return markSocialPreviewImage(images, socialPreviewImageId);
 }
 
 export async function addHeroImage(data: {
@@ -195,7 +221,11 @@ export async function addHeroImage(data: {
 }
 
 export async function removeHeroImage(id: number): Promise<void> {
-  await deleteHeroImage(id);
+  const deleted = await deleteHeroImage(id);
+  const socialPreviewImageId = await getSocialPreviewImageId();
+  if (deleted && deleted.id === socialPreviewImageId) {
+    await deleteSetting(SOCIAL_PREVIEW_IMAGE_KEY);
+  }
 }
 
 export async function updateHeroImageFocalPoint(
@@ -213,6 +243,46 @@ export async function toggleHeroImageSelected(id: number, selected: boolean): Pr
     }
   }
   return setHeroImageSelected(id, selected);
+}
+
+export async function toggleHeroImageSocialPreview({
+  id,
+  selected,
+}: {
+  id: number;
+  selected: boolean;
+}): Promise<AdminHeroImage> {
+  const image = await getHeroImageById(id);
+  if (!image) {
+    throw new HttpError(404, "Hero image not found");
+  }
+
+  const currentSocialPreviewImageId = await getSocialPreviewImageId();
+  if (selected) {
+    await putSetting(SOCIAL_PREVIEW_IMAGE_KEY, String(id));
+  } else if (currentSocialPreviewImageId === id) {
+    await deleteSetting(SOCIAL_PREVIEW_IMAGE_KEY);
+  }
+
+  const socialPreviewImageId = selected ? id : await getSocialPreviewImageId();
+  return { ...image, isSocialPreview: image.id === socialPreviewImageId };
+}
+
+/**
+ * Returns the configured global social-media preview image for Open Graph and
+ * Twitter cards. A missing or stale setting falls back to the frontend default.
+ */
+export async function getSocialPreviewImage(): Promise<{ url: string } | null> {
+  const socialPreviewImageId = await getSocialPreviewImageId();
+  if (!socialPreviewImageId) return null;
+
+  const image = await getHeroImageById(socialPreviewImageId);
+  if (!image) {
+    await deleteSetting(SOCIAL_PREVIEW_IMAGE_KEY);
+    return null;
+  }
+
+  return { url: image.url };
 }
 
 /**

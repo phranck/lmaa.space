@@ -50,12 +50,18 @@ const footerPreviewMocks = vi.hoisted(() => ({
   getFooterPreviewSession: vi.fn(),
 }));
 
+const heroMocks = vi.hoisted(() => ({
+  getCurrentHeroImage: vi.fn(),
+  getSocialPreviewImage: vi.fn(),
+}));
+
 vi.mock("../services/public.js", () => publicServiceMocks);
 vi.mock("../services/admin-form-config.js", () => formConfigMocks);
 vi.mock("../services/admin-media.js", () => mediaMocks);
 vi.mock("../repositories/footer-config.js", () => footerMocks);
 vi.mock("../repositories/markdown-widgets.js", () => markdownMocks);
 vi.mock("../services/footer-preview-store.js", () => footerPreviewMocks);
+vi.mock("../services/hero.js", () => heroMocks);
 vi.mock("../services/form-submission.js", () => ({
   executeSubmissionChain: vi.fn(),
 }));
@@ -339,6 +345,17 @@ describe("publicRoutes", () => {
       const res = await app.request("/footer-config");
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe("GET /social-preview-image", () => {
+    it("returns the configured social preview image", async () => {
+      heroMocks.getSocialPreviewImage.mockResolvedValue({ url: "https://img.example/social.jpg" });
+
+      const res = await app.request("/social-preview-image");
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ data: { url: "https://img.example/social.jpg" } });
     });
   });
 
