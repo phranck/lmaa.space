@@ -3,6 +3,7 @@ import {
   ArrowCounterClockwiseIcon,
   ArrowSquareOutIcon,
   ArrowsOutCardinalIcon,
+  FileTextIcon,
   BoundingBoxIcon,
   CheckCircleIcon,
   CircleIcon,
@@ -33,6 +34,7 @@ import type {
   SocialPreviewFormat,
   SocialPreviewImageLayer,
   SocialPreviewLayer,
+  SocialPreviewProjectEntry,
   SocialPreviewShapeKind,
   SocialPreviewShapeLayer,
   SocialPreviewTextLayer,
@@ -41,11 +43,12 @@ import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import { DeleteActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
-import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { DataTable, type ColumnDef } from "@/components/ui/Table.tsx";
+import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
@@ -168,44 +171,120 @@ function getImageOffsetY(layer: SocialPreviewImageLayer) {
   return layer.offsetY ?? 0;
 }
 
-function getTextColorAt(layer: SocialPreviewTextLayer, index: number) {
-  const range = layer.colorRanges?.find((entry) => index >= entry.start && index < entry.end);
-  return range?.color ?? layer.color;
+type TextStylePatch = Partial<
+  Pick<
+    SocialPreviewTextLayer,
+    | "fontFamily"
+    | "fontSize"
+    | "fontWeight"
+    | "fontStyle"
+    | "color"
+    | "lineHeight"
+    | "letterSpacing"
+  >
+>;
+
+const TEXT_STYLE_KEYS = [
+  "fontFamily",
+  "fontSize",
+  "fontWeight",
+  "fontStyle",
+  "color",
+  "lineHeight",
+  "letterSpacing",
+] as const satisfies ReadonlyArray<keyof TextStylePatch>;
+
+function getTextStyleAt(layer: SocialPreviewTextLayer, index: number) {
+  const style = {
+    fontFamily: layer.fontFamily,
+    fontSize: layer.fontSize,
+    fontWeight: layer.fontWeight,
+    fontStyle: layer.fontStyle,
+    color: layer.color,
+    lineHeight: layer.lineHeight,
+    letterSpacing: layer.letterSpacing,
+  };
+
+  const legacyColorRange = layer.colorRanges?.find(
+    (entry) => index >= entry.start && index < entry.end,
+  );
+  if (legacyColorRange) {
+    style.color = legacyColorRange.color;
+  }
+
+  for (const range of layer.styleRanges ?? []) {
+    if (index < range.start || index >= range.end) continue;
+    if (range.fontFamily !== undefined) style.fontFamily = range.fontFamily;
+    if (range.fontSize !== undefined) style.fontSize = range.fontSize;
+    if (range.fontWeight !== undefined) style.fontWeight = range.fontWeight;
+    if (range.fontStyle !== undefined) style.fontStyle = range.fontStyle;
+    if (range.color !== undefined) style.color = range.color;
+    if (range.lineHeight !== undefined) style.lineHeight = range.lineHeight;
+    if (range.letterSpacing !== undefined) style.letterSpacing = range.letterSpacing;
+  }
+
+  return style;
 }
 
-function renderTextWithColorRanges(layer: SocialPreviewTextLayer) {
-  return Array.from(layer.text).map((char, index) => (
-    <span key={`${index}-${char}`} style={{ color: getTextColorAt(layer, index) }}>
-      {char}
-    </span>
-  ));
+function renderTextWithStyleRanges(layer: SocialPreviewTextLayer) {
+  return Array.from(layer.text).map((char, index) => {
+    const style = getTextStyleAt(layer, index);
+    return (
+      <span
+        key={`${index}-${char}`}
+        style={{
+          fontFamily: style.fontFamily,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          fontStyle: style.fontStyle,
+          color: style.color,
+          lineHeight: style.lineHeight,
+          letterSpacing: style.letterSpacing,
+        }}
+      >
+        {char}
+      </span>
+    );
+  });
 }
 
-function applyTextColorRange(
+function hasTextStylePatch(patch: Partial<SocialPreviewLayer>): patch is TextStylePatch {
+  return TEXT_STYLE_KEYS.some((key) => key in patch);
+}
+
+function pickTextStylePatch(patch: Partial<SocialPreviewLayer>): TextStylePatch {
+  const stylePatch: TextStylePatch = {};
+  const patchRecord = patch as Record<string, unknown>;
+  const styleRecord = stylePatch as Record<string, unknown>;
+  for (const key of TEXT_STYLE_KEYS) {
+    if (key in patchRecord) {
+      styleRecord[key] = patchRecord[key];
+    }
+  }
+  return stylePatch;
+}
+
+function applyTextStyleRange(
   layer: SocialPreviewTextLayer,
   start: number,
   end: number,
-  color: string,
+  patch: TextStylePatch,
 ): SocialPreviewTextLayer {
   const safeStart = clamp(Math.min(start, end), 0, layer.text.length);
   const safeEnd = clamp(Math.max(start, end), 0, layer.text.length);
   if (safeStart === safeEnd) return layer;
 
-  const nextRanges = (layer.colorRanges ?? []).flatMap((range) => {
-    if (range.end <= safeStart || range.start >= safeEnd) return [range];
-    const split = [];
-    if (range.start < safeStart) {
-      split.push({ ...range, end: safeStart });
-    }
-    if (range.end > safeEnd) {
-      split.push({ ...range, start: safeEnd });
-    }
-    return split;
-  });
-
-  nextRanges.push({ start: safeStart, end: safeEnd, color });
-  nextRanges.sort((a, b) => a.start - b.start || a.end - b.end);
-  return { ...layer, colorRanges: nextRanges };
+  return {
+    ...layer,
+    styleRanges: [
+      ...(layer.styleRanges ?? []),
+      {
+        start: safeStart,
+        end: safeEnd,
+        ...patch,
+      },
+    ].slice(-400),
+  };
 }
 
 function updateLayer(
@@ -442,7 +521,6 @@ export function SocialPreviewPage() {
   const [quality, setQuality] = useState(90);
   const targetSizeKb = 350;
   const [name, setName] = useState("Social Media Preview");
-  const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [effectiveQuality, setEffectiveQuality] = useState(90);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -456,6 +534,7 @@ export function SocialPreviewPage() {
   const [stageScale, setStageScale] = useState(1);
 
   const stageRef = useRef<HTMLDivElement>(null);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
   const historyRef = useRef<SocialPreviewComposition[]>([]);
   const futureRef = useRef<SocialPreviewComposition[]>([]);
   const textClickRef = useRef<{ id: string; x: number; y: number; at: number } | null>(null);
@@ -578,14 +657,12 @@ export function SocialPreviewPage() {
       )
         .then((result) => {
           if (cancelled) return;
-          setPreviewDataUrl(result.dataUrl);
           setPreviewBlob(result.blob);
           setEffectiveQuality(result.effectiveQuality);
           setRenderError(null);
         })
         .catch((error) => {
           if (cancelled) return;
-          setPreviewDataUrl(null);
           setPreviewBlob(null);
           setRenderError(error instanceof Error ? error.message : common.unknownError);
         });
@@ -613,6 +690,17 @@ export function SocialPreviewPage() {
     setSelection({ type: "layer", id: layer.id });
     setActiveTool("image");
     setEditingTextLayerId(null);
+  }
+
+  async function handleLocalImageFile(file: File | null) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const baseName = file.name.replace(/\.[^.]+$/, "") || t.addImage;
+    try {
+      const media = await uploadPreview.mutateAsync({ blob: file, name: baseName });
+      addImageLayer(media.url, file.name);
+    } catch (error) {
+      setRenderError(error instanceof Error ? error.message : common.unknownError);
+    }
   }
 
   function handleStagePointerDown(event: React.PointerEvent<HTMLDivElement>) {
@@ -856,27 +944,33 @@ export function SocialPreviewPage() {
   function updateSelectedLayer(patch: Partial<SocialPreviewLayer>) {
     if (!selectedLayer) return;
     commitComposition((current) => {
-      if (
-        selectedLayer.type === "text" &&
-        "color" in patch &&
-        textSelection?.layerId === selectedLayer.id &&
-        textSelection.start !== textSelection.end
-      ) {
+      if (selectedLayer.type === "text" && "text" in patch) {
+        return updateLayer(current, selectedLayer.id, {
+          ...patch,
+          colorRanges: [],
+          styleRanges: [],
+        });
+      }
+
+      if (selectedLayer.type === "text" && hasTextStylePatch(patch)) {
+        if (
+          textSelection?.layerId !== selectedLayer.id ||
+          textSelection.start === textSelection.end
+        ) {
+          return current;
+        }
         const layer = current.layers.find((entry) => entry.id === selectedLayer.id);
         if (layer?.type !== "text") return current;
         return updateLayer(
           current,
           selectedLayer.id,
-          applyTextColorRange(layer, textSelection.start, textSelection.end, String(patch.color)),
+          applyTextStyleRange(
+            layer,
+            textSelection.start,
+            textSelection.end,
+            pickTextStylePatch(patch),
+          ),
         );
-      }
-
-      if (selectedLayer.type === "text" && "color" in patch) {
-        return current;
-      }
-
-      if (selectedLayer.type === "text" && "text" in patch) {
-        return updateLayer(current, selectedLayer.id, { ...patch, colorRanges: [] });
       }
 
       return updateLayer(current, selectedLayer.id, patch);
@@ -886,6 +980,15 @@ export function SocialPreviewPage() {
   function deleteSelectedLayer() {
     if (!selectedLayer) return;
     commitComposition((current) => removeLayer(current, selectedLayer.id));
+    setSelection(null);
+    setEditingTextLayerId(null);
+  }
+
+  function handleLoadProject(project: SocialPreviewProjectEntry) {
+    pushHistorySnapshot();
+    setComposition(project.composition);
+    setCurrentProjectId(project.id);
+    setName(project.name);
     setSelection(null);
     setEditingTextLayerId(null);
   }
@@ -929,14 +1032,55 @@ export function SocialPreviewPage() {
 
   const isSaving = uploadPreview.isPending || createPreview.isPending;
   const isSavingProject = createProject.isPending || updateProject.isPending;
-  const savedImageGridClass =
-    imageGridSize <= 1
-      ? "grid-cols-1"
-      : imageGridSize <= 2
-        ? "grid-cols-2"
-        : imageGridSize <= 3
-          ? "grid-cols-2 2xl:grid-cols-3"
-          : "grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4";
+  const savedImageCardWidth = 150 + ((imageGridSize - 1) / 3) * 270;
+  const projectColumns = useMemo<Array<ColumnDef<SocialPreviewProjectEntry>>>(
+    () => [
+      {
+        id: "name",
+        header: t.nameLabel,
+        sortKey: (project) => project.name,
+        cell: (project) => (
+          <span className="block max-w-[16rem] truncate font-medium text-[var(--ds-text)]">
+            {project.name}
+          </span>
+        ),
+      },
+      {
+        id: "updatedAt",
+        header: t.updatedAtLabel,
+        sortKey: (project) => new Date(project.updatedAt).getTime(),
+        cell: (project) => (
+          <span className="whitespace-nowrap text-xs text-[var(--ds-text-muted)]">
+            {new Date(project.updatedAt).toLocaleString(locale)}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "",
+        className: "w-52",
+        cell: (project) => (
+          <div className="flex items-center justify-end gap-1">
+            <TableActionButton
+              type="button"
+              aria-label={t.loadProject}
+              title={t.loadProject}
+              onClick={() => handleLoadProject(project)}
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
+            />
+            <DeleteActionButton
+              iconOnly
+              aria-label={common.delete}
+              title={common.delete}
+              disabled={deleteProject.isPending}
+              onClick={() => setDeleteProjectTargetId(project.id)}
+            />
+          </div>
+        ),
+      },
+    ],
+    [common.delete, deleteProject.isPending, locale, t.loadProject, t.nameLabel, t.updatedAtLabel],
+  );
 
   return (
     <PageLayout>
@@ -973,10 +1117,11 @@ export function SocialPreviewPage() {
                     setActiveTool("text");
                     setEditingTextLayerId(null);
                   }}
-                  onAddImage={() => {
+                  onAddImageFromUnsplash={() => {
                     setActiveTool("image");
                     setBrowserMode("layer");
                   }}
+                  onAddImageFromComputer={() => imageFileInputRef.current?.click()}
                   onAddShape={() => {
                     const layer = createShapeLayer();
                     commitComposition((current) => ({
@@ -990,12 +1135,25 @@ export function SocialPreviewPage() {
                   onDeleteLayer={deleteSelectedLayer}
                 />
 
+                <input
+                  ref={imageFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0] ?? null;
+                    event.currentTarget.value = "";
+                    void handleLocalImageFile(file);
+                  }}
+                />
+
                 <div className="min-w-0 flex-1">
                   <AttributeBar
                     messages={t}
                     activeTool={activeTool}
                     composition={composition}
                     selectedLayer={selectedLayer}
+                    textSelection={textSelection}
                     onBackgroundChange={(patch) =>
                       commitComposition((current) => ({
                         ...current,
@@ -1112,98 +1270,36 @@ export function SocialPreviewPage() {
             </DashboardSection.Body>
           </DashboardSection>
 
-          <div className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
-            <div className="space-y-4">
-              <DashboardSection>
-                <DashboardSection.Header
-                  icon={<ImageIcon weight="duotone" className="size-4" />}
-                  title={t.outputTitle}
-                />
-                <DashboardSection.Body>
-                  <div className="overflow-hidden border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)]">
-                    {previewDataUrl ? (
-                      <img
-                        src={previewDataUrl}
-                        alt=""
-                        className="aspect-[1200/630] w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex aspect-[1200/630] items-center justify-center text-sm text-[var(--ds-text-muted)]">
-                        {common.loading}
-                      </div>
-                    )}
+          <div className="grid auto-rows-[32rem] items-stretch gap-4 xl:grid-cols-2">
+            <DashboardSection className="flex h-full min-h-0 flex-col">
+              <DashboardSection.Header
+                icon={<SelectionIcon weight="duotone" className="size-4" />}
+                title={t.savedProjectsTitle}
+              />
+              <DashboardSection.Body className="min-h-0 flex-1 overflow-y-auto !gap-0 !p-0">
+                {isLoadingProjects ? (
+                  <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
+                ) : savedProjects.length === 0 ? (
+                  <p className="text-sm text-[var(--ds-text-muted)]">{t.emptyHint}</p>
+                ) : (
+                  <div className="social-preview-projects-table">
+                    <DataTable
+                      columns={projectColumns}
+                      data={savedProjects}
+                      getRowKey={(project) => project.id}
+                      getRowClassName={(project) =>
+                        currentProjectId === project.id
+                          ? "ring-2 ring-inset ring-[var(--color-primary)]/40"
+                          : ""
+                      }
+                      initialSort={{ id: "updatedAt", dir: "desc" }}
+                    />
                   </div>
-                  {renderError ? <p className="text-sm text-red-500">{renderError}</p> : null}
-                  {previewBlob ? (
-                    <p className="text-xs text-[var(--ds-text-muted)]">
-                      {t.previewMeta
-                        .replace("{size}", formatBytes(previewBlob.size))
-                        .replace("{quality}", String(effectiveQuality))}
-                    </p>
-                  ) : null}
-                </DashboardSection.Body>
-              </DashboardSection>
+                )}
+              </DashboardSection.Body>
+            </DashboardSection>
 
-              <DashboardSection>
-                <DashboardSection.Header
-                  icon={<SelectionIcon weight="duotone" className="size-4" />}
-                  title={t.savedProjectsTitle}
-                />
-                <DashboardSection.Body>
-                  {isLoadingProjects ? (
-                    <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
-                  ) : savedProjects.length === 0 ? (
-                    <p className="text-sm text-[var(--ds-text-muted)]">{t.emptyHint}</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {savedProjects.map((project) => (
-                        <div
-                          key={project.id}
-                          className={cx(
-                            "flex items-center justify-between gap-2 rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] p-2",
-                            currentProjectId === project.id &&
-                              "ring-2 ring-[var(--color-primary)]/40",
-                          )}
-                        >
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-[var(--ds-text)]">
-                              {project.name}
-                            </p>
-                            <p className="text-xs text-[var(--ds-text-muted)]">
-                              {new Date(project.updatedAt).toLocaleString(locale)}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 gap-1">
-                            <DashboardButton
-                              type="button"
-                              variant="neutral"
-                              size="control"
-                              onClick={() => {
-                                pushHistorySnapshot();
-                                setComposition(project.composition);
-                                setCurrentProjectId(project.id);
-                                setName(project.name);
-                                setSelection(null);
-                                setEditingTextLayerId(null);
-                              }}
-                            >
-                              {t.loadProject}
-                            </DashboardButton>
-                            <DeleteActionButton
-                              label={common.delete}
-                              disabled={deleteProject.isPending}
-                              onClick={() => setDeleteProjectTargetId(project.id)}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </DashboardSection.Body>
-              </DashboardSection>
-            </div>
-
-            <DashboardSection>
+            <DashboardSection className="flex h-full min-h-0 flex-col">
               <DashboardSection.Header
                 icon={<ImageIcon weight="duotone" className="size-4" />}
                 title={t.savedTitle}
@@ -1214,7 +1310,7 @@ export function SocialPreviewPage() {
                       type="range"
                       min={1}
                       max={4}
-                      step={1}
+                      step={0.01}
                       value={imageGridSize}
                       onChange={(event) => setImageGridSize(Number(event.currentTarget.value))}
                       className="w-24 accent-[var(--color-primary)]"
@@ -1222,7 +1318,7 @@ export function SocialPreviewPage() {
                   </label>
                 }
               />
-              <DashboardSection.Body>
+              <DashboardSection.Body className="min-h-0 flex-1 overflow-y-auto">
                 {isLoading ? (
                   <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
                 ) : savedImages.length === 0 ? (
@@ -1232,59 +1328,81 @@ export function SocialPreviewPage() {
                     subtitle={t.emptyHint}
                   />
                 ) : (
-                  <div className={cx("grid gap-3", savedImageGridClass)}>
+                  <div
+                    className="grid gap-3"
+                    style={{
+                      gridTemplateColumns: `repeat(auto-fill, minmax(0, ${savedImageCardWidth}px))`,
+                      justifyContent: "start",
+                    }}
+                  >
                     {savedImages.map((image) => (
                       <div
                         key={image.id}
-                        className="group relative overflow-hidden rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)]"
+                        className="group relative overflow-hidden rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
                       >
                         <img
                           src={image.imageUrl}
                           alt=""
                           className="aspect-[1200/630] w-full object-cover"
                         />
-                        <div className="absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/75 via-black/10 to-black/55 p-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 text-white">
-                              <p className="truncate text-sm font-medium">{image.name}</p>
-                              <p className="text-xs text-white/75">
-                                {new Date(image.createdAt).toLocaleString(locale)} ·{" "}
-                                {formatBytes(image.sizeBytes)}
-                              </p>
-                            </div>
-                            {image.isActive ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-100">
-                                <CheckCircleIcon weight="duotone" className="size-3.5" />
-                                {t.activeBadge}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <DashboardButton
-                              type="button"
-                              variant="success"
-                              size="control"
-                              disabled={image.isActive || setActivePreview.isPending}
-                              onClick={() =>
-                                setActivePreview.mutate({ id: image.id, active: true })
-                              }
-                            >
-                              {t.setActive}
-                            </DashboardButton>
+                        {image.isActive ? (
+                          <span
+                            className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 border border-emerald-300/30 bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50 backdrop-blur"
+                            style={{
+                              borderRadius: "8px",
+                            }}
+                          >
+                            <CheckCircleIcon weight="duotone" className="size-3.5" />
+                            {t.activeBadge}
+                          </span>
+                        ) : null}
+                        <div
+                          className="absolute inset-x-0 bottom-0 z-[9] h-9 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                          style={{ backgroundColor: "rgb(0 0 0 / 0.45)" }}
+                        />
+                        <div className="absolute inset-x-1 bottom-1 z-10 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                          <button
+                            type="button"
+                            aria-label={t.deleteImage}
+                            title={t.deleteImage}
+                            disabled={deletePreview.isPending}
+                            onClick={() => setDeleteTargetId(image.id)}
+                            className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-red-500/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
+                            style={{
+                              borderRadius: "8px",
+                            }}
+                          >
+                            <TrashIcon weight="duotone" className="size-3.5" />
+                          </button>
+                          <div className="flex items-center gap-1">
                             <a
                               href={image.imageUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex h-[var(--ds-control-h-control)] items-center gap-1.5 rounded-control border border-white/30 bg-black/20 px-3 text-xs font-medium text-white hover:bg-black/40"
+                              aria-label={t.openImage}
+                              title={t.openImage}
+                              className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
+                              style={{
+                                borderRadius: "8px",
+                              }}
                             >
                               <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
-                              {t.openImage}
                             </a>
-                            <DeleteActionButton
-                              label={t.deleteImage}
-                              disabled={deletePreview.isPending}
-                              onClick={() => setDeleteTargetId(image.id)}
-                            />
+                            <button
+                              type="button"
+                              aria-label={t.setActive}
+                              title={t.setActive}
+                              disabled={image.isActive || setActivePreview.isPending}
+                              onClick={() =>
+                                setActivePreview.mutate({ id: image.id, active: true })
+                              }
+                              className="flex size-7 items-center justify-center border border-emerald-300/35 bg-emerald-500/20 text-emerald-50 backdrop-blur hover:bg-emerald-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                              style={{
+                                borderRadius: "8px",
+                              }}
+                            >
+                              <CheckCircleIcon weight="duotone" className="size-3.5" />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1474,7 +1592,8 @@ function CanvasToolbar({
   onRedo,
   onChooseBackground,
   onAddText,
-  onAddImage,
+  onAddImageFromUnsplash,
+  onAddImageFromComputer,
   onAddShape,
   onDeleteLayer,
 }: {
@@ -1487,7 +1606,8 @@ function CanvasToolbar({
   onRedo: () => void;
   onChooseBackground: () => void;
   onAddText: () => void;
-  onAddImage: () => void;
+  onAddImageFromUnsplash: () => void;
+  onAddImageFromComputer: () => void;
   onAddShape: () => void;
   onDeleteLayer: () => void;
 }) {
@@ -1495,6 +1615,8 @@ function CanvasToolbar({
     "flex size-8 items-center justify-center rounded-md text-[var(--ds-text-muted)] transition hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-30";
   const activeClass =
     "bg-[var(--ds-surface-hover)] text-[var(--ds-text)] ring-1 ring-[var(--ds-border)]";
+
+  const [imageMenuOpen, setImageMenuOpen] = useState(false);
 
   return (
     <div className="flex w-8 shrink-0 flex-col items-center gap-1 pt-12">
@@ -1516,15 +1638,50 @@ function CanvasToolbar({
       >
         <TextTIcon weight="duotone" className="size-5" />
       </button>
-      <button
-        type="button"
-        className={cx(buttonClass, activeTool === "image" && activeClass)}
-        aria-label={messages.addImage}
-        title={messages.addImage}
-        onClick={onAddImage}
-      >
-        <PlusIcon weight="duotone" className="size-5" />
-      </button>
+      <div className="relative">
+        <button
+          type="button"
+          className={cx(buttonClass, activeTool === "image" && activeClass)}
+          aria-label={messages.addImage}
+          title={messages.addImage}
+          aria-haspopup="menu"
+          aria-expanded={imageMenuOpen}
+          onClick={() => setImageMenuOpen((open) => !open)}
+        >
+          <PlusIcon weight="duotone" className="size-5" />
+        </button>
+        {imageMenuOpen ? (
+          <div
+            role="menu"
+            className="absolute left-10 top-0 z-50 min-w-36 overflow-hidden rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] p-1 text-xs text-[var(--ds-text)] shadow-xl"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-[var(--ds-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
+              onClick={() => {
+                setImageMenuOpen(false);
+                onAddImageFromUnsplash();
+              }}
+            >
+              <ImageIcon weight="duotone" className="size-4" />
+              {messages.imageSourceUnsplash}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-[var(--ds-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
+              onClick={() => {
+                setImageMenuOpen(false);
+                onAddImageFromComputer();
+              }}
+            >
+              <PlusIcon weight="duotone" className="size-4" />
+              {messages.imageSourceComputer}
+            </button>
+          </div>
+        ) : null}
+      </div>
       <button
         type="button"
         className={cx(buttonClass, activeTool === "shape" && activeClass)}
@@ -1726,7 +1883,7 @@ function LayerContent({
           onEditStart();
         }}
       >
-        {renderTextWithColorRanges(layer)}
+        {renderTextWithStyleRanges(layer)}
       </div>
     );
   }
@@ -1854,6 +2011,7 @@ function AttributeBar({
   activeTool,
   composition,
   selectedLayer,
+  textSelection,
   onBackgroundChange,
   onLayerChange,
   onDeleteLayer,
@@ -1862,6 +2020,7 @@ function AttributeBar({
   activeTool: ActiveTool;
   composition: SocialPreviewComposition;
   selectedLayer: SocialPreviewLayer | null;
+  textSelection: TextSelectionRange | null;
   onBackgroundChange: (patch: Partial<SocialPreviewComposition["background"]>) => void;
   onLayerChange: (patch: Partial<SocialPreviewLayer>) => void;
   onDeleteLayer: () => void;
@@ -1880,6 +2039,7 @@ function AttributeBar({
         <LayerAttributes
           layer={layerForTool}
           messages={messages}
+          textSelection={textSelection}
           onChange={onLayerChange}
           onDelete={onDeleteLayer}
         />
@@ -1992,11 +2152,13 @@ function BackgroundAttributes({
 function LayerAttributes({
   layer,
   messages,
+  textSelection,
   onChange,
   onDelete,
 }: {
   layer: SocialPreviewLayer;
   messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  textSelection: TextSelectionRange | null;
   onChange: (patch: Partial<SocialPreviewLayer>) => void;
   onDelete: () => void;
 }) {
@@ -2108,7 +2270,12 @@ function LayerAttributes({
       ) : layer.type === "shape" ? (
         <ShapeLayerAttributes layer={layer} messages={messages} onChange={onChange} />
       ) : (
-        <TextLayerAttributes layer={layer} messages={messages} onChange={onChange} />
+        <TextLayerAttributes
+          layer={layer}
+          messages={messages}
+          textSelection={textSelection}
+          onChange={onChange}
+        />
       )}
       <AttributeDivider />
       <button
@@ -2361,12 +2528,19 @@ function ImageLayerAttributes({
 function TextLayerAttributes({
   layer,
   messages,
+  textSelection,
   onChange,
 }: {
   layer: SocialPreviewTextLayer;
   messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  textSelection: TextSelectionRange | null;
   onChange: (patch: Partial<SocialPreviewLayer>) => void;
 }) {
+  const activeStyle =
+    textSelection?.layerId === layer.id && textSelection.start !== textSelection.end
+      ? getTextStyleAt(layer, textSelection.start)
+      : getTextStyleAt(layer, 0);
+
   return (
     <>
       <AttributeDivider />
@@ -2376,7 +2550,7 @@ function TextLayerAttributes({
       >
         <AttributeSelect
           aria-label={messages.fontFamily}
-          value={layer.fontFamily}
+          value={activeStyle.fontFamily}
           className="w-44"
           onChange={(event) => onChange({ fontFamily: event.currentTarget.value })}
         >
@@ -2395,7 +2569,7 @@ function TextLayerAttributes({
           aria-label={messages.fontSize}
           type="number"
           min={1}
-          value={layer.fontSize}
+          value={activeStyle.fontSize}
           className="w-14"
           onChange={(event) =>
             onChange({ fontSize: Math.max(1, Number(event.currentTarget.value) || 1) })
@@ -2409,7 +2583,7 @@ function TextLayerAttributes({
         <AttributeInput
           aria-label={messages.textColor}
           type="color"
-          value={layer.color}
+          value={activeStyle.color}
           className="w-9 px-1"
           onChange={(event) => onChange({ color: event.currentTarget.value })}
         />
@@ -2420,7 +2594,7 @@ function TextLayerAttributes({
       >
         <AttributeSelect
           aria-label={messages.fontWeight}
-          value={layer.fontWeight}
+          value={activeStyle.fontWeight}
           className="w-18"
           onChange={(event) => onChange({ fontWeight: event.currentTarget.value })}
         >
@@ -2437,7 +2611,7 @@ function TextLayerAttributes({
       >
         <AttributeSelect
           aria-label={messages.fontStyle}
-          value={layer.fontStyle}
+          value={activeStyle.fontStyle}
           className="w-20"
           onChange={(event) => onChange({ fontStyle: event.currentTarget.value })}
         >
@@ -2490,7 +2664,7 @@ function TextLayerAttributes({
           min={0.5}
           max={4}
           step={0.05}
-          value={layer.lineHeight}
+          value={activeStyle.lineHeight}
           className="w-14"
           onChange={(event) => onChange({ lineHeight: Number(event.currentTarget.value) || 1 })}
         />
@@ -2502,7 +2676,7 @@ function TextLayerAttributes({
         <AttributeInput
           aria-label={messages.letterSpacing}
           type="number"
-          value={layer.letterSpacing}
+          value={activeStyle.letterSpacing}
           className="w-14"
           onChange={(event) => onChange({ letterSpacing: Number(event.currentTarget.value) || 0 })}
         />
