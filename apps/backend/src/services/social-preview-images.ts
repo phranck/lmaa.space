@@ -123,6 +123,57 @@ export async function uploadManagedSocialPreviewAsset(input: {
   });
 }
 
+function getRemoteImageFilename(url: string, contentType: string, displayName?: string) {
+  const extension = contentType.includes("webp")
+    ? "webp"
+    : contentType.includes("png")
+      ? "png"
+      : "jpg";
+  const safeName = (displayName?.trim() || new URL(url).pathname.split("/").pop() || "image")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[/\\]/g, " ")
+    .trim();
+  return `${safeName || "image"}.${extension}`;
+}
+
+export async function importManagedSocialPreviewAssetFromUrl(input: {
+  adminId: number;
+  displayName?: string;
+  imageUrl: string;
+  overwrite?: boolean;
+}) {
+  const url = new URL(input.imageUrl);
+  if (url.protocol !== "https:" || url.hostname !== "images.unsplash.com") {
+    return { ok: false as const, reason: "invalid_url" as const };
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    return { ok: false as const, reason: "download_failed" as const };
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.startsWith("image/")) {
+    return { ok: false as const, reason: "invalid_file" as const };
+  }
+
+  const buffer = await response.arrayBuffer();
+  const file = new File(
+    [buffer],
+    getRemoteImageFilename(input.imageUrl, contentType, input.displayName),
+    {
+      type: contentType,
+    },
+  );
+
+  return uploadManagedSocialPreviewAsset({
+    adminId: input.adminId,
+    displayName: input.displayName,
+    file,
+    overwrite: input.overwrite ?? true,
+  });
+}
+
 export async function createManagedSocialPreviewImage(
   data: SocialPreviewImageCreateData & { activate?: boolean },
 ): Promise<SocialPreviewImageEntry> {

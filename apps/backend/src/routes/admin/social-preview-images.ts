@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { z } from "zod";
 
 import {
   socialPreviewActiveSchema,
@@ -15,6 +16,7 @@ import {
   createManagedSocialPreviewImage,
   createManagedSocialPreviewProject,
   deleteManagedSocialPreviewImage,
+  importManagedSocialPreviewAssetFromUrl,
   deleteManagedSocialPreviewProject,
   listManagedSocialPreviewImages,
   listManagedSocialPreviewProjects,
@@ -27,6 +29,22 @@ import {
  * Admin social-preview image management routes.
  */
 export const socialPreviewImageRoutes = new Hono<{ Variables: AuthVariables }>();
+
+const socialPreviewRemoteAssetImportSchema = z.object({
+  imageUrl: z
+    .string()
+    .url()
+    .refine((url) => {
+      try {
+        const parsed = new URL(url);
+        return parsed.protocol === "https:" && parsed.hostname === "images.unsplash.com";
+      } catch {
+        return false;
+      }
+    }, "Image URL must be an Unsplash image URL"),
+  displayName: z.string().trim().min(1).max(200).optional(),
+  overwrite: z.boolean().optional(),
+});
 
 socialPreviewImageRoutes.get("/social-preview-projects", requireAdmin, async (c) => {
   const projects = await listManagedSocialPreviewProjects();
@@ -97,6 +115,34 @@ socialPreviewImageRoutes.post("/social-preview-assets", requireAdmin, async (c) 
 
   return ok(c, result.asset, 201);
 });
+
+socialPreviewImageRoutes.post(
+  "/social-preview-assets/import-remote",
+  requireAdmin,
+  zValidator("json", socialPreviewRemoteAssetImportSchema),
+  async (c) => {
+    const body = c.req.valid("json");
+    const result = await importManagedSocialPreviewAssetFromUrl({
+      adminId: c.get("adminId"),
+      displayName: body.displayName,
+      imageUrl: body.imageUrl,
+      overwrite: body.overwrite ?? true,
+    });
+
+    if (!result.ok) {
+      if (result.reason === "invalid_url") return fail(c, 400, "Unsupported image URL");
+      if (result.reason === "download_failed") return fail(c, 502, "Failed to download image");
+      if (result.reason === "name_conflict") {
+        return fail(c, 409, "Media asset name already exists", "MEDIA_NAME_CONFLICT");
+      }
+      if (result.reason === "too_large") return fail(c, 413, "File too large", "PAYLOAD_TOO_LARGE");
+      if (result.reason === "invalid_file") return fail(c, 400, "Unsupported file type");
+      return fail(c, 500, "Failed to store file");
+    }
+
+    return ok(c, result.asset, 201);
+  },
+);
 
 socialPreviewImageRoutes.get("/social-preview-images", requireAdmin, async (c) => {
   const images = await listManagedSocialPreviewImages();
