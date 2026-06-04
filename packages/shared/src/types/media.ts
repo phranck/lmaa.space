@@ -35,6 +35,38 @@ export type MediaKind = "image" | "document" | "video";
 /**
  * Stored media asset metadata shared between backend and dashboard.
  */
+export type MediaFolderColor = "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "gray";
+
+/**
+ * Stored media folder metadata shared between backend and dashboard.
+ */
+export interface MediaFolder {
+  id: number;
+  name: string;
+  parentId: number | null;
+  color: MediaFolderColor | null;
+  itemCount: number;
+  sizeBytes: number;
+  systemKey: string | null;
+  isSystem: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: number | null;
+}
+
+/**
+ * Folder-scoped media manager response.
+ */
+export interface FolderContentsResponse {
+  folder: MediaFolder | null;
+  ancestors: MediaFolder[];
+  folders: MediaFolder[];
+  assets: MediaAsset[];
+}
+
+/**
+ * Stored media asset metadata shared between backend and dashboard.
+ */
 export interface MediaAsset {
   id: number;
   displayName: string;
@@ -46,6 +78,7 @@ export interface MediaAsset {
   sizeBytes: number;
   width: number | null;
   height: number | null;
+  folderId: number | null;
   url: string;
   posterUrl: string | null;
   createdAt: string;

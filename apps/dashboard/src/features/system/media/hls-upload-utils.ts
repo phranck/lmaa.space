@@ -39,16 +39,33 @@ export interface DirectoryReadProgress {
 
 export interface DroppedHlsBundleCollection {
   bundles: MediaBundleUpload[];
+  directories: DroppedMediaDirectoryUpload[];
   directoryCount: number;
   emptyDirectories: string[];
   unsupportedItemCount: number;
 }
 
+export interface DroppedMediaDirectoryUpload {
+  files: File[];
+  name: string;
+}
+
 interface DroppedHlsBundleItemResult {
   bundle: MediaBundleUpload | null;
+  directory: DroppedMediaDirectoryUpload | null;
   directoryCount: number;
   emptyDirectory: string | null;
   unsupportedItemCount: number;
+}
+
+export function isHiddenOrSystemEntryName(name: string) {
+  const normalized = name.trim();
+  return (
+    normalized.startsWith(".") ||
+    normalized === "__MACOSX" ||
+    normalized.toLowerCase() === "thumbs.db" ||
+    normalized.toLowerCase() === "desktop.ini"
+  );
 }
 
 export function getFileSystemEntry(item: DataTransferItem): BrowserFileSystemEntry | null {
@@ -91,6 +108,8 @@ async function collectEntryFiles(
   entry: BrowserFileSystemEntry,
   parentPath: string,
 ): Promise<BrowserFileSystemFileHandle[]> {
+  if (isHiddenOrSystemEntryName(entry.name)) return [];
+
   const relativePath = parentPath ? `${parentPath}/${entry.name}` : entry.name;
 
   if (entry.isFile) {
@@ -127,6 +146,10 @@ async function readBundleFiles(
   );
 }
 
+function isHlsBundleUpload(files: MediaBundleUploadFile[]) {
+  return files.some((item) => /\.m3u8$/i.test(item.relativePath));
+}
+
 async function collectDroppedHlsBundleItem(
   item: DataTransferItem,
   onProgress?: (progress: DirectoryReadProgress) => void,
@@ -135,6 +158,7 @@ async function collectDroppedHlsBundleItem(
   if (!entry) {
     return {
       bundle: null,
+      directory: null,
       directoryCount: 0,
       emptyDirectory: null,
       unsupportedItemCount: 1,
@@ -144,6 +168,17 @@ async function collectDroppedHlsBundleItem(
   if (!entry.isDirectory) {
     return {
       bundle: null,
+      directory: null,
+      directoryCount: 0,
+      emptyDirectory: null,
+      unsupportedItemCount: 0,
+    };
+  }
+
+  if (isHiddenOrSystemEntryName(entry.name)) {
+    return {
+      bundle: null,
+      directory: null,
       directoryCount: 0,
       emptyDirectory: null,
       unsupportedItemCount: 0,
@@ -156,14 +191,27 @@ async function collectDroppedHlsBundleItem(
   if (handles.length === 0) {
     return {
       bundle: null,
+      directory: null,
       directoryCount: 1,
       emptyDirectory: entry.name,
       unsupportedItemCount: 0,
     };
   }
 
+  const files = await readBundleFiles(entry.name, handles, onProgress);
+  if (!isHlsBundleUpload(files)) {
+    return {
+      bundle: null,
+      directory: { name: entry.name, files: files.map((item) => item.file) },
+      directoryCount: 1,
+      emptyDirectory: null,
+      unsupportedItemCount: 0,
+    };
+  }
+
   return {
-    bundle: { name: entry.name, files: await readBundleFiles(entry.name, handles, onProgress) },
+    bundle: { name: entry.name, files },
+    directory: null,
     directoryCount: 1,
     emptyDirectory: null,
     unsupportedItemCount: 0,
@@ -181,6 +229,7 @@ export async function collectDroppedHlsBundles(
   return results.reduce<DroppedHlsBundleCollection>(
     (collection, result) => {
       if (result.bundle) collection.bundles.push(result.bundle);
+      if (result.directory) collection.directories.push(result.directory);
       if (result.emptyDirectory) collection.emptyDirectories.push(result.emptyDirectory);
       collection.directoryCount += result.directoryCount;
       collection.unsupportedItemCount += result.unsupportedItemCount;
@@ -188,6 +237,7 @@ export async function collectDroppedHlsBundles(
     },
     {
       bundles: [],
+      directories: [],
       directoryCount: 0,
       emptyDirectories: [],
       unsupportedItemCount: 0,

@@ -16,6 +16,19 @@ export function isVideoAsset(asset: MediaAsset) {
   return asset.kind === "video" || asset.mimeType.startsWith("video/");
 }
 
+export function stripFileExtension(value: string) {
+  return value.replace(/\.[^.]+$/, "");
+}
+
+export function canOpenInBrowser(asset: MediaAsset) {
+  return (
+    isImageAsset(asset) ||
+    isVideoAsset(asset) ||
+    isHlsBundleAsset(asset) ||
+    asset.mimeType === "application/pdf"
+  );
+}
+
 function sanitizeShortcodeAttribute(value: string) {
   return value
     .trim()

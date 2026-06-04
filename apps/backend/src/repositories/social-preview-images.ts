@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 
 import type { SocialPreviewComposition, SocialPreviewFormat } from "@lmaa/contracts";
 
@@ -148,7 +148,16 @@ export async function deleteSocialPreviewImage(id: number) {
   const [deleted] = await db
     .delete(socialPreviewImages)
     .where(eq(socialPreviewImages.id, id))
-    .returning({ id: socialPreviewImages.id });
+    .returning({ id: socialPreviewImages.id, mediaAssetId: socialPreviewImages.mediaAssetId });
 
   return deleted ?? null;
+}
+
+export async function countSocialPreviewImagesByMediaAssetId(mediaAssetId: number) {
+  const [row] = await db
+    .select({ value: count() })
+    .from(socialPreviewImages)
+    .where(eq(socialPreviewImages.mediaAssetId, mediaAssetId));
+
+  return row?.value ?? 0;
 }

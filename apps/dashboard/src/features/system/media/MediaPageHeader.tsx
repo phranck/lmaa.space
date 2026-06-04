@@ -1,84 +1,61 @@
-import {
-  ArrowsClockwiseIcon,
-  ListBulletsIcon,
-  PlusCircleIcon,
-  SquaresFourIcon,
-} from "@phosphor-icons/react";
-import { useRef } from "react";
+import { ArrowsClockwiseIcon, PlusCircleIcon } from "@phosphor-icons/react";
 
-import { MEDIA_UPLOAD_ACCEPT } from "@lmaa/shared";
+import type { MediaFolder } from "@lmaa/shared";
 
 import { DashboardButton } from "@/components/ui/DashboardButton.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
-import { SegmentedControl } from "@/components/ui/SegmentedControl.tsx";
 import type { useI18n } from "@/context/I18nContext.tsx";
-import { getSegmentedStorageKey } from "@/lib/segmented-storage.ts";
-
-export type MediaViewMode = "list" | "grid";
+import { MediaBreadcrumb } from "@/features/system/media/MediaBreadcrumb.tsx";
+import { useMediaFilePicker } from "@/features/system/media/useMediaFilePicker.tsx";
 
 interface MediaPageHeaderProps {
+  ancestors: MediaFolder[];
+  canSync: boolean;
+  currentFolder: MediaFolder | null;
   isSyncing: boolean;
   isUploading: boolean;
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
   onSync: () => void;
   onUploadFiles: (files: FileList | null) => void;
-  onViewModeChange: (viewMode: MediaViewMode) => void;
-  userId: number | null | undefined;
-  viewMode: MediaViewMode;
 }
 
 export function MediaPageHeader({
+  ancestors,
+  canSync,
+  currentFolder,
   isSyncing,
   isUploading,
   mediaMessages,
   onSync,
   onUploadFiles,
-  onViewModeChange,
-  userId,
-  viewMode,
 }: MediaPageHeaderProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { open, hiddenInput } = useMediaFilePicker({ onFiles: onUploadFiles });
 
   return (
-    <PageHeader title={mediaMessages.title}>
-      <SegmentedControl
-        value={viewMode}
-        onChange={(value) => onViewModeChange(value as MediaViewMode)}
-        storageKey={getSegmentedStorageKey(userId, "media:view")}
-        options={[
-          { value: "list", icon: <ListBulletsIcon weight="duotone" className="size-4" /> },
-          { value: "grid", icon: <SquaresFourIcon weight="duotone" className="size-4" /> },
-        ]}
-      />
+    <PageHeader
+      title={mediaMessages.title}
+      titleContent={<MediaBreadcrumb ancestors={ancestors} current={currentFolder} />}
+    >
+      {hiddenInput}
 
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        className="hidden"
-        accept={MEDIA_UPLOAD_ACCEPT}
-        onChange={(event) => {
-          onUploadFiles(event.target.files);
-          event.currentTarget.value = "";
-        }}
-      />
-
-      <DashboardButton
-        onClick={onSync}
-        disabled={isSyncing}
-        leadingIcon={
-          <ArrowsClockwiseIcon
-            weight="duotone"
-            className={`size-3.5 ${isSyncing ? "animate-spin" : ""}`}
-          />
-        }
-        variant="neutral"
-      >
-        Sync
-      </DashboardButton>
+      {canSync && (
+        <DashboardButton
+          onClick={onSync}
+          disabled={isSyncing}
+          leadingIcon={
+            <ArrowsClockwiseIcon
+              weight="duotone"
+              className={`size-3.5 ${isSyncing ? "animate-spin" : ""}`}
+            />
+          }
+          variant="neutral"
+        >
+          Sync
+        </DashboardButton>
+      )}
 
       <DashboardButton
-        onClick={() => inputRef.current?.click()}
+        onClick={open}
         disabled={isUploading}
         leadingIcon={<PlusCircleIcon weight="duotone" className="size-3.5" />}
         variant="primary"

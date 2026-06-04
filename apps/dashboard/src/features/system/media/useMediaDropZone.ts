@@ -1,20 +1,25 @@
-import { useRef, type DragEvent as ReactDragEvent } from "react";
+import { type DragEvent as ReactDragEvent, useRef } from "react";
 
 import type { useI18n } from "@/context/I18nContext.tsx";
 import type { MediaBundleUpload } from "@/features/system/hooks/useAdminMedia.ts";
-import {
-  collectDroppedHlsBundles,
-  getFileSystemEntry,
-} from "@/features/system/media/hls-upload-utils.ts";
+import { handleMediaDrop, hasDraggedFiles } from "@/features/system/media/handle-media-drop.ts";
+import type { DroppedMediaDirectoryUpload } from "@/features/system/media/hls-upload-utils.ts";
 import type { MediaUploadProgress } from "@/features/system/media/MediaUploadOverlay.tsx";
 
 interface UseMediaDropZoneOptions {
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
   onActionError: (message: string | null) => void;
   onDragActiveChange: (active: boolean) => void;
-  onUploadFiles: (files: File[]) => Promise<void>;
+  onUploadFiles: (files: File[]) => Promise<unknown>;
   onUploadBundles: (bundles: MediaBundleUpload[]) => Promise<void>;
+  onUploadDirectory: (directory: DroppedMediaDirectoryUpload) => Promise<void>;
   onUploadProgressChange: (progress: MediaUploadProgress | null) => void;
+}
+
+function handleMediaDragOver(event: ReactDragEvent<HTMLDivElement>) {
+  if (!hasDraggedFiles(event.dataTransfer)) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
 }
 
 export function useMediaDropZone({
@@ -22,30 +27,21 @@ export function useMediaDropZone({
   onActionError,
   onDragActiveChange,
   onUploadBundles,
+  onUploadDirectory,
   onUploadFiles,
   onUploadProgressChange,
 }: UseMediaDropZoneOptions) {
   const dragDepthRef = useRef(0);
 
-  function hasDraggedFiles(event: ReactDragEvent<HTMLDivElement>) {
-    return Array.from(event.dataTransfer.types).includes("Files");
-  }
-
   function handleDragEnter(event: ReactDragEvent<HTMLDivElement>) {
-    if (!hasDraggedFiles(event)) return;
+    if (!hasDraggedFiles(event.dataTransfer)) return;
     event.preventDefault();
     dragDepthRef.current += 1;
     onDragActiveChange(true);
   }
 
-  function handleDragOver(event: ReactDragEvent<HTMLDivElement>) {
-    if (!hasDraggedFiles(event)) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "copy";
-  }
-
   function handleDragLeave(event: ReactDragEvent<HTMLDivElement>) {
-    if (!hasDraggedFiles(event)) return;
+    if (!hasDraggedFiles(event.dataTransfer)) return;
     event.preventDefault();
     dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
     if (dragDepthRef.current === 0) {
@@ -54,73 +50,28 @@ export function useMediaDropZone({
   }
 
   function handleDrop(event: ReactDragEvent<HTMLDivElement>) {
-    if (!hasDraggedFiles(event)) return;
+    if (!hasDraggedFiles(event.dataTransfer)) return;
     event.preventDefault();
-    const { dataTransfer } = event;
-    const droppedItems = Array.from(dataTransfer.items);
-    const droppedFiles = Array.from(dataTransfer.files);
-    const hasDirectoryEntry = droppedItems.some((item) => getFileSystemEntry(item)?.isDirectory);
     dragDepthRef.current = 0;
-    onActionError(null);
     onDragActiveChange(false);
-    onUploadProgressChange(
-      hasDirectoryEntry
-        ? {
-            phase: "reading",
-            name: mediaMessages.hlsBundleFallbackName,
-            filesRead: 0,
-          }
-        : null,
-    );
 
     void (async () => {
-      try {
-        const collection = await collectDroppedHlsBundles(droppedItems, (progress) => {
-          onUploadProgressChange({
-            phase: "reading",
-            name: progress.name,
-            filesRead: progress.filesRead,
-            filesTotal: progress.filesTotal,
-          });
-        });
-
-        if (collection.bundles.length > 0) {
-          await onUploadBundles(collection.bundles);
-          return;
-        }
-
-        if (collection.emptyDirectories.length > 0) {
-          onActionError(
-            mediaMessages.emptyFolderUpload.replace(
-              "{name}",
-              collection.emptyDirectories[0] ?? mediaMessages.hlsBundleFallbackName,
-            ),
-          );
-          onUploadProgressChange(null);
-          return;
-        }
-
-        if (
-          collection.directoryCount > 0 ||
-          (collection.unsupportedItemCount > 0 && droppedFiles.length === 0)
-        ) {
-          onActionError(mediaMessages.directoryUploadUnsupported);
-          onUploadProgressChange(null);
-          return;
-        }
-
-        await onUploadFiles(droppedFiles);
-      } catch (error) {
-        onActionError(error instanceof Error ? error.message : mediaMessages.uploadError);
-        onUploadProgressChange(null);
-      }
+      await handleMediaDrop({
+        dataTransfer: event.dataTransfer,
+        mediaMessages,
+        onActionError,
+        onUploadBundles,
+        onUploadDirectory,
+        onUploadFiles,
+        onUploadProgressChange,
+      });
     })();
   }
 
   return {
     handleDragEnter,
     handleDragLeave,
-    handleDragOver,
+    handleDragOver: handleMediaDragOver,
     handleDrop,
   };
 }

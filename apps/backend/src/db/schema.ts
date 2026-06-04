@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   doublePrecision,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -22,7 +23,7 @@ import type {
   SocialPreviewComposition,
   SocialPreviewFormat,
 } from "@lmaa/contracts";
-import type { MediaKind, ShopCheckNotes } from "@lmaa/shared";
+import type { MediaFolderColor, MediaKind, ShopCheckNotes } from "@lmaa/shared";
 
 function quotedTextSql(values: readonly string[]) {
   return sql.join(
@@ -397,6 +398,38 @@ export const contentPages = pgTable("content_pages", {
 });
 
 /**
+ * Dashboard media library folders.
+ */
+export const mediaFolders = pgTable(
+  "media_folders",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    parentId: integer("parent_id"),
+    color: text("color").$type<MediaFolderColor>(),
+    systemKey: text("system_key").unique(),
+    isSystem: boolean("is_system").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+  },
+  (table) => [
+    index("idx_media_folders_parent").on(table.parentId),
+    foreignKey({
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+      name: "media_folders_parent_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("idx_media_folders_parent_name")
+      .on(table.parentId, table.name)
+      .where(sql`${table.parentId} IS NOT NULL`),
+    uniqueIndex("idx_media_folders_root_name")
+      .on(table.name)
+      .where(sql`${table.parentId} IS NULL`),
+  ],
+);
+
+/**
  * Uploaded media assets managed through the dashboard media library.
  */
 export const mediaAssets = pgTable(
@@ -416,10 +449,12 @@ export const mediaAssets = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     alias: text("alias"),
     createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+    folderId: integer("folder_id").references(() => mediaFolders.id, { onDelete: "cascade" }),
   },
   (table) => [
     index("idx_media_assets_kind").on(table.kind),
     index("idx_media_assets_created_at").on(table.createdAt),
+    index("idx_media_assets_folder").on(table.folderId),
     uniqueIndex("idx_media_assets_alias").on(table.alias),
   ],
 );

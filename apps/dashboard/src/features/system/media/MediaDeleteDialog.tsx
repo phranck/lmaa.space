@@ -1,6 +1,7 @@
 import { TrashIcon } from "@phosphor-icons/react";
 
-import type { MediaAsset } from "@lmaa/shared";
+import type { MediaAsset, MediaFolder } from "@lmaa/shared";
+import { FormHelpText } from "@lmaa/ui/form-primitives";
 
 import { CancelActionButton, DeleteActionButton } from "@/components/ui/DashboardActionButton.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
@@ -12,7 +13,7 @@ interface MediaDeleteDialogProps {
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
   onClose: () => void;
   onConfirm: () => void;
-  targets: MediaAsset[] | null;
+  targets: { assets: MediaAsset[]; folders: MediaFolder[] } | null;
 }
 
 export function MediaDeleteDialog({
@@ -23,31 +24,39 @@ export function MediaDeleteDialog({
   onConfirm,
   targets,
 }: MediaDeleteDialogProps) {
-  const targetCount = targets?.length ?? 0;
+  if (targets === null) return null;
+
+  const { assets, folders } = targets;
+  const totalCount = assets.length + folders.length;
+  const isSingleAsset = assets.length === 1 && folders.length === 0;
+  const hasFolders = folders.length > 0;
+  const title = isSingleAsset ? mediaMessages.deleteTitle : mediaMessages.deleteSelectedTitle;
 
   return (
     <Dialog
-      open={targets !== null}
-      title={targetCount > 1 ? mediaMessages.deleteSelectedTitle : mediaMessages.deleteTitle}
+      open
+      title={title}
       titleIcon={<TrashIcon weight="duotone" className={dialogHeaderIconClass} />}
       onClose={onClose}
     >
       <div className="px-6 py-3">
-        <p className="text-sm text-[var(--ds-text-muted)]">
-          {targetCount > 1 ? (
-            mediaMessages.deleteSelectedDescription.replace("{count}", String(targetCount))
-          ) : (
+        <FormHelpText className="!text-base !font-light !text-white">
+          {isSingleAsset ? (
             <>
-              <span className="font-medium">{targets?.[0]?.displayName}</span>{" "}
+              <span className="font-medium">{assets[0]?.displayName}</span>{" "}
               {mediaMessages.deleteDescription}
             </>
+          ) : hasFolders ? (
+            mediaMessages.folders.deleteFolderConfirm(totalCount)
+          ) : (
+            mediaMessages.deleteSelectedDescription.replace("{count}", String(totalCount))
           )}
-        </p>
+        </FormHelpText>
       </div>
       <Dialog.Footer>
         <CancelActionButton label={common.cancel} onClick={onClose} />
         <DeleteActionButton
-          disabled={isDeleting || targetCount === 0}
+          disabled={isDeleting || totalCount === 0}
           label={isDeleting ? "…" : common.delete}
           onClick={onConfirm}
         />

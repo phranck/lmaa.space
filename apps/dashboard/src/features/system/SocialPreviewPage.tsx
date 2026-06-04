@@ -42,8 +42,15 @@ import type {
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { DeleteActionButton, SaveActionButton } from "@/components/ui/DashboardActionButton.tsx";
+import {
+  CancelActionButton,
+  CreateActionButton,
+  DeleteActionButton,
+  SaveActionButton,
+} from "@/components/ui/DashboardActionButton.tsx";
+import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
+import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
@@ -273,6 +280,14 @@ function pickTextStylePatch(patch: Partial<SocialPreviewLayer>): TextStylePatch 
   return stylePatch;
 }
 
+function getTextStylePatchKeys(patch: TextStylePatch) {
+  return TEXT_STYLE_KEYS.filter((key) => key in patch);
+}
+
+function hasStyleRangeOverrides(range: NonNullable<SocialPreviewTextLayer["styleRanges"]>[number]) {
+  return TEXT_STYLE_KEYS.some((key) => range[key] !== undefined);
+}
+
 function applyTextStyleRange(
   layer: SocialPreviewTextLayer,
   start: number,
@@ -293,6 +308,31 @@ function applyTextStyleRange(
         ...patch,
       },
     ].slice(-400),
+  };
+}
+
+function applyTextStyleToWholeLayer(
+  layer: SocialPreviewTextLayer,
+  patch: TextStylePatch,
+): SocialPreviewTextLayer {
+  const patchKeys = getTextStylePatchKeys(patch);
+  if (patchKeys.length === 0) return layer;
+
+  const styleRanges = (layer.styleRanges ?? [])
+    .map((range) => {
+      const nextRange = { ...range };
+      for (const key of patchKeys) {
+        delete nextRange[key];
+      }
+      return nextRange;
+    })
+    .filter(hasStyleRangeOverrides);
+
+  return {
+    ...layer,
+    ...patch,
+    colorRanges: patchKeys.includes("color") ? [] : layer.colorRanges,
+    styleRanges,
   };
 }
 
@@ -577,12 +617,14 @@ export function SocialPreviewPage() {
   const [format, setFormat] = useState<SocialPreviewFormat>("image/jpeg");
   const [quality, setQuality] = useState(90);
   const targetSizeKb = 350;
-  const [name, setName] = useState("Social Media Preview");
+  const [projectName, setProjectName] = useState("");
+  const [previewName, setPreviewName] = useState("");
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [effectiveQuality, setEffectiveQuality] = useState(90);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [deleteProjectTargetId, setDeleteProjectTargetId] = useState<number | null>(null);
+  const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
   const [imageGridSize, setImageGridSize] = useState(() => {
     const stored = window.localStorage.getItem("social-preview-export-grid-size");
     const value = stored ? Number(stored) : 3;
@@ -739,6 +781,13 @@ export function SocialPreviewPage() {
     setSelection({ type: "background" });
     setActiveTool("background");
     setEditingTextLayerId(null);
+  }
+
+  async function uploadRemoteSocialPreviewImage(url: string, name: string) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(common.unknownError);
+    const blob = await response.blob();
+    return uploadPreview.mutateAsync({ blob, name });
   }
 
   async function addImageLayer(url: string, alt?: string | null) {
@@ -1040,24 +1089,15 @@ export function SocialPreviewPage() {
       }
 
       if (selectedLayer.type === "text" && hasTextStylePatch(patch)) {
-        if (
-          textSelection?.layerId !== selectedLayer.id ||
-          textSelection.start === textSelection.end
-        ) {
-          return current;
-        }
         const layer = current.layers.find((entry) => entry.id === selectedLayer.id);
         if (layer?.type !== "text") return current;
-        return updateLayer(
-          current,
-          selectedLayer.id,
-          applyTextStyleRange(
-            layer,
-            textSelection.start,
-            textSelection.end,
-            pickTextStylePatch(patch),
-          ),
-        );
+        const textStylePatch = pickTextStylePatch(patch);
+        const hasRangeSelection =
+          textSelection?.layerId === selectedLayer.id && textSelection.start !== textSelection.end;
+        const nextLayer = hasRangeSelection
+          ? applyTextStyleRange(layer, textSelection.start, textSelection.end, textStylePatch)
+          : applyTextStyleToWholeLayer(layer, textStylePatch);
+        return updateLayer(current, selectedLayer.id, nextLayer);
       }
 
       return updateLayer(current, selectedLayer.id, patch);
@@ -1071,29 +1111,50 @@ export function SocialPreviewPage() {
     setEditingTextLayerId(null);
   }
 
+  function resetEditorTransientState() {
+    setSelection(null);
+    setEditingTextLayerId(null);
+    setTextSelection(null);
+    setDragState(null);
+    setGuides([]);
+    historyRef.current = [];
+    futureRef.current = [];
+    setHistoryVersion((current) => current + 1);
+  }
+
   function handleLoadProject(project: SocialPreviewProjectEntry) {
     pushHistorySnapshot();
     setComposition(project.composition);
     setCurrentProjectId(project.id);
-    setName(project.name);
-    setSelection(null);
-    setEditingTextLayerId(null);
+    setProjectName(project.name);
+    setPreviewName(project.name);
+    resetEditorTransientState();
+  }
+
+  async function handleCreateProject(nextProjectName: string) {
+    const nextComposition = createEmptySocialPreviewComposition();
+    const project = await createProject.mutateAsync({
+      name: nextProjectName,
+      composition: nextComposition,
+    });
+    setComposition(project.composition);
+    setCurrentProjectId(project.id);
+    setProjectName(project.name);
+    setPreviewName(project.name);
+    resetEditorTransientState();
+    setNewProjectDialogOpen(false);
   }
 
   async function handleSaveProject() {
-    if (currentProjectId) {
-      await updateProject.mutateAsync({
-        id: currentProjectId,
-        data: { name, composition },
-      });
-      return;
-    }
-
-    const project = await createProject.mutateAsync({ name, composition });
-    setCurrentProjectId(project.id);
+    if (!currentProjectId) return;
+    await updateProject.mutateAsync({
+      id: currentProjectId,
+      data: { name: projectName, composition },
+    });
   }
 
   async function handleSave() {
+    const safePreviewName = previewName.trim() || projectName.trim() || t.title;
     const rendered = previewBlob
       ? { blob: previewBlob, effectiveQuality }
       : await renderSocialPreviewBlob(
@@ -1102,9 +1163,9 @@ export function SocialPreviewPage() {
           quality,
           targetSizeKb > 0 ? targetSizeKb * 1024 : null,
         );
-    const media = await uploadPreview.mutateAsync({ blob: rendered.blob, name });
+    const media = await uploadPreview.mutateAsync({ blob: rendered.blob, name: safePreviewName });
     await createPreview.mutateAsync({
-      name,
+      name: safePreviewName,
       imageUrl: media.url,
       mediaAssetId: media.id,
       composition,
@@ -1118,7 +1179,7 @@ export function SocialPreviewPage() {
   }
 
   const isSaving = uploadPreview.isPending || createPreview.isPending;
-  const isSavingProject = createProject.isPending || updateProject.isPending;
+  const isSavingProject = updateProject.isPending;
   const savedImageCardWidth = 150 + ((imageGridSize - 1) / 3) * 270;
   const projectColumns = useMemo<Array<ColumnDef<SocialPreviewProjectEntry>>>(
     () => [
@@ -1169,10 +1230,38 @@ export function SocialPreviewPage() {
 
   return (
     <PageLayout>
-      <PageHeader title={t.title} />
-      <PageBody className="min-h-0 overflow-y-auto">
-        <div className="space-y-4">
-          <DashboardSection>
+      <PageHeader
+        title={t.title}
+        titleContent={
+          <span className="text-sm font-medium text-[var(--ds-text-muted)]">
+            {currentProjectId ? projectName : t.noProjectLoaded}
+          </span>
+        }
+      >
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <CreateActionButton
+            label={t.newProject}
+            disabled={createProject.isPending}
+            busy={createProject.isPending}
+            onClick={() => setNewProjectDialogOpen(true)}
+          />
+          <SaveActionButton
+            label={isSavingProject ? common.saving : t.saveProject}
+            disabled={!currentProjectId || isSavingProject || !projectName.trim()}
+            busy={isSavingProject}
+            onClick={() => void handleSaveProject()}
+          />
+          <SaveActionButton
+            label={isSaving ? common.saving : t.saveAndActivate}
+            disabled={isSaving || !!renderError}
+            busy={isSaving}
+            onClick={() => void handleSave()}
+          />
+        </div>
+      </PageHeader>
+      <PageBody className="min-h-0 overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <DashboardSection className="shrink-0">
             <DashboardSection.Header
               icon={<SelectionIcon weight="duotone" className="size-4" />}
               title={t.editorTitle}
@@ -1355,7 +1444,7 @@ export function SocialPreviewPage() {
             </DashboardSection.Body>
           </DashboardSection>
 
-          <div className="grid auto-rows-[32rem] items-stretch gap-4 xl:grid-cols-2">
+          <div className="grid min-h-0 flex-1 items-stretch gap-4 xl:grid-cols-2">
             <DashboardSection className="flex h-full min-h-0 flex-col">
               <DashboardSection.Header
                 icon={<SelectionIcon weight="duotone" className="size-4" />}
@@ -1365,7 +1454,11 @@ export function SocialPreviewPage() {
                 {isLoadingProjects ? (
                   <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
                 ) : savedProjects.length === 0 ? (
-                  <p className="text-sm text-[var(--ds-text-muted)]">{t.emptyHint}</p>
+                  <ContentUnavailableView
+                    icon={<SelectionIcon weight="duotone" aria-hidden />}
+                    title={t.emptyProjectsTitle}
+                    subtitle={t.emptyProjectsHint}
+                  />
                 ) : (
                   <div className="social-preview-projects-table">
                     <DataTable
@@ -1503,32 +1596,38 @@ export function SocialPreviewPage() {
       <PageFooter>
         <FooterExportControls
           messages={t}
-          commonMessages={common}
-          name={name}
+          previewName={previewName}
           format={format}
           quality={quality}
-          isSaving={isSaving}
-          isSavingProject={isSavingProject}
-          canSave={!!previewBlob && !renderError && !!name.trim()}
-          canSaveProject={!!name.trim()}
           estimatedSizeBytes={previewBlob?.size ?? null}
-          onNameChange={setName}
+          onPreviewNameChange={setPreviewName}
           onFormatChange={setFormat}
           onQualityChange={setQuality}
-          onSaveProject={() => void handleSaveProject()}
-          onSave={() => void handleSave()}
         />
       </PageFooter>
+
+      <NewProjectDialog
+        open={newProjectDialogOpen}
+        messages={t}
+        commonMessages={common}
+        busy={createProject.isPending}
+        onCancel={() => setNewProjectDialogOpen(false)}
+        onSubmit={(nextProjectName) => void handleCreateProject(nextProjectName)}
+      />
 
       {browserMode ? (
         <UnsplashBrowser
           defaultQuery=""
           onSelect={(photo) => {
             void (async () => {
+              const media = await uploadRemoteSocialPreviewImage(
+                photo.url,
+                `Unsplash ${photo.unsplashId}`,
+              );
               if (browserMode === "background") {
-                selectUnsplashAsBackground(photo.url);
+                selectUnsplashAsBackground(media.url);
               } else {
-                await addImageLayer(photo.url, photo.altDescription);
+                await addImageLayer(media.url, photo.altDescription);
               }
               setBrowserMode(null);
             })();
@@ -1551,6 +1650,7 @@ export function SocialPreviewPage() {
             onSuccess: () => {
               if (currentProjectId === deleteProjectTargetId) {
                 setCurrentProjectId(null);
+                setProjectName("");
               }
               setDeleteProjectTargetId(null);
             },
@@ -1575,48 +1675,91 @@ export function SocialPreviewPage() {
   );
 }
 
-function FooterExportControls({
+function NewProjectDialog({
+  open,
   messages,
   commonMessages,
-  name,
-  format,
-  quality,
-  isSaving,
-  isSavingProject,
-  canSave,
-  canSaveProject,
-  estimatedSizeBytes,
-  onNameChange,
-  onFormatChange,
-  onQualityChange,
-  onSaveProject,
-  onSave,
+  busy,
+  onCancel,
+  onSubmit,
 }: {
+  open: boolean;
   messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
   commonMessages: ReturnType<typeof useI18n>["messages"]["common"];
-  name: string;
+  busy: boolean;
+  onCancel: () => void;
+  onSubmit: (name: string) => void;
+}) {
+  const [name, setName] = useState("");
+  const canSubmit = name.trim().length > 0 && !busy;
+
+  useEffect(() => {
+    if (open) {
+      setName("");
+    }
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <Dialog
+      open
+      title={messages.newProjectTitle}
+      titleIcon={<PlusIcon weight="duotone" className={dialogHeaderIconClass} />}
+      onClose={busy ? () => undefined : onCancel}
+    >
+      <div className="px-6 py-3">
+        <DashboardInput
+          id="social-preview-new-project-name"
+          type="text"
+          label={messages.projectNameLabel}
+          placeholder={messages.projectNamePlaceholder}
+          value={name}
+          onChange={(event) => setName(event.currentTarget.value)}
+          autoFocus
+        />
+      </div>
+      <Dialog.Footer>
+        <CancelActionButton onClick={onCancel} disabled={busy} label={commonMessages.cancel} />
+        <CreateActionButton
+          onClick={() => onSubmit(name.trim())}
+          disabled={!canSubmit}
+          busy={busy}
+          label={messages.newProject}
+        />
+      </Dialog.Footer>
+    </Dialog>
+  );
+}
+
+function FooterExportControls({
+  messages,
+  previewName,
+  format,
+  quality,
+  estimatedSizeBytes,
+  onPreviewNameChange,
+  onFormatChange,
+  onQualityChange,
+}: {
+  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  previewName: string;
   format: SocialPreviewFormat;
   quality: number;
-  isSaving: boolean;
-  isSavingProject: boolean;
-  canSave: boolean;
-  canSaveProject: boolean;
   estimatedSizeBytes: number | null;
-  onNameChange: (value: string) => void;
+  onPreviewNameChange: (value: string) => void;
   onFormatChange: (value: SocialPreviewFormat) => void;
   onQualityChange: (value: number) => void;
-  onSaveProject: () => void;
-  onSave: () => void;
 }) {
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
-          {messages.nameLabel}
+          {messages.previewNameLabel}
           <input
             type="text"
-            value={name}
-            onChange={(event) => onNameChange(event.currentTarget.value)}
+            value={previewName}
+            onChange={(event) => onPreviewNameChange(event.currentTarget.value)}
             className="h-8 w-52 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-2 text-sm text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
           />
         </label>
@@ -1650,20 +1793,6 @@ function FooterExportControls({
           {messages.estimatedSizeLabel}:{" "}
           {estimatedSizeBytes === null ? "…" : formatBytes(estimatedSizeBytes)}
         </span>
-      </div>
-      <div className="flex items-center gap-2">
-        <SaveActionButton
-          label={isSavingProject ? commonMessages.saving : messages.saveProject}
-          disabled={isSavingProject || !canSaveProject}
-          busy={isSavingProject}
-          onClick={onSaveProject}
-        />
-        <SaveActionButton
-          label={isSaving ? commonMessages.saving : messages.saveAndActivate}
-          disabled={isSaving || !canSave}
-          busy={isSaving}
-          onClick={onSave}
-        />
       </div>
     </div>
   );
@@ -2133,7 +2262,7 @@ function AttributeBar({
   const layerForTool = selectedLayer?.type === activeTool ? selectedLayer : null;
 
   return (
-    <div className="mb-2 flex h-[4.75rem] flex-wrap content-start items-start gap-2 overflow-y-auto px-0 py-1.5 text-xs text-[var(--ds-text-muted)]">
+    <div className="mb-2 flex h-[4.75rem] flex-wrap content-center items-center gap-2 overflow-y-auto px-0 py-1.5 text-xs text-[var(--ds-text-muted)]">
       {activeTool === "background" ? (
         <BackgroundAttributes
           messages={messages}
@@ -2199,7 +2328,7 @@ function AttributeSelect({ className, ...props }: React.SelectHTMLAttributes<HTM
 }
 
 function AttributeDivider() {
-  return <div className="h-5 w-px bg-[var(--ds-border-subtle)]" />;
+  return <div className="h-5 w-px self-center bg-[var(--ds-border-subtle)]" />;
 }
 
 function BackgroundAttributes({
@@ -2215,7 +2344,7 @@ function BackgroundAttributes({
     <>
       <span
         title={messages.chooseBackground}
-        className="flex size-7 items-center justify-center text-[var(--ds-text)]"
+        className="flex size-7 items-center justify-center self-center text-[var(--ds-text)]"
       >
         <ImageIcon weight="duotone" className="size-4" />
       </span>
@@ -2277,7 +2406,7 @@ function LayerAttributes({
               ? messages.imageLayer
               : messages.shapeLayer
         }
-        className="flex size-7 items-center justify-center text-[var(--ds-text)]"
+        className="flex size-7 items-center justify-center self-center text-[var(--ds-text)]"
       >
         {layer.type === "text" ? (
           <TextTIcon weight="duotone" className="size-4" />
@@ -2436,7 +2565,7 @@ function ShapeLayerAttributes({
   return (
     <>
       <AttributeDivider />
-      <div className="flex items-center gap-1" title={messages.shapeKind}>
+      <div className="flex items-center gap-1 self-center" title={messages.shapeKind}>
         {SHAPE_OPTIONS.map((option) => {
           const label = messages[option.labelKey];
           return (
@@ -2677,7 +2806,15 @@ function TextLayerAttributes({
   const activeStyle =
     textSelection?.layerId === layer.id && textSelection.start !== textSelection.end
       ? getTextStyleAt(layer, textSelection.start)
-      : getTextStyleAt(layer, 0);
+      : {
+          fontFamily: layer.fontFamily,
+          fontSize: layer.fontSize,
+          fontWeight: layer.fontWeight,
+          fontStyle: layer.fontStyle,
+          color: layer.color,
+          lineHeight: layer.lineHeight,
+          letterSpacing: layer.letterSpacing,
+        };
 
   return (
     <>

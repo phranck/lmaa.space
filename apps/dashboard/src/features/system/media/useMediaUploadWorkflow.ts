@@ -9,6 +9,7 @@ import {
   useUploadHlsBundle,
   useUploadMedia,
 } from "@/features/system/hooks/useAdminMedia.ts";
+import { isHiddenOrSystemEntryName } from "@/features/system/media/hls-upload-utils.ts";
 import { processMediaUploadQueue } from "@/features/system/media/media-upload-queue.ts";
 import { formatBytes } from "@/features/system/media/media-utils.ts";
 import type { UploadConflictState } from "@/features/system/media/MediaUploadConflictDialog.tsx";
@@ -20,16 +21,41 @@ interface UploadConflictResolution {
   overwrite: boolean;
 }
 
+type UploadConflictApplyAllResolution = "rename" | "overwrite";
+
 interface UseMediaUploadWorkflowOptions {
   assets: MediaAsset[];
   locale: DashboardLocale;
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
   onActionError: (message: string | null) => void;
+  onUploadedAsset?: (asset: MediaAsset) => Promise<void> | void;
   onUploadedAssetSelect: (asset: MediaAsset) => void;
+  targetFolderId: number | null;
+}
+
+interface MediaUploadOptions {
+  selectLastAsset?: boolean;
+  targetFolderId?: number | null;
+}
+
+interface MediaUploadWorkflowResult {
+  last: MediaAsset | null;
+  ok: boolean;
+}
+
+interface MediaUploadBatchProgress {
+  completedBytes: number;
+  completedFiles: number;
+  totalBytes: number;
+  totalFiles: number;
 }
 
 function normalizeMediaAssetName(name: string) {
   return name.trim().toLowerCase();
+}
+
+function getUploadPercent(loaded: number, total: number) {
+  return total > 0 ? Math.round((loaded / total) * 100) : null;
 }
 
 function getUploadProgressValue(progress: MediaUploadProgress | null) {
@@ -51,15 +77,28 @@ export function useMediaUploadWorkflow({
   locale,
   mediaMessages,
   onActionError,
+  onUploadedAsset,
   onUploadedAssetSelect,
+  targetFolderId,
 }: UseMediaUploadWorkflowOptions) {
   const uploadMedia = useUploadMedia();
   const uploadHlsBundle = useUploadHlsBundle();
   const [uploadConflict, setUploadConflict] = useState<UploadConflictState | null>(null);
+  const [uploadConflictApplyToAll, setUploadConflictApplyToAll] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<MediaUploadProgress | null>(null);
+  const uploadBatchSizeRef = useRef(0);
+  const uploadConflictApplyAllRef = useRef<UploadConflictApplyAllResolution | null>(null);
   const uploadConflictResolverRef = useRef<
     ((resolution: UploadConflictResolution | null) => void) | null
   >(null);
+  const reservedUploadNamesRef = useRef<Set<string> | null>(null);
+  if (reservedUploadNamesRef.current === null) {
+    reservedUploadNamesRef.current = new Set();
+  }
+  function getReservedUploadNames() {
+    reservedUploadNamesRef.current ??= new Set();
+    return reservedUploadNamesRef.current;
+  }
 
   const uploadProgressValue = getUploadProgressValue(uploadProgress);
   const uploadOverlayTitle = uploadProgress
@@ -69,9 +108,7 @@ export function useMediaUploadWorkflow({
     ? getUploadProgressDetail(uploadProgress)
     : mediaMessages.uploadHint;
   const uploadConflictDraftName = uploadConflict?.draftName.trim() ?? "";
-  const uploadConflictDraftConflict = uploadConflict
-    ? findMediaAssetNameConflict(uploadConflictDraftName)
-    : null;
+  const uploadConflictDraftConflict = uploadConflict ? getUploadNameConflict() : null;
   const canUploadWithNewName =
     uploadConflict !== null && uploadConflictDraftName.length > 0 && !uploadConflictDraftConflict;
 
@@ -83,10 +120,54 @@ export function useMediaUploadWorkflow({
     );
   }
 
+  function isUploadNameUnavailable(name: string) {
+    const normalized = normalizeMediaAssetName(name);
+    if (!normalized) return true;
+    return Boolean(findMediaAssetNameConflict(name) || getReservedUploadNames().has(normalized));
+  }
+
+  function reserveUploadName(name: string) {
+    const normalized = normalizeMediaAssetName(name);
+    if (normalized) {
+      getReservedUploadNames().add(normalized);
+    }
+  }
+
+  function getUploadNameConflict() {
+    const existingAsset = findMediaAssetNameConflict(uploadConflictDraftName);
+    if (existingAsset) return existingAsset;
+    const normalized = normalizeMediaAssetName(uploadConflictDraftName);
+    if (normalized && getReservedUploadNames().has(normalized)) {
+      return uploadConflict?.existingAsset ?? null;
+    }
+    return null;
+  }
+
+  function getAvailableUploadName(name: string) {
+    const requestedName = name.trim() || "file";
+    if (!isUploadNameUnavailable(requestedName)) return requestedName;
+
+    const extensionStart = requestedName.lastIndexOf(".");
+    const hasExtension = extensionStart > 0;
+    const basename = hasExtension ? requestedName.slice(0, extensionStart) : requestedName;
+    const extension = hasExtension ? requestedName.slice(extensionStart) : "";
+    let suffix = 2;
+    let candidate = `${basename} ${suffix}${extension}`;
+
+    while (isUploadNameUnavailable(candidate)) {
+      suffix += 1;
+      candidate = `${basename} ${suffix}${extension}`;
+    }
+
+    return candidate;
+  }
+
   function getUploadProgressTitle(progress: MediaUploadProgress) {
-    if (progress.phase === "reading") return mediaMessages.readingHlsFolder;
+    if (progress.phase === "reading") return mediaMessages.readingFolder;
     if (progress.phase === "uploading") {
-      return progress.filesTotal ? mediaMessages.uploadingHlsBundle : mediaMessages.uploadingFile;
+      return progress.filesTotal && progress.filesUploaded === undefined
+        ? mediaMessages.uploadingHlsBundle
+        : mediaMessages.uploadingFile;
     }
     return mediaMessages.processingUpload;
   }
@@ -100,33 +181,61 @@ export function useMediaUploadWorkflow({
 
     if (progress.phase === "uploading") {
       const percent = progress.percent ?? getUploadProgressValue(progress);
+      const files =
+        progress.filesUploaded !== undefined && progress.filesTotal !== undefined
+          ? ` · ${mediaMessages.uploadingFilesProgress
+              .replace("{uploaded}", String(progress.filesUploaded))
+              .replace("{total}", String(progress.filesTotal))}`
+          : "";
       const size =
         progress.bytesTotal && progress.bytesTotal > 0
           ? ` · ${formatBytes(progress.bytesLoaded ?? 0, locale, { fixedFractionDigits: 1 })} / ${formatBytes(progress.bytesTotal, locale, { fixedFractionDigits: 1 })}`
           : "";
       return percent !== null
-        ? mediaMessages.uploadProgress.replace("{percent}", String(percent)) + size
-        : mediaMessages.uploadProgressUnknown + size;
+        ? mediaMessages.uploadProgress.replace("{percent}", String(percent)) + files + size
+        : mediaMessages.uploadProgressUnknown + files + size;
     }
 
     return mediaMessages.processingUploadHint;
   }
 
   function resolvePendingUploadConflict(resolution: UploadConflictResolution | null) {
+    if (resolution) {
+      if (uploadConflictApplyToAll) {
+        uploadConflictApplyAllRef.current = resolution.overwrite ? "overwrite" : "rename";
+      }
+      if (!resolution.overwrite) {
+        reserveUploadName(resolution.displayName);
+      }
+    }
+
     uploadConflictResolverRef.current?.(resolution);
     uploadConflictResolverRef.current = null;
     setUploadConflict(null);
+    setUploadConflictApplyToAll(false);
   }
 
   function resolveUploadNameConflict(name: string): Promise<UploadConflictResolution | null> {
     const requestedName = name.trim() || "file";
     const existingAsset = findMediaAssetNameConflict(requestedName);
     if (!existingAsset) {
+      reserveUploadName(requestedName);
       return Promise.resolve({ displayName: requestedName, overwrite: false });
+    }
+
+    const applyAllResolution = uploadConflictApplyAllRef.current;
+    if (applyAllResolution === "overwrite") {
+      return Promise.resolve({ displayName: requestedName, overwrite: true });
+    }
+    if (applyAllResolution === "rename") {
+      const displayName = getAvailableUploadName(requestedName);
+      reserveUploadName(displayName);
+      return Promise.resolve({ displayName, overwrite: false });
     }
 
     return new Promise((resolve) => {
       uploadConflictResolverRef.current = resolve;
+      setUploadConflictApplyToAll(false);
       setUploadConflict({
         draftName: requestedName,
         existingAsset,
@@ -135,41 +244,67 @@ export function useMediaUploadWorkflow({
     });
   }
 
-  async function uploadMediaFile(file: File): Promise<MediaAsset | null> {
+  async function uploadMediaFile({
+    batch,
+    destinationFolderId,
+    file,
+  }: {
+    batch?: MediaUploadBatchProgress;
+    destinationFolderId: number | null;
+    file: File;
+  }): Promise<MediaAsset | null> {
     const resolution = await resolveUploadNameConflict(file.name);
     if (!resolution) return null;
+
+    const isBatchUpload = batch !== undefined && batch.totalFiles > 1;
+    const totalBytes = batch?.totalBytes ?? file.size;
+    const completedBytes = batch?.completedBytes ?? 0;
+    const completedFiles = batch?.completedFiles ?? 0;
+    const filesTotal = isBatchUpload ? batch.totalFiles : undefined;
 
     setUploadProgress({
       phase: "uploading",
       name: resolution.displayName,
-      bytesLoaded: 0,
-      bytesTotal: file.size,
-      percent: 0,
+      filesTotal,
+      filesUploaded: isBatchUpload ? completedFiles : undefined,
+      bytesLoaded: completedBytes,
+      bytesTotal: totalBytes,
+      percent: getUploadPercent(completedBytes, totalBytes),
     });
 
-    return uploadMedia.mutateAsync({
+    const asset = await uploadMedia.mutateAsync({
       displayName: resolution.displayName,
       file,
+      folderId: destinationFolderId,
       overwrite: resolution.overwrite,
       onProgress: (progress) => {
+        const loaded = completedBytes + progress.loaded;
         setUploadProgress({
           phase: "uploading",
           name: resolution.displayName,
-          bytesLoaded: progress.loaded,
-          bytesTotal: progress.total ?? file.size,
-          percent: progress.percent,
+          filesTotal,
+          filesUploaded: isBatchUpload ? completedFiles : undefined,
+          bytesLoaded: loaded,
+          bytesTotal: totalBytes,
+          percent: getUploadPercent(loaded, totalBytes) ?? progress.percent,
         });
       },
       onUploadComplete: () => {
+        const loaded = completedBytes + file.size;
+        const uploadedFiles = completedFiles + 1;
         setUploadProgress({
-          phase: "processing",
+          phase: isBatchUpload && uploadedFiles < batch.totalFiles ? "uploading" : "processing",
           name: resolution.displayName,
-          bytesLoaded: file.size,
-          bytesTotal: file.size,
-          percent: 100,
+          filesTotal,
+          filesUploaded: isBatchUpload ? uploadedFiles : undefined,
+          bytesLoaded: loaded,
+          bytesTotal: totalBytes,
+          percent: getUploadPercent(loaded, totalBytes),
         });
       },
     });
+    await onUploadedAsset?.(asset);
+    return asset;
   }
 
   async function uploadHlsMediaBundle(bundle: MediaBundleUpload): Promise<MediaAsset | null> {
@@ -187,9 +322,10 @@ export function useMediaUploadWorkflow({
       percent: 0,
     });
 
-    return uploadHlsBundle.mutateAsync({
+    const asset = await uploadHlsBundle.mutateAsync({
       ...bundle,
       name: resolution.displayName,
+      folderId: targetFolderId,
       overwrite: resolution.overwrite,
       onProgress: (progress) => {
         setUploadProgress({
@@ -212,11 +348,19 @@ export function useMediaUploadWorkflow({
         });
       },
     });
+    await onUploadedAsset?.(asset);
+    return asset;
   }
 
-  async function handleUpload(files: FileList | File[] | null) {
-    const fileArray = Array.from(files ?? []);
-    if (fileArray.length === 0) return;
+  async function handleUpload(
+    files: FileList | File[] | null,
+    options: MediaUploadOptions = {},
+  ): Promise<MediaUploadWorkflowResult> {
+    const fileArray = Array.from(files ?? []).filter(
+      (file) => !isHiddenOrSystemEntryName(file.name),
+    );
+    if (fileArray.length === 0) return { last: null, ok: false };
+    const destinationFolderId = options.targetFolderId ?? targetFolderId;
 
     onActionError(null);
     const oversizedFile = fileArray.find((file) => file.size > MEDIA_UPLOAD_MAX_BYTES);
@@ -226,18 +370,40 @@ export function useMediaUploadWorkflow({
           .replace("{name}", oversizedFile.name)
           .replace("{max}", MEDIA_UPLOAD_MAX_LABEL),
       );
-      return;
+      return { last: null, ok: false };
     }
 
     try {
-      const result = await processMediaUploadQueue(fileArray, uploadMediaFile);
+      uploadBatchSizeRef.current = fileArray.length;
+      uploadConflictApplyAllRef.current = null;
+      reservedUploadNamesRef.current = new Set();
+      const batch: MediaUploadBatchProgress = {
+        completedBytes: 0,
+        completedFiles: 0,
+        totalBytes: fileArray.reduce((sum, file) => sum + file.size, 0),
+        totalFiles: fileArray.length,
+      };
 
-      if (result.last) {
+      const result = await processMediaUploadQueue(fileArray, async (file) => {
+        const asset = await uploadMediaFile({ batch, destinationFolderId, file });
+        if (asset) {
+          batch.completedBytes += file.size;
+          batch.completedFiles += 1;
+        }
+        return asset;
+      });
+
+      if (result.last && options.selectLastAsset !== false) {
         onUploadedAssetSelect(result.last);
       }
+      return { last: result.last, ok: !result.cancelled };
     } catch (error) {
       onActionError(error instanceof Error ? error.message : mediaMessages.uploadError);
+      return { last: null, ok: false };
     } finally {
+      uploadBatchSizeRef.current = 0;
+      uploadConflictApplyAllRef.current = null;
+      reservedUploadNamesRef.current = new Set();
       setUploadProgress(null);
     }
   }
@@ -264,6 +430,10 @@ export function useMediaUploadWorkflow({
     }
 
     try {
+      uploadBatchSizeRef.current = bundles.length;
+      uploadConflictApplyAllRef.current = null;
+      reservedUploadNamesRef.current = new Set();
+
       const result = await processMediaUploadQueue(bundles, uploadHlsMediaBundle);
 
       if (result.last) {
@@ -272,6 +442,9 @@ export function useMediaUploadWorkflow({
     } catch (error) {
       onActionError(error instanceof Error ? error.message : mediaMessages.uploadError);
     } finally {
+      uploadBatchSizeRef.current = 0;
+      uploadConflictApplyAllRef.current = null;
+      reservedUploadNamesRef.current = new Set();
       setUploadProgress(null);
     }
   }
@@ -300,6 +473,7 @@ export function useMediaUploadWorkflow({
     canUploadWithNewName,
     handleUpload,
     handleUploadBundles,
+    handleUploadConflictApplyToAllChange: setUploadConflictApplyToAll,
     handleUploadConflictCancel: () => resolvePendingUploadConflict(null),
     handleUploadConflictDraftNameChange,
     handleUploadConflictOverwrite,
@@ -307,8 +481,10 @@ export function useMediaUploadWorkflow({
     handleUploadProgressChange: setUploadProgress,
     isUploading: uploadMedia.isPending || uploadHlsBundle.isPending,
     uploadConflict,
+    uploadConflictApplyToAll,
     uploadConflictDraftConflict,
     uploadConflictDraftName,
+    uploadConflictShowApplyToAll: uploadBatchSizeRef.current > 1,
     uploadOverlayDetail,
     uploadOverlayTitle,
     uploadProgress,

@@ -60,15 +60,24 @@ export function useDeleteSocialPreviewProject() {
 
 export function useUploadSocialPreviewAsset() {
   return useMutation({
-    mutationFn: ({ blob, name }: { blob: Blob; name: string }) => {
+    mutationFn: ({
+      blob,
+      name,
+      overwrite = true,
+    }: {
+      blob: Blob;
+      name: string;
+      overwrite?: boolean;
+    }) => {
       const extension =
         blob.type === "image/webp" ? "webp" : blob.type === "image/png" ? "png" : "jpg";
       const safeName = name.trim() || "Social Media Preview";
       const file = new File([blob], `${safeName}.${extension}`, { type: blob.type });
       const formData = new FormData();
       formData.set("file", file);
-      formData.set("displayName", `${safeName} ${new Date().toISOString()}`);
-      return api.upload<MediaAsset>("/admin/media", formData);
+      formData.set("displayName", safeName);
+      formData.set("overwrite", overwrite ? "true" : "false");
+      return api.upload<MediaAsset>("/admin/social-preview-assets", formData);
     },
   });
 }

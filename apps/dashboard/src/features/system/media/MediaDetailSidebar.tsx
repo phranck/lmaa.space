@@ -3,70 +3,12 @@ import { FileIcon, ImageIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import type { MediaAsset } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
-import {
-  CopyActionButton,
-  DeleteActionButton,
-  SaveActionButton,
-} from "@/components/ui/DashboardActionButton.tsx";
-import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import type { useI18n } from "@/context/I18nContext.tsx";
-import { HlsAssetVisual } from "@/features/system/media/HlsAssetVisual.tsx";
-import {
-  formatBytes,
-  formatMediaDate,
-  getHlsMarkdownEmbed,
-  getMediaTypeLabel,
-  isHlsBundleAsset,
-  isImageAsset,
-  isVideoAsset,
-} from "@/features/system/media/media-utils.ts";
+import { MediaInfoSection } from "@/features/system/media/MediaInfoSection.tsx";
+import type { MediaLinkedContentUsage } from "@/features/system/media/MediaLinkedContentSection.tsx";
+import { MediaMetaFormSection } from "@/features/system/media/MediaMetaFormSection.tsx";
+import { MediaPreview } from "@/features/system/media/MediaPreview.tsx";
 import type { DashboardLocale } from "@/i18n/messages.ts";
-
-function MediaPreview({
-  asset,
-  unsupportedPreview,
-}: {
-  asset: MediaAsset;
-  unsupportedPreview: string;
-}) {
-  if (isImageAsset(asset)) {
-    return (
-      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[var(--ds-bg-elevated)]">
-        <img src={asset.url} alt="" className="size-full object-cover" />
-      </div>
-    );
-  }
-
-  if (isHlsBundleAsset(asset)) {
-    return (
-      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-[#080a14]">
-        {asset.posterUrl ? (
-          <img src={asset.posterUrl} alt="" className="size-full object-cover" />
-        ) : (
-          <HlsAssetVisual className="size-full" />
-        )}
-      </div>
-    );
-  }
-
-  if (isVideoAsset(asset)) {
-    return (
-      <div className="aspect-video rounded-xl overflow-hidden bg-[#080a14]">
-        <video src={asset.url} controls preload="metadata" playsInline className="size-full" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="aspect-[4/3] rounded-xl bg-[var(--ds-bg-elevated)] border border-dashed border-[var(--ds-border)] flex flex-col items-center justify-center gap-3 text-[var(--ds-text-subtle)]">
-      <FileIcon weight="duotone" className="size-12" />
-      <div className="text-center">
-        <p className="text-sm font-medium text-[var(--ds-text)]">{getMediaTypeLabel(asset)}</p>
-        <p className="text-xs">{unsupportedPreview}</p>
-      </div>
-    </div>
-  );
-}
 
 interface MediaDetailSidebarProps {
   asset: MediaAsset;
@@ -81,52 +23,7 @@ interface MediaDetailSidebarProps {
   locale: DashboardLocale;
   mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
   common: ReturnType<typeof useI18n>["messages"]["common"];
-}
-
-interface MediaSelectionSidebarProps {
-  assets: MediaAsset[];
-  onDelete: () => void;
-  isDeleting: boolean;
-  locale: DashboardLocale;
-  mediaMessages: ReturnType<typeof useI18n>["messages"]["media"];
-}
-
-export function MediaSelectionSidebar({
-  assets,
-  onDelete,
-  isDeleting,
-  locale,
-  mediaMessages,
-}: MediaSelectionSidebarProps) {
-  const totalSize = assets.reduce((sum, asset) => sum + asset.sizeBytes, 0);
-
-  return (
-    <DashboardSection>
-      <DashboardSection.Header
-        icon={<FileIcon weight="duotone" className="size-4" />}
-        title={mediaMessages.selectionTitle}
-      />
-      <DashboardSection.Body>
-        <div className="space-y-3 text-sm">
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.selectedCount}</p>
-            <p className="text-[var(--ds-text)]">{assets.length}</p>
-          </div>
-          <div>
-            <p className="text-[var(--ds-text-subtle)]">{mediaMessages.selectedSize}</p>
-            <p className="text-[var(--ds-text)]">{formatBytes(totalSize, locale)}</p>
-          </div>
-        </div>
-
-        <DeleteActionButton
-          onClick={onDelete}
-          disabled={isDeleting}
-          className="w-full"
-          label={mediaMessages.deleteSelected}
-        />
-      </DashboardSection.Body>
-    </DashboardSection>
-  );
+  usages: MediaLinkedContentUsage[];
 }
 
 export function MediaDetailSidebar({
@@ -142,6 +39,7 @@ export function MediaDetailSidebar({
   locale,
   mediaMessages,
   common,
+  usages,
 }: MediaDetailSidebarProps) {
   return (
     <div className="space-y-3">
@@ -161,55 +59,17 @@ export function MediaDetailSidebar({
           title={mediaMessages.detailsTitle}
         />
         <DashboardSection.Body>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-[var(--ds-text)]">
-              {mediaMessages.displayName}
-            </span>
-            <DashboardInput
-              type="text"
-              value={draft.name}
-              onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
-            />
-          </label>
-
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-[var(--ds-text)]">Alias</span>
-            <DashboardInput
-              type="text"
-              value={draft.alias}
-              onChange={(event) =>
-                onDraftChange({
-                  ...draft,
-                  alias: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-                })
-              }
-              placeholder="z.B. sepa-qr"
-              className="font-mono"
-            />
-            <p className="text-xs text-[var(--ds-text-subtle)]">
-              {draft.alias
-                ? isHlsBundleAsset(asset)
-                  ? `Verwendung: [[hls:${draft.alias}]]`
-                  : `Verwendung: [[image:${draft.alias}]] oder [[pdf:${draft.alias}]]`
-                : "Optional. Erlaubt: a-z, 0-9, Bindestrich."}
-            </p>
-          </label>
-
-          <div className="flex gap-2">
-            <SaveActionButton
-              onClick={onSaveMeta}
-              disabled={
-                isRenaming ||
-                draft.name.trim().length === 0 ||
-                (draft.name.trim() === asset.displayName &&
-                  (draft.alias.trim() || null) === (asset.alias ?? null))
-              }
-              className="flex-1"
-              busy={isRenaming}
-              label={isRenaming ? common.saving : mediaMessages.saveName}
-            />
-            <DeleteActionButton onClick={onDelete} iconOnly label={common.delete} />
-          </div>
+          <MediaMetaFormSection
+            asset={asset}
+            common={common}
+            draft={draft}
+            isRenaming={isRenaming}
+            mediaMessages={mediaMessages}
+            onDelete={onDelete}
+            onDraftChange={onDraftChange}
+            onSaveMeta={onSaveMeta}
+            usages={usages}
+          />
         </DashboardSection.Body>
       </DashboardSection>
 
@@ -219,79 +79,14 @@ export function MediaDetailSidebar({
           title={mediaMessages.infoTitle}
         />
         <DashboardSection.Body>
-          <div className="space-y-3 text-sm">
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.originalName}</p>
-              <p className="text-[var(--ds-text)] break-all">{asset.originalName}</p>
-            </div>
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileType}</p>
-              <p className="text-[var(--ds-text)]">{asset.mimeType}</p>
-            </div>
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.fileSize}</p>
-              <p className="text-[var(--ds-text)]">{formatBytes(asset.sizeBytes, locale)}</p>
-            </div>
-            {asset.width && asset.height && (
-              <div>
-                <p className="text-[var(--ds-text-subtle)]">{mediaMessages.dimensions}</p>
-                <p className="text-[var(--ds-text)]">
-                  {asset.width} x {asset.height}px
-                </p>
-              </div>
-            )}
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.createdAt}</p>
-              <p className="text-[var(--ds-text)]">{formatMediaDate(asset.createdAt, locale)}</p>
-            </div>
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.updatedAt}</p>
-              <p className="text-[var(--ds-text)]">{formatMediaDate(asset.updatedAt, locale)}</p>
-            </div>
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.uploadedBy}</p>
-              <p className="text-[var(--ds-text)]">{asset.createdByUsername ?? "---"}</p>
-            </div>
-            <div>
-              <p className="text-[var(--ds-text-subtle)]">{mediaMessages.internalUrl}</p>
-              <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
-                {asset.url}
-              </div>
-            </div>
-            {isHlsBundleAsset(asset) && asset.posterUrl && (
-              <div>
-                <p className="text-[var(--ds-text-subtle)]">{mediaMessages.posterUrl}</p>
-                <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
-                  {asset.posterUrl}
-                </div>
-              </div>
-            )}
-            {isHlsBundleAsset(asset) && (
-              <div>
-                <p className="text-[var(--ds-text-subtle)]">{mediaMessages.markdownEmbed}</p>
-                <div className="mt-1 rounded-control border border-[var(--ds-border)] bg-[var(--ds-input-bg)] px-3 py-2 font-mono text-xs text-[var(--ds-text)] break-all">
-                  {getHlsMarkdownEmbed(asset)}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <CopyActionButton
-              onClick={onCopyUrl}
-              className="w-full"
-              label={copied === "url" ? mediaMessages.copied : mediaMessages.copyUrl}
-            />
-            {isHlsBundleAsset(asset) && (
-              <CopyActionButton
-                onClick={onCopyMarkdownEmbed}
-                className="w-full"
-                label={
-                  copied === "markdown" ? mediaMessages.copied : mediaMessages.copyMarkdownEmbed
-                }
-              />
-            )}
-          </div>
+          <MediaInfoSection
+            asset={asset}
+            copied={copied}
+            locale={locale}
+            mediaMessages={mediaMessages}
+            onCopyMarkdownEmbed={onCopyMarkdownEmbed}
+            onCopyUrl={onCopyUrl}
+          />
         </DashboardSection.Body>
       </DashboardSection>
     </div>
