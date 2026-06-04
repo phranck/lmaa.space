@@ -63,6 +63,7 @@ import {
   useCreateSocialPreviewImage,
   useCreateSocialPreviewProject,
   useDeleteSocialPreviewImage,
+  useImportRemoteSocialPreviewAsset,
   useDeleteSocialPreviewProject,
   useSetActiveSocialPreviewImage,
   useSocialPreviewImages,
@@ -617,6 +618,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   );
   const updateProject = useUpdateSocialPreviewProject();
   const uploadPreview = useUploadSocialPreviewAsset();
+  const importRemotePreviewAsset = useImportRemoteSocialPreviewAsset();
   const createPreview = useCreateSocialPreviewImage();
 
   const [composition, setComposition] = useState<SocialPreviewComposition>(() =>
@@ -788,10 +790,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   }
 
   async function uploadRemoteSocialPreviewImage(url: string, name: string) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(common.unknownError);
-    const blob = await response.blob();
-    return uploadPreview.mutateAsync({ blob, name });
+    return importRemotePreviewAsset.mutateAsync({ imageUrl: url, name });
   }
 
   async function addImageLayer(url: string, alt?: string | null) {

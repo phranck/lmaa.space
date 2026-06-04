@@ -82,6 +82,25 @@ export function useUploadSocialPreviewAsset() {
   });
 }
 
+export function useImportRemoteSocialPreviewAsset() {
+  return useMutation({
+    mutationFn: ({
+      imageUrl,
+      name,
+      overwrite = true,
+    }: {
+      imageUrl: string;
+      name: string;
+      overwrite?: boolean;
+    }) =>
+      api.post<MediaAsset>("/admin/social-preview-assets/import-remote", {
+        imageUrl,
+        displayName: name.trim() || "Social Media Preview",
+        overwrite,
+      }),
+  });
+}
+
 export function useCreateSocialPreviewImage() {
   const qc = useQueryClient();
   return useMutation({
