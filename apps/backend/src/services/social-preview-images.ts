@@ -13,6 +13,7 @@ import {
   getSocialPreviewProjectById,
   listSocialPreviewImages,
   listSocialPreviewProjects,
+  updateSocialPreviewImage,
   updateSocialPreviewProject,
   type SocialPreviewImageCreateData,
   type SocialPreviewProjectCreateData,
@@ -20,9 +21,17 @@ import {
 } from "../repositories/social-preview-images.js";
 
 const ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY = "socialPreview.activeImageId";
+const DEFAULT_SOCIAL_PREVIEW_IMAGE_KEY = "socialPreview.defaultImageId";
 
 async function getActiveSocialPreviewImageId(): Promise<number | null> {
   const value = await getSetting(ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY);
+  if (!value) return null;
+  const id = Number.parseInt(value, 10);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+async function getDefaultSocialPreviewImageId(): Promise<number | null> {
+  const value = await getSetting(DEFAULT_SOCIAL_PREVIEW_IMAGE_KEY);
   if (!value) return null;
   const id = Number.parseInt(value, 10);
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -44,6 +53,7 @@ function mapSocialPreviewProject(
 function mapSocialPreviewImage(
   row: Awaited<ReturnType<typeof listSocialPreviewImages>>[number],
   activeId: number | null,
+  defaultId: number | null,
 ): SocialPreviewImageEntry {
   return {
     id: row.id,
@@ -57,6 +67,7 @@ function mapSocialPreviewImage(
     quality: row.quality,
     sizeBytes: row.sizeBytes,
     isActive: row.id === activeId,
+    isDefault: row.id === defaultId,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     createdByUsername: row.createdByUsername,
@@ -100,11 +111,12 @@ export async function deleteManagedSocialPreviewProject(id: number) {
 }
 
 export async function listManagedSocialPreviewImages(): Promise<SocialPreviewImageEntry[]> {
-  const [rows, activeId] = await Promise.all([
+  const [rows, activeId, defaultId] = await Promise.all([
     listSocialPreviewImages(),
     getActiveSocialPreviewImageId(),
+    getDefaultSocialPreviewImageId(),
   ]);
-  return rows.map((row) => mapSocialPreviewImage(row, activeId));
+  return rows.map((row) => mapSocialPreviewImage(row, activeId, defaultId));
 }
 
 export async function uploadManagedSocialPreviewAsset(input: {
@@ -186,8 +198,27 @@ export async function createManagedSocialPreviewImage(
     await putSetting(ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY, String(row.id));
   }
 
-  const activeId = data.activate ? row.id : await getActiveSocialPreviewImageId();
-  return mapSocialPreviewImage(row, activeId);
+  const [activeId, defaultId] = await Promise.all([
+    data.activate ? Promise.resolve(row.id) : getActiveSocialPreviewImageId(),
+    getDefaultSocialPreviewImageId(),
+  ]);
+  return mapSocialPreviewImage(row, activeId, defaultId);
+}
+
+export async function updateManagedSocialPreviewImage(id: number, data: { name: string }) {
+  const current = await getSocialPreviewImageById(id);
+  if (!current) return { ok: false as const, reason: "not_found" as const };
+
+  const row = await updateSocialPreviewImage(id, data);
+  if (!row) {
+    throw new Error("Failed to update social preview image");
+  }
+
+  const [activeId, defaultId] = await Promise.all([
+    getActiveSocialPreviewImageId(),
+    getDefaultSocialPreviewImageId(),
+  ]);
+  return { ok: true as const, image: mapSocialPreviewImage(row, activeId, defaultId) };
 }
 
 export async function setManagedSocialPreviewImageActive(id: number, active: boolean) {
@@ -203,17 +234,46 @@ export async function setManagedSocialPreviewImageActive(id: number, active: boo
     }
   }
 
-  const activeId = active ? id : await getActiveSocialPreviewImageId();
-  return { ok: true as const, image: mapSocialPreviewImage(row, activeId) };
+  const [activeId, defaultId] = await Promise.all([
+    active ? Promise.resolve(id) : getActiveSocialPreviewImageId(),
+    getDefaultSocialPreviewImageId(),
+  ]);
+  return { ok: true as const, image: mapSocialPreviewImage(row, activeId, defaultId) };
+}
+
+export async function setManagedSocialPreviewImageDefault(id: number, isDefault: boolean) {
+  const row = await getSocialPreviewImageById(id);
+  if (!row) return { ok: false as const, reason: "not_found" as const };
+
+  if (isDefault) {
+    await putSetting(DEFAULT_SOCIAL_PREVIEW_IMAGE_KEY, String(id));
+  } else {
+    const currentId = await getDefaultSocialPreviewImageId();
+    if (currentId === id) {
+      await deleteSetting(DEFAULT_SOCIAL_PREVIEW_IMAGE_KEY);
+    }
+  }
+
+  const [activeId, defaultId] = await Promise.all([
+    getActiveSocialPreviewImageId(),
+    getDefaultSocialPreviewImageId(),
+  ]);
+  return { ok: true as const, image: mapSocialPreviewImage(row, activeId, defaultId) };
 }
 
 export async function deleteManagedSocialPreviewImage(id: number) {
   const deleted = await deleteSocialPreviewImage(id);
   if (!deleted) return { ok: false as const, reason: "not_found" as const };
 
-  const currentId = await getActiveSocialPreviewImageId();
+  const [currentId, defaultId] = await Promise.all([
+    getActiveSocialPreviewImageId(),
+    getDefaultSocialPreviewImageId(),
+  ]);
   if (currentId === id) {
     await deleteSetting(ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY);
+  }
+  if (defaultId === id) {
+    await deleteSetting(DEFAULT_SOCIAL_PREVIEW_IMAGE_KEY);
   }
 
   if (deleted.mediaAssetId) {
@@ -231,11 +291,18 @@ export async function deleteManagedSocialPreviewImage(id: number) {
  */
 export async function getSocialPreviewImage(): Promise<{ url: string } | null> {
   const activeId = await getActiveSocialPreviewImageId();
-  if (!activeId) return null;
-
-  const row = await getSocialPreviewImageById(activeId);
-  if (!row) {
+  if (activeId) {
+    const row = await getSocialPreviewImageById(activeId);
+    if (row) return { url: row.imageUrl };
     await deleteSetting(ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY);
+  }
+
+  const defaultId = await getDefaultSocialPreviewImageId();
+  if (!defaultId) return null;
+
+  const row = await getSocialPreviewImageById(defaultId);
+  if (!row) {
+    await deleteSetting(DEFAULT_SOCIAL_PREVIEW_IMAGE_KEY);
     return null;
   }
 

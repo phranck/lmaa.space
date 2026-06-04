@@ -144,6 +144,16 @@ export async function createSocialPreviewImage(data: SocialPreviewImageCreateDat
   return created ? getSocialPreviewImageById(created.id) : null;
 }
 
+export async function updateSocialPreviewImage(id: number, data: { name: string }) {
+  const [updated] = await db
+    .update(socialPreviewImages)
+    .set({ name: data.name, updatedAt: new Date() })
+    .where(eq(socialPreviewImages.id, id))
+    .returning({ id: socialPreviewImages.id });
+
+  return updated ? getSocialPreviewImageById(updated.id) : null;
+}
+
 export async function deleteSocialPreviewImage(id: number) {
   const [deleted] = await db
     .delete(socialPreviewImages)
