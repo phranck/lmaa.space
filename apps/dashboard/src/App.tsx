@@ -462,6 +462,22 @@ function AppRoutes() {
                 }
               />
               <Route
+                path="system/social-preview/images"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SocialPreviewPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="system/social-preview/:projectId"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <SocialPreviewPage />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="system/background-errors"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>

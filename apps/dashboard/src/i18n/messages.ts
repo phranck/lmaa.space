@@ -68,6 +68,8 @@ export interface DashboardMessages {
       systemSettings: string;
       redirectUrls: string;
       socialPreview: string;
+      socialPreviewImages: string;
+      socialPreviewOverview: string;
       socialMediaAccounts: string;
       backgroundErrors: string;
       expandAll: string;
@@ -1298,6 +1300,7 @@ export interface DashboardMessages {
     socialPreview: {
       title: string;
       editorTitle: string;
+      livePreviewTitle: string;
       chooseBackground: string;
       addText: string;
       addImage: string;
@@ -1313,6 +1316,7 @@ export interface DashboardMessages {
       loadProject: string;
       updatedAtLabel: string;
       savedProjectsTitle: string;
+      imagesNavLabel: string;
       emptyProjectsTitle: string;
       emptyProjectsHint: string;
       projectLayer: string;
@@ -1378,6 +1382,8 @@ export interface DashboardMessages {
       lineHeight: string;
       letterSpacing: string;
       saveAndActivate: string;
+      deleteProjectConfirmTitle: string;
+      deleteProjectConfirmDescription: string;
       deleteConfirmTitle: string;
       deleteConfirmDescription: string;
     };
@@ -1475,6 +1481,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         systemSettings: "Einstellungen",
         redirectUrls: "Redirect URLs",
         socialPreview: "Social Media Preview",
+        socialPreviewImages: "Images",
+        socialPreviewOverview: "Übersicht",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Hintergrundfehler",
         expandAll: "Alles aufklappen",
@@ -2761,6 +2769,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       socialPreview: {
         title: "Social Media Preview",
         editorTitle: "Editor",
+        livePreviewTitle: "Live-Preview",
         chooseBackground: "Grundbild wählen",
         addText: "Text hinzufügen",
         addImage: "Bild hinzufügen",
@@ -2776,6 +2785,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loadProject: "Bearbeiten",
         updatedAtLabel: "Aktualisiert",
         savedProjectsTitle: "Gespeicherte Projekte",
+        imagesNavLabel: "Images",
         emptyProjectsTitle: "Noch keine Projekte gespeichert.",
         emptyProjectsHint:
           "Speichere den aktuellen Editor-Stand als Projekt, um ihn später weiterzubearbeiten.",
@@ -2844,6 +2854,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         lineHeight: "Zeilenhöhe",
         letterSpacing: "Zeichenabstand",
         saveAndActivate: "Preview speichern",
+        deleteProjectConfirmTitle: "Projekt löschen?",
+        deleteProjectConfirmDescription:
+          "Dieses Social-Media-Preview-Projekt wird dauerhaft gelöscht. Bereits gespeicherte Preview-Bilder bleiben erhalten.",
         deleteConfirmTitle: "Preview-Bild löschen?",
         deleteConfirmDescription:
           "Dieses Social-Media-Preview-Bild wird aus der Auswahl entfernt. Das gerenderte Media-Asset bleibt in der Mediathek erhalten.",
@@ -2938,6 +2951,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         systemSettings: "Settings",
         redirectUrls: "Redirect URLs",
         socialPreview: "Social Media Preview",
+        socialPreviewImages: "Images",
+        socialPreviewOverview: "Overview",
         socialMediaAccounts: "Social Media Accounts",
         backgroundErrors: "Background Errors",
         expandAll: "Expand all",
@@ -4216,6 +4231,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       socialPreview: {
         title: "Social Media Preview",
         editorTitle: "Editor",
+        livePreviewTitle: "Live preview",
         chooseBackground: "Choose base image",
         addText: "Add text",
         addImage: "Add image",
@@ -4231,6 +4247,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         loadProject: "Edit",
         updatedAtLabel: "Updated",
         savedProjectsTitle: "Saved projects",
+        imagesNavLabel: "Images",
         emptyProjectsTitle: "No projects saved yet.",
         emptyProjectsHint:
           "Save the current editor state as a project so you can continue editing it later.",
@@ -4298,6 +4315,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         lineHeight: "Line height",
         letterSpacing: "Letter spacing",
         saveAndActivate: "Save preview",
+        deleteProjectConfirmTitle: "Delete project?",
+        deleteProjectConfirmDescription:
+          "This social media preview project will be permanently deleted. Already saved preview images remain available.",
         deleteConfirmTitle: "Delete preview image?",
         deleteConfirmDescription:
           "This social media preview image will be removed from the selectable previews. The rendered media asset remains in the media library.",

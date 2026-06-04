@@ -69,6 +69,7 @@ import { useShopConcernReports } from "@/features/overview/hooks/useShopConcerns
 import { useAdminSubmissions } from "@/features/overview/hooks/useSubmissions.ts";
 import { useAdminMedia } from "@/features/system/hooks/useAdminMedia.ts";
 import { useAdminUsers } from "@/features/system/hooks/useAdminUsers.ts";
+import { useSocialPreviewProjects } from "@/features/system/hooks/useSocialPreviewImages.ts";
 import {
   useCreateEmailTemplate,
   useEmailTemplates,
@@ -87,6 +88,7 @@ const SIDEBAR_GROUP_STORAGE_KEYS = [
   "sidebar-forms-open",
   "sidebar-email-templates-open",
   "sidebar-social-media-post-templates-open",
+  "sidebar-social-preview-open",
 ] as const;
 
 const SIDEBAR_SECTION_IDS = ["general", "content", "builders", "analytics", "system"] as const;
@@ -202,6 +204,68 @@ function PagesGroup({
           <span className="flex flex-col min-w-0">
             <span className="truncate">{page.title}</span>
             <span className="truncate text-xs opacity-50">/{page.slug}</span>
+          </span>
+        </NavLink>
+      ))}
+    </CollapsibleSidebarGroup>
+  );
+}
+
+function SocialPreviewGroup({
+  onItemClick,
+  globalOpenState,
+  globalOpenVersion,
+  onOpenChange,
+}: {
+  onItemClick?: () => void;
+  globalOpenState?: boolean | null;
+  globalOpenVersion?: number;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const { messages } = useI18n();
+  const sidebarMessages = messages.layout.sidebar;
+  const { data: projects } = useSocialPreviewProjects();
+
+  return (
+    <CollapsibleSidebarGroup
+      routeMatch="/system/social-preview/*"
+      storageKey="sidebar-social-preview-open"
+      icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
+      label={sidebarMessages.socialPreview}
+      badge={projects?.length ?? 0}
+      globalOpenState={globalOpenState}
+      globalOpenVersion={globalOpenVersion}
+      onOpenChange={onOpenChange}
+    >
+      <NavLink
+        to="/system/social-preview/images"
+        onClick={onItemClick}
+        className={sidebarGroupItemClass}
+      >
+        <ImageIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+        {sidebarMessages.socialPreviewImages}
+      </NavLink>
+      <NavLink
+        to="/system/social-preview"
+        end
+        onClick={onItemClick}
+        className={sidebarGroupItemClass}
+      >
+        {sidebarMessages.socialPreviewOverview}
+      </NavLink>
+      {(projects ?? []).map((project) => (
+        <NavLink
+          key={project.id}
+          to={`/system/social-preview/${project.id}`}
+          onClick={onItemClick}
+          className={sidebarGroupItemClass}
+        >
+          <ImageIcon weight="duotone" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+          <span className="flex flex-col min-w-0">
+            <span className="truncate">{project.name}</span>
+            <span className="truncate text-xs opacity-50">
+              {new Date(project.updatedAt).toLocaleDateString()}
+            </span>
           </span>
         </NavLink>
       ))}
@@ -877,15 +941,14 @@ export function Sidebar({
                       />
                     )}
                   </NavLink>
-                  <NavLink to="/system/social-preview" onClick={onItemClick} className="contents">
-                    {({ isActive }) => (
-                      <DashboardSection.Item
-                        icon={<ImageIcon weight="duotone" className="w-4 h-4" />}
-                        label={sidebarMessages.socialPreview}
-                        active={isActive}
-                      />
-                    )}
-                  </NavLink>
+                  <SocialPreviewGroup
+                    onItemClick={onItemClick}
+                    globalOpenState={groupOpenState}
+                    globalOpenVersion={groupOpenVersion}
+                    onOpenChange={(open) =>
+                      handleGroupOpenChange("sidebar-social-preview-open", open)
+                    }
+                  />
                   <NavLink to="/social-media/accounts" onClick={onItemClick} className="contents">
                     {({ isActive }) => (
                       <DashboardSection.Item
