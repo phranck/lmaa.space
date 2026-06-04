@@ -5,6 +5,8 @@ import { z } from "zod";
 import {
   socialPreviewActiveSchema,
   socialPreviewCreateSchema,
+  socialPreviewDefaultSchema,
+  socialPreviewImageUpdateSchema,
   socialPreviewProjectCreateSchema,
   socialPreviewProjectUpdateSchema,
 } from "@lmaa/contracts";
@@ -21,6 +23,8 @@ import {
   listManagedSocialPreviewImages,
   listManagedSocialPreviewProjects,
   setManagedSocialPreviewImageActive,
+  setManagedSocialPreviewImageDefault,
+  updateManagedSocialPreviewImage,
   updateManagedSocialPreviewProject,
   uploadManagedSocialPreviewAsset,
 } from "../../services/social-preview-images.js";
@@ -164,6 +168,21 @@ socialPreviewImageRoutes.post(
 );
 
 socialPreviewImageRoutes.patch(
+  "/social-preview-images/:id",
+  requireAdmin,
+  zValidator("json", socialPreviewImageUpdateSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
+
+    const result = await updateManagedSocialPreviewImage(id, c.req.valid("json"));
+    if (!result.ok) return fail(c, 404, "Social preview image not found");
+
+    return ok(c, result.image);
+  },
+);
+
+socialPreviewImageRoutes.patch(
   "/social-preview-images/:id/active",
   requireAdmin,
   zValidator("json", socialPreviewActiveSchema),
@@ -173,6 +192,22 @@ socialPreviewImageRoutes.patch(
 
     const { active } = c.req.valid("json");
     const result = await setManagedSocialPreviewImageActive(id, active);
+    if (!result.ok) return fail(c, 404, "Social preview image not found");
+
+    return ok(c, result.image);
+  },
+);
+
+socialPreviewImageRoutes.patch(
+  "/social-preview-images/:id/default",
+  requireAdmin,
+  zValidator("json", socialPreviewDefaultSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
+
+    const { default: isDefault } = c.req.valid("json");
+    const result = await setManagedSocialPreviewImageDefault(id, isDefault);
     if (!result.ok) return fail(c, 404, "Social preview image not found");
 
     return ok(c, result.image);

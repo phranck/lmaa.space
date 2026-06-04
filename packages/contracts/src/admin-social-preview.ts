@@ -14,12 +14,15 @@ export const socialPreviewShapeKindSchema = z.enum([
 
 const socialPreviewBaseLayerSchema = z.object({
   id: z.string().min(1).max(100),
+  name: z.string().trim().min(1).max(200).optional(),
   x: z.number(),
   y: z.number(),
   width: z.number().positive(),
   height: z.number().positive(),
   rotation: z.number(),
   opacity: z.number().min(0).max(1),
+  locked: z.boolean().optional(),
+  hidden: z.boolean().optional(),
 });
 
 export const socialPreviewTextColorRangeSchema = z.object({
@@ -92,10 +95,12 @@ export const socialPreviewCompositionSchema = z.object({
   height: z.number().int().positive().max(4096),
   background: z.object({
     src: z.string().url().max(2000).nullable(),
+    name: z.string().trim().min(1).max(200).optional(),
     color: z.string().max(40),
     zoom: z.number().min(0.1).max(10),
     offsetX: z.number(),
     offsetY: z.number(),
+    hidden: z.boolean().optional(),
   }),
   layers: z.array(socialPreviewLayerSchema).max(80),
 });
@@ -128,6 +133,7 @@ export interface SocialPreviewImageEntry {
   quality: number;
   sizeBytes: number;
   isActive: boolean;
+  isDefault: boolean;
   createdAt: string;
   updatedAt: string;
   createdByUsername: string | null;
@@ -145,6 +151,10 @@ export const socialPreviewProjectUpdateSchema = socialPreviewProjectCreateSchema
     "At least one field must be provided",
   );
 
+export const socialPreviewImageUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+});
+
 export const socialPreviewCreateSchema = z.object({
   name: z.string().trim().min(1).max(200),
   imageUrl: z.string().url().max(2000),
@@ -160,4 +170,8 @@ export const socialPreviewCreateSchema = z.object({
 
 export const socialPreviewActiveSchema = z.object({
   active: z.boolean(),
+});
+
+export const socialPreviewDefaultSchema = z.object({
+  default: z.boolean(),
 });

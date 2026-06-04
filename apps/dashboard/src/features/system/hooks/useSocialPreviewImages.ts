@@ -120,11 +120,31 @@ export function useCreateSocialPreviewImage() {
   });
 }
 
+export function useUpdateSocialPreviewImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: { id: number; name: string }) =>
+      api.patch<SocialPreviewImageEntry>(`/admin/social-preview-images/${id}`, { name }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
+  });
+}
+
 export function useSetActiveSocialPreviewImage() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, active }: { id: number; active: boolean }) =>
       api.patch<SocialPreviewImageEntry>(`/admin/social-preview-images/${id}/active`, { active }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
+  });
+}
+
+export function useSetDefaultSocialPreviewImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isDefault }: { id: number; isDefault: boolean }) =>
+      api.patch<SocialPreviewImageEntry>(`/admin/social-preview-images/${id}/default`, {
+        default: isDefault,
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
   });
 }
