@@ -38,6 +38,7 @@ export const socialPreviewTextStyleRangeSchema = z.object({
   fontSize: z.number().positive().max(400).optional(),
   fontWeight: z.string().max(40).optional(),
   fontStyle: z.string().max(40).optional(),
+  textDecoration: z.enum(["none", "underline"]).optional(),
   color: z.string().max(40).optional(),
   lineHeight: z.number().positive().max(4).optional(),
   letterSpacing: z.number().min(-20).max(100).optional(),
@@ -50,6 +51,7 @@ export const socialPreviewTextLayerSchema = socialPreviewBaseLayerSchema.extend(
   fontSize: z.number().positive().max(400),
   fontWeight: z.string().max(40),
   fontStyle: z.string().max(40),
+  textDecoration: z.enum(["none", "underline"]).optional(),
   color: z.string().max(40),
   colorRanges: z.array(socialPreviewTextColorRangeSchema).max(200).optional(),
   styleRanges: z.array(socialPreviewTextStyleRangeSchema).max(400).optional(),
@@ -67,6 +69,8 @@ export const socialPreviewImageLayerSchema = socialPreviewBaseLayerSchema.extend
   offsetY: z.number().optional(),
   tintColor: z.string().max(40).optional(),
   tintOpacity: z.number().min(0).max(1).optional(),
+  brightness: z.number().min(0).max(2).optional(),
+  contrast: z.number().min(0).max(2).optional(),
 });
 
 export const socialPreviewShapeLayerSchema = socialPreviewBaseLayerSchema.extend({

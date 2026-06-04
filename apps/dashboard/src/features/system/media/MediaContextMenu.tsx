@@ -13,10 +13,9 @@ import {
 
 import type { MediaAsset, MediaFolder, MediaFolderColor } from "@lmaa/shared";
 
-import { DashboardMenu } from "@/components/ui/DashboardControls.tsx";
+import { SubMenu } from "@/components/ui/SubMenu.tsx";
 import type { useI18n } from "@/context/I18nContext.tsx";
 import { canOpenInBrowser } from "@/features/system/media/media-utils.ts";
-import { MediaContextMenuItem } from "@/features/system/media/MediaContextMenuItem.tsx";
 import { MediaFolderColorPicker } from "@/features/system/media/MediaFolderColorPicker.tsx";
 
 /**
@@ -55,7 +54,6 @@ interface MediaContextMenuProps {
   onSetFolderColor: (color: MediaFolderColor) => void;
 }
 
-const dividerClass = "my-1 h-px bg-[var(--ds-border)] border-0";
 const iconClass = "size-3.5 text-[var(--ds-text-muted)]";
 
 function hasShowSaveFilePicker(): boolean {
@@ -81,7 +79,7 @@ function hasImageClipboardSupport(asset: MediaAsset | null): boolean {
  * - `folder`: actions for a single folder item.
  * - `empty`: actions when no item is under the cursor (drop-zone area).
  *
- * `DashboardMenu` handles outside-click and Escape via `onOpenChange(false)`,
+ * `SubMenu` handles outside-click and Escape via `onOpenChange(false)`,
  * which is forwarded to `onClose` here.
  */
 export function MediaContextMenu({
@@ -116,7 +114,7 @@ export function MediaContextMenu({
   const t = mediaMessages.contextMenu;
 
   return (
-    <DashboardMenu
+    <SubMenu
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
@@ -127,130 +125,130 @@ export function MediaContextMenu({
         <>
           {canOpenInBrowser(asset) && (
             <>
-              <MediaContextMenuItem
+              <SubMenu.Item
                 icon={<TabsIcon weight="duotone" className={iconClass} />}
-                label={t.openInNewTab}
-                onClose={onClose}
                 onSelect={onOpenInNewTab}
-              />
-              <MediaContextMenuItem
+              >
+                {t.openInNewTab}
+              </SubMenu.Item>
+              <SubMenu.Item
                 icon={<AppWindowIcon weight="duotone" className={iconClass} />}
-                label={t.openInNewWindow}
-                onClose={onClose}
                 onSelect={onOpenInNewWindow}
-              />
-              <hr className={dividerClass} />
+              >
+                {t.openInNewWindow}
+              </SubMenu.Item>
+              <SubMenu.Item separator />
             </>
           )}
-          <MediaContextMenuItem
+          <SubMenu.Item
             icon={<DownloadSimpleIcon weight="duotone" className={iconClass} />}
-            label={t.saveToDownloads}
-            onClose={onClose}
             onSelect={onSaveToDownloads}
-          />
+          >
+            {t.saveToDownloads}
+          </SubMenu.Item>
           {hasShowSaveFilePicker() && (
-            <MediaContextMenuItem
+            <SubMenu.Item
               icon={<DownloadSimpleIcon weight="duotone" className={iconClass} />}
-              label={t.saveAs}
-              onClose={onClose}
               onSelect={onSaveAs}
-            />
+            >
+              {t.saveAs}
+            </SubMenu.Item>
           )}
-          <hr className={dividerClass} />
-          <MediaContextMenuItem
+          <SubMenu.Item separator />
+          <SubMenu.Item
             icon={<LinkIcon weight="duotone" className={iconClass} />}
-            label={t.copyAddress}
-            onClose={onClose}
             onSelect={onCopyAddress}
-          />
+          >
+            {t.copyAddress}
+          </SubMenu.Item>
           {hasImageClipboardSupport(asset) && (
-            <MediaContextMenuItem
+            <SubMenu.Item
               icon={<CopyIcon weight="duotone" className={iconClass} />}
-              label={t.copyAsset}
-              onClose={onClose}
               onSelect={onCopyAsset}
-            />
+            >
+              {t.copyAsset}
+            </SubMenu.Item>
           )}
-          <MediaContextMenuItem
+          <SubMenu.Item
             icon={<PencilSimpleIcon weight="duotone" className={iconClass} />}
-            label={t.renameAlias}
-            onClose={onClose}
             onSelect={onRenameAlias}
-          />
-          <MediaContextMenuItem
+          >
+            {t.renameAlias}
+          </SubMenu.Item>
+          <SubMenu.Item
             icon={<PencilSimpleIcon weight="duotone" className={iconClass} />}
-            label={t.renameDisplayName}
-            onClose={onClose}
             onSelect={onRenameDisplayName}
-          />
-          <hr className={dividerClass} />
-          <MediaContextMenuItem
-            destructive
+          >
+            {t.renameDisplayName}
+          </SubMenu.Item>
+          <SubMenu.Item separator />
+          <SubMenu.Item
             icon={<TrashIcon weight="duotone" className="size-3.5" />}
-            label={t.deleteAsset}
-            onClose={onClose}
             onSelect={onDeleteAsset}
-          />
+            variant="danger"
+          >
+            {t.deleteAsset}
+          </SubMenu.Item>
         </>
       )}
 
       {variant === "multi" && (
         <>
-          <MediaContextMenuItem
+          <SubMenu.Item
             icon={<FolderPlusIcon weight="duotone" className={iconClass} />}
-            label={t.newFolderWithSelection(selectedAssetCount + selectedFolderCount)}
-            onClose={onClose}
             onSelect={onNewFolderWithSelection}
-          />
-          <hr className={dividerClass} />
-          <MediaContextMenuItem
-            destructive
+          >
+            {t.newFolderWithSelection(selectedAssetCount + selectedFolderCount)}
+          </SubMenu.Item>
+          <SubMenu.Item separator />
+          <SubMenu.Item
             icon={<TrashIcon weight="duotone" className="size-3.5" />}
-            label={t.deleteSelection}
-            onClose={onClose}
             onSelect={onDeleteSelection}
-          />
+            variant="danger"
+          >
+            {t.deleteSelection}
+          </SubMenu.Item>
         </>
       )}
 
       {variant === "empty" && (
         <>
-          <MediaContextMenuItem
+          <SubMenu.Item
             icon={<FolderPlusIcon weight="duotone" className={iconClass} />}
-            label={t.newFolder}
-            onClose={onClose}
             onSelect={onNewFolder}
-          />
-          <hr className={dividerClass} />
-          <MediaContextMenuItem
+          >
+            {t.newFolder}
+          </SubMenu.Item>
+          <SubMenu.Item separator />
+          <SubMenu.Item
             icon={<UploadSimpleIcon weight="duotone" className={iconClass} />}
-            label={t.addAssets}
-            onClose={onClose}
             onSelect={onAddAssets}
-          />
+          >
+            {t.addAssets}
+          </SubMenu.Item>
         </>
       )}
 
       {variant === "folder" && folder && (
         <>
-          <MediaContextMenuItem
+          <SubMenu.Item
             icon={<FolderOpenIcon weight="duotone" className={iconClass} />}
-            label={t.openFolder}
-            onClose={onClose}
             onSelect={onOpenFolder}
-          />
+          >
+            {t.openFolder}
+          </SubMenu.Item>
           {!folder.isSystem && (
             <>
-              <hr className={dividerClass} />
-              <MediaContextMenuItem
+              <SubMenu.Item separator />
+              <SubMenu.Item
                 icon={<PencilSimpleIcon weight="duotone" className={iconClass} />}
-                label={t.renameFolderInline}
-                onClose={onClose}
                 onSelect={onRenameFolder}
-              />
+              >
+                {t.renameFolderInline}
+              </SubMenu.Item>
             </>
           )}
-          <hr className={dividerClass} />
+          <SubMenu.Item separator />
           <MediaFolderColorPicker
             color={folder.color}
             label={t.folderColorLabel}
@@ -261,20 +259,18 @@ export function MediaContextMenu({
           />
           {!folder.isSystem && (
             <>
-              <hr className={dividerClass} />
-              <MediaContextMenuItem
-                destructive
+              <SubMenu.Item separator />
+              <SubMenu.Item
                 icon={<TrashIcon weight="duotone" className="size-3.5" />}
-                label={
-                  folderItemCount > 0 ? t.deleteFolderWithCount(folderItemCount) : t.deleteFolder
-                }
-                onClose={onClose}
                 onSelect={onDeleteFolder}
-              />
+                variant="danger"
+              >
+                {folderItemCount > 0 ? t.deleteFolderWithCount(folderItemCount) : t.deleteFolder}
+              </SubMenu.Item>
             </>
           )}
         </>
       )}
-    </DashboardMenu>
+    </SubMenu>
   );
 }
