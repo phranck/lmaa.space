@@ -17,6 +17,7 @@ export function createEmptySocialPreviewComposition(): SocialPreviewComposition 
     height: SOCIAL_PREVIEW_HEIGHT,
     background: {
       src: null,
+      name: "Base Image",
       color: "#111827",
       zoom: 1,
       offsetX: 0,
@@ -37,6 +38,7 @@ export function createTextLayer(): SocialPreviewTextLayer {
   return {
     id: createId("text"),
     type: "text",
+    name: "Text",
     text: "lmaa.space",
     x: 120,
     y: 120,
@@ -59,6 +61,7 @@ export function createImageLayer(src: string, alt?: string | null): SocialPrevie
   return {
     id: createId("image"),
     type: "image",
+    name: alt?.trim() || "Image",
     src,
     alt: alt ?? null,
     x: 720,
@@ -79,6 +82,7 @@ export function createShapeLayer(): SocialPreviewShapeLayer {
   return {
     id: createId("shape"),
     type: "shape",
+    name: "Rectangle",
     shape: "rectangle",
     x: 180,
     y: 160,
@@ -442,22 +446,8 @@ export async function renderSocialPreviewToCanvas(composition: SocialPreviewComp
   ctx.fillStyle = composition.background.color;
   ctx.fillRect(0, 0, composition.width, composition.height);
 
-  if (composition.background.src) {
-    const background = await loadImage(composition.background.src);
-    drawCoverImage(
-      ctx,
-      background,
-      0,
-      0,
-      composition.width,
-      composition.height,
-      composition.background.zoom,
-      composition.background.offsetX,
-      composition.background.offsetY,
-    );
-  }
-
   for (const layer of composition.layers) {
+    if (layer.hidden) continue;
     if (layer.type === "text") {
       await loadCanvasFont(layer);
       drawTextLayer(ctx, layer);
