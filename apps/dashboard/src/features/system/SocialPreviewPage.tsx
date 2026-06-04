@@ -9,10 +9,13 @@ import {
   CircleIcon,
   CornersOutIcon,
   DropIcon,
+  EyeIcon,
+  EyeSlashIcon,
   FrameCornersIcon,
   HexagonIcon,
   ImageIcon,
   PaletteIcon,
+  PencilSimpleIcon,
   PlusIcon,
   PolygonIcon,
   RectangleIcon,
@@ -33,6 +36,7 @@ import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import type {
   SocialPreviewComposition,
   SocialPreviewFormat,
+  SocialPreviewImageEntry,
   SocialPreviewImageLayer,
   SocialPreviewLayer,
   SocialPreviewProjectEntry,
@@ -43,6 +47,7 @@ import type {
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
+import { ContextMenu, type ContextMenuEntry } from "@/components/ui/ContextMenu.tsx";
 import {
   CancelActionButton,
   CreateActionButton,
@@ -66,7 +71,9 @@ import {
   useImportRemoteSocialPreviewAsset,
   useDeleteSocialPreviewProject,
   useSetActiveSocialPreviewImage,
+  useSetDefaultSocialPreviewImage,
   useSocialPreviewImages,
+  useUpdateSocialPreviewImage,
   useSocialPreviewProjects,
   useUpdateSocialPreviewProject,
   useUploadSocialPreviewAsset,
@@ -110,17 +117,10 @@ const FORMAT_OPTIONS: Array<{ value: SocialPreviewFormat; label: string }> = [
 const RESIZE_HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
 type ResizeHandle = (typeof RESIZE_HANDLES)[number];
 
-type SelectionTarget = { type: "background" } | { type: "layer"; id: string } | null;
-type ActiveTool = "background" | "text" | "image" | "shape";
+type SelectionTarget = { type: "layer"; id: string } | null;
+type ActiveTool = "text" | "image" | "shape";
 
 type DragState =
-  | {
-      mode: "background-pan";
-      startX: number;
-      startY: number;
-      originX: number;
-      originY: number;
-    }
   | {
       mode: "layer-move";
       id: string;
@@ -356,6 +356,73 @@ function removeLayer(
   layerId: string,
 ): SocialPreviewComposition {
   return { ...composition, layers: composition.layers.filter((layer) => layer.id !== layerId) };
+}
+
+function isLayerLocked(layer: SocialPreviewLayer | null | undefined) {
+  return layer?.locked === true;
+}
+
+function isLayerHidden(layer: SocialPreviewLayer | null | undefined) {
+  return layer?.hidden === true;
+}
+
+function getLayerLabel(layer: SocialPreviewLayer) {
+  if (layer.name?.trim()) return layer.name.trim();
+  if (layer.type === "text") return layer.text.trim() || "Text";
+  if (layer.type === "image") return layer.alt?.trim() || "Image";
+  return layer.shape;
+}
+
+function migrateBaseImageToLayer(composition: SocialPreviewComposition): SocialPreviewComposition {
+  const backgroundSrc = composition.background.src;
+  if (!backgroundSrc) return composition;
+  const background = composition.background;
+  const baseLayer = createImageLayer(backgroundSrc, background.name ?? "Base Image");
+  baseLayer.id = "base-image";
+  baseLayer.name = background.name?.trim() || "Base Image";
+  baseLayer.x = 0;
+  baseLayer.y = 0;
+  baseLayer.width = composition.width;
+  baseLayer.height = composition.height;
+  baseLayer.zoom = background.zoom;
+  baseLayer.offsetX = background.offsetX;
+  baseLayer.offsetY = background.offsetY;
+  baseLayer.hidden = background.hidden;
+
+  return {
+    ...composition,
+    background: {
+      ...background,
+      src: null,
+      hidden: undefined,
+      name: undefined,
+      zoom: 1,
+      offsetX: 0,
+      offsetY: 0,
+    },
+    layers: [baseLayer, ...composition.layers],
+  };
+}
+
+function reorderLayerInPanel(
+  composition: SocialPreviewComposition,
+  draggedLayerId: string,
+  targetLayerId: string,
+  position: "before" | "after",
+): SocialPreviewComposition {
+  if (draggedLayerId === targetLayerId) return composition;
+
+  const panelLayers = [...composition.layers].reverse();
+  const draggedIndex = panelLayers.findIndex((layer) => layer.id === draggedLayerId);
+  const targetIndex = panelLayers.findIndex((layer) => layer.id === targetLayerId);
+  if (draggedIndex < 0 || targetIndex < 0) return composition;
+
+  const [draggedLayer] = panelLayers.splice(draggedIndex, 1);
+  const nextTargetIndex = panelLayers.findIndex((layer) => layer.id === targetLayerId);
+  const insertIndex = position === "after" ? nextTargetIndex + 1 : nextTargetIndex;
+  panelLayers.splice(insertIndex, 0, draggedLayer);
+
+  return { ...composition, layers: panelLayers.reverse() };
 }
 
 function snapLayer(
@@ -625,21 +692,25 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     createEmptySocialPreviewComposition(),
   );
   const [selection, setSelection] = useState<SelectionTarget>(null);
-  const [activeTool, setActiveTool] = useState<ActiveTool>("background");
+  const [activeTool, setActiveTool] = useState<ActiveTool>("image");
   const [editingTextLayerId, setEditingTextLayerId] = useState<string | null>(null);
   const [textSelection, setTextSelection] = useState<TextSelectionRange | null>(null);
-  const [browserMode, setBrowserMode] = useState<"background" | "layer" | null>(null);
+  const [browserMode, setBrowserMode] = useState<"layer" | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
   const [format, setFormat] = useState<SocialPreviewFormat>("image/jpeg");
   const [quality, setQuality] = useState(90);
   const targetSizeKb = 350;
   const [projectName, setProjectName] = useState("");
-  const [previewName, setPreviewName] = useState("");
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [effectiveQuality, setEffectiveQuality] = useState(90);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [stageScale, setStageScale] = useState(1);
+  const [layerSidebarWidth, setLayerSidebarWidth] = useState(() => {
+    const stored = window.localStorage.getItem("social-preview-layer-sidebar-width");
+    const value = stored ? Number(stored) : 224;
+    return Number.isFinite(value) ? clamp(value, 180, 360) : 224;
+  });
 
   const stageRef = useRef<HTMLDivElement>(null);
   const imageFileInputRef = useRef<HTMLInputElement>(null);
@@ -655,7 +726,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
         : null,
     [composition.layers, selection],
   );
-  const isBackgroundSelected = selection?.type === "background";
+  const selectedLayerLocked = isLayerLocked(selectedLayer);
   const canUndo = historyRef.current.length > 0;
   const canRedo = futureRef.current.length > 0;
   void historyVersion;
@@ -704,7 +775,21 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   }
 
   useEffect(() => {
+    window.localStorage.setItem("social-preview-layer-sidebar-width", String(layerSidebarWidth));
+  }, [layerSidebarWidth]);
+
+  useEffect(() => {
     function handleDocumentKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setSelection(null);
+        setEditingTextLayerId(null);
+        setTextSelection(null);
+        setDragState(null);
+        setGuides([]);
+        return;
+      }
+
       const isUndo = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z";
       if (isUndo) {
         event.preventDefault();
@@ -716,7 +801,11 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
         return;
       }
 
-      if ((event.key === "Backspace" || event.key === "Delete") && selectedLayer) {
+      if (
+        (event.key === "Backspace" || event.key === "Delete") &&
+        selectedLayer &&
+        !selectedLayerLocked
+      ) {
         const target = event.target;
         const isEditableTarget =
           target instanceof HTMLInputElement ||
@@ -730,8 +819,24 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
       }
     }
 
+    function handleDocumentPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (stageRef.current?.contains(target)) return;
+      if (target.closest("[data-social-preview-editor-control]")) return;
+      setSelection(null);
+      setEditingTextLayerId(null);
+      setTextSelection(null);
+      setDragState(null);
+      setGuides([]);
+    }
+
     document.addEventListener("keydown", handleDocumentKeyDown);
-    return () => document.removeEventListener("keydown", handleDocumentKeyDown);
+    document.addEventListener("pointerdown", handleDocumentPointerDown);
+    return () => {
+      document.removeEventListener("keydown", handleDocumentKeyDown);
+      document.removeEventListener("pointerdown", handleDocumentPointerDown);
+    };
   });
 
   useEffect(() => {
@@ -779,16 +884,6 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     };
   }, [common.unknownError, composition, format, quality, targetSizeKb]);
 
-  function selectUnsplashAsBackground(url: string) {
-    commitComposition((current) => ({
-      ...current,
-      background: { ...current.background, src: url, zoom: 1, offsetX: 0, offsetY: 0 },
-    }));
-    setSelection({ type: "background" });
-    setActiveTool("background");
-    setEditingTextLayerId(null);
-  }
-
   async function uploadRemoteSocialPreviewImage(url: string, name: string) {
     return importRemotePreviewAsset.mutateAsync({ imageUrl: url, name });
   }
@@ -821,26 +916,12 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     }
   }
 
-  function handleStagePointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    const stage = stageRef.current;
-    if (!stage || !composition.background.src) {
-      setSelection(null);
-      return;
-    }
-    event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    const position = getPointerPosition(event, stage);
-    setSelection({ type: "background" });
-    setActiveTool("background");
+  function handleStagePointerDown() {
+    setSelection(null);
     setEditingTextLayerId(null);
-    pushHistorySnapshot();
-    setDragState({
-      mode: "background-pan",
-      startX: position.x,
-      startY: position.y,
-      originX: composition.background.offsetX,
-      originY: composition.background.offsetY,
-    });
+    setTextSelection(null);
+    setDragState(null);
+    setGuides([]);
   }
 
   function handleLayerPointerDown(
@@ -854,6 +935,11 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     const position = getPointerPosition(event, stage);
     setSelection({ type: "layer", id: layer.id });
     setActiveTool(layer.type);
+    if (isLayerLocked(layer)) {
+      setEditingTextLayerId(null);
+      setDragState(null);
+      return;
+    }
     if (layer.type === "text") {
       const now = Date.now();
       const previous = textClickRef.current;
@@ -890,7 +976,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     handle: ResizeHandle,
   ) {
     const stage = stageRef.current;
-    if (!stage) return;
+    if (!stage || isLayerLocked(layer)) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -918,7 +1004,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     layer: SocialPreviewLayer,
   ) {
     const stage = stageRef.current;
-    if (!stage) return;
+    if (!stage || isLayerLocked(layer)) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -944,19 +1030,9 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     if (!stage) return;
     const position = getPointerPosition(event, stage);
 
-    if (dragState.mode === "background-pan") {
-      setComposition((current) => ({
-        ...current,
-        background: {
-          ...current.background,
-          offsetX: dragState.originX + position.x - dragState.startX,
-          offsetY: dragState.originY + position.y - dragState.startY,
-        },
-      }));
-      return;
-    }
-
     if (dragState.mode === "layer-rotate") {
+      const active = composition.layers.find((layer) => layer.id === dragState.id);
+      if (!active || isLayerLocked(active)) return;
       const angle = getPointerAngle(event, stage, dragState.centerX, dragState.centerY);
       setComposition((current) =>
         updateLayer(current, dragState.id, {
@@ -967,7 +1043,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     }
 
     const active = composition.layers.find((layer) => layer.id === dragState.id);
-    if (!active) return;
+    if (!active || isLayerLocked(active)) return;
 
     if (dragState.mode === "layer-resize") {
       const shadowLayer = {
@@ -1023,22 +1099,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
 
   function handleWheel(event: React.WheelEvent<HTMLDivElement>) {
     const delta = event.deltaY < 0 ? 0.08 : -0.08;
-    if (isBackgroundSelected || (!selectedLayer && composition.background.src)) {
-      event.preventDefault();
-      setSelection({ type: "background" });
-      setActiveTool("background");
-      setEditingTextLayerId(null);
-      commitComposition((current) => ({
-        ...current,
-        background: {
-          ...current.background,
-          zoom: clamp(current.background.zoom + delta, 0.1, 10),
-        },
-      }));
-      return;
-    }
-
-    if (selectedLayer?.type === "image") {
+    if (selectedLayer?.type === "image" && !selectedLayerLocked) {
       event.preventDefault();
       const nextZoom = clamp(getImageZoom(selectedLayer) + delta, 0.1, 10);
       commitComposition((current) => updateLayer(current, selectedLayer.id, { zoom: nextZoom }));
@@ -1058,21 +1119,9 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
     if (!delta) return;
     event.preventDefault();
 
-    if (selection.type === "background") {
-      commitComposition((current) => ({
-        ...current,
-        background: {
-          ...current.background,
-          offsetX: current.background.offsetX + delta[0],
-          offsetY: current.background.offsetY + delta[1],
-        },
-      }));
-      return;
-    }
-
     commitComposition((current) => {
       const active = current.layers.find((layer) => layer.id === selection.id);
-      if (!active) return current;
+      if (!active || isLayerLocked(active)) return current;
       return updateLayer(current, selection.id, {
         x: active.x + delta[0],
         y: active.y + delta[1],
@@ -1081,7 +1130,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   }
 
   function updateSelectedLayer(patch: Partial<SocialPreviewLayer>) {
-    if (!selectedLayer) return;
+    if (!selectedLayer || selectedLayerLocked) return;
     commitComposition((current) => {
       if (selectedLayer.type === "text" && "text" in patch) {
         return updateLayer(current, selectedLayer.id, {
@@ -1108,10 +1157,73 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   }
 
   function deleteSelectedLayer() {
-    if (!selectedLayer) return;
+    if (!selectedLayer || selectedLayerLocked) return;
     commitComposition((current) => removeLayer(current, selectedLayer.id));
     setSelection(null);
     setEditingTextLayerId(null);
+  }
+
+  function selectLayerFromPanel(layer: SocialPreviewLayer) {
+    setSelection({ type: "layer", id: layer.id });
+    setActiveTool(layer.type);
+    setEditingTextLayerId(null);
+    setTextSelection(null);
+  }
+
+  function renameLayer(layerId: string, nextName: string) {
+    const name = nextName.trim();
+    if (!name) return;
+    commitComposition((current) => updateLayer(current, layerId, { name }));
+  }
+
+  function toggleLayerVisibility(layerId: string) {
+    commitComposition((current) => {
+      const layer = current.layers.find((entry) => entry.id === layerId);
+      if (!layer) return current;
+      return updateLayer(current, layerId, { hidden: !isLayerHidden(layer) });
+    });
+    if (selection?.type === "layer" && selection.id === layerId) {
+      setSelection(null);
+      setEditingTextLayerId(null);
+      setTextSelection(null);
+    }
+  }
+
+  function toggleLayerLock(layerId: string) {
+    commitComposition((current) => {
+      const layer = current.layers.find((entry) => entry.id === layerId);
+      if (!layer) return current;
+      return updateLayer(current, layerId, { locked: !isLayerLocked(layer) });
+    });
+    if (editingTextLayerId === layerId) setEditingTextLayerId(null);
+  }
+
+  function reorderLayerByDrop(
+    draggedLayerId: string,
+    targetLayerId: string,
+    position: "before" | "after",
+  ) {
+    commitComposition((current) =>
+      reorderLayerInPanel(current, draggedLayerId, targetLayerId, position),
+    );
+  }
+
+  function handleLayerSidebarResizePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = layerSidebarWidth;
+
+    function handlePointerMove(moveEvent: PointerEvent) {
+      setLayerSidebarWidth(clamp(startWidth + startX - moveEvent.clientX, 180, 360));
+    }
+
+    function handlePointerUp() {
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerup", handlePointerUp);
+    }
+
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerup", handlePointerUp);
   }
 
   function resetEditorTransientState() {
@@ -1128,9 +1240,8 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   useEffect(() => {
     if (!project || loadedProjectIdRef.current === project.id) return;
     loadedProjectIdRef.current = project.id;
-    setComposition(project.composition);
+    setComposition(migrateBaseImageToLayer(project.composition));
     setProjectName(project.name);
-    setPreviewName(project.name);
     resetEditorTransientState();
   }, [projectId, project]);
 
@@ -1143,7 +1254,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   }
 
   async function handleSave() {
-    const safePreviewName = previewName.trim() || projectName.trim() || t.title;
+    const safePreviewName = projectName.trim() || t.title;
     const rendered = previewBlob
       ? { blob: previewBlob, effectiveQuality }
       : await renderSocialPreviewBlob(
@@ -1208,25 +1319,31 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
       <PageBody className="min-h-0 overflow-y-auto">
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           <DashboardSection className="shrink-0">
-            <DashboardSection.Header
-              icon={<SelectionIcon weight="duotone" className="size-4" />}
-              title={t.editorTitle}
-            />
-            <DashboardSection.Body>
-              <div className="flex items-start gap-2">
+            <div className="relative rounded-t-xl bg-[var(--ds-section-header-bg)] px-4 py-1.5">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ds-text-muted)]">
+                <SelectionIcon weight="duotone" className="size-4" />
+              </span>
+              <div className="ml-[3.75rem]">
+                <AttributeBar
+                  messages={t}
+                  activeTool={activeTool}
+                  selectedLayer={selectedLayer}
+                  textSelection={textSelection}
+                  onLayerChange={updateSelectedLayer}
+                  onDeleteLayer={deleteSelectedLayer}
+                />
+              </div>
+            </div>
+            <DashboardSection.Body className="!items-stretch">
+              <div className="flex w-full items-start gap-2">
                 <CanvasToolbar
                   messages={t}
                   activeTool={activeTool}
-                  hasLayerSelection={selectedLayer !== null}
+                  hasLayerSelection={selectedLayer !== null && !selectedLayerLocked}
                   canUndo={canUndo}
                   canRedo={canRedo}
                   onUndo={undoComposition}
                   onRedo={redoComposition}
-                  onChooseBackground={() => {
-                    setActiveTool("background");
-                    setSelection({ type: "background" });
-                    setBrowserMode("background");
-                  }}
                   onAddText={() => {
                     const layer = createTextLayer();
                     commitComposition((current) => ({
@@ -1267,22 +1384,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                   }}
                 />
 
-                <div className="min-w-0 flex-1">
-                  <AttributeBar
-                    messages={t}
-                    activeTool={activeTool}
-                    composition={composition}
-                    selectedLayer={selectedLayer}
-                    textSelection={textSelection}
-                    onBackgroundChange={(patch) =>
-                      commitComposition((current) => ({
-                        ...current,
-                        background: { ...current.background, ...patch },
-                      }))
-                    }
-                    onLayerChange={updateSelectedLayer}
-                    onDeleteLayer={deleteSelectedLayer}
-                  />
+                <div className="min-w-0 flex-1 self-start">
                   <div className="grid grid-cols-[1.5rem_minmax(0,1fr)] grid-rows-[1.5rem_auto] overflow-hidden border border-[var(--ds-border)] bg-[#202427]">
                     <div className="border-b border-r border-white/10 bg-[#2b2f33]" />
                     <Ruler axis="x" length={composition.width} />
@@ -1293,7 +1395,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                       tabIndex={0}
                       className={cx(
                         "relative aspect-[1200/630] w-full overflow-hidden bg-[var(--ds-bg-elevated)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]",
-                        isBackgroundSelected ? "ring-4 ring-sky-400/20" : null,
+                        null,
                       )}
                       onPointerDown={handleStagePointerDown}
                       onPointerMove={handlePointerMove}
@@ -1307,19 +1409,8 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                         className="absolute left-0 top-0 h-[630px] w-[1200px] origin-top-left"
                         style={{ transform: `scale(${stageScale})` }}
                       >
-                        {composition.background.src ? (
-                          <img
-                            src={composition.background.src}
-                            alt=""
-                            className="absolute inset-0 size-full object-cover"
-                            draggable={false}
-                            style={{
-                              transform: `translate(${composition.background.offsetX}px, ${composition.background.offsetY}px) scale(${composition.background.zoom})`,
-                            }}
-                          />
-                        ) : null}
-
                         {composition.layers.map((layer) => {
+                          if (isLayerHidden(layer)) return null;
                           const selected = selectedLayer?.id === layer.id;
                           return (
                             <div
@@ -1328,7 +1419,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                               style={renderLayerStyle(layer)}
                               onPointerDown={(event) => handleLayerPointerDown(event, layer)}
                               onDoubleClick={(event) => {
-                                if (layer.type !== "text") return;
+                                if (layer.type !== "text" || isLayerLocked(layer)) return;
                                 event.preventDefault();
                                 event.stopPropagation();
                                 setSelection({ type: "layer", id: layer.id });
@@ -1343,7 +1434,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                                 editing={editingTextLayerId === layer.id}
                                 onChange={updateSelectedLayer}
                                 onEditStart={() => {
-                                  if (layer.type === "text") {
+                                  if (layer.type === "text" && !isLayerLocked(layer)) {
                                     setEditingTextLayerId(layer.id);
                                   }
                                 }}
@@ -1352,20 +1443,18 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                                   setEditingTextLayerId(null);
                                 }}
                               />
-                              {selected ? (
+                              {selected && !isLayerLocked(layer) ? (
                                 <SelectionFrame
                                   layer={layer}
                                   onResizePointerDown={handleResizePointerDown}
                                   onRotatePointerDown={handleRotatePointerDown}
                                 />
+                              ) : selected ? (
+                                <div className="pointer-events-none absolute -inset-1 border-2 border-amber-300/80 ring-4 ring-amber-300/15" />
                               ) : null}
                             </div>
                           );
                         })}
-
-                        {isBackgroundSelected ? (
-                          <div className="pointer-events-none absolute inset-3 border-2 border-sky-400 ring-4 ring-sky-400/20" />
-                        ) : null}
 
                         {guides.map((guide, index) =>
                           guide.axis === "x" ? (
@@ -1386,6 +1475,19 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                     </div>
                   </div>
                 </div>
+
+                <LayerSidebar
+                  messages={t}
+                  layers={composition.layers}
+                  selectedLayerId={selection?.type === "layer" ? selection.id : null}
+                  width={layerSidebarWidth}
+                  onResizePointerDown={handleLayerSidebarResizePointerDown}
+                  onSelectLayer={selectLayerFromPanel}
+                  onRenameLayer={renameLayer}
+                  onToggleLayerVisibility={toggleLayerVisibility}
+                  onToggleLayerLock={toggleLayerLock}
+                  onReorderLayer={reorderLayerByDrop}
+                />
               </div>
             </DashboardSection.Body>
           </DashboardSection>
@@ -1403,11 +1505,9 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
       <PageFooter>
         <FooterExportControls
           messages={t}
-          previewName={previewName}
           format={format}
           quality={quality}
           estimatedSizeBytes={previewBlob?.size ?? null}
-          onPreviewNameChange={setPreviewName}
           onFormatChange={setFormat}
           onQualityChange={setQuality}
         />
@@ -1421,11 +1521,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                 photo.url,
                 `Unsplash ${photo.unsplashId}`,
               );
-              if (browserMode === "background") {
-                selectUnsplashAsBackground(media.url);
-              } else {
-                await addImageLayer(media.url, photo.altDescription);
-              }
+              await addImageLayer(media.url, photo.altDescription);
               setBrowserMode(null);
             })();
           }}
@@ -1433,6 +1529,248 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
         />
       ) : null}
     </PageLayout>
+  );
+}
+
+function LayerSidebar({
+  messages,
+  layers,
+  selectedLayerId,
+  width,
+  onResizePointerDown,
+  onSelectLayer,
+  onRenameLayer,
+  onToggleLayerVisibility,
+  onToggleLayerLock,
+  onReorderLayer,
+}: {
+  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  layers: SocialPreviewLayer[];
+  selectedLayerId: string | null;
+  width: number;
+  onResizePointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onSelectLayer: (layer: SocialPreviewLayer) => void;
+  onRenameLayer: (layerId: string, name: string) => void;
+  onToggleLayerVisibility: (layerId: string) => void;
+  onToggleLayerLock: (layerId: string) => void;
+  onReorderLayer: (
+    draggedLayerId: string,
+    targetLayerId: string,
+    position: "before" | "after",
+  ) => void;
+}) {
+  const [draggedLayerId, setDraggedLayerId] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState<{
+    layerId: string;
+    position: "before" | "after";
+  } | null>(null);
+  const [editingNameTarget, setEditingNameTarget] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const panelLayers = useMemo(() => [...layers].reverse(), [layers]);
+
+  function getDropPosition(event: React.DragEvent<HTMLElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return event.clientY > rect.top + rect.height / 2 ? "after" : "before";
+  }
+
+  function startNameEdit(target: string, currentName: string) {
+    setEditingNameTarget(target);
+    setEditingName(currentName);
+  }
+
+  function finishNameEdit() {
+    if (!editingNameTarget) return;
+    const nextName = editingName.trim();
+    if (nextName) {
+      onRenameLayer(editingNameTarget, nextName);
+    }
+    setEditingNameTarget(null);
+    setEditingName("");
+  }
+
+  function cancelNameEdit() {
+    setEditingNameTarget(null);
+    setEditingName("");
+  }
+
+  function getLayerTypeLabel(layer: SocialPreviewLayer) {
+    if (layer.type === "text") return messages.textLayer;
+    if (layer.type === "image") return messages.imageLayer;
+    return messages.shapeLayer;
+  }
+
+  return (
+    <aside
+      data-social-preview-editor-control="true"
+      className="relative flex max-h-full shrink-0 flex-col self-start rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
+      style={{ width }}
+    >
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={messages.resizeLayerSidebar}
+        className="absolute -left-2 top-0 z-20 h-full w-3 cursor-col-resize"
+        onPointerDown={onResizePointerDown}
+      >
+        <span className="absolute left-1 top-2 h-[calc(100%-1rem)] w-px rounded-full bg-[var(--ds-border)]" />
+      </div>
+      <div className="flex h-10 shrink-0 items-center gap-2 border-b border-[var(--ds-border)] px-3">
+        <SelectionIcon weight="duotone" className="size-4 text-[var(--ds-text-muted)]" />
+        <h3 className="truncate text-sm font-semibold text-[var(--ds-text)]">
+          {messages.layersTitle}
+        </h3>
+      </div>
+      <div
+        className="min-h-0 flex-1 overflow-y-auto"
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setDragOver(null);
+          }
+        }}
+      >
+        {panelLayers.length === 0 ? (
+          <p className="px-2 py-3 text-xs text-[var(--ds-text-muted)]">{messages.layersEmpty}</p>
+        ) : (
+          <div className="divide-y divide-[var(--ds-border-subtle)]">
+            {panelLayers.map((layer) => {
+              const selected = layer.id === selectedLayerId;
+              const locked = isLayerLocked(layer);
+              const hidden = isLayerHidden(layer);
+              const dropBefore = dragOver?.layerId === layer.id && dragOver.position === "before";
+              const dropAfter = dragOver?.layerId === layer.id && dragOver.position === "after";
+              return (
+                <div
+                  key={layer.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", layer.id);
+                    setDraggedLayerId(layer.id);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedLayerId(null);
+                    setDragOver(null);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    if (!draggedLayerId || draggedLayerId === layer.id) return;
+                    event.dataTransfer.dropEffect = "move";
+                    setDragOver({ layerId: layer.id, position: getDropPosition(event) });
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const draggedId = event.dataTransfer.getData("text/plain") || draggedLayerId;
+                    if (draggedId && draggedId !== layer.id) {
+                      onReorderLayer(draggedId, layer.id, getDropPosition(event));
+                    }
+                    setDraggedLayerId(null);
+                    setDragOver(null);
+                  }}
+                  className={cx(
+                    "relative transition-colors hover:bg-[var(--ds-surface-hover)]",
+                    selected && "bg-sky-400/10",
+                    hidden && "opacity-45",
+                    draggedLayerId === layer.id && "opacity-45",
+                  )}
+                >
+                  {dropBefore ? (
+                    <span className="absolute left-0 right-0 top-0 z-10 h-0.5 bg-sky-400" />
+                  ) : null}
+                  {dropAfter ? (
+                    <span className="absolute bottom-0 left-0 right-0 z-10 h-0.5 bg-sky-400" />
+                  ) : null}
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-2 py-1.5 pr-16 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
+                    onClick={() => onSelectLayer(layer)}
+                  >
+                    <span className="flex w-4 shrink-0 cursor-grab items-center justify-center text-xs text-[var(--ds-text-muted)] active:cursor-grabbing">
+                      ⋮⋮
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      {editingNameTarget === layer.id ? (
+                        <input
+                          type="text"
+                          value={editingName}
+                          className="h-5 w-full rounded border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-1 text-xs font-medium text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
+                          autoFocus
+                          onChange={(event) => setEditingName(event.currentTarget.value)}
+                          onBlur={finishNameEdit}
+                          onClick={(event) => event.stopPropagation()}
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              finishNameEdit();
+                            }
+                            if (event.key === "Escape") {
+                              event.preventDefault();
+                              cancelNameEdit();
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span
+                          className="block truncate text-xs font-medium text-[var(--ds-text)]"
+                          onDoubleClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            startNameEdit(layer.id, getLayerLabel(layer));
+                          }}
+                        >
+                          {getLayerLabel(layer)}
+                        </span>
+                      )}
+                      <span className="block truncate text-[11px] text-[var(--ds-text-muted)]">
+                        {getLayerTypeLabel(layer)}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={cx(
+                      "absolute right-8 top-1/2 flex h-6 min-w-6 -translate-y-1/2 items-center justify-center rounded px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
+                      hidden
+                        ? "bg-slate-400/10 text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)]"
+                        : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)]",
+                    )}
+                    aria-label={hidden ? messages.showLayer : messages.hideLayer}
+                    title={hidden ? messages.showLayer : messages.hideLayer}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToggleLayerVisibility(layer.id);
+                    }}
+                  >
+                    {hidden ? (
+                      <EyeSlashIcon weight="duotone" className="size-3.5" />
+                    ) : (
+                      <EyeIcon weight="duotone" className="size-3.5" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className={cx(
+                      "absolute right-1 top-1/2 flex h-6 min-w-6 -translate-y-1/2 items-center justify-center rounded px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
+                      locked
+                        ? "bg-amber-400/15 text-amber-200 hover:bg-amber-400/25"
+                        : "text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)]",
+                    )}
+                    aria-label={locked ? messages.unlockLayer : messages.lockLayer}
+                    title={locked ? messages.unlockLayer : messages.lockLayer}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToggleLayerLock(layer.id);
+                    }}
+                  >
+                    {locked ? "🔒" : "🔓"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -1523,9 +1861,17 @@ function SocialPreviewOverviewPage() {
   const navigate = useNavigate();
   const { data: savedProjects = [], isLoading: isLoadingProjects } = useSocialPreviewProjects();
   const createProject = useCreateSocialPreviewProject();
+  const updateProject = useUpdateSocialPreviewProject();
   const deleteProject = useDeleteSocialPreviewProject();
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
+  const [renameProjectTarget, setRenameProjectTarget] = useState<SocialPreviewProjectEntry | null>(
+    null,
+  );
   const [deleteProjectTargetId, setDeleteProjectTargetId] = useState<number | null>(null);
+  const [projectContextMenu, setProjectContextMenu] = useState<{
+    origin: { x: number; y: number };
+    project: SocialPreviewProjectEntry;
+  } | null>(null);
 
   async function handleCreateProject(nextProjectName: string) {
     const project = await createProject.mutateAsync({
@@ -1535,6 +1881,38 @@ function SocialPreviewOverviewPage() {
     setNewProjectDialogOpen(false);
     void navigate(`/system/social-preview/${project.id}`);
   }
+
+  const projectContextMenuItems = useMemo<ContextMenuEntry[]>(() => {
+    const project = projectContextMenu?.project;
+    if (!project) return [];
+    return [
+      {
+        label: t.renameAction,
+        icon: <PencilSimpleIcon weight="duotone" className="size-3.5" />,
+        onClick: () => setRenameProjectTarget(project),
+      },
+      {
+        label: t.loadProject,
+        icon: <FileTextIcon weight="duotone" className="size-3.5" />,
+        onClick: () => navigate(`/system/social-preview/${project.id}`),
+      },
+      { separator: true },
+      {
+        label: common.delete,
+        icon: <TrashIcon weight="duotone" className="size-3.5" />,
+        danger: true,
+        disabled: deleteProject.isPending,
+        onClick: () => setDeleteProjectTargetId(project.id),
+      },
+    ];
+  }, [
+    common.delete,
+    deleteProject.isPending,
+    navigate,
+    projectContextMenu?.project,
+    t.loadProject,
+    t.renameAction,
+  ]);
 
   const projectColumns = useMemo<Array<ColumnDef<SocialPreviewProjectEntry>>>(
     () => [
@@ -1634,6 +2012,15 @@ function SocialPreviewOverviewPage() {
                     columns={projectColumns}
                     data={savedProjects}
                     getRowKey={(project) => project.id}
+                    getRowProps={(project) => ({
+                      onContextMenu: (event) => {
+                        event.preventDefault();
+                        setProjectContextMenu({
+                          origin: { x: event.clientX, y: event.clientY },
+                          project,
+                        });
+                      },
+                    })}
                     initialSort={{ id: "updatedAt", dir: "desc" }}
                   />
                 </div>
@@ -1650,6 +2037,30 @@ function SocialPreviewOverviewPage() {
         busy={createProject.isPending}
         onCancel={() => setNewProjectDialogOpen(false)}
         onSubmit={(nextProjectName) => void handleCreateProject(nextProjectName)}
+      />
+
+      <RenameDialog
+        open={renameProjectTarget !== null}
+        title={t.renameProjectTitle}
+        label={t.projectNameLabel}
+        initialName={renameProjectTarget?.name ?? ""}
+        busy={updateProject.isPending}
+        cancelLabel={common.cancel}
+        saveLabel={common.save}
+        onClose={() => setRenameProjectTarget(null)}
+        onSubmit={(nextName) => {
+          if (!renameProjectTarget) return;
+          updateProject.mutate(
+            { id: renameProjectTarget.id, data: { name: nextName } },
+            { onSuccess: () => setRenameProjectTarget(null) },
+          );
+        }}
+      />
+
+      <ContextMenu
+        origin={projectContextMenu?.origin ?? null}
+        onClose={() => setProjectContextMenu(null)}
+        items={projectContextMenuItems}
       />
 
       <DeleteConfirmDialog
@@ -1713,14 +2124,69 @@ function SavedPreviewImagesSection() {
   const common = messages.common;
   const { data: savedImages = [], isLoading } = useSocialPreviewImages();
   const setActivePreview = useSetActiveSocialPreviewImage();
+  const setDefaultPreview = useSetDefaultSocialPreviewImage();
+  const updatePreview = useUpdateSocialPreviewImage();
   const deletePreview = useDeleteSocialPreviewImage();
+  const [renameTarget, setRenameTarget] = useState<SocialPreviewImageEntry | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    origin: { x: number; y: number };
+    image: SocialPreviewImageEntry;
+  } | null>(null);
   const [imageGridSize, setImageGridSize] = useState(() => {
     const stored = window.localStorage.getItem("social-preview-export-grid-size");
     const value = stored ? Number(stored) : 3;
     return Number.isFinite(value) ? clamp(value, 1, 4) : 3;
   });
   const savedImageCardWidth = 150 + ((imageGridSize - 1) / 3) * 270;
+  const contextMenuItems = useMemo<ContextMenuEntry[]>(() => {
+    const image = contextMenu?.image;
+    if (!image) return [];
+    return [
+      {
+        label: t.renameAction,
+        icon: <PencilSimpleIcon weight="duotone" className="size-3.5" />,
+        onClick: () => setRenameTarget(image),
+      },
+      {
+        label: t.openImage,
+        icon: <ArrowSquareOutIcon weight="duotone" className="size-3.5" />,
+        onClick: () => window.open(image.imageUrl, "_blank", "noopener,noreferrer"),
+      },
+      {
+        label: image.isDefault ? t.defaultBadge : t.setDefault,
+        icon: <StarIcon weight="duotone" className="size-3.5" />,
+        disabled: image.isDefault || setDefaultPreview.isPending,
+        onClick: () => setDefaultPreview.mutate({ id: image.id, isDefault: true }),
+      },
+      {
+        label: image.isActive ? t.unsetActive : t.setActive,
+        icon: <CheckCircleIcon weight="duotone" className="size-3.5" />,
+        disabled: setActivePreview.isPending,
+        onClick: () => setActivePreview.mutate({ id: image.id, active: !image.isActive }),
+      },
+      { separator: true },
+      {
+        label: common.delete,
+        icon: <TrashIcon weight="duotone" className="size-3.5" />,
+        danger: true,
+        disabled: deletePreview.isPending,
+        onClick: () => setDeleteTargetId(image.id),
+      },
+    ];
+  }, [
+    common.delete,
+    contextMenu?.image,
+    deletePreview.isPending,
+    setActivePreview,
+    setDefaultPreview,
+    t.defaultBadge,
+    t.openImage,
+    t.renameAction,
+    t.setActive,
+    t.setDefault,
+    t.unsetActive,
+  ]);
 
   useEffect(() => {
     window.localStorage.setItem("social-preview-export-grid-size", String(imageGridSize));
@@ -1766,68 +2232,133 @@ function SavedPreviewImagesSection() {
             {savedImages.map((image) => (
               <div
                 key={image.id}
-                className="group relative overflow-hidden rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
+                className="group rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setContextMenu({ origin: { x: event.clientX, y: event.clientY }, image });
+                }}
               >
-                <img
-                  src={image.imageUrl}
-                  alt=""
-                  className="aspect-[1200/630] w-full object-cover"
-                />
-                {image.isActive ? (
-                  <span
-                    className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 border border-emerald-300/30 bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50 backdrop-blur"
-                    style={{ borderRadius: "8px" }}
-                  >
-                    <CheckCircleIcon weight="duotone" className="size-3.5" />
-                    {t.activeBadge}
-                  </span>
-                ) : null}
-                <div
-                  className="absolute inset-x-0 bottom-0 z-[9] h-9 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                  style={{ backgroundColor: "rgb(0 0 0 / 0.45)" }}
-                />
-                <div className="absolute inset-x-1 bottom-1 z-10 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                  <button
-                    type="button"
-                    aria-label={t.deleteImage}
-                    title={t.deleteImage}
-                    disabled={deletePreview.isPending}
-                    onClick={() => setDeleteTargetId(image.id)}
-                    className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-red-500/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
-                    style={{ borderRadius: "8px" }}
-                  >
-                    <TrashIcon weight="duotone" className="size-3.5" />
-                  </button>
-                  <div className="flex items-center gap-1">
-                    <a
-                      href={image.imageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={t.openImage}
-                      title={t.openImage}
-                      className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
-                      style={{ borderRadius: "8px" }}
-                    >
-                      <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
-                    </a>
+                <div className="relative overflow-hidden rounded-t-[12px]">
+                  <img
+                    src={image.imageUrl}
+                    alt=""
+                    className="aspect-[1200/630] w-full object-cover"
+                  />
+                  <div className="absolute left-1 top-1 z-10 flex flex-col items-start gap-1">
+                    {image.isActive ? (
+                      <span
+                        className="inline-flex items-center gap-1 border border-emerald-300/30 bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50 backdrop-blur"
+                        style={{ borderRadius: "8px" }}
+                      >
+                        <CheckCircleIcon weight="duotone" className="size-3.5" />
+                        {t.activeBadge}
+                      </span>
+                    ) : null}
+                    {image.isDefault ? (
+                      <span
+                        className="inline-flex items-center gap-1 border border-amber-300/30 bg-amber-400/25 px-2 py-0.5 text-xs font-medium text-amber-50 backdrop-blur"
+                        style={{ borderRadius: "8px" }}
+                      >
+                        <StarIcon weight="duotone" className="size-3.5" />
+                        {t.defaultBadge}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div
+                    className="absolute inset-x-0 bottom-0 z-[9] h-9 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                    style={{ backgroundColor: "rgb(0 0 0 / 0.45)" }}
+                  />
+                  <div className="absolute inset-x-1 bottom-1 z-10 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                     <button
                       type="button"
-                      aria-label={t.setActive}
-                      title={t.setActive}
-                      disabled={image.isActive || setActivePreview.isPending}
-                      onClick={() => setActivePreview.mutate({ id: image.id, active: true })}
-                      className="flex size-7 items-center justify-center border border-emerald-300/35 bg-emerald-500/20 text-emerald-50 backdrop-blur hover:bg-emerald-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                      aria-label={t.deleteImage}
+                      title={t.deleteImage}
+                      disabled={deletePreview.isPending}
+                      onClick={() => setDeleteTargetId(image.id)}
+                      className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-red-500/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
                       style={{ borderRadius: "8px" }}
                     >
-                      <CheckCircleIcon weight="duotone" className="size-3.5" />
+                      <TrashIcon weight="duotone" className="size-3.5" />
                     </button>
+                    <div className="flex items-center gap-1">
+                      <a
+                        href={image.imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t.openImage}
+                        title={t.openImage}
+                        className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
+                        style={{ borderRadius: "8px" }}
+                      >
+                        <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
+                      </a>
+                      <button
+                        type="button"
+                        aria-label={t.setDefault}
+                        title={t.setDefault}
+                        disabled={image.isDefault || setDefaultPreview.isPending}
+                        onClick={() => setDefaultPreview.mutate({ id: image.id, isDefault: true })}
+                        className="flex size-7 items-center justify-center border border-amber-300/35 bg-amber-500/20 text-amber-50 backdrop-blur hover:bg-amber-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                        style={{ borderRadius: "8px" }}
+                      >
+                        <StarIcon weight="duotone" className="size-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={image.isActive ? t.unsetActive : t.setActive}
+                        title={image.isActive ? t.unsetActive : t.setActive}
+                        disabled={setActivePreview.isPending}
+                        onClick={() =>
+                          setActivePreview.mutate({ id: image.id, active: !image.isActive })
+                        }
+                        className="flex size-7 items-center justify-center border border-emerald-300/35 bg-emerald-500/20 text-emerald-50 backdrop-blur hover:bg-emerald-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                        style={{ borderRadius: "8px" }}
+                      >
+                        <CheckCircleIcon weight="duotone" className="size-3.5" />
+                      </button>
+                    </div>
                   </div>
+                </div>
+                <div className="space-y-0.5 px-2 py-2">
+                  <p
+                    className="truncate text-sm font-medium text-[var(--ds-text)]"
+                    title={image.name}
+                  >
+                    {image.name}
+                  </p>
+                  <p className="text-xs text-[var(--ds-text-muted)]">
+                    {image.width} × {image.height} · {formatBytes(image.sizeBytes)}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         )}
       </DashboardSection.Body>
+
+      <RenameDialog
+        open={renameTarget !== null}
+        title={t.renameImageTitle}
+        label={t.imageNameLabel}
+        initialName={renameTarget?.name ?? ""}
+        busy={updatePreview.isPending}
+        cancelLabel={common.cancel}
+        saveLabel={common.save}
+        onClose={() => setRenameTarget(null)}
+        onSubmit={(nextName) => {
+          if (!renameTarget) return;
+          updatePreview.mutate(
+            { id: renameTarget.id, name: nextName },
+            { onSuccess: () => setRenameTarget(null) },
+          );
+        }}
+      />
+
+      <ContextMenu
+        origin={contextMenu?.origin ?? null}
+        onClose={() => setContextMenu(null)}
+        items={contextMenuItems}
+      />
 
       <DeleteConfirmDialog
         open={deleteTargetId !== null}
@@ -1903,37 +2434,85 @@ function NewProjectDialog({
   );
 }
 
+function RenameDialog({
+  open,
+  title,
+  label,
+  initialName,
+  busy,
+  cancelLabel,
+  saveLabel,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  title: string;
+  label: string;
+  initialName: string;
+  busy: boolean;
+  cancelLabel: string;
+  saveLabel: string;
+  onClose: () => void;
+  onSubmit: (name: string) => void;
+}) {
+  const [name, setName] = useState(initialName);
+  const trimmedName = name.trim();
+  const canSubmit = trimmedName.length > 0 && trimmedName !== initialName.trim() && !busy;
+
+  useEffect(() => {
+    if (open) setName(initialName);
+  }, [initialName, open]);
+
+  if (!open) return null;
+
+  return (
+    <Dialog
+      open
+      title={title}
+      titleIcon={<PencilSimpleIcon weight="duotone" className={dialogHeaderIconClass} />}
+      onClose={busy ? () => undefined : onClose}
+    >
+      <div className="px-6 py-3">
+        <DashboardInput
+          id="social-preview-rename-name"
+          type="text"
+          label={label}
+          value={name}
+          onChange={(event) => setName(event.currentTarget.value)}
+          autoFocus
+        />
+      </div>
+      <Dialog.Footer>
+        <CancelActionButton onClick={onClose} disabled={busy} label={cancelLabel} />
+        <SaveActionButton
+          onClick={() => onSubmit(trimmedName)}
+          disabled={!canSubmit}
+          busy={busy}
+          label={saveLabel}
+        />
+      </Dialog.Footer>
+    </Dialog>
+  );
+}
+
 function FooterExportControls({
   messages,
-  previewName,
   format,
   quality,
   estimatedSizeBytes,
-  onPreviewNameChange,
   onFormatChange,
   onQualityChange,
 }: {
   messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
-  previewName: string;
   format: SocialPreviewFormat;
   quality: number;
   estimatedSizeBytes: number | null;
-  onPreviewNameChange: (value: string) => void;
   onFormatChange: (value: SocialPreviewFormat) => void;
   onQualityChange: (value: number) => void;
 }) {
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-3">
-        <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
-          {messages.previewNameLabel}
-          <input
-            type="text"
-            value={previewName}
-            onChange={(event) => onPreviewNameChange(event.currentTarget.value)}
-            className="h-8 w-52 rounded-control border border-[var(--ds-border)] bg-[var(--ds-form-control-bg)] px-2 text-sm text-[var(--ds-text)] outline-none focus:ring-2 focus:ring-[var(--ds-focus-ring)]"
-          />
-        </label>
         <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
           {messages.formatLabel}
           <select
@@ -1977,7 +2556,6 @@ function CanvasToolbar({
   canRedo,
   onUndo,
   onRedo,
-  onChooseBackground,
   onAddText,
   onAddImageFromUnsplash,
   onAddImageFromComputer,
@@ -1991,7 +2569,6 @@ function CanvasToolbar({
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
-  onChooseBackground: () => void;
   onAddText: () => void;
   onAddImageFromUnsplash: () => void;
   onAddImageFromComputer: () => void;
@@ -2004,18 +2581,34 @@ function CanvasToolbar({
     "bg-[var(--ds-surface-hover)] text-[var(--ds-text)] ring-1 ring-[var(--ds-border)]";
 
   const [imageMenuOpen, setImageMenuOpen] = useState(false);
+  const imageMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!imageMenuOpen) return;
+
+    function handleDocumentPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && imageMenuRef.current?.contains(target)) return;
+      setImageMenuOpen(false);
+    }
+
+    function handleDocumentKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setImageMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handleDocumentPointerDown);
+    document.addEventListener("keydown", handleDocumentKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handleDocumentPointerDown);
+      document.removeEventListener("keydown", handleDocumentKeyDown);
+    };
+  }, [imageMenuOpen]);
 
   return (
-    <div className="flex w-8 shrink-0 flex-col items-center gap-1 pt-12">
-      <button
-        type="button"
-        className={cx(buttonClass, activeTool === "background" && activeClass)}
-        aria-label={messages.chooseBackground}
-        title={messages.chooseBackground}
-        onClick={onChooseBackground}
-      >
-        <ImageIcon weight="duotone" className="size-5" />
-      </button>
+    <div
+      data-social-preview-editor-control="true"
+      className="mt-6 flex w-8 shrink-0 flex-col items-center gap-1"
+    >
       <button
         type="button"
         className={cx(buttonClass, activeTool === "text" && activeClass)}
@@ -2025,7 +2618,7 @@ function CanvasToolbar({
       >
         <TextTIcon weight="duotone" className="size-5" />
       </button>
-      <div className="relative">
+      <div ref={imageMenuRef} className="relative">
         <button
           type="button"
           className={cx(buttonClass, activeTool === "image" && activeClass)}
@@ -2035,7 +2628,7 @@ function CanvasToolbar({
           aria-expanded={imageMenuOpen}
           onClick={() => setImageMenuOpen((open) => !open)}
         >
-          <PlusIcon weight="duotone" className="size-5" />
+          <ImageIcon weight="duotone" className="size-5" />
         </button>
         {imageMenuOpen ? (
           <div
@@ -2414,33 +3007,26 @@ function Ruler({ axis, length }: { axis: "x" | "y"; length: number }) {
 function AttributeBar({
   messages,
   activeTool,
-  composition,
   selectedLayer,
   textSelection,
-  onBackgroundChange,
   onLayerChange,
   onDeleteLayer,
 }: {
   messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
   activeTool: ActiveTool;
-  composition: SocialPreviewComposition;
   selectedLayer: SocialPreviewLayer | null;
   textSelection: TextSelectionRange | null;
-  onBackgroundChange: (patch: Partial<SocialPreviewComposition["background"]>) => void;
   onLayerChange: (patch: Partial<SocialPreviewLayer>) => void;
   onDeleteLayer: () => void;
 }) {
   const layerForTool = selectedLayer?.type === activeTool ? selectedLayer : null;
 
   return (
-    <div className="mb-2 flex h-[4.75rem] flex-wrap content-center items-center gap-2 overflow-y-auto px-0 py-1.5 text-xs text-[var(--ds-text-muted)]">
-      {activeTool === "background" ? (
-        <BackgroundAttributes
-          messages={messages}
-          composition={composition}
-          onChange={onBackgroundChange}
-        />
-      ) : layerForTool ? (
+    <div
+      data-social-preview-editor-control="true"
+      className="flex h-[4.75rem] min-w-0 flex-1 flex-wrap content-center items-center gap-2 overflow-y-auto px-0 py-1.5 text-xs text-[var(--ds-text-muted)]"
+    >
+      {layerForTool ? (
         <LayerAttributes
           layer={layerForTool}
           messages={messages}
@@ -2448,9 +3034,7 @@ function AttributeBar({
           onChange={onLayerChange}
           onDelete={onDeleteLayer}
         />
-      ) : (
-        <span>{messages.noSelection}</span>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -2502,58 +3086,6 @@ function AttributeDivider() {
   return <div className="h-5 w-px self-center bg-[var(--ds-border-subtle)]" />;
 }
 
-function BackgroundAttributes({
-  messages,
-  composition,
-  onChange,
-}: {
-  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
-  composition: SocialPreviewComposition;
-  onChange: (patch: Partial<SocialPreviewComposition["background"]>) => void;
-}) {
-  return (
-    <>
-      <span
-        title={messages.chooseBackground}
-        className="flex size-7 items-center justify-center self-center text-[var(--ds-text)]"
-      >
-        <ImageIcon weight="duotone" className="size-4" />
-      </span>
-      <AttributeDivider />
-      <AttributeLabel
-        title={messages.backgroundColor}
-        icon={<PaletteIcon weight="duotone" className="size-4" />}
-      >
-        <AttributeInput
-          aria-label={messages.backgroundColor}
-          type="color"
-          value={composition.background.color}
-          className="w-9 px-1"
-          onChange={(event) => onChange({ color: event.currentTarget.value })}
-        />
-      </AttributeLabel>
-      <AttributeLabel
-        title={messages.backgroundZoom}
-        icon={<CornersOutIcon weight="duotone" className="size-4" />}
-      >
-        <span className="w-9 text-right tabular-nums">
-          {composition.background.zoom.toFixed(2)}
-        </span>
-        <AttributeInput
-          aria-label={messages.backgroundZoom}
-          type="range"
-          min={0.1}
-          max={10}
-          step={0.05}
-          value={composition.background.zoom}
-          className="w-32 px-0"
-          onChange={(event) => onChange({ zoom: Number(event.currentTarget.value) || 1 })}
-        />
-      </AttributeLabel>
-    </>
-  );
-}
-
 function LayerAttributes({
   layer,
   messages,
@@ -2569,25 +3101,6 @@ function LayerAttributes({
 }) {
   return (
     <>
-      <span
-        title={
-          layer.type === "text"
-            ? messages.textLayer
-            : layer.type === "image"
-              ? messages.imageLayer
-              : messages.shapeLayer
-        }
-        className="flex size-7 items-center justify-center self-center text-[var(--ds-text)]"
-      >
-        {layer.type === "text" ? (
-          <TextTIcon weight="duotone" className="size-4" />
-        ) : layer.type === "image" ? (
-          <ImageIcon weight="duotone" className="size-4" />
-        ) : (
-          <HexagonIcon weight="duotone" className="size-4" />
-        )}
-      </span>
-      <AttributeDivider />
       <AttributeLabel
         title="X"
         icon={<ArrowsOutCardinalIcon weight="duotone" className="size-4" />}
@@ -2735,7 +3248,7 @@ function ShapeLayerAttributes({
 }) {
   return (
     <>
-      <AttributeDivider />
+      <span className="basis-full" aria-hidden="true" />
       <div className="flex items-center gap-1 self-center" title={messages.shapeKind}>
         {SHAPE_OPTIONS.map((option) => {
           const label = messages[option.labelKey];
@@ -2989,7 +3502,7 @@ function TextLayerAttributes({
 
   return (
     <>
-      <AttributeDivider />
+      <span className="basis-full" aria-hidden="true" />
       <AttributeLabel
         title={messages.fontFamily}
         icon={<TextTIcon weight="duotone" className="size-4" />}

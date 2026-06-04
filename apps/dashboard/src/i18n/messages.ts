@@ -1309,7 +1309,11 @@ export interface DashboardMessages {
       addShape: string;
       newProject: string;
       newProjectTitle: string;
+      renameAction: string;
+      renameProjectTitle: string;
+      renameImageTitle: string;
       projectNameLabel: string;
+      imageNameLabel: string;
       projectNamePlaceholder: string;
       noProjectLoaded: string;
       saveProject: string;
@@ -1321,11 +1325,21 @@ export interface DashboardMessages {
       emptyProjectsHint: string;
       projectLayer: string;
       keyboardHint: string;
+      layersTitle: string;
+      layersEmpty: string;
+      resizeLayerSidebar: string;
+      hideLayer: string;
+      showLayer: string;
+      lockLayer: string;
+      unlockLayer: string;
       savedTitle: string;
       emptyTitle: string;
       emptyHint: string;
       activeBadge: string;
+      defaultBadge: string;
       setActive: string;
+      unsetActive: string;
+      setDefault: string;
       openImage: string;
       deleteImage: string;
       imageGridSizeLabel: string;
@@ -1347,6 +1361,7 @@ export interface DashboardMessages {
       noSelection: string;
       textLayer: string;
       imageLayer: string;
+      baseImageLayer: string;
       imageTintColor: string;
       imageTintOpacity: string;
       shapeLayer: string;
@@ -2778,7 +2793,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         addShape: "Form hinzufügen",
         newProject: "Neues Projekt",
         newProjectTitle: "Neues Projekt erstellen",
+        renameAction: "Umbenennen…",
+        renameProjectTitle: "Projekt umbenennen",
+        renameImageTitle: "Preview-Bild umbenennen",
         projectNameLabel: "Projektname",
+        imageNameLabel: "Bildname",
         projectNamePlaceholder: "Projektname eingeben…",
         noProjectLoaded: "Kein Projekt geladen",
         saveProject: "Projekt speichern",
@@ -2792,11 +2811,21 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         projectLayer: "Projekt",
         keyboardHint:
           "Ausgewählte Objekte lassen sich per Pfeiltasten bewegen. Shift + Pfeiltaste bewegt in größeren Schritten.",
+        layersTitle: "Layer",
+        layersEmpty: "Noch keine Layer vorhanden.",
+        resizeLayerSidebar: "Layer-Sidebar-Breite ändern",
+        hideLayer: "Layer ausblenden",
+        showLayer: "Layer einblenden",
+        lockLayer: "Layer sperren",
+        unlockLayer: "Layer freigeben",
         savedTitle: "Gespeicherte Preview-Bilder",
         emptyTitle: "Noch keine Social-Media-Previews gespeichert.",
         emptyHint: "Erstelle ein fixes Preview-Bild und aktiviere es für Open Graph und Twitter.",
         activeBadge: "Aktiv",
+        defaultBadge: "Default",
         setActive: "Aktiv setzen",
+        unsetActive: "Nicht aktiv setzen",
+        setDefault: "Als Default setzen",
         openImage: "Öffnen",
         deleteImage: "Löschen",
         imageGridSizeLabel: "Bildgröße",
@@ -2819,6 +2848,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noSelection: "Wähle ein Text- oder Bildobjekt im Editor aus.",
         textLayer: "Textobjekt",
         imageLayer: "Bildobjekt",
+        baseImageLayer: "Base Image",
         imageTintColor: "Bildfarbe",
         imageTintOpacity: "Einfärbung",
         shapeLayer: "Formobjekt",
@@ -4240,7 +4270,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         addShape: "Add shape",
         newProject: "New project",
         newProjectTitle: "Create new project",
+        renameAction: "Rename…",
+        renameProjectTitle: "Rename project",
+        renameImageTitle: "Rename preview image",
         projectNameLabel: "Project name",
+        imageNameLabel: "Image name",
         projectNamePlaceholder: "Enter project name…",
         noProjectLoaded: "No project loaded",
         saveProject: "Save project",
@@ -4254,11 +4288,21 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         projectLayer: "Project",
         keyboardHint:
           "Selected objects can be moved with the arrow keys. Shift + arrow key moves in larger steps.",
+        layersTitle: "Layers",
+        layersEmpty: "No layers yet.",
+        resizeLayerSidebar: "Resize layer sidebar",
+        hideLayer: "Hide layer",
+        showLayer: "Show layer",
+        lockLayer: "Lock layer",
+        unlockLayer: "Unlock layer",
         savedTitle: "Saved preview images",
         emptyTitle: "No social media previews saved yet.",
         emptyHint: "Create a fixed preview image and activate it for Open Graph and Twitter.",
         activeBadge: "Active",
+        defaultBadge: "Default",
         setActive: "Set active",
+        unsetActive: "Set inactive",
+        setDefault: "Set default",
         openImage: "Open",
         deleteImage: "Delete",
         imageGridSizeLabel: "Image size",
@@ -4280,6 +4324,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         noSelection: "Select a text or image object in the editor.",
         textLayer: "Text object",
         imageLayer: "Image object",
+        baseImageLayer: "Base image",
         imageTintColor: "Image tint",
         imageTintOpacity: "Tint opacity",
         shapeLayer: "Shape object",
