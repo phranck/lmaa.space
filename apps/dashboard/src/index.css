@@ -137,6 +137,11 @@ button {
   cursor: pointer;
 }
 
+:where(a, button, input, select, textarea, summary, [tabindex]):focus,
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: none;
+}
+
 /* Dashboard grid layout */
 .dashboard-grid {
   display: grid;

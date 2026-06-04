@@ -28,6 +28,7 @@ import {
   TrashIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 
 import type {
   SocialPreviewComposition,
@@ -589,19 +590,34 @@ function formatRotation(value: number) {
 }
 
 export function SocialPreviewPage() {
-  const { messages, locale } = useI18n();
+  const location = useLocation();
+  const { projectId } = useParams<{ projectId?: string }>();
+  if (location.pathname === "/system/social-preview/images") {
+    return <SocialPreviewImagesPage />;
+  }
+  if (!projectId) return <SocialPreviewOverviewPage />;
+
+  const numericProjectId = Number(projectId);
+  if (!Number.isInteger(numericProjectId) || numericProjectId <= 0) {
+    return <Navigate to="/system/social-preview" replace />;
+  }
+
+  return <SocialPreviewEditorPage projectId={numericProjectId} />;
+}
+
+function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
+  const { messages } = useI18n();
   const t = messages.system.socialPreview;
   const common = messages.common;
 
   const { data: savedProjects = [], isLoading: isLoadingProjects } = useSocialPreviewProjects();
-  const { data: savedImages = [], isLoading } = useSocialPreviewImages();
-  const createProject = useCreateSocialPreviewProject();
+  const project = useMemo(
+    () => savedProjects.find((entry) => entry.id === projectId) ?? null,
+    [projectId, savedProjects],
+  );
   const updateProject = useUpdateSocialPreviewProject();
-  const deleteProject = useDeleteSocialPreviewProject();
   const uploadPreview = useUploadSocialPreviewAsset();
   const createPreview = useCreateSocialPreviewImage();
-  const setActivePreview = useSetActiveSocialPreviewImage();
-  const deletePreview = useDeleteSocialPreviewImage();
 
   const [composition, setComposition] = useState<SocialPreviewComposition>(() =>
     createEmptySocialPreviewComposition(),
@@ -613,7 +629,6 @@ export function SocialPreviewPage() {
   const [browserMode, setBrowserMode] = useState<"background" | "layer" | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
-  const [currentProjectId, setCurrentProjectId] = useState<number | null>(null);
   const [format, setFormat] = useState<SocialPreviewFormat>("image/jpeg");
   const [quality, setQuality] = useState(90);
   const targetSizeKb = 350;
@@ -622,18 +637,11 @@ export function SocialPreviewPage() {
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [effectiveQuality, setEffectiveQuality] = useState(90);
   const [renderError, setRenderError] = useState<string | null>(null);
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [deleteProjectTargetId, setDeleteProjectTargetId] = useState<number | null>(null);
-  const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
-  const [imageGridSize, setImageGridSize] = useState(() => {
-    const stored = window.localStorage.getItem("social-preview-export-grid-size");
-    const value = stored ? Number(stored) : 3;
-    return Number.isFinite(value) ? clamp(value, 1, 4) : 3;
-  });
   const [stageScale, setStageScale] = useState(1);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const loadedProjectIdRef = useRef<number | null>(null);
   const historyRef = useRef<SocialPreviewComposition[]>([]);
   const futureRef = useRef<SocialPreviewComposition[]>([]);
   const textClickRef = useRef<{ id: string; x: number; y: number; at: number } | null>(null);
@@ -692,10 +700,6 @@ export function SocialPreviewPage() {
     setEditingTextLayerId(null);
     setHistoryVersion((current) => current + 1);
   }
-
-  useEffect(() => {
-    window.localStorage.setItem("social-preview-export-grid-size", String(imageGridSize));
-  }, [imageGridSize]);
 
   useEffect(() => {
     function handleDocumentKeyDown(event: KeyboardEvent) {
@@ -1122,33 +1126,19 @@ export function SocialPreviewPage() {
     setHistoryVersion((current) => current + 1);
   }
 
-  function handleLoadProject(project: SocialPreviewProjectEntry) {
-    pushHistorySnapshot();
+  useEffect(() => {
+    if (!project || loadedProjectIdRef.current === project.id) return;
+    loadedProjectIdRef.current = project.id;
     setComposition(project.composition);
-    setCurrentProjectId(project.id);
     setProjectName(project.name);
     setPreviewName(project.name);
     resetEditorTransientState();
-  }
-
-  async function handleCreateProject(nextProjectName: string) {
-    const nextComposition = createEmptySocialPreviewComposition();
-    const project = await createProject.mutateAsync({
-      name: nextProjectName,
-      composition: nextComposition,
-    });
-    setComposition(project.composition);
-    setCurrentProjectId(project.id);
-    setProjectName(project.name);
-    setPreviewName(project.name);
-    resetEditorTransientState();
-    setNewProjectDialogOpen(false);
-  }
+  }, [projectId, project]);
 
   async function handleSaveProject() {
-    if (!currentProjectId) return;
+    if (!project) return;
     await updateProject.mutateAsync({
-      id: currentProjectId,
+      id: project.id,
       data: { name: projectName, composition },
     });
   }
@@ -1180,74 +1170,31 @@ export function SocialPreviewPage() {
 
   const isSaving = uploadPreview.isPending || createPreview.isPending;
   const isSavingProject = updateProject.isPending;
-  const savedImageCardWidth = 150 + ((imageGridSize - 1) / 3) * 270;
-  const projectColumns = useMemo<Array<ColumnDef<SocialPreviewProjectEntry>>>(
-    () => [
-      {
-        id: "name",
-        header: t.nameLabel,
-        sortKey: (project) => project.name,
-        cell: (project) => (
-          <span className="block max-w-[16rem] truncate font-medium text-[var(--ds-text)]">
-            {project.name}
-          </span>
-        ),
-      },
-      {
-        id: "updatedAt",
-        header: t.updatedAtLabel,
-        sortKey: (project) => new Date(project.updatedAt).getTime(),
-        cell: (project) => (
-          <span className="whitespace-nowrap text-xs text-[var(--ds-text-muted)]">
-            {new Date(project.updatedAt).toLocaleString(locale)}
-          </span>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        className: "w-52",
-        cell: (project) => (
-          <div className="flex items-center justify-end gap-1">
-            <TableActionButton
-              type="button"
-              onClick={() => handleLoadProject(project)}
-              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
-              label={t.loadProject}
-            />
-            <DeleteActionButton
-              size="action"
-              label={common.delete}
-              disabled={deleteProject.isPending}
-              onClick={() => setDeleteProjectTargetId(project.id)}
-            />
-          </div>
-        ),
-      },
-    ],
-    [common.delete, deleteProject.isPending, locale, t.loadProject, t.nameLabel, t.updatedAtLabel],
-  );
+
+  if (!isLoadingProjects && !project) {
+    return <Navigate to="/system/social-preview" replace />;
+  }
 
   return (
     <PageLayout>
       <PageHeader
         title={t.title}
         titleContent={
-          <span className="text-sm font-medium text-[var(--ds-text-muted)]">
-            {currentProjectId ? projectName : t.noProjectLoaded}
+          <span
+            className={cx(
+              "max-w-[16rem] truncate font-serif text-lg font-semibold",
+              project ? "text-[var(--ds-text)]" : "text-[var(--ds-text-muted)]",
+            )}
+            title={project ? projectName : common.loading}
+          >
+            {project ? projectName : common.loading}
           </span>
         }
       >
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <CreateActionButton
-            label={t.newProject}
-            disabled={createProject.isPending}
-            busy={createProject.isPending}
-            onClick={() => setNewProjectDialogOpen(true)}
-          />
           <SaveActionButton
             label={isSavingProject ? common.saving : t.saveProject}
-            disabled={!currentProjectId || isSavingProject || !projectName.trim()}
+            disabled={!project || isSavingProject || !projectName.trim()}
             busy={isSavingProject}
             onClick={() => void handleSaveProject()}
           />
@@ -1259,7 +1206,7 @@ export function SocialPreviewPage() {
           />
         </div>
       </PageHeader>
-      <PageBody className="min-h-0 overflow-hidden">
+      <PageBody className="min-h-0 overflow-y-auto">
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           <DashboardSection className="shrink-0">
             <DashboardSection.Header
@@ -1444,152 +1391,13 @@ export function SocialPreviewPage() {
             </DashboardSection.Body>
           </DashboardSection>
 
-          <div className="grid min-h-0 flex-1 items-stretch gap-4 xl:grid-cols-2">
-            <DashboardSection className="flex h-full min-h-0 flex-col">
-              <DashboardSection.Header
-                icon={<SelectionIcon weight="duotone" className="size-4" />}
-                title={t.savedProjectsTitle}
-              />
-              <DashboardSection.Body className="min-h-0 flex-1 overflow-y-auto !gap-0 !p-0">
-                {isLoadingProjects ? (
-                  <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
-                ) : savedProjects.length === 0 ? (
-                  <ContentUnavailableView
-                    icon={<SelectionIcon weight="duotone" aria-hidden />}
-                    title={t.emptyProjectsTitle}
-                    subtitle={t.emptyProjectsHint}
-                  />
-                ) : (
-                  <div className="social-preview-projects-table">
-                    <DataTable
-                      columns={projectColumns}
-                      data={savedProjects}
-                      getRowKey={(project) => project.id}
-                      getRowClassName={(project) =>
-                        currentProjectId === project.id
-                          ? "ring-2 ring-inset ring-[var(--color-primary)]/40"
-                          : ""
-                      }
-                      initialSort={{ id: "updatedAt", dir: "desc" }}
-                    />
-                  </div>
-                )}
-              </DashboardSection.Body>
-            </DashboardSection>
-
-            <DashboardSection className="flex h-full min-h-0 flex-col">
-              <DashboardSection.Header
-                icon={<ImageIcon weight="duotone" className="size-4" />}
-                title={t.savedTitle}
-                addOn={
-                  <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
-                    {t.imageGridSizeLabel}
-                    <input
-                      type="range"
-                      min={1}
-                      max={4}
-                      step={0.01}
-                      value={imageGridSize}
-                      onChange={(event) => setImageGridSize(Number(event.currentTarget.value))}
-                      className="w-24 accent-[var(--color-primary)]"
-                    />
-                  </label>
-                }
-              />
-              <DashboardSection.Body className="min-h-0 flex-1 overflow-y-auto">
-                {isLoading ? (
-                  <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
-                ) : savedImages.length === 0 ? (
-                  <ContentUnavailableView
-                    icon={<ImageIcon weight="duotone" aria-hidden />}
-                    title={t.emptyTitle}
-                    subtitle={t.emptyHint}
-                  />
-                ) : (
-                  <div
-                    className="grid gap-3"
-                    style={{
-                      gridTemplateColumns: `repeat(auto-fill, minmax(0, ${savedImageCardWidth}px))`,
-                      justifyContent: "start",
-                    }}
-                  >
-                    {savedImages.map((image) => (
-                      <div
-                        key={image.id}
-                        className="group relative overflow-hidden rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
-                      >
-                        <img
-                          src={image.imageUrl}
-                          alt=""
-                          className="aspect-[1200/630] w-full object-cover"
-                        />
-                        {image.isActive ? (
-                          <span
-                            className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 border border-emerald-300/30 bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50 backdrop-blur"
-                            style={{
-                              borderRadius: "8px",
-                            }}
-                          >
-                            <CheckCircleIcon weight="duotone" className="size-3.5" />
-                            {t.activeBadge}
-                          </span>
-                        ) : null}
-                        <div
-                          className="absolute inset-x-0 bottom-0 z-[9] h-9 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                          style={{ backgroundColor: "rgb(0 0 0 / 0.45)" }}
-                        />
-                        <div className="absolute inset-x-1 bottom-1 z-10 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                          <button
-                            type="button"
-                            aria-label={t.deleteImage}
-                            title={t.deleteImage}
-                            disabled={deletePreview.isPending}
-                            onClick={() => setDeleteTargetId(image.id)}
-                            className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-red-500/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
-                            style={{
-                              borderRadius: "8px",
-                            }}
-                          >
-                            <TrashIcon weight="duotone" className="size-3.5" />
-                          </button>
-                          <div className="flex items-center gap-1">
-                            <a
-                              href={image.imageUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              aria-label={t.openImage}
-                              title={t.openImage}
-                              className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
-                              style={{
-                                borderRadius: "8px",
-                              }}
-                            >
-                              <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
-                            </a>
-                            <button
-                              type="button"
-                              aria-label={t.setActive}
-                              title={t.setActive}
-                              disabled={image.isActive || setActivePreview.isPending}
-                              onClick={() =>
-                                setActivePreview.mutate({ id: image.id, active: true })
-                              }
-                              className="flex size-7 items-center justify-center border border-emerald-300/35 bg-emerald-500/20 text-emerald-50 backdrop-blur hover:bg-emerald-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
-                              style={{
-                                borderRadius: "8px",
-                              }}
-                            >
-                              <CheckCircleIcon weight="duotone" className="size-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </DashboardSection.Body>
-            </DashboardSection>
-          </div>
+          <LivePreviewSection
+            messages={t}
+            commonMessages={common}
+            blob={previewBlob}
+            renderError={renderError}
+            effectiveQuality={effectiveQuality}
+          />
         </div>
       </PageBody>
 
@@ -1605,16 +1413,6 @@ export function SocialPreviewPage() {
           onQualityChange={setQuality}
         />
       </PageFooter>
-
-      <NewProjectDialog
-        open={newProjectDialogOpen}
-        messages={t}
-        commonMessages={common}
-        busy={createProject.isPending}
-        onCancel={() => setNewProjectDialogOpen(false)}
-        onSubmit={(nextProjectName) => void handleCreateProject(nextProjectName)}
-      />
-
       {browserMode ? (
         <UnsplashBrowser
           defaultQuery=""
@@ -1635,11 +1433,230 @@ export function SocialPreviewPage() {
           onClose={() => setBrowserMode(null)}
         />
       ) : null}
+    </PageLayout>
+  );
+}
+
+function LivePreviewSection({
+  messages,
+  commonMessages,
+  blob,
+  renderError,
+  effectiveQuality,
+}: {
+  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  commonMessages: ReturnType<typeof useI18n>["messages"]["common"];
+  blob: Blob | null;
+  renderError: string | null;
+  effectiveQuality: number;
+}) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const previewSizeBytes = blob?.size ?? null;
+
+  useEffect(() => {
+    if (!blob) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    setPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [blob]);
+
+  return (
+    <DashboardSection className="w-full shrink-0 xl:w-1/2">
+      <DashboardSection.Header
+        icon={<ImageIcon weight="duotone" className="size-4" />}
+        title={messages.livePreviewTitle}
+      />
+      <DashboardSection.Body>
+        {renderError ? (
+          <p className="text-sm text-red-500">{renderError}</p>
+        ) : previewUrl && previewSizeBytes !== null ? (
+          <div className="flex min-h-0 flex-col gap-3">
+            <div className="overflow-hidden rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)]">
+              <img
+                src={previewUrl}
+                alt=""
+                className="block aspect-[1200/630] w-full object-contain"
+              />
+            </div>
+            <p className="shrink-0 text-xs text-[var(--ds-text-muted)]">
+              {messages.previewMeta
+                .replace("{size}", formatBytes(previewSizeBytes))
+                .replace("{quality}", String(effectiveQuality))}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--ds-text-muted)]">{commonMessages.loading}</p>
+        )}
+      </DashboardSection.Body>
+    </DashboardSection>
+  );
+}
+
+function SocialPreviewImagesPage() {
+  const { messages } = useI18n();
+  const t = messages.system.socialPreview;
+
+  return (
+    <PageLayout>
+      <PageHeader
+        title={t.title}
+        titleContent={
+          <span className="max-w-[16rem] truncate font-serif text-lg font-semibold text-[var(--ds-text)]">
+            {t.imagesNavLabel}
+          </span>
+        }
+      />
+      <PageBody className="min-h-0 overflow-hidden">
+        <SavedPreviewImagesSection />
+      </PageBody>
+    </PageLayout>
+  );
+}
+
+function SocialPreviewOverviewPage() {
+  const { messages, locale } = useI18n();
+  const t = messages.system.socialPreview;
+  const common = messages.common;
+  const navigate = useNavigate();
+  const { data: savedProjects = [], isLoading: isLoadingProjects } = useSocialPreviewProjects();
+  const createProject = useCreateSocialPreviewProject();
+  const deleteProject = useDeleteSocialPreviewProject();
+  const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
+  const [deleteProjectTargetId, setDeleteProjectTargetId] = useState<number | null>(null);
+
+  async function handleCreateProject(nextProjectName: string) {
+    const project = await createProject.mutateAsync({
+      name: nextProjectName,
+      composition: createEmptySocialPreviewComposition(),
+    });
+    setNewProjectDialogOpen(false);
+    void navigate(`/system/social-preview/${project.id}`);
+  }
+
+  const projectColumns = useMemo<Array<ColumnDef<SocialPreviewProjectEntry>>>(
+    () => [
+      {
+        id: "thumbnail",
+        header: "",
+        className: "w-28",
+        cell: (project) => <SocialPreviewProjectThumbnail composition={project.composition} />,
+      },
+      {
+        id: "name",
+        header: t.nameLabel,
+        sortKey: (project) => project.name,
+        cell: (project) => (
+          <button
+            type="button"
+            onClick={() => navigate(`/system/social-preview/${project.id}`)}
+            className="block max-w-[22rem] truncate text-left font-medium text-[var(--ds-text)] hover:underline"
+          >
+            {project.name}
+          </button>
+        ),
+      },
+      {
+        id: "updatedAt",
+        header: t.updatedAtLabel,
+        sortKey: (project) => new Date(project.updatedAt).getTime(),
+        cell: (project) => (
+          <span className="whitespace-nowrap text-xs text-[var(--ds-text-muted)]">
+            {new Date(project.updatedAt).toLocaleString(locale)}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "",
+        className: "w-52",
+        cell: (project) => (
+          <div className="flex items-center justify-end gap-1">
+            <TableActionButton
+              type="button"
+              onClick={() => navigate(`/system/social-preview/${project.id}`)}
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
+              label={t.loadProject}
+            />
+            <DeleteActionButton
+              size="action"
+              label={common.delete}
+              disabled={deleteProject.isPending}
+              onClick={() => setDeleteProjectTargetId(project.id)}
+            />
+          </div>
+        ),
+      },
+    ],
+    [
+      common.delete,
+      deleteProject.isPending,
+      locale,
+      navigate,
+      t.loadProject,
+      t.nameLabel,
+      t.updatedAtLabel,
+    ],
+  );
+
+  return (
+    <PageLayout>
+      <PageHeader title={t.title}>
+        <CreateActionButton
+          label={t.newProject}
+          disabled={createProject.isPending}
+          busy={createProject.isPending}
+          onClick={() => setNewProjectDialogOpen(true)}
+        />
+      </PageHeader>
+
+      <PageBody className="min-h-0 overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <DashboardSection className="flex min-h-0 flex-col">
+            <DashboardSection.Header
+              icon={<SelectionIcon weight="duotone" className="size-4" />}
+              title={t.savedProjectsTitle}
+            />
+            <DashboardSection.Body className="min-h-0 flex-1 overflow-y-auto !gap-0 !p-0">
+              {isLoadingProjects ? (
+                <p className="p-4 text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
+              ) : savedProjects.length === 0 ? (
+                <ContentUnavailableView
+                  icon={<SelectionIcon weight="duotone" aria-hidden />}
+                  title={t.emptyProjectsTitle}
+                  subtitle={t.emptyProjectsHint}
+                />
+              ) : (
+                <div className="social-preview-projects-table">
+                  <DataTable
+                    columns={projectColumns}
+                    data={savedProjects}
+                    getRowKey={(project) => project.id}
+                    initialSort={{ id: "updatedAt", dir: "desc" }}
+                  />
+                </div>
+              )}
+            </DashboardSection.Body>
+          </DashboardSection>
+        </div>
+      </PageBody>
+
+      <NewProjectDialog
+        open={newProjectDialogOpen}
+        messages={t}
+        commonMessages={common}
+        busy={createProject.isPending}
+        onCancel={() => setNewProjectDialogOpen(false)}
+        onSubmit={(nextProjectName) => void handleCreateProject(nextProjectName)}
+      />
 
       <DeleteConfirmDialog
         open={deleteProjectTargetId !== null}
-        title={t.deleteConfirmTitle}
-        description={t.deleteConfirmDescription}
+        title={t.deleteProjectConfirmTitle}
+        description={t.deleteProjectConfirmDescription}
         cancelLabel={common.cancel}
         deleteLabel={common.delete}
         isPending={deleteProject.isPending}
@@ -1647,16 +1664,171 @@ export function SocialPreviewPage() {
         onConfirm={() => {
           if (deleteProjectTargetId === null) return;
           deleteProject.mutate(deleteProjectTargetId, {
-            onSuccess: () => {
-              if (currentProjectId === deleteProjectTargetId) {
-                setCurrentProjectId(null);
-                setProjectName("");
-              }
-              setDeleteProjectTargetId(null);
-            },
+            onSuccess: () => setDeleteProjectTargetId(null),
           });
         }}
       />
+    </PageLayout>
+  );
+}
+
+function SocialPreviewProjectThumbnail({ composition }: { composition: SocialPreviewComposition }) {
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    renderSocialPreviewBlob(composition, "image/jpeg", 70, null)
+      .then((result) => {
+        objectUrl = URL.createObjectURL(result.blob);
+        if (cancelled) {
+          URL.revokeObjectURL(objectUrl);
+          return;
+        }
+        setSrc(objectUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setSrc(null);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [composition]);
+
+  return (
+    <div className="flex h-12 w-24 items-center justify-center overflow-hidden rounded border border-[var(--ds-border)] bg-[var(--ds-bg-elevated)]">
+      {src ? (
+        <img src={src} alt="" className="size-full object-cover" />
+      ) : (
+        <ImageIcon weight="duotone" className="size-5 text-[var(--ds-text-muted)]" />
+      )}
+    </div>
+  );
+}
+
+function SavedPreviewImagesSection() {
+  const { messages } = useI18n();
+  const t = messages.system.socialPreview;
+  const common = messages.common;
+  const { data: savedImages = [], isLoading } = useSocialPreviewImages();
+  const setActivePreview = useSetActiveSocialPreviewImage();
+  const deletePreview = useDeleteSocialPreviewImage();
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [imageGridSize, setImageGridSize] = useState(() => {
+    const stored = window.localStorage.getItem("social-preview-export-grid-size");
+    const value = stored ? Number(stored) : 3;
+    return Number.isFinite(value) ? clamp(value, 1, 4) : 3;
+  });
+  const savedImageCardWidth = 150 + ((imageGridSize - 1) / 3) * 270;
+
+  useEffect(() => {
+    window.localStorage.setItem("social-preview-export-grid-size", String(imageGridSize));
+  }, [imageGridSize]);
+
+  return (
+    <DashboardSection className="flex min-h-0 flex-1 flex-col">
+      <DashboardSection.Header
+        icon={<ImageIcon weight="duotone" className="size-4" />}
+        title={t.savedTitle}
+        addOn={
+          <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
+            {t.imageGridSizeLabel}
+            <input
+              type="range"
+              min={1}
+              max={4}
+              step={0.01}
+              value={imageGridSize}
+              onChange={(event) => setImageGridSize(Number(event.currentTarget.value))}
+              className="w-24 accent-[var(--color-primary)]"
+            />
+          </label>
+        }
+      />
+      <DashboardSection.Body className="min-h-0 flex-1 overflow-y-auto">
+        {isLoading ? (
+          <p className="text-sm text-[var(--ds-text-muted)]">{common.loading}</p>
+        ) : savedImages.length === 0 ? (
+          <ContentUnavailableView
+            icon={<ImageIcon weight="duotone" aria-hidden />}
+            title={t.emptyTitle}
+            subtitle={t.emptyHint}
+          />
+        ) : (
+          <div
+            className="grid gap-3"
+            style={{
+              gridTemplateColumns: `repeat(auto-fill, minmax(0, ${savedImageCardWidth}px))`,
+              justifyContent: "start",
+            }}
+          >
+            {savedImages.map((image) => (
+              <div
+                key={image.id}
+                className="group relative overflow-hidden rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
+              >
+                <img
+                  src={image.imageUrl}
+                  alt=""
+                  className="aspect-[1200/630] w-full object-cover"
+                />
+                {image.isActive ? (
+                  <span
+                    className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 border border-emerald-300/30 bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50 backdrop-blur"
+                    style={{ borderRadius: "8px" }}
+                  >
+                    <CheckCircleIcon weight="duotone" className="size-3.5" />
+                    {t.activeBadge}
+                  </span>
+                ) : null}
+                <div
+                  className="absolute inset-x-0 bottom-0 z-[9] h-9 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                  style={{ backgroundColor: "rgb(0 0 0 / 0.45)" }}
+                />
+                <div className="absolute inset-x-1 bottom-1 z-10 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                  <button
+                    type="button"
+                    aria-label={t.deleteImage}
+                    title={t.deleteImage}
+                    disabled={deletePreview.isPending}
+                    onClick={() => setDeleteTargetId(image.id)}
+                    className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-red-500/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
+                    style={{ borderRadius: "8px" }}
+                  >
+                    <TrashIcon weight="duotone" className="size-3.5" />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <a
+                      href={image.imageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t.openImage}
+                      title={t.openImage}
+                      className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
+                      style={{ borderRadius: "8px" }}
+                    >
+                      <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
+                    </a>
+                    <button
+                      type="button"
+                      aria-label={t.setActive}
+                      title={t.setActive}
+                      disabled={image.isActive || setActivePreview.isPending}
+                      onClick={() => setActivePreview.mutate({ id: image.id, active: true })}
+                      className="flex size-7 items-center justify-center border border-emerald-300/35 bg-emerald-500/20 text-emerald-50 backdrop-blur hover:bg-emerald-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                      style={{ borderRadius: "8px" }}
+                    >
+                      <CheckCircleIcon weight="duotone" className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </DashboardSection.Body>
 
       <DeleteConfirmDialog
         open={deleteTargetId !== null}
@@ -1671,7 +1843,7 @@ export function SocialPreviewPage() {
           deletePreview.mutate(deleteTargetId, { onSuccess: () => setDeleteTargetId(null) });
         }}
       />
-    </PageLayout>
+    </DashboardSection>
   );
 }
 
