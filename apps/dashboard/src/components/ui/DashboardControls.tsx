@@ -26,12 +26,6 @@ import {
   type TextareaPrimitiveProps,
 } from "@lmaa/ui/field-primitives";
 import { ControlTrigger, ListboxOption, ListboxPopover } from "@lmaa/ui/listbox-primitives";
-import {
-  MenuItemPrimitive,
-  MenuPrimitive,
-  type MenuItemPrimitiveProps,
-  type MenuPrimitiveProps,
-} from "@lmaa/ui/menu-primitives";
 import { MultiSelect, type MultiSelectProps } from "@lmaa/ui/multi-select";
 import {
   SegmentedControlPrimitive,
@@ -802,14 +796,6 @@ export function DashboardSegmentedControl<T extends string = string>(
   props: SegmentedControlPrimitiveProps<T>,
 ) {
   return <SegmentedControlPrimitive {...props} />;
-}
-
-export function DashboardMenu(props: MenuPrimitiveProps) {
-  return <MenuPrimitive {...props} />;
-}
-
-export function DashboardMenuItem(props: MenuItemPrimitiveProps) {
-  return <MenuItemPrimitive {...props} />;
 }
 
 export type TableSortDirection = "asc" | "desc" | null;

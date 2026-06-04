@@ -2,18 +2,24 @@ import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
   ArrowSquareOutIcon,
-  ArrowsOutCardinalIcon,
+  ArrowsHorizontalIcon,
+  ArrowsOutLineHorizontalIcon,
+  ArrowsOutLineVerticalIcon,
+  ArrowsVerticalIcon,
   FileTextIcon,
   BoundingBoxIcon,
   CheckCircleIcon,
+  CircleHalfIcon,
   CircleIcon,
   CornersOutIcon,
   DropIcon,
   EyeIcon,
   EyeSlashIcon,
-  FrameCornersIcon,
   HexagonIcon,
   ImageIcon,
+  ImagesIcon,
+  LockKeyIcon,
+  LockKeyOpenIcon,
   PaletteIcon,
   PencilSimpleIcon,
   PlusIcon,
@@ -21,6 +27,7 @@ import {
   RectangleIcon,
   RulerIcon,
   SelectionIcon,
+  SunDimIcon,
   TextAlignCenterIcon,
   TextAlignLeftIcon,
   TextAlignRightIcon,
@@ -28,7 +35,9 @@ import {
   TextBIcon,
   TextItalicIcon,
   TextTIcon,
+  TextUnderlineIcon,
   TrashIcon,
+  VectorTwoIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
@@ -44,10 +53,10 @@ import type {
   SocialPreviewShapeLayer,
   SocialPreviewTextLayer,
 } from "@lmaa/contracts";
+import type { MediaAsset } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
-import { ContextMenu, type ContextMenuEntry } from "@/components/ui/ContextMenu.tsx";
 import {
   CancelActionButton,
   CreateActionButton,
@@ -60,10 +69,12 @@ import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
+import { SubMenu } from "@/components/ui/SubMenu.tsx";
 import { DataTable, type ColumnDef } from "@/components/ui/Table.tsx";
 import { TableActionButton } from "@/components/ui/TableActionButton.tsx";
 import { UnsplashBrowser } from "@/components/ui/UnsplashBrowser.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
+import { useAdminMedia } from "@/features/system/hooks/useAdminMedia.ts";
 import {
   useCreateSocialPreviewImage,
   useCreateSocialPreviewProject,
@@ -78,6 +89,8 @@ import {
   useUpdateSocialPreviewProject,
   useUploadSocialPreviewAsset,
 } from "@/features/system/hooks/useSocialPreviewImages.ts";
+import { isImageAsset } from "@/features/system/media/media-utils.ts";
+import { MediaGridItem } from "@/features/system/media/MediaGridItem.tsx";
 import {
   createEmptySocialPreviewComposition,
   createImageLayer,
@@ -189,6 +202,18 @@ function getImageTintOpacity(layer: SocialPreviewImageLayer) {
   return layer.tintOpacity ?? 0;
 }
 
+function getImageBrightness(layer: SocialPreviewImageLayer) {
+  return layer.brightness ?? 1;
+}
+
+function getImageContrast(layer: SocialPreviewImageLayer) {
+  return layer.contrast ?? 1;
+}
+
+function getImageFilter(layer: SocialPreviewImageLayer) {
+  return `brightness(${getImageBrightness(layer)}) contrast(${getImageContrast(layer)})`;
+}
+
 type TextStylePatch = Partial<
   Pick<
     SocialPreviewTextLayer,
@@ -196,6 +221,7 @@ type TextStylePatch = Partial<
     | "fontSize"
     | "fontWeight"
     | "fontStyle"
+    | "textDecoration"
     | "color"
     | "lineHeight"
     | "letterSpacing"
@@ -207,6 +233,7 @@ const TEXT_STYLE_KEYS = [
   "fontSize",
   "fontWeight",
   "fontStyle",
+  "textDecoration",
   "color",
   "lineHeight",
   "letterSpacing",
@@ -218,6 +245,7 @@ function getTextStyleAt(layer: SocialPreviewTextLayer, index: number) {
     fontSize: layer.fontSize,
     fontWeight: layer.fontWeight,
     fontStyle: layer.fontStyle,
+    textDecoration: layer.textDecoration ?? "none",
     color: layer.color,
     lineHeight: layer.lineHeight,
     letterSpacing: layer.letterSpacing,
@@ -236,6 +264,7 @@ function getTextStyleAt(layer: SocialPreviewTextLayer, index: number) {
     if (range.fontSize !== undefined) style.fontSize = range.fontSize;
     if (range.fontWeight !== undefined) style.fontWeight = range.fontWeight;
     if (range.fontStyle !== undefined) style.fontStyle = range.fontStyle;
+    if (range.textDecoration !== undefined) style.textDecoration = range.textDecoration;
     if (range.color !== undefined) style.color = range.color;
     if (range.lineHeight !== undefined) style.lineHeight = range.lineHeight;
     if (range.letterSpacing !== undefined) style.letterSpacing = range.letterSpacing;
@@ -255,6 +284,7 @@ function renderTextWithStyleRanges(layer: SocialPreviewTextLayer) {
           fontSize: style.fontSize,
           fontWeight: style.fontWeight,
           fontStyle: style.fontStyle,
+          textDecoration: style.textDecoration,
           color: style.color,
           lineHeight: style.lineHeight,
           letterSpacing: style.letterSpacing,
@@ -687,6 +717,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const uploadPreview = useUploadSocialPreviewAsset();
   const importRemotePreviewAsset = useImportRemoteSocialPreviewAsset();
   const createPreview = useCreateSocialPreviewImage();
+  const { data: mediaAssets = [], isLoading: isLoadingMediaAssets } = useAdminMedia();
 
   const [composition, setComposition] = useState<SocialPreviewComposition>(() =>
     createEmptySocialPreviewComposition(),
@@ -696,6 +727,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const [editingTextLayerId, setEditingTextLayerId] = useState<string | null>(null);
   const [textSelection, setTextSelection] = useState<TextSelectionRange | null>(null);
   const [browserMode, setBrowserMode] = useState<"layer" | null>(null);
+  const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
   const [format, setFormat] = useState<SocialPreviewFormat>("image/jpeg");
@@ -729,6 +761,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
   const selectedLayerLocked = isLayerLocked(selectedLayer);
   const canUndo = historyRef.current.length > 0;
   const canRedo = futureRef.current.length > 0;
+  const imageAssets = useMemo(() => mediaAssets.filter(isImageAsset), [mediaAssets]);
   void historyVersion;
 
   function pushHistorySnapshot(snapshot = composition) {
@@ -1358,6 +1391,10 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                     setActiveTool("image");
                     setBrowserMode("layer");
                   }}
+                  onAddImageFromAssets={() => {
+                    setActiveTool("image");
+                    setAssetPickerOpen(true);
+                  }}
                   onAddImageFromComputer={() => imageFileInputRef.current?.click()}
                   onAddShape={() => {
                     const layer = createShapeLayer();
@@ -1528,6 +1565,18 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
           onClose={() => setBrowserMode(null)}
         />
       ) : null}
+      <AssetImagePickerDialog
+        open={assetPickerOpen}
+        messages={t}
+        commonMessages={common}
+        assets={imageAssets}
+        loading={isLoadingMediaAssets}
+        onClose={() => setAssetPickerOpen(false)}
+        onSelect={(asset) => {
+          void addImageLayer(asset.url, asset.displayName);
+          setAssetPickerOpen(false);
+        }}
+      />
     </PageLayout>
   );
 }
@@ -1762,7 +1811,11 @@ function LayerSidebar({
                       onToggleLayerLock(layer.id);
                     }}
                   >
-                    {locked ? "🔒" : "🔓"}
+                    {locked ? (
+                      <LockKeyIcon weight="duotone" className="size-3.5" />
+                    ) : (
+                      <LockKeyOpenIcon weight="duotone" className="size-3.5" />
+                    )}
                   </button>
                 </div>
               );
@@ -1881,38 +1934,6 @@ function SocialPreviewOverviewPage() {
     setNewProjectDialogOpen(false);
     void navigate(`/system/social-preview/${project.id}`);
   }
-
-  const projectContextMenuItems = useMemo<ContextMenuEntry[]>(() => {
-    const project = projectContextMenu?.project;
-    if (!project) return [];
-    return [
-      {
-        label: t.renameAction,
-        icon: <PencilSimpleIcon weight="duotone" className="size-3.5" />,
-        onClick: () => setRenameProjectTarget(project),
-      },
-      {
-        label: t.loadProject,
-        icon: <FileTextIcon weight="duotone" className="size-3.5" />,
-        onClick: () => navigate(`/system/social-preview/${project.id}`),
-      },
-      { separator: true },
-      {
-        label: common.delete,
-        icon: <TrashIcon weight="duotone" className="size-3.5" />,
-        danger: true,
-        disabled: deleteProject.isPending,
-        onClick: () => setDeleteProjectTargetId(project.id),
-      },
-    ];
-  }, [
-    common.delete,
-    deleteProject.isPending,
-    navigate,
-    projectContextMenu?.project,
-    t.loadProject,
-    t.renameAction,
-  ]);
 
   const projectColumns = useMemo<Array<ColumnDef<SocialPreviewProjectEntry>>>(
     () => [
@@ -2057,11 +2078,39 @@ function SocialPreviewOverviewPage() {
         }}
       />
 
-      <ContextMenu
+      <SubMenu
+        open={projectContextMenu !== null}
         origin={projectContextMenu?.origin ?? null}
-        onClose={() => setProjectContextMenu(null)}
-        items={projectContextMenuItems}
-      />
+        onOpenChange={(open) => {
+          if (!open) setProjectContextMenu(null);
+        }}
+      >
+        {projectContextMenu ? (
+          <>
+            <SubMenu.Item
+              icon={<PencilSimpleIcon weight="duotone" className="size-3.5" />}
+              onSelect={() => setRenameProjectTarget(projectContextMenu.project)}
+            >
+              {t.renameAction}
+            </SubMenu.Item>
+            <SubMenu.Item
+              icon={<FileTextIcon weight="duotone" className="size-3.5" />}
+              onSelect={() => navigate(`/system/social-preview/${projectContextMenu.project.id}`)}
+            >
+              {t.loadProject}
+            </SubMenu.Item>
+            <SubMenu.Item separator />
+            <SubMenu.Item
+              disabled={deleteProject.isPending}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
+              onSelect={() => setDeleteProjectTargetId(projectContextMenu.project.id)}
+              variant="danger"
+            >
+              {common.delete}
+            </SubMenu.Item>
+          </>
+        ) : null}
+      </SubMenu>
 
       <DeleteConfirmDialog
         open={deleteProjectTargetId !== null}
@@ -2139,55 +2188,6 @@ function SavedPreviewImagesSection() {
     return Number.isFinite(value) ? clamp(value, 1, 4) : 3;
   });
   const savedImageCardWidth = 150 + ((imageGridSize - 1) / 3) * 270;
-  const contextMenuItems = useMemo<ContextMenuEntry[]>(() => {
-    const image = contextMenu?.image;
-    if (!image) return [];
-    return [
-      {
-        label: t.renameAction,
-        icon: <PencilSimpleIcon weight="duotone" className="size-3.5" />,
-        onClick: () => setRenameTarget(image),
-      },
-      {
-        label: t.openImage,
-        icon: <ArrowSquareOutIcon weight="duotone" className="size-3.5" />,
-        onClick: () => window.open(image.imageUrl, "_blank", "noopener,noreferrer"),
-      },
-      {
-        label: image.isDefault ? t.defaultBadge : t.setDefault,
-        icon: <StarIcon weight="duotone" className="size-3.5" />,
-        disabled: image.isDefault || setDefaultPreview.isPending,
-        onClick: () => setDefaultPreview.mutate({ id: image.id, isDefault: true }),
-      },
-      {
-        label: image.isActive ? t.unsetActive : t.setActive,
-        icon: <CheckCircleIcon weight="duotone" className="size-3.5" />,
-        disabled: setActivePreview.isPending,
-        onClick: () => setActivePreview.mutate({ id: image.id, active: !image.isActive }),
-      },
-      { separator: true },
-      {
-        label: common.delete,
-        icon: <TrashIcon weight="duotone" className="size-3.5" />,
-        danger: true,
-        disabled: deletePreview.isPending,
-        onClick: () => setDeleteTargetId(image.id),
-      },
-    ];
-  }, [
-    common.delete,
-    contextMenu?.image,
-    deletePreview.isPending,
-    setActivePreview,
-    setDefaultPreview,
-    t.defaultBadge,
-    t.openImage,
-    t.renameAction,
-    t.setActive,
-    t.setDefault,
-    t.unsetActive,
-  ]);
-
   useEffect(() => {
     window.localStorage.setItem("social-preview-export-grid-size", String(imageGridSize));
   }, [imageGridSize]);
@@ -2354,11 +2354,62 @@ function SavedPreviewImagesSection() {
         }}
       />
 
-      <ContextMenu
+      <SubMenu
+        open={contextMenu !== null}
         origin={contextMenu?.origin ?? null}
-        onClose={() => setContextMenu(null)}
-        items={contextMenuItems}
-      />
+        onOpenChange={(open) => {
+          if (!open) setContextMenu(null);
+        }}
+      >
+        {contextMenu ? (
+          <>
+            <SubMenu.Item
+              icon={<PencilSimpleIcon weight="duotone" className="size-3.5" />}
+              onSelect={() => setRenameTarget(contextMenu.image)}
+            >
+              {t.renameAction}
+            </SubMenu.Item>
+            <SubMenu.Item
+              icon={<ArrowSquareOutIcon weight="duotone" className="size-3.5" />}
+              onSelect={() =>
+                window.open(contextMenu.image.imageUrl, "_blank", "noopener,noreferrer")
+              }
+            >
+              {t.openImage}
+            </SubMenu.Item>
+            <SubMenu.Item
+              disabled={contextMenu.image.isDefault || setDefaultPreview.isPending}
+              icon={<StarIcon weight="duotone" className="size-3.5" />}
+              onSelect={() =>
+                setDefaultPreview.mutate({ id: contextMenu.image.id, isDefault: true })
+              }
+            >
+              {contextMenu.image.isDefault ? t.defaultBadge : t.setDefault}
+            </SubMenu.Item>
+            <SubMenu.Item
+              disabled={setActivePreview.isPending}
+              icon={<CheckCircleIcon weight="duotone" className="size-3.5" />}
+              onSelect={() =>
+                setActivePreview.mutate({
+                  id: contextMenu.image.id,
+                  active: !contextMenu.image.isActive,
+                })
+              }
+            >
+              {contextMenu.image.isActive ? t.unsetActive : t.setActive}
+            </SubMenu.Item>
+            <SubMenu.Item separator />
+            <SubMenu.Item
+              disabled={deletePreview.isPending}
+              icon={<TrashIcon weight="duotone" className="size-3.5" />}
+              onSelect={() => setDeleteTargetId(contextMenu.image.id)}
+              variant="danger"
+            >
+              {common.delete}
+            </SubMenu.Item>
+          </>
+        ) : null}
+      </SubMenu>
 
       <DeleteConfirmDialog
         open={deleteTargetId !== null}
@@ -2495,6 +2546,75 @@ function RenameDialog({
   );
 }
 
+function AssetImagePickerDialog({
+  open,
+  messages,
+  commonMessages,
+  assets,
+  loading,
+  onClose,
+  onSelect,
+}: {
+  open: boolean;
+  messages: ReturnType<typeof useI18n>["messages"]["system"]["socialPreview"];
+  commonMessages: ReturnType<typeof useI18n>["messages"]["common"];
+  assets: MediaAsset[];
+  loading: boolean;
+  onClose: () => void;
+  onSelect: (asset: MediaAsset) => void;
+}) {
+  if (!open) return null;
+
+  return (
+    <Dialog
+      open
+      title={messages.assetPickerTitle}
+      titleIcon={<ImageIcon weight="duotone" className={dialogHeaderIconClass} />}
+      onClose={onClose}
+    >
+      <div className="max-h-[min(70vh,42rem)] min-h-[18rem] overflow-y-auto px-6 py-3">
+        {loading ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
+            {Array.from({ length: 8 }, (_, index) => `asset-picker-skeleton-${index}`).map(
+              (key) => (
+                <div key={key} className="space-y-2">
+                  <div className="aspect-square animate-pulse rounded-[var(--radius-card)] bg-[var(--ds-bg-elevated)]" />
+                  <div className="mx-2 h-3 animate-pulse rounded bg-[var(--ds-bg-elevated)]" />
+                </div>
+              ),
+            )}
+          </div>
+        ) : assets.length === 0 ? (
+          <div className="flex min-h-[18rem] items-center justify-center">
+            <ContentUnavailableView
+              chromeless
+              icon={<ImageIcon weight="duotone" aria-hidden />}
+              title={messages.assetPickerEmpty}
+              subtitle={messages.assetPickerEmptyHint}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
+            {assets.map((asset) => (
+              <MediaGridItem
+                key={asset.id}
+                asset={asset}
+                selected={false}
+                showText
+                title={asset.displayName}
+                onSelect={() => onSelect(asset)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      <Dialog.Footer>
+        <CancelActionButton label={commonMessages.cancel} onClick={onClose} />
+      </Dialog.Footer>
+    </Dialog>
+  );
+}
+
 function FooterExportControls({
   messages,
   format,
@@ -2558,6 +2678,7 @@ function CanvasToolbar({
   onRedo,
   onAddText,
   onAddImageFromUnsplash,
+  onAddImageFromAssets,
   onAddImageFromComputer,
   onAddShape,
   onDeleteLayer,
@@ -2571,6 +2692,7 @@ function CanvasToolbar({
   onRedo: () => void;
   onAddText: () => void;
   onAddImageFromUnsplash: () => void;
+  onAddImageFromAssets: () => void;
   onAddImageFromComputer: () => void;
   onAddShape: () => void;
   onDeleteLayer: () => void;
@@ -2580,29 +2702,8 @@ function CanvasToolbar({
   const activeClass =
     "bg-[var(--ds-surface-hover)] text-[var(--ds-text)] ring-1 ring-[var(--ds-border)]";
 
-  const [imageMenuOpen, setImageMenuOpen] = useState(false);
-  const imageMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!imageMenuOpen) return;
-
-    function handleDocumentPointerDown(event: PointerEvent) {
-      const target = event.target;
-      if (target instanceof Node && imageMenuRef.current?.contains(target)) return;
-      setImageMenuOpen(false);
-    }
-
-    function handleDocumentKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setImageMenuOpen(false);
-    }
-
-    document.addEventListener("pointerdown", handleDocumentPointerDown);
-    document.addEventListener("keydown", handleDocumentKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handleDocumentPointerDown);
-      document.removeEventListener("keydown", handleDocumentKeyDown);
-    };
-  }, [imageMenuOpen]);
+  const [imageMenuOrigin, setImageMenuOrigin] = useState<{ x: number; y: number } | null>(null);
+  const imageMenuTriggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <div
@@ -2618,49 +2719,63 @@ function CanvasToolbar({
       >
         <TextTIcon weight="duotone" className="size-5" />
       </button>
-      <div ref={imageMenuRef} className="relative">
+      <div className="relative">
         <button
+          ref={imageMenuTriggerRef}
           type="button"
           className={cx(buttonClass, activeTool === "image" && activeClass)}
           aria-label={messages.addImage}
           title={messages.addImage}
           aria-haspopup="menu"
-          aria-expanded={imageMenuOpen}
-          onClick={() => setImageMenuOpen((open) => !open)}
+          aria-expanded={imageMenuOrigin !== null}
+          onClick={(event) => {
+            if (imageMenuOrigin) {
+              setImageMenuOrigin(null);
+              return;
+            }
+            const rect = event.currentTarget.getBoundingClientRect();
+            setImageMenuOrigin({ x: rect.right + 8, y: rect.top });
+          }}
         >
           <ImageIcon weight="duotone" className="size-5" />
         </button>
-        {imageMenuOpen ? (
-          <div
-            role="menu"
-            className="absolute left-10 top-0 z-50 min-w-36 overflow-hidden rounded-control border border-[var(--ds-border)] bg-[var(--ds-surface)] p-1 text-xs text-[var(--ds-text)] shadow-xl"
+        <SubMenu
+          autoFocus={false}
+          open={imageMenuOrigin !== null}
+          origin={imageMenuOrigin}
+          onOpenChange={(open) => {
+            if (!open) setImageMenuOrigin(null);
+          }}
+          triggerRef={imageMenuTriggerRef}
+        >
+          <SubMenu.Item
+            icon={<ImagesIcon weight="duotone" className="size-4" />}
+            onSelect={() => {
+              setImageMenuOrigin(null);
+              onAddImageFromAssets();
+            }}
           >
-            <button
-              type="button"
-              role="menuitem"
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-[var(--ds-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
-              onClick={() => {
-                setImageMenuOpen(false);
-                onAddImageFromUnsplash();
-              }}
-            >
-              <ImageIcon weight="duotone" className="size-4" />
-              {messages.imageSourceUnsplash}
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-[var(--ds-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
-              onClick={() => {
-                setImageMenuOpen(false);
-                onAddImageFromComputer();
-              }}
-            >
-              <PlusIcon weight="duotone" className="size-4" />
-              {messages.imageSourceComputer}
-            </button>
-          </div>
-        ) : null}
+            {messages.imageSourceAssets}
+          </SubMenu.Item>
+          <SubMenu.Item
+            icon={<PlusIcon weight="duotone" className="size-4" />}
+            onSelect={() => {
+              setImageMenuOrigin(null);
+              onAddImageFromComputer();
+            }}
+          >
+            {messages.imageSourceComputer}
+          </SubMenu.Item>
+          <SubMenu.Item
+            icon={<ImageIcon weight="duotone" className="size-4" />}
+            onSelect={() => {
+              setImageMenuOrigin(null);
+              onAddImageFromUnsplash();
+            }}
+          >
+            {messages.imageSourceUnsplash}
+          </SubMenu.Item>
+        </SubMenu>
       </div>
       <button
         type="button"
@@ -2811,6 +2926,7 @@ function LayerContent({
       fontSize: layer.fontSize,
       fontWeight: layer.fontWeight,
       fontStyle: layer.fontStyle,
+      textDecoration: layer.textDecoration ?? "none",
       color: layer.color,
       textAlign: layer.align,
       lineHeight: layer.lineHeight,
@@ -2873,6 +2989,7 @@ function LayerContent({
   }
 
   const imageTransform = `translate(${getImageOffsetX(layer)}px, ${getImageOffsetY(layer)}px) scale(${getImageZoom(layer)})`;
+  const imageFilter = getImageFilter(layer);
 
   return (
     <div className="relative size-full overflow-hidden">
@@ -2881,7 +2998,7 @@ function LayerContent({
         alt={layer.alt ?? ""}
         className="size-full object-cover"
         draggable={false}
-        style={{ transform: imageTransform }}
+        style={{ filter: imageFilter, transform: imageTransform }}
       />
       {getImageTintOpacity(layer) > 0 ? (
         <div
@@ -3101,33 +3218,34 @@ function LayerAttributes({
 }) {
   return (
     <>
-      <AttributeLabel
-        title="X"
-        icon={<ArrowsOutCardinalIcon weight="duotone" className="size-4" />}
-      >
-        <AttributeInput
-          aria-label="X"
-          type="number"
-          value={Math.round(layer.x)}
-          className="w-16"
-          onChange={(event) => onChange({ x: Number(event.currentTarget.value) || 0 })}
-        />
-      </AttributeLabel>
-      <AttributeLabel
-        title="Y"
-        icon={<ArrowsOutCardinalIcon weight="duotone" className="size-4 rotate-90" />}
-      >
-        <AttributeInput
-          aria-label="Y"
-          type="number"
-          value={Math.round(layer.y)}
-          className="w-16"
-          onChange={(event) => onChange({ y: Number(event.currentTarget.value) || 0 })}
-        />
-      </AttributeLabel>
+      <div className="flex items-center gap-1.5 whitespace-nowrap" title="Position">
+        <span className="flex size-5 items-center justify-center text-[var(--ds-text-muted)]">
+          <VectorTwoIcon weight="duotone" className="size-4" />
+        </span>
+        <div className="flex items-center gap-1">
+          <span className="text-[var(--ds-text-muted)]">X</span>
+          <AttributeInput
+            aria-label="X"
+            type="number"
+            value={Math.round(layer.x)}
+            className="w-16"
+            onChange={(event) => onChange({ x: Number(event.currentTarget.value) || 0 })}
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[var(--ds-text-muted)]">Y</span>
+          <AttributeInput
+            aria-label="Y"
+            type="number"
+            value={Math.round(layer.y)}
+            className="w-16"
+            onChange={(event) => onChange({ y: Number(event.currentTarget.value) || 0 })}
+          />
+        </div>
+      </div>
       <AttributeLabel
         title={messages.width}
-        icon={<BoundingBoxIcon weight="duotone" className="size-4" />}
+        icon={<ArrowsHorizontalIcon weight="duotone" className="size-4" />}
       >
         <AttributeInput
           aria-label={messages.width}
@@ -3142,7 +3260,7 @@ function LayerAttributes({
       </AttributeLabel>
       <AttributeLabel
         title={messages.height}
-        icon={<FrameCornersIcon weight="duotone" className="size-4" />}
+        icon={<ArrowsVerticalIcon weight="duotone" className="size-4" />}
       >
         <AttributeInput
           aria-label={messages.height}
@@ -3454,6 +3572,44 @@ function ImageLayerAttributes({
         />
       </AttributeLabel>
       <AttributeLabel
+        title={messages.imageBrightness}
+        icon={<SunDimIcon weight="duotone" className="size-4" />}
+      >
+        <span className="w-9 text-right tabular-nums">
+          {Math.round(getImageBrightness(layer) * 100)}
+        </span>
+        <AttributeInput
+          aria-label={messages.imageBrightness}
+          type="range"
+          min={0}
+          max={200}
+          value={Math.round(getImageBrightness(layer) * 100)}
+          className="w-20 px-0"
+          onChange={(event) =>
+            onChange({ brightness: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 2) })
+          }
+        />
+      </AttributeLabel>
+      <AttributeLabel
+        title={messages.imageContrast}
+        icon={<CircleHalfIcon weight="duotone" className="size-4" />}
+      >
+        <span className="w-9 text-right tabular-nums">
+          {Math.round(getImageContrast(layer) * 100)}
+        </span>
+        <AttributeInput
+          aria-label={messages.imageContrast}
+          type="range"
+          min={0}
+          max={200}
+          value={Math.round(getImageContrast(layer) * 100)}
+          className="w-20 px-0"
+          onChange={(event) =>
+            onChange({ contrast: clamp((Number(event.currentTarget.value) || 0) / 100, 0, 2) })
+          }
+        />
+      </AttributeLabel>
+      <AttributeLabel
         title={messages.imageTintOpacity}
         icon={<DropIcon weight="duotone" className="size-4" />}
       >
@@ -3495,6 +3651,7 @@ function TextLayerAttributes({
           fontSize: layer.fontSize,
           fontWeight: layer.fontWeight,
           fontStyle: layer.fontStyle,
+          textDecoration: layer.textDecoration ?? "none",
           color: layer.color,
           lineHeight: layer.lineHeight,
           letterSpacing: layer.letterSpacing,
@@ -3547,37 +3704,53 @@ function TextLayerAttributes({
           onChange={(event) => onChange({ color: event.currentTarget.value })}
         />
       </AttributeLabel>
-      <AttributeLabel
+      <button
+        type="button"
+        aria-label={messages.fontWeight}
+        aria-pressed={activeStyle.fontWeight === "700"}
         title={messages.fontWeight}
-        icon={<TextBIcon weight="duotone" className="size-4" />}
+        className={cx(
+          "flex size-7 items-center justify-center rounded text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
+          activeStyle.fontWeight === "700" && "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+        )}
+        onClick={() => onChange({ fontWeight: activeStyle.fontWeight === "700" ? "400" : "700" })}
       >
-        <AttributeSelect
-          aria-label={messages.fontWeight}
-          value={activeStyle.fontWeight}
-          className="w-18"
-          onChange={(event) => onChange({ fontWeight: event.currentTarget.value })}
-        >
-          {["300", "400", "500", "600", "700", "800", "900"].map((weight) => (
-            <option key={weight} value={weight}>
-              {weight}
-            </option>
-          ))}
-        </AttributeSelect>
-      </AttributeLabel>
-      <AttributeLabel
+        <TextBIcon weight="duotone" className="size-4" />
+      </button>
+      <button
+        type="button"
+        aria-label={messages.fontStyle}
+        aria-pressed={activeStyle.fontStyle === "italic"}
         title={messages.fontStyle}
-        icon={<TextItalicIcon weight="duotone" className="size-4" />}
+        className={cx(
+          "flex size-7 items-center justify-center rounded text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
+          activeStyle.fontStyle === "italic" &&
+            "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+        )}
+        onClick={() =>
+          onChange({ fontStyle: activeStyle.fontStyle === "italic" ? "normal" : "italic" })
+        }
       >
-        <AttributeSelect
-          aria-label={messages.fontStyle}
-          value={activeStyle.fontStyle}
-          className="w-20"
-          onChange={(event) => onChange({ fontStyle: event.currentTarget.value })}
-        >
-          <option value="normal">Normal</option>
-          <option value="italic">Italic</option>
-        </AttributeSelect>
-      </AttributeLabel>
+        <TextItalicIcon weight="duotone" className="size-4" />
+      </button>
+      <button
+        type="button"
+        aria-label={messages.fontUnderline}
+        aria-pressed={activeStyle.textDecoration === "underline"}
+        title={messages.fontUnderline}
+        className={cx(
+          "flex size-7 items-center justify-center rounded text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
+          activeStyle.textDecoration === "underline" &&
+            "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+        )}
+        onClick={() =>
+          onChange({
+            textDecoration: activeStyle.textDecoration === "underline" ? "none" : "underline",
+          })
+        }
+      >
+        <TextUnderlineIcon weight="duotone" className="size-4" />
+      </button>
       <div className="flex items-center gap-1" title={messages.align}>
         <button
           type="button"
@@ -3615,7 +3788,7 @@ function TextLayerAttributes({
       </div>
       <AttributeLabel
         title={messages.lineHeight}
-        icon={<FrameCornersIcon weight="duotone" className="size-4" />}
+        icon={<ArrowsOutLineVerticalIcon weight="duotone" className="size-4" />}
       >
         <AttributeInput
           aria-label={messages.lineHeight}
@@ -3630,7 +3803,7 @@ function TextLayerAttributes({
       </AttributeLabel>
       <AttributeLabel
         title={messages.letterSpacing}
-        icon={<ArrowsOutCardinalIcon weight="duotone" className="size-4" />}
+        icon={<ArrowsOutLineHorizontalIcon weight="duotone" className="size-4" />}
       >
         <AttributeInput
           aria-label={messages.letterSpacing}

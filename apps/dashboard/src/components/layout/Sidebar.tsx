@@ -54,9 +54,9 @@ import {
 } from "@/components/layout/CollapsibleSidebarGroup.tsx";
 import { SidebarFooter } from "@/components/layout/SidebarFooter.tsx";
 import { SidebarHeader } from "@/components/layout/SidebarHeader.tsx";
-import { ContextMenu, type ContextMenuEntry } from "@/components/ui/ContextMenu.tsx";
 import { DashboardDragHandle } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
+import { SubMenu } from "@/components/ui/SubMenu.tsx";
 import { useDashboardSortableSensors } from "@/components/ui/useDashboardSortableSensors.ts";
 import { useI18n } from "@/context/I18nContext.tsx";
 import { useAuth } from "@/features/auth/AuthContext.tsx";
@@ -432,48 +432,6 @@ function SocialMediaPostTemplatesGroup({
   } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Template | null>(null);
 
-  function buildMenuItems(template: Template): ContextMenuEntry[] {
-    return [
-      {
-        label: common.edit,
-        icon: <FileTextIcon weight="duotone" className="h-3.5 w-3.5" />,
-        onClick: () => {
-          void navigate(`/social-media-post-templates/${template.id}`);
-        },
-      },
-      {
-        label: common.duplicate,
-        icon: <CopyIcon weight="duotone" className="h-3.5 w-3.5" />,
-        onClick: () => {
-          void (async () => {
-            try {
-              const created = await createTemplate.mutateAsync({
-                name: `${template.name} (Copy)`,
-                platforms: template.platforms,
-                scopes: template.scopes,
-                bodyMastodon: template.bodyMastodon,
-                bodyBluesky: template.bodyBluesky,
-              });
-              void navigate(`/social-media-post-templates/${created.id}`);
-            } catch (err) {
-              console.error("[duplicate template]", err);
-            }
-          })();
-        },
-      },
-      { separator: true },
-      {
-        label: common.delete,
-        icon: <TrashIcon weight="duotone" className="h-3.5 w-3.5" />,
-        danger: true,
-        disabled: template.isSystemTemplate,
-        onClick: () => {
-          setDeleteTarget(template);
-        },
-      },
-    ];
-  }
-
   return (
     <>
       <CollapsibleSidebarGroup
@@ -514,11 +472,58 @@ function SocialMediaPostTemplatesGroup({
         ))}
       </CollapsibleSidebarGroup>
 
-      <ContextMenu
+      <SubMenu
+        open={contextMenu !== null}
         origin={contextMenu?.origin ?? null}
-        onClose={() => setContextMenu(null)}
-        items={contextMenu ? buildMenuItems(contextMenu.template) : []}
-      />
+        onOpenChange={(open) => {
+          if (!open) setContextMenu(null);
+        }}
+      >
+        {contextMenu ? (
+          <>
+            <SubMenu.Item
+              icon={<FileTextIcon weight="duotone" className="h-3.5 w-3.5" />}
+              onSelect={() => {
+                void navigate(`/social-media-post-templates/${contextMenu.template.id}`);
+              }}
+            >
+              {common.edit}
+            </SubMenu.Item>
+            <SubMenu.Item
+              icon={<CopyIcon weight="duotone" className="h-3.5 w-3.5" />}
+              onSelect={() => {
+                void (async () => {
+                  try {
+                    const created = await createTemplate.mutateAsync({
+                      name: `${contextMenu.template.name} (Copy)`,
+                      platforms: contextMenu.template.platforms,
+                      scopes: contextMenu.template.scopes,
+                      bodyMastodon: contextMenu.template.bodyMastodon,
+                      bodyBluesky: contextMenu.template.bodyBluesky,
+                    });
+                    void navigate(`/social-media-post-templates/${created.id}`);
+                  } catch (err) {
+                    console.error("[duplicate template]", err);
+                  }
+                })();
+              }}
+            >
+              {common.duplicate}
+            </SubMenu.Item>
+            <SubMenu.Item separator />
+            <SubMenu.Item
+              disabled={contextMenu.template.isSystemTemplate}
+              icon={<TrashIcon weight="duotone" className="h-3.5 w-3.5" />}
+              onSelect={() => {
+                setDeleteTarget(contextMenu.template);
+              }}
+              variant="danger"
+            >
+              {common.delete}
+            </SubMenu.Item>
+          </>
+        ) : null}
+      </SubMenu>
 
       <DeleteConfirmDialog
         open={deleteTarget !== null}

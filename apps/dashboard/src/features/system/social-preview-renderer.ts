@@ -50,6 +50,7 @@ export function createTextLayer(): SocialPreviewTextLayer {
     fontSize: 72,
     fontWeight: "700",
     fontStyle: "normal",
+    textDecoration: "none",
     color: "#ffffff",
     align: "left",
     lineHeight: 1.05,
@@ -75,6 +76,8 @@ export function createImageLayer(src: string, alt?: string | null): SocialPrevie
     offsetY: 0,
     tintColor: "#ffffff",
     tintOpacity: 0,
+    brightness: 1,
+    contrast: 1,
   };
 }
 
@@ -158,6 +161,7 @@ interface ResolvedTextStyle {
   fontSize: number;
   fontWeight: string;
   fontStyle: string;
+  textDecoration: "none" | "underline";
   color: string;
   lineHeight: number;
   letterSpacing: number;
@@ -182,6 +186,7 @@ function getTextStyleAt(layer: SocialPreviewTextLayer, index: number): ResolvedT
     fontSize: layer.fontSize,
     fontWeight: layer.fontWeight,
     fontStyle: layer.fontStyle,
+    textDecoration: layer.textDecoration ?? "none",
     color: layer.color,
     lineHeight: layer.lineHeight,
     letterSpacing: layer.letterSpacing,
@@ -200,6 +205,7 @@ function getTextStyleAt(layer: SocialPreviewTextLayer, index: number): ResolvedT
     if (range.fontSize !== undefined) style.fontSize = range.fontSize;
     if (range.fontWeight !== undefined) style.fontWeight = range.fontWeight;
     if (range.fontStyle !== undefined) style.fontStyle = range.fontStyle;
+    if (range.textDecoration !== undefined) style.textDecoration = range.textDecoration;
     if (range.color !== undefined) style.color = range.color;
     if (range.lineHeight !== undefined) style.lineHeight = range.lineHeight;
     if (range.letterSpacing !== undefined) style.letterSpacing = range.letterSpacing;
@@ -293,6 +299,17 @@ function drawTextLayer(ctx: CanvasRenderingContext2D, layer: SocialPreviewTextLa
         setCanvasTextStyle(ctx, entry.style);
         ctx.fillStyle = entry.style.color;
         ctx.fillText(entry.char, cursor, y);
+        if (entry.style.textDecoration === "underline") {
+          const underlineY = y + entry.style.fontSize * 0.92;
+          ctx.save();
+          ctx.strokeStyle = entry.style.color;
+          ctx.lineWidth = Math.max(1, entry.style.fontSize / 16);
+          ctx.beginPath();
+          ctx.moveTo(cursor, underlineY);
+          ctx.lineTo(cursor + entry.width, underlineY);
+          ctx.stroke();
+          ctx.restore();
+        }
         cursor += entry.width + entry.style.letterSpacing;
       }
       y += line.height;
@@ -309,6 +326,7 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
     const layerCtx = layerCanvas.getContext("2d");
     if (!layerCtx) return;
 
+    layerCtx.filter = `brightness(${layer.brightness ?? 1}) contrast(${layer.contrast ?? 1})`;
     drawCoverImage(
       layerCtx,
       image,
@@ -320,6 +338,7 @@ async function drawImageLayer(ctx: CanvasRenderingContext2D, layer: SocialPrevie
       layer.offsetX ?? 0,
       layer.offsetY ?? 0,
     );
+    layerCtx.filter = "none";
 
     if ((layer.tintOpacity ?? 0) > 0) {
       layerCtx.save();

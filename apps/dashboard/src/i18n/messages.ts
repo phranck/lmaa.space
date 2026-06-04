@@ -1305,7 +1305,11 @@ export interface DashboardMessages {
       addText: string;
       addImage: string;
       imageSourceUnsplash: string;
+      imageSourceAssets: string;
       imageSourceComputer: string;
+      assetPickerTitle: string;
+      assetPickerEmpty: string;
+      assetPickerEmptyHint: string;
       addShape: string;
       newProject: string;
       newProjectTitle: string;
@@ -1364,6 +1368,8 @@ export interface DashboardMessages {
       baseImageLayer: string;
       imageTintColor: string;
       imageTintOpacity: string;
+      imageBrightness: string;
+      imageContrast: string;
       shapeLayer: string;
       deleteLayer: string;
       shapeKind: string;
@@ -1390,6 +1396,7 @@ export interface DashboardMessages {
       fontSize: string;
       fontWeight: string;
       fontStyle: string;
+      fontUnderline: string;
       align: string;
       alignLeft: string;
       alignCenter: string;
@@ -2789,7 +2796,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         addText: "Text hinzufügen",
         addImage: "Bild hinzufügen",
         imageSourceUnsplash: "Unsplash",
+        imageSourceAssets: "Assets",
         imageSourceComputer: "Computer",
+        assetPickerTitle: "Bild aus Assets wählen",
+        assetPickerEmpty: "Keine Bild-Assets verfügbar.",
+        assetPickerEmptyHint: "Lade zuerst Bilder in den Asset Pool hoch.",
         addShape: "Form hinzufügen",
         newProject: "Neues Projekt",
         newProjectTitle: "Neues Projekt erstellen",
@@ -2851,6 +2862,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         baseImageLayer: "Base Image",
         imageTintColor: "Bildfarbe",
         imageTintOpacity: "Einfärbung",
+        imageBrightness: "Helligkeit",
+        imageContrast: "Kontrast",
         shapeLayer: "Formobjekt",
         deleteLayer: "Objekt löschen",
         shapeKind: "Form",
@@ -2877,6 +2890,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         fontSize: "Schriftgröße",
         fontWeight: "Schriftstärke",
         fontStyle: "Schriftstil",
+        fontUnderline: "Unterstreichen",
         align: "Ausrichtung",
         alignLeft: "Links",
         alignCenter: "Zentriert",
@@ -4266,7 +4280,11 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         addText: "Add text",
         addImage: "Add image",
         imageSourceUnsplash: "Unsplash",
+        imageSourceAssets: "Assets",
         imageSourceComputer: "Computer",
+        assetPickerTitle: "Choose image from assets",
+        assetPickerEmpty: "No image assets available.",
+        assetPickerEmptyHint: "Upload images to the asset pool first.",
         addShape: "Add shape",
         newProject: "New project",
         newProjectTitle: "Create new project",
@@ -4327,6 +4345,8 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         baseImageLayer: "Base image",
         imageTintColor: "Image tint",
         imageTintOpacity: "Tint opacity",
+        imageBrightness: "Brightness",
+        imageContrast: "Contrast",
         shapeLayer: "Shape object",
         deleteLayer: "Delete object",
         shapeKind: "Shape",
@@ -4353,6 +4373,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         fontSize: "Font size",
         fontWeight: "Font weight",
         fontStyle: "Font style",
+        fontUnderline: "Underline",
         align: "Alignment",
         alignLeft: "Left",
         alignCenter: "Center",
