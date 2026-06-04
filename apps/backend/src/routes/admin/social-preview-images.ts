@@ -20,6 +20,7 @@ import {
   listManagedSocialPreviewProjects,
   setManagedSocialPreviewImageActive,
   updateManagedSocialPreviewProject,
+  uploadManagedSocialPreviewAsset,
 } from "../../services/social-preview-images.js";
 
 /**
@@ -69,6 +70,32 @@ socialPreviewImageRoutes.delete("/social-preview-projects/:id", requireAdmin, as
   if (!result.ok) return fail(c, 404, "Social preview project not found");
 
   return ok(c, { message: "Deleted" });
+});
+
+socialPreviewImageRoutes.post("/social-preview-assets", requireAdmin, async (c) => {
+  const formData = await c.req.formData();
+  const file = formData.get("file");
+  const displayName = formData.get("displayName");
+  const overwrite = formData.get("overwrite") !== "false";
+
+  const result = await uploadManagedSocialPreviewAsset({
+    adminId: c.get("adminId"),
+    displayName: typeof displayName === "string" ? displayName : undefined,
+    file,
+    overwrite,
+  });
+
+  if (!result.ok) {
+    if (result.reason === "missing_file") return fail(c, 400, "No file provided");
+    if (result.reason === "name_conflict") {
+      return fail(c, 409, "Media asset name already exists", "MEDIA_NAME_CONFLICT");
+    }
+    if (result.reason === "too_large") return fail(c, 413, "File too large", "PAYLOAD_TOO_LARGE");
+    if (result.reason === "invalid_file") return fail(c, 400, "Unsupported file type");
+    return fail(c, 500, "Failed to store file");
+  }
+
+  return ok(c, result.asset, 201);
 });
 
 socialPreviewImageRoutes.get("/social-preview-images", requireAdmin, async (c) => {

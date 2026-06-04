@@ -7,6 +7,7 @@ import { api, type UploadRequestOptions } from "@/lib/api.ts";
 export interface MediaFileUpload extends UploadRequestOptions {
   displayName?: string;
   file: File;
+  folderId?: number | null;
   overwrite?: boolean;
 }
 
@@ -18,11 +19,13 @@ export interface MediaBundleUploadFile {
 export interface MediaBundleUpload extends UploadRequestOptions {
   name: string;
   files: MediaBundleUploadFile[];
+  folderId?: number | null;
   overwrite?: boolean;
 }
 
 interface HlsBundleCompletePayload {
   files: Array<{ relativePath: string; sizeBytes: number }>;
+  folderId?: number | null;
   name: string;
   overwrite?: boolean;
   sessionId: string;
@@ -32,6 +35,11 @@ const HLS_UPLOAD_CHUNK_TARGET_BYTES = Math.floor(MEDIA_UPLOAD_MAX_BYTES * 0.85);
 
 function resolveFileUpload(input: File | MediaFileUpload): MediaFileUpload {
   return input instanceof File ? { file: input } : input;
+}
+
+function invalidateMediaQueries(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ["media-admin"] });
+  qc.invalidateQueries({ queryKey: ["media", "folder-contents"] });
 }
 
 export function useAdminMedia() {
@@ -46,20 +54,21 @@ export function useUploadMedia() {
 
   return useMutation({
     mutationFn: (input: File | MediaFileUpload) => {
-      const { displayName, file, onProgress, onUploadComplete, overwrite } =
+      const { displayName, file, folderId, onProgress, onUploadComplete, overwrite } =
         resolveFileUpload(input);
       const formData = new FormData();
       formData.append("file", file);
       if (displayName) formData.append("displayName", displayName);
+      if (folderId !== undefined && folderId !== null) {
+        formData.append("folderId", String(folderId));
+      }
       if (overwrite) formData.append("overwrite", "true");
       return api.upload<MediaAsset>("/admin/media", formData, {
         onProgress,
         onUploadComplete,
       });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["media-admin"] });
-    },
+    onSuccess: () => invalidateMediaQueries(qc),
   });
 }
 
@@ -75,6 +84,9 @@ export function useUploadHlsBundle() {
 
       const formData = new FormData();
       formData.append("name", bundle.name);
+      if (bundle.folderId !== undefined && bundle.folderId !== null) {
+        formData.append("folderId", String(bundle.folderId));
+      }
       if (bundle.overwrite) formData.append("overwrite", "true");
       for (const item of bundle.files) {
         formData.append("files", item.file, item.file.name);
@@ -85,9 +97,7 @@ export function useUploadHlsBundle() {
         onUploadComplete: bundle.onUploadComplete,
       });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["media-admin"] });
-    },
+    onSuccess: () => invalidateMediaQueries(qc),
   });
 }
 
@@ -99,14 +109,14 @@ export function useRenameMedia() {
       id,
       displayName,
       alias,
+      folderId,
     }: {
       id: number;
-      displayName: string;
+      displayName?: string;
       alias?: string | null;
-    }) => api.patch<MediaAsset>(`/admin/media/${id}`, { displayName, alias }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["media-admin"] });
-    },
+      folderId?: number | null;
+    }) => api.patch<MediaAsset>(`/admin/media/${id}`, { displayName, alias, folderId }),
+    onSuccess: () => invalidateMediaQueries(qc),
   });
 }
 
@@ -116,9 +126,7 @@ export function useSyncMedia() {
   return useMutation({
     mutationFn: () =>
       api.post<{ created: number; updated: number; removed: number }>("/admin/media/sync"),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["media-admin"] });
-    },
+    onSuccess: () => invalidateMediaQueries(qc),
   });
 }
 
@@ -127,9 +135,7 @@ export function useDeleteMedia() {
 
   return useMutation({
     mutationFn: (id: number) => api.delete<{ message: string }>(`/admin/media/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["media-admin"] });
-    },
+    onSuccess: () => invalidateMediaQueries(qc),
   });
 }
 
@@ -141,9 +147,7 @@ export function useDeleteMediaAssets() {
       Promise.all(ids.map((id) => api.delete<{ message: string }>(`/admin/media/${id}`))).then(
         () => ({ deleted: ids.length }),
       ),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["media-admin"] });
-    },
+    onSuccess: () => invalidateMediaQueries(qc),
   });
 }
 
@@ -212,6 +216,7 @@ async function uploadChunkedHlsBundle(
       relativePath: item.relativePath,
       sizeBytes: item.file.size,
     })),
+    folderId: bundle.folderId,
     name: bundle.name,
     overwrite: bundle.overwrite,
     sessionId,

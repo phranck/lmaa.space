@@ -348,11 +348,14 @@ export interface DashboardMessages {
     uploading: string;
     uploadHint: string;
     dropTitle: string;
+    folderUploadFallbackName: string;
+    readingFolder: string;
     hlsBundleFallbackName: string;
     readingHlsFolder: string;
     readingFilesProgress: string;
     uploadingHlsBundle: string;
     uploadingFile: string;
+    uploadingFilesProgress: string;
     uploadProgress: string;
     uploadProgressUnknown: string;
     processingUpload: string;
@@ -361,6 +364,7 @@ export interface DashboardMessages {
     uploadNameConflictDescription: string;
     uploadNameConflictNameLabel: string;
     uploadNameConflictNameTaken: string;
+    uploadNameConflictApplyToAll: string;
     uploadNameConflictRename: string;
     uploadNameConflictOverwrite: string;
     directoryUploadUnsupported: string;
@@ -384,6 +388,24 @@ export interface DashboardMessages {
     createdAt: string;
     updatedAt: string;
     uploadedBy: string;
+    linkedContentTitle: string;
+    linkedContentEmpty: string;
+    linkedContentOwnerLabels: {
+      project: string;
+      post: string;
+      page: string;
+    };
+    linkedContentRoleLabels: {
+      hero: string;
+      preview: string;
+      document: string;
+    };
+    alias: string;
+    aliasPlaceholder: string;
+    aliasHintEmpty: string;
+    aliasHintHls: (alias: string) => string;
+    aliasHintImage: (alias: string) => string;
+    aliasHintModel: string;
     saveName: string;
     openFile: string;
     copyUrl: string;
@@ -392,13 +414,58 @@ export interface DashboardMessages {
     copied: string;
     renameError: string;
     uploadError: string;
+    loadError: string;
     uploadTooLarge: string;
     unsupportedPreview: string;
+    tileSize: string;
     deleteTitle: string;
     deleteSelected: string;
     deleteSelectedTitle: string;
     deleteDescription: string;
     deleteSelectedDescription: string;
+    contextMenu: {
+      openInNewTab: string;
+      openInNewWindow: string;
+      saveToDownloads: string;
+      saveAs: string;
+      copyAddress: string;
+      copyAsset: string;
+      renameAlias: string;
+      renameDisplayName: string;
+      openFolder: string;
+      renameFolderInline: string;
+      folderColorLabel: string;
+      folderColorNames: {
+        red: string;
+        orange: string;
+        yellow: string;
+        green: string;
+        blue: string;
+        purple: string;
+        gray: string;
+      };
+      deleteFolder: string;
+      deleteFolderWithCount: (count: number) => string;
+      deleteAsset: string;
+      deleteSelection: string;
+      newFolder: string;
+      newFolderWithSelection: (count: number) => string;
+      addAssets: string;
+    };
+    folders: {
+      newFolderTitle: string;
+      newFolderWithSelectionTitle: (count: number) => string;
+      renameFolderTitle: string;
+      deleteFolderTitle: string;
+      deleteFolderConfirm: (count: number) => string;
+      folderNameLabel: string;
+      folderNamePlaceholder: string;
+      folderNameTaken: string;
+      itemsCount: (count: number) => string;
+      emptyFolder: string;
+      breadcrumbRoot: string;
+      notFound: string;
+    };
     table: {
       name: string;
       type: string;
@@ -1237,10 +1304,17 @@ export interface DashboardMessages {
       imageSourceUnsplash: string;
       imageSourceComputer: string;
       addShape: string;
+      newProject: string;
+      newProjectTitle: string;
+      projectNameLabel: string;
+      projectNamePlaceholder: string;
+      noProjectLoaded: string;
       saveProject: string;
       loadProject: string;
       updatedAtLabel: string;
       savedProjectsTitle: string;
+      emptyProjectsTitle: string;
+      emptyProjectsHint: string;
       projectLayer: string;
       keyboardHint: string;
       savedTitle: string;
@@ -1253,6 +1327,7 @@ export interface DashboardMessages {
       imageGridSizeLabel: string;
       outputTitle: string;
       nameLabel: string;
+      previewNameLabel: string;
       formatLabel: string;
       qualityLabel: string;
       targetSizeLabel: string;
@@ -1711,11 +1786,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploading: "Lade hoch…",
       uploadHint: `Erlaubt: Bilder, MP4-Video, HLS-Ordner mit optionalem Poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X). Einzelfiles bis ${MEDIA_UPLOAD_MAX_LABEL}; HLS-Bundles werden bei Bedarf in Chunks hochgeladen.`,
       dropTitle: "Loslassen zum Hochladen",
+      folderUploadFallbackName: "Ordner",
+      readingFolder: "Ordner wird gelesen…",
       hlsBundleFallbackName: "HLS-Ordner",
       readingHlsFolder: "HLS-Ordner wird gelesen…",
       readingFilesProgress: "{read}/{total} Dateien gelesen",
       uploadingHlsBundle: "HLS-Bundle wird hochgeladen…",
       uploadingFile: "Datei wird hochgeladen…",
+      uploadingFilesProgress: "{uploaded}/{total} Dateien",
       uploadProgress: "{percent}% hochgeladen",
       uploadProgressUnknown: "Upload läuft…",
       processingUpload: "Upload wird verarbeitet…",
@@ -1725,6 +1803,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         "Es gibt bereits ein Media-Asset mit dem Namen {name}. Wähle einen neuen Namen oder überschreibe das vorhandene Asset.",
       uploadNameConflictNameLabel: "Neuer Name",
       uploadNameConflictNameTaken: "Dieser Name ist bereits vergeben.",
+      uploadNameConflictApplyToAll: "Für alle Konflikte dieser Aktion anwenden",
       uploadNameConflictRename: "Umbenennen",
       uploadNameConflictOverwrite: "Überschreiben",
       directoryUploadUnsupported:
@@ -1750,6 +1829,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       createdAt: "Hochgeladen",
       updatedAt: "Geändert",
       uploadedBy: "Hochgeladen von",
+      linkedContentTitle: "Verwendet in",
+      linkedContentEmpty: "Keine Verknüpfungen gefunden.",
+      linkedContentOwnerLabels: {
+        project: "Projekt",
+        post: "Post",
+        page: "Seite",
+      },
+      linkedContentRoleLabels: {
+        hero: "Hero",
+        preview: "Preview",
+        document: "Dokument",
+      },
+      alias: "Alias",
+      aliasPlaceholder: "z.B. sepa-qr",
+      aliasHintEmpty: "Optional. Erlaubt: a-z, 0-9, Bindestrich.",
+      aliasHintHls: (alias: string) => `Verwendung: [[hls:${alias}]]`,
+      aliasHintImage: (alias: string) => `Verwendung: [[image:${alias}]] oder [[pdf:${alias}]]`,
+      aliasHintModel: "Verwendung als Modell-Asset.",
       saveName: "Name speichern",
       openFile: "Öffnen",
       copyUrl: "URL kopieren",
@@ -1758,8 +1855,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       copied: "Kopiert",
       renameError: "Name konnte nicht gespeichert werden.",
       uploadError: "Datei konnte nicht hochgeladen werden.",
+      loadError: "Media konnte nicht geladen werden.",
       uploadTooLarge: "{name} ist zu groß. Maximal erlaubt sind {max}.",
       unsupportedPreview: "Für diesen Dateityp ist keine Vorschau verfügbar.",
+      tileSize: "Kachelgröße",
       deleteTitle: "Datei löschen?",
       deleteSelected: "Auswahl löschen",
       deleteSelectedTitle: "Auswahl löschen?",
@@ -1767,6 +1866,52 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         "wird dauerhaft gelöscht und ist unter der internen URL nicht mehr erreichbar. Bei Bundles wird der gesamte Inhalt entfernt.",
       deleteSelectedDescription:
         "{count} Dateien werden dauerhaft gelöscht und sind unter ihren internen URLs nicht mehr erreichbar. Bundles werden mit dem gesamten Inhalt entfernt.",
+      contextMenu: {
+        openInNewTab: "In neuem Tab öffnen",
+        openInNewWindow: "In neuem Fenster öffnen",
+        saveToDownloads: "In Downloads sichern",
+        saveAs: "Sichern unter…",
+        copyAddress: "Adresse kopieren",
+        copyAsset: "Asset kopieren",
+        renameAlias: "Alias umbenennen",
+        renameDisplayName: "Anzeigename umbenennen",
+        openFolder: "Ordner öffnen",
+        renameFolderInline: "Ordner umbenennen",
+        folderColorLabel: "Ordnerfarbe",
+        folderColorNames: {
+          red: "Rot",
+          orange: "Orange",
+          yellow: "Gelb",
+          green: "Grün",
+          blue: "Blau",
+          purple: "Lila",
+          gray: "Grau",
+        },
+        deleteFolder: "Ordner löschen",
+        deleteFolderWithCount: (count: number) => `Ordner löschen (${count})`,
+        deleteAsset: "Asset löschen",
+        deleteSelection: "Auswahl löschen",
+        newFolder: "Neuer Ordner",
+        newFolderWithSelection: (count: number) => `Neuer Ordner mit Auswahl (${count})`,
+        addAssets: "Assets hinzufügen",
+      },
+      folders: {
+        newFolderTitle: "Neuer Ordner",
+        newFolderWithSelectionTitle: (count: number) => `Neuer Ordner mit ${count} Assets`,
+        renameFolderTitle: "Ordner umbenennen",
+        deleteFolderTitle: "Ordner löschen?",
+        deleteFolderConfirm: (count: number) =>
+          count > 0
+            ? `${count} enthaltene Elemente werden dauerhaft gelöscht.`
+            : "Dieser Ordner wird dauerhaft gelöscht.",
+        folderNameLabel: "Ordnername",
+        folderNamePlaceholder: "Name eingeben…",
+        folderNameTaken: "Ein Ordner mit diesem Namen existiert bereits.",
+        itemsCount: (count: number) => `${count} Elemente`,
+        emptyFolder: "Dieser Ordner ist leer.",
+        breadcrumbRoot: "Media",
+        notFound: "Der Ordner wurde nicht gefunden.",
+      },
       table: {
         name: "Name",
         type: "Typ",
@@ -2622,10 +2767,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imageSourceUnsplash: "Unsplash",
         imageSourceComputer: "Computer",
         addShape: "Form hinzufügen",
+        newProject: "Neues Projekt",
+        newProjectTitle: "Neues Projekt erstellen",
+        projectNameLabel: "Projektname",
+        projectNamePlaceholder: "Projektname eingeben…",
+        noProjectLoaded: "Kein Projekt geladen",
         saveProject: "Projekt speichern",
         loadProject: "Bearbeiten",
         updatedAtLabel: "Aktualisiert",
         savedProjectsTitle: "Gespeicherte Projekte",
+        emptyProjectsTitle: "Noch keine Projekte gespeichert.",
+        emptyProjectsHint:
+          "Speichere den aktuellen Editor-Stand als Projekt, um ihn später weiterzubearbeiten.",
         projectLayer: "Projekt",
         keyboardHint:
           "Ausgewählte Objekte lassen sich per Pfeiltasten bewegen. Shift + Pfeiltaste bewegt in größeren Schritten.",
@@ -2639,6 +2792,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imageGridSizeLabel: "Bildgröße",
         outputTitle: "Export",
         nameLabel: "Name",
+        previewNameLabel: "Preview-Name",
         formatLabel: "Format",
         qualityLabel: "Qualität",
         targetSizeLabel: "Zielgröße KB",
@@ -3093,11 +3247,14 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       uploading: "Uploading…",
       uploadHint: `Allowed: images, MP4 video, HLS folders with optional poster, PDF, TXT, MD, CSV, DOC(X), XLS(X), PPT(X). Single files up to ${MEDIA_UPLOAD_MAX_LABEL}; HLS bundles are uploaded in chunks when needed.`,
       dropTitle: "Release to upload",
+      folderUploadFallbackName: "Folder",
+      readingFolder: "Reading folder…",
       hlsBundleFallbackName: "HLS folder",
       readingHlsFolder: "Reading HLS folder…",
       readingFilesProgress: "{read}/{total} files read",
       uploadingHlsBundle: "Uploading HLS bundle…",
       uploadingFile: "Uploading file…",
+      uploadingFilesProgress: "{uploaded}/{total} files",
       uploadProgress: "{percent}% uploaded",
       uploadProgressUnknown: "Upload in progress…",
       processingUpload: "Processing upload…",
@@ -3107,6 +3264,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         "A media asset named {name} already exists. Choose a new name or overwrite the existing asset.",
       uploadNameConflictNameLabel: "New name",
       uploadNameConflictNameTaken: "This name is already taken.",
+      uploadNameConflictApplyToAll: "Apply to all conflicts in this action",
       uploadNameConflictRename: "Rename",
       uploadNameConflictOverwrite: "Overwrite",
       directoryUploadUnsupported:
@@ -3132,6 +3290,24 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       createdAt: "Uploaded",
       updatedAt: "Updated",
       uploadedBy: "Uploaded by",
+      linkedContentTitle: "Used in",
+      linkedContentEmpty: "No linked content found.",
+      linkedContentOwnerLabels: {
+        project: "Project",
+        post: "Post",
+        page: "Page",
+      },
+      linkedContentRoleLabels: {
+        hero: "Hero",
+        preview: "Preview",
+        document: "Document",
+      },
+      alias: "Alias",
+      aliasPlaceholder: "e.g. sepa-qr",
+      aliasHintEmpty: "Optional. Allowed: a-z, 0-9, dash.",
+      aliasHintHls: (alias: string) => `Usage: [[hls:${alias}]]`,
+      aliasHintImage: (alias: string) => `Usage: [[image:${alias}]] or [[pdf:${alias}]]`,
+      aliasHintModel: "Usage as model asset.",
       saveName: "Save name",
       openFile: "Open",
       copyUrl: "Copy URL",
@@ -3140,8 +3316,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
       copied: "Copied",
       renameError: "Could not save file name.",
       uploadError: "Could not upload file.",
+      loadError: "Could not load media.",
       uploadTooLarge: "{name} is too large. The maximum is {max}.",
       unsupportedPreview: "No preview is available for this file type.",
+      tileSize: "Tile size",
       deleteTitle: "Delete file?",
       deleteSelected: "Delete selection",
       deleteSelectedTitle: "Delete selection?",
@@ -3149,6 +3327,52 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         "will be permanently deleted and will no longer be reachable via its internal URL. Bundles are removed with all contents.",
       deleteSelectedDescription:
         "{count} files will be permanently deleted and will no longer be reachable via their internal URLs. Bundles are removed with all contents.",
+      contextMenu: {
+        openInNewTab: "Open in new tab",
+        openInNewWindow: "Open in new window",
+        saveToDownloads: "Save to Downloads",
+        saveAs: "Save as…",
+        copyAddress: "Copy address",
+        copyAsset: "Copy asset",
+        renameAlias: "Rename alias",
+        renameDisplayName: "Rename display name",
+        openFolder: "Open folder",
+        renameFolderInline: "Rename folder",
+        folderColorLabel: "Folder color",
+        folderColorNames: {
+          red: "Red",
+          orange: "Orange",
+          yellow: "Yellow",
+          green: "Green",
+          blue: "Blue",
+          purple: "Purple",
+          gray: "Gray",
+        },
+        deleteFolder: "Delete folder",
+        deleteFolderWithCount: (count: number) => `Delete folder (${count})`,
+        deleteAsset: "Delete asset",
+        deleteSelection: "Delete selection",
+        newFolder: "New folder",
+        newFolderWithSelection: (count: number) => `New folder with selection (${count})`,
+        addAssets: "Add assets",
+      },
+      folders: {
+        newFolderTitle: "New folder",
+        newFolderWithSelectionTitle: (count: number) => `New folder with ${count} assets`,
+        renameFolderTitle: "Rename folder",
+        deleteFolderTitle: "Delete folder?",
+        deleteFolderConfirm: (count: number) =>
+          count > 0
+            ? `${count} contained items will be permanently deleted.`
+            : "This folder will be permanently deleted.",
+        folderNameLabel: "Folder name",
+        folderNamePlaceholder: "Enter name…",
+        folderNameTaken: "A folder with this name already exists.",
+        itemsCount: (count: number) => `${count} items`,
+        emptyFolder: "This folder is empty.",
+        breadcrumbRoot: "Media",
+        notFound: "The folder was not found.",
+      },
       table: {
         name: "Name",
         type: "Type",
@@ -3998,10 +4222,18 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imageSourceUnsplash: "Unsplash",
         imageSourceComputer: "Computer",
         addShape: "Add shape",
+        newProject: "New project",
+        newProjectTitle: "Create new project",
+        projectNameLabel: "Project name",
+        projectNamePlaceholder: "Enter project name…",
+        noProjectLoaded: "No project loaded",
         saveProject: "Save project",
         loadProject: "Edit",
         updatedAtLabel: "Updated",
         savedProjectsTitle: "Saved projects",
+        emptyProjectsTitle: "No projects saved yet.",
+        emptyProjectsHint:
+          "Save the current editor state as a project so you can continue editing it later.",
         projectLayer: "Project",
         keyboardHint:
           "Selected objects can be moved with the arrow keys. Shift + arrow key moves in larger steps.",
@@ -4015,6 +4247,7 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         imageGridSizeLabel: "Image size",
         outputTitle: "Export",
         nameLabel: "Name",
+        previewNameLabel: "Preview name",
         formatLabel: "Format",
         qualityLabel: "Quality",
         targetSizeLabel: "Target size KB",

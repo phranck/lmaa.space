@@ -1,9 +1,12 @@
 import type { SocialPreviewImageEntry, SocialPreviewProjectEntry } from "@lmaa/contracts";
 
+import { ensureSocialMediaFolder } from "./admin-folders.js";
+import { deleteManagedMediaAsset, uploadManagedMediaAsset } from "./admin-media.js";
 import { deleteSetting, getSetting, putSetting } from "../repositories/app-settings.js";
 import {
   createSocialPreviewImage,
   createSocialPreviewProject,
+  countSocialPreviewImagesByMediaAssetId,
   deleteSocialPreviewImage,
   deleteSocialPreviewProject,
   getSocialPreviewImageById,
@@ -104,6 +107,22 @@ export async function listManagedSocialPreviewImages(): Promise<SocialPreviewIma
   return rows.map((row) => mapSocialPreviewImage(row, activeId));
 }
 
+export async function uploadManagedSocialPreviewAsset(input: {
+  adminId: number;
+  displayName?: string;
+  file: unknown;
+  overwrite?: boolean;
+}) {
+  const folder = await ensureSocialMediaFolder();
+  return uploadManagedMediaAsset({
+    adminId: input.adminId,
+    displayName: input.displayName,
+    file: input.file,
+    folderId: folder.id,
+    overwrite: input.overwrite ?? true,
+  });
+}
+
 export async function createManagedSocialPreviewImage(
   data: SocialPreviewImageCreateData & { activate?: boolean },
 ): Promise<SocialPreviewImageEntry> {
@@ -144,6 +163,13 @@ export async function deleteManagedSocialPreviewImage(id: number) {
   const currentId = await getActiveSocialPreviewImageId();
   if (currentId === id) {
     await deleteSetting(ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY);
+  }
+
+  if (deleted.mediaAssetId) {
+    const remainingReferences = await countSocialPreviewImagesByMediaAssetId(deleted.mediaAssetId);
+    if (remainingReferences === 0) {
+      await deleteManagedMediaAsset(deleted.mediaAssetId);
+    }
   }
 
   return { ok: true as const };

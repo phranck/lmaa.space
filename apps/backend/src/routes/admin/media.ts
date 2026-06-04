@@ -33,10 +33,18 @@ const hlsBundleCompleteSchema = z.object({
       }),
     )
     .min(1),
+  folderId: z.number().int().nullable().optional(),
   name: z.string().min(1).max(200),
   overwrite: z.boolean().optional(),
   sessionId: z.string().min(1),
 });
+
+function parseOptionalFolderId(value: FormDataEntryValue | null): number | null | undefined {
+  if (value === null || value === "") return undefined;
+  if (typeof value !== "string") return undefined;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
 
 mediaRoutes.get("/media", requireAdmin, async (c) => {
   const assets = await listManagedMediaAssets();
@@ -48,12 +56,15 @@ mediaRoutes.post("/media", requireAdmin, async (c) => {
   const file = formData.get("file");
   const displayName = formData.get("displayName");
   const overwrite = formData.get("overwrite") === "true";
+  const folderId = parseOptionalFolderId(formData.get("folderId"));
+  if (folderId === null) return fail(c, 400, "Invalid folder id");
   const adminId = c.get("adminId");
 
   const result = await uploadManagedMediaAsset({
     file,
     adminId,
     displayName: typeof displayName === "string" ? displayName : undefined,
+    folderId,
     overwrite,
   });
   if (!result.ok) {
@@ -80,6 +91,8 @@ mediaRoutes.post("/media/bundles/hls", requireAdmin, async (c) => {
   const files = formData.getAll("files");
   const paths = formData.getAll("paths");
   const overwrite = formData.get("overwrite") === "true";
+  const folderId = parseOptionalFolderId(formData.get("folderId"));
+  if (folderId === null) return fail(c, 400, "Invalid folder id");
   const adminId = c.get("adminId");
 
   if (files.length === 0 || files.length !== paths.length) {
@@ -93,6 +106,7 @@ mediaRoutes.post("/media/bundles/hls", requireAdmin, async (c) => {
       relativePath: typeof paths[index] === "string" ? paths[index] : "",
     })),
     adminId,
+    folderId,
     overwrite,
   });
 
@@ -166,6 +180,7 @@ mediaRoutes.post(
       adminId,
       displayName: payload.name,
       files: payload.files,
+      folderId: payload.folderId,
       overwrite: payload.overwrite,
       sessionId: payload.sessionId,
     });
@@ -197,8 +212,8 @@ mediaRoutes.patch("/media/:id", requireAdmin, zValidator("json", mediaUpdateSche
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
-  const { displayName, alias } = c.req.valid("json");
-  const result = await updateManagedMediaAsset(id, { displayName, alias });
+  const { displayName, alias, folderId } = c.req.valid("json");
+  const result = await updateManagedMediaAsset(id, { displayName, alias, folderId });
   if (!result.ok) return fail(c, 404, "Media asset not found");
 
   return ok(c, result.asset);

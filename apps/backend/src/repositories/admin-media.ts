@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 
 import type { MediaKind } from "@lmaa/shared";
 
@@ -17,6 +17,7 @@ const MEDIA_SELECT_FIELDS = {
   sizeBytes: mediaAssets.sizeBytes,
   width: mediaAssets.width,
   height: mediaAssets.height,
+  folderId: mediaAssets.folderId,
   createdAt: mediaAssets.createdAt,
   updatedAt: mediaAssets.updatedAt,
   createdByUsername: adminUsers.username,
@@ -30,7 +31,16 @@ export async function listMediaAssets() {
     .orderBy(desc(mediaAssets.createdAt), desc(mediaAssets.id));
 }
 
-async function getMediaAssetById(id: number) {
+export async function listMediaAssetsByFolder(folderId: number | null) {
+  return db
+    .select(MEDIA_SELECT_FIELDS)
+    .from(mediaAssets)
+    .leftJoin(adminUsers, eq(mediaAssets.createdBy, adminUsers.id))
+    .where(folderId === null ? isNull(mediaAssets.folderId) : eq(mediaAssets.folderId, folderId))
+    .orderBy(desc(mediaAssets.createdAt), desc(mediaAssets.id));
+}
+
+export async function getMediaAssetById(id: number) {
   const [asset] = await db
     .select(MEDIA_SELECT_FIELDS)
     .from(mediaAssets)
@@ -67,6 +77,7 @@ export async function createMediaAsset(data: {
   height: number | null;
   createdBy: number | null;
   alias?: string | null;
+  folderId?: number | null;
 }) {
   const [created] = await db
     .insert(mediaAssets)
@@ -82,6 +93,7 @@ export async function createMediaAsset(data: {
       height: data.height,
       createdBy: data.createdBy,
       alias: data.alias ?? null,
+      folderId: data.folderId ?? null,
     })
     .returning({ id: mediaAssets.id });
 
@@ -90,19 +102,30 @@ export async function createMediaAsset(data: {
 
 export async function updateMediaAssetMeta(
   id: number,
-  data: { displayName: string; alias?: string | null; posterStoredFilename?: string | null },
+  data: {
+    displayName?: string;
+    alias?: string | null;
+    folderId?: number | null;
+    posterStoredFilename?: string | null;
+  },
 ) {
   const updateData: {
-    displayName: string;
-    alias: string | null;
+    displayName?: string;
+    alias?: string | null;
+    folderId?: number | null;
     posterStoredFilename?: string | null;
     updatedAt: Date;
-  } = {
-    displayName: data.displayName,
-    alias: data.alias ?? null,
-    updatedAt: new Date(),
-  };
+  } = { updatedAt: new Date() };
 
+  if ("displayName" in data && data.displayName !== undefined) {
+    updateData.displayName = data.displayName;
+  }
+  if ("alias" in data) {
+    updateData.alias = data.alias ?? null;
+  }
+  if ("folderId" in data) {
+    updateData.folderId = data.folderId ?? null;
+  }
   if ("posterStoredFilename" in data) {
     updateData.posterStoredFilename = data.posterStoredFilename ?? null;
   }
@@ -169,6 +192,7 @@ export async function deleteMediaAsset(id: number) {
   const [deleted] = await db.delete(mediaAssets).where(eq(mediaAssets.id, id)).returning({
     id: mediaAssets.id,
     storedFilename: mediaAssets.storedFilename,
+    folderId: mediaAssets.folderId,
   });
 
   return deleted ?? null;

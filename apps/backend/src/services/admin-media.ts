@@ -26,6 +26,7 @@ import {
   findMediaAssetByDisplayNameInsensitive,
   listMediaAliases,
   listMediaAssets,
+  listMediaAssetsByFolder,
   replaceMediaAssetStorage,
   updateMediaAssetMeta,
 } from "../repositories/admin-media.js";
@@ -42,6 +43,7 @@ function mapMediaAsset(row: {
   sizeBytes: number;
   width: number | null;
   height: number | null;
+  folderId: number | null;
   createdAt: Date;
   updatedAt: Date;
   createdByUsername: string | null;
@@ -57,6 +59,7 @@ function mapMediaAsset(row: {
     sizeBytes: row.sizeBytes,
     width: row.width,
     height: row.height,
+    folderId: row.folderId,
     url: getMediaPublicUrl(row.storedFilename),
     posterUrl: row.posterStoredFilename ? getMediaPublicUrl(row.posterStoredFilename) : null,
     createdAt: row.createdAt.toISOString(),
@@ -91,9 +94,10 @@ async function persistStoredUpload(input: {
     width: number | null;
     height: number | null;
   };
+  folderId?: number | null;
   overwriteTarget: Awaited<ReturnType<typeof findMediaAssetByDisplayNameInsensitive>>;
 }) {
-  const { adminId, created, overwriteTarget } = input;
+  const { adminId, created, folderId, overwriteTarget } = input;
 
   if (overwriteTarget) {
     const previousStoredFilename = overwriteTarget.storedFilename;
@@ -113,12 +117,19 @@ async function persistStoredUpload(input: {
     } catch {
       // Best effort: the DB already points at the replacement object.
     }
+
+    if (folderId !== undefined) {
+      const updated = await updateMediaAssetMeta(asset.id, { folderId });
+      if (updated) return { ok: true as const, asset: mapMediaAsset(updated) };
+    }
+
     return { ok: true as const, asset: mapMediaAsset(asset) };
   }
 
   const asset = await createMediaAsset({
     ...created,
     createdBy: adminId,
+    folderId: folderId ?? null,
   });
 
   if (!asset) {
@@ -134,10 +145,18 @@ export async function listManagedMediaAssets(): Promise<SharedMediaAsset[]> {
   return assets.map(mapMediaAsset);
 }
 
+export async function listManagedMediaAssetsByFolder(
+  folderId: number | null,
+): Promise<SharedMediaAsset[]> {
+  const assets = await listMediaAssetsByFolder(folderId);
+  return assets.map(mapMediaAsset);
+}
+
 export async function uploadManagedMediaAsset(input: {
   adminId: number;
   displayName?: string;
   file: unknown;
+  folderId?: number | null;
   overwrite?: boolean;
 }) {
   const requestedDisplayName =
@@ -159,6 +178,7 @@ export async function uploadManagedMediaAsset(input: {
     return await persistStoredUpload({
       adminId: input.adminId,
       created: stored.created,
+      folderId: input.folderId,
       overwriteTarget: input.overwrite ? conflict : null,
     });
   } catch (error) {
@@ -171,6 +191,7 @@ export async function uploadManagedHlsBundle(input: {
   adminId: number;
   displayName: string;
   files: StoreHlsBundleFile[];
+  folderId?: number | null;
   overwrite?: boolean;
 }) {
   const conflict = await findUploadNameConflict(input.displayName);
@@ -191,6 +212,7 @@ export async function uploadManagedHlsBundle(input: {
     return await persistStoredUpload({
       adminId: input.adminId,
       created: stored.created,
+      folderId: input.folderId,
       overwriteTarget: input.overwrite ? conflict : null,
     });
   } catch (error) {
@@ -213,6 +235,7 @@ export async function completeManagedHlsBundleUpload(input: {
   adminId: number;
   displayName: string;
   files: StagedHlsBundleFile[];
+  folderId?: number | null;
   overwrite?: boolean;
   sessionId: string;
 }) {
@@ -235,6 +258,7 @@ export async function completeManagedHlsBundleUpload(input: {
     return await persistStoredUpload({
       adminId: input.adminId,
       created: stored.created,
+      folderId: input.folderId,
       overwriteTarget: input.overwrite ? conflict : null,
     });
   } catch (error) {
@@ -245,7 +269,7 @@ export async function completeManagedHlsBundleUpload(input: {
 
 export async function updateManagedMediaAsset(
   id: number,
-  data: { displayName: string; alias?: string | null },
+  data: { displayName?: string; alias?: string | null; folderId?: number | null },
 ) {
   const asset = await updateMediaAssetMeta(id, data);
   if (!asset) {

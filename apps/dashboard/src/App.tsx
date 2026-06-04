@@ -334,6 +334,14 @@ function AppRoutes() {
                 }
               />
               <Route
+                path="media/folder/:folderId"
+                element={
+                  <Suspense fallback={<ContentEditorLoadingFallback />}>
+                    <MediaPage />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="analytics"
                 element={
                   <Suspense fallback={<ContentEditorLoadingFallback />}>
