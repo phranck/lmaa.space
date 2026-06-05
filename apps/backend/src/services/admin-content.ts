@@ -1,4 +1,4 @@
-import type { ContentPage, ContentPageSummary, ContentStatus } from "@lmaa/shared";
+import type { ContentPage, ContentPageSummary, ContentStatus, ContentWidth } from "@lmaa/shared";
 
 import { failure, success } from "../lib/result.js";
 import {
@@ -23,6 +23,7 @@ function mapSummary(
     title: string;
     status: ContentStatus;
     showTitle: boolean;
+    contentWidth: ContentWidth;
     createdAt: Date;
     createdBy: number | null;
     updatedAt: Date | null;
@@ -35,6 +36,7 @@ function mapSummary(
     title: row.title,
     status: row.status,
     showTitle: row.showTitle,
+    contentWidth: row.contentWidth,
     createdAt: row.createdAt.toISOString(),
     createdByUsername: row.createdBy ? (usernames.get(row.createdBy) ?? null) : null,
     updatedAt: toIso(row.updatedAt),
@@ -70,6 +72,7 @@ export async function createManagedContentPage(input: {
   slug: string;
   title: string;
   status?: ContentStatus;
+  contentWidth?: ContentWidth;
   adminId: number;
 }) {
   const exists = await contentPageSlugExists(input.slug);
@@ -82,6 +85,7 @@ export async function createManagedContentPage(input: {
       slug: input.slug,
       title: input.title,
       status: input.status ?? "draft",
+      contentWidth: input.contentWidth ?? "default",
       createdBy: input.adminId,
     }),
     getAdminUsernameById(input.adminId),
@@ -93,6 +97,7 @@ export async function createManagedContentPage(input: {
       title: page.title,
       status: page.status,
       showTitle: page.showTitle,
+      contentWidth: page.contentWidth,
       createdAt: page.createdAt.toISOString(),
       createdByUsername: creatorUsername,
       updatedAt: null,
@@ -122,6 +127,7 @@ export async function getManagedContentPage(slug: string) {
     content: page.content,
     status: page.status,
     showTitle: page.showTitle,
+    contentWidth: page.contentWidth,
     createdAt: page.createdAt.toISOString(),
     createdByUsername: page.createdBy ? (usernames.get(page.createdBy) ?? null) : null,
     updatedAt: toIso(page.updatedAt),
@@ -168,6 +174,7 @@ export async function updateManagedContentPageMeta(input: {
   title?: string;
   status?: ContentStatus;
   showTitle?: boolean;
+  contentWidth?: ContentWidth;
   adminId: number;
 }) {
   if (input.newSlug && input.newSlug !== input.currentSlug) {
@@ -179,7 +186,13 @@ export async function updateManagedContentPageMeta(input: {
 
   const updated = await updateContentPageMeta(
     input.currentSlug,
-    { slug: input.newSlug, title: input.title, status: input.status, showTitle: input.showTitle },
+    {
+      slug: input.newSlug,
+      title: input.title,
+      status: input.status,
+      showTitle: input.showTitle,
+      contentWidth: input.contentWidth,
+    },
     input.adminId,
   );
   if (!updated) {
@@ -191,6 +204,8 @@ export async function updateManagedContentPageMeta(input: {
       slug: updated.slug,
       title: updated.title,
       status: updated.status,
+      showTitle: updated.showTitle,
+      contentWidth: updated.contentWidth,
       updatedAt: toIso(updated.updatedAt),
     },
   });

@@ -433,6 +433,7 @@ describe("publicRoutes", () => {
         title: "Draft Page",
         content: "# Draft",
         showTitle: true,
+        contentWidth: "full",
       });
 
       const res = await app.request(`/content-preview/${token}`);
@@ -445,6 +446,7 @@ describe("publicRoutes", () => {
           title: "Draft Page",
           content: "# Draft",
           showTitle: true,
+          contentWidth: "full",
         },
       });
     });

@@ -5,7 +5,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import {
   buildContentDescription,
-  hasWideContentSegment,
+  getContentWidthClass,
   renderContentSegments,
   type ContentPageView,
   type RenderedContentSegment,
@@ -21,10 +21,7 @@ if (!slug || forbiddenSlugs.has(slug)) {
 
 let page: ContentPageView | null = null;
 try {
-  const remote = await apiGet<{ title: string; content: string; showTitle: boolean }>(
-    `/content/${slug}`,
-  );
-  page = { title: remote.title, content: remote.content, showTitle: remote.showTitle };
+  page = await apiGet<ContentPageView>(`/content/${slug}`);
 } catch {
   // Content page not found or API error — fall through to form check / 404
 }
@@ -48,18 +45,16 @@ if (!page && !formConfig) {
 
 let description = "";
 let contentSegments: RenderedContentSegment[] = [];
-let hasWideContent = false;
 
 if (page) {
   contentSegments = await renderContentSegments(page.content);
-  hasWideContent = hasWideContentSegment(contentSegments);
   description = buildContentDescription(page.content);
 }
 ---
 
 {page ? (
   <BaseLayout title={page.title} description={description}>
-    <div class:list={[hasWideContent ? "max-w-5xl" : "max-w-3xl", "mx-auto px-4 sm:px-6 py-14"]}>
+    <div class:list={[getContentWidthClass(page.contentWidth), "mx-auto px-4 sm:px-6 py-14"]}>
       <article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
         {page.showTitle && <h1>{page.title}</h1>}
         {

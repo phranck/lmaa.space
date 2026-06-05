@@ -1,4 +1,5 @@
 import type { PublicRejectedShopsResponse } from "@lmaa/contracts";
+import type { ContentWidth } from "@lmaa/shared";
 
 import { apiGet } from "@/lib/api";
 import {
@@ -12,6 +13,7 @@ export interface ContentPageView {
   title: string;
   content: string;
   showTitle: boolean;
+  contentWidth: ContentWidth;
 }
 
 export type RenderedContentSegment =
@@ -80,6 +82,13 @@ export function buildContentDescription(content: string): string {
   return stripMarkdown(markdownContent.join(" ")).slice(0, 160);
 }
 
-export function hasWideContentSegment(segments: RenderedContentSegment[]): boolean {
-  return segments.some((segment) => segment.type === "rejected-shops-table");
+export function getContentWidthClass(contentWidth: ContentWidth): string {
+  switch (contentWidth) {
+    case "wide":
+      return "max-w-5xl";
+    case "full":
+      return "max-w-6xl";
+    default:
+      return "max-w-3xl";
+  }
 }

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { ContentPreviewSessionPayload } from "@lmaa/contracts";
+
 import {
   createContentPreviewSession,
   getContentPreviewSession,
@@ -7,11 +9,12 @@ import {
 
 describe("content preview store", () => {
   it("stores and resolves a short-lived preview payload", () => {
-    const payload = {
+    const payload: ContentPreviewSessionPayload = {
       slug: "draft-page",
       title: "Draft Page",
       content: "# Draft",
       showTitle: true,
+      contentWidth: "wide",
     };
 
     const session = createContentPreviewSession(payload);
@@ -29,6 +32,7 @@ describe("content preview store", () => {
       title: "Draft Page",
       content: "# Draft",
       showTitle: true,
+      contentWidth: "default",
     });
 
     vi.setSystemTime(new Date("2026-06-05T12:16:00.000Z"));

@@ -59,6 +59,7 @@ describe("content routes", () => {
         title: "Draft Page",
         content: "# Unsaved draft",
         showTitle: true,
+        contentWidth: "wide",
       };
       const res = await app.request("/content/draft-page/preview-sessions", {
         method: "POST",
@@ -86,6 +87,7 @@ describe("content routes", () => {
           title: "Draft Page",
           content: "# Draft",
           showTitle: true,
+          contentWidth: "wide",
         }),
       });
 
