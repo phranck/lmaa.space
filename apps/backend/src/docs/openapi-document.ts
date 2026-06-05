@@ -893,6 +893,7 @@ export const excludedPublicRouteKeys = [
   "GET /api/v1/nav/{navId}",
   "GET /api/v1/content",
   "GET /api/v1/content/{slug}",
+  "GET /api/v1/content-preview/{token}",
   "POST /api/v1/shops/{id}/report",
   "POST /api/v1/shops/{id}/concern",
   "POST /api/v1/shops/{id}/like",

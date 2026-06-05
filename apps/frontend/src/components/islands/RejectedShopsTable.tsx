@@ -11,6 +11,7 @@ import type { ComponentProps } from "react";
 import { useEffect, useMemo, useReducer, useState } from "react";
 
 import type {
+  PublicRejectedShopEntry,
   PublicRejectedShopPageSize,
   PublicRejectedShopSortDirection,
   PublicRejectedShopSortField,
@@ -30,9 +31,14 @@ const PAGE_SIZE_OPTIONS: Array<{ value: PublicRejectedShopPageSize; label: strin
 ];
 
 const SORT_LABELS: Record<PublicRejectedShopSortField, string> = {
-  shopName: "Shop",
+  shopName: "Shop Name",
   submittedAt: "Einreichung",
   rejectedAt: "Ablehnung",
+};
+
+const SORT_COLUMN_WIDTHS: Partial<Record<PublicRejectedShopSortField, string>> = {
+  shopName: "w-[64%]",
+  rejectedAt: "w-[22%]",
 };
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -142,6 +148,44 @@ function ShopLogo({
   );
 }
 
+function RejectedShopIdentity({ entry }: { entry: PublicRejectedShopEntry }) {
+  return (
+    <span className="flex min-w-0 items-center gap-2.5">
+      <ShopLogo
+        name={entry.shopName}
+        ogImage={entry.ogImage}
+        logoBackgroundColor={entry.logoBackgroundColor}
+      />
+      <span className="block truncate" title={entry.shopName}>
+        {entry.shopName}
+      </span>
+    </span>
+  );
+}
+
+function OpenRejectionLink({
+  entry,
+  className = "",
+}: {
+  entry: PublicRejectedShopEntry;
+  className?: string;
+}) {
+  return (
+    <a
+      href={entry.rejectionUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] text-xs font-medium leading-none text-[var(--ds-btn-neutral-text)] no-underline transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] hover:no-underline focus:no-underline focus:outline-none focus:ring-2 focus:ring-amber-500/30 ${className}`}
+      style={{ textDecoration: "none" }}
+      aria-label={`${entry.shopName} öffnen`}
+      title="Öffnen"
+    >
+      <ArrowSquareOutIcon weight="duotone" className="size-4" />
+      Öffnen
+    </a>
+  );
+}
+
 function getNextSortDirection(
   current: RejectedShopsTableState,
   field: PublicRejectedShopSortField,
@@ -230,10 +274,10 @@ export default function RejectedShopsTable({
       <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form
           onSubmit={submitSearch}
-          className="flex min-w-0 flex-1 gap-2"
+          className="flex min-w-0 flex-1 items-center gap-2"
           aria-label="Abgelehnte Shops suchen"
         >
-          <div className="flex min-w-0 flex-1 gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <input
               id={`${storageKey}-rejected-shops-search`}
               type="search"
@@ -245,7 +289,7 @@ export default function RejectedShopsTable({
             />
             <button
               type="submit"
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-control bg-[var(--ds-btn-filled-bg)] px-3 text-sm font-medium text-[var(--ds-btn-filled-fg)] transition-colors hover:bg-[var(--ds-btn-filled-hover)] focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="inline-flex h-7 shrink-0 appearance-none items-center gap-1.5 rounded-control border border-transparent bg-[var(--ds-btn-filled-bg)] px-3 text-sm font-medium text-[var(--ds-btn-filled-fg)] transition-colors hover:bg-[var(--ds-btn-filled-hover)] focus:outline-none focus:ring-2 focus:ring-amber-500/40"
             >
               <MagnifyingGlassIcon weight="duotone" className="size-4" />
               Suchen
@@ -254,7 +298,7 @@ export default function RejectedShopsTable({
               <button
                 type="button"
                 onClick={clearSearch}
-                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30"
               >
                 <XCircleIcon weight="duotone" className="size-4" />
                 Zurücksetzen
@@ -284,15 +328,46 @@ export default function RejectedShopsTable({
         </label>
       </div>
 
-      <div className="mt-4 overflow-x-auto border-y border-stone-200">
-        <table className="min-w-full text-sm">
+      <div className="mt-4 border-y border-stone-200 sm:hidden">
+        <div className="grid grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] items-center gap-2 bg-stone-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-stone-500">
+          <SortButton field="shopName" state={state} onSort={sortBy} />
+          <SortButton field="rejectedAt" state={state} onSort={sortBy} className="justify-end" />
+          <span aria-hidden="true" />
+        </div>
+        <div>
+          {data.entries.map((entry, index) => (
+            <div
+              key={entry.id}
+              className={`grid grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] items-center gap-2 px-3 py-1.5 text-sm ${
+                index % 2 === 0 ? "bg-white" : "bg-stone-50/70"
+              }`}
+            >
+              <div className="min-w-0 font-medium text-stone-900">
+                <RejectedShopIdentity entry={entry} />
+              </div>
+              <time className="whitespace-nowrap text-right text-xs leading-none text-stone-600">
+                {formatDate(entry.rejectedAt)}
+              </time>
+              <div className="text-right">
+                <OpenRejectionLink entry={entry} className="h-7 px-2" />
+              </div>
+            </div>
+          ))}
+          {data.entries.length === 0 ? (
+            <div className="px-3 py-8 text-center text-sm text-stone-500">
+              Keine abgelehnten Shops gefunden.
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 hidden overflow-x-auto border-y border-stone-200 sm:block">
+        <table className="min-w-full table-fixed text-sm">
           <thead className="text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
             <tr>
               <SortableHeader field="shopName" state={state} onSort={sortBy} />
               <SortableHeader field="rejectedAt" state={state} onSort={sortBy} />
-              <th scope="col" className="px-3 py-2 text-right">
-                Details
-              </th>
+              <th scope="col" aria-label="Details" className="w-[14%] px-3 py-2 text-right" />
             </tr>
           </thead>
           <tbody>
@@ -301,34 +376,14 @@ export default function RejectedShopsTable({
                 key={entry.id}
                 className="transition odd:bg-white even:bg-stone-50/70 hover:bg-amber-50/50"
               >
-                <td className="max-w-[20rem] px-3 py-1 align-middle font-medium text-stone-900">
-                  <span className="flex min-w-0 items-center gap-2.5">
-                    <ShopLogo
-                      name={entry.shopName}
-                      ogImage={entry.ogImage}
-                      logoBackgroundColor={entry.logoBackgroundColor}
-                    />
-                    <span className="block truncate" title={entry.shopName}>
-                      {entry.shopName}
-                    </span>
-                  </span>
+                <td className="px-3 py-1 align-middle font-medium text-stone-900">
+                  <RejectedShopIdentity entry={entry} />
                 </td>
                 <td className="whitespace-nowrap px-3 py-1 align-middle leading-none text-stone-600">
                   {formatDate(entry.rejectedAt)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-1 text-right align-middle">
-                  <a
-                    href={entry.rejectionUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex h-8 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-2.5 text-xs font-medium leading-none text-[var(--ds-btn-neutral-text)] no-underline transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] hover:no-underline focus:no-underline focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                    style={{ textDecoration: "none" }}
-                    aria-label={`${entry.shopName} öffnen`}
-                    title="Öffnen"
-                  >
-                    <ArrowSquareOutIcon weight="duotone" className="size-4" />
-                    Öffnen
-                  </a>
+                  <OpenRejectionLink entry={entry} className="h-7 px-2" />
                 </td>
               </tr>
             ))}
@@ -377,6 +432,39 @@ export default function RejectedShopsTable({
   );
 }
 
+function SortButton({
+  field,
+  state,
+  onSort,
+  className = "",
+}: {
+  field: PublicRejectedShopSortField;
+  state: RejectedShopsTableState;
+  onSort: (field: PublicRejectedShopSortField) => void;
+  className?: string;
+}) {
+  const isActive = state.sortBy === field;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(field)}
+      className={`inline-flex min-w-0 items-center gap-1 text-left transition hover:text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 ${className}`}
+    >
+      <span className="truncate">{SORT_LABELS[field]}</span>
+      <span className="inline-flex size-3.5 shrink-0 items-center justify-center">
+        {isActive ? (
+          state.sortDir === "asc" ? (
+            <CaretUpIcon weight="bold" className="size-3.5" />
+          ) : (
+            <CaretDownIcon weight="bold" className="size-3.5" />
+          )
+        ) : null}
+      </span>
+    </button>
+  );
+}
+
 function SortableHeader({
   field,
   state,
@@ -390,21 +478,8 @@ function SortableHeader({
   const ariaSort = isActive ? (state.sortDir === "asc" ? "ascending" : "descending") : "none";
 
   return (
-    <th scope="col" aria-sort={ariaSort} className="px-3 py-2">
-      <button
-        type="button"
-        onClick={() => onSort(field)}
-        className="inline-flex items-center gap-1 text-left transition hover:text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-      >
-        {SORT_LABELS[field]}
-        {isActive ? (
-          state.sortDir === "asc" ? (
-            <CaretUpIcon weight="bold" className="size-3.5" />
-          ) : (
-            <CaretDownIcon weight="bold" className="size-3.5" />
-          )
-        ) : null}
-      </button>
+    <th scope="col" aria-sort={ariaSort} className={`${SORT_COLUMN_WIDTHS[field] ?? ""} px-3 py-2`}>
+      <SortButton field={field} state={state} onSort={onSort} />
     </th>
   );
 }

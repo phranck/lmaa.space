@@ -10,6 +10,27 @@ export const contentUpdateSchema = z.object({
 });
 
 /**
+ * Short-lived content page preview payload.
+ */
+export const contentPreviewSessionSchema = z.object({
+  slug: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(slugPattern, "Nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt"),
+  title: z.string().min(1).max(200),
+  content: z.string().max(100_000),
+  showTitle: z.boolean(),
+});
+
+export type ContentPreviewSessionPayload = z.infer<typeof contentPreviewSessionSchema>;
+
+export interface ContentPreviewSessionResponse {
+  token: string;
+  expiresAt: string;
+}
+
+/**
  * Content metadata update payload contract.
  */
 export const contentMetaSchema = z.object({

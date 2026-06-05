@@ -23,6 +23,7 @@ import {
   getManagedPublicFormConfigBySlug,
 } from "../services/admin-form-config.js";
 import { getMediaAliasMap, getMediaShortcodeAssetMap } from "../services/admin-media.js";
+import { getContentPreviewSession } from "../services/content-preview-store.js";
 import { getFooterPreviewSession } from "../services/footer-preview-store.js";
 import { executeSubmissionChain } from "../services/form-submission.js";
 import { buildFormValidationSchema } from "../services/form-validation.js";
@@ -250,6 +251,22 @@ publicRoutes.get("/content/:slug", publicReadLimit, async (c) => {
   }
 
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  return ok(c, page);
+});
+
+// GET /api/content-preview/:token
+publicRoutes.get("/content-preview/:token", publicReadLimit, async (c) => {
+  const token = c.req.param("token");
+  if (!/^[0-9a-f]{32}$/.test(token)) {
+    return fail(c, 400, "Invalid token");
+  }
+
+  const page = getContentPreviewSession(token);
+  if (!page) {
+    return fail(c, 404, "Preview not found");
+  }
+
+  c.header("Cache-Control", "no-store");
   return ok(c, page);
 });
 
