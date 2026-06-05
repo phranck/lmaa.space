@@ -35,10 +35,10 @@ contentRoutes.get("/content", requireAdmin, async (c) => {
 // ─── Create page ──────────────────────────────────────────────────────────────
 
 contentRoutes.post("/content", requireAdmin, zValidator("json", contentCreateSchema), async (c) => {
-  const { slug, title, status = "draft" } = c.req.valid("json");
+  const { slug, title, status = "draft", contentWidth = "default" } = c.req.valid("json");
   const adminId = c.get("adminId");
 
-  const result = await createManagedContentPage({ slug, title, status, adminId });
+  const result = await createManagedContentPage({ slug, title, status, contentWidth, adminId });
   if (!result.ok) {
     return fail(c, 409, "Slug bereits vergeben");
   }
@@ -93,7 +93,7 @@ contentRoutes.patch(
   zValidator("json", contentMetaSchema),
   async (c) => {
     const currentSlug = c.req.param("slug");
-    const { title, slug: newSlug, status, showTitle } = c.req.valid("json");
+    const { title, slug: newSlug, status, showTitle, contentWidth } = c.req.valid("json");
     const adminId = c.get("adminId");
 
     const result = await updateManagedContentPageMeta({
@@ -102,6 +102,7 @@ contentRoutes.patch(
       title,
       status,
       showTitle,
+      contentWidth,
       adminId,
     });
     if (!result.ok && result.reason === "slug_conflict")

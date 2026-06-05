@@ -653,6 +653,10 @@ export interface DashboardMessages {
       titleLabel: string;
       slugLabel: string;
       statusLabel: string;
+      contentWidthLabel: string;
+      contentWidthDefault: string;
+      contentWidthWide: string;
+      contentWidthFull: string;
       ok: string;
       statusDraft: string;
       statusPublished: string;
@@ -2109,6 +2113,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         titleLabel: "Titel",
         slugLabel: "Slug",
         statusLabel: "Status",
+        contentWidthLabel: "Breite",
+        contentWidthDefault: "Standard",
+        contentWidthWide: "Breit",
+        contentWidthFull: "Maximal",
         ok: "OK",
         statusDraft: "Entwurf",
         statusPublished: "Veröffentlicht",
@@ -3599,6 +3607,10 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         titleLabel: "Title",
         slugLabel: "Slug",
         statusLabel: "Status",
+        contentWidthLabel: "Width",
+        contentWidthDefault: "Default",
+        contentWidthWide: "Wide",
+        contentWidthFull: "Maximum",
         ok: "OK",
         statusDraft: "Draft",
         statusPublished: "Published",

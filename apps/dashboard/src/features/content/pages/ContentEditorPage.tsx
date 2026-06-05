@@ -2,7 +2,7 @@ import { EyeIcon, MarkdownLogoIcon, MinusCircleIcon, PlusCircleIcon } from "@pho
 import { Suspense, lazy, useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 
-import type { ContentPage } from "@lmaa/shared";
+import type { ContentPage, ContentWidth } from "@lmaa/shared";
 import { DashboardSection } from "@lmaa/ui/dashboard-section";
 
 const MarkdownEditor = lazy(() =>
@@ -266,6 +266,10 @@ interface EditorMetadataBarProps {
     titleLabel: string;
     slugLabel: string;
     statusLabel: string;
+    contentWidthLabel: string;
+    contentWidthDefault: string;
+    contentWidthWide: string;
+    contentWidthFull: string;
     showTitleLabel: string;
     ok: string;
     statusDraft: string;
@@ -287,6 +291,7 @@ interface EditorMetadataBarProps {
   onSaveSlug: () => void;
   onCancelSlug: () => void;
   onStatusChange: (value: string) => void;
+  onContentWidthChange: (value: ContentWidth) => void;
   onShowTitleChange: (value: boolean) => void;
 }
 
@@ -309,6 +314,7 @@ function EditorMetadataBar({
   onSaveSlug,
   onCancelSlug,
   onStatusChange,
+  onContentWidthChange,
   onShowTitleChange,
 }: EditorMetadataBarProps) {
   return (
@@ -394,6 +400,20 @@ function EditorMetadataBar({
             { value: "draft", label: editorMessages.statusDraft },
             { value: "published", label: editorMessages.statusPublished },
             { value: "hidden", label: editorMessages.statusHidden },
+          ]}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{editorMessages.contentWidthLabel}:</span>
+        <DashboardCombobox
+          value={page.contentWidth}
+          onValueChange={(value) => onContentWidthChange(value as ContentWidth)}
+          minWidthFromOptions
+          options={[
+            { value: "default", label: editorMessages.contentWidthDefault },
+            { value: "wide", label: editorMessages.contentWidthWide },
+            { value: "full", label: editorMessages.contentWidthFull },
           ]}
         />
       </div>
@@ -484,6 +504,7 @@ export function ContentEditorPage() {
     slug?: string;
     status?: string;
     showTitle?: boolean;
+    contentWidth?: ContentWidth;
   }) {
     dispatch({ type: "setPatchError", value: null });
     try {
@@ -516,6 +537,7 @@ export function ContentEditorPage() {
       title: page.title,
       content: currentContent,
       showTitle: page.showTitle,
+      contentWidth: page.contentWidth,
     })
       .then(({ token }) => {
         window.open(`${FRONTEND_URL}/preview/content?token=${token}`, "_blank");
@@ -596,6 +618,7 @@ export function ContentEditorPage() {
           onSaveSlug={handleSlugSave}
           onCancelSlug={() => dispatch({ type: "setEditingSlug", value: false })}
           onStatusChange={(value) => void handlePatch({ status: value })}
+          onContentWidthChange={(value) => void handlePatch({ contentWidth: value })}
           onShowTitleChange={(value) => void handlePatch({ showTitle: value })}
         />
       )}

@@ -260,7 +260,7 @@ export default function RejectedShopsTable({
   }
 
   return (
-    <section className="not-prose my-8">
+    <section className="not-prose my-8 w-full max-w-full min-w-0">
       <p className="text-sm font-medium text-stone-600" aria-live="polite">
         {data.metrics.totalRejectedShops} abgelehnte Shops
         {state.search ? ` · ${data.metrics.filteredRejectedShops} Treffer` : ""}
@@ -328,7 +328,7 @@ export default function RejectedShopsTable({
         </label>
       </div>
 
-      <div className="mt-4 border-y border-stone-200 sm:hidden">
+      <div className="mt-4 w-full max-w-full min-w-0 border-y border-stone-200 sm:hidden">
         <div className="grid grid-cols-[minmax(0,1fr)_4.75rem_4.75rem] items-center gap-2 bg-stone-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-stone-500">
           <SortButton field="shopName" state={state} onSort={sortBy} />
           <SortButton field="rejectedAt" state={state} onSort={sortBy} className="justify-end" />
@@ -361,8 +361,8 @@ export default function RejectedShopsTable({
         </div>
       </div>
 
-      <div className="mt-4 hidden overflow-x-auto border-y border-stone-200 sm:block">
-        <table className="min-w-full table-fixed text-sm">
+      <div className="mt-4 hidden w-full max-w-full min-w-0 overflow-x-auto border-y border-stone-200 sm:block">
+        <table className="w-full table-fixed text-sm">
           <thead className="text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
             <tr>
               <SortableHeader field="shopName" state={state} onSort={sortBy} />

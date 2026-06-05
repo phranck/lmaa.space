@@ -34,6 +34,7 @@ describe("getManagedContentPages", () => {
         title: "About",
         status: "published",
         showTitle: true,
+        contentWidth: "wide",
         createdAt: new Date("2024-01-01"),
         createdBy: 1,
         updatedAt: new Date("2024-06-01"),
@@ -55,6 +56,7 @@ describe("getManagedContentPages", () => {
         title: "About",
         status: "published",
         showTitle: true,
+        contentWidth: "wide",
         createdAt: "2024-01-01T00:00:00.000Z",
         createdByUsername: "alice",
         updatedAt: "2024-06-01T00:00:00.000Z",
@@ -86,6 +88,7 @@ describe("createManagedContentPage", () => {
       title: "New Page",
       status: "draft",
       showTitle: true,
+      contentWidth: "default",
       createdAt: new Date("2024-01-01"),
     });
     repoMocks.getAdminUsernameById.mockResolvedValue("alice");
@@ -103,6 +106,7 @@ describe("createManagedContentPage", () => {
         title: "New Page",
         status: "draft",
         showTitle: true,
+        contentWidth: "default",
         createdAt: "2024-01-01T00:00:00.000Z",
         createdByUsername: "alice",
         updatedAt: null,
@@ -130,6 +134,7 @@ describe("getManagedContentPage", () => {
       content: "# About",
       status: "published",
       showTitle: true,
+      contentWidth: "full",
       createdAt: new Date("2024-01-01"),
       createdBy: 1,
       updatedAt: null,
@@ -145,6 +150,7 @@ describe("getManagedContentPage", () => {
       content: "# About",
       status: "published",
       showTitle: true,
+      contentWidth: "full",
       createdAt: "2024-01-01T00:00:00.000Z",
       createdByUsername: "alice",
       updatedAt: null,
@@ -222,6 +228,8 @@ describe("updateManagedContentPageMeta", () => {
       slug: "new-slug",
       title: "New Title",
       status: "published",
+      showTitle: false,
+      contentWidth: "wide",
       updatedAt: new Date("2024-06-01"),
     });
 
@@ -237,6 +245,8 @@ describe("updateManagedContentPageMeta", () => {
         slug: "new-slug",
         title: "New Title",
         status: "published",
+        showTitle: false,
+        contentWidth: "wide",
         updatedAt: "2024-06-01T00:00:00.000Z",
       },
     });

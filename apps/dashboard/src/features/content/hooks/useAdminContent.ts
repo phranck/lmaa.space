@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 
 import type { ContentPreviewSessionPayload, ContentPreviewSessionResponse } from "@lmaa/contracts";
-import type { ContentPage, ContentPageSummary } from "@lmaa/shared";
+import type { ContentPage, ContentPageSummary, ContentWidth } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
 
@@ -86,7 +86,7 @@ export function useCreateContentPreviewSession(slug: string) {
 export function useCreateContentPage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { slug: string; title: string; status?: string }) =>
+    mutationFn: (data: { slug: string; title: string; status?: string; contentWidth?: ContentWidth }) =>
       api.post<ContentPageSummary>("/admin/content", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["content-pages"] });
@@ -121,11 +121,21 @@ export function useDeleteContentPage() {
 export function usePatchContentPage(slug: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { title?: string; slug?: string; status?: string; showTitle?: boolean }) =>
-      api.patch<{ slug: string; title: string; status: string; updatedAt: string | null }>(
-        `/admin/content/${slug}`,
-        data,
-      ),
+    mutationFn: (data: {
+      title?: string;
+      slug?: string;
+      status?: string;
+      showTitle?: boolean;
+      contentWidth?: ContentWidth;
+    }) =>
+      api.patch<{
+        slug: string;
+        title: string;
+        status: string;
+        showTitle: boolean;
+        contentWidth: ContentWidth;
+        updatedAt: string | null;
+      }>(`/admin/content/${slug}`, data),
     onSuccess: (updated) => {
       qc.invalidateQueries({ queryKey: ["content-pages"] });
       qc.invalidateQueries({ queryKey: ["content-admin", slug] });

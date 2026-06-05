@@ -391,6 +391,7 @@ export const contentPages = pgTable("content_pages", {
   content: text("content").notNull().default(""),
   status: text("status").$type<"draft" | "published" | "hidden">().notNull().default("draft"),
   showTitle: boolean("show_title").notNull().default(true),
+  contentWidth: text("content_width").$type<"default" | "wide" | "full">().notNull().default("default"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: integer("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at").defaultNow(),

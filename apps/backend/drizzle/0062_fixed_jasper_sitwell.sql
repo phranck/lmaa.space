@@ -1,0 +1,1 @@
+ALTER TABLE "content_pages" ADD COLUMN "content_width" text DEFAULT 'default' NOT NULL;

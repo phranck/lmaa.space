@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const slugPattern = /^[a-z0-9-]+$/;
+export const contentWidthSchema = z.enum(["default", "wide", "full"]);
 
 /**
  * Content body update payload contract.
@@ -21,6 +22,7 @@ export const contentPreviewSessionSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().max(100_000),
   showTitle: z.boolean(),
+  contentWidth: contentWidthSchema,
 });
 
 export type ContentPreviewSessionPayload = z.infer<typeof contentPreviewSessionSchema>;
@@ -43,6 +45,7 @@ export const contentMetaSchema = z.object({
     .optional(),
   status: z.enum(["draft", "published", "hidden"]).optional(),
   showTitle: z.boolean().optional(),
+  contentWidth: contentWidthSchema.optional(),
 });
 
 /**
@@ -56,4 +59,5 @@ export const contentCreateSchema = z.object({
     .regex(slugPattern, "Nur Kleinbuchstaben, Zahlen und Bindestriche erlaubt"),
   title: z.string().min(1).max(200),
   status: z.enum(["draft", "published", "hidden"]).optional(),
+  contentWidth: contentWidthSchema.optional(),
 });

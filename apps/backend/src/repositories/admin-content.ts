@@ -7,6 +7,7 @@ import { adminUsers, contentPages } from "../db/schema.js";
  * Internal storage status of CMS-like content pages.
  */
 type ContentPageStatus = "draft" | "published" | "hidden";
+type ContentPageWidth = "default" | "wide" | "full";
 
 /**
  * Lightweight content page projection used for listings.
@@ -16,6 +17,7 @@ interface ContentPageSummaryRow {
   title: string;
   status: ContentPageStatus;
   showTitle: boolean;
+  contentWidth: ContentPageWidth;
   createdAt: Date;
   createdBy: number | null;
   updatedAt: Date | null;
@@ -35,6 +37,7 @@ const CONTENT_PAGE_SUMMARY_FIELDS = {
   title: contentPages.title,
   status: contentPages.status,
   showTitle: contentPages.showTitle,
+  contentWidth: contentPages.contentWidth,
   createdAt: contentPages.createdAt,
   createdBy: contentPages.createdBy,
   updatedAt: contentPages.updatedAt,
@@ -98,6 +101,7 @@ export async function createContentPage(data: {
   slug: string;
   title: string;
   status: ContentPageStatus;
+  contentWidth: ContentPageWidth;
   createdBy: number;
 }): Promise<ContentPageSummaryRow> {
   const [page] = await db
@@ -107,6 +111,7 @@ export async function createContentPage(data: {
       title: data.title,
       content: "",
       status: data.status,
+      contentWidth: data.contentWidth,
       createdBy: data.createdBy,
     })
     .returning(CONTENT_PAGE_SUMMARY_FIELDS);
@@ -146,7 +151,13 @@ export async function updateContentPageBody(
  */
 export async function updateContentPageMeta(
   currentSlug: string,
-  updates: Partial<{ title: string; slug: string; status: ContentPageStatus; showTitle: boolean }>,
+  updates: Partial<{
+    title: string;
+    slug: string;
+    status: ContentPageStatus;
+    showTitle: boolean;
+    contentWidth: ContentPageWidth;
+  }>,
   updatedBy: number,
 ): Promise<ContentPageSummaryRow | null> {
   const [page] = await db

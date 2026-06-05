@@ -4,6 +4,11 @@
 export type ContentStatus = "draft" | "published" | "hidden";
 
 /**
+ * Frontend content container widths supported by editable pages.
+ */
+export type ContentWidth = "default" | "wide" | "full";
+
+/**
  * Navigation buckets rendered on the website.
  */
 export type NavId = "header" | "footer";
@@ -17,6 +22,7 @@ export interface ContentPage {
   content: string;
   status: ContentStatus;
   showTitle: boolean;
+  contentWidth: ContentWidth;
   createdAt: string;
   createdByUsername: string | null;
   updatedAt: string | null;
@@ -31,6 +37,7 @@ export interface ContentPageSummary {
   title: string;
   status: ContentStatus;
   showTitle: boolean;
+  contentWidth: ContentWidth;
   createdAt: string;
   createdByUsername: string | null;
   updatedAt: string | null;
