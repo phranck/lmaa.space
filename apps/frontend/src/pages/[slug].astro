@@ -1,16 +1,76 @@
 ---
 import DynamicForm from "@/components/islands/DynamicForm";
+import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
 import { stripMarkdown } from "@/lib/markdown";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
-import type { FormConfig } from "@lmaa/contracts";
+import {
+  parseRejectedShopsTableTokens,
+  type RejectedShopsTableToken,
+} from "@/lib/rejected-shops-table-token";
+import type { FormConfig, PublicRejectedShopsResponse } from "@lmaa/contracts";
 import type { Category } from "@lmaa/shared";
 
 interface ContentPageView {
   title: string;
   content: string;
   showTitle: boolean;
+}
+
+type RenderedContentSegment =
+  | { type: "html"; html: string }
+  | (RejectedShopsTableToken & { initialData: PublicRejectedShopsResponse });
+
+function emptyRejectedShopsResponse(
+  pageSize: RejectedShopsTableToken["defaultPageSize"],
+): PublicRejectedShopsResponse {
+  return {
+    entries: [],
+    total: 0,
+    page: 1,
+    pageSize,
+    search: "",
+    sortBy: "rejectedAt",
+    sortDir: "desc",
+    metrics: {
+      totalRejectedShops: 0,
+      filteredRejectedShops: 0,
+    },
+  };
+}
+
+async function loadInitialRejectedShopsData(
+  pageSize: RejectedShopsTableToken["defaultPageSize"],
+): Promise<PublicRejectedShopsResponse> {
+  const params = new URLSearchParams({
+    page: "1",
+    pageSize,
+    sortBy: "rejectedAt",
+    sortDir: "desc",
+  });
+
+  try {
+    return await apiGet<PublicRejectedShopsResponse>(`/rejected-shops?${params}`);
+  } catch {
+    return emptyRejectedShopsResponse(pageSize);
+  }
+}
+
+async function renderContentSegments(content: string): Promise<RenderedContentSegment[]> {
+  const segments = parseRejectedShopsTableTokens(content);
+  return Promise.all(
+    segments.map(async (segment) => {
+      if (segment.type === "markdown") {
+        return { type: "html" as const, html: await renderMarkdown(segment.content) };
+      }
+
+      return {
+        ...segment,
+        initialData: await loadInitialRejectedShopsData(segment.defaultPageSize),
+      };
+    }),
+  );
 }
 
 const { slug } = Astro.params;
@@ -46,21 +106,41 @@ if (!page && !formConfig) {
   return Astro.redirect("/404");
 }
 
-let html = "";
 let description = "";
+let contentSegments: RenderedContentSegment[] = [];
+let hasWideContent = false;
 
 if (page) {
-  html = await renderMarkdown(page.content);
-  description = stripMarkdown(page.content).slice(0, 160);
+  contentSegments = await renderContentSegments(page.content);
+  hasWideContent = contentSegments.some((segment) => segment.type === "rejected-shops-table");
+  description = stripMarkdown(
+    parseRejectedShopsTableTokens(page.content)
+      .filter((segment) => segment.type === "markdown")
+      .map((segment) => segment.content)
+      .join(" "),
+  ).slice(0, 160);
 }
 ---
 
 {page ? (
   <BaseLayout title={page.title} description={description}>
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
+    <div class:list={[hasWideContent ? "max-w-5xl" : "max-w-3xl", "mx-auto px-4 sm:px-6 py-14"]}>
       <article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
         {page.showTitle && <h1>{page.title}</h1>}
-        <Fragment set:html={html} />
+        {
+          contentSegments.map((segment) =>
+            segment.type === "html" ? (
+              <Fragment set:html={segment.html} />
+            ) : (
+              <RejectedShopsTable
+                client:load
+                defaultPageSize={segment.defaultPageSize}
+                initialData={segment.initialData}
+                storageKey={segment.storageKey}
+              />
+            ),
+          )
+        }
       </article>
     </div>
   </BaseLayout>

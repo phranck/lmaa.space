@@ -2,6 +2,11 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { getDomain } from "tldts";
 
+import type {
+  PublicRejectedShopPageSize,
+  PublicRejectedShopSortDirection,
+  PublicRejectedShopSortField,
+} from "@lmaa/contracts";
 import { encodeShopToken } from "@lmaa/shared";
 
 import { findMatchingDomainAlertRule } from "./domain-alert-rules.js";
@@ -27,6 +32,7 @@ import {
 import {
   type PublicShopRow,
   countPendingSubmissions,
+  countPublicRejectedShops,
   countPublicShops,
   findPendingSubmissionByDomain,
   findRejectedSubmissionByDomain,
@@ -39,6 +45,7 @@ import {
   insertDeadLinkReport,
   insertShopConcernReport,
   listAllPublicShopsWithCategories,
+  listPublicRejectedShops,
   listPublicCategoriesWithShopCount,
   listPublicNavItems,
   listPublicShopsByCategoryId,
@@ -49,6 +56,7 @@ import {
 } from "../repositories/public.js";
 
 const SHOPS_CACHE_TTL_MS = 60 * 1000;
+const NUMERIC_REJECTED_SHOP_PAGE_SIZES = new Set([10, 15, 20, 30, 50]);
 
 /**
  * Extracts the registered domain from a shop URL for deduplication checks.
@@ -120,7 +128,8 @@ function validateLikeToken(shopId: number, token: string): { valid: boolean; rea
 
   const a = Buffer.from(hmac, "hex");
   const b = Buffer.from(expected, "hex");
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return { valid: false, reason: "invalid_hmac" };
+  if (a.length !== b.length || !timingSafeEqual(a, b))
+    return { valid: false, reason: "invalid_hmac" };
 
   return { valid: true };
 }
@@ -303,7 +312,9 @@ export async function validateShopUrl(urlRaw: string | undefined) {
 
   const submission = await findRejectedSubmissionByDomain(domain);
   if (submission) {
-    const rejectionUrl = submission.rejectionToken ? `/rejected/${submission.rejectionToken}` : null;
+    const rejectionUrl = submission.rejectionToken
+      ? `/rejected/${submission.rejectionToken}`
+      : null;
     return {
       status: "rejected" as const,
       shopName: submission.shopName,
@@ -420,6 +431,62 @@ export async function getManagedPublicRejectionPageByToken(token: string) {
   return getRejectionPageByToken(token);
 }
 
+function serializeRejectedShopDate(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
+
+function normalizeRejectedShopPageSize(pageSize: PublicRejectedShopPageSize): number | "all" {
+  if (pageSize === "all") return "all";
+  const numeric = Number(pageSize);
+  return NUMERIC_REJECTED_SHOP_PAGE_SIZES.has(numeric) ? numeric : 15;
+}
+
+export async function getManagedPublicRejectedShops(input: {
+  search: string;
+  page: number;
+  pageSize: PublicRejectedShopPageSize;
+  sortBy: PublicRejectedShopSortField;
+  sortDir: PublicRejectedShopSortDirection;
+}) {
+  const search = input.search.trim().slice(0, 200);
+  const normalizedPageSize = normalizeRejectedShopPageSize(input.pageSize);
+  const [totalRejectedShops, total] = await Promise.all([
+    search ? countPublicRejectedShops("") : Promise.resolve(0),
+    countPublicRejectedShops(search),
+  ]);
+  const actualTotalRejectedShops = search ? totalRejectedShops : total;
+  const totalPages =
+    normalizedPageSize === "all" ? 1 : Math.max(1, Math.ceil(total / normalizedPageSize));
+  const page = normalizedPageSize === "all" ? 1 : Math.min(Math.max(1, input.page), totalPages);
+  const rows = await listPublicRejectedShops({
+    search,
+    page,
+    pageSize: normalizedPageSize,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+  });
+
+  return {
+    entries: rows.map((row) => ({
+      id: `${row.source}:${row.id}`,
+      shopName: row.shopName,
+      submittedAt: serializeRejectedShopDate(row.submittedAt),
+      rejectedAt: serializeRejectedShopDate(row.rejectedAt),
+      rejectionUrl: `/rejected/${row.rejectionToken}`,
+    })),
+    total,
+    page,
+    pageSize: input.pageSize,
+    search,
+    sortBy: input.sortBy,
+    sortDir: input.sortDir,
+    metrics: {
+      totalRejectedShops: actualTotalRejectedShops,
+      filteredRejectedShops: total,
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Filtered public endpoints
 // ---------------------------------------------------------------------------
@@ -442,10 +509,7 @@ export async function getFilteredPublicCategories(filters: ShopFilterParams) {
   return { categories, totalShops };
 }
 
-export async function getFilteredPublicCategoryBySlug(
-  slug: string,
-  filters: ShopFilterParams,
-) {
+export async function getFilteredPublicCategoryBySlug(slug: string, filters: ShopFilterParams) {
   const category = await getPublicCategoryBySlug(slug);
   if (!category) {
     return failure("not_found");
