@@ -356,6 +356,23 @@ interface PendingSubmissionRow {
   shopUrl: string;
 }
 
+export interface PublicRejectedShopListRow {
+  source: "shop" | "submission";
+  id: number;
+  shopName: string;
+  submittedAt: Date;
+  rejectedAt: Date;
+  rejectionToken: string;
+}
+
+interface PublicRejectedShopListParams {
+  search: string;
+  page: number;
+  pageSize: number | "all";
+  sortBy: "shopName" | "submittedAt" | "rejectedAt";
+  sortDir: "asc" | "desc";
+}
+
 /**
  * Finds a submission awaiting moderation by domain (DOMAIN.TLD).
  *
@@ -380,6 +397,109 @@ export async function findPendingSubmissionByDomain(domain: string) {
   ]);
 
   return candidates.find((row) => getDomain(row.shopUrl) === domain) ?? null;
+}
+
+function publicRejectedShopSearchClause(search: string) {
+  const trimmed = search.trim();
+  if (!trimmed) return sql``;
+  const escaped = trimmed.replace(/[%_\\]/g, "\\$&");
+  return sql`WHERE rejected."shopName" ILIKE ${`%${escaped}%`} ESCAPE '\\'`;
+}
+
+/**
+ * Counts rejected shops and rejected submissions with public rejection pages.
+ *
+ * @param search - Optional shop-name search.
+ * @returns Total number of matching public rejection entries.
+ */
+export async function countPublicRejectedShops(search: string): Promise<number> {
+  const searchClause = publicRejectedShopSearchClause(search);
+  const [row] = await db.execute<{ total: number | string }>(sql`
+    WITH rejected AS (
+      SELECT s.name AS "shopName"
+      FROM shops s
+      WHERE s.visibility = 'rejected'
+        AND s.rejection_token IS NOT NULL
+        AND s.rejection_long_text IS NOT NULL
+      UNION ALL
+      SELECT sub.shop_name AS "shopName"
+      FROM submissions sub
+      WHERE sub.status = 'rejected'
+        AND sub.rejection_token IS NOT NULL
+        AND sub.rejection_long_text IS NOT NULL
+    )
+    SELECT COUNT(*) AS total
+    FROM rejected
+    ${searchClause}
+  `);
+
+  return Number(row?.total ?? 0);
+}
+
+/**
+ * Lists rejected shops and rejected submissions with public rejection pages.
+ *
+ * @param params.search - Optional shop-name search.
+ * @param params.page - One-based page number.
+ * @param params.pageSize - Numeric page size or `"all"`.
+ * @returns Matching entries ordered by rejection date descending.
+ */
+export async function listPublicRejectedShops({
+  search,
+  page,
+  pageSize,
+  sortBy,
+  sortDir,
+}: PublicRejectedShopListParams) {
+  const searchClause = publicRejectedShopSearchClause(search);
+  const paginationClause =
+    pageSize === "all" ? sql`` : sql`LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
+  const sortColumn =
+    sortBy === "shopName"
+      ? sql`rejected."shopName"`
+      : sortBy === "submittedAt"
+        ? sql`rejected."submittedAt"`
+        : sql`rejected."rejectedAt"`;
+  const sortDirection = sortDir === "asc" ? sql`ASC` : sql`DESC`;
+
+  return db.execute<PublicRejectedShopListRow & Record<string, unknown>>(sql`
+    WITH rejected AS (
+      SELECT
+        'shop'::text AS source,
+        s.id AS id,
+        s.name AS "shopName",
+        s.created_at AS "submittedAt",
+        s.updated_at AS "rejectedAt",
+        s.rejection_token AS "rejectionToken"
+      FROM shops s
+      WHERE s.visibility = 'rejected'
+        AND s.rejection_token IS NOT NULL
+        AND s.rejection_long_text IS NOT NULL
+      UNION ALL
+      SELECT
+        'submission'::text AS source,
+        sub.id AS id,
+        sub.shop_name AS "shopName",
+        sub.created_at AS "submittedAt",
+        COALESCE(sub.reviewed_at, sub.updated_at) AS "rejectedAt",
+        sub.rejection_token AS "rejectionToken"
+      FROM submissions sub
+      WHERE sub.status = 'rejected'
+        AND sub.rejection_token IS NOT NULL
+        AND sub.rejection_long_text IS NOT NULL
+    )
+    SELECT
+      rejected.source,
+      rejected.id,
+      rejected."shopName",
+      rejected."submittedAt",
+      rejected."rejectedAt",
+      rejected."rejectionToken"
+    FROM rejected
+    ${searchClause}
+    ORDER BY ${sortColumn} ${sortDirection}, rejected."rejectedAt" DESC, rejected."shopName" ASC
+    ${paginationClause}
+  `);
 }
 
 /**

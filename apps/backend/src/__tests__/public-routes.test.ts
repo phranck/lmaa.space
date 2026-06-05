@@ -17,6 +17,7 @@ const publicServiceMocks = vi.hoisted(() => ({
   getManagedPublicContentPageBySlug: vi.fn(),
   getManagedPublicContentPages: vi.fn(),
   getManagedPublicNavItems: vi.fn(),
+  getManagedPublicRejectedShops: vi.fn(),
   getManagedPublicRejectionPageByToken: vi.fn(),
   getManagedPublicShopById: vi.fn(),
   getManagedPublicShops: vi.fn(),
@@ -444,6 +445,46 @@ describe("publicRoutes", () => {
       const res = await app.request(`/rejected/${token}`);
 
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe("GET /rejected-shops", () => {
+    it("returns paginated rejected shops", async () => {
+      publicServiceMocks.getManagedPublicRejectedShops.mockResolvedValue({
+        entries: [{ id: "submission:1", shopName: "Bad Shop" }],
+        total: 1,
+        page: 1,
+        pageSize: "15",
+        search: "bad",
+        sortBy: "shopName",
+        sortDir: "asc",
+        metrics: { totalRejectedShops: 12, filteredRejectedShops: 1 },
+      });
+
+      const res = await app.request(
+        "/rejected-shops?q=bad&page=1&pageSize=15&sortBy=shopName&sortDir=asc",
+      );
+
+      expect(res.status).toBe(200);
+      expect(publicServiceMocks.getManagedPublicRejectedShops).toHaveBeenCalledWith({
+        search: "bad",
+        page: 1,
+        pageSize: "15",
+        sortBy: "shopName",
+        sortDir: "asc",
+      });
+      expect(await res.json()).toEqual({
+        data: {
+          entries: [{ id: "submission:1", shopName: "Bad Shop" }],
+          total: 1,
+          page: 1,
+          pageSize: "15",
+          search: "bad",
+          sortBy: "shopName",
+          sortDir: "asc",
+          metrics: { totalRejectedShops: 12, filteredRejectedShops: 1 },
+        },
+      });
     });
   });
 

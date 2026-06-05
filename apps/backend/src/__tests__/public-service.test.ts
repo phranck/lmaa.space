@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const publicRepoMocks = vi.hoisted(() => ({
   countPendingSubmissions: vi.fn(),
+  countPublicRejectedShops: vi.fn(),
   countPublicShops: vi.fn(),
   findPendingSubmissionByDomain: vi.fn(),
   findRejectedSubmissionByDomain: vi.fn(),
@@ -14,6 +15,7 @@ const publicRepoMocks = vi.hoisted(() => ({
   insertDeadLinkReport: vi.fn(),
   insertShopConcernReport: vi.fn(),
   listAllPublicShopsWithCategories: vi.fn(),
+  listPublicRejectedShops: vi.fn(),
   listPublicCategoriesWithShopCount: vi.fn(),
   listPublicNavItems: vi.fn(),
   listPublicShopsByCategoryId: vi.fn(),
@@ -66,6 +68,7 @@ import {
   getFilteredPublicCategoryBySlug,
   getManagedPublicCacheStats,
   getManagedPublicCategoryBySlug,
+  getManagedPublicRejectedShops,
   getManagedPublicShopById,
   getManagedPublicShops,
   getManagedPublicStats,
@@ -145,7 +148,11 @@ describe("getManagedPublicCategoryBySlug", () => {
   });
 
   it("returns category with shops", async () => {
-    publicRepoMocks.getPublicCategoryBySlug.mockResolvedValue({ id: 1, name: "Mode", slug: "mode" });
+    publicRepoMocks.getPublicCategoryBySlug.mockResolvedValue({
+      id: 1,
+      name: "Mode",
+      slug: "mode",
+    });
     publicRepoMocks.listPublicShopsByCategoryId.mockResolvedValue([{ id: 10, name: "Shop A" }]);
 
     const result = await getManagedPublicCategoryBySlug("mode");
@@ -176,7 +183,12 @@ describe("getManagedPublicShopById", () => {
 
     expect(result).toEqual({
       ok: true,
-      data: { id: 1, name: "Shop", headquarters: { city: "Berlin", country: "DE" }, likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/) },
+      data: {
+        id: 1,
+        name: "Shop",
+        headquarters: { city: "Berlin", country: "DE" },
+        likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/),
+      },
     });
   });
 
@@ -188,7 +200,12 @@ describe("getManagedPublicShopById", () => {
 
     expect(result).toEqual({
       ok: true,
-      data: { id: 2, name: "Shop", headquarters: null, likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/) },
+      data: {
+        id: 2,
+        name: "Shop",
+        headquarters: null,
+        likeToken: expect.stringMatching(/^[a-f0-9]+\.\d+$/),
+      },
     });
   });
 });
@@ -460,7 +477,67 @@ describe("createManagedDeadLinkReport", () => {
     publicRepoMocks.getPublicShopById.mockResolvedValue({ id: 1 });
     const result = await createManagedDeadLinkReport(1, "1.2.3.4");
     expect(result).toEqual({ ok: true });
-    expect(publicRepoMocks.insertDeadLinkReport).toHaveBeenCalledWith(1, expect.stringMatching(/^[0-9a-f]{64}$/));
+    expect(publicRepoMocks.insertDeadLinkReport).toHaveBeenCalledWith(
+      1,
+      expect.stringMatching(/^[0-9a-f]{64}$/),
+    );
+  });
+});
+
+describe("getManagedPublicRejectedShops", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns public rejection entries with clamped pagination", async () => {
+    publicRepoMocks.countPublicRejectedShops.mockResolvedValueOnce(42).mockResolvedValueOnce(20);
+    publicRepoMocks.listPublicRejectedShops.mockResolvedValue([
+      {
+        source: "submission",
+        id: 7,
+        shopName: "Bad Shop",
+        submittedAt: new Date("2026-01-02T10:00:00.000Z"),
+        rejectedAt: new Date("2026-01-05T12:00:00.000Z"),
+        rejectionToken: "a".repeat(32),
+      },
+    ]);
+
+    const result = await getManagedPublicRejectedShops({
+      search: " bad ",
+      page: 9,
+      pageSize: "15",
+      sortBy: "shopName",
+      sortDir: "asc",
+    });
+
+    expect(publicRepoMocks.countPublicRejectedShops).toHaveBeenNthCalledWith(1, "");
+    expect(publicRepoMocks.countPublicRejectedShops).toHaveBeenNthCalledWith(2, "bad");
+    expect(publicRepoMocks.listPublicRejectedShops).toHaveBeenCalledWith({
+      search: "bad",
+      page: 2,
+      pageSize: 15,
+      sortBy: "shopName",
+      sortDir: "asc",
+    });
+    expect(result).toEqual({
+      entries: [
+        {
+          id: "submission:7",
+          shopName: "Bad Shop",
+          submittedAt: "2026-01-02T10:00:00.000Z",
+          rejectedAt: "2026-01-05T12:00:00.000Z",
+          rejectionUrl: `/rejected/${"a".repeat(32)}`,
+        },
+      ],
+      total: 20,
+      page: 2,
+      pageSize: "15",
+      search: "bad",
+      sortBy: "shopName",
+      sortDir: "asc",
+      metrics: {
+        totalRejectedShops: 42,
+        filteredRejectedShops: 20,
+      },
+    });
   });
 });
 
@@ -474,13 +551,21 @@ describe("createManagedShopConcernReport", () => {
 
   it("returns not_found when shop missing", async () => {
     publicRepoMocks.getPublicShopById.mockResolvedValue(null);
-    const result = await createManagedShopConcernReport(99, "This shop is selling fake products!", "1.2.3.4");
+    const result = await createManagedShopConcernReport(
+      99,
+      "This shop is selling fake products!",
+      "1.2.3.4",
+    );
     expect(result).toEqual({ ok: false, reason: "not_found" });
   });
 
   it("inserts concern with trimmed reason and hashed IP", async () => {
     publicRepoMocks.getPublicShopById.mockResolvedValue({ id: 1 });
-    const result = await createManagedShopConcernReport(1, "  This shop sells counterfeit items  ", "1.2.3.4");
+    const result = await createManagedShopConcernReport(
+      1,
+      "  This shop sells counterfeit items  ",
+      "1.2.3.4",
+    );
     expect(result).toEqual({ ok: true });
     expect(publicRepoMocks.insertShopConcernReport).toHaveBeenCalledWith(
       1,

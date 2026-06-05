@@ -2,6 +2,14 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
+import {
+  PUBLIC_REJECTED_SHOP_DEFAULT_PAGE_SIZE,
+  PUBLIC_REJECTED_SHOP_PAGE_SIZES,
+  PUBLIC_REJECTED_SHOP_SORT_FIELDS,
+  type PublicRejectedShopPageSize,
+  type PublicRejectedShopSortDirection,
+  type PublicRejectedShopSortField,
+} from "@lmaa/contracts";
 import { decodeShopToken } from "@lmaa/shared";
 
 import { env } from "../config/env.js";
@@ -29,6 +37,7 @@ import {
   getManagedPublicContentPageBySlug,
   getManagedPublicContentPages,
   getManagedPublicNavItems,
+  getManagedPublicRejectedShops,
   getManagedPublicRejectionPageByToken,
   getManagedPublicShopById,
   getManagedPublicShops,
@@ -51,6 +60,16 @@ export const publicRoutes = new Hono();
 
 const publicReadLimit = rateLimit({ max: 100, windowMs: 60 * 1000 });
 const concernBodySchema = z.object({ reason: z.string().min(1) });
+const rejectedShopsQuerySchema = z.object({
+  q: z.string().max(200).optional().default(""),
+  page: z.coerce.number().int().positive().catch(1),
+  pageSize: z
+    .enum(PUBLIC_REJECTED_SHOP_PAGE_SIZES)
+    .optional()
+    .default(PUBLIC_REJECTED_SHOP_DEFAULT_PAGE_SIZE),
+  sortBy: z.enum(PUBLIC_REJECTED_SHOP_SORT_FIELDS).optional().default("rejectedAt"),
+  sortDir: z.enum(["asc", "desc"]).optional().default("desc"),
+});
 
 // GET /api/categories
 publicRoutes.get("/categories", publicReadLimit, async (c) => {
@@ -397,6 +416,26 @@ publicRoutes.get("/rejected/:token", publicReadLimit, async (c) => {
   c.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
   return ok(c, page);
 });
+
+// GET /api/rejected-shops – public transparency list of rejected shops
+publicRoutes.get(
+  "/rejected-shops",
+  publicReadLimit,
+  zValidator("query", rejectedShopsQuerySchema),
+  async (c) => {
+    const query = c.req.valid("query");
+    const result = await getManagedPublicRejectedShops({
+      search: query.q,
+      page: query.page,
+      pageSize: query.pageSize as PublicRejectedShopPageSize,
+      sortBy: query.sortBy as PublicRejectedShopSortField,
+      sortDir: query.sortDir as PublicRejectedShopSortDirection,
+    });
+
+    c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    return ok(c, result);
+  },
+);
 
 // ---------------------------------------------------------------------------
 // Filtered endpoints
