@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { parseRejectedShopsTableTokens } from "./rejected-shops-table-token";
+import { parseContentShortcodeSegments } from "./content-shortcode-segments";
 
-describe("parseRejectedShopsTableTokens", () => {
-  it("splits markdown content around rejected shops table tokens", () => {
+describe("parseContentShortcodeSegments", () => {
+  it("splits markdown content around rejected shops table island shortcodes", () => {
     expect(
-      parseRejectedShopsTableTokens(
+      parseContentShortcodeSegments(
         'Intro\n\n[[rejected-shops-table pageSize="30" id="transparency"]]\n\nOutro',
       ),
     ).toEqual([
@@ -20,12 +20,18 @@ describe("parseRejectedShopsTableTokens", () => {
   });
 
   it("falls back to a safe default page size", () => {
-    expect(parseRejectedShopsTableTokens("[[rejected-shops-table pageSize=999]]")).toEqual([
+    expect(parseContentShortcodeSegments("[[rejected-shops-table pageSize=999]]")).toEqual([
       {
         type: "rejected-shops-table",
         defaultPageSize: "15",
         storageKey: "default-0",
       },
+    ]);
+  });
+
+  it("keeps invalid target-style island shortcodes as markdown", () => {
+    expect(parseContentShortcodeSegments("[[rejected-shops-table:foo]]")).toEqual([
+      { type: "markdown", content: "[[rejected-shops-table:foo]]" },
     ]);
   });
 });

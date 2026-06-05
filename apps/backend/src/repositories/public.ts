@@ -360,6 +360,8 @@ export interface PublicRejectedShopListRow {
   source: "shop" | "submission";
   id: number;
   shopName: string;
+  ogImage: string | null;
+  logoBackgroundColor: string | null;
   submittedAt: Date;
   rejectedAt: Date;
   rejectionToken: string;
@@ -468,6 +470,8 @@ export async function listPublicRejectedShops({
         'shop'::text AS source,
         s.id AS id,
         s.name AS "shopName",
+        s.og_image AS "ogImage",
+        s.logo_background_color AS "logoBackgroundColor",
         s.created_at AS "submittedAt",
         s.updated_at AS "rejectedAt",
         s.rejection_token AS "rejectionToken"
@@ -480,6 +484,8 @@ export async function listPublicRejectedShops({
         'submission'::text AS source,
         sub.id AS id,
         sub.shop_name AS "shopName",
+        sub.og_image AS "ogImage",
+        sub.logo_background_color AS "logoBackgroundColor",
         sub.created_at AS "submittedAt",
         COALESCE(sub.reviewed_at, sub.updated_at) AS "rejectedAt",
         sub.rejection_token AS "rejectionToken"
@@ -492,6 +498,8 @@ export async function listPublicRejectedShops({
       rejected.source,
       rejected.id,
       rejected."shopName",
+      rejected."ogImage",
+      rejected."logoBackgroundColor",
       rejected."submittedAt",
       rejected."rejectedAt",
       rejected."rejectionToken"

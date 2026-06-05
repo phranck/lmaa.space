@@ -1,11 +1,14 @@
 import {
   ArrowSquareOutIcon,
   CaretDownIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
   CaretUpIcon,
   MagnifyingGlassIcon,
+  XCircleIcon,
 } from "@phosphor-icons/react";
 import type { ComponentProps } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 
 import type {
   PublicRejectedShopPageSize,
@@ -13,6 +16,7 @@ import type {
   PublicRejectedShopSortField,
   PublicRejectedShopsResponse,
 } from "@lmaa/contracts";
+import { resolveLogoBackground } from "@lmaa/shared";
 
 import { fetchJson } from "@/lib/fetch-json";
 
@@ -51,7 +55,32 @@ interface RejectedShopsTableState {
   sortDir: PublicRejectedShopSortDirection;
 }
 
+interface RejectedShopsTableDataState {
+  data: PublicRejectedShopsResponse;
+  isLoading: boolean;
+  hasLoadError: boolean;
+}
+
+type RejectedShopsTableDataAction =
+  | { type: "load" }
+  | { type: "success"; data: PublicRejectedShopsResponse }
+  | { type: "error" };
+
 type FormSubmitEvent = Parameters<NonNullable<ComponentProps<"form">["onSubmit"]>>[0];
+
+function dataReducer(
+  current: RejectedShopsTableDataState,
+  action: RejectedShopsTableDataAction,
+): RejectedShopsTableDataState {
+  switch (action.type) {
+    case "load":
+      return { ...current, isLoading: true, hasLoadError: false };
+    case "success":
+      return { data: action.data, isLoading: false, hasLoadError: false };
+    case "error":
+      return { ...current, isLoading: false, hasLoadError: true };
+  }
+}
 
 function getDefaultState(defaultPageSize: PublicRejectedShopPageSize): RejectedShopsTableState {
   return {
@@ -61,49 +90,6 @@ function getDefaultState(defaultPageSize: PublicRejectedShopPageSize): RejectedS
     sortBy: "rejectedAt",
     sortDir: "desc",
   };
-}
-
-function isPageSize(value: unknown): value is PublicRejectedShopPageSize {
-  return PAGE_SIZE_OPTIONS.some((option) => option.value === value);
-}
-
-function isSortBy(value: unknown): value is PublicRejectedShopSortField {
-  return value === "shopName" || value === "submittedAt" || value === "rejectedAt";
-}
-
-function isSortDir(value: unknown): value is PublicRejectedShopSortDirection {
-  return value === "asc" || value === "desc";
-}
-
-function loadPersistedState(
-  key: string,
-  defaultPageSize: PublicRejectedShopPageSize,
-): RejectedShopsTableState {
-  try {
-    const parsed = JSON.parse(
-      localStorage.getItem(key) ?? "null",
-    ) as Partial<RejectedShopsTableState> | null;
-    const fallback = getDefaultState(defaultPageSize);
-    if (!parsed || typeof parsed !== "object") return fallback;
-    const page = parsed.page;
-    return {
-      page: typeof page === "number" && Number.isInteger(page) && page > 0 ? page : fallback.page,
-      pageSize: isPageSize(parsed.pageSize) ? parsed.pageSize : fallback.pageSize,
-      search: typeof parsed.search === "string" ? parsed.search.slice(0, 200) : fallback.search,
-      sortBy: isSortBy(parsed.sortBy) ? parsed.sortBy : fallback.sortBy,
-      sortDir: isSortDir(parsed.sortDir) ? parsed.sortDir : fallback.sortDir,
-    };
-  } catch {
-    return getDefaultState(defaultPageSize);
-  }
-}
-
-function persistState(key: string, state: RejectedShopsTableState) {
-  try {
-    localStorage.setItem(key, JSON.stringify(state));
-  } catch {
-    // Browser storage can be unavailable in private modes.
-  }
 }
 
 function buildRejectedShopsPath(state: RejectedShopsTableState) {
@@ -121,6 +107,41 @@ function formatDate(value: string) {
   return dateFormatter.format(new Date(value));
 }
 
+function ShopLogo({
+  name,
+  ogImage,
+  logoBackgroundColor,
+}: {
+  name: string;
+  ogImage: string | null;
+  logoBackgroundColor: string | null;
+}) {
+  const letter = name.charAt(0).toUpperCase();
+
+  return (
+    <span
+      className="inline-flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-stone-100"
+      style={{ backgroundColor: resolveLogoBackground(logoBackgroundColor) }}
+      aria-hidden="true"
+    >
+      {ogImage ? (
+        <img
+          src={ogImage}
+          alt=""
+          loading="lazy"
+          width={28}
+          height={28}
+          className="block size-full object-contain"
+        />
+      ) : (
+        <span className="flex size-full select-none items-center justify-center text-xs font-bold text-stone-300">
+          {letter}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function getNextSortDirection(
   current: RejectedShopsTableState,
   field: PublicRejectedShopSortField,
@@ -134,14 +155,15 @@ export default function RejectedShopsTable({
   initialData,
   storageKey,
 }: RejectedShopsTableProps) {
-  const storageId = `lmaa:rejected-shops-table:${storageKey}`;
-  const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
-  const [state, setState] = useState<RejectedShopsTableState>(() =>
-    getDefaultState(defaultPageSize),
-  );
-  const [searchInput, setSearchInput] = useState("");
-  const [data, setData] = useState<PublicRejectedShopsResponse>(initialData);
-  const [isLoading, setIsLoading] = useState(false);
+  const defaultState = useMemo(() => getDefaultState(defaultPageSize), [defaultPageSize]);
+  const [state, setState] = useState<RejectedShopsTableState>(defaultState);
+  const [searchInput, setSearchInput] = useState(defaultState.search);
+  const [{ data, isLoading, hasLoadError }, dispatchData] = useReducer(dataReducer, {
+    data: initialData,
+    isLoading: false,
+    hasLoadError: false,
+  });
+  const requestPath = useMemo(() => buildRejectedShopsPath(state), [state]);
 
   const totalPages = useMemo(() => {
     if (data.pageSize === "all") return 1;
@@ -149,38 +171,22 @@ export default function RejectedShopsTable({
   }, [data.pageSize, data.total]);
 
   useEffect(() => {
-    const persisted = loadPersistedState(storageId, defaultPageSize);
-    setState(persisted);
-    setSearchInput(persisted.search);
-    setHasLoadedPreferences(true);
-  }, [defaultPageSize, storageId]);
-
-  useEffect(() => {
-    if (!hasLoadedPreferences) return;
-    persistState(storageId, state);
-
     const controller = new AbortController();
-    setIsLoading(true);
-    fetchJson<PublicRejectedShopsResponse>(buildRejectedShopsPath(state), {
+    dispatchData({ type: "load" });
+
+    void fetchJson<PublicRejectedShopsResponse>(requestPath, {
       signal: controller.signal,
     })
       .then((nextData) => {
-        setData(nextData);
-        if (nextData.page !== state.page) {
-          setState((current) => ({ ...current, page: nextData.page }));
-        }
+        dispatchData({ type: "success", data: nextData });
       })
       .catch((error) => {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
-          // Keep the last known data visible on transient API errors.
+          dispatchData({ type: "error" });
         }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
       });
-
     return () => controller.abort();
-  }, [hasLoadedPreferences, state, storageId]);
+  }, [requestPath]);
 
   function updateState(patch: Partial<RejectedShopsTableState>) {
     setState((current) => ({ ...current, ...patch }));
@@ -205,37 +211,41 @@ export default function RejectedShopsTable({
     }));
   }
 
-  return (
-    <section className="my-10 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <MetricCard label="Abgelehnte Shops" value={data.metrics.totalRejectedShops} />
-        <MetricCard label="Treffer" value={data.metrics.filteredRejectedShops} />
-        <MetricCard
-          label="Aktuelle Seite"
-          value={data.pageSize === "all" ? "Alle" : `${data.page} / ${totalPages}`}
-        />
-      </div>
+  function updatePage(page: number) {
+    updateState({ page });
+  }
 
-      <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <form onSubmit={submitSearch} className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <label
-            htmlFor={`${storageKey}-rejected-shops-search`}
-            className="text-sm font-medium text-stone-700"
-          >
-            Abgelehnte Shops suchen
-          </label>
-          <div className="flex gap-2">
+  return (
+    <section className="not-prose my-8">
+      <p className="text-sm font-medium text-stone-600" aria-live="polite">
+        {data.metrics.totalRejectedShops} abgelehnte Shops
+        {state.search ? ` · ${data.metrics.filteredRejectedShops} Treffer` : ""}
+      </p>
+      {hasLoadError ? (
+        <p className="mt-2 text-sm text-red-700" role="status">
+          Die Tabelle konnte nicht aktualisiert werden.
+        </p>
+      ) : null}
+
+      <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <form
+          onSubmit={submitSearch}
+          className="flex min-w-0 flex-1 gap-2"
+          aria-label="Abgelehnte Shops suchen"
+        >
+          <div className="flex min-w-0 flex-1 gap-2">
             <input
               id={`${storageKey}-rejected-shops-search`}
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.currentTarget.value)}
+              aria-label="Abgelehnte Shops suchen"
               placeholder="Shop-Name…"
-              className="min-w-0 flex-1 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
+              className="min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30"
             />
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-control bg-[var(--ds-btn-filled-bg)] px-3 text-sm font-medium text-[var(--ds-btn-filled-fg)] transition-colors hover:bg-[var(--ds-btn-filled-hover)] focus:outline-none focus:ring-2 focus:ring-amber-500/40"
             >
               <MagnifyingGlassIcon weight="duotone" className="size-4" />
               Suchen
@@ -244,16 +254,17 @@ export default function RejectedShopsTable({
               <button
                 type="button"
                 onClick={clearSearch}
-                className="rounded-xl border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30"
               >
+                <XCircleIcon weight="duotone" className="size-4" />
                 Zurücksetzen
               </button>
             ) : null}
           </div>
         </form>
 
-        <label className="flex flex-col gap-1.5 text-sm font-medium text-stone-700">
-          Einträge pro Seite
+        <label className="flex items-center gap-2 text-sm text-stone-600">
+          <span>Einträge pro Seite</span>
           <select
             value={state.pageSize}
             onChange={(event) =>
@@ -262,7 +273,7 @@ export default function RejectedShopsTable({
                 page: 1,
               })
             }
-            className="rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
+            className="h-8 rounded-lg border border-stone-300 bg-white px-2.5 text-sm font-normal normal-case tracking-normal text-stone-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30"
           >
             {PAGE_SIZE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -273,48 +284,57 @@ export default function RejectedShopsTable({
         </label>
       </div>
 
-      <div className="mt-5 overflow-x-auto rounded-xl border border-stone-200">
-        <table className="min-w-full divide-y divide-stone-200 text-sm">
-          <thead className="bg-stone-50 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
+      <div className="mt-4 overflow-x-auto border-y border-stone-200">
+        <table className="min-w-full text-sm">
+          <thead className="text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
             <tr>
               <SortableHeader field="shopName" state={state} onSort={sortBy} />
-              <SortableHeader field="submittedAt" state={state} onSort={sortBy} />
               <SortableHeader field="rejectedAt" state={state} onSort={sortBy} />
-              <th scope="col" className="px-3 py-3 text-right">
+              <th scope="col" className="px-3 py-2 text-right">
                 Details
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100 bg-white">
+          <tbody>
             {data.entries.map((entry) => (
-              <tr key={entry.id} className="transition hover:bg-stone-50">
-                <td className="max-w-[18rem] px-3 py-3 font-medium text-stone-900">
-                  <span className="block truncate" title={entry.shopName}>
-                    {entry.shopName}
+              <tr
+                key={entry.id}
+                className="transition odd:bg-white even:bg-stone-50/70 hover:bg-amber-50/50"
+              >
+                <td className="max-w-[20rem] px-3 py-1 align-middle font-medium text-stone-900">
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <ShopLogo
+                      name={entry.shopName}
+                      ogImage={entry.ogImage}
+                      logoBackgroundColor={entry.logoBackgroundColor}
+                    />
+                    <span className="block truncate" title={entry.shopName}>
+                      {entry.shopName}
+                    </span>
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-3 py-3 text-stone-600">
-                  {formatDate(entry.submittedAt)}
-                </td>
-                <td className="whitespace-nowrap px-3 py-3 text-stone-600">
+                <td className="whitespace-nowrap px-3 py-1 align-middle leading-none text-stone-600">
                   {formatDate(entry.rejectedAt)}
                 </td>
-                <td className="whitespace-nowrap px-3 py-3 text-right">
+                <td className="whitespace-nowrap px-3 py-1 text-right align-middle">
                   <a
                     href={entry.rejectionUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-medium text-stone-700 transition hover:border-amber-500 hover:text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="inline-flex h-8 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-2.5 text-xs font-medium leading-none text-[var(--ds-btn-neutral-text)] no-underline transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] hover:no-underline focus:no-underline focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    style={{ textDecoration: "none" }}
+                    aria-label={`${entry.shopName} öffnen`}
+                    title="Öffnen"
                   >
+                    <ArrowSquareOutIcon weight="duotone" className="size-4" />
                     Öffnen
-                    <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
                   </a>
                 </td>
               </tr>
             ))}
             {data.entries.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-3 py-10 text-center text-sm text-stone-500">
+                <td colSpan={3} className="px-3 py-8 text-center text-sm text-stone-500">
                   Keine abgelehnten Shops gefunden.
                 </td>
               </tr>
@@ -325,46 +345,35 @@ export default function RejectedShopsTable({
 
       <div className="mt-4 flex flex-col gap-3 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
         <p aria-live="polite">
-          {isLoading
-            ? "Lade…"
-            : data.total === 0
-              ? "Keine Einträge"
-              : `${data.entries.length} von ${data.total} Einträgen angezeigt`}
+          {data.total === 0
+            ? "Keine Einträge"
+            : `${data.entries.length} von ${data.total} Einträgen angezeigt`}
         </p>
         {data.pageSize !== "all" ? (
           <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={data.page <= 1 || isLoading}
-              onClick={() => updateState({ page: Math.max(1, data.page - 1) })}
-              className="rounded-xl border border-stone-300 px-3 py-2 font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500/30 disabled:pointer-events-none disabled:opacity-40"
+              onClick={() => updatePage(Math.max(1, data.page - 1))}
+              className="inline-flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30 disabled:pointer-events-none disabled:opacity-40"
             >
+              <CaretLeftIcon weight="bold" className="size-3.5" />
               Zurück
             </button>
-            <span>
-              Seite {data.page} von {totalPages}
-            </span>
+            <span>{isLoading ? "Lade..." : `Seite ${data.page} von ${totalPages}`}</span>
             <button
               type="button"
               disabled={data.page >= totalPages || isLoading}
-              onClick={() => updateState({ page: Math.min(totalPages, data.page + 1) })}
-              className="rounded-xl border border-stone-300 px-3 py-2 font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-amber-500/30 disabled:pointer-events-none disabled:opacity-40"
+              onClick={() => updatePage(Math.min(totalPages, data.page + 1))}
+              className="inline-flex h-9 items-center gap-1.5 rounded-control border border-[var(--ds-btn-neutral-border)] px-3 text-sm font-medium text-[var(--ds-btn-neutral-text)] transition-colors hover:border-[var(--ds-btn-neutral-hover-border)] focus:outline-none focus:ring-2 focus:ring-amber-500/30 disabled:pointer-events-none disabled:opacity-40"
             >
+              <CaretRightIcon weight="bold" className="size-3.5" />
               Weiter
             </button>
           </div>
         ) : null}
       </div>
     </section>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-stone-900">{value}</p>
-    </div>
   );
 }
 
@@ -381,7 +390,7 @@ function SortableHeader({
   const ariaSort = isActive ? (state.sortDir === "asc" ? "ascending" : "descending") : "none";
 
   return (
-    <th scope="col" aria-sort={ariaSort} className="px-3 py-3">
+    <th scope="col" aria-sort={ariaSort} className="px-3 py-2">
       <button
         type="button"
         onClick={() => onSort(field)}

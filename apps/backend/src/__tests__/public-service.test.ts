@@ -494,6 +494,8 @@ describe("getManagedPublicRejectedShops", () => {
         source: "submission",
         id: 7,
         shopName: "Bad Shop",
+        ogImage: "https://example.com/logo.png",
+        logoBackgroundColor: "#fafaf9",
         submittedAt: new Date("2026-01-02T10:00:00.000Z"),
         rejectedAt: new Date("2026-01-05T12:00:00.000Z"),
         rejectionToken: "a".repeat(32),
@@ -522,6 +524,8 @@ describe("getManagedPublicRejectedShops", () => {
         {
           id: "submission:7",
           shopName: "Bad Shop",
+          ogImage: "https://example.com/logo.png",
+          logoBackgroundColor: "#fafaf9",
           submittedAt: "2026-01-02T10:00:00.000Z",
           rejectedAt: "2026-01-05T12:00:00.000Z",
           rejectionUrl: `/rejected/${"a".repeat(32)}`,
