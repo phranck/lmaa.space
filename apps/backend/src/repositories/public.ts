@@ -405,7 +405,11 @@ function publicRejectedShopSearchClause(search: string) {
   const trimmed = search.trim();
   if (!trimmed) return sql``;
   const escaped = trimmed.replace(/[%_\\]/g, "\\$&");
-  return sql`WHERE rejected."shopName" ILIKE ${`%${escaped}%`} ESCAPE '\\'`;
+  const pattern = `%${escaped}%`;
+  return sql`WHERE (
+    rejected."shopName" ILIKE ${pattern} ESCAPE '\\'
+    OR rejected."rejectionLongText" ILIKE ${pattern} ESCAPE '\\'
+  )`;
 }
 
 /**
@@ -418,13 +422,17 @@ export async function countPublicRejectedShops(search: string): Promise<number> 
   const searchClause = publicRejectedShopSearchClause(search);
   const [row] = await db.execute<{ total: number | string }>(sql`
     WITH rejected AS (
-      SELECT s.name AS "shopName"
+      SELECT
+        s.name AS "shopName",
+        s.rejection_long_text AS "rejectionLongText"
       FROM shops s
       WHERE s.visibility = 'rejected'
         AND s.rejection_token IS NOT NULL
         AND s.rejection_long_text IS NOT NULL
       UNION ALL
-      SELECT sub.shop_name AS "shopName"
+      SELECT
+        sub.shop_name AS "shopName",
+        sub.rejection_long_text AS "rejectionLongText"
       FROM submissions sub
       WHERE sub.status = 'rejected'
         AND sub.rejection_token IS NOT NULL
@@ -474,7 +482,8 @@ export async function listPublicRejectedShops({
         s.logo_background_color AS "logoBackgroundColor",
         s.created_at AS "submittedAt",
         s.updated_at AS "rejectedAt",
-        s.rejection_token AS "rejectionToken"
+        s.rejection_token AS "rejectionToken",
+        s.rejection_long_text AS "rejectionLongText"
       FROM shops s
       WHERE s.visibility = 'rejected'
         AND s.rejection_token IS NOT NULL
@@ -488,7 +497,8 @@ export async function listPublicRejectedShops({
         sub.logo_background_color AS "logoBackgroundColor",
         sub.created_at AS "submittedAt",
         COALESCE(sub.reviewed_at, sub.updated_at) AS "rejectedAt",
-        sub.rejection_token AS "rejectionToken"
+        sub.rejection_token AS "rejectionToken",
+        sub.rejection_long_text AS "rejectionLongText"
       FROM submissions sub
       WHERE sub.status = 'rejected'
         AND sub.rejection_token IS NOT NULL

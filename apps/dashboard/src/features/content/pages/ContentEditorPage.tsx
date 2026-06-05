@@ -1,5 +1,5 @@
 import { EyeIcon, MarkdownLogoIcon, MinusCircleIcon, PlusCircleIcon } from "@phosphor-icons/react";
-import { Suspense, lazy, useCallback, useEffect, useReducer } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useReducer } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { ContentPage } from "@lmaa/shared";
@@ -26,6 +26,7 @@ import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
 import { useI18n } from "@/context/I18nContext.tsx";
 import {
   useAdminContentPage,
+  useCreateContentPreviewSession,
   useDeleteContentPage,
   usePatchContentPage,
   useSaveContentPage,
@@ -162,6 +163,7 @@ interface EditorHeaderActionsProps {
   onConfirmDelete: () => void;
   onSave: () => void;
   onPreview: () => void;
+  isPreviewPending?: boolean;
 }
 
 function EditorHeaderActions({
@@ -177,6 +179,7 @@ function EditorHeaderActions({
   onConfirmDelete,
   onSave,
   onPreview,
+  isPreviewPending = false,
 }: EditorHeaderActionsProps) {
   return (
     <div className="flex items-center gap-3">
@@ -211,6 +214,7 @@ function EditorHeaderActions({
 
       <DashboardButton
         onClick={onPreview}
+        disabled={isPreviewPending}
         leadingIcon={<EyeIcon weight="duotone" className="size-3.5" />}
         size="control"
         variant="neutral"
@@ -438,6 +442,7 @@ export function ContentEditorPage() {
   const navigate = useNavigate();
   const { data: page, isLoading } = useAdminContentPage(slug);
   const save = useSaveContentPage(slug);
+  const { createPreviewSession, isPending: isPreviewPending } = useCreateContentPreviewSession(slug);
   const patch = usePatchContentPage(slug);
   const deletePage = useDeleteContentPage();
 
@@ -504,19 +509,36 @@ export function ContentEditorPage() {
     dispatch({ type: "setEditingSlug", value: false });
   }
 
+  function handlePreview() {
+    if (!page) return;
+    void createPreviewSession({
+      slug: page.slug,
+      title: page.title,
+      content: currentContent,
+      showTitle: page.showTitle,
+    })
+      .then(({ token }) => {
+        window.open(`${FRONTEND_URL}/preview/content?token=${token}`, "_blank");
+      })
+      .catch((err) => {
+        dispatch({
+          type: "setPatchError",
+          value: err instanceof Error ? err.message : editorMessages.saveError,
+        });
+      });
+  }
+
   const title = page?.title ?? slug;
+  const headerBackButton = useMemo(
+    () => (
+      <HeaderBackButton label={messages.content.pages.title} onClick={() => navigate("/pages")} />
+    ),
+    [messages.content.pages.title, navigate],
+  );
 
   return (
     <PageLayout>
-      <PageHeader
-        title={title}
-        leading={
-          <HeaderBackButton
-            label={messages.content.pages.title}
-            onClick={() => navigate("/pages")}
-          />
-        }
-      >
+      <PageHeader title={title} leading={headerBackButton}>
         <EditorHeaderActions
           fontControls={{
             sourceFontSize: state.sourceFontSize,
@@ -543,9 +565,8 @@ export function ContentEditorPage() {
             });
           }}
           onSave={handleSave}
-          onPreview={() => {
-            window.open(`${FRONTEND_URL}/${slug}`, "_blank");
-          }}
+          onPreview={handlePreview}
+          isPreviewPending={isPreviewPending}
         />
       </PageHeader>
 

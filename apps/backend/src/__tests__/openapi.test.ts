@@ -55,6 +55,10 @@ vi.mock("../services/footer-preview-store.js", () => ({
   getFooterPreviewSession: vi.fn(),
 }));
 
+vi.mock("../services/content-preview-store.js", () => ({
+  getContentPreviewSession: vi.fn(),
+}));
+
 vi.mock("../services/form-submission.js", () => ({
   executeSubmissionChain: vi.fn(),
 }));

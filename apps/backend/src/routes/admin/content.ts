@@ -1,7 +1,12 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
-import { contentCreateSchema, contentMetaSchema, contentUpdateSchema } from "@lmaa/contracts";
+import {
+  contentCreateSchema,
+  contentMetaSchema,
+  contentPreviewSessionSchema,
+  contentUpdateSchema,
+} from "@lmaa/contracts";
 
 import { fail, ok } from "../../lib/http.js";
 import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
@@ -13,6 +18,7 @@ import {
   updateManagedContentPageBody,
   updateManagedContentPageMeta,
 } from "../../services/admin-content.js";
+import { createContentPreviewSession } from "../../services/content-preview-store.js";
 
 /**
  * Admin content page routes (list/create/read/update/delete).
@@ -64,6 +70,18 @@ contentRoutes.put(
     if (!updated) return fail(c, 404, "Not found");
 
     return ok(c, updated);
+  },
+);
+
+// ─── Create preview session ──────────────────────────────────────────────────
+
+contentRoutes.post(
+  "/content/:slug/preview-sessions",
+  requireAdmin,
+  zValidator("json", contentPreviewSessionSchema),
+  async (c) => {
+    const page = c.req.valid("json");
+    return ok(c, createContentPreviewSession(page), 201);
   },
 );
 

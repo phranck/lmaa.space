@@ -51,6 +51,10 @@ const footerPreviewMocks = vi.hoisted(() => ({
   getFooterPreviewSession: vi.fn(),
 }));
 
+const contentPreviewMocks = vi.hoisted(() => ({
+  getContentPreviewSession: vi.fn(),
+}));
+
 const heroMocks = vi.hoisted(() => ({
   getCurrentHeroImage: vi.fn(),
 }));
@@ -65,6 +69,7 @@ vi.mock("../services/admin-media.js", () => mediaMocks);
 vi.mock("../repositories/footer-config.js", () => footerMocks);
 vi.mock("../repositories/markdown-widgets.js", () => markdownMocks);
 vi.mock("../services/footer-preview-store.js", () => footerPreviewMocks);
+vi.mock("../services/content-preview-store.js", () => contentPreviewMocks);
 vi.mock("../services/hero.js", () => heroMocks);
 vi.mock("../services/social-preview-images.js", () => socialPreviewMocks);
 vi.mock("../services/form-submission.js", () => ({
@@ -415,6 +420,47 @@ describe("publicRoutes", () => {
       footerPreviewMocks.getFooterPreviewSession.mockReturnValue(null);
 
       const res = await app.request(`/footer-preview/${token}`);
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe("GET /content-preview/:token", () => {
+    it("returns preview for valid token without caching", async () => {
+      const token = "d".repeat(32);
+      contentPreviewMocks.getContentPreviewSession.mockReturnValue({
+        slug: "draft-page",
+        title: "Draft Page",
+        content: "# Draft",
+        showTitle: true,
+      });
+
+      const res = await app.request(`/content-preview/${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get("Cache-Control")).toBe("no-store");
+      expect(await res.json()).toEqual({
+        data: {
+          slug: "draft-page",
+          title: "Draft Page",
+          content: "# Draft",
+          showTitle: true,
+        },
+      });
+    });
+
+    it("returns 400 for invalid token format", async () => {
+      const res = await app.request("/content-preview/short");
+
+      expect(res.status).toBe(400);
+      expect(contentPreviewMocks.getContentPreviewSession).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when preview not found", async () => {
+      const token = "e".repeat(32);
+      contentPreviewMocks.getContentPreviewSession.mockReturnValue(null);
+
+      const res = await app.request(`/content-preview/${token}`);
 
       expect(res.status).toBe(404);
     });

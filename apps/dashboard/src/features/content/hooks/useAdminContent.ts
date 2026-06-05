@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 
+import type { ContentPreviewSessionPayload, ContentPreviewSessionResponse } from "@lmaa/contracts";
 import type { ContentPage, ContentPageSummary } from "@lmaa/shared";
 
 import { api } from "@/lib/api.ts";
@@ -47,6 +49,33 @@ export function useSaveContentPage(slug: string) {
       qc.invalidateQueries({ queryKey: ["content", slug] });
     },
   });
+}
+
+/**
+ * Creates a short-lived public preview token for the current editor state.
+ *
+ * @param slug - Current persisted page slug used for the admin route.
+ * @returns React Query mutation returning preview session metadata.
+ */
+export function useCreateContentPreviewSession(slug: string) {
+  const [isPending, setIsPending] = useState(false);
+
+  const createPreviewSession = useCallback(
+    async (data: ContentPreviewSessionPayload) => {
+      setIsPending(true);
+      try {
+        return await api.post<ContentPreviewSessionResponse>(
+          `/admin/content/${slug}/preview-sessions`,
+          data,
+        );
+      } finally {
+        setIsPending(false);
+      }
+    },
+    [slug],
+  );
+
+  return { createPreviewSession, isPending };
 }
 
 /**

@@ -1,0 +1,67 @@
+---
+import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { apiGet } from "@/lib/api";
+import {
+  buildContentDescription,
+  hasWideContentSegment,
+  renderContentSegments,
+  type ContentPageView,
+} from "@/lib/content-page-rendering";
+
+export const prerender = false;
+
+const token = Astro.url.searchParams.get("token")?.trim() ?? "";
+
+let page: ContentPageView | null = null;
+let errorMessage: string | null = null;
+
+if (!/^[0-9a-f]{32}$/.test(token)) {
+  errorMessage = "Ungueltiger Preview-Token.";
+  Astro.response.status = 400;
+} else {
+  try {
+    page = await apiGet<ContentPageView>(`/content-preview/${token}`);
+    Astro.response.headers.set("Cache-Control", "no-store");
+  } catch {
+    errorMessage = "Preview konnte nicht geladen werden.";
+    Astro.response.status = 404;
+  }
+}
+
+const contentSegments = page ? await renderContentSegments(page.content) : [];
+const hasWideContent = hasWideContentSegment(contentSegments);
+const description = page ? buildContentDescription(page.content) : "";
+---
+
+{
+  page ? (
+    <BaseLayout title={`${page.title} Preview`} description={description}>
+      <div class:list={[hasWideContent ? "max-w-5xl" : "max-w-3xl", "mx-auto px-4 sm:px-6 py-14"]}>
+        <article class="prose prose-stone prose-base max-w-none prose-a:text-amber-700 prose-a:no-underline hover:prose-a:underline prose-headings:font-serif">
+          {page.showTitle && <h1>{page.title}</h1>}
+          {
+            contentSegments.map((segment) =>
+              segment.type === "html" ? (
+                <Fragment set:html={segment.html} />
+              ) : (
+                <RejectedShopsTable
+                  client:load
+                  defaultPageSize={segment.defaultPageSize}
+                  initialData={segment.initialData}
+                  storageKey={segment.storageKey}
+                />
+              ),
+            )
+          }
+        </article>
+      </div>
+    </BaseLayout>
+  ) : (
+    <BaseLayout title="Preview">
+      <main class="min-h-screen flex items-center justify-center px-6 py-16 text-center">
+        <p class="text-sm text-stone-500">{errorMessage}</p>
+      </main>
+    </BaseLayout>
+  )
+}
