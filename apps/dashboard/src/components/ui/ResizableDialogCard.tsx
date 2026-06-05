@@ -14,6 +14,8 @@ interface ResizableDialogCardProps extends ComponentPropsWithoutRef<"div"> {
   storageKey: string;
   /** Default width in px, used when no stored size exists */
   defaultWidth?: number;
+  /** Default height in px, used when no stored size exists */
+  defaultHeight?: number;
   /** Minimum width in px */
   minWidth?: number;
   /** Minimum height in px */
@@ -25,6 +27,7 @@ export const ResizableDialogCard = forwardRef<HTMLDivElement, ResizableDialogCar
     {
       storageKey,
       defaultWidth = 448,
+      defaultHeight,
       minWidth = 320,
       minHeight = 200,
       className,
@@ -83,7 +86,7 @@ export const ResizableDialogCard = forwardRef<HTMLDivElement, ResizableDialogCar
       width: storedSize?.w ?? defaultWidth,
       minWidth,
       minHeight,
-      ...(storedSize ? { height: storedSize.h } : {}),
+      ...(storedSize ? { height: storedSize.h } : defaultHeight ? { height: defaultHeight } : {}),
       ...style,
     };
 

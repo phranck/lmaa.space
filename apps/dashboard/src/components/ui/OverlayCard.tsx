@@ -27,6 +27,7 @@ import { ResizableDialogCard } from "./ResizableDialogCard.tsx";
 type ResizableSize = {
   storageKey: string;
   defaultWidth?: number;
+  defaultHeight?: number;
   minWidth?: number;
   minHeight?: number;
 };
@@ -224,6 +225,7 @@ export function OverlayCard({
       ref={dialogRef}
       storageKey={(size as ResizableSize).storageKey}
       defaultWidth={(size as ResizableSize).defaultWidth}
+      defaultHeight={(size as ResizableSize).defaultHeight}
       minWidth={(size as ResizableSize).minWidth}
       minHeight={(size as ResizableSize).minHeight}
       className={["flex flex-col rounded-[var(--radius-card)] shadow-2xl", cardAnimClass, className]
