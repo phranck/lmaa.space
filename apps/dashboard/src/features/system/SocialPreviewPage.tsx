@@ -12,6 +12,7 @@ import {
   CircleHalfIcon,
   CircleIcon,
   CornersOutIcon,
+  CopyIcon,
   DropIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -59,6 +60,7 @@ import { DashboardSection } from "@lmaa/ui/dashboard-section";
 import { ContentUnavailableView } from "@/components/ui/ContentUnavailableView.tsx";
 import {
   CancelActionButton,
+  CopyActionButton,
   CreateActionButton,
   DeleteActionButton,
   SaveActionButton,
@@ -100,6 +102,7 @@ import {
   formatBytes,
   renderSocialPreviewBlob,
 } from "@/features/system/social-preview-renderer.ts";
+import { FRONTEND_URL } from "@/lib/env.ts";
 
 import "./social-preview-fonts.css";
 
@@ -127,6 +130,16 @@ const FORMAT_OPTIONS: Array<{ value: SocialPreviewFormat; label: string }> = [
   { value: "image/webp", label: "WebP" },
   { value: "image/png", label: "PNG" },
 ];
+
+function getSocialPreviewVersion(image: SocialPreviewImageEntry) {
+  return `${image.id}-${new Date(image.updatedAt).getTime()}`;
+}
+
+function getSocialPreviewShareUrl(image: SocialPreviewImageEntry) {
+  const url = new URL(FRONTEND_URL);
+  url.searchParams.set("preview", getSocialPreviewVersion(image));
+  return url.href;
+}
 
 const RESIZE_HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
 type ResizeHandle = (typeof RESIZE_HANDLES)[number];
@@ -2325,10 +2338,32 @@ function SavedPreviewImagesSection() {
     const value = stored ? Number(stored) : 3;
     return Number.isFinite(value) ? clamp(value, 1, 4) : 3;
   });
+  const [copiedShareImageId, setCopiedShareImageId] = useState<number | null>(null);
   const savedImageCardWidth = 150 + ((imageGridSize - 1) / 3) * 270;
+  const publicPreviewImage =
+    savedImages.find((image) => image.isActive) ?? savedImages.find((image) => image.isDefault);
+  const publicPreviewImageId = publicPreviewImage?.id ?? null;
   useEffect(() => {
     window.localStorage.setItem("social-preview-export-grid-size", String(imageGridSize));
   }, [imageGridSize]);
+
+  useEffect(() => {
+    if (copiedShareImageId === null) return;
+    const timeoutId = window.setTimeout(() => setCopiedShareImageId(null), 1600);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [copiedShareImageId]);
+
+  async function copyShareUrl(image: SocialPreviewImageEntry) {
+    if (image.id !== publicPreviewImageId) return;
+    try {
+      await navigator.clipboard.writeText(getSocialPreviewShareUrl(image));
+    } catch {
+      return;
+    }
+    setCopiedShareImageId(image.id);
+  }
 
   return (
     <DashboardSection className="flex min-h-0 flex-1 flex-col">
@@ -2336,18 +2371,31 @@ function SavedPreviewImagesSection() {
         icon={<ImageIcon weight="duotone" className="size-4" />}
         title={t.savedTitle}
         addOn={
-          <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
-            {t.imageGridSizeLabel}
-            <input
-              type="range"
-              min={1}
-              max={4}
-              step={0.01}
-              value={imageGridSize}
-              onChange={(event) => setImageGridSize(Number(event.currentTarget.value))}
-              className="w-24 accent-[var(--color-primary)]"
-            />
-          </label>
+          <div className="flex items-center gap-2">
+            <CopyActionButton
+              disabled={!publicPreviewImage}
+              label={publicPreviewImage ? t.copyShareUrl : t.shareUrlUnavailable}
+              onClick={() => {
+                if (publicPreviewImage) void copyShareUrl(publicPreviewImage);
+              }}
+            >
+              {publicPreviewImage && copiedShareImageId === publicPreviewImage.id
+                ? t.shareUrlCopied
+                : t.copyShareUrl}
+            </CopyActionButton>
+            <label className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)]">
+              {t.imageGridSizeLabel}
+              <input
+                type="range"
+                min={1}
+                max={4}
+                step={0.01}
+                value={imageGridSize}
+                onChange={(event) => setImageGridSize(Number(event.currentTarget.value))}
+                className="w-24 accent-[var(--color-primary)]"
+              />
+            </label>
+          </div>
         }
       />
       <DashboardSection.Body className="min-h-0 flex-1 overflow-y-auto">
@@ -2367,109 +2415,131 @@ function SavedPreviewImagesSection() {
               justifyContent: "start",
             }}
           >
-            {savedImages.map((image) => (
-              <div
-                key={image.id}
-                className="group rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  setContextMenu({ origin: { x: event.clientX, y: event.clientY }, image });
-                }}
-              >
-                <div className="relative overflow-hidden rounded-t-[12px]">
-                  <img
-                    src={image.imageUrl}
-                    alt=""
-                    className="aspect-[1200/630] w-full object-cover"
-                  />
-                  <div className="absolute left-1 top-1 z-10 flex flex-col items-start gap-1">
-                    {image.isActive ? (
-                      <span
-                        className="inline-flex items-center gap-1 border border-emerald-300/30 bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50 backdrop-blur"
-                        style={{ borderRadius: "8px" }}
-                      >
-                        <CheckCircleIcon weight="duotone" className="size-3.5" />
-                        {t.activeBadge}
-                      </span>
-                    ) : null}
-                    {image.isDefault ? (
-                      <span
-                        className="inline-flex items-center gap-1 border border-amber-300/30 bg-amber-400/25 px-2 py-0.5 text-xs font-medium text-amber-50 backdrop-blur"
-                        style={{ borderRadius: "8px" }}
-                      >
-                        <StarIcon weight="duotone" className="size-3.5" />
-                        {t.defaultBadge}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div
-                    className="absolute inset-x-0 bottom-0 z-[9] h-9 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                    style={{ backgroundColor: "rgb(0 0 0 / 0.45)" }}
-                  />
-                  <div className="absolute inset-x-1 bottom-1 z-10 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                    <button
-                      type="button"
-                      aria-label={t.deleteImage}
-                      title={t.deleteImage}
-                      disabled={deletePreview.isPending}
-                      onClick={() => setDeleteTargetId(image.id)}
-                      className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-red-500/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
-                      style={{ borderRadius: "8px" }}
-                    >
-                      <TrashIcon weight="duotone" className="size-3.5" />
-                    </button>
-                    <div className="flex items-center gap-1">
-                      <a
-                        href={image.imageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={t.openImage}
-                        title={t.openImage}
-                        className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
-                        style={{ borderRadius: "8px" }}
-                      >
-                        <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
-                      </a>
+            {savedImages.map((image) => {
+              const isPublicPreviewImage = image.id === publicPreviewImageId;
+              return (
+                <div
+                  key={image.id}
+                  className="group rounded-[12px] border border-[var(--ds-border)] bg-[var(--ds-surface)]"
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    setContextMenu({ origin: { x: event.clientX, y: event.clientY }, image });
+                  }}
+                >
+                  <div className="relative overflow-hidden rounded-t-[12px]">
+                    <img
+                      src={image.imageUrl}
+                      alt=""
+                      className="aspect-[1200/630] w-full object-cover"
+                    />
+                    <div className="absolute left-1 top-1 z-10 flex flex-col items-start gap-1">
+                      {image.isActive ? (
+                        <span
+                          className="inline-flex items-center gap-1 border border-emerald-300/30 bg-emerald-400/25 px-2 py-0.5 text-xs font-medium text-emerald-50 backdrop-blur"
+                          style={{ borderRadius: "8px" }}
+                        >
+                          <CheckCircleIcon weight="duotone" className="size-3.5" />
+                          {t.activeBadge}
+                        </span>
+                      ) : null}
+                      {image.isDefault ? (
+                        <span
+                          className="inline-flex items-center gap-1 border border-amber-300/30 bg-amber-400/25 px-2 py-0.5 text-xs font-medium text-amber-50 backdrop-blur"
+                          style={{ borderRadius: "8px" }}
+                        >
+                          <StarIcon weight="duotone" className="size-3.5" />
+                          {t.defaultBadge}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div
+                      className="absolute inset-x-0 bottom-0 z-[9] h-9 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                      style={{ backgroundColor: "rgb(0 0 0 / 0.45)" }}
+                    />
+                    <div className="absolute inset-x-1 bottom-1 z-10 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                       <button
                         type="button"
-                        aria-label={t.setDefault}
-                        title={t.setDefault}
-                        disabled={image.isDefault || setDefaultPreview.isPending}
-                        onClick={() => setDefaultPreview.mutate({ id: image.id, isDefault: true })}
-                        className="flex size-7 items-center justify-center border border-amber-300/35 bg-amber-500/20 text-amber-50 backdrop-blur hover:bg-amber-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                        aria-label={t.deleteImage}
+                        title={t.deleteImage}
+                        disabled={deletePreview.isPending}
+                        onClick={() => setDeleteTargetId(image.id)}
+                        className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-red-500/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
                         style={{ borderRadius: "8px" }}
                       >
-                        <StarIcon weight="duotone" className="size-3.5" />
+                        <TrashIcon weight="duotone" className="size-3.5" />
                       </button>
-                      <button
-                        type="button"
-                        aria-label={image.isActive ? t.unsetActive : t.setActive}
-                        title={image.isActive ? t.unsetActive : t.setActive}
-                        disabled={setActivePreview.isPending}
-                        onClick={() =>
-                          setActivePreview.mutate({ id: image.id, active: !image.isActive })
-                        }
-                        className="flex size-7 items-center justify-center border border-emerald-300/35 bg-emerald-500/20 text-emerald-50 backdrop-blur hover:bg-emerald-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
-                        style={{ borderRadius: "8px" }}
-                      >
-                        <CheckCircleIcon weight="duotone" className="size-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <a
+                          href={image.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={t.openImage}
+                          title={t.openImage}
+                          className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]"
+                          style={{ borderRadius: "8px" }}
+                        >
+                          <ArrowSquareOutIcon weight="duotone" className="size-3.5" />
+                        </a>
+                        <button
+                          type="button"
+                          aria-label={isPublicPreviewImage ? t.copyShareUrl : t.shareUrlUnavailable}
+                          title={
+                            isPublicPreviewImage
+                              ? copiedShareImageId === image.id
+                                ? t.shareUrlCopied
+                                : t.copyShareUrl
+                              : t.shareUrlUnavailable
+                          }
+                          disabled={!isPublicPreviewImage}
+                          onClick={() => void copyShareUrl(image)}
+                          className="flex size-7 items-center justify-center border border-white/30 bg-black/35 text-white backdrop-blur hover:bg-black/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-40"
+                          style={{ borderRadius: "8px" }}
+                        >
+                          <CopyIcon weight="duotone" className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={t.setDefault}
+                          title={t.setDefault}
+                          disabled={image.isDefault || setDefaultPreview.isPending}
+                          onClick={() =>
+                            setDefaultPreview.mutate({ id: image.id, isDefault: true })
+                          }
+                          className="flex size-7 items-center justify-center border border-amber-300/35 bg-amber-500/20 text-amber-50 backdrop-blur hover:bg-amber-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                          style={{ borderRadius: "8px" }}
+                        >
+                          <StarIcon weight="duotone" className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={image.isActive ? t.unsetActive : t.setActive}
+                          title={image.isActive ? t.unsetActive : t.setActive}
+                          disabled={setActivePreview.isPending}
+                          onClick={() =>
+                            setActivePreview.mutate({ id: image.id, active: !image.isActive })
+                          }
+                          className="flex size-7 items-center justify-center border border-emerald-300/35 bg-emerald-500/20 text-emerald-50 backdrop-blur hover:bg-emerald-500/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50"
+                          style={{ borderRadius: "8px" }}
+                        >
+                          <CheckCircleIcon weight="duotone" className="size-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
+                  <div className="space-y-0.5 px-2 py-2">
+                    <p
+                      className="truncate text-sm font-medium text-[var(--ds-text)]"
+                      title={image.name}
+                    >
+                      {image.name}
+                    </p>
+                    <p className="text-xs text-[var(--ds-text-muted)]">
+                      {image.width} × {image.height} · {formatBytes(image.sizeBytes)}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-0.5 px-2 py-2">
-                  <p
-                    className="truncate text-sm font-medium text-[var(--ds-text)]"
-                    title={image.name}
-                  >
-                    {image.name}
-                  </p>
-                  <p className="text-xs text-[var(--ds-text-muted)]">
-                    {image.width} × {image.height} · {formatBytes(image.sizeBytes)}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </DashboardSection.Body>
@@ -2514,6 +2584,15 @@ function SavedPreviewImagesSection() {
               }
             >
               {t.openImage}
+            </SubMenu.Item>
+            <SubMenu.Item
+              disabled={contextMenu.image.id !== publicPreviewImageId}
+              icon={<CopyIcon weight="duotone" className="size-3.5" />}
+              onSelect={() => void copyShareUrl(contextMenu.image)}
+            >
+              {contextMenu.image.id === publicPreviewImageId
+                ? t.copyShareUrl
+                : t.shareUrlUnavailable}
             </SubMenu.Item>
             <SubMenu.Item
               disabled={contextMenu.image.isDefault || setDefaultPreview.isPending}
@@ -3895,7 +3974,8 @@ function TextLayerAttributes({
         title={messages.fontWeight}
         className={cx(
           "flex size-7 items-center justify-center rounded text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
-          selectionStyle.fontWeight === "on" && "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+          selectionStyle.fontWeight === "on" &&
+            "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
         )}
         onClick={() => onChange({ fontWeight: selectionStyle.fontWeight === "on" ? "400" : "700" })}
       >

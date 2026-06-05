@@ -1,4 +1,8 @@
-import type { SocialPreviewImageEntry, SocialPreviewProjectEntry } from "@lmaa/contracts";
+import type {
+  SocialPreviewImageEntry,
+  SocialPreviewProjectEntry,
+  SocialPreviewPublicImage,
+} from "@lmaa/contracts";
 
 import { ensureSocialMediaFolder } from "./admin-folders.js";
 import { deleteManagedMediaAsset, uploadManagedMediaAsset } from "./admin-media.js";
@@ -71,6 +75,18 @@ function mapSocialPreviewImage(
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     createdByUsername: row.createdByUsername,
+  };
+}
+
+function mapSocialPreviewPublicImage(
+  row: Awaited<ReturnType<typeof getSocialPreviewImageById>>,
+): SocialPreviewPublicImage | null {
+  if (!row) return null;
+  return {
+    id: row.id,
+    url: row.imageUrl,
+    version: `${row.id}-${row.updatedAt.getTime()}`,
+    updatedAt: row.updatedAt.toISOString(),
   };
 }
 
@@ -289,11 +305,12 @@ export async function deleteManagedSocialPreviewImage(id: number) {
 /**
  * Returns the globally active social preview image for Open Graph/Twitter cards.
  */
-export async function getSocialPreviewImage(): Promise<{ url: string } | null> {
+export async function getSocialPreviewImage(): Promise<SocialPreviewPublicImage | null> {
   const activeId = await getActiveSocialPreviewImageId();
   if (activeId) {
     const row = await getSocialPreviewImageById(activeId);
-    if (row) return { url: row.imageUrl };
+    const image = mapSocialPreviewPublicImage(row);
+    if (image) return image;
     await deleteSetting(ACTIVE_SOCIAL_PREVIEW_IMAGE_KEY);
   }
 
@@ -306,5 +323,5 @@ export async function getSocialPreviewImage(): Promise<{ url: string } | null> {
     return null;
   }
 
-  return { url: row.imageUrl };
+  return mapSocialPreviewPublicImage(row);
 }

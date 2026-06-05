@@ -143,6 +143,13 @@ export interface SocialPreviewImageEntry {
   createdByUsername: string | null;
 }
 
+export interface SocialPreviewPublicImage {
+  id: number;
+  url: string;
+  version: string;
+  updatedAt: string;
+}
+
 export const socialPreviewProjectCreateSchema = z.object({
   name: z.string().trim().min(1).max(200),
   composition: socialPreviewCompositionSchema,

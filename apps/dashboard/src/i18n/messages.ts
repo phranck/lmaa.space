@@ -1344,6 +1344,9 @@ export interface DashboardMessages {
       setActive: string;
       unsetActive: string;
       setDefault: string;
+      copyShareUrl: string;
+      shareUrlCopied: string;
+      shareUrlUnavailable: string;
       openImage: string;
       deleteImage: string;
       imageGridSizeLabel: string;
@@ -2837,6 +2840,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setActive: "Aktiv setzen",
         unsetActive: "Nicht aktiv setzen",
         setDefault: "Als Default setzen",
+        copyShareUrl: "Share-URL kopieren",
+        shareUrlCopied: "Share-URL kopiert",
+        shareUrlUnavailable: "Nur das aktuell öffentliche Preview-Bild hat eine Share-URL.",
         openImage: "Öffnen",
         deleteImage: "Löschen",
         imageGridSizeLabel: "Bildgröße",
@@ -4321,6 +4327,9 @@ export const DASHBOARD_MESSAGES: Record<DashboardLocale, DashboardMessages> = {
         setActive: "Set active",
         unsetActive: "Set inactive",
         setDefault: "Set default",
+        copyShareUrl: "Copy share URL",
+        shareUrlCopied: "Share URL copied",
+        shareUrlUnavailable: "Only the current public preview image has a share URL.",
         openImage: "Open",
         deleteImage: "Delete",
         imageGridSizeLabel: "Image size",
