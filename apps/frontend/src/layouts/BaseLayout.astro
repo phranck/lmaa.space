@@ -3,7 +3,7 @@ import Footer from "@/components/Footer.astro";
 import type { SocialMediaProfile } from "@/components/Footer.astro";
 import Header from "@/components/Header.astro";
 import { apiGet } from "@/lib/api";
-import type { FooterConfig } from "@lmaa/contracts";
+import type { FooterConfig, SocialPreviewPublicImage } from "@lmaa/contracts";
 import type { NavItem } from "@lmaa/shared";
 
 interface Props {
@@ -33,6 +33,12 @@ const canonical =
 const defaultOgImage = new URL("/og-image.jpg", publicSite).href;
 let resolvedOgImage = ogImage ?? defaultOgImage;
 
+function withPreviewVersion(url: string, version: string): string {
+  const versionedUrl = new URL(url);
+  versionedUrl.searchParams.set("v", version);
+  return versionedUrl.href;
+}
+
 let headerNav: NavItem[] = [];
 let footerNav: NavItem[] = [];
 let footerConfig: FooterConfig = { columns: [] };
@@ -50,10 +56,10 @@ try {
 
 try {
   const socialPreviewImage = !ogImage
-    ? await apiGet<{ url: string } | null>("/social-preview-image")
+    ? await apiGet<SocialPreviewPublicImage | null>("/social-preview-image")
     : null;
   if (socialPreviewImage?.url) {
-    resolvedOgImage = socialPreviewImage.url;
+    resolvedOgImage = withPreviewVersion(socialPreviewImage.url, socialPreviewImage.version);
   }
 } catch {
   // The social preview image is optional, fall back to /og-image.jpg.

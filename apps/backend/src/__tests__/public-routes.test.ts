@@ -355,13 +355,23 @@ describe("publicRoutes", () => {
   describe("GET /social-preview-image", () => {
     it("returns the configured social preview image", async () => {
       socialPreviewMocks.getSocialPreviewImage.mockResolvedValue({
+        id: 12,
         url: "https://img.example/social.jpg",
+        version: "12-1780000000000",
+        updatedAt: "2026-06-05T12:00:00.000Z",
       });
 
       const res = await app.request("/social-preview-image");
 
       expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ data: { url: "https://img.example/social.jpg" } });
+      expect(await res.json()).toEqual({
+        data: {
+          id: 12,
+          url: "https://img.example/social.jpg",
+          version: "12-1780000000000",
+          updatedAt: "2026-06-05T12:00:00.000Z",
+        },
+      });
     });
   });
 
