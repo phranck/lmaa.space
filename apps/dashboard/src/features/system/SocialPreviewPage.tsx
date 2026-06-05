@@ -66,6 +66,7 @@ import {
 import { DashboardInput } from "@/components/ui/DashboardControls.tsx";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog.tsx";
 import { Dialog, dialogHeaderIconClass } from "@/components/ui/Dialog.tsx";
+import { OverlayCard } from "@/components/ui/OverlayCard.tsx";
 import { PageFooter } from "@/components/ui/PageFooter.tsx";
 import { PageHeader } from "@/components/ui/PageHeader.tsx";
 import { PageBody, PageLayout } from "@/components/ui/PageLayout.tsx";
@@ -129,6 +130,16 @@ const FORMAT_OPTIONS: Array<{ value: SocialPreviewFormat; label: string }> = [
 
 const RESIZE_HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
 type ResizeHandle = (typeof RESIZE_HANDLES)[number];
+const RESIZE_HANDLE_CURSOR_CLASSES: Record<ResizeHandle, string> = {
+  n: "cursor-ns-resize",
+  s: "cursor-ns-resize",
+  e: "cursor-ew-resize",
+  w: "cursor-ew-resize",
+  ne: "cursor-nesw-resize",
+  sw: "cursor-nesw-resize",
+  nw: "cursor-nwse-resize",
+  se: "cursor-nwse-resize",
+};
 
 type SelectionTarget = { type: "layer"; id: string } | null;
 type ActiveTool = "text" | "image" | "shape";
@@ -227,6 +238,8 @@ type TextStylePatch = Partial<
     | "letterSpacing"
   >
 >;
+type TextStyleRange = NonNullable<SocialPreviewTextLayer["styleRanges"]>[number];
+type TextToggleState = "on" | "off" | "mixed";
 
 const TEXT_STYLE_KEYS = [
   "fontFamily",
@@ -273,9 +286,27 @@ function getTextStyleAt(layer: SocialPreviewTextLayer, index: number) {
   return style;
 }
 
-function renderTextWithStyleRanges(layer: SocialPreviewTextLayer) {
+function getTextSelectionBounds(
+  layer: SocialPreviewTextLayer,
+  textSelection: TextSelectionRange | null | undefined,
+) {
+  if (textSelection?.layerId !== layer.id || textSelection.start === textSelection.end) return null;
+  return {
+    start: clamp(Math.min(textSelection.start, textSelection.end), 0, layer.text.length),
+    end: clamp(Math.max(textSelection.start, textSelection.end), 0, layer.text.length),
+  };
+}
+
+function renderTextWithStyleRanges(
+  layer: SocialPreviewTextLayer,
+  textSelection?: TextSelectionRange | null,
+) {
+  const selectionBounds = getTextSelectionBounds(layer, textSelection);
+
   return Array.from(layer.text).map((char, index) => {
     const style = getTextStyleAt(layer, index);
+    const selected =
+      selectionBounds !== null && index >= selectionBounds.start && index < selectionBounds.end;
     return (
       <span
         key={`${index}-${char}`}
@@ -288,6 +319,7 @@ function renderTextWithStyleRanges(layer: SocialPreviewTextLayer) {
           color: style.color,
           lineHeight: style.lineHeight,
           letterSpacing: style.letterSpacing,
+          backgroundColor: selected ? "rgba(56, 189, 248, 0.38)" : undefined,
         }}
       >
         {char}
@@ -316,7 +348,82 @@ function getTextStylePatchKeys(patch: TextStylePatch) {
   return TEXT_STYLE_KEYS.filter((key) => key in patch);
 }
 
-function hasStyleRangeOverrides(range: NonNullable<SocialPreviewTextLayer["styleRanges"]>[number]) {
+function getTextToggleState(
+  layer: SocialPreviewTextLayer,
+  start: number,
+  end: number,
+  isActive: (style: ReturnType<typeof getTextStyleAt>) => boolean,
+): TextToggleState {
+  const safeStart = clamp(Math.min(start, end), 0, layer.text.length);
+  const safeEnd = clamp(Math.max(start, end), 0, layer.text.length);
+  if (safeStart === safeEnd) return isActive(getTextStyleAt(layer, safeStart)) ? "on" : "off";
+
+  let activeCount = 0;
+  for (let index = safeStart; index < safeEnd; index++) {
+    if (isActive(getTextStyleAt(layer, index))) activeCount += 1;
+  }
+
+  if (activeCount === 0) return "off";
+  if (activeCount === safeEnd - safeStart) return "on";
+  return "mixed";
+}
+
+function getTextSelectionStyleState(
+  layer: SocialPreviewTextLayer,
+  textSelection: TextSelectionRange | null,
+) {
+  const hasRangeSelection =
+    textSelection?.layerId === layer.id && textSelection.start !== textSelection.end;
+  const selectionStart = hasRangeSelection
+    ? clamp(Math.min(textSelection.start, textSelection.end), 0, layer.text.length)
+    : null;
+  const style =
+    selectionStart !== null
+      ? getTextStyleAt(layer, selectionStart)
+      : {
+          fontFamily: layer.fontFamily,
+          fontSize: layer.fontSize,
+          fontWeight: layer.fontWeight,
+          fontStyle: layer.fontStyle,
+          textDecoration: layer.textDecoration ?? "none",
+          color: layer.color,
+          lineHeight: layer.lineHeight,
+          letterSpacing: layer.letterSpacing,
+        };
+
+  if (!hasRangeSelection) {
+    return {
+      style,
+      fontWeight: style.fontWeight === "700" ? "on" : "off",
+      fontStyle: style.fontStyle === "italic" ? "on" : "off",
+      textDecoration: style.textDecoration === "underline" ? "on" : "off",
+    };
+  }
+
+  return {
+    style,
+    fontWeight: getTextToggleState(
+      layer,
+      textSelection.start,
+      textSelection.end,
+      (entry) => entry.fontWeight === "700",
+    ),
+    fontStyle: getTextToggleState(
+      layer,
+      textSelection.start,
+      textSelection.end,
+      (entry) => entry.fontStyle === "italic",
+    ),
+    textDecoration: getTextToggleState(
+      layer,
+      textSelection.start,
+      textSelection.end,
+      (entry) => entry.textDecoration === "underline",
+    ),
+  };
+}
+
+function hasStyleRangeOverrides(range: TextStyleRange) {
   return TEXT_STYLE_KEYS.some((key) => range[key] !== undefined);
 }
 
@@ -330,10 +437,40 @@ function applyTextStyleRange(
   const safeEnd = clamp(Math.max(start, end), 0, layer.text.length);
   if (safeStart === safeEnd) return layer;
 
+  const patchKeys = getTextStylePatchKeys(patch);
+  const retainedRanges: TextStyleRange[] = [];
+
+  for (const range of layer.styleRanges ?? []) {
+    if (range.end <= safeStart || range.start >= safeEnd) {
+      retainedRanges.push(range);
+      continue;
+    }
+
+    if (range.start < safeStart) {
+      retainedRanges.push({ ...range, end: safeStart });
+    }
+
+    const overlapRange = {
+      ...range,
+      start: Math.max(range.start, safeStart),
+      end: Math.min(range.end, safeEnd),
+    };
+    for (const key of patchKeys) {
+      delete overlapRange[key];
+    }
+    if (hasStyleRangeOverrides(overlapRange)) {
+      retainedRanges.push(overlapRange);
+    }
+
+    if (range.end > safeEnd) {
+      retainedRanges.push({ ...range, start: safeEnd });
+    }
+  }
+
   return {
     ...layer,
     styleRanges: [
-      ...(layer.styleRanges ?? []),
+      ...retainedRanges,
       {
         start: safeStart,
         end: safeEnd,
@@ -1469,6 +1606,7 @@ function SocialPreviewEditorPage({ projectId }: { projectId: number }) {
                                 layer={layer}
                                 selected={selected}
                                 editing={editingTextLayerId === layer.id}
+                                textSelection={textSelection}
                                 onChange={updateSelectedLayer}
                                 onEditStart={() => {
                                   if (layer.type === "text" && !isLayerLocked(layer)) {
@@ -2566,13 +2704,28 @@ function AssetImagePickerDialog({
   if (!open) return null;
 
   return (
-    <Dialog
+    <OverlayCard
       open
-      title={messages.assetPickerTitle}
-      titleIcon={<ImageIcon weight="duotone" className={dialogHeaderIconClass} />}
       onClose={onClose}
+      size={{
+        storageKey: "social-preview:asset-image-picker-size",
+        defaultWidth: 860,
+        defaultHeight: 640,
+        minWidth: 520,
+        minHeight: 420,
+      }}
+      aria-label={messages.assetPickerTitle}
+      style={{ maxHeight: "calc(100vh - 2rem)" }}
     >
-      <div className="max-h-[min(70vh,42rem)] min-h-[18rem] overflow-y-auto px-6 py-3">
+      <OverlayCard.Header>
+        <div className="flex items-center gap-3">
+          <ImageIcon weight="duotone" className={dialogHeaderIconClass} />
+          <h2 className="text-base font-semibold text-[var(--ds-text)]">
+            {messages.assetPickerTitle}
+          </h2>
+        </div>
+      </OverlayCard.Header>
+      <OverlayCard.Body className="min-h-0">
         {loading ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
             {Array.from({ length: 8 }, (_, index) => `asset-picker-skeleton-${index}`).map(
@@ -2607,11 +2760,11 @@ function AssetImagePickerDialog({
             ))}
           </div>
         )}
-      </div>
-      <Dialog.Footer>
+      </OverlayCard.Body>
+      <OverlayCard.Footer className="flex justify-end gap-2">
         <CancelActionButton label={commonMessages.cancel} onClick={onClose} />
-      </Dialog.Footer>
-    </Dialog>
+      </OverlayCard.Footer>
+    </OverlayCard>
   );
 }
 
@@ -2892,10 +3045,36 @@ function ShapeLayerContent({ layer }: { layer: SocialPreviewShapeLayer }) {
   );
 }
 
+function TextLayerRichText({
+  layer,
+  style,
+  textSelection,
+  "aria-hidden": ariaHidden,
+  onDoubleClick,
+}: {
+  layer: SocialPreviewTextLayer;
+  style: CSSProperties;
+  textSelection?: TextSelectionRange | null;
+  "aria-hidden"?: boolean;
+  onDoubleClick?: React.MouseEventHandler<HTMLDivElement>;
+}) {
+  return (
+    <div
+      aria-hidden={ariaHidden}
+      className="size-full cursor-move whitespace-pre-wrap break-words"
+      style={style}
+      onDoubleClick={onDoubleClick}
+    >
+      {renderTextWithStyleRanges(layer, textSelection)}
+    </div>
+  );
+}
+
 function LayerContent({
   layer,
   selected,
   editing,
+  textSelection,
   onChange,
   onEditStart,
   onTextSelectionChange,
@@ -2904,6 +3083,7 @@ function LayerContent({
   layer: SocialPreviewLayer;
   selected: boolean;
   editing: boolean;
+  textSelection: TextSelectionRange | null;
   onChange: (patch: Partial<SocialPreviewLayer>) => void;
   onEditStart: () => void;
   onTextSelectionChange: (range: TextSelectionRange | null) => void;
@@ -2932,55 +3112,69 @@ function LayerContent({
       lineHeight: layer.lineHeight,
       letterSpacing: layer.letterSpacing,
     };
+    const editTextStyle: CSSProperties = {
+      ...textStyle,
+      caretColor: layer.color,
+      color: "transparent",
+      WebkitTextFillColor: "transparent",
+    };
 
     return selected && editing ? (
-      <textarea
-        ref={textAreaRef}
-        className="size-full resize-none overflow-hidden whitespace-pre-wrap break-words border-0 bg-transparent p-0 outline-none"
-        style={textStyle}
-        value={layer.text}
-        onBlur={onEditEnd}
-        onFocus={(event) => {
-          event.currentTarget.select();
-          onTextSelectionChange({
-            layerId: layer.id,
-            start: event.currentTarget.selectionStart,
-            end: event.currentTarget.selectionEnd,
-          });
-        }}
-        onSelect={(event) =>
-          onTextSelectionChange({
-            layerId: layer.id,
-            start: event.currentTarget.selectionStart,
-            end: event.currentTarget.selectionEnd,
-          })
-        }
-        onChange={(event) => {
-          onTextSelectionChange(null);
-          onChange({ text: event.currentTarget.value });
-        }}
-        onClick={(event) => event.stopPropagation()}
-        onDoubleClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            onEditEnd();
+      <div className="relative size-full">
+        <TextLayerRichText
+          layer={layer}
+          style={textStyle}
+          textSelection={textSelection}
+          aria-hidden
+        />
+        <textarea
+          ref={textAreaRef}
+          aria-label="Edit text layer"
+          className="absolute inset-0 size-full resize-none select-text overflow-hidden whitespace-pre-wrap break-words border-0 bg-transparent p-0 text-transparent outline-none selection:bg-transparent selection:text-transparent"
+          style={editTextStyle}
+          value={layer.text}
+          onBlur={onEditEnd}
+          onFocus={(event) => {
+            event.currentTarget.select();
+            onTextSelectionChange({
+              layerId: layer.id,
+              start: event.currentTarget.selectionStart,
+              end: event.currentTarget.selectionEnd,
+            });
+          }}
+          onSelect={(event) =>
+            onTextSelectionChange({
+              layerId: layer.id,
+              start: event.currentTarget.selectionStart,
+              end: event.currentTarget.selectionEnd,
+            })
           }
-        }}
-        onPointerDown={(event) => event.stopPropagation()}
-        spellCheck={false}
-      />
+          onChange={(event) => {
+            onTextSelectionChange(null);
+            onChange({ text: event.currentTarget.value });
+          }}
+          onClick={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => {
+            event.stopPropagation();
+            if (event.key === "Escape") {
+              event.preventDefault();
+              onEditEnd();
+            }
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+          spellCheck={false}
+        />
+      </div>
     ) : (
-      <div
-        className="size-full cursor-move whitespace-pre-wrap break-words"
+      <TextLayerRichText
+        layer={layer}
         style={textStyle}
         onDoubleClick={(event) => {
           event.stopPropagation();
           onEditStart();
         }}
-      >
-        {renderTextWithStyleRanges(layer)}
-      </div>
+      />
     );
   }
 
@@ -3062,6 +3256,7 @@ function SelectionFrame({
             handle === "s" && "left-1/2 -translate-x-1/2",
             handle === "e" && "top-1/2 -translate-y-1/2",
             handle === "w" && "top-1/2 -translate-y-1/2",
+            RESIZE_HANDLE_CURSOR_CLASSES[handle],
           )}
           onPointerDown={(event) => onResizePointerDown(event, layer, handle)}
         />
@@ -3643,19 +3838,8 @@ function TextLayerAttributes({
   textSelection: TextSelectionRange | null;
   onChange: (patch: Partial<SocialPreviewLayer>) => void;
 }) {
-  const activeStyle =
-    textSelection?.layerId === layer.id && textSelection.start !== textSelection.end
-      ? getTextStyleAt(layer, textSelection.start)
-      : {
-          fontFamily: layer.fontFamily,
-          fontSize: layer.fontSize,
-          fontWeight: layer.fontWeight,
-          fontStyle: layer.fontStyle,
-          textDecoration: layer.textDecoration ?? "none",
-          color: layer.color,
-          lineHeight: layer.lineHeight,
-          letterSpacing: layer.letterSpacing,
-        };
+  const selectionStyle = getTextSelectionStyleState(layer, textSelection);
+  const activeStyle = selectionStyle.style;
 
   return (
     <>
@@ -3707,28 +3891,27 @@ function TextLayerAttributes({
       <button
         type="button"
         aria-label={messages.fontWeight}
-        aria-pressed={activeStyle.fontWeight === "700"}
+        aria-pressed={selectionStyle.fontWeight === "on"}
         title={messages.fontWeight}
         className={cx(
           "flex size-7 items-center justify-center rounded text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
-          activeStyle.fontWeight === "700" && "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+          selectionStyle.fontWeight === "on" && "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
         )}
-        onClick={() => onChange({ fontWeight: activeStyle.fontWeight === "700" ? "400" : "700" })}
+        onClick={() => onChange({ fontWeight: selectionStyle.fontWeight === "on" ? "400" : "700" })}
       >
         <TextBIcon weight="duotone" className="size-4" />
       </button>
       <button
         type="button"
         aria-label={messages.fontStyle}
-        aria-pressed={activeStyle.fontStyle === "italic"}
+        aria-pressed={selectionStyle.fontStyle === "on"}
         title={messages.fontStyle}
         className={cx(
           "flex size-7 items-center justify-center rounded text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
-          activeStyle.fontStyle === "italic" &&
-            "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
+          selectionStyle.fontStyle === "on" && "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
         )}
         onClick={() =>
-          onChange({ fontStyle: activeStyle.fontStyle === "italic" ? "normal" : "italic" })
+          onChange({ fontStyle: selectionStyle.fontStyle === "on" ? "normal" : "italic" })
         }
       >
         <TextItalicIcon weight="duotone" className="size-4" />
@@ -3736,16 +3919,16 @@ function TextLayerAttributes({
       <button
         type="button"
         aria-label={messages.fontUnderline}
-        aria-pressed={activeStyle.textDecoration === "underline"}
+        aria-pressed={selectionStyle.textDecoration === "on"}
         title={messages.fontUnderline}
         className={cx(
           "flex size-7 items-center justify-center rounded text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-hover)] hover:text-[var(--ds-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-focus-ring)]",
-          activeStyle.textDecoration === "underline" &&
+          selectionStyle.textDecoration === "on" &&
             "bg-[var(--ds-surface-hover)] text-[var(--ds-text)]",
         )}
         onClick={() =>
           onChange({
-            textDecoration: activeStyle.textDecoration === "underline" ? "none" : "underline",
+            textDecoration: selectionStyle.textDecoration === "on" ? "none" : "underline",
           })
         }
       >
