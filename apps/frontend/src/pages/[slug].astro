@@ -3,12 +3,12 @@ import DynamicForm from "@/components/islands/DynamicForm";
 import RejectedShopsTable from "@/components/islands/RejectedShopsTable";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { apiGet } from "@/lib/api";
+import {
+  parseContentShortcodeSegments,
+  type RejectedShopsTableIsland,
+} from "@/lib/content-shortcode-segments";
 import { stripMarkdown } from "@/lib/markdown";
 import { renderMarkdownSSR as renderMarkdown } from "@/lib/markdown-ssr";
-import {
-  parseRejectedShopsTableTokens,
-  type RejectedShopsTableToken,
-} from "@/lib/rejected-shops-table-token";
 import type { FormConfig, PublicRejectedShopsResponse } from "@lmaa/contracts";
 import type { Category } from "@lmaa/shared";
 
@@ -20,10 +20,10 @@ interface ContentPageView {
 
 type RenderedContentSegment =
   | { type: "html"; html: string }
-  | (RejectedShopsTableToken & { initialData: PublicRejectedShopsResponse });
+  | (RejectedShopsTableIsland & { initialData: PublicRejectedShopsResponse });
 
 function emptyRejectedShopsResponse(
-  pageSize: RejectedShopsTableToken["defaultPageSize"],
+  pageSize: RejectedShopsTableIsland["defaultPageSize"],
 ): PublicRejectedShopsResponse {
   return {
     entries: [],
@@ -41,7 +41,7 @@ function emptyRejectedShopsResponse(
 }
 
 async function loadInitialRejectedShopsData(
-  pageSize: RejectedShopsTableToken["defaultPageSize"],
+  pageSize: RejectedShopsTableIsland["defaultPageSize"],
 ): Promise<PublicRejectedShopsResponse> {
   const params = new URLSearchParams({
     page: "1",
@@ -58,7 +58,7 @@ async function loadInitialRejectedShopsData(
 }
 
 async function renderContentSegments(content: string): Promise<RenderedContentSegment[]> {
-  const segments = parseRejectedShopsTableTokens(content);
+  const segments = parseContentShortcodeSegments(content);
   return Promise.all(
     segments.map(async (segment) => {
       if (segment.type === "markdown") {
@@ -114,7 +114,7 @@ if (page) {
   contentSegments = await renderContentSegments(page.content);
   hasWideContent = contentSegments.some((segment) => segment.type === "rejected-shops-table");
   description = stripMarkdown(
-    parseRejectedShopsTableTokens(page.content)
+    parseContentShortcodeSegments(page.content)
       .filter((segment) => segment.type === "markdown")
       .map((segment) => segment.content)
       .join(" "),

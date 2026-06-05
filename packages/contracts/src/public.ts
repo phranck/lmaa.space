@@ -27,6 +27,8 @@ export const submissionSchema = z.object({
 export interface PublicRejectedShopEntry {
   id: string;
   shopName: string;
+  ogImage: string | null;
+  logoBackgroundColor: string | null;
   submittedAt: string;
   rejectedAt: string;
   rejectionUrl: string;

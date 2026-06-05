@@ -3,6 +3,40 @@ import { describe, expect, it } from "vitest";
 import { renderMarkdown, stripMarkdown } from "./markdown";
 
 describe("renderMarkdown", () => {
+  it("renders widget shortcodes through the registry parser", async () => {
+    const html = await renderMarkdown(
+      '[[widget:featured-shops title="Featured shops" height=480]]',
+    );
+
+    expect(html).toContain('class="md-widget"');
+    expect(html).toContain('src="/markdown-widgets/featured-shops"');
+    expect(html).toContain('title="Featured shops"');
+    expect(html).toContain("height:480px");
+  });
+
+  it("renders image and PDF shortcodes through the registry parser", async () => {
+    const html = await renderMarkdown(
+      '[[image:/uploads/hero.jpg alt="Hero" caption="Launch" width=640 height=360]]\n\n[[pdf:/uploads/guide.pdf label="Guide"]]',
+    );
+
+    expect(html).toContain('class="md-image"');
+    expect(html).toContain('src="/uploads/hero.jpg"');
+    expect(html).toContain('alt="Hero"');
+    expect(html).toContain('width="640"');
+    expect(html).toContain('height="360"');
+    expect(html).toContain("<figcaption>Launch</figcaption>");
+    expect(html).toContain('class="md-pdf"');
+    expect(html).toContain('href="/uploads/guide.pdf"');
+    expect(html).toContain(">Guide</a>");
+  });
+
+  it("keeps island shortcodes as literal markdown in the HTML renderer", async () => {
+    const html = await renderMarkdown("[[rejected-shops-table pageSize=30]]");
+
+    expect(html).toContain("[[rejected-shops-table pageSize=30]]");
+    expect(html).not.toContain("md-widget");
+  });
+
   it("renders HLS shortcodes with media aliases", async () => {
     const html = await renderMarkdown(
       'Intro\n\n[[hls:lmaa-history title="lmaa.space History" caption="Timeline" aspect="16/9"]]',
@@ -66,7 +100,7 @@ describe("renderMarkdown", () => {
     expect(html).toContain('class="md-youtube-player"');
     expect(html).toContain('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"');
     expect(html).toContain('title="Launch video"');
-    expect(html).toContain('allowfullscreen');
+    expect(html).toContain("allowfullscreen");
     expect(html).toContain('style="--md-video-aspect-ratio:9 / 16;"');
     expect(html).toContain("<figcaption>Watch this</figcaption>");
   });
@@ -75,9 +109,7 @@ describe("renderMarkdown", () => {
     const watchHtml = await renderMarkdown(
       "[[youtube:https://www.youtube.com/watch?v=dQw4w9WgXcQ&si=share]]",
     );
-    const embedHtml = await renderMarkdown(
-      "[[youtube:https://www.youtube.com/embed/dQw4w9WgXcQ]]",
-    );
+    const embedHtml = await renderMarkdown("[[youtube:https://www.youtube.com/embed/dQw4w9WgXcQ]]");
 
     expect(watchHtml).toContain('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"');
     expect(embedHtml).toContain('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"');

@@ -2,6 +2,13 @@ import { Marked } from "marked";
 import markedFootnote from "marked-footnote";
 
 import {
+  MARKDOWN_SHORTCODE_TOKENS,
+  parseMarkdownShortcodes,
+  type MarkdownShortcodeAttributeValue,
+  type ParsedMarkdownShortcode,
+} from "@lmaa/shared";
+
+import {
   escapeHtmlAttribute,
   getSafeConfigHref,
   getSafeSiteAssetPath,
@@ -72,8 +79,6 @@ type MarkdownShortcodeToken = {
   html: string;
 };
 
-type MarkdownShortcodeKind = "widget" | "image" | "pdf" | "hls" | "youtube";
-
 type MarkdownMediaAlias =
   | string
   | {
@@ -83,13 +88,15 @@ type MarkdownMediaAlias =
 
 export type MarkdownMediaAliases = Record<string, MarkdownMediaAlias>;
 
-function parseShortcodeAttributes(input: string): Record<string, string> {
+function stringifyShortcodeAttributes(
+  source: Record<string, MarkdownShortcodeAttributeValue>,
+): Record<string, string> {
   const attrs: Record<string, string> = {};
-  const attrRegex = /([a-zA-Z][a-zA-Z0-9-]*)=(?:"([^"]*)"|'([^']*)'|([^\s"']+))/g;
 
-  for (const match of input.matchAll(attrRegex)) {
-    const [, key, doubleQuoted, singleQuoted, bare] = match;
-    attrs[key] = doubleQuoted ?? singleQuoted ?? bare ?? "";
+  for (const [key, value] of Object.entries(source)) {
+    if (value !== true) {
+      attrs[key] = value;
+    }
   }
 
   return attrs;
@@ -285,40 +292,66 @@ function renderYoutubeShortcode(
   return `<figure class="md-video md-youtube"${styleAttr}>${frame}<figcaption>${escapeHtml(caption)}</figcaption></figure>`;
 }
 
-function extractShortcodes(
+function extractRenderableShortcodes(
   content: string,
   aliases?: MarkdownMediaAliases,
 ): { content: string; tokens: MarkdownShortcodeToken[] } {
   const tokens: MarkdownShortcodeToken[] = [];
-  let index = 0;
+  const contentParts: string[] = [];
+  let lastIndex = 0;
 
-  const nextContent = content.replace(
-    /\[\[(widget|image|pdf|hls|youtube):([^\]\s]+)([^\]]*)\]\]/g,
-    (_match, kind: MarkdownShortcodeKind, rawTarget: string, attrsInput: string) => {
-      const alias = kind !== "widget" ? aliases?.[rawTarget] : undefined;
-      const target = getMediaAliasUrl(alias) ?? rawTarget;
-      const attrs = parseShortcodeAttributes(attrsInput);
-      const fallbackPoster = kind === "hls" ? getMediaAliasPosterUrl(alias) : null;
-      const placeholder = `LMAA_SHORTCODE_${index}_TOKEN`;
-      index += 1;
+  for (const shortcode of parseMarkdownShortcodes(content)) {
+    const html = renderParsedShortcode(shortcode, aliases);
+    if (!html) continue;
 
-      const html =
-        kind === "widget"
-          ? renderWidgetShortcode(target, attrs)
-          : kind === "image"
-            ? renderImageShortcode(target, attrs)
-            : kind === "pdf"
-              ? renderPdfShortcode(target, attrs)
-              : kind === "hls"
-                ? renderHlsShortcode(target, attrs, aliases, fallbackPoster)
-                : renderYoutubeShortcode(rawTarget, attrs, aliases);
+    const placeholder = `LMAA_SHORTCODE_${tokens.length}_TOKEN`;
+    tokens.push({ placeholder, html });
+    contentParts.push(content.slice(lastIndex, shortcode.source.start));
+    contentParts.push(`\n\n${placeholder}\n\n`);
+    lastIndex = shortcode.source.end;
+  }
 
-      tokens.push({ placeholder, html });
-      return `\n\n${placeholder}\n\n`;
-    },
-  );
+  contentParts.push(content.slice(lastIndex));
 
-  return { content: nextContent, tokens };
+  return { content: contentParts.join(""), tokens };
+}
+
+function renderParsedShortcode(
+  shortcode: ParsedMarkdownShortcode,
+  aliases?: MarkdownMediaAliases,
+): string | null {
+  if (shortcode.issues.some((issue) => issue.code === "missing-target")) return null;
+  if (shortcode.definition.renderMode === "island") return null;
+
+  const rawTarget = shortcode.target;
+  if (!rawTarget) return null;
+
+  const attrs = stringifyShortcodeAttributes(shortcode.attributes);
+  const alias =
+    shortcode.token !== MARKDOWN_SHORTCODE_TOKENS.widget ? aliases?.[rawTarget] : undefined;
+  const target = getMediaAliasUrl(alias) ?? rawTarget;
+
+  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.widget) {
+    return renderWidgetShortcode(target, attrs);
+  }
+
+  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.image) {
+    return renderImageShortcode(target, attrs);
+  }
+
+  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.pdf) {
+    return renderPdfShortcode(target, attrs);
+  }
+
+  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.hls) {
+    return renderHlsShortcode(target, attrs, aliases, getMediaAliasPosterUrl(alias));
+  }
+
+  if (shortcode.token === MARKDOWN_SHORTCODE_TOKENS.youtube) {
+    return renderYoutubeShortcode(rawTarget, attrs, aliases);
+  }
+
+  return null;
 }
 
 function injectShortcodes(html: string, tokens: MarkdownShortcodeToken[]): string {
@@ -361,7 +394,7 @@ export async function renderMarkdown(
   aliases: MarkdownMediaAliases = {},
 ): Promise<string> {
   const normalized = normalizeFootnoteSourceHeadings(content);
-  const { content: withShortcodes, tokens } = extractShortcodes(normalized, aliases);
+  const { content: withShortcodes, tokens } = extractRenderableShortcodes(normalized, aliases);
   const html = (await markedSafe.parse(withShortcodes)) as string;
   return injectShortcodes(html, tokens);
 }

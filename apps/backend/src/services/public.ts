@@ -470,6 +470,8 @@ export async function getManagedPublicRejectedShops(input: {
     entries: rows.map((row) => ({
       id: `${row.source}:${row.id}`,
       shopName: row.shopName,
+      ogImage: row.ogImage,
+      logoBackgroundColor: row.logoBackgroundColor,
       submittedAt: serializeRejectedShopDate(row.submittedAt),
       rejectedAt: serializeRejectedShopDate(row.rejectedAt),
       rejectionUrl: `/rejected/${row.rejectionToken}`,

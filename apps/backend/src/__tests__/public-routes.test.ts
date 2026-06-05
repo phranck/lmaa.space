@@ -451,7 +451,14 @@ describe("publicRoutes", () => {
   describe("GET /rejected-shops", () => {
     it("returns paginated rejected shops", async () => {
       publicServiceMocks.getManagedPublicRejectedShops.mockResolvedValue({
-        entries: [{ id: "submission:1", shopName: "Bad Shop" }],
+        entries: [
+          {
+            id: "submission:1",
+            shopName: "Bad Shop",
+            ogImage: null,
+            logoBackgroundColor: null,
+          },
+        ],
         total: 1,
         page: 1,
         pageSize: "15",
@@ -475,7 +482,14 @@ describe("publicRoutes", () => {
       });
       expect(await res.json()).toEqual({
         data: {
-          entries: [{ id: "submission:1", shopName: "Bad Shop" }],
+          entries: [
+            {
+              id: "submission:1",
+              shopName: "Bad Shop",
+              ogImage: null,
+              logoBackgroundColor: null,
+            },
+          ],
           total: 1,
           page: 1,
           pageSize: "15",
