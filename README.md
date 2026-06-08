@@ -5,7 +5,7 @@
 ![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=flat&logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178C6?style=flat&logo=typescript&logoColor=white)
 ![npm](https://img.shields.io/badge/npm-11.x-CB3837?style=flat&logo=npm&logoColor=white)
-![Hono](https://img.shields.io/badge/Hono-4.7.4-E36002?style=flat&logo=hono&logoColor=white)
+![Hono](https://img.shields.io/badge/Hono-4.12.18-E36002?style=flat&logo=hono&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?style=flat&logo=vite&logoColor=white)
 ![Astro](https://img.shields.io/badge/Astro-5.7.0-BC52EE?style=flat&logo=astro&logoColor=white)
 ![UnoCSS](https://img.shields.io/badge/UnoCSS-66.x-333333?style=flat&logo=unocss&logoColor=white)
@@ -21,7 +21,7 @@
 
 [lmaa.space](https://lmaa.space) ist ein kuratiertes Verzeichnis unabhängiger Online-Shops als Alternativen zu großen Plattformen und reinen Marktplätzen in Europa.
 
-Aktuell sind über 540 Shops in 45+ Kategorien gelistet. Alle Einträge werden manuell geprüft und kuratiert. Das Projekt ist nicht kommerziell, werbefrei und unabhängig.
+Aktuell sind über 680 Shops in 50+ Kategorien gelistet. Alle Einträge werden manuell geprüft und kuratiert. Das Projekt ist nicht kommerziell, werbefrei und unabhängig.
 
 ## Shops vorschlagen
 
