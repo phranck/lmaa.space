@@ -288,7 +288,7 @@ export async function storeUploadedMedia(
     extension = IMAGE_EXT_BY_TYPE[imageType];
 
     try {
-      const metadata = await sharp(buffer).metadata();
+      const metadata = await sharp(buffer, { limitInputPixels: 24_000_000 }).metadata();
       width = metadata.width ?? null;
       height = metadata.height ?? null;
     } catch {
@@ -330,6 +330,10 @@ export async function storeUploadedMedia(
       Key: storedFilename,
       Body: buffer,
       ContentType: mimeType,
+      // Documents are validated by extension only (except PDF/MP4 magic bytes),
+      // so force a download instead of inline rendering — a file whose bytes are
+      // actually HTML can never execute as a page. Images/videos stay inline.
+      ContentDisposition: kind === "document" ? "attachment" : undefined,
       Metadata: buildS3Metadata({
         displayName,
         originalName,
