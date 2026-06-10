@@ -9,6 +9,13 @@ import {
   shopMutableVisibilitySchema,
   shopVisibilitySchema,
 } from "./common";
+import { isSafeConfiguredUrl } from "./safe-url";
+
+/** Shop URL must be a public http(s) address — rejects `javascript:`/`data:` schemes that Zod `.url()` accepts. */
+const safeShopUrl = z
+  .string()
+  .url()
+  .refine((value) => isSafeConfiguredUrl(value), "URL must be a public http(s) address");
 
 const headquartersSchema = z.object({
   street: z.string().max(200).optional(),
@@ -33,7 +40,7 @@ export const shopCheckNotesSchema = z
  */
 export const shopBodySchema = z.object({
   name: z.string().min(1).max(200),
-  url: z.string().url(),
+  url: safeShopUrl,
   categoryIds: z.array(z.number().int().positive()).optional().default([]),
   region: defaultRegionArraySchema,
   pickup: z.string().optional(),
@@ -53,7 +60,7 @@ export const shopBodySchema = z.object({
  */
 export const shopUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
-  url: z.string().url().optional(),
+  url: safeShopUrl.optional(),
   categoryIds: z.array(z.number().int().positive()).optional(),
   region: optionalRegionArraySchema,
   pickup: z.string().optional(),
