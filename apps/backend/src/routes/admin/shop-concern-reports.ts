@@ -2,7 +2,7 @@ import { Hono } from "hono";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   dismissAdminShopConcernReport,
   listAdminShopConcernReports,
@@ -12,6 +12,9 @@ import {
  * Admin routes for user-submitted concern reports.
  */
 export const shopConcernReportsRoutes = new Hono<{ Variables: AuthVariables }>();
+
+// Report moderation is owner/admin-only; moderators are excluded.
+shopConcernReportsRoutes.use("*", requireAdmin);
 
 // GET /api/admin/shop-concern-reports
 shopConcernReportsRoutes.get("/shop-concern-reports", async (c) => {

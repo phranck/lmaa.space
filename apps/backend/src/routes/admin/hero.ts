@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { ok, respondError } from "../../lib/http.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   addHeroImage,
   getAdminHeroImages,
@@ -50,6 +50,9 @@ const focalPointSchema = z.object({
 });
 
 export const heroRoutes = new Hono<{ Variables: AuthVariables }>();
+
+// Homepage hero configuration is owner/admin-only; moderators are excluded.
+heroRoutes.use("*", requireAdmin);
 
 heroRoutes.get("/hero-rotation", async (c) => {
   try {

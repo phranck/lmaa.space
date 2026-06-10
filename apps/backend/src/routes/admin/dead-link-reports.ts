@@ -2,7 +2,7 @@ import { Hono } from "hono";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   clearAdminDeadLinkReports,
   listAdminDeadLinkReports,
@@ -12,6 +12,9 @@ import {
  * Admin routes for dead-link report moderation.
  */
 export const deadLinkReportsRoutes = new Hono<{ Variables: AuthVariables }>();
+
+// Report moderation is owner/admin-only; moderators are excluded.
+deadLinkReportsRoutes.use("*", requireAdmin);
 
 // GET /api/admin/dead-link-reports
 deadLinkReportsRoutes.get("/dead-link-reports", async (c) => {
