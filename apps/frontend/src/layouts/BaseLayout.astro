@@ -39,6 +39,23 @@ function withPreviewVersion(url: string, version: string): string {
   return versionedUrl.href;
 }
 
+/**
+ * Serializes a JSON-LD payload for safe inline embedding in a
+ * `<script type="application/ld+json">` element.
+ *
+ * `JSON.stringify` does not escape `<`, so any field value containing
+ * `</script>` (e.g. a user-submitted shop name) would terminate the script
+ * element early and allow HTML/script injection (stored XSS). Escaping every
+ * `<` to its unicode escape (backslash-u-003c) keeps the JSON semantically
+ * identical while making a `</script>` breakout impossible.
+ *
+ * @param data - JSON-LD object to serialize.
+ * @returns A JSON string safe to embed via `set:html`.
+ */
+function serializeJsonLd(data: Record<string, unknown>): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
 let headerNav: NavItem[] = [];
 let footerNav: NavItem[] = [];
 let footerConfig: FooterConfig = { columns: [] };
@@ -122,7 +139,7 @@ try {
         <script
           is:inline
           type="application/ld+json"
-          set:html={JSON.stringify(jsonLd)}
+          set:html={serializeJsonLd(jsonLd)}
         />
       )
     }
