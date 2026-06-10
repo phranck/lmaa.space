@@ -36,23 +36,28 @@ categoriesRoutes.get("/categories", async (c) => {
   return ok(c, rows);
 });
 
-categoriesRoutes.post("/categories", zValidator("json", categoryCreateSchema), async (c) => {
-  const body = c.req.valid("json");
-  const adminId = c.get("adminId");
-  try {
-    const category = await createCategoryWithPosts({ ...body, adminId });
-    return ok(c, category, 201);
-  } catch (e: unknown) {
-    if (isDuplicateSlug(e)) {
-      return fail(c, 409, `Eine Kategorie mit dem Slug '${body.slug}' existiert bereits.`);
+categoriesRoutes.post(
+  "/categories",
+  requireAdmin,
+  zValidator("json", categoryCreateSchema),
+  async (c) => {
+    const body = c.req.valid("json");
+    const adminId = c.get("adminId");
+    try {
+      const category = await createCategoryWithPosts({ ...body, adminId });
+      return ok(c, category, 201);
+    } catch (e: unknown) {
+      if (isDuplicateSlug(e)) {
+        return fail(c, 409, `Eine Kategorie mit dem Slug '${body.slug}' existiert bereits.`);
+      }
+      throw e;
     }
-    throw e;
-  }
-});
+  },
+);
 
 const updateCategoryHandler = zValidator("json", categoryUpdateSchema);
 
-categoriesRoutes.put("/categories/:id", updateCategoryHandler, async (c) => {
+categoriesRoutes.put("/categories/:id", requireAdmin, updateCategoryHandler, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
   const body = c.req.valid("json");
@@ -68,7 +73,7 @@ categoriesRoutes.put("/categories/:id", updateCategoryHandler, async (c) => {
   }
 });
 
-categoriesRoutes.patch("/categories/:id", updateCategoryHandler, async (c) => {
+categoriesRoutes.patch("/categories/:id", requireAdmin, updateCategoryHandler, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
   const body = c.req.valid("json");
@@ -157,7 +162,10 @@ categoriesRoutes.patch(
     const id = parseId(c.req.param("id"));
     if (!id) return fail(c, 400, "Invalid id");
     const { focalPointY } = c.req.valid("json");
-    const category = await setAdminCategoryFocalPoint(id, Math.max(0, Math.min(100, Math.round(focalPointY))));
+    const category = await setAdminCategoryFocalPoint(
+      id,
+      Math.max(0, Math.min(100, Math.round(focalPointY))),
+    );
     if (!category) return fail(c, 404, "Category not found");
     return ok(c, category);
   },
