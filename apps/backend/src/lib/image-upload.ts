@@ -34,7 +34,12 @@ export async function processImageUpload(
     return { ok: false, reason: "invalid_image" };
   }
 
-  const resized = await sharp(buffer).resize(width, height, { fit: "cover" }).webp().toBuffer();
+  // Cap decoded pixels to defend against decompression-bomb DoS: a small,
+  // highly-compressed file must not be allowed to expand into a huge bitmap.
+  const resized = await sharp(buffer, { limitInputPixels: 24_000_000, failOn: "error" })
+    .resize(width, height, { fit: "cover" })
+    .webp()
+    .toBuffer();
   const dataUrl = `data:image/webp;base64,${resized.toString("base64")}`;
 
   return { ok: true, dataUrl };
