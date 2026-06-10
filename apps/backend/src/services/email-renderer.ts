@@ -42,6 +42,40 @@ function interpolate(text: string, variables: Record<string, string>): string {
   );
 }
 
+// Private-use placeholders that survive Markdown rendering untouched.
+const PLACEHOLDER_OPEN = String.fromCharCode(0xe000);
+const PLACEHOLDER_CLOSE = String.fromCharCode(0xe001);
+
+/**
+ * Renders a Markdown template field while keeping interpolated variables inert.
+ *
+ * @param text - Markdown template (admin-authored) containing `{{var}}` slots.
+ * @param variables - Values to substitute (may be user-supplied).
+ * @returns Rendered HTML with each variable as escaped plain text.
+ *
+ * @remarks
+ * Escaping Markdown metacharacters is NOT enough: `marked` runs with `gfm`, which
+ * autolinks bare URLs / emails / `www.` hosts — none of which use those
+ * metacharacters — so a pasted `https://evil.example` would still become a live
+ * phishing link in the owner notification email. Instead each value is replaced
+ * by a placeholder, the template is rendered, and the placeholders are then
+ * swapped for the HTML-escaped plain-text values. Neither Markdown syntax nor
+ * autolinking can therefore apply to user input. Substitution is a single pass,
+ * so a placeholder appearing inside a value is never re-expanded.
+ */
+function interpolateMarkdown(text: string, variables: Record<string, string>): string {
+  const values: string[] = [];
+  const withPlaceholders = text.replace(new RegExp(VAR_REGEX.source, "g"), (_, name) => {
+    const index = values.push(escapeHtml(variables[name] ?? "")) - 1;
+    return `${PLACEHOLDER_OPEN}${index}${PLACEHOLDER_CLOSE}`;
+  });
+  const html = parseMarkdown(withPlaceholders);
+  return html.replace(
+    new RegExp(`${PLACEHOLDER_OPEN}(\\d+)${PLACEHOLDER_CLOSE}`, "g"),
+    (_, index) => values[Number(index)] ?? "",
+  );
+}
+
 /**
  * Adds email-safe inline styles to the predictable HTML output of `marked`.
  */
@@ -75,13 +109,9 @@ type TemplateFields = {
 };
 
 function buildRows(fields: TemplateFields, variables: Record<string, string>): string[] {
-  const headerHtml = fields.headerText
-    ? parseMarkdown(interpolate(fields.headerText, variables))
-    : null;
-  const bodyHtml = parseMarkdown(interpolate(fields.bodyText, variables));
-  const footerHtml = fields.footerText
-    ? parseMarkdown(interpolate(fields.footerText, variables))
-    : null;
+  const headerHtml = fields.headerText ? interpolateMarkdown(fields.headerText, variables) : null;
+  const bodyHtml = interpolateMarkdown(fields.bodyText, variables);
+  const footerHtml = fields.footerText ? interpolateMarkdown(fields.footerText, variables) : null;
 
   const rows: string[] = [];
 

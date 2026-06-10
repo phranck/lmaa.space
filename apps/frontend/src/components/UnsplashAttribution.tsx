@@ -1,3 +1,5 @@
+import { getSafeConfigHref } from "@/lib/safe-url";
+
 const UTM = "?utm_source=lmaa_space&utm_medium=referral";
 
 interface UnsplashAttributionProps {
@@ -14,6 +16,7 @@ export default function UnsplashAttribution({
   gradient = false,
   className = "",
 }: UnsplashAttributionProps) {
+  const safeProfileUrl = getSafeConfigHref(photographerUrl);
   return (
     <div className={`absolute inset-x-0 bottom-0 ${className}`}>
       {gradient && (
@@ -21,11 +24,25 @@ export default function UnsplashAttribution({
       )}
       <p className="relative text-[9px] text-white/70 drop-shadow-sm text-right px-2 py-1.5">
         Photo{" "}
-        <a href={`${photographerUrl}${UTM}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-white/90">
-          {photographer}
-        </a>
+        {safeProfileUrl ? (
+          <a
+            href={`${safeProfileUrl}${UTM}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold hover:text-white/90"
+          >
+            {photographer}
+          </a>
+        ) : (
+          <span className="font-semibold">{photographer}</span>
+        )}
         {" @ "}
-        <a href={`https://unsplash.com${UTM}`} target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-white/90">
+        <a
+          href={`https://unsplash.com${UTM}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold hover:text-white/90"
+        >
           Unsplash
         </a>
       </p>

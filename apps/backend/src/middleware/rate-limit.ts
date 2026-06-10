@@ -112,16 +112,6 @@ export function resolveClientIp(
     trustedHops: env.TRUST_PROXY_HOPS,
   },
 ): string {
-  if (env.NODE_ENV === "production") {
-    const ip = headers.get("CF-Connecting-IP")?.trim() || "";
-    if (ip && isIP(ip)) return ip;
-    logger.warn(
-      { trustedHeader: "cf-connecting-ip" },
-      "missing or invalid trusted proxy IP header",
-    );
-    return "unknown";
-  }
-
   switch (config.trustedHeader) {
     case "cf-connecting-ip": {
       const ip = headers.get("CF-Connecting-IP")?.trim() || "";
@@ -144,8 +134,14 @@ export function resolveClientIp(
       }
       if (hops.length === 0) return "unknown";
 
-      const trustedIndex = Math.max(0, hops.length - config.trustedHops - 1);
-      return hops[trustedIndex] ?? hops[0] ?? "unknown";
+      // The `trustedHops` right-most entries are appended by our own reverse-proxy
+      // chain (e.g. Zerops) and cannot be forged. The real client IP is the entry
+      // the outermost trusted proxy observed: hops[length - trustedHops].
+      // Everything further left is client-supplied and must never be trusted.
+      // With a single trusted proxy (trustedHops=1) this selects the right-most
+      // entry — a client prepending X-Forwarded-For values cannot influence it.
+      const index = hops.length - Math.max(1, config.trustedHops);
+      return hops[index] ?? hops[0] ?? "unknown";
     }
   }
 }
@@ -155,8 +151,8 @@ export function startRateLimitCleanupJob(): NodeJS.Timeout {
   logger.info(
     {
       store: defaultRateLimitStore.constructor.name,
-      trustedHeader: env.NODE_ENV === "production" ? "cf-connecting-ip" : env.TRUST_PROXY_IP_HEADER,
-      trustedProxyHops: env.NODE_ENV === "production" ? 0 : env.TRUST_PROXY_HOPS,
+      trustedHeader: env.TRUST_PROXY_IP_HEADER,
+      trustedProxyHops: env.TRUST_PROXY_HOPS,
     },
     "rate-limit cleanup job configured",
   );

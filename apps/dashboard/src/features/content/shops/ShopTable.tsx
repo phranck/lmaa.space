@@ -27,7 +27,11 @@ interface ShopTableProps {
   onSortChange: (sort: SortState | null) => void;
 }
 
-const VisibilityBadge = memo(function VisibilityBadge({ visibility }: { visibility: ShopSummary["visibility"] }) {
+const VisibilityBadge = memo(function VisibilityBadge({
+  visibility,
+}: {
+  visibility: ShopSummary["visibility"];
+}) {
   const { messages } = useI18n();
   const shopsMessages = messages.shops;
 
@@ -194,6 +198,7 @@ export function ShopTable({ shops, onEdit, sort, onSortChange }: ShopTableProps)
                   window.open(
                     `${FRONTEND_URL}/rejected/${shop.rejectionToken}`,
                     "_blank",
+                    "noopener,noreferrer",
                   );
                 }}
                 icon={<InfoIcon weight="duotone" className="size-3.5" />}

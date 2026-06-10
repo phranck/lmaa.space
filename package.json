@@ -9,7 +9,7 @@
     "dev:frontend": "npm run dev -w @lmaa/frontend",
     "dev:backend": "npm run dev -w @lmaa/backend",
     "dev:dashboard": "npm run dev -w @lmaa/dashboard",
-    "build":"npm run build -w @lmaa/shared && npm run build --workspaces --if-present",
+    "build": "npm run build -w @lmaa/shared && npm run build --workspaces --if-present",
     "build:frontend": "npm run build -w @lmaa/frontend",
     "build:backend": "npm run build -w @lmaa/backend",
     "build:dashboard": "npm run build -w @lmaa/dashboard",
@@ -25,7 +25,8 @@
     "db:migrate": "npm run db:migrate -w @lmaa/backend",
     "db:studio": "drizzle-kit studio",
     "docs:code": "typedoc --options typedoc.json",
-    "docs:code:check": "typedoc --options typedoc.json --emit none"
+    "docs:code:check": "typedoc --options typedoc.json --emit none",
+    "doctor": "npx react-doctor@latest"
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^8.46.0",
@@ -33,6 +34,7 @@
     "eslint": "^9.37.0",
     "eslint-plugin-import": "^2.32.0",
     "prettier": "^3.6.2",
+    "react-doctor": "^0.4.0",
     "typedoc": "^0.28.9",
     "typescript": "^5.7.3"
   },
@@ -40,12 +42,12 @@
     "react-icons": "^5.5.0"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.59.0",
-    "@rollup/rollup-linux-x64-musl": "^4.59.0",
-    "@img/sharp-linux-x64": "0.34.5",
     "@img/sharp-libvips-linux-x64": "1.2.4",
+    "@img/sharp-libvips-linuxmusl-x64": "1.2.4",
+    "@img/sharp-linux-x64": "0.34.5",
     "@img/sharp-linuxmusl-x64": "0.34.5",
-    "@img/sharp-libvips-linuxmusl-x64": "1.2.4"
+    "@rollup/rollup-linux-x64-gnu": "^4.59.0",
+    "@rollup/rollup-linux-x64-musl": "^4.59.0"
   },
   "overrides": {
     "marked": "^17.0.3"

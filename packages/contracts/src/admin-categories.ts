@@ -11,7 +11,13 @@ export type TemplateAssignment = z.infer<typeof templateAssignmentSchema>;
  */
 export const categoryBodySchema = z.object({
   name: z.string().min(1).max(100),
-  slug: z.string().min(1).max(100),
+  // Slugs are emitted into public URLs and the sitemap; restrict to URL-safe
+  // characters so they cannot inject markup/XML or break links.
+  slug: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, digits and hyphens"),
   icon: z.string().max(10).optional(),
   description: z.string().max(200).optional(),
   sortOrder: z.number().int().optional(),

@@ -81,10 +81,7 @@ export async function postToMastodonAccount(
     throw new Error(`Mastodon rate limit reached for account ${account.id}`);
   }
 
-  const status = renderPlainTemplate(
-    template.bodyMastodon,
-    buildPostVariables(context),
-  ).trim();
+  const status = renderPlainTemplate(template.bodyMastodon, buildPostVariables(context)).trim();
   if (!status) {
     logger.warn({ templateId: template.id }, "mastodon body rendered empty, skipping");
     return;
@@ -108,6 +105,8 @@ export async function postToMastodonAccount(
       "Idempotency-Key": idempotencyKey(account, template, context),
     },
     body,
+    // Block redirect-based SSRF: a 3xx to an internal target must not be followed.
+    redirect: "error",
   });
 
   if (!response.ok) {

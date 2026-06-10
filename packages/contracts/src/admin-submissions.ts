@@ -9,6 +9,7 @@ import {
   submissionReviewStatusSchema,
   submissionStatusSchema,
 } from "./common";
+import { isSafeConfiguredUrl } from "./safe-url";
 
 const headquartersSchema = z.object({
   street: z.string().max(200).optional(),
@@ -47,7 +48,10 @@ export const reviewSchema = z.object({
  */
 export const submissionEditSchema = z.object({
   shopName: z.string().min(1).max(200),
-  shopUrl: z.string().url(),
+  shopUrl: z
+    .string()
+    .url()
+    .refine((value) => isSafeConfiguredUrl(value), "URL must be a public http(s) address"),
   description: z.string().optional(),
   ogImage: z.preprocess(
     (v) => (v === "" ? null : v),

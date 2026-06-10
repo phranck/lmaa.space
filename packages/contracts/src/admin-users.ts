@@ -15,7 +15,7 @@ export const createUserSchema = z.object({
  */
 export const acceptInviteSchema = z.object({
   token: z.string().min(32).max(256),
-  password: z.string().min(8),
+  password: z.string().min(8).max(72),
 });
 
 /**
@@ -24,7 +24,7 @@ export const acceptInviteSchema = z.object({
 export const updateUserSchema = z.object({
   username: z.string().min(1).max(64).optional(),
   email: z.string().email().optional(),
-  password: z.string().min(8).optional(),
+  password: z.string().min(8).max(72).optional(),
   firstName: z.string().max(64).optional(),
   lastName: z.string().max(64).optional(),
   locale: z.enum(["de", "en"]).optional(),

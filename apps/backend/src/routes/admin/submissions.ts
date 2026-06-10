@@ -58,50 +58,56 @@ submissionsRoutes.get("/submissions/:id", async (c) => {
 });
 
 // PATCH /api/admin/submissions/:id
-submissionsRoutes.patch("/submissions/:id", zValidator("json", reviewSchema), async (c) => {
-  const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid id");
-  const {
-    status,
-    adminNote,
-    rejectionLongText,
-    rejectionToken,
-    notificationTemplateId,
-    templateAssignments,
-  } = c.req.valid("json");
-  const adminId = c.get("adminId");
+submissionsRoutes.patch(
+  "/submissions/:id",
+  requireAdmin,
+  zValidator("json", reviewSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
+    const {
+      status,
+      adminNote,
+      rejectionLongText,
+      rejectionToken,
+      notificationTemplateId,
+      templateAssignments,
+    } = c.req.valid("json");
+    const adminId = c.get("adminId");
 
-  const result = await reviewAdminSubmission({
-    id,
-    status,
-    adminNote,
-    rejectionLongText,
-    rejectionToken,
-    adminId,
-    notificationTemplateId,
-    templateAssignments,
-  });
+    const result = await reviewAdminSubmission({
+      id,
+      status,
+      adminNote,
+      rejectionLongText,
+      rejectionToken,
+      adminId,
+      notificationTemplateId,
+      templateAssignments,
+    });
 
-  if (!result.ok) {
-    if (result.reason === "shop_exists") {
-      c.status(409);
-      return c.json({
-        error: {
-          message: `A public shop for this domain already exists: ${result.existingShopName}. Reject this duplicate submission instead of approving it.`,
-          code: "DOMAIN_CONFLICT",
-          existingShopName: result.existingShopName,
-        },
-      });
+    if (!result.ok) {
+      if (result.reason === "shop_exists") {
+        c.status(409);
+        return c.json({
+          error: {
+            message: `A public shop for this domain already exists: ${result.existingShopName}. Reject this duplicate submission instead of approving it.`,
+            code: "DOMAIN_CONFLICT",
+            existingShopName: result.existingShopName,
+          },
+        });
+      }
+      return fail(c, 404, "Submission not found");
     }
-    return fail(c, 404, "Submission not found");
-  }
 
-  return ok(c, result.submission);
-});
+    return ok(c, result.submission);
+  },
+);
 
 // PATCH /api/admin/submissions/:id/edit – update pending submission's shop data
 submissionsRoutes.patch(
   "/submissions/:id/edit",
+  requireAdmin,
   zValidator("json", submissionEditSchema),
   async (c) => {
     const id = parseId(c.req.param("id"));
@@ -154,6 +160,7 @@ function mapShopJsonToSubmissionEditData(
 // POST /api/admin/submissions/import – import review results
 submissionsRoutes.post(
   "/submissions/import",
+  requireAdmin,
   zValidator("json", submissionReviewImportSchema),
   async (c) => {
     const entries = c.req.valid("json");

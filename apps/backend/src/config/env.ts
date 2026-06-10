@@ -36,9 +36,15 @@ export const envSchema = z
       .positive()
       .default(10 * 60 * 1000),
     IP_HASH_SALT: z.string().optional(),
+    // Source of the trusted client IP for rate limiting. Must match the actual
+    // edge topology: the backend runs directly behind the Zerops L7 proxy (no
+    // Cloudflare), which appends the real peer IP to X-Forwarded-For. Override
+    // to "cf-connecting-ip" only if a Cloudflare proxy that sets and sanitizes
+    // that header is placed in front. Verify TRUST_PROXY_HOPS against the live
+    // X-Forwarded-For chain before relying on per-IP limits.
     TRUST_PROXY_IP_HEADER: z
       .enum(["cf-connecting-ip", "x-real-ip", "x-forwarded-for"])
-      .default("cf-connecting-ip"),
+      .default("x-forwarded-for"),
     TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(1),
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("hallo@lmaa.space"),
@@ -73,14 +79,6 @@ export const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ["IP_HASH_SALT"],
         message: "IP_HASH_SALT is required in production",
-      });
-    }
-
-    if (data.NODE_ENV === "production" && data.TRUST_PROXY_IP_HEADER !== "cf-connecting-ip") {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["TRUST_PROXY_IP_HEADER"],
-        message: "TRUST_PROXY_IP_HEADER must be cf-connecting-ip in production",
       });
     }
 

@@ -1,0 +1,39 @@
+# graphify: build a pure CODE knowledge graph.
+# Ignore every non-code file so detection stays code-only (no LLM key needed)
+# and the graph reflects source structure, not docs/assets.
+# Format: gitignore-style glob patterns.
+
+# Documents / markup / text / config
+*.html
+*.md
+*.mdx
+*.qmd
+*.rst
+*.txt
+*.yaml
+*.yml
+
+# Images
+*.gif
+*.jpeg
+*.jpg
+*.png
+*.svg
+*.webp
+
+# Papers / office documents
+*.pdf
+*.docx
+*.xlsx
+
+# Video / audio
+*.avi
+*.m4a
+*.m4v
+*.mkv
+*.mov
+*.mp3
+*.mp4
+*.ogg
+*.wav
+*.webm

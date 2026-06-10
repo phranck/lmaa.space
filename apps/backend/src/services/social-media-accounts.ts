@@ -15,6 +15,7 @@ import type {
   SocialMediaAccount as SocialMediaAccountRow,
   SocialMediaAccountInsert,
 } from "../db/schema.js";
+import { isPublicFetchTarget } from "../lib/validate.js";
 import {
   deleteAccount,
   getAccountById,
@@ -119,6 +120,18 @@ async function buildInsertable(
       };
     }
     const instanceUrl = normalizeInstanceUrl(input.instanceUrl);
+    // SSRF guard: the instance URL is fetched server-side, so it must be a
+    // public HTTPS host and must not resolve to a private/internal address.
+    if (!(await isPublicFetchTarget(instanceUrl, { httpsOnly: true }))) {
+      return {
+        ok: false,
+        result: {
+          ok: false,
+          reason: "credential_invalid",
+          message: "The Mastodon instance URL must be a public HTTPS address.",
+        },
+      };
+    }
     const verify = await verifyMastodonCredentials(instanceUrl, input.accessToken);
     if (!verify.ok) {
       return {

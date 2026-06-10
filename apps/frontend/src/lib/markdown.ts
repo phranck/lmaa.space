@@ -376,6 +376,15 @@ const markedSafe = new Marked({
       const extAttrs = isExternal ? ' rel="noopener noreferrer" target="_blank"' : "";
       return `<a href="${escapeHtmlAttribute(safeHref)}"${titleAttr}${extAttrs}>${escapeHtml(text)}</a>`;
     },
+    image({ href, title, text }) {
+      // Mirror the link/shortcode allowlist for image src: only same-site /
+      // trusted-asset-host URLs. This blocks `data:`/`javascript:` and arbitrary
+      // external tracking hosts that marked's default image renderer would emit.
+      const safeSrc = getSafeSiteAssetPath(href);
+      if (!safeSrc) return escapeHtml(text);
+      const titleAttr = title ? ` title="${escapeHtmlAttribute(title)}"` : "";
+      return `<img src="${escapeHtmlAttribute(safeSrc)}" alt="${escapeHtmlAttribute(text)}"${titleAttr} loading="lazy" decoding="async" />`;
+    },
     html({ text }) {
       return escapeHtml(text);
     },
