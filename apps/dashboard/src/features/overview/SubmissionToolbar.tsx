@@ -131,7 +131,11 @@ export function SubmissionToolbar({
           {submission.rejectionToken ? (
             <EditorToolbarButton
               onClick={() =>
-                window.open(`${FRONTEND_URL}/rejected/${submission.rejectionToken}`, "_blank")
+                window.open(
+                  `${FRONTEND_URL}/rejected/${submission.rejectionToken}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
               }
               disabled={isActionPending}
               variant="warning"

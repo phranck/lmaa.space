@@ -462,7 +462,8 @@ export function ContentEditorPage() {
   const navigate = useNavigate();
   const { data: page, isLoading } = useAdminContentPage(slug);
   const save = useSaveContentPage(slug);
-  const { createPreviewSession, isPending: isPreviewPending } = useCreateContentPreviewSession(slug);
+  const { createPreviewSession, isPending: isPreviewPending } =
+    useCreateContentPreviewSession(slug);
   const patch = usePatchContentPage(slug);
   const deletePage = useDeleteContentPage();
 
@@ -540,7 +541,11 @@ export function ContentEditorPage() {
       contentWidth: page.contentWidth,
     })
       .then(({ token }) => {
-        window.open(`${FRONTEND_URL}/preview/content?token=${token}`, "_blank");
+        window.open(
+          `${FRONTEND_URL}/preview/content?token=${token}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
       })
       .catch((err) => {
         dispatch({
