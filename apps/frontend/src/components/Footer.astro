@@ -151,9 +151,13 @@ const totalSpan = config.columns.reduce((sum, col) => sum + col.span, 0) || 1;
                       const def = PLATFORM_MAP.get(p.platform);
                       const Icon = def?.icon;
                       const ariaLabel = p.label || def?.label || p.platform;
+                      // Sanitize admin-configured profile URLs so a `javascript:`
+                      // value cannot produce a clickable XSS link in the footer.
+                      const safeHref = getSafeConfigHref(p.profileUrl);
+                      if (!safeHref) return null;
                       return (
                         <a
-                          href={p.profileUrl}
+                          href={safeHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={ariaLabel}

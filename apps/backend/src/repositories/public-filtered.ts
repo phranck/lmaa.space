@@ -277,7 +277,7 @@ export async function searchFilteredPublicShops(
   filters: ShopFilterParams,
   options: { postalCodePrefix?: string | null } = {},
 ) {
-  const escaped = query.replace(/[%_\\\\]/g, "\\\\$&");
+  const escaped = query.replace(/[%_\\]/g, "\\$&");
   const pattern = `%${escaped}%`;
   const postalPrefix = options.postalCodePrefix ?? null;
   const postalPattern = postalPrefix ? `${postalPrefix}%` : null;

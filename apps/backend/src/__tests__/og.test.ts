@@ -2,6 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { fetchExternalResource, isLogoUrl, parseImageDimensions } from "../lib/og.js";
 
+// The SSRF guard resolves hostnames before fetching; resolve every test host to
+// a fixed public address so redirect handling is exercised without real DNS.
+vi.mock("node:dns/promises", () => ({
+  lookup: vi.fn(async () => [{ address: "93.184.216.34", family: 4 }]),
+}));
+
 function buildPng(width: number, height: number): Uint8Array {
   const buf = new Uint8Array(24);
   buf.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
@@ -86,9 +92,7 @@ describe("isLogoUrl", () => {
   });
 
   it("recognises typical theme/asset paths", () => {
-    expect(
-      isLogoUrl("https://example.com/theme/abc/assets/res/header.png"),
-    ).toBe(true);
+    expect(isLogoUrl("https://example.com/theme/abc/assets/res/header.png")).toBe(true);
     expect(isLogoUrl("https://example.com/assets/header.png")).toBe(true);
     expect(isLogoUrl("https://example.com/static/header.png")).toBe(true);
     expect(isLogoUrl("https://example.com/templates/main/logo.png")).toBe(true);

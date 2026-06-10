@@ -24,13 +24,32 @@ describe("resolveClientIp", () => {
     );
   });
 
-  it("reads the client IP before the configured proxy hops in X-Forwarded-For", () => {
+  it("takes the right-most X-Forwarded-For entry with a single trusted proxy", () => {
+    // The left value is client-supplied (forgeable); the right value is appended
+    // by the trusted proxy and is the only one that may be trusted as the peer.
+    const headers = new Headers({
+      "X-Forwarded-For": "9.9.9.9, 8.8.8.8",
+    });
+    expect(resolveClientIp(headers, { trustedHeader: "x-forwarded-for", trustedHops: 1 })).toBe(
+      "8.8.8.8",
+    );
+  });
+
+  it("skips the configured number of trusted proxy hops in X-Forwarded-For", () => {
     const headers = new Headers({
       "X-Forwarded-For": "1.1.1.1, 2.2.2.2, 3.3.3.3, 4.4.4.4",
     });
     expect(resolveClientIp(headers, { trustedHeader: "x-forwarded-for", trustedHops: 2 })).toBe(
-      "2.2.2.2",
+      "3.3.3.3",
     );
+  });
+
+  it("ignores forged left-most X-Forwarded-For values (spoofing resistance)", () => {
+    const forged = new Headers({ "X-Forwarded-For": "127.0.0.1, 203.0.113.7" });
+    const honest = new Headers({ "X-Forwarded-For": "203.0.113.7" });
+    const config = { trustedHeader: "x-forwarded-for", trustedHops: 1 } as const;
+    expect(resolveClientIp(forged, config)).toBe("203.0.113.7");
+    expect(resolveClientIp(honest, config)).toBe("203.0.113.7");
   });
 
   it("trims whitespace from trusted headers", () => {

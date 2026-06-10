@@ -2,7 +2,7 @@ import { Hono } from "hono";
 
 import { fail, ok } from "../../lib/http.js";
 import { parseId } from "../../lib/validate.js";
-import { type AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import {
   deleteBackgroundError,
   listBackgroundErrors,
@@ -10,6 +10,9 @@ import {
 } from "../../repositories/background-errors.js";
 
 export const backgroundErrorsRoutes = new Hono<{ Variables: AuthVariables }>();
+
+// Background error logs may contain internal detail; owner/admin-only.
+backgroundErrorsRoutes.use("*", requireAdmin);
 
 /**
  * GET /background-errors

@@ -35,4 +35,28 @@ describe("email renderer", () => {
     expect(html).toContain("background-color: #1c1917 !important");
     expect(html).not.toContain("@media (prefers-color-scheme: dark)");
   });
+
+  it("never turns user-supplied variables into links (markdown + GFM autolink)", async () => {
+    const { html } = await renderEmailTemplate(
+      { ...template, bodyText: "Shop: {{name}}" },
+      { name: "visit https://evil.example or [x](https://evil.example) now" },
+    );
+    // No anchor may be generated from the user value — neither via markdown link
+    // syntax nor via GFM autolinking of the bare URL.
+    expect(html).not.toContain("<a ");
+    expect(html).not.toContain('href="https://evil.example"');
+    // ...but the value is still present as inert escaped text.
+    expect(html).toContain("https://evil.example");
+  });
+
+  it("still renders markdown authored in the template itself", async () => {
+    const { html } = await renderEmailTemplate(
+      { ...template, bodyText: "**bold** {{name}}" },
+      {
+        name: "Ada",
+      },
+    );
+    expect(html).toContain("<strong");
+    expect(html).toContain("Ada");
+  });
 });

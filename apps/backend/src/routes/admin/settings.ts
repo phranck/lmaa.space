@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { fail, ok } from "../../lib/http.js";
-import type { AuthVariables } from "../../middleware/auth.js";
+import { type AuthVariables, requireAdmin } from "../../middleware/auth.js";
 import { deleteSetting, getSettings, putSetting } from "../../repositories/app-settings.js";
 
 const bulkGetSchema = z.object({
@@ -19,6 +19,9 @@ const deleteSettingSchema = z.object({
 });
 
 export const settingsRoutes = new Hono<{ Variables: AuthVariables }>();
+
+// App settings are owner/admin-only; moderators must not read or mutate them.
+settingsRoutes.use("*", requireAdmin);
 
 // POST /api/admin/settings/bulk - get multiple settings at once
 settingsRoutes.post("/settings/bulk", async (c) => {

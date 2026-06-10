@@ -67,7 +67,7 @@ shopsRoutes.get("/shops/:id", async (c) => {
   return ok(c, row);
 });
 
-shopsRoutes.post("/shops", zValidator("json", shopBodySchema), async (c) => {
+shopsRoutes.post("/shops", requireAdmin, zValidator("json", shopBodySchema), async (c) => {
   const body = c.req.valid("json");
   const result = await createManagedAdminShop(body);
   if (!result.ok) {
@@ -86,7 +86,7 @@ shopsRoutes.post("/shops", zValidator("json", shopBodySchema), async (c) => {
 
 const updateShopHandler = zValidator("json", shopUpdateSchema);
 
-shopsRoutes.put("/shops/:id", updateShopHandler, async (c) => {
+shopsRoutes.put("/shops/:id", requireAdmin, updateShopHandler, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
   const body = c.req.valid("json");
@@ -95,7 +95,7 @@ shopsRoutes.put("/shops/:id", updateShopHandler, async (c) => {
   return ok(c, result.shop);
 });
 
-shopsRoutes.patch("/shops/:id", updateShopHandler, async (c) => {
+shopsRoutes.patch("/shops/:id", requireAdmin, updateShopHandler, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
   const body = c.req.valid("json");
@@ -158,7 +158,7 @@ shopsRoutes.patch("/shops/:id/delete-reason", requireAdmin, async (c) => {
   return ok(c, { message: "Delete reason updated" });
 });
 
-shopsRoutes.post("/shops/:id/refetch-image", async (c) => {
+shopsRoutes.post("/shops/:id/refetch-image", requireAdmin, async (c) => {
   const id = parseId(c.req.param("id"));
   if (!id) return fail(c, 400, "Invalid id");
 
@@ -168,19 +168,29 @@ shopsRoutes.post("/shops/:id/refetch-image", async (c) => {
 });
 
 // PATCH /admin/shops/:id/og-image — manually set the OG image URL
-shopsRoutes.patch("/shops/:id/og-image", zValidator("json", ogImageUpdateSchema), async (c) => {
-  const id = parseId(c.req.param("id"));
-  if (!id) return fail(c, 400, "Invalid id");
-  const { ogImage } = c.req.valid("json");
-  await setManagedAdminShopOgImage(id, ogImage);
-  return ok(c, { ogImage });
-});
+shopsRoutes.patch(
+  "/shops/:id/og-image",
+  requireAdmin,
+  zValidator("json", ogImageUpdateSchema),
+  async (c) => {
+    const id = parseId(c.req.param("id"));
+    if (!id) return fail(c, 400, "Invalid id");
+    const { ogImage } = c.req.valid("json");
+    await setManagedAdminShopOgImage(id, ogImage);
+    return ok(c, { ogImage });
+  },
+);
 
-shopsRoutes.post("/preview-image", zValidator("json", previewImageSchema), async (c) => {
-  const { url } = c.req.valid("json");
-  const result = await previewAdminShopImage(url);
-  return ok(c, result);
-});
+shopsRoutes.post(
+  "/preview-image",
+  requireAdmin,
+  zValidator("json", previewImageSchema),
+  async (c) => {
+    const { url } = c.req.valid("json");
+    const result = await previewAdminShopImage(url);
+    return ok(c, result);
+  },
+);
 
 // POST /admin/shops/import — stage review JSON (flat array of shopJson) for review
 shopsRoutes.post(
