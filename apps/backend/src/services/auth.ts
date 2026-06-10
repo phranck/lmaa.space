@@ -2,6 +2,9 @@ import bcrypt from "bcryptjs";
 
 import { env } from "../config/env.js";
 
+/** bcrypt cost factor used for all password hashing. 12 is a sensible 2026 default. */
+const BCRYPT_COST = 12;
+
 /**
  * Default cookie settings for admin session handling.
  *
@@ -26,7 +29,7 @@ export const SESSION_COOKIE_OPTIONS = {
  * @returns A bcrypt hash string suitable for persistence.
  */
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, BCRYPT_COST);
 }
 
 /**
@@ -39,3 +42,14 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
+
+/**
+ * Constant placeholder bcrypt hash used to run a dummy comparison during login
+ * when the supplied username does not exist. This keeps login response time
+ * roughly constant whether or not the account exists, mitigating username
+ * enumeration via timing side-channels.
+ */
+export const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  "user-enumeration-timing-mitigation-placeholder",
+  BCRYPT_COST,
+);

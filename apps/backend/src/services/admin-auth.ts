@@ -1,5 +1,5 @@
 import { hashAdminInviteToken } from "./admin-invite.js";
-import { hashPassword, verifyPassword } from "./auth.js";
+import { DUMMY_PASSWORD_HASH, hashPassword, verifyPassword } from "./auth.js";
 import { failure, success } from "../lib/result.js";
 import {
   acceptInviteWithSession,
@@ -104,7 +104,13 @@ export async function setupOwnerAdmin(input: SetupAdminInput) {
  */
 export async function loginAdmin(input: LoginAdminInput) {
   const admin = await findAdminByUsername(input.username);
-  if (!admin?.passwordHash || !(await verifyPassword(input.password, admin.passwordHash))) {
+  // Always run a bcrypt comparison — against a placeholder hash when the user is
+  // unknown — so login timing does not reveal whether the username exists.
+  const passwordMatches = await verifyPassword(
+    input.password,
+    admin?.passwordHash ?? DUMMY_PASSWORD_HASH,
+  );
+  if (!admin?.passwordHash || !passwordMatches) {
     return failure("invalid_credentials");
   }
 
